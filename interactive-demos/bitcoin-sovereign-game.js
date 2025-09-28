@@ -1,12 +1,13 @@
 /**
- * Bitcoin STAX Timeline Game (2005-2025)
+ * Bitcoin SOVEREIGN Journey (2005-2025)
  * Interactive historical simulation with Socratic learning
  * Integrates CheckOnChain metrics for real-world context
+ * Part of Bitcoin Sovereign Academy
  */
 
-class BitcoinSTAXGame {
+class BitcoinSovereignGame {
     constructor() {
-        this.name = 'Bitcoin STAX: A Journey Through Economic History';
+        this.name = 'Bitcoin SOVEREIGN: Your Journey to Financial Sovereignty';
         this.description = 'Experience 20 years of economic history and Bitcoin evolution';
         this.currentYear = 2005;
         this.endYear = 2025;
@@ -290,10 +291,21 @@ class BitcoinSTAXGame {
             }
         }
         
-        // Traditional options always available
-        options.push(
-            { id: 'educate', label: 'Study economics and Bitcoin', risk: 'none', knowledge: true }
-        );
+        // Education options (context-aware)
+        if (year <= 2007) {
+            options.push(
+                { id: 'educate', label: 'Study economics and monetary history', risk: 'none', knowledge: true }
+            );
+        } else if (year === 2008) {
+            options.push(
+                { id: 'educate', label: 'Study the financial crisis causes', risk: 'none', knowledge: true },
+                { id: 'research_digital_money', label: 'Research digital money concepts', risk: 'none', knowledge: true }
+            );
+        } else if (year >= 2009) {
+            options.push(
+                { id: 'educate', label: 'Study economics and Bitcoin', risk: 'none', knowledge: true }
+            );
+        }
         
         return options;
     }
@@ -399,6 +411,18 @@ class BitcoinSTAXGame {
                 results.impact = this.educate();
                 results.success = true;
                 results.lesson = 'Knowledge is the best investment';
+                break;
+                
+            case 'research_digital_money':
+                results.impact = this.researchDigitalMoney();
+                results.success = true;
+                results.lesson = 'Preparing for the future of money';
+                break;
+                
+            case 'read_whitepaper':
+                results.impact = this.readWhitepaper();
+                results.success = true;
+                results.lesson = 'You discovered something revolutionary';
                 break;
                 
             case 'choose_bitcoin':
@@ -559,13 +583,51 @@ class BitcoinSTAXGame {
     }
 
     educate() {
-        this.player.knowledge.economic += 5;
-        this.player.knowledge.bitcoin += 10;
-        this.player.knowledge.technical += 3;
+        const year = this.currentYear;
+        
+        if (year < 2009) {
+            // Before Bitcoin exists, can't study Bitcoin
+            this.player.knowledge.economic += 10;
+            this.player.knowledge.sovereignty += 2;
+            
+            return {
+                learned: 'Economic principles and monetary history',
+                wisdom: '+10 Economics'
+            };
+        } else {
+            // After Bitcoin exists
+            this.player.knowledge.economic += 5;
+            this.player.knowledge.bitcoin += 10;
+            this.player.knowledge.technical += 3;
+            
+            return {
+                learned: 'The nature of money and Bitcoin',
+                wisdom: '+10 Bitcoin knowledge'
+            };
+        }
+    }
+    
+    researchDigitalMoney() {
+        // Special option for 2008 - preparing for Bitcoin
+        this.player.knowledge.technical += 5;
+        this.player.knowledge.sovereignty += 5;
         
         return {
-            learned: 'The nature of money',
-            wisdom: '+10'
+            learned: 'Cryptography and digital cash concepts',
+            wisdom: 'You are prepared for what comes next'
+        };
+    }
+    
+    readWhitepaper() {
+        // Reading Satoshi's whitepaper in 2008
+        this.player.knowledge.bitcoin += 15;
+        this.player.knowledge.technical += 10;
+        this.player.knowledge.sovereignty += 10;
+        this.player.achievements.push('Whitepaper Reader');
+        
+        return {
+            learned: 'A Peer-to-Peer Electronic Cash System',
+            wisdom: 'You understand the revolution before it begins'
         };
     }
 
@@ -886,7 +948,7 @@ class BitcoinSTAXGame {
 
     generateCertificate() {
         return {
-            title: 'Bitcoin STAX Journey Complete',
+            title: 'Bitcoin SOVEREIGN Journey Complete',
             player: this.player.name,
             startYear: 2005,
             endYear: 2025,
@@ -1130,9 +1192,11 @@ class ProgressAssessor {
 
 // Export for use
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = BitcoinSTAXGame;
+    module.exports = BitcoinSovereignGame;
 }
 
 if (typeof window !== 'undefined') {
-    window.BitcoinSTAXGame = BitcoinSTAXGame;
+    window.BitcoinSovereignGame = BitcoinSovereignGame;
+    // Keep backward compatibility temporarily
+    window.BitcoinSTAXGame = BitcoinSovereignGame;
 }
