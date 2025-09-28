@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin STAX: A Journey Through Economic History | Bitcoin Sovereign Academy</title>
+    
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --success-green: #4caf50;
+            --danger-red: #f44336;
+            --warning-yellow: #ff9800;
+            --info-blue: #2196f3;
+            --gold-color: #ffd700;
+            --gradient-orange: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
+            --gradient-dark: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--primary-dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.5s ease;
+        }
+
+        .bitcoin-logo {
+            width: 120px;
+            height: 120px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        /* Welcome Screen */
+        #welcome-screen {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            display: none;
+        }
+
+        .welcome-content {
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .game-title {
+            font-size: 3rem;
+            font-weight: bold;
+            background: var(--gradient-orange);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            animation: fadeInUp 1s ease;
+        }
+
+        .game-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+
+        .game-description {
+            color: var(--text-light);
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease 0.4s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Player Setup */
+        .player-setup {
+            animation: fadeInUp 1s ease 0.6s both;
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+        }
+
+        .player-name-input {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            background: var(--secondary-dark);
+            border: 2px solid var(--primary-orange);
+            border-radius: 8px;
+            color: var(--text-light);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .player-name-input:focus {
+            outline: none;
+            box-shadow: 0 0 20px rgba(247, 147, 26, 0.3);
+        }
+
+        .start-button {
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: var(--gradient-orange);
+            border: none;
+            border-radius: 8px;
+            color: var(--primary-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .start-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(247, 147, 26, 0.4);
+        }
+
+        .start-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Game Interface */
+        #game-screen {
+            display: none;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .game-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 1.5rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Left Panel - Player Stats */
+        .stats-panel {
+            background: var(--secondary-dark);
+            border-radius: 12px;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 1rem;
+        }
+
+        .player-info {
+            border-bottom: 1px solid rgba(247, 147, 26, 0.3);
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .player-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .current-year {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1rem;
+            background: var(--gradient-orange);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Portfolio Section */
+        .portfolio-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .portfolio-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .portfolio-item:hover {
+            background: rgba(247, 147, 26, 0.1);
+        }
+
+        .asset-name {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .asset-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .asset-value {
+            font-weight: bold;
+            color: var(--primary-orange);
+        }
+
+        /* Knowledge Meters */
+        .knowledge-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .knowledge-item {
+            margin-bottom: 0.8rem;
+        }
+
+        .knowledge-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+        }
+
+        .knowledge-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .knowledge-progress {
+            height: 100%;
+            background: var(--gradient-orange);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Achievements */
+        .achievements-section {
+            margin-top: 1rem;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .achievement-badge {
+            width: 40px;
+            height: 40px;
+            background: rgba(247, 147, 26, 0.1);
+            border: 2px solid var(--primary-orange);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .achievement-badge:hover {
+            transform: scale(1.1);
+            background: rgba(247, 147, 26, 0.2);
+        }
+
+        .achievement-badge.locked {
+            opacity: 0.3;
+            border-color: var(--text-dim);
+        }
+
+        /* Center Panel - Main Game */
+        .main-panel {
+            background: var(--secondary-dark);
+            border-radius: 12px;
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        .year-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(247, 147, 26, 0.3);
+        }
+
+        .year-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .year-event {
+            font-size: 1.3rem;
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .year-description {
+            color: var(--text-dim);
+            font-size: 1rem;
+        }
+
+        /* Economic State */
+        .economic-state {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .state-indicator {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .state-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .state-crisis { background: rgba(244, 67, 54, 0.2); color: var(--danger-red); }
+        .state-bubble { background: rgba(255, 152, 0, 0.2); color: var(--warning-yellow); }
+        .state-growth { background: rgba(76, 175, 80, 0.2); color: var(--success-green); }
+        .state-normal { background: rgba(33, 150, 243, 0.2); color: var(--info-blue); }
+
+        /* Bitcoin State */
+        .bitcoin-state {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.1) 0%, rgba(255, 179, 71, 0.1) 100%);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .bitcoin-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .metric-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            padding: 0.8rem;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 0.3rem;
+        }
+
+        .metric-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-orange);
+        }
+
+        /* News Headlines */
+        .news-section {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .news-ticker {
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .news-item {
+            padding: 0 2rem;
+            white-space: nowrap;
+            animation: scroll 20s linear infinite;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* Socratic Question */
+        .socratic-section {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.1) 0%, rgba(75, 0, 130, 0.1) 100%);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .socratic-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .socratic-question {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Decision Options */
+        .options-section {
+            margin-bottom: 2rem;
+        }
+
+        .options-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .option-card {
+            background: rgba(0,0,0,0.3);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-card:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(247, 147, 26, 0.2);
+        }
+
+        .option-card.selected {
+            border-color: var(--primary-orange);
+            background: rgba(247, 147, 26, 0.1);
+        }
+
+        .option-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+
+        .option-label {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .risk-badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .risk-low { background: rgba(76, 175, 80, 0.2); color: var(--success-green); }
+        .risk-medium { background: rgba(255, 152, 0, 0.2); color: var(--warning-yellow); }
+        .risk-high { background: rgba(244, 67, 54, 0.2); color: var(--danger-red); }
+        .risk-extreme { background: rgba(139, 0, 0, 0.3); color: #ff0000; }
+        .risk-unknown { background: rgba(138, 43, 226, 0.2); color: #8a2be2; }
+
+        .option-special {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--gradient-orange);
+            padding: 0.2rem 0.8rem;
+            border-radius: 0 8px 0 8px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--primary-dark);
+            font-weight: bold;
+        }
+
+        /* Action Buttons */
+        .action-section {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .action-button {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .confirm-button {
+            background: var(--gradient-orange);
+            color: var(--primary-dark);
+        }
+
+        .confirm-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(247, 147, 26, 0.4);
+        }
+
+        .confirm-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .skip-button {
+            background: transparent;
+            color: var(--text-dim);
+            border: 2px solid var(--text-dim);
+        }
+
+        .skip-button:hover {
+            border-color: var(--primary-orange);
+            color: var(--primary-orange);
+        }
+
+        /* Right Panel - Market Info */
+        .market-panel {
+            background: var(--secondary-dark);
+            border-radius: 12px;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 1rem;
+        }
+
+        .market-chart {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dim);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .metric-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .metric-title {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .metric-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-orange);
+        }
+
+        /* Decision Result Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            position: relative;
+            background: var(--secondary-dark);
+            border: 2px solid var(--primary-orange);
+            border-radius: 12px;
+            max-width: 600px;
+            margin: 5% auto;
+            padding: 2rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: var(--primary-orange);
+        }
+
+        .result-content {
+            margin-bottom: 1.5rem;
+        }
+
+        .result-impact {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .reflection-box {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.1) 0%, rgba(75, 0, 130, 0.1) 100%);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-style: italic;
+        }
+
+        .close-modal {
+            display: block;
+            margin: 0 auto;
+            padding: 0.8rem 2rem;
+            background: var(--gradient-orange);
+            border: none;
+            border-radius: 8px;
+            color: var(--primary-dark);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-modal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(247, 147, 26, 0.3);
+        }
+
+        /* Game Over Screen */
+        #gameover-screen {
+            display: none;
+            min-height: 100vh;
+            padding: 2rem;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+        }
+
+        .gameover-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .final-score {
+            font-size: 4rem;
+            font-weight: bold;
+            background: var(--gradient-orange);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+
+        .grade-display {
+            font-size: 6rem;
+            font-weight: bold;
+            margin: 2rem 0;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .grade-A { color: var(--success-green); }
+        .grade-B { color: var(--info-blue); }
+        .grade-C { color: var(--warning-yellow); }
+        .grade-D { color: var(--danger-red); }
+        .grade-F { color: #800000; }
+
+        .final-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .final-stat-card {
+            background: var(--secondary-dark);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .restart-button {
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: var(--gradient-orange);
+            border: none;
+            border-radius: 8px;
+            color: var(--primary-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            margin-top: 2rem;
+        }
+
+        .restart-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(247, 147, 26, 0.4);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1200px) {
+            .game-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-panel, .market-panel {
+                position: relative;
+                top: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2rem;
+            }
+            
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="bitcoin-logo">₿</div>
+        <p style="margin-top: 2rem; color: var(--text-dim);">Loading Bitcoin STAX...</p>
+    </div>
+
+    <!-- Welcome Screen -->
+    <div id="welcome-screen">
+        <div class="welcome-content">
+            <h1 class="game-title">Bitcoin STAX</h1>
+            <p class="game-subtitle">A Journey Through Economic History</p>
+            <div class="game-description">
+                <p>Experience 20 years of economic turmoil and Bitcoin's rise from 2005 to 2025.</p>
+                <p style="margin-top: 1rem;">Make critical decisions at each turning point. Will you recognize the revolution early? Can you survive the crashes? Will you choose freedom over convenience?</p>
+                <p style="margin-top: 1rem; color: var(--primary-orange);">Your choices shape your destiny.</p>
+            </div>
+            <div class="player-setup">
+                <div class="input-group">
+                    <input type="text" class="player-name-input" id="playerNameInput" placeholder="Enter your name" maxlength="20">
+                </div>
+                <button class="start-button" id="startGameBtn" disabled>Begin Journey</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Screen -->
+    <div id="game-screen">
+        <div class="game-container">
+            <!-- Left Panel - Player Stats -->
+            <div class="stats-panel">
+                <div class="player-info">
+                    <div class="player-name" id="playerNameDisplay">Player</div>
+                    <div class="current-year" id="currentYearDisplay">2005</div>
+                </div>
+                
+                <div class="portfolio-section">
+                    <div class="section-title">Portfolio</div>
+                    <div class="portfolio-item">
+                        <span class="asset-name">
+                            <span class="asset-icon">💵</span>
+                            <span>Fiat</span>
+                        </span>
+                        <span class="asset-value" id="fiatValue">$10,000</span>
+                    </div>
+                    <div class="portfolio-item">
+                        <span class="asset-name">
+                            <span class="asset-icon">₿</span>
+                            <span>Bitcoin</span>
+                        </span>
+                        <span class="asset-value" id="bitcoinValue">0 BTC</span>
+                    </div>
+                    <div class="portfolio-item">
+                        <span class="asset-name">
+                            <span class="asset-icon">🏆</span>
+                            <span>Gold</span>
+                        </span>
+                        <span class="asset-value" id="goldValue">0 oz</span>
+                    </div>
+                    <div class="portfolio-item">
+                        <span class="asset-name">
+                            <span class="asset-icon">📈</span>
+                            <span>Stocks</span>
+                        </span>
+                        <span class="asset-value" id="stocksValue">$0</span>
+                    </div>
+                    <div class="portfolio-item">
+                        <span class="asset-name">
+                            <span class="asset-icon">🏠</span>
+                            <span>Real Estate</span>
+                        </span>
+                        <span class="asset-value" id="realestateValue">$0</span>
+                    </div>
+                </div>
+
+                <div class="knowledge-section">
+                    <div class="section-title">Knowledge</div>
+                    <div class="knowledge-item">
+                        <div class="knowledge-label">
+                            <span>Economic</span>
+                            <span id="economicScore">0%</span>
+                        </div>
+                        <div class="knowledge-bar">
+                            <div class="knowledge-progress" id="economicBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="knowledge-item">
+                        <div class="knowledge-label">
+                            <span>Bitcoin</span>
+                            <span id="bitcoinScore">0%</span>
+                        </div>
+                        <div class="knowledge-bar">
+                            <div class="knowledge-progress" id="bitcoinBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="knowledge-item">
+                        <div class="knowledge-label">
+                            <span>Technical</span>
+                            <span id="technicalScore">0%</span>
+                        </div>
+                        <div class="knowledge-bar">
+                            <div class="knowledge-progress" id="technicalBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="knowledge-item">
+                        <div class="knowledge-label">
+                            <span>Sovereignty</span>
+                            <span id="sovereigntyScore">0%</span>
+                        </div>
+                        <div class="knowledge-bar">
+                            <div class="knowledge-progress" id="sovereigntyBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="achievements-section">
+                    <div class="section-title">Achievements</div>
+                    <div class="achievements-grid" id="achievementsGrid">
+                        <!-- Achievements will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel - Main Game -->
+            <div class="main-panel">
+                <div class="year-header">
+                    <div class="year-title" id="yearTitle">Year 2005</div>
+                    <div class="year-event" id="yearEvent">Housing Bubble Inflating</div>
+                    <div class="year-description" id="yearDescription">Easy credit everywhere, home prices soaring</div>
+                </div>
+
+                <div class="economic-state" id="economicState">
+                    <div class="state-indicator">
+                        <div class="state-icon state-bubble" id="stateIcon">📈</div>
+                        <div>
+                            <div style="font-weight: bold; margin-bottom: 0.3rem;" id="stateTitle">Bubble Economy</div>
+                            <div style="color: var(--text-dim); font-size: 0.9rem;" id="stateDescription">Housing bubble inflating, easy credit everywhere</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bitcoin-state" id="bitcoinState" style="display: none;">
+                    <div style="font-weight: bold; margin-bottom: 0.5rem;">Bitcoin Network</div>
+                    <div class="bitcoin-metrics">
+                        <div class="metric-card">
+                            <div class="metric-label">Price</div>
+                            <div class="metric-value" id="btcPrice">$0</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Hashrate</div>
+                            <div class="metric-value" id="btcHashrate">0</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Adoption</div>
+                            <div class="metric-value" id="btcAdoption">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="news-section">
+                    <div class="section-title">📰 Breaking News</div>
+                    <div class="news-ticker">
+                        <span class="news-item" id="newsHeadline">Housing Prices Hit New Records • Greenspan: 'Froth' in Housing Market • Subprime Mortgages Booming</span>
+                    </div>
+                </div>
+
+                <div class="socratic-section">
+                    <div class="socratic-icon">🤔</div>
+                    <div class="socratic-question" id="socraticQuestion">
+                        If everyone believes house prices can only go up, what could possibly go wrong?
+                    </div>
+                </div>
+
+                <div class="options-section">
+                    <h3 class="options-title">What will you do?</h3>
+                    <div class="options-grid" id="optionsGrid">
+                        <!-- Options will be dynamically populated -->
+                    </div>
+                </div>
+
+                <div class="action-section">
+                    <button class="action-button skip-button" id="skipButton">Hold & Wait</button>
+                    <button class="action-button confirm-button" id="confirmButton" disabled>Make Decision</button>
+                </div>
+            </div>
+
+            <!-- Right Panel - Market Info -->
+            <div class="market-panel">
+                <div class="section-title">Market Conditions</div>
+                
+                <div class="market-chart">
+                    <div class="chart-placeholder">
+                        <canvas id="priceChart" style="width: 100%; height: 100%;"></canvas>
+                    </div>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-box">
+                        <div class="metric-title">Interest Rate</div>
+                        <div class="metric-number" id="interestRate">5.25%</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-title">Inflation</div>
+                        <div class="metric-number" id="inflationRate">2.5%</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-title">S&P 500</div>
+                        <div class="metric-number" id="sp500">100</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-title">Gold/oz</div>
+                        <div class="metric-number" id="goldPrice">$445</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <div class="section-title">On-Chain Metrics</div>
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <div class="metric-title">MVRV</div>
+                            <div class="metric-number" id="mvrvRatio">-</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-title">NUPL</div>
+                            <div class="metric-number" id="nuplValue">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decision Result Modal -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-header" id="resultHeader">Decision Made!</h2>
+            <div class="result-content">
+                <div id="resultNarrative"></div>
+                <div class="result-impact" id="resultImpact"></div>
+                <div class="reflection-box" id="resultReflection"></div>
+            </div>
+            <button class="close-modal" id="closeModal">Continue Journey</button>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameover-screen">
+        <div class="gameover-container">
+            <h1 class="game-title">Journey Complete</h1>
+            <div class="final-score" id="finalScore">Total Value: $0</div>
+            <div class="grade-display" id="gradeDisplay">A+</div>
+            
+            <div class="final-stats">
+                <div class="final-stat-card">
+                    <div class="metric-title">Total Return</div>
+                    <div class="metric-number" id="totalReturn">0%</div>
+                </div>
+                <div class="final-stat-card">
+                    <div class="metric-title">Bitcoin Allocation</div>
+                    <div class="metric-number" id="btcAllocation">0%</div>
+                </div>
+                <div class="final-stat-card">
+                    <div class="metric-title">Knowledge Score</div>
+                    <div class="metric-number" id="knowledgeFinal">0</div>
+                </div>
+                <div class="final-stat-card">
+                    <div class="metric-title">Sovereignty</div>
+                    <div class="metric-number" id="sovereigntyFinal">0</div>
+                </div>
+            </div>
+
+            <div class="reflection-box" style="max-width: 600px; margin: 2rem auto;">
+                <p id="finalReflection"></p>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <h3>Achievements Unlocked</h3>
+                <div id="finalAchievements" style="margin-top: 1rem;"></div>
+            </div>
+
+            <button class="restart-button" id="restartBtn">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Load the game engine -->
+    <script src="bitcoin-stax-game.js"></script>
+    
+    <!-- Game Controller Script -->
+    <script>
+        // Game state
+        let game = null;
+        let currentYear = 2005;
+        let selectedOption = null;
+        let gameData = null;
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Hide loading after a moment
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('welcome-screen').style.display = 'flex';
+                }, 500);
+            }, 1500);
+
+            // Setup event listeners
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Player name input
+            const nameInput = document.getElementById('playerNameInput');
+            const startBtn = document.getElementById('startGameBtn');
+            
+            nameInput.addEventListener('input', (e) => {
+                startBtn.disabled = e.target.value.trim().length === 0;
+            });
+
+            nameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !startBtn.disabled) {
+                    startGame();
+                }
+            });
+
+            startBtn.addEventListener('click', startGame);
+
+            // Game buttons
+            document.getElementById('confirmButton').addEventListener('click', makeDecision);
+            document.getElementById('skipButton').addEventListener('click', skipYear);
+            document.getElementById('closeModal').addEventListener('click', closeResultModal);
+            document.getElementById('restartBtn').addEventListener('click', restartGame);
+        }
+
+        async function startGame() {
+            const playerName = document.getElementById('playerNameInput').value.trim();
+            if (!playerName) return;
+
+            // Initialize game
+            game = new BitcoinSTAXGame();
+            gameData = await game.initializeGame(playerName);
+
+            // Update player display
+            document.getElementById('playerNameDisplay').textContent = playerName;
+
+            // Transition to game screen
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+
+            // Load first year
+            updateGameDisplay(gameData);
+        }
+
+        function updateGameDisplay(data) {
+            // Update year info
+            document.getElementById('currentYearDisplay').textContent = data.year;
+            document.getElementById('yearTitle').textContent = `Year ${data.year}`;
+            document.getElementById('yearEvent').textContent = data.event.title;
+            document.getElementById('yearDescription').textContent = data.event.description;
+
+            // Update economic state
+            updateEconomicState(data.economicState);
+
+            // Update Bitcoin state
+            updateBitcoinState(data.bitcoinState);
+
+            // Update news
+            const headlines = data.newsHeadlines.join(' • ');
+            document.getElementById('newsHeadline').textContent = headlines;
+
+            // Update Socratic question
+            document.getElementById('socraticQuestion').textContent = data.socraticQuestion;
+
+            // Update options
+            updateOptions(data.playerOptions);
+
+            // Update metrics
+            updateMarketMetrics(data);
+
+            // Reset selection
+            selectedOption = null;
+            document.getElementById('confirmButton').disabled = true;
+        }
+
+        function updateEconomicState(state) {
+            const stateIcon = document.getElementById('stateIcon');
+            const stateTitle = document.getElementById('stateTitle');
+            const stateDescription = document.getElementById('stateDescription');
+
+            // Update icon and styling based on condition
+            stateIcon.className = 'state-icon';
+            switch(state.condition) {
+                case 'crisis':
+                    stateIcon.className += ' state-crisis';
+                    stateIcon.textContent = '📉';
+                    stateTitle.textContent = 'Economic Crisis';
+                    break;
+                case 'bubble':
+                    stateIcon.className += ' state-bubble';
+                    stateIcon.textContent = '🎈';
+                    stateTitle.textContent = 'Bubble Economy';
+                    break;
+                case 'growth':
+                    stateIcon.className += ' state-growth';
+                    stateIcon.textContent = '📈';
+                    stateTitle.textContent = 'Economic Growth';
+                    break;
+                case 'pandemic':
+                    stateIcon.className += ' state-crisis';
+                    stateIcon.textContent = '🦠';
+                    stateTitle.textContent = 'Pandemic Economy';
+                    break;
+                default:
+                    stateIcon.className += ' state-normal';
+                    stateIcon.textContent = '📊';
+                    stateTitle.textContent = 'Economic Activity';
+            }
+
+            stateDescription.textContent = state.description;
+        }
+
+        function updateBitcoinState(state) {
+            const bitcoinStateDiv = document.getElementById('bitcoinState');
+            
+            if (state.exists) {
+                bitcoinStateDiv.style.display = 'block';
+                document.getElementById('btcPrice').textContent = `$${state.price.toLocaleString()}`;
+                document.getElementById('btcHashrate').textContent = game.getHashrate(currentYear);
+                document.getElementById('btcAdoption').textContent = game.getAdoption(currentYear);
+            } else {
+                bitcoinStateDiv.style.display = 'none';
+            }
+        }
+
+        function updateOptions(options) {
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+
+            options.forEach(option => {
+                const card = document.createElement('div');
+                card.className = 'option-card';
+                card.dataset.optionId = option.id;
+
+                if (option.special) {
+                    const special = document.createElement('div');
+                    special.className = 'option-special';
+                    special.textContent = 'Special';
+                    card.appendChild(special);
+                }
+
+                const header = document.createElement('div');
+                header.className = 'option-header';
+
+                const label = document.createElement('span');
+                label.className = 'option-label';
+                label.textContent = option.label;
+
+                const risk = document.createElement('span');
+                risk.className = `risk-badge risk-${option.risk}`;
+                risk.textContent = option.risk;
+
+                header.appendChild(label);
+                header.appendChild(risk);
+                card.appendChild(header);
+
+                card.addEventListener('click', () => selectOption(option));
+
+                grid.appendChild(card);
+            });
+        }
+
+        function selectOption(option) {
+            // Clear previous selection
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Mark selected
+            const card = document.querySelector(`[data-option-id="${option.id}"]`);
+            if (card) {
+                card.classList.add('selected');
+            }
+
+            selectedOption = option;
+            document.getElementById('confirmButton').disabled = false;
+        }
+
+        async function makeDecision() {
+            if (!selectedOption) return;
+
+            // Process decision
+            const result = await game.makeDecision(selectedOption.id);
+
+            // Show result modal
+            showResultModal(result);
+
+            // Update portfolio display
+            updatePortfolio(result.portfolio);
+
+            // Update knowledge
+            updateKnowledge(result.knowledge);
+
+            // Check if game continues
+            if (result.nextYear) {
+                // Prepare for next year
+                currentYear++;
+            } else {
+                // Game over
+                setTimeout(() => {
+                    endGame();
+                }, 2000);
+            }
+        }
+
+        function showResultModal(result) {
+            const modal = document.getElementById('resultModal');
+            
+            document.getElementById('resultNarrative').textContent = result.narrative;
+            
+            // Format impact
+            let impactHTML = '<strong>Impact:</strong><br>';
+            for (let key in result.result.impact) {
+                impactHTML += `${key}: ${result.result.impact[key]}<br>`;
+            }
+            document.getElementById('resultImpact').innerHTML = impactHTML;
+            
+            document.getElementById('resultReflection').textContent = result.reflection;
+            
+            modal.style.display = 'block';
+        }
+
+        function closeResultModal() {
+            document.getElementById('resultModal').style.display = 'none';
+            
+            // Load next year
+            if (currentYear < 2025) {
+                gameData = game.startYear(currentYear + 1);
+                updateGameDisplay(gameData);
+            } else {
+                endGame();
+            }
+        }
+
+        async function skipYear() {
+            // Skip without making a decision (hold)
+            const result = await game.makeDecision('hold');
+            
+            updatePortfolio(result.portfolio);
+            updateKnowledge(result.knowledge);
+            
+            if (currentYear < 2025) {
+                currentYear++;
+                gameData = game.startYear(currentYear);
+                updateGameDisplay(gameData);
+            } else {
+                endGame();
+            }
+        }
+
+        function updatePortfolio(portfolio) {
+            document.getElementById('fiatValue').textContent = `$${portfolio.fiat.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+            document.getElementById('bitcoinValue').textContent = `${portfolio.bitcoin.toFixed(4)} BTC`;
+            document.getElementById('goldValue').textContent = `${portfolio.gold.toFixed(2)} oz`;
+            document.getElementById('stocksValue').textContent = `$${portfolio.stocks.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+            document.getElementById('realestateValue').textContent = `$${portfolio.realestate.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+        }
+
+        function updateKnowledge(knowledge) {
+            // Update scores and bars
+            const updateKnowledgeBar = (type, value) => {
+                document.getElementById(`${type}Score`).textContent = `${value}%`;
+                document.getElementById(`${type}Bar`).style.width = `${value}%`;
+            };
+
+            updateKnowledgeBar('economic', knowledge.economic);
+            updateKnowledgeBar('bitcoin', knowledge.bitcoin);
+            updateKnowledgeBar('technical', knowledge.technical);
+            updateKnowledgeBar('sovereignty', knowledge.sovereignty);
+        }
+
+        function updateMarketMetrics(data) {
+            // Update market metrics
+            document.getElementById('mvrvRatio').textContent = data.metrics.mvrv ? data.metrics.mvrv.toFixed(2) : '-';
+            document.getElementById('nuplValue').textContent = data.metrics.nupl ? data.metrics.nupl.toFixed(2) : '-';
+        }
+
+        async function endGame() {
+            // Get final results
+            const finalResults = await game.completeGame();
+            
+            // Hide game screen
+            document.getElementById('game-screen').style.display = 'none';
+            
+            // Show game over screen
+            document.getElementById('gameover-screen').style.display = 'block';
+            
+            // Display final stats
+            document.getElementById('finalScore').textContent = `Total Value: $${finalResults.finalValue.toLocaleString()}`;
+            document.getElementById('gradeDisplay').textContent = finalResults.grade;
+            document.getElementById('gradeDisplay').className = `grade-display grade-${finalResults.grade.charAt(0)}`;
+            
+            document.getElementById('totalReturn').textContent = finalResults.performance.totalReturn;
+            document.getElementById('btcAllocation').textContent = finalResults.performance.bitcoinAllocation;
+            document.getElementById('knowledgeFinal').textContent = finalResults.performance.knowledgeScore;
+            document.getElementById('sovereigntyFinal').textContent = finalResults.performance.sovereigntyScore;
+            
+            document.getElementById('finalReflection').textContent = finalResults.reflection;
+            
+            // Display achievements
+            const achievementsDiv = document.getElementById('finalAchievements');
+            achievementsDiv.innerHTML = finalResults.achievements.map(a => 
+                `<span style="display: inline-block; margin: 0.5rem; padding: 0.5rem 1rem; background: var(--secondary-dark); border-radius: 8px; border: 1px solid var(--primary-orange);">🏆 ${a}</span>`
+            ).join('');
+        }
+
+        function restartGame() {
+            // Reset everything and go back to welcome
+            currentYear = 2005;
+            selectedOption = null;
+            game = null;
+            gameData = null;
+            
+            document.getElementById('gameover-screen').style.display = 'none';
+            document.getElementById('welcome-screen').style.display = 'flex';
+            document.getElementById('playerNameInput').value = '';
+            document.getElementById('startGameBtn').disabled = true;
+        }
+    </script>
+</body>
+</html>
