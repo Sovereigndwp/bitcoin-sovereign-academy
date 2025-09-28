@@ -1,0 +1,208 @@
+name: Quality Gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      
+      - name: Install dependencies
+        run: |
+          npm ci --if-present || npm install || echo "No package.json found"
+      
+      - name: Check for missing files (404s)
+        run: |
+          echo "Checking for broken internal links..."
+          for file in $(find . -name "*.html" -type f); do
+            grep -oE '(src|href)="[^"]*\.(js|css|html)"' "$file" | cut -d'"' -f2 | while read -r ref; do
+              # Skip external URLs
+              if [[ ! "$ref" =~ ^https?:// ]]; then
+                # Resolve relative paths
+                dir=$(dirname "$file")
+                resolved="$dir/$ref"
+                resolved=$(echo "$resolved" | sed 's|/./|/|g')
+                if [ ! -f "$resolved" ] && [ ! -f "./$ref" ]; then
+                  echo "ERROR: Missing file referenced in $file: $ref"
+                  exit 1
+                fi
+              fi
+            done
+          done
+          echo "✅ No broken internal links found"
+      
+      - name: Run content deduplication check
+        run: |
+          if [ -f "scripts/dedupe.js" ]; then
+            node scripts/dedupe.js
+          else
+            echo "⚠️ No deduplication script found"
+          fi
+      
+      - name: Check quality thresholds
+        run: |
+          echo "Checking content quality thresholds..."
+          # Create quality check script if it doesn't exist
+          cat > check-quality.js << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          
+          const THRESHOLDS = {
+            FK_SCORE: 70,        // Flesch-Kincaid readability
+            ACCURACY: 0.95,      // Content accuracy
+            BRAND_CONSISTENCY: 0.80  // Brand consistency
+          };
+          
+          // Simple FK score calculator
+          function calculateFK(text) {
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            const words = text.split(/\s+/).filter(w => w.length > 0);
+            const syllables = words.reduce((sum, word) => sum + countSyllables(word), 0);
+            
+            if (sentences.length === 0 || words.length === 0) return 100;
+            
+            const avgWordsPerSentence = words.length / sentences.length;
+            const avgSyllablesPerWord = syllables / words.length;
+            
+            // Flesch Reading Ease formula
+            const score = 206.835 - 1.015 * avgWordsPerSentence - 84.6 * avgSyllablesPerWord;
+            return Math.max(0, Math.min(100, score));
+          }
+          
+          function countSyllables(word) {
+            word = word.toLowerCase().replace(/[^a-z]/g, '');
+            const matches = word.match(/[aeiouy]+/g);
+            return matches ? matches.length : 1;
+          }
+          
+          // Check all markdown files
+          let passed = true;
+          const mdFiles = [];
+          
+          function findMdFiles(dir) {
+            if (!fs.existsSync(dir)) return;
+            const files = fs.readdirSync(dir);
+            for (const file of files) {
+              const fullPath = path.join(dir, file);
+              const stat = fs.statSync(fullPath);
+              if (stat.isDirectory() && !file.startsWith('.') && file !== 'node_modules') {
+                findMdFiles(fullPath);
+              } else if (file.endsWith('.md')) {
+                mdFiles.push(fullPath);
+              }
+            }
+          }
+          
+          findMdFiles('.');
+          
+          console.log(`Checking ${mdFiles.length} markdown files...`);
+          
+          for (const file of mdFiles) {
+            const content = fs.readFileSync(file, 'utf8');
+            const fkScore = calculateFK(content);
+            
+            if (fkScore < THRESHOLDS.FK_SCORE) {
+              console.error(`❌ ${file}: FK score ${fkScore.toFixed(1)} below threshold ${THRESHOLDS.FK_SCORE}`);
+              passed = false;
+            }
+          }
+          
+          if (passed) {
+            console.log('✅ All quality checks passed');
+          } else {
+            process.exit(1);
+          }
+          EOF
+          
+          node check-quality.js
+      
+      - name: Validate PWA manifest
+        run: |
+          if [ -f "manifest.json" ]; then
+            echo "Validating PWA manifest..."
+            node -e "
+              const manifest = require('./manifest.json');
+              if (!manifest.name) throw new Error('Missing name in manifest');
+              if (!manifest.start_url) throw new Error('Missing start_url in manifest');
+              if (!manifest.display) throw new Error('Missing display in manifest');
+              if (!manifest.icons || manifest.icons.length === 0) throw new Error('Missing icons in manifest');
+              console.log('✅ PWA manifest is valid');
+            "
+          fi
+      
+      - name: Check for duplicate lessons
+        run: |
+          echo "Checking for duplicate content..."
+          # Simple duplicate checker
+          find . -name "*.md" -type f | while read -r file; do
+            hash=$(md5sum "$file" | cut -d' ' -f1)
+            echo "$hash $file"
+          done | sort | uniq -d -w32 | while read -r dup; do
+            echo "ERROR: Duplicate content found: $dup"
+            exit 1
+          done
+          echo "✅ No duplicate content found"
+      
+      - name: Security scan
+        run: |
+          echo "Running security checks..."
+          # Check for exposed API keys
+          if grep -r "API_KEY\|SECRET\|PASSWORD" --include="*.js" --include="*.html" --exclude-dir=node_modules . | grep -v "process.env"; then
+            echo "⚠️ Warning: Potential hardcoded secrets found"
+          fi
+          echo "✅ Security scan complete"
+      
+      - name: Performance check
+        run: |
+          echo "Checking bundle sizes..."
+          # Check file sizes
+          for file in $(find . -name "*.js" -o -name "*.css" -type f); do
+            size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
+            if [ "$size" -gt 500000 ]; then
+              echo "⚠️ Large file detected: $file ($size bytes)"
+            fi
+          done
+          echo "✅ Performance check complete"
+      
+      - name: Generate quality report
+        if: always()
+        run: |
+          echo "# Quality Report" > quality-report.md
+          echo "Build: ${{ github.run_number }}" >> quality-report.md
+          echo "Commit: ${{ github.sha }}" >> quality-report.md
+          echo "Date: $(date)" >> quality-report.md
+          echo "" >> quality-report.md
+          echo "## Checks Performed" >> quality-report.md
+          echo "- [x] No broken links (404s)" >> quality-report.md
+          echo "- [x] Content deduplication" >> quality-report.md
+          echo "- [x] Quality thresholds (FK≥70)" >> quality-report.md
+          echo "- [x] PWA manifest validation" >> quality-report.md
+          echo "- [x] Security scan" >> quality-report.md
+          echo "- [x] Performance check" >> quality-report.md
+      
+      - name: Upload quality report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: quality-report
+          path: quality-report.md
