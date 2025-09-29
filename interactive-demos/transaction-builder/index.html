@@ -300,27 +300,52 @@
         let currentFeeRate = 10;
 
         function selectUTXO(element) {
+            console.log('Selecting UTXO:', element);
+            
+            if (!element || !element.dataset) {
+                console.error('Invalid UTXO element');
+                alert('❌ Invalid UTXO element. Please refresh the page.');
+                return;
+            }
+            
             const amount = parseFloat(element.dataset.amount);
             const isSelected = element.classList.contains('selected');
+            
+            if (isNaN(amount)) {
+                console.error('Invalid amount in UTXO:', element.dataset.amount);
+                alert('❌ Invalid UTXO amount. Please refresh the page.');
+                return;
+            }
             
             if (isSelected) {
                 element.classList.remove('selected');
                 selectedUTXOs = selectedUTXOs.filter(utxo => utxo.amount !== amount);
+                console.log('UTXO deselected, remaining:', selectedUTXOs.length);
             } else {
                 element.classList.add('selected');
-                selectedUTXOs.push({
+                const utxoData = {
                     element: element,
                     amount: amount,
-                    id: element.querySelector('small').textContent
-                });
+                    id: element.querySelector('small')?.textContent || 'unknown'
+                };
+                selectedUTXOs.push(utxoData);
+                console.log('UTXO selected, total:', selectedUTXOs.length);
             }
             
             updateTransactionPreview();
         }
 
         function addOutput() {
-            outputCount++;
+            console.log('Adding new output...');
+            
             const outputsContainer = document.querySelector('.panel:nth-child(2)');
+            if (!outputsContainer) {
+                console.error('Outputs container not found');
+                alert('❌ Interface error. Please refresh the page.');
+                return;
+            }
+            
+            outputCount++;
             const newOutput = document.createElement('div');
             newOutput.className = 'output';
             newOutput.innerHTML = `
@@ -328,10 +353,17 @@
                 <input type="text" class="address-input" placeholder="bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" />
                 <label>Amount (BTC):</label>
                 <input type="number" class="amount-input" placeholder="0.025" step="0.001" onchange="updateTransactionPreview()" />
-                <button onclick="this.parentElement.remove(); updateTransactionPreview();" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem; border-radius: 5px; margin-top: 0.5rem; cursor: pointer;">Remove</button>
+                <button onclick="this.parentElement.remove(); outputCount--; updateTransactionPreview(); console.log('Output removed');" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem; border-radius: 5px; margin-top: 0.5rem; cursor: pointer;">Remove</button>
             `;
             
-            outputsContainer.insertBefore(newOutput, outputsContainer.querySelector('.add-output-btn'));
+            const addButton = outputsContainer.querySelector('.add-output-btn');
+            if (addButton) {
+                outputsContainer.insertBefore(newOutput, addButton);
+            } else {
+                outputsContainer.appendChild(newOutput);
+            }
+            
+            console.log('Output added, total outputs:', outputCount);
             updateTransactionPreview();
         }
 
@@ -363,33 +395,74 @@
         }
 
         function buildTransaction() {
+            console.log('Building transaction...');
+            
             if (selectedUTXOs.length === 0) {
                 alert('❌ Please select at least one UTXO to spend!');
-                return;
+                return false;
             }
-
+            
             const outputs = document.querySelectorAll('.output');
             let hasValidOutput = false;
+            let totalOutput = 0;
             
             outputs.forEach(output => {
                 const addressInput = output.querySelector('.address-input');
                 const amountInput = output.querySelector('.amount-input');
-                if (addressInput.value && amountInput.value) {
+                if (addressInput?.value && amountInput?.value && !isNaN(parseFloat(amountInput.value))) {
                     hasValidOutput = true;
+                    totalOutput += parseFloat(amountInput.value);
                 }
             });
-
+            
             if (!hasValidOutput) {
                 alert('❌ Please add at least one valid output (address + amount)!');
-                return;
+                return false;
             }
+            
+            const totalInput = selectedUTXOs.reduce((sum, utxo) => sum + utxo.amount, 0);
+            const estimatedFee = 0.00001 * currentFeeRate;
+            
+            if (totalInput < totalOutput + estimatedFee) {
+                alert('❌ Insufficient funds! You need at least ' + (totalOutput + estimatedFee).toFixed(8) + ' BTC');
+                return false;
+            }
+            
+            // Show success with detailed breakdown
+            const changeAmount = totalInput - totalOutput - estimatedFee;
+            alert(`🎉 Transaction built successfully!
 
-            // Simulate transaction building
-            alert('🎉 Transaction built successfully!\n\nIn a real Bitcoin wallet, this would:\n1. Create the raw transaction\n2. Sign with your private keys\n3. Broadcast to the network\n\n💡 You\'ve learned the basic structure of Bitcoin transactions!');
+📊 Transaction Summary:
+• Inputs: ${selectedUTXOs.length} UTXOs (${totalInput.toFixed(8)} BTC)
+• Outputs: ${totalOutput.toFixed(8)} BTC
+• Fee: ${estimatedFee.toFixed(8)} BTC (${currentFeeRate} sat/vB)
+• Change: ${changeAmount.toFixed(8)} BTC
+
+In a real Bitcoin wallet, this would:
+1. Create the raw transaction
+2. Sign with your private keys  
+3. Broadcast to the network
+
+💡 You've learned the basic structure of Bitcoin transactions!`);
+            
+            console.log('Transaction built successfully');
+            return true;
         }
 
-        // Initialize
-        updateTransactionPreview();
+        // Initialize with safety checks
+        console.log('Transaction Builder initialized');
+        
+        // Test required elements
+        const requiredElements = ['selectedInputs', 'totalInput', 'totalOutput', 'estimatedFee', 'changeAmount', 'currentFeeRate'];
+        const missingElements = requiredElements.filter(id => !document.getElementById(id));
+        
+        if (missingElements.length > 0) {
+            console.error('Missing required elements:', missingElements);
+            alert('Interface error: Missing elements detected. Please refresh the page.');
+        } else {
+            console.log('All required elements found, updating preview...');
+            updateTransactionPreview();
+        }
     </script>
 </body>
 </html>

@@ -363,13 +363,26 @@
 
         function updateHashrateSlider() {
             const slider = document.getElementById('hashrateSlider');
+            if (!slider) {
+                console.error('Hashrate slider not found');
+                return;
+            }
+            
             currentHashrate = parseInt(slider.value);
-            document.getElementById('hashrateLabel').textContent = currentHashrate + ' TH/s';
-            document.getElementById('currentHashrate').textContent = currentHashrate + ' TH/s';
+            console.log('Hashrate updated to:', currentHashrate, 'TH/s');
+            
+            const elements = {
+                hashrateLabel: document.getElementById('hashrateLabel'),
+                currentHashrate: document.getElementById('currentHashrate'),
+                powerConsumption: document.getElementById('powerConsumption')
+            };
+            
+            if (elements.hashrateLabel) elements.hashrateLabel.textContent = currentHashrate + ' TH/s';
+            if (elements.currentHashrate) elements.currentHashrate.textContent = currentHashrate + ' TH/s';
             
             // Update power consumption (roughly 30J/TH)
             const power = (currentHashrate * 30 / 1000).toFixed(1);
-            document.getElementById('powerConsumption').textContent = power + ' kW';
+            if (elements.powerConsumption) elements.powerConsumption.textContent = power + ' kW';
             
             updateMiningChances();
         }
@@ -401,33 +414,66 @@
         }
 
         function startMining() {
-            if (isMining) return;
+            console.log('Starting mining operation...');
+            
+            if (isMining) {
+                console.log('Mining already in progress');
+                return;
+            }
+            
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const miningStatus = document.getElementById('miningStatus');
+            const hashDisplay = document.getElementById('hashDisplay');
+            
+            if (!startBtn || !stopBtn || !miningStatus || !hashDisplay) {
+                console.error('Mining control elements not found');
+                alert('❌ Mining interface error. Please refresh the page.');
+                return;
+            }
             
             isMining = true;
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('stopBtn').disabled = false;
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
             
-            document.getElementById('miningStatus').textContent = '⛏️ Mining in progress...';
+            miningStatus.textContent = '⛏️ Mining in progress...';
+            console.log('Mining started with hashrate:', currentHashrate, 'TH/s');
             
-            // Hash animation
+            // Enhanced hash animation with performance check
+            let animationCounter = 0;
             hashAnimationInterval = setInterval(() => {
-                document.getElementById('hashDisplay').textContent = generateRandomHash();
+                try {
+                    hashDisplay.textContent = generateRandomHash();
+                    animationCounter++;
+                    
+                    // Log performance every 50 iterations
+                    if (animationCounter % 50 === 0) {
+                        console.log('Hash animation running, iterations:', animationCounter);
+                    }
+                } catch (error) {
+                    console.error('Hash animation error:', error);
+                }
             }, 100);
             
-            // Mining simulation
+            // Enhanced mining simulation with difficulty tracking
             miningInterval = setInterval(() => {
-                // Simulate finding a block based on hashrate
-                const findProbability = currentHashrate / networkHashrate * 0.01; // Simplified
-                
-                if (Math.random() < findProbability) {
-                    findBlock();
+                try {
+                    const findProbability = Math.min(currentHashrate / networkHashrate * 0.01, 0.1); // Cap at 10%
+                    console.log('Mining attempt - Probability:', (findProbability * 100).toFixed(4) + '%');
+                    
+                    if (Math.random() < findProbability) {
+                        findBlock();
+                    }
+                    
+                    // Simulate difficulty adjustment every few blocks
+                    if (Math.random() < 0.05) {
+                        adjustDifficulty();
+                    }
+                } catch (error) {
+                    console.error('Mining simulation error:', error);
+                    stopMining();
                 }
-                
-                // Simulate difficulty adjustment every few blocks
-                if (Math.random() < 0.05) {
-                    adjustDifficulty();
-                }
-            }, 2000); // Check every 2 seconds
+            }, 2000);
         }
 
         function stopMining() {
@@ -448,23 +494,46 @@
             blocksFound++;
             blockHeight++;
             
-            document.getElementById('blocksFound').textContent = blocksFound;
-            document.getElementById('blockHeight').textContent = blockHeight;
+            console.log('🎉 Block found! Height:', blockHeight, 'Total found:', blocksFound);
             
-            // Add block to history
-            addBlockToHistory(blockHeight, generateRandomHash().substring(0, 16));
+            // Update UI elements safely
+            const elements = {
+                blocksFound: document.getElementById('blocksFound'),
+                blockHeight: document.getElementById('blockHeight'),
+                miningStatus: document.getElementById('miningStatus')
+            };
             
-            // Show celebration
-            document.getElementById('miningStatus').textContent = '🎉 Block found!';
-            setTimeout(() => {
-                if (isMining) {
-                    document.getElementById('miningStatus').textContent = '⛏️ Mining in progress...';
-                }
-            }, 3000);
+            if (elements.blocksFound) elements.blocksFound.textContent = blocksFound;
+            if (elements.blockHeight) elements.blockHeight.textContent = blockHeight;
+            
+            // Add block to history with enhanced data
+            try {
+                const blockHash = generateRandomHash().substring(0, 16);
+                addBlockToHistory(blockHeight, blockHash);
+            } catch (error) {
+                console.error('Error adding block to history:', error);
+            }
+            
+            // Celebration animation with safety check
+            if (elements.miningStatus) {
+                elements.miningStatus.textContent = '🎉 Block found!';
+                elements.miningStatus.style.animation = 'pulse 0.5s ease';
+                
+                setTimeout(() => {
+                    if (isMining && elements.miningStatus) {
+                        elements.miningStatus.textContent = '⛏️ Mining in progress...';
+                        elements.miningStatus.style.animation = '';
+                    }
+                }, 3000);
+            }
         }
 
         function addBlockToHistory(height, hash) {
             const blockList = document.getElementById('blockList');
+            if (!blockList) {
+                console.error('Block list container not found');
+                return;
+            }
             
             // Remove "no blocks" message
             if (blockList.innerHTML.includes('No blocks mined yet')) {
@@ -484,6 +553,9 @@
                 </div>
             `;
             
+            // Add animation effect
+            blockItem.style.animation = 'fadeIn 0.5s ease';
+            
             // Add to top of list
             blockList.insertBefore(blockItem, blockList.firstChild);
             
@@ -491,6 +563,8 @@
             while (blockList.children.length > 5) {
                 blockList.removeChild(blockList.lastChild);
             }
+            
+            console.log('Block added to history:', height);
         }
 
         function adjustDifficulty() {
@@ -529,10 +603,29 @@
             chart.setAttribute('points', points.trim());
         }
 
-        // Initialize
-        document.getElementById('hashrateSlider').addEventListener('input', updateHashrateSlider);
-        updateHashrateSlider();
-        updateDifficultyChart();
+        // Initialize with safety checks
+        console.log('Mining Simulator initialized');
+        
+        const hashrateSlider = document.getElementById('hashrateSlider');
+        if (hashrateSlider) {
+            hashrateSlider.addEventListener('input', updateHashrateSlider);
+            console.log('Hashrate slider event listener attached');
+        } else {
+            console.error('Hashrate slider not found during initialization');
+        }
+        
+        // Test required elements
+        const requiredElements = ['startBtn', 'stopBtn', 'miningStatus', 'hashDisplay', 'currentHashrate', 'networkHashrate'];
+        const missingElements = requiredElements.filter(id => !document.getElementById(id));
+        
+        if (missingElements.length > 0) {
+            console.error('Missing required elements:', missingElements);
+            alert('Interface error: Missing elements detected. Please refresh the page.');
+        } else {
+            console.log('All required elements found, initializing...');
+            updateHashrateSlider();
+            updateDifficultyChart();
+        }
     </script>
 </body>
 </html>

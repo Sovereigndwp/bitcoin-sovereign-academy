@@ -464,58 +464,106 @@
         };
 
         function setScenario(scenario) {
+            console.log('Setting consensus scenario:', scenario);
+            
+            if (!scenarios[scenario]) {
+                console.error('Invalid scenario:', scenario);
+                alert('❌ Invalid scenario selected. Please refresh the page.');
+                return;
+            }
+            
             currentScenario = scenario;
             
-            // Update UI
+            // Update UI safely
             document.querySelectorAll('.scenario-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.classList.add('active');
             
-            // Reset and update network
-            resetNetwork();
-            updateNetworkDisplay();
-            updateEducationalContent();
+            // Find and activate the correct button
+            const activeBtn = event?.target || document.querySelector(`[onclick="setScenario('${scenario}')"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            } else {
+                console.warn('Could not find button for scenario:', scenario);
+            }
             
-            logMessage(`Scenario changed to: ${scenarios[scenario].name}`, 'success');
+            // Reset and update network with error handling
+            try {
+                resetNetwork();
+                updateNetworkDisplay();
+                updateEducationalContent();
+                logMessage(`Scenario changed to: ${scenarios[scenario].name}`, 'success');
+                
+                console.log('Scenario set successfully:', scenarios[scenario]);
+            } catch (error) {
+                console.error('Error setting scenario:', error);
+                logMessage('Error changing scenario', 'error');
+                alert('❌ Error changing scenario. Please refresh the page.');
+            }
         }
 
         function updateNetworkDisplay() {
             const scenario = scenarios[currentScenario];
             const networkGrid = document.getElementById('networkGrid');
             
+            if (!networkGrid) {
+                console.error('Network grid not found');
+                return;
+            }
+            
+            if (!scenario) {
+                console.error('Scenario not found:', currentScenario);
+                return;
+            }
+            
+            console.log('Updating network display for scenario:', scenario.name);
+            
             // Clear existing nodes
             networkGrid.innerHTML = '';
             
-            // Create honest nodes
-            for (let i = 0; i < scenario.honestNodes; i++) {
-                const node = document.createElement('div');
-                node.className = 'node honest';
-                node.textContent = `H${i + 1}`;
-                node.onclick = () => toggleNode(node);
-                networkGrid.appendChild(node);
+            try {
+                // Create honest nodes
+                for (let i = 0; i < scenario.honestNodes; i++) {
+                    const node = document.createElement('div');
+                    node.className = 'node honest';
+                    node.textContent = `H${i + 1}`;
+                    node.onclick = () => toggleNode(node);
+                    node.title = `Honest Node ${i + 1}`;
+                    networkGrid.appendChild(node);
+                }
+                
+                // Create malicious nodes
+                for (let i = 0; i < scenario.maliciousNodes; i++) {
+                    const node = document.createElement('div');
+                    node.className = 'node malicious';
+                    node.textContent = `M${i + 1}`;
+                    node.onclick = () => toggleNode(node);
+                    node.title = `Malicious Node ${i + 1}`;
+                    networkGrid.appendChild(node);
+                }
+                
+                // Fill remaining slots with offline nodes
+                const totalNodes = 16;
+                const activeNodes = scenario.honestNodes + scenario.maliciousNodes;
+                for (let i = activeNodes; i < totalNodes; i++) {
+                    const node = document.createElement('div');
+                    node.className = 'node offline';
+                    node.textContent = `---`;
+                    node.title = 'Offline Node';
+                    networkGrid.appendChild(node);
+                }
+                
+                console.log('Network nodes created:', {
+                    honest: scenario.honestNodes,
+                    malicious: scenario.maliciousNodes,
+                    offline: totalNodes - activeNodes
+                });
+                
+                updateStats();
+            } catch (error) {
+                console.error('Error updating network display:', error);
+                logMessage('Error updating network display', 'error');
             }
-            
-            // Create malicious nodes
-            for (let i = 0; i < scenario.maliciousNodes; i++) {
-                const node = document.createElement('div');
-                node.className = 'node malicious';
-                node.textContent = `M${i + 1}`;
-                node.onclick = () => toggleNode(node);
-                networkGrid.appendChild(node);
-            }
-            
-            // Fill remaining slots with offline nodes
-            const totalNodes = 16;
-            const activeNodes = scenario.honestNodes + scenario.maliciousNodes;
-            for (let i = activeNodes; i < totalNodes; i++) {
-                const node = document.createElement('div');
-                node.className = 'node offline';
-                node.textContent = `---`;
-                networkGrid.appendChild(node);
-            }
-            
-            updateStats();
         }
 
         function updateStats() {
@@ -542,18 +590,35 @@
         }
 
         function startSimulation() {
+            console.log('Starting consensus simulation...');
+            
             if (simulationRunning) {
+                console.log('Stopping currently running simulation');
                 stopSimulation();
                 return;
             }
             
+            const simulateBtn = document.getElementById('simulateBtn');
+            if (!simulateBtn) {
+                console.error('Simulate button not found');
+                alert('❌ Interface error. Please refresh the page.');
+                return;
+            }
+            
             simulationRunning = true;
-            document.getElementById('simulateBtn').textContent = '⏸️ Stop Simulation';
+            simulateBtn.textContent = '⏸️ Stop Simulation';
             
             logMessage('Starting simulation...', 'success');
+            console.log('Simulation started for scenario:', currentScenario);
             
             simulationInterval = setInterval(() => {
-                simulateBlock();
+                try {
+                    simulateBlock();
+                } catch (error) {
+                    console.error('Simulation error:', error);
+                    logMessage('Simulation error occurred', 'error');
+                    stopSimulation();
+                }
             }, 2000);
         }
 
@@ -568,18 +633,33 @@
             blockHeight++;
             
             const scenario = scenarios[currentScenario];
+            if (!scenario) {
+                console.error('No scenario found for simulation');
+                return;
+            }
+            
             const totalActive = scenario.honestNodes + scenario.maliciousNodes;
             const honestChance = totalActive > 0 ? scenario.honestNodes / totalActive : 0.5;
             
             const isHonestBlock = Math.random() < honestChance;
             const blockType = isHonestBlock ? 'valid' : (currentScenario === '51attack' ? 'invalid' : 'valid');
             
+            console.log('Simulating block:', {
+                height: blockHeight,
+                scenario: currentScenario,
+                isHonest: isHonestBlock,
+                type: blockType
+            });
+            
             addBlockToChain(blockHeight, blockType, isHonestBlock);
             
+            // Scenario-specific messages
             if (currentScenario === '51attack' && !isHonestBlock) {
                 logMessage(`Block ${blockHeight}: Malicious block mined - potential double spend!`, 'error');
             } else if (currentScenario === 'selfish' && !isHonestBlock) {
                 logMessage(`Block ${blockHeight}: Selfish miner found block but withholding...`, 'warning');
+            } else if (currentScenario === 'eclipse' && Math.random() < 0.3) {
+                logMessage(`Block ${blockHeight}: Some nodes receiving different chain view`, 'warning');
             } else {
                 logMessage(`Block ${blockHeight}: Block mined by ${isHonestBlock ? 'honest' : 'malicious'} miner`, 'success');
             }
@@ -665,13 +745,33 @@
             }
         }
 
-        // Initialize
-        updateNetworkDisplay();
-        updateEducationalContent();
+        // Initialize with safety checks
+        console.log('Consensus Game initialized');
         
-        // Add some initial blocks to the chain
-        for (let i = 0; i < 4; i++) {
-            addBlockToChain(blockHeight - 3 + i, 'valid', true);
+        // Test required elements
+        const requiredElements = ['networkGrid', 'simulateBtn', 'statusIndicator', 'statusTitle', 'logContainer'];
+        const missingElements = requiredElements.filter(id => !document.getElementById(id));
+        
+        if (missingElements.length > 0) {
+            console.error('Missing required elements:', missingElements);
+            alert('Interface error: Missing elements detected. Please refresh the page.');
+        } else {
+            console.log('All required elements found, initializing...');
+            
+            try {
+                updateNetworkDisplay();
+                updateEducationalContent();
+                
+                // Add some initial blocks to the chain
+                for (let i = 0; i < 4; i++) {
+                    addBlockToChain(blockHeight - 3 + i, 'valid', true);
+                }
+                
+                console.log('Consensus Game initialization complete');
+            } catch (error) {
+                console.error('Initialization error:', error);
+                alert('Initialization error. Please refresh the page.');
+            }
         }
     </script>
 </body>

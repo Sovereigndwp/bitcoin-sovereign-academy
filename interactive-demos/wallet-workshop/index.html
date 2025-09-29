@@ -228,6 +228,16 @@
             background: rgba(244, 51, 54, 0.2);
         }
 
+        /* Seed phrase animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .seed-word.animate {
+            animation: fadeIn 0.5s ease both;
+        }
+
         @media (max-width: 768px) {
             .seed-words {
                 grid-template-columns: repeat(2, 1fr);
@@ -495,7 +505,13 @@
         }
 
         function generateSeedPhrase() {
+            console.log('Generating seed phrase...'); // Debug log
             const seedWordsContainer = document.getElementById('seedWords');
+            if (!seedWordsContainer) {
+                console.error('Seed words container not found!');
+                return;
+            }
+            
             const words = [];
             
             // Generate 12 random words
@@ -504,17 +520,35 @@
                 words.push(randomWord);
             }
             
-            // Update the display
+            console.log('Generated words:', words); // Debug log
+            
+            // Update the display with proper animation
             const wordElements = seedWordsContainer.querySelectorAll('.seed-word');
+            if (wordElements.length !== 12) {
+                console.error(`Expected 12 seed word elements, found ${wordElements.length}`);
+            }
+            
             words.forEach((word, index) => {
-                wordElements[index].textContent = word;
-                wordElements[index].style.animation = `fadeIn 0.5s ease ${index * 0.1}s both`;
+                if (wordElements[index]) {
+                    // Clear previous animation
+                    wordElements[index].style.animation = '';
+                    wordElements[index].classList.remove('animate');
+                    
+                    // Update text
+                    wordElements[index].textContent = word;
+                    
+                    // Add animation with delay
+                    setTimeout(() => {
+                        wordElements[index].style.animation = `fadeIn 0.5s ease both`;
+                        wordElements[index].classList.add('animate');
+                    }, index * 100);
+                }
             });
             
             // Generate corresponding addresses (simulated)
             setTimeout(() => {
                 generateAddresses();
-            }, 1000);
+            }, 1500);
         }
 
         function generateAddresses() {
@@ -615,18 +649,20 @@
             `;
         }
 
-        // Add CSS animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(10px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Initialize
+        // Initialize quiz and test seed generation
         resetQuiz();
+        console.log('Wallet Workshop initialized successfully');
+        
+        // Test that all required functions are available
+        if (typeof generateSeedPhrase !== 'function') {
+            console.error('generateSeedPhrase function not defined!');
+        }
+        if (typeof startQuiz !== 'function') {
+            console.error('startQuiz function not defined!');
+        }
+        if (typeof showTab !== 'function') {
+            console.error('showTab function not defined!');
+        }
     </script>
 </body>
 </html>
