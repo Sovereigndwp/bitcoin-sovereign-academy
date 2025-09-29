@@ -1402,8 +1402,8 @@
             </a>
             <nav>
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="/interactive-demos/" class="nav-link" onclick="if(window.plausible){plausible('Click Demos',{props:{ab:location.hash.includes('ab=data-first')?'data-first':'experience-first'}})}">Demos</a></li>
-                    <li><a href="#path" class="nav-link" onclick="if(window.plausible){plausible('Click Learning Path',{props:{ab:location.hash.includes('ab=data-first')?'data-first':'experience-first'}})}">Learning Path</a></li>
+                    <li><a href="/interactive-demos/" class="nav-link" onclick="track('Click Demos',{ab:abVariant()})">Demos</a></li>
+                    <li><a href="#path" class="nav-link" onclick="track('Click Learning Path',{ab:abVariant()})">Learning Path</a></li>
                     <li><a href="#bitcoin-data" class="nav-link">Live Data</a></li>
                     <li><a href="#agents" class="nav-link">AI Tutors</a></li>
                     <li><a href="#featured" class="nav-link">Featured</a></li>
@@ -1436,7 +1436,7 @@
             </p>
             <div id="hero-cta" class="chips" style="justify-content:center; margin-bottom: 1rem;"></div>
             <div class="hero-buttons">
-                <a href="/interactive-demos/" class="btn btn-primary" onclick="if(window.plausible){plausible('Click Demos',{props:{ab:location.hash.includes('ab=data-first')?'data-first':'experience-first'}})}">
+                <a href="/interactive-demos/" class="btn btn-primary" onclick="track('Click Demos',{ab:abVariant()})">
                     🎮 Play Now
                 </a>
                 <a href="interactive-demos/bitcoin-sovereign-game/" class="btn btn-secondary">
@@ -1664,7 +1664,9 @@
         </div>
             <div class="learning-path-dynamic">
                 <h3 class="section-title" style="margin-top:2rem; font-size:1.6rem;">Your Learning Journey</h3>
-                <p class="section-subtitle">Personalized content based on your goals and progress</p>
+                <p class="section-subtitle">Personalized content based on your goals and progress
+                  <a href="#path" style="margin-left:.5rem; font-weight:600;" onclick="track('Click Learning Path (Section)', {ab: abVariant()})">Continue your path →</a>
+                </p>
                 <!-- Dynamic content populated by MCP service -->
                 <div id="learning-path-content" class="skel" aria-busy="true" aria-live="polite">
                     <div class="persona-prompt">
@@ -1781,7 +1783,7 @@
             <div id="featured-content" class="skel" aria-busy="true" aria-live="polite"></div>
             <div id="featured-fallback" style="display:none; margin-top:1rem;">
                 <ul>
-                    <li><a href="/curriculum/philosophy-economics/">Philosophy &amp; Economics</a></li>
+                    <li><a href="/curriculum/philosophy-economics/" onclick="track('Featured Fallback Click',{href:this.getAttribute('href'), ab:abVariant()})">Philosophy &amp; Economics</a></li>
                 </ul>
             </div>
         </div>
@@ -2254,7 +2256,7 @@
         document.querySelectorAll('.feature-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 const title = card.querySelector('.feature-title').textContent;
-                trackEvent('Feature Clicked', { feature: title });
+                trackEvent('Feature Clicked', { feature: title, ab: (window.abVariant ? window.abVariant() : (location.hash.includes('ab=data-first')?'data-first':'experience-first')) });
             });
         });
 
@@ -2768,15 +2770,22 @@
     <script defer src="/js/hero-cta.js"></script>
     <script defer src="/js/ab-home.js"></script>
 
-    <!-- Persona chip click tracking (Plausible) -->
+    <!-- Analytics helpers and tracking (Plausible) -->
     <script>
+      // Safe wrapper for Plausible
+      window.track = function(name, props={}){
+        if (window.plausible) { try { window.plausible(name, { props }); } catch(e){} }
+      };
+      window.abVariant = () => (location.hash.includes('ab=data-first') ? 'data-first' : 'experience-first');
+      window.resolvePersona = () => (window.MCP?.state?.persona) || (window.mcpService?.currentPersona) || 'unknown';
+
+      // Hero chip click tracking
       document.addEventListener('click', (e) => {
         const a = e.target.closest('#hero-cta a.chip');
-        if (!a || !window.plausible) return;
-        const persona = (window.MCP && window.MCP.state && window.MCP.state.persona) || (window.mcpService && window.mcpService.currentPersona) || 'unknown';
-        const variant = location.hash.includes('ab=data-first') ? 'data-first' : 'experience-first';
-        plausible('Hero Chip Click', { props: { persona, href: a.getAttribute('href'), ab: variant } });
+        if (!a) return;
+        window.track('Hero Chip Click', { persona: window.resolvePersona(), href: a.getAttribute('href'), ab: window.abVariant() });
       });
+
       // Featured fallback if MCP hasn't populated in time
       (function(){
         const box = document.getElementById('featured-content');
@@ -2789,6 +2798,14 @@
         }, 2000);
         window.addEventListener('mcp:featured:ready', () => { if (fb) fb.style.display = 'none'; });
       })();
+
+      // Featured grid click delegate
+      document.addEventListener('click', (e) => {
+        const a = e.target.closest('#featured-content a');
+        if (!a) return;
+        window.track('Featured Item Click', { href: a.getAttribute('href'), ab: window.abVariant() });
+      });
+
       // Hide persona chips whose routes are missing (dev safeguard)
       (async function(){
         const links = document.querySelectorAll('#hero-cta a.chip');
