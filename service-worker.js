@@ -7,7 +7,7 @@ const CACHE_NAME = 'bsa-v1.0.0';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/interactive-demos/bitcoin-sovereign-game.html',
+  '/interactive-demos/bitcoin-sovereign-game/',
   '/interactive-demos/bitcoin-sovereign-game.js',
   '/manifest.json'
 ];

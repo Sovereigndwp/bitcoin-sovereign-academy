@@ -107,8 +107,7 @@ def run_https_server(port=8443):
 ║  🔐 Server running at: https://localhost:{port}                ║
 ║                                                                ║
 ║  📍 Access the game at:                                       ║
-║     https://localhost:{port}/interactive-demos/               ║
-║     bitcoin-sovereign-game.html                               ║
+║     https://localhost:{port}/interactive-demos/bitcoin-sovereign-game/ ║
 ║                                                                ║
 ║  ⚠️  Note: Browser will warn about self-signed certificate    ║
 ║     Click "Advanced" → "Proceed to localhost" to continue     ║
