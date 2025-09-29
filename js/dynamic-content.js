@@ -179,6 +179,8 @@ class DynamicContentLoader {
             
             html += `
                 <div class="learning-path-item ${isCompleted ? 'completed' : ''} ${isRecommended ? 'recommended' : ''}"
+                     data-lp-action="${this.getLPAction(item.interactionType)}"
+                     data-lp-id="${item.demoPath || item.title}"
                      onclick="handleContentInteraction('${item.title}', '${item.interactionType}', '${item.demoPath || ''}')">
                     <div class="learning-item-header">
                         <div class="learning-item-icon">
@@ -400,6 +402,19 @@ class DynamicContentLoader {
 
     formatAchievement(achievement) {
         return achievement.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+
+    // Map interaction type to LP action label
+    getLPAction(type) {
+        const map = {
+            'interactive-demo': 'open-demo',
+            'reading': 'open-reading',
+            'calculator': 'open-tool',
+            'analysis-tool': 'open-tool',
+            'video': 'open-video',
+            'quiz': 'open-quiz'
+        };
+        return map[type] || 'open-content';
     }
 
     /**

@@ -2778,12 +2778,21 @@
       };
       window.abVariant = () => (location.hash.includes('ab=data-first') ? 'data-first' : 'experience-first');
       window.resolvePersona = () => (window.MCP?.state?.persona) || (window.mcpService?.currentPersona) || 'unknown';
+      // Persist AB + persona for downstream pages
+      try {
+        const _ab = window.abVariant();
+        const _persona = window.resolvePersona() || localStorage.getItem('persona') || 'unknown';
+        localStorage.setItem('ab', _ab);
+        localStorage.setItem('persona', _persona);
+        window.getAB = () => localStorage.getItem('ab') || _ab;
+        window.getPersona = () => localStorage.getItem('persona') || _persona;
+      } catch {}
 
       // Hero chip click tracking
       document.addEventListener('click', (e) => {
         const a = e.target.closest('#hero-cta a.chip');
         if (!a) return;
-        window.track('Hero Chip Click', { persona: window.resolvePersona(), href: a.getAttribute('href'), ab: window.abVariant() });
+        window.track('Hero Chip Click', { persona: (window.getPersona ? window.getPersona() : window.resolvePersona()), href: a.getAttribute('href'), ab: (window.getAB ? window.getAB() : window.abVariant()) });
       });
 
       // Featured fallback if MCP hasn't populated in time
@@ -2803,7 +2812,21 @@
       document.addEventListener('click', (e) => {
         const a = e.target.closest('#featured-content a');
         if (!a) return;
-        window.track('Featured Item Click', { href: a.getAttribute('href'), ab: window.abVariant() });
+        window.track('Featured Item Click', { href: a.getAttribute('href'), ab: (window.getAB ? window.getAB() : window.abVariant()) });
+      });
+
+      // Learning Path delegate for key actions
+      document.addEventListener('click', (e) => {
+        const t = e.target.closest('#learning-path-content [data-lp-action]');
+        if (!t) return;
+        const action = t.getAttribute('data-lp-action');
+        const id = t.getAttribute('data-lp-id');
+        window.track('Learning Path Action', {
+          action,
+          id,
+          ab: (window.getAB ? window.getAB() : window.abVariant()),
+          persona: (window.getPersona ? window.getPersona() : window.resolvePersona())
+        });
       });
 
       // Hide persona chips whose routes are missing (dev safeguard)
