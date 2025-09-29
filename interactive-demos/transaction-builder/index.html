@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Builder - Bitcoin Sovereign Academy</title>
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --success-green: #4caf50;
+            --danger-red: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            color: var(--primary-orange);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 147, 26, 0.4);
+        }
+
+        .builder-interface {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel {
+            background: var(--secondary-dark);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+        }
+
+        .panel h3 {
+            color: var(--primary-orange);
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+        }
+
+        .utxo-input, .output {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(247, 147, 26, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .utxo-input:hover, .output:hover {
+            border-color: var(--primary-orange);
+        }
+
+        .utxo-input.selected {
+            border-color: var(--success-green);
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .amount-input, .address-input {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 8px;
+            color: var(--text-light);
+            margin-top: 0.5rem;
+        }
+
+        .add-output-btn {
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .transaction-preview {
+            background: var(--primary-dark);
+            border: 2px solid var(--primary-orange);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .tx-field {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(247, 147, 26, 0.1);
+            border-radius: 8px;
+        }
+
+        .tx-field label {
+            color: var(--primary-orange);
+            font-weight: bold;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .fee-calculator {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+
+        .fee-slider {
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        .build-tx-btn {
+            background: var(--success-green);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .build-tx-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .educational-tip {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        @media (max-width: 768px) {
+            .builder-interface {
+                grid-template-columns: 1fr;
+            }
+            
+            .back-btn {
+                position: relative;
+                top: auto;
+                left: auto;
+                margin-bottom: 2rem;
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../../" class="back-btn">← Back to Academy</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🔨 Bitcoin Transaction Builder</h1>
+            <p>Learn how Bitcoin transactions work by building them step-by-step</p>
+        </div>
+
+        <div class="builder-interface">
+            <div class="panel">
+                <h3>💰 Available UTXOs (Inputs)</h3>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">Select UTXOs to spend:</p>
+                
+                <div class="utxo-input" onclick="selectUTXO(this)" data-amount="0.05">
+                    <strong>UTXO 1</strong><br>
+                    Amount: 0.05 BTC<br>
+                    <small>TxID: abc123...def456</small>
+                </div>
+                
+                <div class="utxo-input" onclick="selectUTXO(this)" data-amount="0.03">
+                    <strong>UTXO 2</strong><br>
+                    Amount: 0.03 BTC<br>
+                    <small>TxID: ghi789...jkl012</small>
+                </div>
+                
+                <div class="utxo-input" onclick="selectUTXO(this)" data-amount="0.02">
+                    <strong>UTXO 3</strong><br>
+                    Amount: 0.02 BTC<br>
+                    <small>TxID: mno345...pqr678</small>
+                </div>
+
+                <div class="educational-tip">
+                    💡 <strong>Tip:</strong> UTXOs are like bills in your wallet. You need to select enough to cover your transaction amount plus fees.
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>📤 Transaction Outputs</h3>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">Where to send Bitcoin:</p>
+                
+                <div class="output" id="output1">
+                    <label>Recipient Address:</label>
+                    <input type="text" class="address-input" placeholder="bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" />
+                    <label>Amount (BTC):</label>
+                    <input type="number" class="amount-input" placeholder="0.025" step="0.001" />
+                </div>
+
+                <button class="add-output-btn" onclick="addOutput()">+ Add Another Output</button>
+
+                <div class="educational-tip">
+                    💡 <strong>Tip:</strong> If you don't spend all your input UTXOs, the remainder goes to fees unless you create a "change" output back to yourself.
+                </div>
+            </div>
+        </div>
+
+        <div class="transaction-preview">
+            <h3 style="color: var(--primary-orange); margin-bottom: 1.5rem;">📋 Transaction Preview</h3>
+            
+            <div class="tx-field">
+                <label>Selected Inputs:</label>
+                <span id="selectedInputs">None selected</span>
+            </div>
+            
+            <div class="tx-field">
+                <label>Total Input Amount:</label>
+                <span id="totalInput">0.00000000 BTC</span>
+            </div>
+            
+            <div class="tx-field">
+                <label>Output Amount:</label>
+                <span id="totalOutput">0.00000000 BTC</span>
+            </div>
+            
+            <div class="fee-calculator">
+                <label style="color: var(--primary-orange);">Transaction Fee:</label>
+                <input type="range" class="fee-slider" min="1" max="100" value="10" onchange="updateFee(this.value)">
+                <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
+                    <span>Slow (1 sat/vB)</span>
+                    <span id="currentFeeRate">Medium (10 sat/vB)</span>
+                    <span>Fast (100 sat/vB)</span>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <strong>Estimated Fee: <span id="estimatedFee">0.00001000 BTC</span></strong>
+                </div>
+            </div>
+            
+            <div class="tx-field">
+                <label>Change Output:</label>
+                <span id="changeAmount">0.00000000 BTC</span>
+            </div>
+
+            <button class="build-tx-btn" onclick="buildTransaction()">🔨 Build Transaction</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedUTXOs = [];
+        let outputCount = 1;
+        let currentFeeRate = 10;
+
+        function selectUTXO(element) {
+            const amount = parseFloat(element.dataset.amount);
+            const isSelected = element.classList.contains('selected');
+            
+            if (isSelected) {
+                element.classList.remove('selected');
+                selectedUTXOs = selectedUTXOs.filter(utxo => utxo.amount !== amount);
+            } else {
+                element.classList.add('selected');
+                selectedUTXOs.push({
+                    element: element,
+                    amount: amount,
+                    id: element.querySelector('small').textContent
+                });
+            }
+            
+            updateTransactionPreview();
+        }
+
+        function addOutput() {
+            outputCount++;
+            const outputsContainer = document.querySelector('.panel:nth-child(2)');
+            const newOutput = document.createElement('div');
+            newOutput.className = 'output';
+            newOutput.innerHTML = `
+                <label>Recipient Address:</label>
+                <input type="text" class="address-input" placeholder="bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" />
+                <label>Amount (BTC):</label>
+                <input type="number" class="amount-input" placeholder="0.025" step="0.001" onchange="updateTransactionPreview()" />
+                <button onclick="this.parentElement.remove(); updateTransactionPreview();" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem; border-radius: 5px; margin-top: 0.5rem; cursor: pointer;">Remove</button>
+            `;
+            
+            outputsContainer.insertBefore(newOutput, outputsContainer.querySelector('.add-output-btn'));
+            updateTransactionPreview();
+        }
+
+        function updateFee(value) {
+            currentFeeRate = parseInt(value);
+            document.getElementById('currentFeeRate').textContent = `Custom (${value} sat/vB)`;
+            updateTransactionPreview();
+        }
+
+        function updateTransactionPreview() {
+            const totalInput = selectedUTXOs.reduce((sum, utxo) => sum + utxo.amount, 0);
+            
+            let totalOutput = 0;
+            document.querySelectorAll('.amount-input').forEach(input => {
+                if (input.value) {
+                    totalOutput += parseFloat(input.value);
+                }
+            });
+            
+            const estimatedFee = 0.00001 * currentFeeRate; // Simplified fee calculation
+            const changeAmount = totalInput - totalOutput - estimatedFee;
+            
+            document.getElementById('selectedInputs').textContent = 
+                selectedUTXOs.length > 0 ? `${selectedUTXOs.length} UTXOs selected` : 'None selected';
+            document.getElementById('totalInput').textContent = totalInput.toFixed(8) + ' BTC';
+            document.getElementById('totalOutput').textContent = totalOutput.toFixed(8) + ' BTC';
+            document.getElementById('estimatedFee').textContent = estimatedFee.toFixed(8) + ' BTC';
+            document.getElementById('changeAmount').textContent = Math.max(0, changeAmount).toFixed(8) + ' BTC';
+        }
+
+        function buildTransaction() {
+            if (selectedUTXOs.length === 0) {
+                alert('❌ Please select at least one UTXO to spend!');
+                return;
+            }
+
+            const outputs = document.querySelectorAll('.output');
+            let hasValidOutput = false;
+            
+            outputs.forEach(output => {
+                const addressInput = output.querySelector('.address-input');
+                const amountInput = output.querySelector('.amount-input');
+                if (addressInput.value && amountInput.value) {
+                    hasValidOutput = true;
+                }
+            });
+
+            if (!hasValidOutput) {
+                alert('❌ Please add at least one valid output (address + amount)!');
+                return;
+            }
+
+            // Simulate transaction building
+            alert('🎉 Transaction built successfully!\n\nIn a real Bitcoin wallet, this would:\n1. Create the raw transaction\n2. Sign with your private keys\n3. Broadcast to the network\n\n💡 You\'ve learned the basic structure of Bitcoin transactions!');
+        }
+
+        // Initialize
+        updateTransactionPreview();
+    </script>
+</body>
+</html>
