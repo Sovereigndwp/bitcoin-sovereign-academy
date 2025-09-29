@@ -1,0 +1,83 @@
+name: Reusable bump dependency and open PR
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+    secrets:
+      GH_TOKEN:
+        required: false
+  workflow_dispatch:
+    inputs:
+      package:
+        description: "Package name"
+        required: false
+        default: "@sovereigndwp/mcp-agent-kit"
+        type: string
+      version:
+        description: "Version (e.g., 0.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE: ${{ inputs.package || github.event.inputs.package || '@sovereigndwp/mcp-agent-kit' }}
+      VERSION: ${{ inputs.version || github.event.inputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN || github.token }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Configure git
+        run: |
+          git config user.name "automation-bot"
+          git config user.email "automation-bot@users.noreply.github.com"
+
+      - name: Create branch
+        id: branch
+        run: |
+          BRANCH="bot/bump-${PACKAGE}-${VERSION}"
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+          git switch -c "$BRANCH"
+
+      - name: Ensure devDependency exists
+        run: |
+          node -e "let p=require('./package.json'); const pkg=process.env.PACKAGE; const ver='^'+process.env.VERSION; p.devDependencies=p.devDependencies||{}; if(!p.devDependencies[pkg]){p.devDependencies[pkg]=ver}; require('fs').writeFileSync('package.json', JSON.stringify(p,null,2));"
+
+      - name: Bump version
+        run: |
+          node -e "let p=require('./package.json'); const pkg=process.env.PACKAGE; const ver='^'+process.env.VERSION; ['dependencies','devDependencies','peerDependencies'].forEach(k=>{if(p[k]&&p[k][pkg]) p[k][pkg]=ver}); require('fs').writeFileSync('package.json', JSON.stringify(p,null,2));"
+
+      - name: Commit changes
+        run: |
+          git add package.json || true
+          git commit -m "chore: bump ${PACKAGE} to v${VERSION}" || echo "No changes to commit"
+
+      - name: Push branch
+        run: git push -u origin "$BRANCH"
+
+      - name: Open PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GH_TOKEN || github.token }}
+          commit-message: "chore: bump ${PACKAGE} to v${VERSION}"
+          branch: ${{ env.BRANCH }}
+          title: "chore: bump ${PACKAGE} to v${VERSION}"
+          body: "Automated bump triggered by MCP release dispatch."
+          base: main
