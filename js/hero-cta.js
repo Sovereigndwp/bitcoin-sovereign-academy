@@ -42,10 +42,25 @@
       { href: '/interactive-demos/transaction-builder/', label: 'Understand Fees' },
       { href: '/curriculum/first-principles/', label: 'Custody Options' },
     ],
-    'parent': [
+    'investor': [
+      { href: '/curriculum/first-principles/', label: 'Why Scarcity Matters' },
+      { href: '/interactive-demos/bitcoin-sovereign-game/', label: 'Play the Sovereign Game' },
+      { href: '/interactive-demos/wallet-workshop/', label: 'Self-Custody in 10 Minutes' },
+    ],
+    'skeptic': [
       { href: '/curriculum/first-principles/', label: 'First Principles' },
+      { href: '/interactive-demos/consensus-game/', label: 'Consensus, Explained' },
+      { href: '/interactive-demos/bitcoin-sovereign-game/', label: 'Compare to Banks' },
+    ],
+    'libertarian': [
+      { href: '/curriculum/sovereign-tools/', label: 'Sovereign Tools' },
+      { href: '/interactive-demos/wallet-workshop/', label: 'Wallet Workshop' },
+      { href: '/curriculum/first-principles/', label: 'Censorship Resistance' },
+    ],
+    'parent': [
+      { href: '/interactive-demos/wallet-workshop/', label: 'Try a Wallet' },
+      { href: '/curriculum/first-principles/', label: 'Basics in Plain English' },
       { href: '/interactive-demos/consensus-game/', label: 'Consensus Game' },
-      { href: '/interactive-demos/', label: 'Interactive Labs' },
     ],
     'developer': [
       { href: '/interactive-demos/transaction-builder/', label: 'Build a TX' },
