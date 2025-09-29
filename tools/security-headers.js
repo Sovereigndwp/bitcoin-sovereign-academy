@@ -80,13 +80,15 @@ class SecurityHeadersAnalyzer {
                 await this.analyzeTarget(target);
             }
 
-            await this.generateReport();
+            const report = await this.generateReport();
             
             if (options.fix) {
                 await this.generateSecurityConfig();
             }
 
             console.log('\n✅ Security analysis completed!');
+            
+            return report;
 
         } catch (error) {
             console.error('❌ Security analysis failed:', error.message);
