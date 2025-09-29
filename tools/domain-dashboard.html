@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domain Management Dashboard - Bitcoin Sovereign Academy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #F7931A;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-value.healthy { color: #10b981; }
+        .stat-value.warning { color: #f59e0b; }
+        .stat-value.critical { color: #ef4444; }
+        .stat-value.info { color: #3b82f6; }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .domains-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .domain-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            transition: transform 0.3s ease;
+        }
+
+        .domain-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .domain-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .domain-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-healthy {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-critical {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-unknown {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+        .checks-list {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .checks-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .checks-list li:last-child {
+            border-bottom: none;
+        }
+
+        .check-name {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .check-status {
+            font-size: 1.2rem;
+        }
+
+        .domain-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .alerts-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .alerts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .alerts-header h3 {
+            color: #1f2937;
+            font-size: 1.5rem;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+        }
+
+        .alert-critical {
+            background: #fef2f2;
+            border-left-color: #ef4444;
+        }
+
+        .alert-warning {
+            background: #fffbeb;
+            border-left-color: #f59e0b;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            border-left-color: #3b82f6;
+        }
+
+        .alert-icon {
+            font-size: 1.2rem;
+            margin-top: 2px;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-message {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #1f2937;
+        }
+
+        .alert-details {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .alert-time {
+            color: #9ca3af;
+            font-size: 0.8rem;
+            text-align: right;
+            min-width: 80px;
+        }
+
+        .tools-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .tool-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .tool-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .tool-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1f2937;
+        }
+
+        .tool-description {
+            color: #6b7280;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .last-updated {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-top: 30px;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .domains-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .domain-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                🌐 Domain Management Dashboard
+            </h1>
+            <p class="subtitle">Real-time monitoring and management for Bitcoin Sovereign Academy domains</p>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value healthy" id="healthyDomains">-</div>
+                <div class="stat-label">Healthy Domains</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value critical" id="criticalAlerts">-</div>
+                <div class="stat-label">Critical Alerts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value info" id="avgResponseTime">-</div>
+                <div class="stat-label">Avg Response Time</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value info" id="uptime">-</div>
+                <div class="stat-label">Uptime</div>
+            </div>
+        </div>
+
+        <!-- Domain Status Cards -->
+        <div class="domains-grid" id="domainsGrid">
+            <!-- Domain cards will be populated by JavaScript -->
+        </div>
+
+        <!-- Recent Alerts -->
+        <div class="alerts-section">
+            <div class="alerts-header">
+                <h3>🚨 Recent Alerts</h3>
+                <button class="btn btn-secondary" onclick="refreshAlerts()">
+                    <span id="alertsRefreshBtn">🔄 Refresh</span>
+                </button>
+            </div>
+            <div id="alertsList">
+                <!-- Alerts will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Management Tools -->
+        <div class="tools-section">
+            <div class="tool-card">
+                <div class="tool-icon">⚙️</div>
+                <div class="tool-title">Configure Domains</div>
+                <div class="tool-description">Setup DNS, SSL certificates, and domain configurations</div>
+                <button class="btn btn-primary" onclick="runDomainConfig()">Configure</button>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-icon">🧪</div>
+                <div class="tool-title">Run Tests</div>
+                <div class="tool-description">Execute comprehensive domain health and performance tests</div>
+                <button class="btn btn-primary" onclick="runDomainTests()">Test All</button>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-icon">📊</div>
+                <div class="tool-title">Generate Report</div>
+                <div class="tool-description">Create detailed domain status and performance reports</div>
+                <button class="btn btn-primary" onclick="generateReport()">Generate</button>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-icon">📡</div>
+                <div class="tool-title">Start Monitoring</div>
+                <div class="tool-description">Begin continuous monitoring of all configured domains</div>
+                <button class="btn btn-primary" onclick="startMonitoring()">Start Monitor</button>
+            </div>
+        </div>
+
+        <div class="last-updated">
+            Last updated: <span id="lastUpdated">Never</span>
+        </div>
+    </div>
+
+    <script>
+        // Domain configuration
+        const DOMAINS = [
+            'bitcoinsovereign.academy',
+            'bitcoinsovereign.education', 
+            'btcsovereign.academy',
+            'learnbitcoin.academy'
+        ];
+
+        let monitoringData = {
+            domains: {},
+            alerts: [],
+            stats: {
+                healthyDomains: 0,
+                criticalAlerts: 0,
+                avgResponseTime: 0,
+                uptime: '0%'
+            }
+        };
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Initializing Domain Management Dashboard');
+            await loadMonitoringData();
+            updateDashboard();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(async () => {
+                await loadMonitoringData();
+                updateDashboard();
+            }, 30000);
+        });
+
+        // Load monitoring data (simulated - in real implementation would fetch from API)
+        async function loadMonitoringData() {
+            try {
+                // Simulate loading data from monitoring system
+                monitoringData = {
+                    domains: {
+                        'bitcoinsovereign.academy': {
+                            status: 'healthy',
+                            lastCheck: new Date().toISOString(),
+                            checks: {
+                                dns: { success: true, message: 'DNS OK (GitHub Pages)', responseTime: 45 },
+                                ssl: { success: true, message: 'SSL OK (expires in 89 days)', responseTime: 234 },
+                                connectivity: { success: true, message: 'HTTP OK (200, 456ms)', responseTime: 456 },
+                                performance: { success: true, message: 'Performance OK (456ms avg)', responseTime: 456 }
+                            }
+                        },
+                        'bitcoinsovereign.education': {
+                            status: 'warning',
+                            lastCheck: new Date().toISOString(),
+                            checks: {
+                                dns: { success: false, message: 'DNS resolution failed', responseTime: null },
+                                ssl: { success: false, message: 'SSL check failed', responseTime: null },
+                                connectivity: { success: false, message: 'Connection failed', responseTime: null },
+                                performance: { success: false, message: 'Performance test failed', responseTime: null }
+                            }
+                        },
+                        'btcsovereign.academy': {
+                            status: 'critical',
+                            lastCheck: new Date().toISOString(),
+                            checks: {
+                                dns: { success: false, message: 'DNS resolution failed', responseTime: null },
+                                ssl: { success: false, message: 'SSL certificate expired', responseTime: null },
+                                connectivity: { success: false, message: 'Website unavailable', responseTime: null },
+                                performance: { success: false, message: 'Performance test failed', responseTime: null }
+                            }
+                        },
+                        'learnbitcoin.academy': {
+                            status: 'unknown',
+                            lastCheck: null,
+                            checks: {}
+                        }
+                    },
+                    alerts: [
+                        {
+                            type: 'critical',
+                            category: 'ssl',
+                            domain: 'btcsovereign.academy',
+                            message: 'SSL certificate expired',
+                            details: 'Certificate expired 5 days ago',
+                            timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+                        },
+                        {
+                            type: 'warning',
+                            category: 'dns',
+                            domain: 'bitcoinsovereign.education',
+                            message: 'DNS resolution intermittent',
+                            details: 'DNS lookup failures detected',
+                            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+                        },
+                        {
+                            type: 'warning',
+                            category: 'performance',
+                            domain: 'bitcoinsovereign.academy',
+                            message: 'Slow response time',
+                            details: '2.8s average response time (threshold: 3s)',
+                            timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString()
+                        }
+                    ],
+                    stats: {
+                        healthyDomains: 1,
+                        criticalAlerts: 1,
+                        avgResponseTime: '456ms',
+                        uptime: '99.2%'
+                    }
+                };
+
+                console.log('📊 Monitoring data loaded');
+            } catch (error) {
+                console.error('❌ Failed to load monitoring data:', error);
+            }
+        }
+
+        // Update dashboard display
+        function updateDashboard() {
+            updateStats();
+            updateDomainCards();
+            updateAlerts();
+            updateLastUpdated();
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('healthyDomains').textContent = monitoringData.stats.healthyDomains;
+            document.getElementById('criticalAlerts').textContent = monitoringData.stats.criticalAlerts;
+            document.getElementById('avgResponseTime').textContent = monitoringData.stats.avgResponseTime;
+            document.getElementById('uptime').textContent = monitoringData.stats.uptime;
+        }
+
+        // Update domain cards
+        function updateDomainCards() {
+            const grid = document.getElementById('domainsGrid');
+            grid.innerHTML = '';
+
+            Object.entries(monitoringData.domains).forEach(([domain, data]) => {
+                const card = createDomainCard(domain, data);
+                grid.appendChild(card);
+            });
+        }
+
+        // Create domain card element
+        function createDomainCard(domain, data) {
+            const card = document.createElement('div');
+            card.className = 'domain-card';
+            
+            const statusClass = `status-${data.status}`;
+            const statusIcon = getStatusIcon(data.status);
+            const lastCheck = data.lastCheck ? 
+                new Date(data.lastCheck).toLocaleString() : 
+                'Never';
+
+            card.innerHTML = `
+                <div class="domain-header">
+                    <div class="domain-name">${domain}</div>
+                    <div class="status-badge ${statusClass}">${statusIcon} ${data.status}</div>
+                </div>
+                
+                <ul class="checks-list">
+                    ${Object.entries(data.checks).map(([checkName, check]) => `
+                        <li>
+                            <span class="check-name">${checkName.toUpperCase()}</span>
+                            <span class="check-status">${check.success ? '✅' : '❌'}</span>
+                        </li>
+                    `).join('')}
+                </ul>
+                
+                <div style="margin-bottom: 15px; color: #6b7280; font-size: 0.9rem;">
+                    Last checked: ${lastCheck}
+                </div>
+                
+                <div class="domain-actions">
+                    <button class="btn btn-primary" onclick="testDomain('${domain}')">🧪 Test</button>
+                    <button class="btn btn-secondary" onclick="configureDomain('${domain}')">⚙️ Configure</button>
+                    <button class="btn btn-secondary" onclick="viewDetails('${domain}')">📊 Details</button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Get status icon
+        function getStatusIcon(status) {
+            const icons = {
+                healthy: '✅',
+                warning: '⚠️',
+                critical: '🚨',
+                unknown: '❓'
+            };
+            return icons[status] || '❓';
+        }
+
+        // Update alerts section
+        function updateAlerts() {
+            const alertsList = document.getElementById('alertsList');
+            
+            if (monitoringData.alerts.length === 0) {
+                alertsList.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">No recent alerts</div>';
+                return;
+            }
+
+            alertsList.innerHTML = monitoringData.alerts.map(alert => {
+                const timeAgo = getTimeAgo(new Date(alert.timestamp));
+                return `
+                    <div class="alert-item alert-${alert.type}">
+                        <div class="alert-icon">${getAlertIcon(alert.type)}</div>
+                        <div class="alert-content">
+                            <div class="alert-message">${alert.message}</div>
+                            <div class="alert-details">Domain: ${alert.domain} • ${alert.details}</div>
+                        </div>
+                        <div class="alert-time">${timeAgo}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Get alert icon
+        function getAlertIcon(type) {
+            const icons = {
+                critical: '🚨',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            return icons[type] || 'ℹ️';
+        }
+
+        // Get time ago string
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffDays > 0) return `${diffDays}d ago`;
+            if (diffHours > 0) return `${diffHours}h ago`;
+            if (diffMins > 0) return `${diffMins}m ago`;
+            return 'Just now';
+        }
+
+        // Update last updated time
+        function updateLastUpdated() {
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+        }
+
+        // Action functions
+        async function testDomain(domain) {
+            console.log(`🧪 Testing domain: ${domain}`);
+            alert(`Starting comprehensive test for ${domain}...\n\nThis would run:\n- DNS resolution test\n- SSL certificate check\n- Connectivity test\n- Performance benchmark\n- SEO analysis\n- Security headers check`);
+        }
+
+        async function configureDomain(domain) {
+            console.log(`⚙️ Configuring domain: ${domain}`);
+            alert(`Opening configuration for ${domain}...\n\nThis would allow you to:\n- Update DNS settings\n- Configure SSL certificates\n- Set monitoring thresholds\n- Configure alerting rules`);
+        }
+
+        async function viewDetails(domain) {
+            console.log(`📊 Viewing details for: ${domain}`);
+            alert(`Viewing detailed metrics for ${domain}...\n\nThis would show:\n- Historical performance data\n- Uptime statistics\n- Response time trends\n- Alert history\n- Certificate details`);
+        }
+
+        async function runDomainConfig() {
+            console.log('⚙️ Running domain configuration tool');
+            alert('Starting Domain Configuration Tool...\n\nThis would run: npm run domain:configure');
+        }
+
+        async function runDomainTests() {
+            console.log('🧪 Running domain tests');
+            alert('Starting Domain Test Suite...\n\nThis would run: npm run domain:test:all');
+        }
+
+        async function generateReport() {
+            console.log('📊 Generating domain report');
+            alert('Generating Domain Report...\n\nThis would run: npm run domain:report');
+        }
+
+        async function startMonitoring() {
+            console.log('📡 Starting domain monitoring');
+            if (confirm('Start continuous domain monitoring?\n\nThis will monitor all domains every 5 minutes and send alerts for issues.')) {
+                alert('Starting Domain Monitor...\n\nThis would run: node tools/domain-monitor.js start');
+            }
+        }
+
+        async function refreshAlerts() {
+            const btn = document.getElementById('alertsRefreshBtn');
+            btn.innerHTML = '<span class="loading"></span> Refreshing...';
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await loadMonitoringData();
+            updateAlerts();
+            
+            btn.innerHTML = '🔄 Refresh';
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case 'r':
+                        e.preventDefault();
+                        location.reload();
+                        break;
+                    case 't':
+                        e.preventDefault();
+                        runDomainTests();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

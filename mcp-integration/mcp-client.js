@@ -5,7 +5,9 @@
 
 class BitcoinMCPClient {
     constructor() {
-        this.baseURL = 'http://localhost:8080'; // MCP Agent Kit server
+        // Prefer env override if provided via ?mcp=http://host:port or window.__MCP_BASE__
+        const urlParam = (typeof window !== 'undefined') ? new URLSearchParams(window.location.search).get('mcp') : null;
+        this.baseURL = (window && window.__MCP_BASE__) || urlParam || 'http://localhost:3000'; // Default to MCP web server
         this.cache = new Map();
         this.cacheTimeout = 60000; // 1 minute cache
         this.retryAttempts = 3;
@@ -27,10 +29,10 @@ class BitcoinMCPClient {
      */
     async testConnection() {
         try {
-            const response = await this.makeRequest('/health', 'GET');
-            if (response.status === 'healthy') {
+            const response = await this.makeRequest('/api/health', 'GET');
+            if (response && (response.status === 'ok' || response.status === 'healthy' || response.success)) {
                 this.isConnected = true;
-                console.log('✅ Connected to Bitcoin MCP Agent Kit');
+                console.log('✅ Connected to Bitcoin MCP Agent Kit at', this.baseURL);
                 this.emit('connected');
             }
         } catch (error) {
@@ -136,11 +138,12 @@ class BitcoinMCPClient {
      */
     async getBitcoinPrice() {
         try {
-            const data = await this.makeRequest('/api/bitcoin/price');
-            return {
-                usd: data.bitcoin?.usd || 'N/A',
-                change24h: data.bitcoin?.usd_24h_change || 0
-            };
+            const res = await this.makeRequest('/api/bitcoin/price');
+            // Support both {success,data:{price_usd}} and coingecko-style shapes
+            const data = res?.data || res || {};
+            const usd = data.price_usd ?? data.usd ?? data.price ?? data.bitcoin?.usd;
+            const change24h = data.usd_24h_change ?? data.change24h ?? 0;
+            return { usd: usd ?? 'N/A', change24h };
         } catch (error) {
             console.error('Failed to get price data:', error);
             return { usd: 'N/A', change24h: 0 };
@@ -152,12 +155,15 @@ class BitcoinMCPClient {
      */
     async getFeeEstimates() {
         try {
-            const data = await this.makeRequest('/api/bitcoin/fees');
+            const res = await this.makeRequest('/api/bitcoin/fees');
+            const data = res?.data || res || {};
+            const est = data.estimates || data;
             return {
-                fastest: data.fastestFee || 'N/A',
-                fast: data.halfHourFee || 'N/A',
-                medium: data.hourFee || 'N/A',
-                slow: data.economyFee || 'N/A'
+                fastest: est.fastestFee ?? est.fastest ?? 'N/A',
+                fast: est.halfHourFee ?? est.fast ?? 'N/A',
+                medium: est.hourFee ?? est.medium ?? 'N/A',
+                slow: est.economyFee ?? est.slow ?? 'N/A',
+                congestion: data.congestion ?? undefined
             };
         } catch (error) {
             console.error('Failed to get fee estimates:', error);
@@ -192,7 +198,9 @@ class BitcoinMCPClient {
      */
     async getIntelligenceSummary() {
         try {
-            const data = await this.makeRequest('/api/intelligence/summary');
+            // Prefer dedicated endpoint if present; otherwise synthesize from news
+            const res = await this.makeRequest('/api/intelligence/summary');
+            const data = res?.data || res || {};
             return {
                 totalAlerts: data.total_alerts || 0,
                 criticalAlerts: data.critical_alerts || [],
@@ -200,9 +208,20 @@ class BitcoinMCPClient {
                 marketIntelligence: data.market_intelligence || [],
                 lastUpdated: data.generated_at || new Date().toISOString()
             };
-        } catch (error) {
-            console.error('Failed to get intelligence:', error);
-            return this.getFallbackIntelligence();
+        } catch (_) {
+            try {
+                const news = await this.getNews('bitcoin', 20);
+                return {
+                    totalAlerts: news.headlines?.length || 0,
+                    criticalAlerts: [],
+                    educationalOpportunities: [],
+                    marketIntelligence: [{ title: 'News sentiment', sentiment: news.sentiment?.overall }],
+                    lastUpdated: new Date().toISOString()
+                };
+            } catch (error) {
+                console.error('Failed to get intelligence:', error);
+                return this.getFallbackIntelligence();
+            }
         }
     }
 
@@ -253,6 +272,11 @@ class BitcoinMCPClient {
     /**
      * Explore Bitcoin transaction
      */
+    async getNews(query = 'bitcoin', limit = 10) {
+        const res = await this.makeRequest(`/api/news?query=${encodeURIComponent(query)}&limit=${limit}`);
+        return res?.data || res || {};
+    }
+
     async exploreTransaction(txid) {
         try {
             const data = await this.makeRequest(`/api/tools/transaction?txid=${encodeURIComponent(txid)}`);
