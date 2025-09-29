@@ -1402,8 +1402,8 @@
             </a>
             <nav>
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="/interactive-demos/" class="nav-link">Demos</a></li>
-                    <li><a href="#path" class="nav-link">Learning Path</a></li>
+                    <li><a href="/interactive-demos/" class="nav-link" onclick="if(window.plausible){plausible('Click Demos',{props:{ab:location.hash.includes('ab=data-first')?'data-first':'experience-first'}})}">Demos</a></li>
+                    <li><a href="#path" class="nav-link" onclick="if(window.plausible){plausible('Click Learning Path',{props:{ab:location.hash.includes('ab=data-first')?'data-first':'experience-first'}})}">Learning Path</a></li>
                     <li><a href="#bitcoin-data" class="nav-link">Live Data</a></li>
                     <li><a href="#agents" class="nav-link">AI Tutors</a></li>
                     <li><a href="#featured" class="nav-link">Featured</a></li>
@@ -1436,7 +1436,7 @@
             </p>
             <div id="hero-cta" class="chips" style="justify-content:center; margin-bottom: 1rem;"></div>
             <div class="hero-buttons">
-                <a href="/interactive-demos/" class="btn btn-primary">
+                <a href="/interactive-demos/" class="btn btn-primary" onclick="if(window.plausible){plausible('Click Demos',{props:{ab:location.hash.includes('ab=data-first')?'data-first':'experience-first'}})}">
                     🎮 Play Now
                 </a>
                 <a href="interactive-demos/bitcoin-sovereign-game/" class="btn btn-secondary">
@@ -1774,12 +1774,15 @@
     <!-- Featured Content Section -->
     <section class="featured-content" id="featured">
         <div class="container">
-            <h2 class="section-title">Recommended for You</h2>
+            <h2 class="section-title">Recommended for You</h2
             <p class="section-subtitle">AI-curated content based on your interests</p>
             
             <!-- Dynamic featured content -->
-            <div id="featured-content" aria-live="polite">
-                <p style="text-align: center; color: #999; padding: 2rem;">Loading personalized recommendations...</p>
+            <div id="featured-content" class="skel" aria-busy="true" aria-live="polite"></div>
+            <div id="featured-fallback" style="display:none; margin-top:1rem;">
+                <ul>
+                    <li><a href="/curriculum/philosophy-economics/">Philosophy &amp; Economics</a></li>
+                </ul>
             </div>
         </div>
     </section>
@@ -2764,6 +2767,39 @@
     <script src="js/onboarding-flow.js"></script>
     <script defer src="/js/hero-cta.js"></script>
     <script defer src="/js/ab-home.js"></script>
+
+    <!-- Persona chip click tracking (Plausible) -->
+    <script>
+      document.addEventListener('click', (e) => {
+        const a = e.target.closest('#hero-cta a.chip');
+        if (!a || !window.plausible) return;
+        const persona = (window.MCP && window.MCP.state && window.MCP.state.persona) || (window.mcpService && window.mcpService.currentPersona) || 'unknown';
+        const variant = location.hash.includes('ab=data-first') ? 'data-first' : 'experience-first';
+        plausible('Hero Chip Click', { props: { persona, href: a.getAttribute('href'), ab: variant } });
+      });
+      // Featured fallback if MCP hasn't populated in time
+      (function(){
+        const box = document.getElementById('featured-content');
+        const fb  = document.getElementById('featured-fallback');
+        setTimeout(() => {
+          if (box && box.children.length === 0) {
+            try { box.classList.remove('skel'); box.removeAttribute('aria-busy'); } catch {}
+            if (fb) fb.style.display = 'block';
+          }
+        }, 2000);
+        window.addEventListener('mcp:featured:ready', () => { if (fb) fb.style.display = 'none'; });
+      })();
+      // Hide persona chips whose routes are missing (dev safeguard)
+      (async function(){
+        const links = document.querySelectorAll('#hero-cta a.chip');
+        for (const a of links) {
+          try {
+            const r = await fetch(a.getAttribute('href'), { method: 'HEAD' });
+            if (!r.ok) a.style.display = 'none';
+          } catch { a.style.display = 'none'; }
+        }
+      })();
+    </script>
 
 </body>
 </html>

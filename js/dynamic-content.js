@@ -417,6 +417,12 @@ class DynamicContentLoader {
                 container.classList.remove('skel');
                 container.removeAttribute('aria-busy');
             } catch {}
+            // Dispatch ready event for featured
+            try {
+                if (container.id === 'featured-content') {
+                    window.dispatchEvent(new CustomEvent('mcp:featured:ready'));
+                }
+            } catch {}
             // Fade in
             container.style.opacity = '1';
         }, 300);
