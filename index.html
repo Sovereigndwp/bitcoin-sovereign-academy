@@ -2166,6 +2166,7 @@
             }
 
             setupPersonas() {
+                console.log('PersonaGuidanceSystem: Setting up personas...');
                 const personas = {
                     curious: {
                         name: "Bitcoin Curious Explorer",
@@ -2253,35 +2254,83 @@
                     }
                 };
 
-                // Setup persona selection
+                // Setup persona selection with error handling
                 const personaCards = document.querySelectorAll('.persona-card');
                 const continueBtn = document.querySelector('.btn-continue');
                 const skipBtn = document.querySelector('.btn-skip');
+                
+                console.log('PersonaGuidanceSystem: Found', personaCards.length, 'persona cards');
+                console.log('PersonaGuidanceSystem: Continue button found:', !!continueBtn);
+                console.log('PersonaGuidanceSystem: Skip button found:', !!skipBtn);
 
-                personaCards.forEach(card => {
+                personaCards.forEach((card, index) => {
+                    console.log(`PersonaGuidanceSystem: Setting up card ${index}:`, card.dataset.persona);
                     card.addEventListener('click', () => {
-                        personaCards.forEach(c => c.classList.remove('selected'));
-                        card.classList.add('selected');
-                        this.selectedPersona = personas[card.dataset.persona];
-                        continueBtn.disabled = false;
-                        continueBtn.textContent = `Start as ${this.selectedPersona.name}`;
+                        try {
+                            console.log('PersonaGuidanceSystem: Card clicked:', card.dataset.persona);
+                            personaCards.forEach(c => c.classList.remove('selected'));
+                            card.classList.add('selected');
+                            this.selectedPersona = personas[card.dataset.persona];
+                            if (continueBtn) {
+                                continueBtn.disabled = false;
+                                continueBtn.textContent = `Start as ${this.selectedPersona.name}`;
+                            }
+                            console.log('PersonaGuidanceSystem: Persona selected:', this.selectedPersona.name);
+                        } catch (error) {
+                            console.error('PersonaGuidanceSystem: Error in card click handler:', error);
+                        }
                     });
                 });
 
-                continueBtn.addEventListener('click', async () => {
-                    await this.startPersonalizedJourney();
-                });
+                if (continueBtn) {
+                    continueBtn.addEventListener('click', async () => {
+                        try {
+                            if (!this.selectedPersona) {
+                                console.warn('PersonaGuidanceSystem: No persona selected yet');
+                                return;
+                            }
+                            await this.startPersonalizedJourney();
+                        } catch (error) {
+                            console.error('PersonaGuidanceSystem: Error starting journey:', error);
+                        }
+                    });
+                }
 
-                skipBtn.addEventListener('click', () => {
-                    this.hidePersonaModal();
-                });
+                if (skipBtn) {
+                    skipBtn.addEventListener('click', () => {
+                        try {
+                            this.hidePersonaModal();
+                        } catch (error) {
+                            console.error('PersonaGuidanceSystem: Error hiding modal:', error);
+                        }
+                    });
+                }
             }
 
             showPersonaModal() {
-                // Show modal after a brief delay
-                setTimeout(() => {
-                    document.getElementById('personaModal').classList.remove('hidden');
-                }, 2000);
+                // Only show if no persona selected and onboarding is not active
+                try {
+                    const hasPersona = !!localStorage.getItem('btc-academy-persona');
+                    const onboardingCompleted = localStorage.getItem('btc-academy-onboarding-completed') === 'true';
+                    const onboardingSkipped = localStorage.getItem('btc-academy-onboarding-skipped') === 'true';
+                    const onboardingActive = document.body.classList.contains('onboarding-active');
+
+                    // If onboarding is active or not yet completed/skipped, defer modal until onboarding finishes
+                    if (onboardingActive || (!onboardingCompleted && !onboardingSkipped)) {
+                        console.log('PersonaGuidanceSystem: Deferring persona modal (onboarding active)');
+                        return;
+                    }
+
+                    if (!hasPersona) {
+                        // Show modal after a brief delay
+                        setTimeout(() => {
+                            const modal = document.getElementById('personaModal');
+                            if (modal) modal.classList.remove('hidden');
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('PersonaGuidanceSystem: Error showing persona modal:', err);
+                }
             }
 
             hidePersonaModal() {
@@ -2555,8 +2604,15 @@
             }
         }
 
-        // Initialize the guidance system
-        const guidanceSystem = new PersonaGuidanceSystem();
+        // Initialize the guidance system with proper error handling
+        let guidanceSystem;
+        try {
+            guidanceSystem = new PersonaGuidanceSystem();
+            console.log('PersonaGuidanceSystem initialized successfully');
+        } catch (error) {
+            console.error('Error initializing PersonaGuidanceSystem:', error);
+            // Fallback initialization will be handled by fix-persona-modal.js
+        }
 
         // Enhanced feature card interactions
         document.querySelectorAll('.feature-card').forEach(card => {
@@ -2588,5 +2644,6 @@
     <script src="js/dynamic-content.js"></script>
     <script src="js/learning-path.js"></script>
     <script src="js/onboarding-flow.js"></script>
+
 </body>
 </html>
