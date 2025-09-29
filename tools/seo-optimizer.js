@@ -39,6 +39,7 @@ class SEOOptimizer {
         };
 
         this.results = {};
+        this.issuesFixed = 0;
     }
 
     /**
@@ -56,12 +57,14 @@ class SEOOptimizer {
                 await this.optimizeFile(file, options);
             }
 
-            await this.generateReport();
+            const report = await this.generateReport();
             
-            console.log('\n✅ SEO optimization completed!');
+            console.log('\n\u2705 SEO optimization completed!');
+            
+            return report;
 
         } catch (error) {
-            console.error('❌ SEO optimization failed:', error.message);
+            console.error('\u274c SEO optimization failed:', error.message);
             process.exit(1);
         }
     }
@@ -79,13 +82,14 @@ class SEOOptimizer {
             this.results[filePath] = analysis;
 
             if (options.fix && this.config.fixes.autoFix) {
-                const optimized = await this.applyFixes(document, analysis, filePath);
-                if (optimized) {
+                const fixesApplied = await this.applyFixes(document, analysis, filePath);
+                if (fixesApplied > 0) {
+                    this.issuesFixed += fixesApplied;
                     if (this.config.fixes.backupOriginal) {
                         await this.backupFile(filePath);
                     }
                     await fs.writeFile(filePath, dom.serialize());
-                    console.log(`   ✅ Optimized and saved`);
+                    console.log(`   ✅ Optimized and saved (${fixesApplied} fixes)`);
                 } else {
                     console.log(`   ℹ️  No fixes needed`);
                 }
@@ -508,14 +512,14 @@ class SEOOptimizer {
      * Apply automated fixes to document
      */
     async applyFixes(document, analysis, filePath) {
-        let hasChanges = false;
+        let fixesApplied = 0;
 
         // Fix missing title
         if (!analysis.elements.title.exists && this.config.fixes.addMissingTags) {
             const title = document.createElement('title');
             title.textContent = this.generateTitle(filePath);
             document.head.appendChild(title);
-            hasChanges = true;
+            fixesApplied++;
             console.log('   🔧 Added page title');
         }
 
@@ -525,7 +529,7 @@ class SEOOptimizer {
             meta.setAttribute('name', 'description');
             meta.setAttribute('content', this.generateDescription(filePath));
             document.head.appendChild(meta);
-            hasChanges = true;
+            fixesApplied++;
             console.log('   🔧 Added meta description');
         }
 
@@ -535,7 +539,7 @@ class SEOOptimizer {
             viewport.setAttribute('name', 'viewport');
             viewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
             document.head.appendChild(viewport);
-            hasChanges = true;
+            fixesApplied++;
             console.log('   🔧 Added viewport meta tag');
         }
 
@@ -545,16 +549,14 @@ class SEOOptimizer {
             canonical.setAttribute('rel', 'canonical');
             canonical.setAttribute('href', this.generateCanonicalUrl(filePath));
             document.head.appendChild(canonical);
-            hasChanges = true;
+            fixesApplied++;
             console.log('   🔧 Added canonical link');
         }
 
         // Add Open Graph tags
         if (this.config.fixes.addMissingTags) {
             const ogFixes = this.addOpenGraphTags(document, analysis, filePath);
-            if (ogFixes) {
-                hasChanges = true;
-            }
+            fixesApplied += ogFixes;
         }
 
         // Add structured data
@@ -564,18 +566,18 @@ class SEOOptimizer {
             script.setAttribute('type', 'application/ld+json');
             script.textContent = JSON.stringify(structuredData, null, 2);
             document.head.appendChild(script);
-            hasChanges = true;
+            fixesApplied++;
             console.log('   🔧 Added structured data');
         }
 
-        return hasChanges;
+        return fixesApplied;
     }
 
     /**
      * Add Open Graph tags
      */
     addOpenGraphTags(document, analysis, filePath) {
-        let hasChanges = false;
+        let fixesApplied = 0;
         const og = analysis.elements.openGraph;
 
         if (!og.title) {
@@ -583,7 +585,7 @@ class SEOOptimizer {
             meta.setAttribute('property', 'og:title');
             meta.setAttribute('content', this.generateTitle(filePath));
             document.head.appendChild(meta);
-            hasChanges = true;
+            fixesApplied++;
         }
 
         if (!og.description) {
@@ -591,7 +593,7 @@ class SEOOptimizer {
             meta.setAttribute('property', 'og:description');
             meta.setAttribute('content', this.generateDescription(filePath));
             document.head.appendChild(meta);
-            hasChanges = true;
+            fixesApplied++;
         }
 
         if (!og.image) {
@@ -599,7 +601,7 @@ class SEOOptimizer {
             meta.setAttribute('property', 'og:image');
             meta.setAttribute('content', this.config.site.image);
             document.head.appendChild(meta);
-            hasChanges = true;
+            fixesApplied++;
         }
 
         if (!og.url) {
@@ -607,7 +609,7 @@ class SEOOptimizer {
             meta.setAttribute('property', 'og:url');
             meta.setAttribute('content', this.generateCanonicalUrl(filePath));
             document.head.appendChild(meta);
-            hasChanges = true;
+            fixesApplied++;
         }
 
         if (!og.type) {
@@ -615,14 +617,14 @@ class SEOOptimizer {
             meta.setAttribute('property', 'og:type');
             meta.setAttribute('content', this.config.site.type);
             document.head.appendChild(meta);
-            hasChanges = true;
+            fixesApplied++;
         }
 
-        if (hasChanges) {
-            console.log('   🔧 Added Open Graph tags');
+        if (fixesApplied > 0) {
+            console.log(`   🔧 Added ${fixesApplied} Open Graph tags`);
         }
 
-        return hasChanges;
+        return fixesApplied;
     }
 
     /**
@@ -749,7 +751,8 @@ class SEOOptimizer {
                 totalFiles: Object.keys(this.results).length,
                 averageScore: 0,
                 totalIssues: 0,
-                totalRecommendations: 0
+                totalRecommendations: 0,
+                issuesFixed: this.issuesFixed
             },
             files: this.results
         };
