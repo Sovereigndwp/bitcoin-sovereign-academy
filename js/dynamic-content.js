@@ -412,6 +412,11 @@ class DynamicContentLoader {
         
         setTimeout(() => {
             container.innerHTML = html;
+            // Remove skeleton state if present
+            try {
+                container.classList.remove('skel');
+                container.removeAttribute('aria-busy');
+            } catch {}
             // Fade in
             container.style.opacity = '1';
         }, 300);
