@@ -71,6 +71,20 @@
 
   try {
     const pid = getPersonaId();
+    // Prepend Philosophy & Economics for investor/skeptic personas
+    if (map['investor']) {
+      map['investor'] = [
+        { href: '/curriculum/philosophy-economics/', label: 'Philosophy & Economics' },
+        ...map['investor']
+      ];
+    }
+    if (map['skeptic']) {
+      map['skeptic'] = [
+        { href: '/curriculum/philosophy-economics/', label: 'Why Bitcoin Matters' },
+        ...map['skeptic']
+      ];
+    }
+
     const chips = (pid && map[pid]) ? map[pid] : defaults;
     render(chips);
   } catch {
