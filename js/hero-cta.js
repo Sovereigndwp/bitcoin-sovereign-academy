@@ -62,10 +62,30 @@
       { href: '/curriculum/first-principles/', label: 'Basics in Plain English' },
       { href: '/interactive-demos/consensus-game/', label: 'Consensus Game' },
     ],
-    'developer': [
+'developer': [
       { href: '/interactive-demos/transaction-builder/', label: 'Build a TX' },
       { href: '/interactive-demos/consensus-game/', label: 'Consensus Game' },
       { href: '/interactive-demos/mining-simulator/', label: 'Mining Simulator' },
+    ],
+    'entrepreneur': [
+      { href: '/interactive-demos/lightning-lab.html', label: 'Accept Bitcoin (Lightning)' },
+      { href: '/interactive-demos/transaction-builder/', label: 'Cut Payment Fees' },
+      { href: '/curriculum/sovereign-tools/', label: 'Sovereign Tools' },
+    ],
+    'retiree': [
+      { href: '/curriculum/philosophy-economics/', label: 'Protect Savings' },
+      { href: '/curriculum/first-principles/', label: 'First Principles' },
+      { href: '/interactive-demos/wallet-workshop/', label: 'Safe Wallet Setup' },
+    ],
+    'global': [
+      { href: '/interactive-demos/lightning-lab.html', label: 'Send Money Abroad' },
+      { href: '/interactive-demos/consensus-game/', label: 'Why Decentralization Matters' },
+      { href: '/curriculum/first-principles/', label: 'First Principles' },
+    ],
+    'global-citizen': [
+      { href: '/interactive-demos/lightning-lab.html', label: 'Send Money Abroad' },
+      { href: '/interactive-demos/consensus-game/', label: 'Why Decentralization Matters' },
+      { href: '/curriculum/first-principles/', label: 'First Principles' },
     ],
   };
 
