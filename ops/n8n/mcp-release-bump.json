@@ -1,0 +1,111 @@
+{
+  "name": "MCP Release → Bump → PR → E2E (Option A)",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerOn": "release",
+        "events": ["published"],
+        "owner": "Sovereigndwp",
+        "repository": "mcp-agent-kit"
+      },
+      "id": "github_trigger",
+      "name": "GitHub Trigger (release)",
+      "type": "n8n-nodes-base.githubTrigger"
+    },
+    {
+      "parameters": {
+        "functionCode": "const tag = $json.body.release.tag_name || $json.body.release.tag || '';\nconst version = tag.replace(/^v/, '');\nreturn [{ tag, version, package: '@sovereigndwp/mcp-agent-kit' }];"
+      },
+      "id": "parse_tag",
+      "name": "Parse Tag → Version",
+      "type": "n8n-nodes-base.function"
+    },
+    {
+      "parameters": {
+        "owner": "Sovereigndwp",
+        "repository": "bitcoin-sovereign-academy",
+        "event": "mcp-release",
+        "payload": "={ \"package\": $json.package, \"version\": $json.version }"
+      },
+      "id": "repo_dispatch",
+      "name": "Repository Dispatch (BSA)",
+      "type": "n8n-nodes-base.github"
+    },
+    {
+      "parameters": {
+        "interval": 30
+      },
+      "id": "wait_30s",
+      "name": "Wait 30s",
+      "type": "n8n-nodes-base.wait"
+    },
+    {
+      "parameters": {
+        "owner": "Sovereigndwp",
+        "repository": "bitcoin-sovereign-academy",
+        "operation": "listPrs",
+        "additionalFields": {
+          "state": "open",
+          "head": "=bot/bump-@sovereigndwp/mcp-agent-kit-{{$json.version}}"
+        }
+      },
+      "id": "list_prs",
+      "name": "List PRs",
+      "type": "n8n-nodes-base.github"
+    },
+    {
+      "parameters": {
+        "functionCode": "const prs = items[0].json || [];\nconst pr = Array.isArray(prs) ? prs[0] : prs;\nreturn [{ prNumber: pr && pr.number }];"
+      },
+      "id": "extract_pr",
+      "name": "Extract PR Number",
+      "type": "n8n-nodes-base.function"
+    },
+    {
+      "parameters": {
+        "owner": "Sovereigndwp",
+        "repository": "bitcoin-sovereign-academy",
+        "operation": "getChecksForRef",
+        "ref": "=refs/heads/bot/bump-@sovereigndwp/mcp-agent-kit-{{$json.version}}"
+      },
+      "id": "get_checks",
+      "name": "Get Checks",
+      "type": "n8n-nodes-base.github"
+    },
+    {
+      "parameters": {
+        "functionCode": "const checks = items[0].json || {};\nconst conclusion = checks.check_runs && checks.check_runs[0] && checks.check_runs[0].conclusion;\nreturn [{ status: conclusion || 'unknown' }];"
+      },
+      "id": "summarize_checks",
+      "name": "Summarize Checks",
+      "type": "n8n-nodes-base.function"
+    },
+    {
+      "parameters": {
+        "url": "https://hooks.slack.com/services/REPLACE/ME",
+        "options": {
+          "bodyParameters": {
+            "sendBody": true,
+            "bodyContentType": "json",
+            "parameters": {
+              "text": "=MCP release {{$json.version}} → PR checks: {{$json.status}}"
+            }
+          }
+        }
+      },
+      "id": "notify",
+      "name": "Notify (Slack webhook)",
+      "type": "n8n-nodes-base.httpRequest"
+    }
+  ],
+  "connections": {
+    "github_trigger": { "main": [[{ "node": "parse_tag", "type": "main" }]] },
+    "parse_tag": { "main": [[{ "node": "repo_dispatch", "type": "main" }]] },
+    "repo_dispatch": { "main": [[{ "node": "wait_30s", "type": "main" }]] },
+    "wait_30s": { "main": [[{ "node": "list_prs", "type": "main" }]] },
+    "list_prs": { "main": [[{ "node": "extract_pr", "type": "main" }]] },
+    "extract_pr": { "main": [[{ "node": "get_checks", "type": "main" }]] },
+    "get_checks": { "main": [[{ "node": "summarize_checks", "type": "main" }]] },
+    "summarize_checks": { "main": [[{ "node": "notify", "type": "main" }]] }
+  }
+}

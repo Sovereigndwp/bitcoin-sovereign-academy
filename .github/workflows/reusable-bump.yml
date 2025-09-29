@@ -1,0 +1,69 @@
+name: Reusable bump dependency and open PR
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+    secrets:
+      GH_TOKEN:
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN || github.token }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Configure git
+        run: |
+          git config user.name "automation-bot"
+          git config user.email "automation-bot@users.noreply.github.com"
+
+      - name: Create branch
+        id: branch
+        run: |
+          BRANCH="bot/bump-${{ inputs.package }}-${{ inputs.version }}"
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+          git switch -c "$BRANCH"
+
+      - name: Ensure devDependency exists
+        run: |
+          node -e "let p=require('./package.json'); p.devDependencies=p.devDependencies||{}; if(!p.devDependencies['${{ inputs.package }}']){p.devDependencies['${{ inputs.package }}']='^${{ inputs.version }}'}; require('fs').writeFileSync('package.json', JSON.stringify(p,null,2));"
+
+      - name: Bump version
+        run: |
+          node -e "let p=require('./package.json'); ['dependencies','devDependencies','peerDependencies'].forEach(k=>{if(p[k]&&p[k]['${{ inputs.package }}']) p[k]['${{ inputs.package }}']='^${{ inputs.version }}'}); require('fs').writeFileSync('package.json', JSON.stringify(p,null,2));"
+
+      - name: Commit changes
+        run: |
+          git add package.json || true
+          git commit -m "chore: bump ${{ inputs.package }} to v${{ inputs.version }}" || echo "No changes to commit"
+
+      - name: Push branch
+        run: git push -u origin "$BRANCH"
+
+      - name: Open PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GH_TOKEN || github.token }}
+          commit-message: "chore: bump ${{ inputs.package }} to v${{ inputs.version }}"
+          branch: ${{ env.BRANCH }}
+          title: "chore: bump ${{ inputs.package }} to v${{ inputs.version }}"
+          body: "Automated bump triggered by MCP release dispatch."
+          base: main
