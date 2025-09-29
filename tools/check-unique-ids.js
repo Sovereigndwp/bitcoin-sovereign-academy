@@ -1,5 +1,5 @@
-import { readFileSync, readdirSync, statSync } from "fs";
-import { join } from "path";
+const { readFileSync, readdirSync } = require('fs');
+const { join } = require('path');
 
 // Recursively collect .html files from repo root (excluding node_modules/.git)
 function listHtmlFiles(dir, acc = []) {
@@ -19,7 +19,7 @@ let bad = [];
 for (const f of files) {
   let html = '';
   try { html = readFileSync(f, 'utf8'); } catch { continue; }
-  const ids = [...html.matchAll(/id="([^"]+)"/g)].map(m => m[1]);
+  const ids = [...html.matchAll(/id=\"([^\"]+)\"/g)].map(m => m[1]);
   const seen = new Set();
   const dups = new Set();
   for (const id of ids) {
