@@ -1253,6 +1253,44 @@
             float: right;
             font-size: 1.2rem;
         }
+        
+        /* Progress and Recommendations Layout */
+        .progress-recommendations {
+            padding: 4rem 2rem;
+            background: rgba(45, 45, 45, 0.5);
+        }
+        
+        .progress-recommendations-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .progress-section-container h3,
+        .recommendations-container h3 {
+            color: var(--primary-orange);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+        
+        .cta-button {
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            background: #ff7b00;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 147, 26, 0.4);
+        }
 
         /* Responsive adjustments */
         @media (max-width: 768px) {
@@ -1283,6 +1321,9 @@
             }
         }
     </style>
+    
+    <!-- Dynamic Content & MCP Integration -->
+    <link rel="stylesheet" href="css/dynamic-content.css">
 </head>
 <body>
     <!-- Loading Screen -->
@@ -1299,7 +1340,7 @@
             </a>
             <nav>
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="#features" class="nav-link">Demos</a></li>
+                    <li><a href="/interactive-demos/" class="nav-link">Demos</a></li>
                     <li><a href="#agents" class="nav-link">AI Agents</a></li>
                     <li><a href="#path" class="nav-link">Learning Path</a></li>
                     <li><a href="/api/health" class="nav-link">API Status</a></li>
@@ -1491,6 +1532,70 @@
         </div>
     </section>
 
+    <!-- Personalized Learning Path Section -->
+    <section class="learning-path" id="path">
+        <div class="container">
+            <h2 class="section-title">Your Learning Journey</h2>
+            <p class="section-subtitle">Personalized content based on your goals and progress</p>
+            
+            <!-- Dynamic content populated by MCP service -->
+            <div id="learning-path-content">
+                <div class="persona-prompt">
+                    <div class="persona-prompt-content">
+                        <h3>🎯 Choose Your Learning Journey</h3>
+                        <p>Select your persona to get a personalized Bitcoin education experience</p>
+                        <button class="cta-button" onclick="document.getElementById('personaModal').style.display='block'">
+                            Select Your Persona
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Featured Content Section -->
+    <section class="featured-content">
+        <div class="container">
+            <h2 class="section-title">Recommended for You</h2>
+            <p class="section-subtitle">AI-curated content based on your interests</p>
+            
+            <!-- Dynamic featured content -->
+            <div id="featured-content">
+                <p style="text-align: center; color: #999; padding: 2rem;">Loading personalized recommendations...</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Progress & Recommendations Section -->
+    <section class="progress-recommendations">
+        <div class="container">
+            <div class="progress-recommendations-grid">
+                <div class="progress-section-container">
+                    <h3>📊 Your Progress</h3>
+                    <div id="progress-section">
+                        <div class="progress-placeholder">Select a persona to track progress</div>
+                    </div>
+                </div>
+                
+                <div class="recommendations-container">
+                    <h3>💡 Smart Recommendations</h3>
+                    <div id="recommendations-container">
+                        <div class="recommendation-item priority-high">
+                            <div class="recommendation-icon">🎯</div>
+                            <div class="recommendation-content">
+                                <h4>Choose Your Learning Path</h4>
+                                <p>Select your persona to get personalized content recommendations</p>
+                                <button class="recommendation-cta" onclick="document.getElementById('personaModal').style.display='block'">
+                                    Select Persona
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- AI Learning Agents Section -->
     <section class="ai-agents" id="agents">
         <div class="container">
@@ -1577,6 +1682,18 @@
                     <span>Powered by MCP</span>
                 </div>
                 <p>All agents collaborate through the Model Context Protocol for smarter, contextual guidance</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- AI-Powered Content Suggestions -->
+    <section class="ai-suggestions-section">
+        <div class="container">
+            <h2 class="section-title">🤖 AI-Powered Suggestions</h2>
+            <p class="section-subtitle">Smart content recommendations tailored to your learning style</p>
+            
+            <div id="ai-suggestions">
+                <p style="text-align: center; color: #999; padding: 3rem;">AI suggestions will appear here based on your activity and chosen persona</p>
             </div>
         </div>
     </section>
@@ -2149,8 +2266,8 @@
                     });
                 });
 
-                continueBtn.addEventListener('click', () => {
-                    this.startPersonalizedJourney();
+                continueBtn.addEventListener('click', async () => {
+                    await this.startPersonalizedJourney();
                 });
 
                 skipBtn.addEventListener('click', () => {
@@ -2169,11 +2286,41 @@
                 document.getElementById('personaModal').classList.add('hidden');
             }
 
-            startPersonalizedJourney() {
+            async startPersonalizedJourney() {
                 this.hidePersonaModal();
                 this.showProgressTracker();
                 this.updateProgress(10); // Initial progress
                 this.showSmartPrompt(this.selectedPersona.content, this.selectedPersona.nextSteps);
+                
+                // Map persona names to MCP service persona IDs
+                const personaMapping = {
+                    'Bitcoin Curious Explorer': 'bitcoin-curious',
+                    'Traditional Investor': 'investor',
+                    'Tech Developer': 'developer',
+                    'Freedom Seeker': 'libertarian',
+                    'Business Owner': 'business-owner',
+                    'Academic Student': 'student',
+                    'Wealth Preserver': 'retiree',
+                    'Bitcoin Entrepreneur': 'entrepreneur',
+                    'Bitcoin Skeptic': 'skeptic',
+                    'Bitcoin Maximalist': 'maximalist',
+                    'Parent & Educator': 'parent',
+                    'Global Citizen': 'global'
+                };
+                
+                // Set persona in MCP service
+                const personaId = personaMapping[this.selectedPersona.name];
+                if (personaId && window.mcpService) {
+                    await window.mcpService.setPersona(personaId);
+                    
+                    // Trigger content refresh event for all dynamic content
+                    window.dispatchEvent(new CustomEvent('personaChanged', {
+                        detail: {
+                            personaId: personaId,
+                            personaName: this.selectedPersona.name
+                        }
+                    }));
+                }
                 
                 // Scroll to recommended starting point
                 setTimeout(() => {
@@ -2423,6 +2570,19 @@
         setInterval(() => {
             guidanceSystem.saveUserProgress();
         }, 30000);
+        
+        // Track activity for MCP dynamic updates
+        document.addEventListener('click', () => {
+            localStorage.setItem('btc-academy-last-activity', Date.now().toString());
+        });
+        
+        document.addEventListener('scroll', () => {
+            localStorage.setItem('btc-academy-last-activity', Date.now().toString());
+        });
     </script>
+    
+    <!-- MCP Service and Dynamic Content Integration -->
+    <script src="js/mcp-service.js"></script>
+    <script src="js/dynamic-content.js"></script>
 </body>
 </html>
