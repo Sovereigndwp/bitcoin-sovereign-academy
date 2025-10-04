@@ -1,5 +1,5 @@
-const { readFileSync, readdirSync } = require('fs');
-const { join } = require('path');
+import { readFileSync, readdirSync } from 'fs';
+import { join } from 'path';
 
 // Recursively collect .html files from repo root (excluding node_modules/.git)
 function listHtmlFiles(dir, acc = []) {
