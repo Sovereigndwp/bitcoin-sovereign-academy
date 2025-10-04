@@ -33,37 +33,35 @@ class MobileExperience {
     // ============================================================================
     
     setupMobileNav() {
-        const hamburger = document.querySelector('.hamburger');
-        const mobileMenu = document.querySelector('.mobile-menu');
-        const mobileMenuItems = document.querySelectorAll('.mobile-menu-item');
-        
-        if (hamburger) {
-            hamburger.addEventListener('click', () => {
+        const toggle = document.getElementById('nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        const menuItems = navLinks ? navLinks.querySelectorAll('a') : [];
+
+        if (toggle) {
+            toggle.addEventListener('click', () => {
                 this.toggleMenu();
             });
-            
-            // Add touch feedback
-            hamburger.addEventListener('touchstart', () => {
-                hamburger.classList.add('active-touch');
-            });
-            
-            hamburger.addEventListener('touchend', () => {
+
+            // Add touch feedback for mobile tap targets
+            toggle.addEventListener('touchstart', () => {
+                toggle.classList.add('active-touch');
+            }, { passive: true });
+
+            toggle.addEventListener('touchend', () => {
                 setTimeout(() => {
-                    hamburger.classList.remove('active-touch');
+                    toggle.classList.remove('active-touch');
                 }, 300);
-            });
+            }, { passive: true });
         }
-        
-        // Close menu when clicking menu items
-        mobileMenuItems.forEach(item => {
+
+        menuItems.forEach(item => {
             item.addEventListener('click', () => {
                 this.closeMenu();
             });
         });
-        
-        // Close menu on swipe up
-        if (mobileMenu) {
-            this.addSwipeListener(mobileMenu, (direction) => {
+
+        if (navLinks) {
+            this.addSwipeListener(navLinks, (direction) => {
                 if (direction === 'up' || direction === 'left') {
                     this.closeMenu();
                 }
@@ -72,17 +70,18 @@ class MobileExperience {
     }
     
     toggleMenu() {
-        const hamburger = document.querySelector('.hamburger');
-        const mobileMenu = document.querySelector('.mobile-menu');
+        const toggle = document.getElementById('nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
         
         this.isMenuOpen = !this.isMenuOpen;
         
-        if (hamburger) {
-            hamburger.classList.toggle('active');
+        if (toggle) {
+            toggle.classList.toggle('active');
+            toggle.setAttribute('aria-expanded', this.isMenuOpen ? 'true' : 'false');
         }
         
-        if (mobileMenu) {
-            mobileMenu.classList.toggle('active');
+        if (navLinks) {
+            navLinks.classList.toggle('active');
             
             // Prevent body scroll when menu is open
             if (this.isMenuOpen) {
@@ -99,17 +98,18 @@ class MobileExperience {
     }
     
     closeMenu() {
-        const hamburger = document.querySelector('.hamburger');
-        const mobileMenu = document.querySelector('.mobile-menu');
+        const toggle = document.getElementById('nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
         
         this.isMenuOpen = false;
         
-        if (hamburger) {
-            hamburger.classList.remove('active');
+        if (toggle) {
+            toggle.classList.remove('active');
+            toggle.setAttribute('aria-expanded', 'false');
         }
         
-        if (mobileMenu) {
-            mobileMenu.classList.remove('active');
+        if (navLinks) {
+            navLinks.classList.remove('active');
         }
         
         document.body.style.overflow = '';
