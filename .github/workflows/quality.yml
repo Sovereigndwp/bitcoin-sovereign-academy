@@ -37,7 +37,7 @@ jobs:
       - name: Check for missing files (404s)
         run: |
           echo "Checking for broken internal links..."
-          for file in $(find . -name "*.html" -type f); do
+          find . -path "./node_modules" -prune -o -name "*.html" -type f -print | while read -r file; do
             grep -oE '(src|href)="[^"]*\.(js|css|html)"' "$file" | cut -d'"' -f2 | while read -r ref; do
               # Skip external URLs
               if [[ ! "$ref" =~ ^https?:// ]]; then
@@ -161,7 +161,7 @@ jobs:
         run: |
           echo "Checking for duplicate content..."
           # Simple duplicate checker
-          find . -name "*.md" -type f | while read -r file; do
+          find . -path "./node_modules" -prune -o -name "*.md" -type f -print | while read -r file; do
             hash=$(md5sum "$file" | cut -d' ' -f1)
             echo "$hash $file"
           done | sort | uniq -d -w32 | while read -r dup; do
