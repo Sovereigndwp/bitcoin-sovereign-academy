@@ -82,7 +82,7 @@ class JourneyManager {
           title: 'Run transaction & fee simulations',
           description: 'Experiment with building transactions and choosing feerates safely.',
           tag: 'Simulate',
-          anchor: '#simulate',
+          anchor: '#foundation-deeper',
         },
       ],
       apply: [
@@ -90,7 +90,7 @@ class JourneyManager {
           title: 'Set up your security plan',
           description: 'Review intelligence dashboards and walk through self-custody steps.',
           tag: 'Secure',
-          anchor: '#intelligence',
+          anchor: '#foundation-custody',
         },
       ],
     };
@@ -104,7 +104,7 @@ class JourneyManager {
             title: 'Study Bitcoin’s monetary properties',
             description: 'Compare scarcity, issuance schedules, and macro narratives.',
             tag: 'Research',
-            anchor: '#why-bitcoin',
+            anchor: '#foundation-intro',
           },
         ],
         practice: [
@@ -112,7 +112,7 @@ class JourneyManager {
             title: 'Model Bitcoin allocations',
             description: 'Use generated courses and simulations to test portfolio scenarios.',
             tag: 'Model',
-            anchor: '#courses',
+            anchor: '#foundation-basics',
           },
         ],
         apply: [
@@ -120,7 +120,7 @@ class JourneyManager {
             title: 'Create your custody & reporting plan',
             description: 'Map out storage, liquidity, and tax reporting considerations.',
             tag: 'Plan',
-            anchor: '#intelligence',
+            anchor: '#foundation-custody',
           },
         ],
       },
@@ -138,7 +138,7 @@ class JourneyManager {
             title: 'Experiment in interactive labs',
             description: 'Use the transaction builder and Lightning demos to test flows.',
             tag: 'Build',
-            anchor: '#simulate',
+            anchor: '#foundation-deeper',
           },
         ],
         apply: [
@@ -146,7 +146,7 @@ class JourneyManager {
             title: 'Ship a prototype with AI tutors',
             description: 'Leverage AI agents to storyboard your product and security model.',
             tag: 'Ship',
-            anchor: '#ai-agents',
+            anchor: '#foundation-advanced',
           },
         ],
       },
@@ -156,7 +156,7 @@ class JourneyManager {
             title: 'Understand why self-custody matters',
             description: 'Explore stories and philosophy around financial sovereignty.',
             tag: 'Reflect',
-            anchor: '#ai-agents',
+            anchor: '#foundation-advanced',
           },
         ],
         practice: [
@@ -164,7 +164,7 @@ class JourneyManager {
             title: 'Walk through threat simulations',
             description: 'Run through wallet security trainers and recovery drills.',
             tag: 'Train',
-            anchor: '#simulate',
+            anchor: '#foundation-deeper',
           },
         ],
         apply: [
@@ -172,7 +172,7 @@ class JourneyManager {
             title: 'Implement your resilience plan',
             description: 'Use the intelligence dashboard to build monitoring and escalation checklists.',
             tag: 'Secure',
-            anchor: '#intelligence',
+            anchor: '#foundation-custody',
           },
         ],
       },
@@ -223,7 +223,7 @@ class JourneyManager {
     this.ctaStartBtn?.addEventListener('click', () => this.openModal());
     if (this.ctaDemosBtn) {
       if (this.ctaDemosBtn.tagName === 'BUTTON') {
-        this.ctaDemosBtn.addEventListener('click', () => this.scrollTo('#simulate'));
+        this.ctaDemosBtn.addEventListener('click', () => this.scrollTo('#foundation-deeper'));
       } else {
         this.ctaDemosBtn.addEventListener('click', (event) => {
           const href = this.ctaDemosBtn.getAttribute('href');
@@ -415,7 +415,7 @@ class JourneyManager {
     if (nextCard) {
       this.launchStage(nextCard.stage, nextCard.anchor);
     } else if (persona) {
-      this.scrollTo('#courses');
+      this.scrollTo('#foundation-basics');
     }
   }
 
