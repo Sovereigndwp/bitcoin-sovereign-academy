@@ -221,8 +221,18 @@ class JourneyManager {
 
   bindEvents() {
     this.ctaStartBtn?.addEventListener('click', () => this.openModal());
-    if (this.ctaDemosBtn && this.ctaDemosBtn.tagName === 'BUTTON') {
-      this.ctaDemosBtn.addEventListener('click', () => this.scrollTo('#simulate'));
+    if (this.ctaDemosBtn) {
+      if (this.ctaDemosBtn.tagName === 'BUTTON') {
+        this.ctaDemosBtn.addEventListener('click', () => this.scrollTo('#simulate'));
+      } else {
+        this.ctaDemosBtn.addEventListener('click', (event) => {
+          const href = this.ctaDemosBtn.getAttribute('href');
+          if (href) {
+            event.preventDefault();
+            window.location.assign(href);
+          }
+        });
+      }
     }
     this.nextActionBtn?.addEventListener('click', () => this.handleNextAction());
     this.progressNextBtn?.addEventListener('click', () => this.handleNextAction());
