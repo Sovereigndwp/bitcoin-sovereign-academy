@@ -170,8 +170,8 @@ export class WhiteLabelManager {
     return Array.from(this.tenants.values()).find(tenant => {
       return (
         tenant.domain === hostname ||
-        tenant.subdomain === hostname ||
-        hostname.includes(tenant.subdomain || '')
+        (tenant.subdomain && tenant.subdomain === hostname) ||
+        (tenant.subdomain && hostname.endsWith(tenant.subdomain))
       );
     });
   }

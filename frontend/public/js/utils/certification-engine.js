@@ -7,183 +7,87 @@
  * - Shareable certificates with QR codes
  * - Progressive certification levels
  */
-
-export type CertificateType =
-  | 'course-completion'
-  | 'assessment-pass'
-  | 'skill-mastery'
-  | 'level-achievement'
-  | 'specialization';
-
-export type CertificationLevel =
-  | 'beginner'
-  | 'intermediate'
-  | 'advanced'
-  | 'expert'
-  | 'master';
-
-export interface Certificate {
-  id: string;
-  recipientName: string;
-  recipientEmail: string;
-  type: CertificateType;
-  title: string;
-  description: string;
-  issuedDate: string;
-  expiryDate?: string;
-  issuer: CertificateIssuer;
-  achievement: Achievement;
-  verification: VerificationData;
-  metadata: CertificateMetadata;
-}
-
-export interface CertificateIssuer {
-  name: string;
-  organization: string;
-  logo?: string;
-  website: string;
-  signatureImageUrl?: string;
-}
-
-export interface Achievement {
-  courseId?: string;
-  courseName?: string;
-  level: CertificationLevel;
-  skills: string[];
-  assessments: AssessmentResult[];
-  totalHours: number;
-  finalScore?: number;
-}
-
-export interface AssessmentResult {
-  assessmentId: string;
-  assessmentName: string;
-  score: number;
-  maxScore: number;
-  percentage: number;
-  passed: boolean;
-  completedDate: string;
-}
-
-export interface VerificationData {
-  certificateHash: string;
-  blockchainAnchor?: string;  // Transaction ID if anchored
-  verificationUrl: string;
-  qrCodeData: string;
-}
-
-export interface CertificateMetadata {
-  templateVersion: string;
-  generatedBy: string;
-  customFields?: Record<string, any>;
-}
-
 export class CertificationEngine {
-  private certificates: Map<string, Certificate> = new Map();
-  private issuer: CertificateIssuer;
-
-  constructor(issuer: CertificateIssuer) {
-    this.issuer = issuer;
-  }
-
-  /**
-   * Issue a new certificate
-   */
-  issueCertificate(params: {
-    recipientName: string;
-    recipientEmail: string;
-    type: CertificateType;
-    title: string;
-    description: string;
-    achievement: Achievement;
-    expiresInDays?: number;
-  }): Certificate {
-    const certificateId = this.generateCertificateId();
-    const issuedDate = new Date().toISOString();
-    const expiryDate = params.expiresInDays
-      ? new Date(Date.now() + params.expiresInDays * 24 * 60 * 60 * 1000).toISOString()
-      : undefined;
-
-    const certificate: Certificate = {
-      id: certificateId,
-      recipientName: params.recipientName,
-      recipientEmail: params.recipientEmail,
-      type: params.type,
-      title: params.title,
-      description: params.description,
-      issuedDate,
-      expiryDate,
-      issuer: this.issuer,
-      achievement: params.achievement,
-      verification: {
-        certificateHash: '',
-        verificationUrl: '',
-        qrCodeData: ''
-      },
-      metadata: {
-        templateVersion: '1.0.0',
-        generatedBy: 'Bitcoin Sovereign Academy Certification Engine'
-      }
-    };
-
-    // Generate verification data
-    certificate.verification = this.generateVerificationData(certificate);
-
-    // Store certificate
-    this.certificates.set(certificateId, certificate);
-
-    return certificate;
-  }
-
-  /**
-   * Verify a certificate
-   */
-  verifyCertificate(certificateId: string, providedHash?: string): {
-    valid: boolean;
-    certificate?: Certificate;
-    reason?: string;
-  } {
-    const certificate = this.certificates.get(certificateId);
-
-    if (!certificate) {
-      return {
-        valid: false,
-        reason: 'Certificate not found'
-      };
+    constructor(issuer) {
+        this.certificates = new Map();
+        this.issuer = issuer;
     }
-
-    // Check expiry
-    if (certificate.expiryDate && new Date(certificate.expiryDate) < new Date()) {
-      return {
-        valid: false,
-        certificate,
-        reason: 'Certificate has expired'
-      };
-    }
-
-    // Verify hash if provided
-    if (providedHash) {
-      const computedHash = this.computeCertificateHash(certificate);
-      if (computedHash !== providedHash) {
-        return {
-          valid: false,
-          certificate,
-          reason: 'Certificate has been tampered with'
+    /**
+     * Issue a new certificate
+     */
+    issueCertificate(params) {
+        const certificateId = this.generateCertificateId();
+        const issuedDate = new Date().toISOString();
+        const expiryDate = params.expiresInDays
+            ? new Date(Date.now() + params.expiresInDays * 24 * 60 * 60 * 1000).toISOString()
+            : undefined;
+        const certificate = {
+            id: certificateId,
+            recipientName: params.recipientName,
+            recipientEmail: params.recipientEmail,
+            type: params.type,
+            title: params.title,
+            description: params.description,
+            issuedDate,
+            expiryDate,
+            issuer: this.issuer,
+            achievement: params.achievement,
+            verification: {
+                certificateHash: '',
+                verificationUrl: '',
+                qrCodeData: ''
+            },
+            metadata: {
+                templateVersion: '1.0.0',
+                generatedBy: 'Bitcoin Sovereign Academy Certification Engine'
+            }
         };
-      }
+        // Generate verification data
+        certificate.verification = this.generateVerificationData(certificate);
+        // Store certificate
+        this.certificates.set(certificateId, certificate);
+        return certificate;
     }
-
-    return {
-      valid: true,
-      certificate
-    };
-  }
-
-  /**
-   * Generate certificate HTML
-   */
-  generateCertificateHTML(certificate: Certificate): string {
-    return `<!DOCTYPE html>
+    /**
+     * Verify a certificate
+     */
+    verifyCertificate(certificateId, providedHash) {
+        const certificate = this.certificates.get(certificateId);
+        if (!certificate) {
+            return {
+                valid: false,
+                reason: 'Certificate not found'
+            };
+        }
+        // Check expiry
+        if (certificate.expiryDate && new Date(certificate.expiryDate) < new Date()) {
+            return {
+                valid: false,
+                certificate,
+                reason: 'Certificate has expired'
+            };
+        }
+        // Verify hash if provided
+        if (providedHash) {
+            const computedHash = this.computeCertificateHash(certificate);
+            if (computedHash !== providedHash) {
+                return {
+                    valid: false,
+                    certificate,
+                    reason: 'Certificate has been tampered with'
+                };
+            }
+        }
+        return {
+            valid: true,
+            certificate
+        };
+    }
+    /**
+     * Generate certificate HTML
+     */
+    generateCertificateHTML(certificate) {
+        return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -469,13 +373,12 @@ export class CertificationEngine {
     </script>
 </body>
 </html>`;
-  }
-
-  /**
-   * Generate verification page HTML
-   */
-  generateVerificationPageHTML(): string {
-    return `<!DOCTYPE html>
+    }
+    /**
+     * Generate verification page HTML
+     */
+    generateVerificationPageHTML() {
+        return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -680,76 +583,65 @@ export class CertificationEngine {
     </script>
 </body>
 </html>`;
-  }
-
-  /**
-   * Get certificate by ID
-   */
-  getCertificate(certificateId: string): Certificate | undefined {
-    return this.certificates.get(certificateId);
-  }
-
-  /**
-   * Get all certificates for a user
-   */
-  getCertificatesByEmail(email: string): Certificate[] {
-    return Array.from(this.certificates.values())
-      .filter(cert => cert.recipientEmail.toLowerCase() === email.toLowerCase());
-  }
-
-  // Private helper methods
-  private generateCertificateId(): string {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-    return `CERT-${timestamp}-${random}`;
-  }
-
-  private computeCertificateHash(certificate: Certificate): string {
-    const data = JSON.stringify({
-      id: certificate.id,
-      recipientEmail: certificate.recipientEmail,
-      title: certificate.title,
-      issuedDate: certificate.issuedDate,
-      achievement: certificate.achievement
-    });
-
-    return simpleHash(data);
-  }
-
-  private generateVerificationData(certificate: Certificate): VerificationData {
-    const hash = this.computeCertificateHash(certificate);
-    const verificationUrl = `${this.issuer.website}/verify?id=${certificate.id}`;
-    const qrCodeData = JSON.stringify({
-      id: certificate.id,
-      hash: hash.substring(0, 16),
-      url: verificationUrl
-    });
-
-    return {
-      certificateHash: hash,
-      verificationUrl,
-      qrCodeData
-    };
-  }
+    }
+    /**
+     * Get certificate by ID
+     */
+    getCertificate(certificateId) {
+        return this.certificates.get(certificateId);
+    }
+    /**
+     * Get all certificates for a user
+     */
+    getCertificatesByEmail(email) {
+        return Array.from(this.certificates.values())
+            .filter(cert => cert.recipientEmail.toLowerCase() === email.toLowerCase());
+    }
+    // Private helper methods
+    generateCertificateId() {
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+        return `CERT-${timestamp}-${random}`;
+    }
+    computeCertificateHash(certificate) {
+        const data = JSON.stringify({
+            id: certificate.id,
+            recipientEmail: certificate.recipientEmail,
+            title: certificate.title,
+            issuedDate: certificate.issuedDate,
+            achievement: certificate.achievement
+        });
+        return simpleHash(data);
+    }
+    generateVerificationData(certificate) {
+        const hash = this.computeCertificateHash(certificate);
+        const verificationUrl = `${this.issuer.website}/verify?id=${certificate.id}`;
+        const qrCodeData = JSON.stringify({
+            id: certificate.id,
+            hash: hash.substring(0, 16),
+            url: verificationUrl
+        });
+        return {
+            certificateHash: hash,
+            verificationUrl,
+            qrCodeData
+        };
+    }
 }
-
 // Example usage and preset configurations
-export const DEFAULT_ISSUER: CertificateIssuer = {
-  name: 'Bitcoin Sovereign Academy',
-  organization: 'Bitcoin Sovereign Academy',
-  website: 'https://bitcoinsovereign.academy',
-  logo: 'https://bitcoinsovereign.academy/logo.png'
+export const DEFAULT_ISSUER = {
+    name: 'Bitcoin Sovereign Academy',
+    organization: 'Bitcoin Sovereign Academy',
+    website: 'https://bitcoinsovereign.academy',
+    logo: 'https://bitcoinsovereign.academy/logo.png'
 };
-
 // Export singleton instance
 export const certificationEngine = new CertificationEngine(DEFAULT_ISSUER);
-
-
-function simpleHash(input: string): string {
-  let hash = 0;
-  for (let i = 0; i < input.length; i++) {
-    hash = (hash << 5) - hash + input.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash).toString(16);
+function simpleHash(input) {
+    let hash = 0;
+    for (let i = 0; i < input.length; i++) {
+        hash = (hash << 5) - hash + input.charCodeAt(i);
+        hash |= 0;
+    }
+    return Math.abs(hash).toString(16);
 }

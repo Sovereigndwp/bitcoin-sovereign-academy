@@ -59,6 +59,96 @@ class JourneyManager {
     this.autoLaunchIfNeeded();
   }
 
+  trackAnalytics(eventName, metadata = {}) {
+    try {
+      if (typeof window !== 'undefined' && window.eventTracker && typeof window.eventTracker.track === 'function') {
+        window.eventTracker.track(eventName, metadata);
+      }
+    } catch (error) {
+      console.warn('JourneyManager analytics error', error);
+    }
+  }
+
+  getLearnerName() {
+    if (typeof window === 'undefined') return 'Bitcoin Learner';
+    const storageKey = 'journey-learner-name';
+    let name = window.localStorage.getItem(storageKey);
+    if (!name) {
+      name = window.prompt('What name should appear on your certificate?', 'Bitcoin Learner') || 'Bitcoin Learner';
+      window.localStorage.setItem(storageKey, name);
+    }
+    return name;
+  }
+
+  getCertificationLevel() {
+    switch (this.state.personaId) {
+      case 'builder':
+        return 'advanced';
+      case 'sovereign':
+        return 'advanced';
+      case 'investor':
+        return 'intermediate';
+      default:
+        return 'beginner';
+    }
+  }
+
+  issueCompletionCertificate() {
+    if (typeof window === 'undefined' || !window.certificationEngine) {
+      return;
+    }
+
+    const storageKey = 'journey-certificate-record';
+    let certificate;
+
+    try {
+      const stored = window.localStorage.getItem(storageKey);
+      if (stored) {
+        certificate = JSON.parse(stored);
+        this.trackAnalytics('Journey_Certificate_Viewed', {
+          certificate_id: certificate.id,
+          persona_id: this.state.personaId || 'unknown'
+        });
+      } else {
+        const name = this.getLearnerName();
+        certificate = window.certificationEngine.issueCertificate({
+          recipientName: name,
+          recipientEmail: '',
+          type: 'course-completion',
+          title: 'Bitcoin Sovereign Journey',
+          description: 'Awarded for completing the Bitcoin Sovereign guided journey and mastering self-sovereignty fundamentals.',
+          achievement: {
+            courseId: 'sovereign-journey',
+            courseName: 'Bitcoin Sovereign Journey',
+            level: this.getCertificationLevel(),
+            skills: ['Bitcoin fundamentals', 'Self-custody', 'Risk management', 'Lightning basics'],
+            assessments: [],
+            totalHours: 6,
+            finalScore: 100
+          },
+          expiresInDays: 365
+        });
+
+        window.localStorage.setItem(storageKey, JSON.stringify(certificate));
+        this.trackAnalytics('Journey_Certificate_Issued', {
+          certificate_id: certificate.id,
+          persona_id: this.state.personaId || 'unknown'
+        });
+      }
+
+      if (certificate) {
+        const html = window.certificationEngine.generateCertificateHTML(certificate);
+        const certificateWindow = window.open('', '_blank');
+        if (certificateWindow) {
+          certificateWindow.document.write(html);
+          certificateWindow.document.close();
+        }
+      }
+    } catch (error) {
+      console.error('JourneyManager: Unable to issue certificate', error);
+    }
+  }
+
   buildPersonaCatalog() {
     return [
       {
@@ -299,6 +389,11 @@ class JourneyManager {
       this.modalContinue.disabled = false;
       this.modalContinue.textContent = `Continue as ${this.selectedPersona.label}`;
     }
+
+    this.trackAnalytics('Journey_Persona_Previewed', {
+      persona_id: this.selectedPersona.id,
+      persona_label: this.selectedPersona.label
+    });
   }
 
   commitPersonaSelection() {
@@ -322,6 +417,11 @@ class JourneyManager {
     this.closePersonaModal();
     this.applyStateToUI();
     this.fetchPersonaRecommendations(this.state.personaId);
+
+    this.trackAnalytics('Journey_Persona_Selected', {
+      persona_id: this.state.personaId,
+      persona_label: this.selectedPersona.label
+    });
   }
 
   getPersona() {
@@ -391,6 +491,11 @@ class JourneyManager {
 
       this.dynamicStages[personaId] = cloned;
       this.applyStateToUI();
+
+      this.trackAnalytics('Journey_Personalized', {
+        persona_id: personaId,
+        modules: course.modules.length
+      });
     } catch (error) {
       console.warn('JourneyManager: Unable to fetch persona recommendations', error);
     }
@@ -562,6 +667,11 @@ class JourneyManager {
 
     const nextCard = this.getNextActionCard(persona.id);
     if (nextCard) {
+      this.trackAnalytics('Journey_Next_Action', {
+        persona_id: persona.id,
+        stage: nextCard.stage,
+        title: nextCard.title
+      });
       this.launchStage(nextCard.stage, nextCard.anchor, nextCard);
     } else {
       this.scrollTo('#journey-map');
@@ -585,6 +695,11 @@ class JourneyManager {
     this.saveState();
 
     this.applyStateToUI();
+    this.trackAnalytics('Journey_Stage_Launched', {
+      persona_id: persona?.id || 'unknown',
+      stage: stageId,
+      title: stageCard.title
+    });
     this.openStageModal(stageId, stageCard);
 
     if (anchor) {
@@ -645,6 +760,19 @@ class JourneyManager {
     this.saveState();
     this.closeStageModal();
     this.applyStateToUI();
+
+    this.trackAnalytics('Journey_Stage_Completed', {
+      persona_id: this.state.personaId || 'unknown',
+      stage: stageId,
+      next_stage: nextStage || null
+    });
+
+    if (!nextStage) {
+      this.trackAnalytics('Journey_Completed', {
+        persona_id: this.state.personaId || 'unknown'
+      });
+      this.issueCompletionCertificate();
+    }
   }
 
   highlightStage(stageId) {
