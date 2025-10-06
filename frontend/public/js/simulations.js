@@ -360,28 +360,15 @@
         const feeInSats = Math.max(rate * estSize, 0);
         const feeInBTC = feeInSats / SATS_PER_BTC;
         const total = amount + feeInBTC;
-        const change = Math.max(sender.balance - total, 0);
-        const remaining = sender.balance - amount - feeInBTC;
+        const change = Math.max(amount - (amount * 0.02), 0); // assume 2% reserved for change output
 
         document.getElementById('tx-fee').textContent = `${feeInSats.toFixed(0)} sats (${feeInBTC.toFixed(6)} BTC)`;
         document.getElementById('tx-total').textContent = `${total.toFixed(6)} BTC`;
         document.getElementById('tx-change').textContent = `${change.toFixed(6)} BTC`;
-        document.getElementById('tx-remaining').textContent = `${remaining.toFixed(6)} BTC`;
-        document.getElementById('tx-miner-fee').textContent = `Fee: ${feeInSats.toFixed(0)} sats`;
-
-        // Validation warnings
-        if (total > sender.balance) {
-          document.getElementById('tx-total').style.color = '#F44336';
-          document.getElementById('tx-total').title = '⚠️ Insufficient balance!';
-        } else {
-          document.getElementById('tx-total').style.color = '#333';
-          document.getElementById('tx-total').title = '';
-        }
       };
 
-      [amountInput, rateInput, sizeInput, prioritySelect].forEach((input) => {
+      [amountInput, rateInput, sizeInput].forEach((input) => {
         input.addEventListener('input', update);
-        input.addEventListener('change', update);
       });
 
       update();

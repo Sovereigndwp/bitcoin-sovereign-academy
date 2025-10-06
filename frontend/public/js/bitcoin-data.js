@@ -65,6 +65,9 @@
     }
 
     async updateAll() {
+      if (!this.client) {
+        console.warn('MCP client unavailable; using fallback data');
+        this.updateFromFallback();
       // Check if MCP client exists and has required methods
       const hasMCPClient = this.client &&
                           typeof this.client.getBitcoinNetworkData === 'function' &&
