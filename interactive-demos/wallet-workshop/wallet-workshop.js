@@ -6,6 +6,7 @@
 
 class WalletWorkshop {
   constructor() {
+    console.log('  → Creating WalletWorkshop instance...');
     this.currentStep = 0;
     this.entropy = '';
     this.seedPhrase = [];
@@ -16,6 +17,7 @@ class WalletWorkshop {
 
     // Difficulty settings
     this.difficulty = 'guided'; // guided, interactive, challenge, expert
+    console.log('  → Properties initialized');
 
     // BIP39 wordlist (simplified for demo - in production use full 2048 words)
     this.wordlist = [
@@ -36,17 +38,27 @@ class WalletWorkshop {
       { id: 'address', title: 'Create Addresses', icon: '📬' }
     ];
 
+    console.log('  → Calling init()...');
     this.init();
+    console.log('  → WalletWorkshop constructor complete');
   }
 
   init() {
+    console.log('  → init() started');
     this.renderWorkshop();
+    console.log('  → renderWorkshop() complete');
     this.attachEventListeners();
+    console.log('  → attachEventListeners() complete');
   }
 
   renderWorkshop() {
+    console.log('  → renderWorkshop() called');
     const container = document.getElementById('wallet-workshop-container');
-    if (!container) return;
+    if (!container) {
+      console.error('  ❌ Container not found!');
+      return;
+    }
+    console.log('  → Container found:', container);
 
     container.innerHTML = `
       <div class="wallet-workshop">
@@ -1388,8 +1400,44 @@ class WalletWorkshop {
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    new WalletWorkshop();
+    console.log('🔐 Wallet Workshop: DOM ready, initializing...');
+    try {
+      const workshop = new WalletWorkshop();
+      console.log('✅ Wallet Workshop: Initialized successfully');
+      window.walletWorkshop = workshop; // Make it globally accessible for debugging
+    } catch (error) {
+      console.error('❌ Wallet Workshop: Initialization failed:', error);
+      const container = document.getElementById('wallet-workshop-container');
+      if (container) {
+        container.innerHTML = `
+          <div style="background: rgba(244, 67, 54, 0.2); border: 2px solid #f44336; padding: 2rem; border-radius: 10px; margin: 2rem 0;">
+            <h2 style="color: #f44336; margin-bottom: 1rem;">⚠️ Wallet Workshop Failed to Load</h2>
+            <p style="margin-bottom: 1rem;">There was an error initializing the wallet workshop:</p>
+            <pre style="background: rgba(0, 0, 0, 0.5); padding: 1rem; border-radius: 6px; overflow-x: auto;">${error.message}\n\n${error.stack}</pre>
+            <p style="margin-top: 1rem;">Please refresh the page or check the browser console for more details.</p>
+          </div>
+        `;
+      }
+    }
   });
 } else {
-  new WalletWorkshop();
+  console.log('🔐 Wallet Workshop: DOM already ready, initializing...');
+  try {
+    const workshop = new WalletWorkshop();
+    console.log('✅ Wallet Workshop: Initialized successfully');
+    window.walletWorkshop = workshop; // Make it globally accessible for debugging
+  } catch (error) {
+    console.error('❌ Wallet Workshop: Initialization failed:', error);
+    const container = document.getElementById('wallet-workshop-container');
+    if (container) {
+      container.innerHTML = `
+        <div style="background: rgba(244, 67, 54, 0.2); border: 2px solid #f44336; padding: 2rem; border-radius: 10px; margin: 2rem 0;">
+          <h2 style="color: #f44336; margin-bottom: 1rem;">⚠️ Wallet Workshop Failed to Load</h2>
+          <p style="margin-bottom: 1rem;">There was an error initializing the wallet workshop:</p>
+          <pre style="background: rgba(0, 0, 0, 0.5); padding: 1rem; border-radius: 6px; overflow-x: auto;">${error.message}\n\n${error.stack}</pre>
+          <p style="margin-top: 1rem;">Please refresh the page or check the browser console for more details.</p>
+        </div>
+      `;
+    }
+  }
 }
