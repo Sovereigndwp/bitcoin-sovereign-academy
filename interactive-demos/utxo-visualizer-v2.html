@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTXO Visualizer - Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: var(--color-brand);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--color-muted);
+            font-size: 1.1rem;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            background: var(--color-brand);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 147, 26, 0.4);
+        }
+
+        /* Difficulty Selector */
+        .difficulty-selector {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .difficulty-selector h3 {
+            color: var(--color-brand);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .difficulty-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .difficulty-btn {
+            background: rgba(247, 147, 26, 0.1);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .difficulty-btn:hover {
+            border-color: var(--color-brand);
+            transform: translateY(-2px);
+        }
+
+        .difficulty-btn.active {
+            background: var(--color-brand);
+            border-color: var(--color-brand);
+            color: white;
+        }
+
+        .difficulty-btn strong {
+            display: block;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .difficulty-btn small {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        /* Main Layout */
+        .utxo-workspace {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Wallet Section */
+        .wallet-section {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .section-header h2 {
+            color: var(--color-brand);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .balance-display {
+            background: rgba(247, 147, 26, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            color: var(--color-brand);
+        }
+
+        /* UTXO Grid */
+        .utxo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 1rem;
+            min-height: 400px;
+        }
+
+        .utxo-coin {
+            background: linear-gradient(135deg, #f7931a, #ff6b00);
+            border: 3px solid #ff9800;
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: grab;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            user-select: none;
+        }
+
+        .utxo-coin:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 8px 16px rgba(247, 147, 26, 0.4);
+        }
+
+        .utxo-coin:active {
+            cursor: grabbing;
+        }
+
+        .utxo-coin.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .utxo-coin.selected {
+            border-color: #4CAF50;
+            background: linear-gradient(135deg, #4CAF50, #8BC34A);
+        }
+
+        .coin-icon {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .coin-amount {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .coin-label {
+            text-align: center;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 0.25rem;
+        }
+
+        .coin-from {
+            font-size: 0.7rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        /* Transaction Builder */
+        .transaction-builder {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .drop-zone {
+            border: 3px dashed var(--color-border);
+            border-radius: 12px;
+            padding: 2rem;
+            min-height: 300px;
+            background: rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone.drag-over {
+            border-color: var(--color-brand);
+            background: rgba(247, 147, 26, 0.1);
+            border-style: solid;
+        }
+
+        .drop-zone-empty {
+            text-align: center;
+            color: var(--color-muted);
+            padding: 3rem 1rem;
+        }
+
+        .drop-zone-empty .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .selected-utxos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        /* Transaction Summary */
+        .tx-summary {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .tx-summary h3 {
+            color: var(--color-brand);
+            margin-bottom: 1rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .summary-label {
+            color: var(--color-muted);
+        }
+
+        .summary-value {
+            color: var(--color-text);
+            font-weight: 600;
+        }
+
+        .summary-value.highlight {
+            color: var(--color-brand);
+        }
+
+        .summary-value.success {
+            color: var(--color-success);
+        }
+
+        .summary-value.danger {
+            color: var(--color-danger);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--color-muted);
+            font-weight: 600;
+        }
+
+        .control-group input,
+        .control-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            color: var(--color-text);
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--color-brand);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #c77808;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 147, 26, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-danger {
+            background: var(--color-danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        /* Insights Panel */
+        .insights-panel {
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(33, 150, 243, 0.05));
+            border-left: 4px solid #2196F3;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .insights-panel h3 {
+            color: #2196F3;
+            margin-bottom: 1rem;
+        }
+
+        .insight-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(33, 150, 243, 0.2);
+        }
+
+        .insight-item:last-child {
+            border-bottom: none;
+        }
+
+        .insight-item strong {
+            color: #2196F3;
+        }
+
+        /* Socratic Questions */
+        .socratic-box {
+            background: rgba(156, 39, 176, 0.1);
+            border-left: 4px solid #9C27B0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .socratic-box h4 {
+            color: #9C27B0;
+            margin-bottom: 1rem;
+        }
+
+        .question {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .reveal-btn {
+            background: #9C27B0;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .reveal-btn:hover {
+            background: #7B1FA2;
+        }
+
+        .answer {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(156, 39, 176, 0.05);
+            border-radius: 6px;
+            display: none;
+        }
+
+        .answer.visible {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .utxo-workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .difficulty-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .utxo-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← Back to Demos</a>
+
+    <div class="container">
+        <div class="header">
+            <h1>🪙 UTXO Visualizer</h1>
+            <p>Learn how Bitcoin's Unspent Transaction Outputs work through interactive coin selection</p>
+        </div>
+
+        <!-- Difficulty Selector -->
+        <div class="difficulty-selector">
+            <h3>Choose Your Learning Mode</h3>
+            <div class="difficulty-buttons">
+                <button class="difficulty-btn active" data-difficulty="beginner">
+                    <strong>🎓 Beginner</strong>
+                    <small>Auto-suggestions with explanations</small>
+                </button>
+                <button class="difficulty-btn" data-difficulty="intermediate">
+                    <strong>🔧 Intermediate</strong>
+                    <small>Manual selection with hints</small>
+                </button>
+                <button class="difficulty-btn" data-difficulty="advanced">
+                    <strong>🔒 Advanced</strong>
+                    <small>Optimize for privacy</small>
+                </button>
+                <button class="difficulty-btn" data-difficulty="expert">
+                    <strong>⚡ Expert</strong>
+                    <small>Min fees + max privacy</small>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Workspace -->
+        <div class="utxo-workspace">
+            <!-- Wallet Section -->
+            <div class="wallet-section">
+                <div class="section-header">
+                    <h2>👛 Your Wallet</h2>
+                    <div class="balance-display">
+                        Total: <span id="total-balance">0.00000000</span> BTC
+                    </div>
+                </div>
+
+                <div class="utxo-grid" id="utxo-grid">
+                    <!-- UTXOs will be dynamically added here -->
+                </div>
+            </div>
+
+            <!-- Transaction Builder -->
+            <div class="transaction-builder">
+                <div class="section-header">
+                    <h2>📝 Transaction Builder</h2>
+                </div>
+
+                <div class="drop-zone" id="drop-zone">
+                    <div class="drop-zone-empty" id="empty-message">
+                        <div class="icon">👇</div>
+                        <h3>Drag coins here to build your transaction</h3>
+                        <p>Or click coins to select them</p>
+                    </div>
+                    <div class="selected-utxos" id="selected-utxos" style="display: none;"></div>
+                </div>
+
+                <!-- Controls -->
+                <div class="controls">
+                    <div class="control-group">
+                        <label>Amount to Send (BTC)</label>
+                        <input type="number" id="send-amount" step="0.00000001" min="0" value="0.01" placeholder="0.00000000">
+                    </div>
+                    <div class="control-group">
+                        <label>Fee Rate (sats/vB)</label>
+                        <input type="number" id="fee-rate" min="1" value="15" placeholder="15">
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" id="build-tx">Build Transaction</button>
+                    <button class="btn btn-secondary" id="auto-select">Auto-Select UTXOs</button>
+                    <button class="btn btn-danger" id="clear-selection">Clear Selection</button>
+                </div>
+
+                <!-- Transaction Summary -->
+                <div class="tx-summary" id="tx-summary" style="display: none;">
+                    <h3>📊 Transaction Summary</h3>
+                    <div class="summary-row">
+                        <span class="summary-label">Selected UTXOs:</span>
+                        <span class="summary-value" id="sum-utxos">0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Total Input:</span>
+                        <span class="summary-value highlight" id="sum-input">0.00000000 BTC</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Amount to Send:</span>
+                        <span class="summary-value" id="sum-send">0.00000000 BTC</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Network Fee:</span>
+                        <span class="summary-value" id="sum-fee">0 sats</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Change Output:</span>
+                        <span class="summary-value success" id="sum-change">0.00000000 BTC</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Total Cost:</span>
+                        <span class="summary-value highlight" id="sum-total">0.00000000 BTC</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights Panel -->
+        <div class="insights-panel" id="insights-panel" style="display: none;">
+            <h3>💡 UTXO Insights</h3>
+            <div id="insights-content"></div>
+        </div>
+
+        <!-- Socratic Questions -->
+        <div class="socratic-box">
+            <h4>🤔 Think About It</h4>
+            <div class="question">
+                <strong>Q: Why does selecting many small UTXOs increase your transaction fee?</strong>
+                <button class="reveal-btn" onclick="document.getElementById('answer1').classList.toggle('visible')">
+                    Reveal Answer
+                </button>
+                <div class="answer" id="answer1">
+                    <p>Each UTXO you include as an input adds approximately 148 bytes to your transaction size.
+                    Since fees are calculated as (size in bytes) × (fee rate in sats/byte), more inputs = larger transaction = higher fee!</p>
+                    <p><strong>Example:</strong> 1 input ≈ 148 bytes, but 10 inputs ≈ 1,480 bytes (10× the size)</p>
+                </div>
+            </div>
+            <div class="question" style="margin-top: 1rem;">
+                <strong>Q: What is a "change output" and why do you need it?</strong>
+                <button class="reveal-btn" onclick="document.getElementById('answer2').classList.toggle('visible')">
+                    Reveal Answer
+                </button>
+                <div class="answer" id="answer2">
+                    <p>Bitcoin transactions must spend UTXOs completely. If you have a 0.5 BTC UTXO and want to send 0.1 BTC,
+                    you can't just "spend 0.1" - you must spend the entire 0.5 BTC UTXO.</p>
+                    <p>The transaction sends 0.1 BTC to the recipient and 0.399... BTC back to yourself as "change" (minus the fee).</p>
+                    <p><strong>Think of it like paying with a $50 bill:</strong> If you buy something for $10, you get $40 in change back!</p>
+                </div>
+            </div>
+            <div class="question" style="margin-top: 1rem;">
+                <strong>Q: What happens if you select less Bitcoin than you want to send?</strong>
+                <button class="reveal-btn" onclick="document.getElementById('answer3').classList.toggle('visible')">
+                    Reveal Answer
+                </button>
+                <div class="answer" id="answer3">
+                    <p>The transaction will be invalid! You must select enough UTXOs to cover:</p>
+                    <ul>
+                        <li>The amount you want to send to the recipient</li>
+                        <li>PLUS the network fee for miners</li>
+                    </ul>
+                    <p><strong>Example:</strong> To send 0.1 BTC with a 0.0001 BTC fee, you need at least 0.1001 BTC in selected UTXOs.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // UTXO Visualizer Logic
+        class UTXOVisualizer {
+            constructor() {
+                this.difficulty = 'beginner';
+                this.selectedUTXOs = [];
+                this.availableUTXOs = [];
+
+                // Sample UTXOs - in production, these would come from a wallet
+                this.initializeSampleUTXOs();
+                this.init();
+            }
+
+            initializeSampleUTXOs() {
+                this.availableUTXOs = [
+                    { id: 1, amount: 0.5, from: 'Alice', txid: 'abc123...', vout: 0 },
+                    { id: 2, amount: 0.3, from: 'Mining', txid: 'def456...', vout: 1 },
+                    { id: 3, amount: 0.1, from: 'Bob', txid: 'ghi789...', vout: 0 },
+                    { id: 4, amount: 1.2, from: 'Exchange', txid: 'jkl012...', vout: 2 },
+                    { id: 5, amount: 0.05, from: 'Charlie', txid: 'mno345...', vout: 0 },
+                    { id: 6, amount: 0.25, from: 'Diana', txid: 'pqr678...', vout: 1 },
+                    { id: 7, amount: 0.02, from: 'Merchant', txid: 'stu901...', vout: 0 },
+                    { id: 8, amount: 0.75, from: 'Savings', txid: 'vwx234...', vout: 0 },
+                    { id: 9, amount: 0.15, from: 'Trading', txid: 'yza567...', vout: 1 },
+                    { id: 10, amount: 0.08, from: 'Friend', txid: 'bcd890...', vout: 0 }
+                ];
+            }
+
+            init() {
+                this.renderUTXOs();
+                this.attachEventListeners();
+                this.updateBalance();
+            }
+
+            renderUTXOs() {
+                const grid = document.getElementById('utxo-grid');
+                grid.innerHTML = '';
+
+                this.availableUTXOs.forEach(utxo => {
+                    const coin = document.createElement('div');
+                    coin.className = 'utxo-coin';
+                    coin.draggable = true;
+                    coin.dataset.utxoId = utxo.id;
+
+                    coin.innerHTML = `
+                        <div class="coin-icon">🪙</div>
+                        <div class="coin-amount">${utxo.amount.toFixed(8)}</div>
+                        <div class="coin-label">BTC</div>
+                        <div class="coin-from">from ${utxo.from}</div>
+                    `;
+
+                    coin.addEventListener('dragstart', (e) => this.handleDragStart(e));
+                    coin.addEventListener('dragend', (e) => this.handleDragEnd(e));
+                    coin.addEventListener('click', () => this.toggleUTXO(utxo.id));
+
+                    grid.appendChild(coin);
+                });
+            }
+
+            attachEventListeners() {
+                // Difficulty buttons
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                        e.target.closest('.difficulty-btn').classList.add('active');
+                        this.difficulty = e.target.closest('.difficulty-btn').dataset.difficulty;
+                    });
+                });
+
+                // Drop zone
+                const dropZone = document.getElementById('drop-zone');
+                dropZone.addEventListener('dragover', (e) => this.handleDragOver(e));
+                dropZone.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+                dropZone.addEventListener('drop', (e) => this.handleDrop(e));
+
+                // Buttons
+                document.getElementById('build-tx').addEventListener('click', () => this.buildTransaction());
+                document.getElementById('auto-select').addEventListener('click', () => this.autoSelectUTXOs());
+                document.getElementById('clear-selection').addEventListener('click', () => this.clearSelection());
+
+                // Inputs
+                document.getElementById('send-amount').addEventListener('input', () => this.updateSummary());
+                document.getElementById('fee-rate').addEventListener('input', () => this.updateSummary());
+            }
+
+            handleDragStart(e) {
+                e.target.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', e.target.dataset.utxoId);
+            }
+
+            handleDragEnd(e) {
+                e.target.classList.remove('dragging');
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+                e.currentTarget.classList.add('drag-over');
+            }
+
+            handleDragLeave(e) {
+                e.currentTarget.classList.remove('drag-over');
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                e.currentTarget.classList.remove('drag-over');
+
+                const utxoId = parseInt(e.dataTransfer.getData('text/plain'));
+                this.selectUTXO(utxoId);
+            }
+
+            toggleUTXO(utxoId) {
+                if (this.selectedUTXOs.includes(utxoId)) {
+                    this.deselectUTXO(utxoId);
+                } else {
+                    this.selectUTXO(utxoId);
+                }
+            }
+
+            selectUTXO(utxoId) {
+                if (!this.selectedUTXOs.includes(utxoId)) {
+                    this.selectedUTXOs.push(utxoId);
+                    this.updateUI();
+                }
+            }
+
+            deselectUTXO(utxoId) {
+                this.selectedUTXOs = this.selectedUTXOs.filter(id => id !== utxoId);
+                this.updateUI();
+            }
+
+            clearSelection() {
+                this.selectedUTXOs = [];
+                this.updateUI();
+            }
+
+            updateUI() {
+                // Update coin selection visual
+                document.querySelectorAll('.utxo-coin').forEach(coin => {
+                    const id = parseInt(coin.dataset.utxoId);
+                    coin.classList.toggle('selected', this.selectedUTXOs.includes(id));
+                });
+
+                // Update drop zone
+                const emptyMessage = document.getElementById('empty-message');
+                const selectedContainer = document.getElementById('selected-utxos');
+
+                if (this.selectedUTXOs.length === 0) {
+                    emptyMessage.style.display = 'block';
+                    selectedContainer.style.display = 'none';
+                } else {
+                    emptyMessage.style.display = 'none';
+                    selectedContainer.style.display = 'grid';
+
+                    selectedContainer.innerHTML = this.selectedUTXOs.map(id => {
+                        const utxo = this.availableUTXOs.find(u => u.id === id);
+                        return `
+                            <div class="utxo-coin selected" onclick="visualizer.deselectUTXO(${id})">
+                                <div class="coin-icon">🪙</div>
+                                <div class="coin-amount">${utxo.amount.toFixed(8)}</div>
+                                <div class="coin-label">BTC</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                this.updateSummary();
+            }
+
+            updateSummary() {
+                const summary = document.getElementById('tx-summary');
+                if (this.selectedUTXOs.length === 0) {
+                    summary.style.display = 'none';
+                    return;
+                }
+
+                summary.style.display = 'block';
+
+                const sendAmount = parseFloat(document.getElementById('send-amount').value) || 0;
+                const feeRate = parseInt(document.getElementById('fee-rate').value) || 15;
+
+                const totalInput = this.selectedUTXOs.reduce((sum, id) => {
+                    const utxo = this.availableUTXOs.find(u => u.id === id);
+                    return sum + utxo.amount;
+                }, 0);
+
+                // Simplified fee calculation (inputs × 148 + outputs × 34 + 10 overhead)
+                const numInputs = this.selectedUTXOs.length;
+                const numOutputs = 2; // recipient + change
+                const txSize = (numInputs * 148) + (numOutputs * 34) + 10;
+                const feeInSats = txSize * feeRate;
+                const feeInBTC = feeInSats / 100000000;
+
+                const change = totalInput - sendAmount - feeInBTC;
+                const totalCost = sendAmount + feeInBTC;
+
+                document.getElementById('sum-utxos').textContent = numInputs;
+                document.getElementById('sum-input').textContent = totalInput.toFixed(8) + ' BTC';
+                document.getElementById('sum-send').textContent = sendAmount.toFixed(8) + ' BTC';
+                document.getElementById('sum-fee').textContent = feeInSats.toFixed(0) + ' sats (' + feeInBTC.toFixed(8) + ' BTC)';
+                document.getElementById('sum-change').textContent = change.toFixed(8) + ' BTC';
+                document.getElementById('sum-total').textContent = totalCost.toFixed(8) + ' BTC';
+
+                // Color coding
+                const changeElement = document.getElementById('sum-change');
+                if (change < 0) {
+                    changeElement.classList.remove('success');
+                    changeElement.classList.add('danger');
+                } else {
+                    changeElement.classList.remove('danger');
+                    changeElement.classList.add('success');
+                }
+
+                this.updateInsights(totalInput, sendAmount, feeInBTC, numInputs);
+            }
+
+            updateInsights(totalInput, sendAmount, feeInBTC, numInputs) {
+                const insights = document.getElementById('insights-panel');
+                const content = document.getElementById('insights-content');
+
+                if (this.selectedUTXOs.length === 0) {
+                    insights.style.display = 'none';
+                    return;
+                }
+
+                insights.style.display = 'block';
+                let tips = [];
+
+                // Insufficient funds
+                if (totalInput < sendAmount + feeInBTC) {
+                    tips.push(`<div class="insight-item"><strong>⚠️ Insufficient Funds:</strong> You need ${((sendAmount + feeInBTC) - totalInput).toFixed(8)} BTC more to complete this transaction.</div>`);
+                }
+
+                // Too many inputs
+                if (numInputs > 5) {
+                    tips.push(`<div class="insight-item"><strong>💰 High Fee Warning:</strong> Using ${numInputs} inputs makes your transaction larger and more expensive. Consider consolidating UTXOs when fees are low.</div>`);
+                }
+
+                // Small change (dust)
+                const change = totalInput - sendAmount - feeInBTC;
+                if (change > 0 && change < 0.00001) {
+                    tips.push(`<div class="insight-item"><strong>🧹 Dust Warning:</strong> Your change output (${change.toFixed(8)} BTC) is very small and may be uneconomical to spend later. Consider rounding your send amount.</div>`);
+                }
+
+                // Good selection
+                if (totalInput >= sendAmount + feeInBTC && numInputs <= 3 && change > 0.00001) {
+                    tips.push(`<div class="insight-item"><strong>✅ Good Selection:</strong> Your UTXO selection is efficient with ${numInputs} input(s) and reasonable change output.</div>`);
+                }
+
+                content.innerHTML = tips.join('');
+            }
+
+            updateBalance() {
+                const total = this.availableUTXOs.reduce((sum, utxo) => sum + utxo.amount, 0);
+                document.getElementById('total-balance').textContent = total.toFixed(8);
+            }
+
+            autoSelectUTXOs() {
+                const sendAmount = parseFloat(document.getElementById('send-amount').value) || 0;
+                const feeRate = parseInt(document.getElementById('fee-rate').value) || 15;
+
+                // Sort UTXOs by size (largest first for simplicity)
+                const sorted = [...this.availableUTXOs].sort((a, b) => b.amount - a.amount);
+
+                this.selectedUTXOs = [];
+                let accumulated = 0;
+                let estimatedFee = 0;
+
+                for (const utxo of sorted) {
+                    this.selectedUTXOs.push(utxo.id);
+                    accumulated += utxo.amount;
+
+                    // Recalculate fee with current number of inputs
+                    const txSize = (this.selectedUTXOs.length * 148) + (2 * 34) + 10;
+                    estimatedFee = (txSize * feeRate) / 100000000;
+
+                    if (accumulated >= sendAmount + estimatedFee) {
+                        break;
+                    }
+                }
+
+                this.updateUI();
+            }
+
+            buildTransaction() {
+                const sendAmount = parseFloat(document.getElementById('send-amount').value) || 0;
+
+                if (this.selectedUTXOs.length === 0) {
+                    alert('Please select at least one UTXO!');
+                    return;
+                }
+
+                const totalInput = this.selectedUTXOs.reduce((sum, id) => {
+                    const utxo = this.availableUTXOs.find(u => u.id === id);
+                    return sum + utxo.amount;
+                }, 0);
+
+                const feeRate = parseInt(document.getElementById('fee-rate').value) || 15;
+                const txSize = (this.selectedUTXOs.length * 148) + (2 * 34) + 10;
+                const feeInBTC = (txSize * feeRate) / 100000000;
+
+                if (totalInput < sendAmount + feeInBTC) {
+                    alert('Insufficient funds! Select more UTXOs or reduce the send amount.');
+                    return;
+                }
+
+                alert(`✅ Transaction built successfully!\n\nInputs: ${this.selectedUTXOs.length} UTXOs\nSize: ${txSize} vBytes\nFee: ${(txSize * feeRate).toFixed(0)} sats\n\nIn a real wallet, this would now be signed and broadcast to the network.`);
+            }
+        }
+
+        // Initialize the visualizer
+        const visualizer = new UTXOVisualizer();
+    </script>
+</body>
+</html>

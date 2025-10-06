@@ -68,6 +68,15 @@
       if (!this.client) {
         console.warn('MCP client unavailable; using fallback data');
         this.updateFromFallback();
+      // Check if MCP client exists and has required methods
+      const hasMCPClient = this.client &&
+                          typeof this.client.getBitcoinNetworkData === 'function' &&
+                          typeof this.client.getBitcoinPrice === 'function';
+
+      if (!hasMCPClient) {
+        console.log('MCP client unavailable; using fallback data');
+        this.updateFromFallback();
+        this.setStatusIndicator('offline', 'Using fallback data (MCP not connected)');
         return;
       }
 
@@ -176,22 +185,89 @@
     }
 
     updateFromFallback() {
+      // Use client fallback if available, otherwise use realistic static data
       const fallback = (this.client && typeof this.client.getFallbackNetworkData === 'function')
         ? this.client.getFallbackNetworkData()
         : {
-            blockHeight: '800,000+',
-            mempoolSize: '~1,500',
-            feeEstimate: '15-25',
-            difficulty: 'High',
-            price: '$40,000+'
+            blockHeight: 868500,        // Approximate current height (Oct 2025)
+            mempoolSize: 2100,           // Typical mempool size
+            feeEstimate: 8,              // Current low fee environment
+            difficulty: 102.3,           // Trillions (formatted as T)
+            price: '$62,500'             // Approximate BTC price
           };
 
+      // Format fallback data properly
+      const formattedFallback = {
+        blockHeight: typeof fallback.blockHeight === 'number'
+          ? fallback.blockHeight
+          : fallback.blockHeight,
+        mempoolSize: typeof fallback.mempoolSize === 'number'
+          ? fallback.mempoolSize
+          : fallback.mempoolSize,
+        feeEstimate: typeof fallback.feeEstimate === 'number'
+          ? fallback.feeEstimate
+          : fallback.feeEstimate,
+        difficulty: typeof fallback.difficulty === 'number'
+          ? `${fallback.difficulty}T`
+          : fallback.difficulty
+      };
+
       this.updatePrice({ usd: fallback.price, change24h: 0 });
-      this.updateNetworkMetrics(fallback, { fastest: fallback.feeEstimate });
+      this.updateNetworkMetrics(formattedFallback, { fastest: formattedFallback.feeEstimate });
       this.clearLoadingState();
     }
   }
 
-  // Instantiate when MCP client is ready
-  window.bitcoinDataController = new BitcoinDataController(window.mcpClient);
+  // Create a simple public API client as fallback
+  class PublicBitcoinAPIClient {
+    async getBitcoinPrice() {
+      try {
+        const response = await fetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC');
+        const data = await response.json();
+        const usdRate = data.data.rates.USD;
+        return { usd: usdRate, change24h: 0 };
+      } catch (error) {
+        console.log('Coinbase API failed, using fallback');
+        return null;
+      }
+    }
+
+    async getBitcoinNetworkData() {
+      try {
+        const response = await fetch('https://mempool.space/api/blocks/tip/height');
+        const blockHeight = await response.text();
+
+        const mempoolResponse = await fetch('https://mempool.space/api/mempool');
+        const mempoolData = await mempoolResponse.json();
+
+        return {
+          blockHeight: parseInt(blockHeight),
+          mempoolSize: mempoolData.count,
+          difficulty: 'N/A'
+        };
+      } catch (error) {
+        console.log('Mempool.space API failed, using fallback');
+        return null;
+      }
+    }
+
+    async getFeeEstimates() {
+      try {
+        const response = await fetch('https://mempool.space/api/v1/fees/recommended');
+        const fees = await response.json();
+        return {
+          fastest: fees.fastestFee,
+          medium: fees.halfHourFee,
+          slow: fees.hourFee
+        };
+      } catch (error) {
+        console.log('Fee API failed, using fallback');
+        return null;
+      }
+    }
+  }
+
+  // Use MCP client if available, otherwise use public API client
+  const client = window.mcpClient || new PublicBitcoinAPIClient();
+  window.bitcoinDataController = new BitcoinDataController(client);
 })();
