@@ -15,11 +15,22 @@ class MiningSimulatorEnhanced {
   }
 
   init() {
-    this.addDifficultySelector();
-    this.addMiningModeToggle();
-    this.addSocraticQuestions();
-    this.addProofOfWorkVisualization();
-    this.enhanceExistingFunctionality();
+    console.log('⛏️ Mining Simulator Enhanced: Initializing...');
+    try {
+      this.addDifficultySelector();
+      console.log('  ✅ Difficulty selector added');
+      this.addMiningModeToggle();
+      console.log('  ✅ Mining mode toggle added');
+      this.addSocraticQuestions();
+      console.log('  ✅ Socratic questions added');
+      this.addProofOfWorkVisualization();
+      console.log('  ✅ PoW visualization added');
+      this.enhanceExistingFunctionality();
+      console.log('  ✅ Enhanced existing functionality');
+      console.log('✅ Mining Simulator Enhanced: Initialization complete');
+    } catch (error) {
+      console.error('❌ Mining Simulator Enhanced: Initialization failed', error);
+    }
   }
 
   addDifficultySelector() {
@@ -482,14 +493,26 @@ In 2024, Bitcoin miners collectively spend ~$15 billion/year on electricity. Tha
   }
 
   enhanceExistingFunctionality() {
+    console.log('  → Checking for existing functions...');
+
+    // Check if startMining exists
+    if (typeof window.startMining === 'function') {
+      console.log('  ✅ startMining function found');
+    } else {
+      console.warn('  ⚠️ startMining function NOT found - mining button may not work!');
+    }
+
     // Hook into existing findBlock function
     const originalFindBlock = window.findBlock;
     if (originalFindBlock) {
+      console.log('  ✅ findBlock function found, hooking into it');
       window.findBlock = () => {
         originalFindBlock();
         // Reset attempts counter for next block
         this.totalHashAttempts = 0;
       };
+    } else {
+      console.warn('  ⚠️ findBlock function NOT found');
     }
   }
 
