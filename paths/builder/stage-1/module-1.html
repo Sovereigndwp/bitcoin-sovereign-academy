@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Protocol Deep Dive | The Builder Path</title>
+    <meta name="description" content="Master Bitcoin's UTXO model, transaction structure, and script language with interactive demos and hands-on exercises.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Module Header */
+        .module-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--primary-orange);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .module-title-section h1 {
+            font-size: 1.75rem;
+            color: var(--accent-blue);
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-orange);
+        }
+
+        .content-section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-blue);
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        code {
+            background: rgba(247, 147, 26, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            color: var(--primary-orange);
+        }
+
+        pre {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-light);
+        }
+
+        /* Interactive Demo */
+        .demo-container {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-blue);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-container h3 {
+            color: var(--accent-blue);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Navigation */
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-orange);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #ff8c00;
+        }
+
+        .nav-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <!-- Module Header -->
+    <header class="module-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/builder/">The Builder Path</a> →
+                <a href="/paths/builder/stage-1/">Stage 1</a> →
+                <span>Module 1</span>
+            </div>
+            <div class="module-title-section">
+                <h1>Bitcoin Protocol Deep Dive</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Socratic Questions -->
+            <section class="content-section">
+                <h2>🤔 Before We Begin: Think Like a Protocol Designer</h2>
+                <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                    Before diving into Bitcoin's transaction model, consider the fundamental problems you'd need to solve:
+                </p>
+
+                <div style="background: var(--secondary-dark); border-left: 4px solid var(--accent-blue); border-radius: 0.75rem; padding: 1.5rem; margin: 1.5rem 0;">
+                    <div style="display: grid; gap: 1rem;">
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">💰</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How do you represent digital money without a bank database?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">If there's no central ledger tracking account balances, how do you know who owns what?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">🔁</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How do you prevent double-spending without a trusted authority?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">What stops someone from spending the same digital coin twice in different transactions?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">🔒</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How do you prove ownership without revealing your identity?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">Can you have privacy AND security in digital transactions?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">📝</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">What data structure would allow 18,000 independent nodes to agree on transaction order?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">How do you design a system where everyone can verify everything independently?</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="margin-top: 1.5rem; text-align: center; font-size: 1.1rem;">
+                    <strong style="color: var(--accent-green);">Bitcoin's answer to all of these: The UTXO Model</strong>
+                </p>
+            </section>
+
+            <!-- UTXO Model -->
+            <section class="content-section">
+                <h2>The UTXO Model: Bitcoin's Transaction System</h2>
+
+                <p>
+                    Bitcoin doesn't track account balances like a bank. Instead, it tracks <strong>Unspent Transaction Outputs (UTXOs)</strong>—
+                    individual "coins" of various denominations that can be spent once and only once.
+                </p>
+
+                <h3>How UTXOs Work</h3>
+                <p>
+                    Think of UTXOs like physical cash:
+                </p>
+                <ul style="margin-left: 2rem; color: var(--text-dim); margin-bottom: 1rem;">
+                    <li>You have several bills in your wallet: $5, $10, $20</li>
+                    <li>To pay $15, you give the $20 bill and receive $5 change</li>
+                    <li>The $20 bill is now "spent" (destroyed)</li>
+                    <li>You receive a new $5 bill as change</li>
+                </ul>
+
+                <p>
+                    Bitcoin transactions work the same way:
+                </p>
+                <ul style="margin-left: 2rem; color: var(--text-dim); margin-bottom: 1rem;">
+                    <li><strong>Inputs:</strong> UTXOs you're spending (destroyed in the transaction)</li>
+                    <li><strong>Outputs:</strong> New UTXOs created for recipients and change</li>
+                    <li><strong>Rule:</strong> Sum of outputs ≤ Sum of inputs (difference = miner fee)</li>
+                </ul>
+
+                <h3>Transaction Structure</h3>
+                <p>Every Bitcoin transaction has:</p>
+
+                <pre><code>{
+  "txid": "abc123...",        // Unique transaction ID
+  "version": 2,               // Transaction version
+  "inputs": [                 // UTXOs being spent
+    {
+      "txid": "def456...",    // Previous transaction
+      "vout": 0,              // Output index
+      "scriptSig": "...",     // Signature proving ownership
+      "sequence": 4294967295
+    }
+  ],
+  "outputs": [                // New UTXOs being created
+    {
+      "value": 50000000,      // Amount in satoshis
+      "scriptPubKey": "..."   // Locking script (conditions)
+    }
+  ],
+  "locktime": 0               // Block height/time lock
+}</code></pre>
+            </section>
+
+            <!-- Interactive UTXO Demo -->
+            <section class="content-section">
+                <div class="demo-container">
+                    <h3>🎮 Interactive UTXO Transaction Builder</h3>
+                    <p style="color: var(--text-dim); text-align: center; margin-bottom: 1.5rem;">
+                        Build a transaction by selecting UTXOs and creating outputs. See how change works!
+                    </p>
+
+                    <iframe
+                        src="/interactive-demos/utxo-visualizer-v2.html"
+                        style="width: 100%; height: 600px; border: none; border-radius: 0.5rem; background: white;"
+                        title="UTXO Visualizer">
+                    </iframe>
+
+                    <p style="margin-top: 1rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;">
+                        💡 Try creating a transaction with exact change vs. requiring change output. Notice how fees work!
+                    </p>
+                </div>
+            </section>
+
+            <!-- Bitcoin Script -->
+            <section class="content-section">
+                <h2>Bitcoin Script: Programmable Money</h2>
+
+                <p>
+                    UTXOs are locked with Bitcoin Script—a stack-based programming language that defines spending conditions.
+                </p>
+
+                <h3>Common Script Types</h3>
+
+                <p><strong>1. Pay-to-Public-Key-Hash (P2PKH)</strong> - The original Bitcoin address format:</p>
+                <pre><code>OP_DUP OP_HASH160 &lt;pubKeyHash&gt; OP_EQUALVERIFY OP_CHECKSIG</code></pre>
+
+                <p style="margin-top: 1rem;"><strong>2. Pay-to-Script-Hash (P2SH)</strong> - Allows complex scripts:</p>
+                <pre><code>OP_HASH160 &lt;scriptHash&gt; OP_EQUAL</code></pre>
+
+                <p style="margin-top: 1rem;"><strong>3. Pay-to-Witness-Public-Key-Hash (P2WPKH)</strong> - SegWit format:</p>
+                <pre><code>OP_0 &lt;pubKeyHash&gt;</code></pre>
+
+                <p>
+                    Scripts enable features like multisignature wallets, timelocks, and atomic swaps without requiring protocol changes!
+                </p>
+            </section>
+
+            <!-- Key Takeaways -->
+            <section class="content-section">
+                <div style="background: rgba(76, 175, 80, 0.1); border-left: 4px solid var(--accent-green); border-radius: 0.5rem; padding: 1.5rem; margin: 2rem 0;">
+                    <h3 style="color: var(--accent-green); margin-bottom: 1rem;">🎯 Key Takeaways</h3>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Bitcoin uses the UTXO model, not account balances
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Transactions consume inputs and create outputs
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Each UTXO can only be spent once (prevents double-spending)
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Bitcoin Script locks UTXOs with spending conditions
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Difference between inputs and outputs = miner fee
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Every node independently verifies all transactions
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <nav class="module-navigation">
+                <a href="/paths/builder/stage-1/" class="nav-btn nav-btn-secondary">← Back to Stage 1</a>
+                <button id="complete-module" class="nav-btn">Mark Complete & Continue →</button>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('complete-module').addEventListener('click', function() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+
+            if (!progress.completedModules) {
+                progress.completedModules = [];
+            }
+
+            if (!progress.completedModules.includes('builder-1-1')) {
+                progress.completedModules.push('builder-1-1');
+            }
+
+            progress.lastActivity = new Date().toISOString();
+            progress.path = 'builder';
+            progress.currentStage = 1;
+            progress.currentModule = 2;
+
+            localStorage.setItem('learningProgress', JSON.stringify(progress));
+
+            alert('✓ Module 1 completed! Redirecting to Stage 1 overview...');
+            window.location.href = '/paths/builder/stage-1/';
+        });
+    </script>
+</body>
+</html>
