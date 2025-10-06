@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proof of Work | The Builder Path</title>
+    <meta name="description" content="Master Bitcoin's consensus mechanism: proof-of-work mining, difficulty adjustment, network security, and the economics of mining.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Module Header */
+        .module-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--primary-orange);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .module-title-section h1 {
+            font-size: 1.75rem;
+            color: var(--accent-blue);
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-orange);
+        }
+
+        .content-section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-blue);
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        code {
+            background: rgba(247, 147, 26, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            color: var(--primary-orange);
+        }
+
+        pre {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-light);
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-dim);
+        }
+
+        /* Demo Container */
+        .demo-container {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-blue);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-container h3 {
+            color: var(--accent-blue);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* External Link Card */
+        .external-demo {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-green);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .external-demo h4 {
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .demo-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 1rem 2rem;
+            background: var(--accent-green);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .demo-link:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        /* Completion Banner */
+        .completion-banner {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(76, 175, 80, 0.1));
+            border: 3px solid var(--accent-green);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin: 3rem 0;
+            text-align: center;
+            display: none;
+        }
+
+        .completion-banner h3 {
+            color: var(--accent-green);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .badge-display {
+            font-size: 4rem;
+            margin: 1rem 0;
+        }
+
+        /* Navigation */
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-orange);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-btn:hover {
+            background: #ff8c00;
+        }
+
+        .nav-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <!-- Module Header -->
+    <header class="module-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/builder/">The Builder Path</a> →
+                <a href="/paths/builder/stage-1/">Stage 1</a> →
+                <span>Module 3</span>
+            </div>
+            <div class="module-title-section">
+                <h1>Proof of Work</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Socratic Questions -->
+            <section class="content-section">
+                <h2>🤔 The Consensus Challenge</h2>
+                <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                    Before exploring proof-of-work, think about the fundamental problem Bitcoin must solve:
+                </p>
+
+                <div style="background: var(--secondary-dark); border-left: 4px solid var(--accent-blue); border-radius: 0.75rem; padding: 1.5rem; margin: 1.5rem 0;">
+                    <div style="display: grid; gap: 1rem;">
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">🌐</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How do 18,000 independent nodes agree on transaction order without a leader?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">No CEO, no voting, no central clock. How do you reach consensus across a global network?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">⚔️</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How do you make attacking Bitcoin more expensive than the reward?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">What if someone tries to rewrite history? How do you make that economically irrational?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">⚖️</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">Why shouldn't voting power be based on IP addresses or identities?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">Sybil attack: An attacker creates 10,000 fake identities. How do you prevent this?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">⏰</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How do you maintain a 10-minute block time despite hashrate fluctuations?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">Computing power doubles every year. How does Bitcoin stay predictable?</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="margin-top: 1.5rem; text-align: center; font-size: 1.1rem;">
+                    <strong style="color: var(--accent-green);">Proof-of-Work solves all of these elegantly.</strong>
+                </p>
+            </section>
+
+            <!-- What is Proof-of-Work -->
+            <section class="content-section">
+                <h2>What is Proof-of-Work?</h2>
+
+                <p>
+                    <strong>Proof-of-Work (PoW)</strong> is Bitcoin's consensus mechanism. It requires miners to expend computational energy
+                    (electricity + hardware) to propose new blocks. This creates a verifiable, costly proof that work was performed,
+                    making the blockchain extremely expensive to attack.
+                </p>
+
+                <h3>The Core Idea</h3>
+
+                <p>
+                    Miners compete to find a hash of the block header that is <strong>below a target value</strong>. Because hash functions
+                    are unpredictable, the only way to find a valid hash is to try trillions of random inputs (nonces) until you get lucky.
+                </p>
+
+                <h3>Block Header Structure</h3>
+
+                <pre><code>Block Header (80 bytes):
+- Version (4 bytes): Protocol version
+- Previous Block Hash (32 bytes): Links to parent block
+- Merkle Root (32 bytes): Root of Merkle tree of all transactions
+- Timestamp (4 bytes): Unix timestamp
+- Difficulty Target (4 bytes): Compressed target (nBits)
+- Nonce (4 bytes): Random number miners increment
+
+Hash = SHA-256(SHA-256(Block Header))</code></pre>
+
+                <h3>Mining Process</h3>
+
+                <pre><code>1. Collect transactions from mempool
+2. Construct Merkle tree → get Merkle root
+3. Create block header with:
+   - Previous block hash
+   - Merkle root
+   - Current timestamp
+   - Difficulty target
+   - Nonce = 0
+
+4. Loop:
+   - Hash block header
+   - If hash < target: FOUND! Broadcast block
+   - Else: increment nonce, try again
+
+5. On average, requires ~2^77 hashes to find valid block (at current difficulty)</code></pre>
+            </section>
+
+            <!-- Interactive Mining Simulator -->
+            <section class="content-section">
+                <div class="demo-container">
+                    <h3>⛏️ Interactive Mining Simulator</h3>
+                    <p style="margin-bottom: 1.5rem; text-align: center; color: var(--text-dim);">
+                        Experience Bitcoin mining! Adjust difficulty, watch hash attempts, and understand why PoW is computationally hard.
+                    </p>
+                    <iframe
+                        src="/interactive-demos/mining-simulator/index.html"
+                        style="width: 100%; height: 900px; border: none; border-radius: 0.75rem; background: white;"
+                        title="Mining Simulator">
+                    </iframe>
+                    <p style="margin-top: 1rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;">
+                        💡 Start with Easy Mode (2 leading zeros) then try Realistic Mode (19+ leading zeros)
+                    </p>
+                </div>
+            </section>
+
+            <!-- Difficulty Adjustment -->
+            <section class="content-section">
+                <h2>Difficulty Adjustment Algorithm</h2>
+
+                <p>
+                    Bitcoin adjusts mining difficulty every 2,016 blocks (~2 weeks) to maintain a 10-minute average block time,
+                    regardless of total network hashrate.
+                </p>
+
+                <h3>The Algorithm</h3>
+
+                <pre><code>Every 2,016 blocks:
+
+1. Measure actual time taken to mine last 2,016 blocks
+2. Expected time = 2,016 blocks × 10 minutes = 20,160 minutes
+
+If actual < expected:
+    New Difficulty = Old Difficulty × (Actual / Expected)
+    → Blocks came too fast, make it harder
+
+If actual > expected:
+    New Difficulty = Old Difficulty × (Actual / Expected)
+    → Blocks came too slow, make it easier
+
+Max adjustment per period: 4x (up or down)</code></pre>
+
+                <h3>Example</h3>
+
+                <pre><code>Scenario: Network hashrate doubles suddenly
+
+- Last 2,016 blocks took 10,080 minutes (1 week instead of 2)
+- New Difficulty = Old × (10,080 / 20,160) = Old × 0.5 = 2× harder
+- Next 2,016 blocks will take ~2 weeks again at new difficulty</code></pre>
+
+                <p>
+                    This is why Bitcoin's <strong>monetary policy is predictable</strong>: new blocks arrive every ~10 minutes
+                    regardless of mining technology advances.
+                </p>
+            </section>
+
+            <!-- Network Security -->
+            <section class="content-section">
+                <h2>Network Security Model</h2>
+
+                <h3>51% Attack</h3>
+
+                <p>
+                    A <strong>51% attack</strong> occurs when a miner (or cartel) controls more than 50% of network hashrate.
+                    They could:
+                </p>
+
+                <ul>
+                    <li>Double-spend their own transactions (by rewriting recent blocks)</li>
+                    <li>Prevent transactions from confirming</li>
+                    <li>Selectively censor transactions</li>
+                </ul>
+
+                <p>
+                    <strong>What they CANNOT do:</strong>
+                </p>
+
+                <ul>
+                    <li>Steal coins from other addresses (no private keys)</li>
+                    <li>Change consensus rules (nodes would reject invalid blocks)</li>
+                    <li>Create bitcoins out of thin air (exceeds block reward = rejected)</li>
+                </ul>
+
+                <h3>Cost of Attack</h3>
+
+                <pre><code>Current Bitcoin Network Stats (2024):
+- Hashrate: ~400 EH/s (400 quintillion hashes per second)
+- Hardware: Latest ASIC = ~140 TH/s @ $3,000
+- Needed for 51%: ~1.4 million ASICs = $4.2 billion in hardware
+- Electricity: ~200 MW continuous @ $0.05/kWh = $10 million/day
+
+Total cost to sustain attack for 1 week: $4.2B + $70M = ~$4.27 billion
+
+Expected gain: Rewrite maybe 6-12 hours of blocks before caught
+Result: Bitcoin price crashes, attacker's investment becomes worthless</code></pre>
+
+                <p>
+                    <strong>Conclusion:</strong> Attacking Bitcoin is economically irrational. Proof-of-Work converts electricity into security.
+                </p>
+            </section>
+
+            <!-- Mining Economics -->
+            <section class="content-section">
+                <h2>Mining Economics</h2>
+
+                <h3>Miner Revenue</h3>
+
+                <pre><code>Revenue per block = Block Subsidy + Transaction Fees
+
+Current (2024):
+- Block Subsidy: 6.25 BTC (halves every 210,000 blocks)
+- Avg Transaction Fees: ~0.5 BTC per block
+- Total: ~6.75 BTC per block
+
+Next Halving (2024):
+- Block Subsidy: 3.125 BTC
+- Fees become increasingly important</code></pre>
+
+                <h3>Halving Schedule</h3>
+
+                <ul>
+                    <li>2009-2012: 50 BTC per block</li>
+                    <li>2012-2016: 25 BTC per block</li>
+                    <li>2016-2020: 12.5 BTC per block</li>
+                    <li>2020-2024: 6.25 BTC per block</li>
+                    <li>2024-2028: 3.125 BTC per block</li>
+                    <li>...</li>
+                    <li>~2140: 0 BTC (final bitcoin mined), miners earn only fees</li>
+                </ul>
+
+                <h3>Energy Consumption</h3>
+
+                <p>
+                    Bitcoin's energy usage is often criticized, but context matters:
+                </p>
+
+                <ul>
+                    <li><strong>Purpose:</strong> Secures $500B+ network, enables censorship-resistant money</li>
+                    <li><strong>Incentive:</strong> Miners seek cheapest electricity (often renewable/stranded energy)</li>
+                    <li><strong>Comparison:</strong> Gold mining, banking system, military also consume massive energy</li>
+                    <li><strong>Efficiency:</strong> Energy/transaction is misleading—Bitcoin settles finality, not just txs</li>
+                </ul>
+            </section>
+
+            <!-- Consensus Game Link -->
+            <section class="content-section">
+                <div class="external-demo">
+                    <h4>🎯 Test Your Understanding: Consensus Game</h4>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                        Play as a Bitcoin node and experience network attack scenarios. See how proof-of-work protects against
+                        51% attacks, selfish mining, and network splits.
+                    </p>
+                    <a href="/interactive-demos/consensus-game/" target="_blank" class="demo-link">
+                        Play Consensus Game →
+                    </a>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 1rem;">
+                        💡 Experience Byzantine fault tolerance and see why PoW makes attacks economically irrational
+                    </p>
+                </div>
+            </section>
+
+            <!-- Key Takeaways -->
+            <section class="content-section">
+                <div style="background: rgba(76, 175, 80, 0.1); border-left: 4px solid var(--accent-green); border-radius: 0.5rem; padding: 1.5rem; margin: 2rem 0;">
+                    <h3 style="color: var(--accent-green); margin-bottom: 1rem;">🎯 Key Takeaways</h3>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Proof-of-Work requires computational work to propose blocks, making attacks expensive
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Miners search for nonce that produces hash below difficulty target
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Difficulty adjusts every 2,016 blocks to maintain 10-minute average block time
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Network security scales with hashrate (currently ~400 EH/s)
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            51% attacks are economically irrational due to cost vs. limited gain
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Block rewards halve every 210,000 blocks, transitioning to fee-based security
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            PoW converts electricity into cryptographic security, creating real-world cost anchor
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Completion Banner -->
+            <div class="completion-banner" id="completion-banner">
+                <div class="badge-display">🔬</div>
+                <h3>Congratulations! Stage 1 Complete!</h3>
+                <p style="margin-bottom: 1.5rem;">
+                    You've earned the <strong>"Protocol Mastery"</strong> badge! You now understand Bitcoin's technical architecture
+                    at a deep level: UTXOs, cryptographic primitives, and proof-of-work consensus.
+                </p>
+                <p style="margin-bottom: 1.5rem;">
+                    <strong>You've Mastered:</strong>
+                </p>
+                <ul style="list-style: none; display: inline-block; text-align: left; margin-bottom: 1.5rem;">
+                    <li>✅ UTXO model and transaction structure</li>
+                    <li>✅ SHA-256, ECDSA, and Merkle trees</li>
+                    <li>✅ Proof-of-Work and consensus mechanisms</li>
+                    <li>✅ Mining economics and network security</li>
+                </ul>
+                <p>
+                    <a href="/paths/builder/stage-2/" class="nav-btn" style="display: inline-block; text-decoration: none;">
+                        Continue to Stage 2: Lightning Network →
+                    </a>
+                </p>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="module-navigation">
+                <a href="module-2.html" class="nav-btn nav-btn-secondary">← Previous: Cryptographic Primitives</a>
+                <button id="complete-module" class="nav-btn">Mark Complete & Finish Stage 1 →</button>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('complete-module').addEventListener('click', function() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+
+            if (!progress.completedModules) {
+                progress.completedModules = [];
+            }
+
+            if (!progress.completedModules.includes('builder-1-3')) {
+                progress.completedModules.push('builder-1-3');
+            }
+
+            // Mark Stage 1 complete
+            if (!progress.completedStages) {
+                progress.completedStages = [];
+            }
+            if (!progress.completedStages.includes('builder-1')) {
+                progress.completedStages.push('builder-1');
+            }
+
+            // Award badge
+            if (!progress.badges) {
+                progress.badges = [];
+            }
+            if (!progress.badges.includes('protocol-mastery')) {
+                progress.badges.push('protocol-mastery');
+            }
+
+            progress.lastActivity = new Date().toISOString();
+            progress.path = 'builder';
+            progress.currentStage = 2;
+            progress.currentModule = 1;
+
+            localStorage.setItem('learningProgress', JSON.stringify(progress));
+
+            // Show completion banner
+            document.getElementById('completion-banner').style.display = 'block';
+
+            setTimeout(() => {
+                document.getElementById('completion-banner').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        });
+    </script>
+</body>
+</html>

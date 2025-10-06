@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptographic Primitives | The Builder Path</title>
+    <meta name="description" content="Master Bitcoin's cryptographic building blocks: hash functions, digital signatures, ECDSA, and Merkle trees with hands-on interactive demos.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Module Header */
+        .module-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--primary-orange);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .module-title-section h1 {
+            font-size: 1.75rem;
+            color: var(--accent-blue);
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-orange);
+        }
+
+        .content-section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-blue);
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        code {
+            background: rgba(247, 147, 26, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            color: var(--primary-orange);
+        }
+
+        pre {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-light);
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-dim);
+        }
+
+        /* Demo Container */
+        .demo-container {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-blue);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-container h3 {
+            color: var(--accent-blue);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* External Link Card */
+        .external-demo {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-green);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .external-demo h4 {
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .demo-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 1rem 2rem;
+            background: var(--accent-green);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .demo-link:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        /* Navigation */
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-orange);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #ff8c00;
+        }
+
+        .nav-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <!-- Module Header -->
+    <header class="module-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/builder/">The Builder Path</a> →
+                <a href="/paths/builder/stage-1/">Stage 1</a> →
+                <span>Module 2</span>
+            </div>
+            <div class="module-title-section">
+                <h1>Cryptographic Primitives</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Socratic Questions -->
+            <section class="content-section">
+                <h2>🤔 The Foundation of Digital Trust</h2>
+                <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                    Before we dive into Bitcoin's cryptographic building blocks, consider these fundamental questions:
+                </p>
+
+                <div style="background: var(--secondary-dark); border-left: 4px solid var(--accent-blue); border-radius: 0.75rem; padding: 1.5rem; margin: 1.5rem 0;">
+                    <div style="display: grid; gap: 1rem;">
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">🔐</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How can you prove you own something digital without revealing your secret?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">If you share your password to prove it's yours, anyone can steal it. What's the alternative?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">🎲</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How do you generate a truly random secret that no one else will ever create?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">With 7.8 billion people on Earth, how do you ensure your secret is unique?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">📜</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How can thousands of nodes verify a transaction without storing every signature?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">Bitcoin blocks contain thousands of transactions. Is there a compact way to prove inclusion?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">🔄</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">What makes a function "one-way" in cryptography?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">Easy to compute forward, impossible to reverse. How does mathematics achieve this?</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="margin-top: 1.5rem; text-align: center; font-size: 1.1rem;">
+                    <strong style="color: var(--accent-green);">Bitcoin answers all of these with three cryptographic primitives.</strong>
+                </p>
+            </section>
+
+            <!-- Part 1: Hash Functions -->
+            <section class="content-section">
+                <h2>Part 1: Cryptographic Hash Functions (SHA-256)</h2>
+
+                <p>
+                    A cryptographic hash function takes any input (text, file, transaction data) and produces a fixed-size output called a hash.
+                    Bitcoin uses <strong>SHA-256</strong> (Secure Hash Algorithm, 256-bit), which produces a 64-character hexadecimal string.
+                </p>
+
+                <h3>Properties of Cryptographic Hash Functions</h3>
+
+                <ol>
+                    <li><strong>Deterministic:</strong> Same input always produces same output</li>
+                    <li><strong>Quick Computation:</strong> Fast to calculate hash from input</li>
+                    <li><strong>Avalanche Effect:</strong> Tiny input change completely changes output</li>
+                    <li><strong>One-Way Function:</strong> Impossible to reverse (find input from hash)</li>
+                    <li><strong>Collision Resistant:</strong> Nearly impossible to find two different inputs with same hash</li>
+                </ol>
+
+                <h3>Example: SHA-256 in Action</h3>
+                <pre><code>Input: "Hello World"
+SHA-256: a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e
+
+Input: "Hello World!"  ← Added one character (!)
+SHA-256: 7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069
+
+Input: "hello world"  ← Changed capitalization
+SHA-256: b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9</code></pre>
+
+                <p>
+                    Notice how completely different the outputs are despite minimal input changes. This is the <strong>avalanche effect</strong>—
+                    a critical property for Bitcoin's security.
+                </p>
+
+                <h3>SHA-256 in Bitcoin</h3>
+                <p>Bitcoin uses SHA-256 for:</p>
+                <ul>
+                    <li><strong>Mining:</strong> Finding hashes that meet difficulty target</li>
+                    <li><strong>Transaction IDs:</strong> Unique identifier for each transaction</li>
+                    <li><strong>Block IDs:</strong> Hash of block header creates block ID</li>
+                    <li><strong>Merkle Trees:</strong> Compressing thousands of transactions into one hash</li>
+                    <li><strong>Address Generation:</strong> Part of converting public keys to addresses (with RIPEMD-160)</li>
+                </ul>
+
+                <!-- External Hash Module Link -->
+                <div class="external-demo">
+                    <h4>🔐 Deep Dive: Interactive Hashing Module</h4>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                        For a comprehensive exploration of hash functions, including avalanche effect demonstrations,
+                        collision resistance, and real-time mining simulations, use our dedicated Hashing Module.
+                    </p>
+                    <a href="http://localhost:3000" target="_blank" class="demo-link">
+                        Launch Hashing Module (Learn Bitcoin by Doing) →
+                    </a>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 1rem;">
+                        💡 This module includes live Bitcoin network data and proof-of-work mining simulation
+                    </p>
+                </div>
+            </section>
+
+            <!-- Part 2: Digital Signatures (ECDSA) -->
+            <section class="content-section">
+                <h2>Part 2: Digital Signatures & ECDSA</h2>
+
+                <p>
+                    Digital signatures solve the proof-of-ownership problem. Bitcoin uses <strong>Elliptic Curve Digital Signature Algorithm (ECDSA)</strong>
+                    with the secp256k1 curve—the same curve used by Ethereum and many other cryptocurrencies.
+                </p>
+
+                <h3>The Magic of Asymmetric Cryptography</h3>
+
+                <p>
+                    Unlike passwords (symmetric), asymmetric cryptography uses two related keys:
+                </p>
+
+                <ul>
+                    <li><strong>Private Key:</strong> A secret number (256 bits of randomness) that NEVER leaves your wallet</li>
+                    <li><strong>Public Key:</strong> Mathematically derived from private key, safe to share publicly</li>
+                </ul>
+
+                <p>
+                    The mathematical relationship is <strong>one-way</strong>: Easy to derive public key from private key,
+                    but computationally impossible to reverse (would take longer than the universe's age with current computers).
+                </p>
+
+                <h3>How ECDSA Signatures Work</h3>
+
+                <pre><code>// Signing a transaction
+1. Transaction data: "Send 0.5 BTC to Alice"
+2. Hash transaction: SHA-256(transaction) → message hash
+3. Sign with private key: ECDSA_sign(message_hash, private_key) → signature (r, s)
+4. Broadcast: transaction + signature + public_key
+
+// Verification (by nodes)
+5. Hash transaction: SHA-256(transaction) → message hash
+6. Verify signature: ECDSA_verify(message_hash, signature, public_key) → true/false</code></pre>
+
+                <h3>Why This Is Secure</h3>
+
+                <p>
+                    <strong>The Elliptic Curve Discrete Logarithm Problem (ECDLP):</strong> Given a public key (point on curve),
+                    finding the private key (scalar) requires solving an equation with no known efficient algorithm.
+                    Bitcoin's security relies on this mathematical hard problem.
+                </p>
+
+                <h3>Key Lifecycle in Bitcoin</h3>
+
+                <ol>
+                    <li><strong>Entropy:</strong> Generate 256 bits of random data (private key)</li>
+                    <li><strong>Private Key:</strong> Usually displayed as 64 hexadecimal characters</li>
+                    <li><strong>Public Key:</strong> ECDSA point multiplication on secp256k1 curve</li>
+                    <li><strong>Address:</strong> Hash160(public_key) + Base58Check encoding</li>
+                </ol>
+
+                <!-- Embedded Wallet Workshop -->
+                <div class="demo-container">
+                    <h3>🏦 Interactive Wallet Workshop</h3>
+                    <p style="margin-bottom: 1.5rem; text-align: center; color: var(--text-dim);">
+                        Experience the complete key lifecycle: Entropy → Seed → Private Keys → Public Keys → Addresses
+                    </p>
+                    <iframe
+                        src="/interactive-demos/wallet-workshop/index.html"
+                        style="width: 100%; height: 800px; border: none; border-radius: 0.75rem; background: white;"
+                        title="Wallet Workshop">
+                    </iframe>
+                    <p style="margin-top: 1rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;">
+                        💡 This workshop includes BIP39, BIP32, and BIP44 HD wallet standards
+                    </p>
+                </div>
+            </section>
+
+            <!-- Part 3: Merkle Trees -->
+            <section class="content-section">
+                <h2>Part 3: Merkle Trees</h2>
+
+                <p>
+                    A <strong>Merkle tree</strong> (or hash tree) is a data structure that allows efficient verification of large datasets.
+                    Bitcoin uses Merkle trees to compress thousands of transactions into a single 32-byte hash (the Merkle root).
+                </p>
+
+                <h3>How Merkle Trees Work</h3>
+
+                <p>Imagine a block with 4 transactions (in reality, blocks can have 2,000+ transactions):</p>
+
+                <pre><code>Level 3 (Root):              ABCDEFGH
+                                /          \
+Level 2:                  ABCD            EFGH
+                         /    \          /    \
+Level 1:              AB      CD      EF      GH
+                     / \     / \     / \     / \
+Level 0 (Leaves):   A   B   C   D   E   F   G   H
+
+Where:
+- A, B, C, D, E, F, G, H = Transaction hashes (TxID)
+- AB = SHA-256(SHA-256(A + B))  ← Double SHA-256
+- ABCD = SHA-256(SHA-256(AB + CD))
+- Merkle Root = ABCDEFGH</code></pre>
+
+                <h3>Why Merkle Trees Matter</h3>
+
+                <ol>
+                    <li><strong>Efficient Verification:</strong> Prove a transaction is in a block without downloading the whole block</li>
+                    <li><strong>SPV (Simplified Payment Verification):</strong> Mobile wallets can verify payments with only block headers</li>
+                    <li><strong>Compact Proofs:</strong> Proof size is O(log n) instead of O(n)</li>
+                </ol>
+
+                <h3>Merkle Proof Example</h3>
+
+                <p>
+                    To prove transaction <code>E</code> is in the block, you only need:
+                </p>
+
+                <ul>
+                    <li>Transaction E (your transaction)</li>
+                    <li>F (E's sibling)</li>
+                    <li>GH (parent's sibling)</li>
+                    <li>ABCD (grandparent's sibling)</li>
+                    <li>Merkle Root from block header</li>
+                </ul>
+
+                <p>
+                    That's only 4 hashes instead of all 8 transactions! For a block with 2,048 transactions, you'd need only 11 hashes
+                    instead of 2,048 (99.5% reduction).
+                </p>
+
+                <!-- External Merkle Module Link -->
+                <div class="external-demo">
+                    <h4>🌳 Deep Dive: Interactive Merkle Tree Module</h4>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                        Build Merkle trees from scratch, create Merkle proofs, and understand how SPV wallets verify
+                        transactions with minimal data. Includes visualizations of trees with millions of leaves.
+                    </p>
+                    <a href="http://localhost:3000" target="_blank" class="demo-link">
+                        Launch Merkle Module (Learn Bitcoin by Doing) →
+                    </a>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 1rem;">
+                        💡 This module demonstrates Merkle proof verification and real-world applications
+                    </p>
+                </div>
+            </section>
+
+            <!-- Key Takeaways -->
+            <section class="content-section">
+                <div style="background: rgba(76, 175, 80, 0.1); border-left: 4px solid var(--accent-green); border-radius: 0.5rem; padding: 1.5rem; margin: 2rem 0;">
+                    <h3 style="color: var(--accent-green); margin-bottom: 1rem;">🎯 Key Takeaways</h3>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            SHA-256 creates unique fingerprints for data (deterministic, one-way, collision-resistant)
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Bitcoin uses SHA-256 for mining, transaction IDs, addresses, and Merkle trees
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            ECDSA enables digital signatures with public/private key pairs
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Private keys are secret, public keys can be shared, addresses are derived from public keys
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Security relies on ECDLP (elliptic curve discrete logarithm problem) being computationally hard
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Merkle trees compress thousands of transactions into one 32-byte root hash
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Merkle proofs enable SPV: prove inclusion with O(log n) data instead of O(n)
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <nav class="module-navigation">
+                <a href="module-1.html" class="nav-btn nav-btn-secondary">← Previous: Protocol Deep Dive</a>
+                <button id="complete-module" class="nav-btn">Mark Complete & Continue →</button>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('complete-module').addEventListener('click', function() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+
+            if (!progress.completedModules) {
+                progress.completedModules = [];
+            }
+
+            if (!progress.completedModules.includes('builder-1-2')) {
+                progress.completedModules.push('builder-1-2');
+            }
+
+            progress.lastActivity = new Date().toISOString();
+            progress.path = 'builder';
+            progress.currentStage = 1;
+            progress.currentModule = 3;
+
+            localStorage.setItem('learningProgress', JSON.stringify(progress));
+
+            alert('✓ Module 2 completed! Redirecting to Stage 1 overview...');
+            window.location.href = '/paths/builder/stage-1/';
+        });
+    </script>
+</body>
+</html>
