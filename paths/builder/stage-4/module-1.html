@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Core Development | Contributing to Bitcoin | The Builder Path</title>
+    <meta name="description" content="Master Bitcoin Core architecture, development workflow, testing framework, and code review culture to become a Bitcoin contributor.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --contributor-red: #E53935;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Module Header */
+        .module-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--contributor-red);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .module-title-section h1 {
+            font-size: 1.75rem;
+            color: var(--contributor-red);
+        }
+
+        .module-meta {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--contributor-red);
+        }
+
+        .content-section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-blue);
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .content-section ul, .content-section ol {
+            margin-left: 2rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .content-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background: rgba(229, 57, 53, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            color: var(--contributor-red);
+        }
+
+        pre {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-light);
+        }
+
+        /* Info Box Styles */
+        .demo-container {
+            background: var(--secondary-dark);
+            border: 2px solid var(--contributor-red);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-container h3 {
+            color: var(--contributor-red);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .exercise-box {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .exercise-box h3 {
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+
+        .warning-box {
+            background: rgba(255, 152, 0, 0.1);
+            border-left: 4px solid #ff9800;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .warning-box h3 {
+            color: #ff9800;
+            margin-bottom: 1rem;
+        }
+
+        .takeaway-box {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--accent-green);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .takeaway-box h3 {
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .takeaway-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .takeaway-box li {
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .takeaway-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        .socratic-box {
+            background: var(--secondary-dark);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .socratic-item {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .socratic-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .socratic-item strong {
+            color: var(--accent-blue);
+        }
+
+        .inspiration-box {
+            background: rgba(229, 57, 53, 0.1);
+            border-left: 4px solid var(--contributor-red);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .inspiration-box h3 {
+            color: var(--contributor-red);
+            margin-bottom: 1rem;
+        }
+
+        /* Navigation */
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--contributor-red);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .nav-btn:hover {
+            background: #C62828;
+        }
+
+        .nav-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+
+        .step-box {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: var(--contributor-red);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+
+        .directory-tree {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .directory-tree .dir {
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .directory-tree .file {
+            color: var(--text-light);
+        }
+
+        .directory-tree .comment {
+            color: var(--text-dim);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <!-- Module Header -->
+    <header class="module-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/builder/">The Builder Path</a> →
+                <a href="/paths/builder/stage-4/">Stage 4</a> →
+                <span>Module 1</span>
+            </div>
+            <div class="module-title-section">
+                <h1>Module 1: Bitcoin Core Development</h1>
+                <div class="module-meta">Estimated time: 90 minutes</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Introduction -->
+            <section class="content-section">
+                <div class="inspiration-box">
+                    <h3>Welcome to the Final Stage</h3>
+                    <p>
+                        You've come a long way—from understanding Bitcoin's protocol to building applications on top of it.
+                        Now you're ready for the most important step: <strong>contributing to Bitcoin itself</strong>.
+                    </p>
+                    <p style="margin-top: 1rem;">
+                        Bitcoin is not owned by any company or government. It belongs to everyone who runs it, uses it,
+                        and improves it. Every line of code in Bitcoin Core is the result of countless hours of review,
+                        testing, and consensus-building by developers around the world.
+                        <strong>You can be one of them.</strong>
+                    </p>
+                    <p style="margin-top: 1rem; font-style: italic; color: var(--contributor-red);">
+                        "Bitcoin is an idea whose time has come, and code is the language of that idea."
+                    </p>
+                </div>
+            </section>
+
+            <!-- Socratic Questions -->
+            <section class="content-section">
+                <h2>Before We Begin: Think Like a Core Developer</h2>
+                <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                    Before diving into Bitcoin Core's codebase, consider the unique challenges of developing
+                    the world's most important financial software:
+                </p>
+
+                <div class="socratic-box">
+                    <div class="socratic-item">
+                        <span style="font-size: 1.5rem;">🔒</span>
+                        <div>
+                            <strong>How do you change code that secures hundreds of billions of dollars?</strong>
+                            <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">
+                                A bug in Bitcoin Core could cause network splits, loss of funds, or worse. What processes
+                                ensure that changes are safe?
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="socratic-item">
+                        <span style="font-size: 1.5rem;">🌍</span>
+                        <div>
+                            <strong>How do thousands of independent developers coordinate without a CEO?</strong>
+                            <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">
+                                No one is "in charge" of Bitcoin. How do developers reach consensus on what code to merge?
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="socratic-item">
+                        <span style="font-size: 1.5rem;">🧪</span>
+                        <div>
+                            <strong>How do you test software that must never fail?</strong>
+                            <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">
+                                Traditional software can have bugs and release patches. Bitcoin Core protects people's
+                                life savings. What testing standards are required?
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="socratic-item">
+                        <span style="font-size: 1.5rem;">⏳</span>
+                        <div>
+                            <strong>Why does Bitcoin Core development move slowly compared to other projects?</strong>
+                            <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">
+                                Some pull requests take months or years to merge. Is this a bug or a feature?
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="margin-top: 1.5rem; text-align: center; font-size: 1.1rem;">
+                    <strong style="color: var(--accent-green);">Bitcoin Core's answer: Rigorous testing, extensive review, and consensus-driven development</strong>
+                </p>
+            </section>
+
+            <!-- Bitcoin Core Architecture -->
+            <section class="content-section">
+                <h2>Bitcoin Core Architecture Tour</h2>
+
+                <p>
+                    Bitcoin Core is approximately 400,000 lines of C++ code, organized into functional components.
+                    Understanding this architecture is essential for contributing effectively.
+                </p>
+
+                <h3>Repository Structure</h3>
+
+                <div class="directory-tree">
+<pre><span class="dir">bitcoin/</span>
+├── <span class="dir">src/</span>                    <span class="comment"># Main source code</span>
+│   ├── <span class="dir">consensus/</span>          <span class="comment"># Consensus-critical code (BE CAREFUL!)</span>
+│   │   ├── consensus.cpp
+│   │   ├── params.h
+│   │   └── validation.cpp
+│   ├── <span class="dir">net/</span>                <span class="comment"># P2P networking layer</span>
+│   │   ├── net.cpp
+│   │   └── net_processing.cpp
+│   ├── <span class="dir">wallet/</span>             <span class="comment"># Wallet functionality</span>
+│   │   ├── wallet.cpp
+│   │   └── spend.cpp
+│   ├── <span class="dir">rpc/</span>                <span class="comment"># RPC server and commands</span>
+│   │   ├── blockchain.cpp
+│   │   └── mining.cpp
+│   ├── <span class="dir">script/</span>             <span class="comment"># Script interpreter</span>
+│   │   ├── interpreter.cpp
+│   │   └── script.cpp
+│   ├── <span class="dir">validation/</span>         <span class="comment"># Transaction/block validation</span>
+│   ├── <span class="dir">util/</span>               <span class="comment"># Utility functions</span>
+│   └── <span class="dir">primitives/</span>         <span class="comment"># Core data structures</span>
+├── <span class="dir">test/</span>                   <span class="comment"># Test suite</span>
+│   ├── <span class="dir">functional/</span>         <span class="comment"># Python functional tests</span>
+│   └── <span class="dir">fuzz/</span>               <span class="comment"># Fuzz testing</span>
+├── <span class="dir">doc/</span>                    <span class="comment"># Documentation</span>
+│   ├── developer-notes.md
+│   └── <span class="dir">release-notes/</span>
+└── <span class="dir">contrib/</span>                <span class="comment"># Build scripts and tools</span></pre>
+                </div>
+
+                <h3>Core Components</h3>
+
+                <p><strong>1. Consensus Layer</strong> - The heart of Bitcoin</p>
+                <ul>
+                    <li><strong>Most critical code in the project</strong> - Changes here require extreme caution</li>
+                    <li>Defines block validation rules, transaction validity, script execution</li>
+                    <li>Must be bug-free: consensus bugs can split the network</li>
+                    <li>Changes require multiple ACKs from experienced reviewers</li>
+                </ul>
+
+                <p style="margin-top: 1rem;"><strong>2. P2P Networking</strong> - Communication between nodes</p>
+                <ul>
+                    <li>Block and transaction relay</li>
+                    <li>Peer discovery and connection management</li>
+                    <li>DoS protection and peer banning</li>
+                    <li>Network message handling</li>
+                </ul>
+
+                <p style="margin-top: 1rem;"><strong>3. Wallet</strong> - Key and transaction management</p>
+                <ul>
+                    <li>HD wallet key derivation</li>
+                    <li>UTXO selection and coin selection algorithms</li>
+                    <li>Transaction creation and signing</li>
+                    <li>Address book and label management</li>
+                </ul>
+
+                <p style="margin-top: 1rem;"><strong>4. RPC Interface</strong> - External communication</p>
+                <ul>
+                    <li>JSON-RPC server for programmatic access</li>
+                    <li>Command handling for wallet, blockchain, network operations</li>
+                    <li>Authentication and security</li>
+                </ul>
+
+                <p style="margin-top: 1rem;"><strong>5. Validation</strong> - Transaction and block checking</p>
+                <ul>
+                    <li>Mempool management</li>
+                    <li>Block validation and storage</li>
+                    <li>UTXO set management</li>
+                    <li>Reorganization handling</li>
+                </ul>
+
+                <div class="warning-box">
+                    <h3>⚠️ Consensus-Critical vs Non-Consensus Code</h3>
+                    <p>
+                        Understanding the difference is crucial:
+                    </p>
+                    <ul style="margin-top: 0.5rem;">
+                        <li><strong>Consensus-critical:</strong> Code that affects block/transaction validity.
+                        A bug here can cause network splits. Requires highest scrutiny.</li>
+                        <li><strong>Non-consensus:</strong> Code for wallet, RPC, GUI, networking.
+                        Bugs are bad but won't split the network. More room for iteration.</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">
+                        New contributors should start with non-consensus code while learning the codebase.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Development Workflow -->
+            <section class="content-section">
+                <h2>Bitcoin Core Development Workflow</h2>
+
+                <p>
+                    Contributing to Bitcoin Core follows a rigorous process designed to maintain the highest code quality
+                    and security standards.
+                </p>
+
+                <h3>The Contribution Lifecycle</h3>
+
+                <div class="step-box">
+                    <p><span class="step-number">1</span><strong>Fork and Clone</strong></p>
+                    <pre style="margin-top: 0.5rem;"><code># Fork bitcoin/bitcoin on GitHub, then:
+git clone https://github.com/YOUR_USERNAME/bitcoin.git
+cd bitcoin
+git remote add upstream https://github.com/bitcoin/bitcoin.git</code></pre>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">2</span><strong>Build Bitcoin Core</strong></p>
+                    <pre style="margin-top: 0.5rem;"><code># Install dependencies (Ubuntu/Debian)
+sudo apt-get update
+sudo apt-get install build-essential libtool autotools-dev automake \
+  pkg-config bsdmainutils python3 libssl-dev libevent-dev libboost-dev \
+  libsqlite3-dev libdb++-dev
+
+# Build
+./autogen.sh
+./configure
+make -j$(nproc)
+
+# Run tests
+make check</code></pre>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">3</span><strong>Create a Branch</strong></p>
+                    <pre style="margin-top: 0.5rem;"><code># Always branch from latest master
+git checkout master
+git pull upstream master
+git checkout -b my-improvement-description</code></pre>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">4</span><strong>Make Changes</strong></p>
+                    <p style="margin-top: 0.5rem; margin-left: 2.5rem; color: var(--text-dim);">
+                        Follow the <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/developer-notes.md"
+                        style="color: var(--contributor-red);">developer-notes.md</a> coding standards:
+                    </p>
+                    <ul style="margin-left: 4rem; margin-top: 0.5rem;">
+                        <li>Use consistent formatting (run <code>make lint</code>)</li>
+                        <li>Write clear, descriptive commit messages</li>
+                        <li>Keep commits atomic and logical</li>
+                        <li>Add tests for new functionality</li>
+                        <li>Update documentation</li>
+                    </ul>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">5</span><strong>Test Thoroughly</strong></p>
+                    <pre style="margin-top: 0.5rem;"><code># Run all tests
+make check                           # Unit tests
+test/functional/test_runner.py      # Functional tests
+test/lint/lint-all.sh                # Linting
+
+# Test specific functionality
+test/functional/wallet_basic.py
+src/test/test_bitcoin --run_test=validation_tests</code></pre>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">6</span><strong>Push and Create PR</strong></p>
+                    <pre style="margin-top: 0.5rem;"><code># Push to your fork
+git push origin my-improvement-description
+
+# Create PR on GitHub with:
+# - Clear title describing the change
+# - Detailed description of what and why
+# - Test plan
+# - Any breaking changes</code></pre>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">7</span><strong>Address Review Feedback</strong></p>
+                    <p style="margin-top: 0.5rem; margin-left: 2.5rem; color: var(--text-dim);">
+                        Reviewers will comment on your PR. Respond to feedback by:
+                    </p>
+                    <ul style="margin-left: 4rem; margin-top: 0.5rem;">
+                        <li>Making requested changes</li>
+                        <li>Explaining your reasoning if you disagree</li>
+                        <li>Keeping discussions professional and technical</li>
+                        <li>Being patient—review takes time</li>
+                    </ul>
+                </div>
+
+                <h3>Commit Message Standards</h3>
+                <p>Bitcoin Core uses a specific commit message format:</p>
+
+                <pre><code>component: Short description (50 chars max)
+
+Longer description explaining what changed and why.
+Can span multiple paragraphs.
+
+- Include relevant background
+- Explain design decisions
+- Reference related issues/PRs
+
+Fixes #12345</code></pre>
+
+                <p><strong>Examples of good commit messages:</strong></p>
+                <pre><code>validation: Add helper function for checking sequence locks
+
+rpc: Return fee rate in getmempoolinfo
+
+test: Add coverage for wallet backup restoration
+
+doc: Clarify RBF behavior in transaction creation</code></pre>
+            </section>
+
+            <!-- Testing Framework -->
+            <section class="content-section">
+                <h2>Bitcoin Core Testing Framework</h2>
+
+                <p>
+                    Bitcoin Core has one of the most comprehensive testing frameworks in open source.
+                    Understanding it is essential for contributing quality code.
+                </p>
+
+                <h3>1. Unit Tests (C++)</h3>
+                <p>
+                    Test individual functions and components in isolation. Located in <code>src/test/</code>.
+                </p>
+
+                <pre><code>// Example: test/validation_tests.cpp
+BOOST_AUTO_TEST_CASE(test_simple_block_validity)
+{
+    CBlock block;
+    block.nVersion = 1;
+    block.nTime = GetTime();
+
+    // Test block is valid
+    CValidationState state;
+    BOOST_CHECK(CheckBlock(block, state));
+}</code></pre>
+
+                <p><strong>Running unit tests:</strong></p>
+                <pre><code># Run all unit tests
+make check
+
+# Run specific test suite
+src/test/test_bitcoin --run_test=validation_tests
+
+# Run with verbose output
+src/test/test_bitcoin --run_test=* --log_level=all</code></pre>
+
+                <h3>2. Functional Tests (Python)</h3>
+                <p>
+                    Test end-to-end functionality by running actual Bitcoin Core nodes.
+                    Located in <code>test/functional/</code>.
+                </p>
+
+                <pre><code># Example functional test structure
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import assert_equal
+
+class WalletTest(BitcoinTestFramework):
+    def set_test_params(self):
+        self.num_nodes = 2
+
+    def run_test(self):
+        # Test wallet functionality
+        addr = self.nodes[0].getnewaddress()
+        txid = self.nodes[0].sendtoaddress(addr, 1)
+
+        # Generate block and verify
+        self.generate(self.nodes[0], 1)
+        tx = self.nodes[0].gettransaction(txid)
+        assert_equal(tx['confirmations'], 1)</code></pre>
+
+                <p><strong>Running functional tests:</strong></p>
+                <pre><code># Run all functional tests
+test/functional/test_runner.py
+
+# Run specific test
+test/functional/wallet_basic.py
+
+# Run with debug output
+test/functional/wallet_basic.py --tracerpc
+
+# Run extended tests (slow, comprehensive)
+test/functional/test_runner.py --extended</code></pre>
+
+                <h3>3. Fuzz Testing</h3>
+                <p>
+                    Automatically generates random inputs to find edge cases and crashes.
+                    Critical for security-sensitive code.
+                </p>
+
+                <pre><code># Build with fuzzing enabled
+./configure --enable-fuzz --with-sanitizers=address,fuzzer,undefined
+make
+
+# Run fuzzer
+src/test/fuzz/process_message /path/to/seed/corpus</code></pre>
+
+                <h3>Writing Tests for Your Changes</h3>
+
+                <div class="exercise-box">
+                    <h3>Golden Rule: Every change needs tests</h3>
+                    <p><strong>When to add which tests:</strong></p>
+                    <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                        <li><strong>New feature:</strong> Functional test + unit tests for edge cases</li>
+                        <li><strong>Bug fix:</strong> Test that fails before fix, passes after</li>
+                        <li><strong>Refactor:</strong> Ensure existing tests still pass</li>
+                        <li><strong>Performance improvement:</strong> Add benchmark if measurable</li>
+                    </ul>
+
+                    <p style="margin-top: 1rem;"><strong>Test coverage best practices:</strong></p>
+                    <ul style="margin-left: 1rem;">
+                        <li>Test normal cases and edge cases</li>
+                        <li>Test error conditions</li>
+                        <li>Test boundary conditions</li>
+                        <li>Make tests deterministic (no random failures)</li>
+                        <li>Keep tests fast when possible</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Code Review Culture -->
+            <section class="content-section">
+                <h2>Bitcoin Core Code Review Culture</h2>
+
+                <p>
+                    Code review is the most important part of Bitcoin development. More valuable than writing code
+                    is carefully reviewing others' code.
+                </p>
+
+                <h3>The Review Process</h3>
+
+                <p><strong>Types of review feedback:</strong></p>
+                <ul>
+                    <li><strong>Concept ACK:</strong> Agree with the general idea, haven't reviewed code</li>
+                    <li><strong>Approach ACK:</strong> Agree with the approach, haven't reviewed thoroughly</li>
+                    <li><strong>tACK (tested ACK):</strong> Reviewed code, tested functionality, approve</li>
+                    <li><strong>ACK:</strong> Reviewed code thoroughly and approve</li>
+                    <li><strong>NACK:</strong> Disagree with approach/implementation (must explain why)</li>
+                    <li><strong>nit:</strong> Minor suggestion, not blocking merge</li>
+                </ul>
+
+                <h3>How to Review Code</h3>
+
+                <div class="step-box">
+                    <p><span class="step-number">1</span><strong>Checkout the PR branch</strong></p>
+                    <pre style="margin-top: 0.5rem;"><code># Fetch PR branch
+git fetch upstream pull/12345/head:pr-12345
+git checkout pr-12345</code></pre>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">2</span><strong>Build and test</strong></p>
+                    <pre style="margin-top: 0.5rem;"><code># Rebuild with changes
+make clean
+make -j$(nproc)
+
+# Run tests
+make check
+test/functional/test_runner.py</code></pre>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">3</span><strong>Review the code</strong></p>
+                    <p style="margin-top: 0.5rem; margin-left: 2.5rem; color: var(--text-dim);">
+                        Ask yourself:
+                    </p>
+                    <ul style="margin-left: 4rem; margin-top: 0.5rem;">
+                        <li>Does this solve the stated problem?</li>
+                        <li>Are there edge cases not covered?</li>
+                        <li>Is the approach sound?</li>
+                        <li>Are there security implications?</li>
+                        <li>Is the code well-documented?</li>
+                        <li>Are tests adequate?</li>
+                        <li>Does it follow coding standards?</li>
+                    </ul>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">4</span><strong>Leave constructive feedback</strong></p>
+                    <pre style="margin-top: 0.5rem;"><code># Good review comments:
+"Consider using std::optional here to handle the null case"
+"nit: Variable naming could be more descriptive"
+"Could this cause a deadlock if the lock is held in function X?"
+"Approach ACK - minor suggestions below"
+
+# Bad review comments:
+"This is wrong" (not constructive)
+"Why didn't you do X?" (condescending)
+"NACK" (without explanation)</code></pre>
+                </div>
+
+                <h3>Review Best Practices</h3>
+
+                <div class="takeaway-box">
+                    <h3>Guidelines for Effective Review</h3>
+                    <ul>
+                        <li>Be respectful and constructive - remember there's a human on the other side</li>
+                        <li>Ask questions instead of making demands</li>
+                        <li>Explain your reasoning</li>
+                        <li>Focus on the code, not the person</li>
+                        <li>Acknowledge good work</li>
+                        <li>Be specific in your feedback</li>
+                        <li>Separate "must fix" from "nice to have"</li>
+                        <li>Review promptly - don't leave PRs hanging</li>
+                    </ul>
+                </div>
+
+                <div class="warning-box">
+                    <h3>⏱️ Be Patient</h3>
+                    <p>
+                        PRs often take weeks or months to merge. This is normal and healthy. Bitcoin Core prioritizes
+                        correctness over speed. Don't be discouraged if:
+                    </p>
+                    <ul style="margin-top: 0.5rem;">
+                        <li>Your PR sits for weeks without review (reviewers are volunteers)</li>
+                        <li>You need to make many revisions (thorough review is good!)</li>
+                        <li>Your PR is eventually closed (maybe approach was wrong, try again)</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">
+                        The most important thing is learning and contributing quality code.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Hands-On Exercise -->
+            <section class="content-section">
+                <div class="exercise-box">
+                    <h3>Hands-On Exercise: Navigate the Codebase</h3>
+                    <p><strong>Goal:</strong> Get comfortable with Bitcoin Core's structure</p>
+
+                    <p style="margin-top: 1rem;"><strong>Tasks:</strong></p>
+                    <ol style="margin-left: 1rem;">
+                        <li>Clone Bitcoin Core and build it</li>
+                        <li>Find the code that validates transaction signatures (hint: <code>src/script/interpreter.cpp</code>)</li>
+                        <li>Find the RPC handler for <code>getblockchaininfo</code> (hint: <code>src/rpc/blockchain.cpp</code>)</li>
+                        <li>Run the unit tests and find one that tests UTXO selection</li>
+                        <li>Run a functional test of your choice and read its source code</li>
+                        <li>Find and read a recent merged PR on GitHub</li>
+                        <li>Leave a review comment on an open PR (even just "Concept ACK")</li>
+                    </ol>
+
+                    <p style="margin-top: 1rem;"><strong>Bonus Challenge:</strong></p>
+                    <ul style="margin-left: 1rem;">
+                        <li>Fix a typo in documentation and open your first PR</li>
+                        <li>Add a new functional test that tests basic wallet functionality</li>
+                        <li>Review a "good first issue" PR thoroughly</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Key Takeaways -->
+            <section class="content-section">
+                <div class="takeaway-box">
+                    <h3>Key Takeaways</h3>
+                    <ul>
+                        <li>Bitcoin Core is ~400k lines of C++ organized into consensus, networking, wallet, and RPC layers</li>
+                        <li>Consensus-critical code requires extreme caution and extensive review</li>
+                        <li>Development follows a fork → branch → commit → PR → review → merge workflow</li>
+                        <li>Every change needs tests: unit tests, functional tests, and often fuzz tests</li>
+                        <li>Code review is as important as writing code - maybe more important</li>
+                        <li>Review feedback types: Concept ACK, Approach ACK, tACK, ACK, NACK</li>
+                        <li>PRs take time to merge - patience and quality are valued over speed</li>
+                        <li>Start with non-consensus changes while learning the codebase</li>
+                        <li>The community values respectful, constructive collaboration</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Resources -->
+            <section class="content-section">
+                <h2>Essential Resources</h2>
+                <ul>
+                    <li><a href="https://github.com/bitcoin/bitcoin" style="color: var(--contributor-red);">Bitcoin Core GitHub Repository</a></li>
+                    <li><a href="https://github.com/bitcoin/bitcoin/blob/master/doc/developer-notes.md" style="color: var(--contributor-red);">Developer Notes</a> - Coding standards and practices</li>
+                    <li><a href="https://github.com/bitcoin/bitcoin/blob/master/CONTRIBUTING.md" style="color: var(--contributor-red);">Contributing Guide</a></li>
+                    <li><a href="https://bitcoincore.reviews/" style="color: var(--contributor-red);">Bitcoin Core PR Review Club</a> - Weekly PR reviews</li>
+                    <li><a href="https://github.com/bitcoin/bitcoin/labels/good%20first%20issue" style="color: var(--contributor-red);">Good First Issues</a></li>
+                    <li><a href="https://bitcoin.stackexchange.com/" style="color: var(--contributor-red);">Bitcoin Stack Exchange</a> - Technical Q&A</li>
+                </ul>
+            </section>
+
+            <!-- Navigation -->
+            <nav class="module-navigation">
+                <a href="/paths/builder/stage-4/" class="nav-btn nav-btn-secondary">← Back to Stage 4</a>
+                <button id="complete-module" class="nav-btn">Mark Complete & Continue →</button>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('complete-module').addEventListener('click', function() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+
+            if (!progress.completedModules) {
+                progress.completedModules = [];
+            }
+
+            if (!progress.completedModules.includes('builder-4-1')) {
+                progress.completedModules.push('builder-4-1');
+            }
+
+            progress.lastActivity = new Date().toISOString();
+            progress.path = 'builder';
+            progress.currentStage = 4;
+            progress.currentModule = 2;
+
+            localStorage.setItem('learningProgress', JSON.stringify(progress));
+
+            alert('✓ Module 1 completed! Moving to BIPs and Protocol Evolution...');
+            window.location.href = '/paths/builder/stage-4/module-2.html';
+        });
+    </script>
+</body>
+</html>

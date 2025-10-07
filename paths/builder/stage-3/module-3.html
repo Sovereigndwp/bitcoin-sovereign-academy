@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Best Practices | Building Applications | The Builder Path</title>
+    <meta name="description" content="Bitcoin development best practices: security considerations, testing strategies, error handling, and production readiness.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --builder-purple: #9C27B0;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(247, 147, 26, 0.2);
+            --danger-red: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .module-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--builder-purple);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .module-title-section h1 {
+            font-size: 1.75rem;
+            color: var(--builder-purple);
+        }
+
+        .content-section {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--builder-purple);
+        }
+
+        .content-section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-blue);
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .content-section ul, .content-section ol {
+            margin-left: 2rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .content-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background: rgba(156, 39, 176, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            color: var(--builder-purple);
+        }
+
+        pre {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-light);
+        }
+
+        .security-box {
+            background: rgba(244, 67, 54, 0.1);
+            border-left: 4px solid var(--danger-red);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .security-box h3 {
+            color: var(--danger-red);
+            margin-bottom: 1rem;
+        }
+
+        .checklist-box {
+            background: rgba(76, 175, 80, 0.1);
+            border: 2px solid var(--accent-green);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .checklist-box h3 {
+            color: var(--accent-green);
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: var(--secondary-dark);
+            border-radius: 0.5rem;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            margin-top: 0.25rem;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .warning-box {
+            background: rgba(255, 152, 0, 0.1);
+            border-left: 4px solid #ff9800;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .warning-box h3 {
+            color: #ff9800;
+            margin-bottom: 1rem;
+        }
+
+        .takeaway-box {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--accent-green);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .takeaway-box h3 {
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .takeaway-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .takeaway-box li {
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .takeaway-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        .best-practice {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .best-practice h4 {
+            color: var(--builder-purple);
+            margin-bottom: 0.75rem;
+        }
+
+        .dos-donts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .do-box {
+            background: rgba(76, 175, 80, 0.1);
+            border: 2px solid var(--accent-green);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .do-box h4 {
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .dont-box {
+            background: rgba(244, 67, 54, 0.1);
+            border: 2px solid var(--danger-red);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .dont-box h4 {
+            color: var(--danger-red);
+            margin-bottom: 1rem;
+        }
+
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--builder-purple);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .nav-btn:hover {
+            background: #7B1FA2;
+        }
+
+        .nav-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+
+        @media (max-width: 768px) {
+            .dos-donts {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="module-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/builder/">The Builder Path</a> →
+                <a href="/paths/builder/stage-3/">Stage 3</a> →
+                <span>Module 3</span>
+            </div>
+            <div class="module-title-section">
+                <h1>Module 3: Best Practices</h1>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- Introduction -->
+            <section class="content-section">
+                <h2>From Prototype to Production</h2>
+                <p>
+                    You can build a Bitcoin application. But can you build one that's <strong>secure</strong>, <strong>reliable</strong>,
+                    and <strong>maintainable</strong>? That's what separates hobbyist code from production software.
+                </p>
+                <p>
+                    Bitcoin applications have special requirements—you're dealing with real money, irreversible transactions,
+                    and users who expect bank-level security. A single bug can cost thousands of dollars. A poor design choice
+                    can leak user privacy. An unhandled edge case can freeze funds.
+                </p>
+                <p style="margin-top: 1.5rem; padding: 1rem; background: rgba(156, 39, 176, 0.1); border-radius: 0.5rem;">
+                    <strong style="color: var(--builder-purple);">This module teaches you the discipline and practices</strong>
+                    that professional Bitcoin developers use to ship reliable, secure software.
+                </p>
+            </section>
+
+            <!-- Security Considerations -->
+            <section class="content-section">
+                <h2>Security Considerations</h2>
+
+                <p>
+                    Security isn't an afterthought in Bitcoin development—it's the foundation. Every line of code must be
+                    written with the assumption that attackers are looking for vulnerabilities.
+                </p>
+
+                <h3>Key Management</h3>
+
+                <div class="security-box">
+                    <h3>🔐 Critical Security Rules</h3>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li style="margin-bottom: 0.75rem;">
+                            <strong style="color: var(--danger-red);">NEVER</strong> store private keys or seed phrases in plaintext
+                        </li>
+                        <li style="margin-bottom: 0.75rem;">
+                            <strong style="color: var(--danger-red);">NEVER</strong> log private keys, even in debug mode
+                        </li>
+                        <li style="margin-bottom: 0.75rem;">
+                            <strong style="color: var(--danger-red);">NEVER</strong> send private keys over the network
+                        </li>
+                        <li style="margin-bottom: 0.75rem;">
+                            <strong style="color: var(--danger-red);">NEVER</strong> use weak random number generation for keys
+                        </li>
+                        <li style="margin-bottom: 0.75rem;">
+                            <strong style="color: var(--danger-red);">NEVER</strong> reuse nonces in signatures (use RFC6979)
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="best-practice">
+                    <h4>✓ Best Practice: Secure Key Storage</h4>
+                    <pre><code>import os
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+
+class SecureKeyStore:
+    def __init__(self, password):
+        """Initialize secure key storage with password"""
+        self.salt = os.urandom(16)
+
+        # Derive encryption key from password
+        kdf = PBKDF2(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=self.salt,
+            iterations=100000,
+        )
+        key = kdf.derive(password.encode())
+        self.cipher = Fernet(base64.urlsafe_b64encode(key))
+
+    def encrypt_key(self, private_key):
+        """Encrypt private key for storage"""
+        return self.cipher.encrypt(private_key.encode())
+
+    def decrypt_key(self, encrypted_key):
+        """Decrypt private key from storage"""
+        return self.cipher.decrypt(encrypted_key).decode()
+
+# For production: Use hardware security modules (HSMs)
+# or hardware wallets (Trezor, Ledger, ColdCard)</code></pre>
+                </div>
+
+                <h3>Input Validation</h3>
+
+                <p>
+                    <strong>Never trust user input.</strong> Validate everything—addresses, amounts, transaction data, all of it.
+                </p>
+
+                <div class="best-practice">
+                    <h4>✓ Best Practice: Comprehensive Input Validation</h4>
+                    <pre><code>import re
+from bitcoin.core import b58decode_check
+from bitcoin.segwit_addr import decode as bech32_decode
+
+class InputValidator:
+    @staticmethod
+    def validate_address(address, network='mainnet'):
+        """Validate Bitcoin address format and network"""
+        if not address or not isinstance(address, str):
+            raise ValueError("Invalid address format")
+
+        # Check Bech32 (SegWit) addresses
+        if address.lower().startswith(('bc1', 'tb1', 'bcrt1')):
+            result = bech32_decode(address)
+            if result == (None, None):
+                raise ValueError("Invalid Bech32 address")
+
+            # Verify network match
+            prefix = address[:4].lower()
+            expected = {
+                'mainnet': 'bc1',
+                'testnet': 'tb1',
+                'regtest': 'bcrt'
+            }.get(network)
+
+            if not address.lower().startswith(expected):
+                raise ValueError(f"Address network mismatch")
+
+            return True
+
+        # Check Base58 (legacy) addresses
+        try:
+            decoded = b58decode_check(address)
+            version = decoded[0]
+
+            # Verify version byte matches network
+            valid_versions = {
+                'mainnet': [0x00, 0x05],  # P2PKH, P2SH
+                'testnet': [0x6f, 0xc4],
+            }.get(network, [])
+
+            if version not in valid_versions:
+                raise ValueError("Invalid address version")
+
+            return True
+        except Exception as e:
+            raise ValueError(f"Invalid address: {e}")
+
+    @staticmethod
+    def validate_amount(amount, max_btc=21_000_000):
+        """Validate Bitcoin amount"""
+        if not isinstance(amount, (int, float)):
+            raise ValueError("Amount must be numeric")
+
+        if amount <= 0:
+            raise ValueError("Amount must be positive")
+
+        if amount > max_btc * 100_000_000:  # Convert to sats
+            raise ValueError("Amount exceeds maximum possible")
+
+        return True
+
+    @staticmethod
+    def validate_txid(txid):
+        """Validate transaction ID format"""
+        if not isinstance(txid, str):
+            raise ValueError("TXID must be string")
+
+        if len(txid) != 64:
+            raise ValueError("TXID must be 64 hex characters")
+
+        if not re.match(r'^[0-9a-fA-F]{64}$', txid):
+            raise ValueError("TXID contains invalid characters")
+
+        return True
+
+# Use validation in all public functions
+def send_transaction(address, amount):
+    # Validate inputs first
+    InputValidator.validate_address(address)
+    InputValidator.validate_amount(amount)
+
+    # Now proceed with transaction
+    ...</code></pre>
+                </div>
+
+                <h3>Transaction Validation</h3>
+
+                <p>Before signing or broadcasting, validate every aspect of the transaction:</p>
+
+                <pre><code>def validate_transaction(tx, utxos):
+    """Comprehensive transaction validation"""
+    errors = []
+
+    # 1. Check inputs exist and are unspent
+    for inp in tx.inputs:
+        if inp.outpoint not in utxos:
+            errors.append(f"Input {inp.outpoint} not found")
+
+    # 2. Verify input amounts
+    total_input = sum(utxos[inp.outpoint].amount for inp in tx.inputs)
+
+    # 3. Verify output amounts
+    total_output = sum(out.amount for out in tx.outputs)
+
+    if total_output > total_input:
+        errors.append("Outputs exceed inputs")
+
+    # 4. Verify fee is reasonable
+    fee = total_input - total_output
+    if fee < 0:
+        errors.append("Negative fee")
+    if fee > total_input * 0.1:  # Fee > 10% of input
+        errors.append("Fee suspiciously high")
+
+    # 5. Check for dust outputs
+    dust_limit = 546  # satoshis
+    for out in tx.outputs:
+        if out.amount < dust_limit:
+            errors.append(f"Output below dust limit: {out.amount}")
+
+    # 6. Verify signatures (if signed)
+    if tx.is_signed():
+        for i, inp in enumerate(tx.inputs):
+            if not verify_signature(tx, i, utxos[inp.outpoint]):
+                errors.append(f"Invalid signature on input {i}")
+
+    # 7. Check for RBF conflicts
+    # 8. Verify locktime
+    # 9. Check sequence values
+    # ... additional checks
+
+    if errors:
+        raise ValidationError("Transaction validation failed", errors)
+
+    return True</code></pre>
+            </section>
+
+            <!-- Testing Strategies -->
+            <section class="content-section">
+                <h2>Testing Strategies</h2>
+
+                <p>
+                    "In production, this will handle real money" should motivate you to test thoroughly. Bitcoin applications
+                    require multiple layers of testing.
+                </p>
+
+                <h3>1. Unit Tests</h3>
+                <p>Test individual functions in isolation:</p>
+
+                <pre><code>import pytest
+from decimal import Decimal
+
+def test_address_validation():
+    """Test address validation logic"""
+    validator = InputValidator()
+
+    # Valid addresses
+    assert validator.validate_address("bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq")
+    assert validator.validate_address("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa")
+
+    # Invalid addresses
+    with pytest.raises(ValueError):
+        validator.validate_address("invalid_address")
+
+    with pytest.raises(ValueError):
+        validator.validate_address("bc1qinvalidchecksum")
+
+def test_utxo_selection():
+    """Test UTXO selection algorithm"""
+    utxos = [
+        {'amount': 100000, 'txid': 'abc...'},
+        {'amount': 50000, 'txid': 'def...'},
+        {'amount': 25000, 'txid': 'ghi...'},
+    ]
+
+    selector = UTXOSelector(utxos)
+    selected, total, fee = selector.select_for_amount(60000, fee_rate=10)
+
+    assert len(selected) == 2
+    assert total >= 60000 + fee
+    assert fee > 0
+
+def test_fee_calculation():
+    """Test fee calculation accuracy"""
+    calculator = FeeCalculator()
+
+    # P2WPKH transaction: 2 inputs, 2 outputs
+    fee = calculator.calculate(num_inputs=2, num_outputs=2, fee_rate=10)
+
+    # Expected: ~(10 + 68*2 + 31*2) * 10 = ~1980 sats
+    assert 1900 < fee < 2100
+
+# Run tests: pytest test_wallet.py -v</code></pre>
+
+                <h3>2. Integration Tests</h3>
+                <p>Test components working together using regtest:</p>
+
+                <pre><code>import pytest
+from bitcoin import SelectParams
+from bitcoin.rpc import Proxy
+
+@pytest.fixture
+def regtest_setup():
+    """Setup regtest environment for testing"""
+    SelectParams('regtest')
+    rpc = Proxy()
+
+    # Create test wallet
+    try:
+        rpc.createwallet("test_wallet")
+    except:
+        pass  # Wallet exists
+
+    # Generate blocks for testing
+    address = rpc.getnewaddress()
+    rpc.generatetoaddress(101, address)
+
+    yield rpc
+
+    # Cleanup
+    rpc.unloadwallet("test_wallet")
+
+def test_wallet_transaction_flow(regtest_setup):
+    """Test complete transaction flow"""
+    rpc = regtest_setup
+
+    # 1. Create two wallets
+    wallet1 = SimpleWallet(rpc, "wallet1")
+    wallet2 = SimpleWallet(rpc, "wallet2")
+
+    # 2. Fund wallet1
+    addr1 = wallet1.get_address()
+    rpc.generatetoaddress(1, addr1)
+
+    # 3. Check balance
+    balance = wallet1.get_balance()
+    assert balance > 0
+
+    # 4. Send to wallet2
+    addr2 = wallet2.get_address()
+    txid = wallet1.send(addr2, 1.0)
+    assert txid is not None
+
+    # 5. Mine block
+    rpc.generatetoaddress(1, addr1)
+
+    # 6. Verify wallet2 received
+    balance2 = wallet2.get_balance()
+    assert balance2 == 1.0
+
+def test_rbf_functionality(regtest_setup):
+    """Test Replace-By-Fee"""
+    rpc = regtest_setup
+    wallet = SimpleWallet(rpc, "test_wallet")
+
+    # Create low-fee transaction
+    txid1 = wallet.send(address, 0.5, fee_rate=1)
+
+    # Bump fee
+    txid2 = wallet.rbf(txid1, fee_rate=10)
+
+    assert txid1 != txid2
+    assert wallet.get_transaction(txid2)['fee'] > wallet.get_transaction(txid1)['fee']</code></pre>
+
+                <h3>3. Property-Based Testing</h3>
+                <p>Use Hypothesis to test properties that should always hold:</p>
+
+                <pre><code>from hypothesis import given, strategies as st
+
+@given(
+    num_inputs=st.integers(min_value=1, max_value=100),
+    num_outputs=st.integers(min_value=1, max_value=100),
+    fee_rate=st.integers(min_value=1, max_value=1000)
+)
+def test_fee_calculation_properties(num_inputs, num_outputs, fee_rate):
+    """Test fee calculation properties"""
+    calculator = FeeCalculator()
+    fee = calculator.calculate(num_inputs, num_outputs, fee_rate)
+
+    # Property 1: Fee should be positive
+    assert fee > 0
+
+    # Property 2: More inputs = higher fee
+    fee_more_inputs = calculator.calculate(num_inputs + 1, num_outputs, fee_rate)
+    assert fee_more_inputs > fee
+
+    # Property 3: Higher fee rate = higher fee
+    fee_higher_rate = calculator.calculate(num_inputs, num_outputs, fee_rate * 2)
+    assert fee_higher_rate > fee * 1.9  # Allow for rounding
+
+@given(
+    utxos=st.lists(
+        st.dictionaries(
+            keys=st.just('amount'),
+            values=st.integers(min_value=1000, max_value=1000000)
+        ),
+        min_size=1,
+        max_size=20
+    ),
+    target=st.integers(min_value=1000, max_value=500000)
+)
+def test_utxo_selection_properties(utxos, target):
+    """Test UTXO selection properties"""
+    selector = UTXOSelector(utxos)
+
+    try:
+        selected, total, fee = selector.select_for_amount(target, fee_rate=10)
+
+        # Property 1: Selected amount covers target + fee
+        assert total >= target + fee
+
+        # Property 2: All selected UTXOs are from input set
+        assert all(u in utxos for u in selected)
+
+    except ValueError:
+        # Insufficient funds is acceptable
+        assert sum(u['amount'] for u in utxos) < target</code></pre>
+
+                <h3>4. Fuzzing</h3>
+                <p>Test with random/malformed inputs to find edge cases:</p>
+
+                <pre><code>import atheris
+import sys
+
+def test_address_parser(data):
+    """Fuzz test address parsing"""
+    try:
+        # Try parsing random data as address
+        validator = InputValidator()
+        validator.validate_address(data.decode('utf-8', errors='ignore'))
+    except (ValueError, UnicodeDecodeError, Exception):
+        # Expected to fail on invalid input
+        pass
+
+atheris.Setup(sys.argv, test_address_parser)
+atheris.Fuzz()</code></pre>
+            </section>
+
+            <!-- Error Handling -->
+            <section class="content-section">
+                <h2>Error Handling</h2>
+
+                <p>
+                    Bitcoin applications must handle errors gracefully. Network issues, insufficient funds, invalid transactions—
+                    all must be handled without losing user funds or corrupting state.
+                </p>
+
+                <h3>Error Hierarchy</h3>
+
+                <pre><code>class BitcoinError(Exception):
+    """Base class for all Bitcoin-related errors"""
+    pass
+
+class NetworkError(BitcoinError):
+    """Network communication errors"""
+    pass
+
+class ValidationError(BitcoinError):
+    """Input validation errors"""
+    def __init__(self, message, errors=None):
+        super().__init__(message)
+        self.errors = errors or []
+
+class InsufficientFundsError(BitcoinError):
+    """Not enough funds for transaction"""
+    def __init__(self, required, available):
+        self.required = required
+        self.available = available
+        super().__init__(f"Insufficient funds: need {required}, have {available}")
+
+class TransactionError(BitcoinError):
+    """Transaction construction or broadcast errors"""
+    pass
+
+class SigningError(BitcoinError):
+    """Signature creation or verification errors"""
+    pass</code></pre>
+
+                <h3>Defensive Programming</h3>
+
+                <div class="dos-donts">
+                    <div class="do-box">
+                        <h4>✓ DO</h4>
+                        <ul style="list-style: none; padding-left: 0; font-size: 0.9rem;">
+                            <li style="margin-bottom: 0.5rem;">✓ Validate all inputs</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Use specific exception types</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Log errors with context</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Provide helpful error messages</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Fail fast on critical errors</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Use timeouts for network calls</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Implement retry logic</li>
+                            <li style="margin-bottom: 0.5rem;">✓ Clean up resources in finally blocks</li>
+                        </ul>
+                    </div>
+
+                    <div class="dont-box">
+                        <h4>✗ DON'T</h4>
+                        <ul style="list-style: none; padding-left: 0; font-size: 0.9rem;">
+                            <li style="margin-bottom: 0.5rem;">✗ Catch generic Exception</li>
+                            <li style="margin-bottom: 0.5rem;">✗ Ignore errors silently</li>
+                            <li style="margin-bottom: 0.5rem;">✗ Expose internal errors to users</li>
+                            <li style="margin-bottom: 0.5rem;">✗ Continue after critical failure</li>
+                            <li style="margin-bottom: 0.5rem;">✗ Log sensitive information</li>
+                            <li style="margin-bottom: 0.5rem;">✗ Assume operations will succeed</li>
+                            <li style="margin-bottom: 0.5rem;">✗ Use exceptions for control flow</li>
+                            <li style="margin-bottom: 0.5rem;">✗ Leave resources uncleaned</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>Robust Error Handling Example</h3>
+
+                <pre><code>import logging
+from contextlib import contextmanager
+import time
+
+logger = logging.getLogger(__name__)
+
+class RobustWallet:
+    def send_with_retry(self, address, amount, max_retries=3):
+        """Send transaction with automatic retry logic"""
+        # Validate inputs first
+        try:
+            InputValidator.validate_address(address)
+            InputValidator.validate_amount(amount)
+        except ValueError as e:
+            logger.error(f"Invalid input: {e}")
+            raise ValidationError(f"Invalid input: {e}")
+
+        # Attempt transaction with retries
+        last_error = None
+        for attempt in range(max_retries):
+            try:
+                # Select UTXOs
+                utxos = self._select_utxos(amount)
+
+                # Build transaction
+                tx = self._build_transaction(utxos, address, amount)
+
+                # Sign transaction
+                signed_tx = self._sign_transaction(tx)
+
+                # Broadcast with timeout
+                txid = self._broadcast_with_timeout(signed_tx, timeout=30)
+
+                logger.info(f"Transaction broadcast successfully: {txid}")
+                return txid
+
+            except InsufficientFundsError as e:
+                # Don't retry insufficient funds
+                logger.error(f"Insufficient funds: {e}")
+                raise
+
+            except NetworkError as e:
+                # Retry on network errors
+                last_error = e
+                logger.warning(f"Network error on attempt {attempt + 1}: {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)  # Exponential backoff
+                    continue
+
+            except TransactionError as e:
+                # Don't retry transaction errors
+                logger.error(f"Transaction error: {e}")
+                raise
+
+            except Exception as e:
+                # Log unexpected errors
+                logger.exception(f"Unexpected error: {e}")
+                raise BitcoinError(f"Unexpected error: {e}")
+
+        # All retries failed
+        raise NetworkError(f"Failed after {max_retries} attempts: {last_error}")
+
+    @contextmanager
+    def _broadcast_with_timeout(self, tx, timeout=30):
+        """Broadcast transaction with timeout"""
+        import signal
+
+        def timeout_handler(signum, frame):
+            raise TimeoutError("Broadcast timeout")
+
+        # Set timeout
+        signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(timeout)
+
+        try:
+            txid = self.rpc.sendrawtransaction(tx.serialize().hex())
+            return txid
+        finally:
+            # Cancel timeout
+            signal.alarm(0)</code></pre>
+            </section>
+
+            <!-- Code Review -->
+            <section class="content-section">
+                <h2>Code Review Best Practices</h2>
+
+                <p>
+                    Bitcoin code should be reviewed by multiple people. Money is at stake—four eyes are better than two.
+                </p>
+
+                <h3>What to Look For in Code Review</h3>
+
+                <div class="best-practice">
+                    <h4>Security Review Checklist</h4>
+                    <ul>
+                        <li>Are private keys ever exposed or logged?</li>
+                        <li>Is all user input validated?</li>
+                        <li>Are there any SQL injection vectors?</li>
+                        <li>Is cryptography used correctly?</li>
+                        <li>Are random numbers generated securely?</li>
+                        <li>Is there proper error handling?</li>
+                        <li>Are there any race conditions?</li>
+                        <li>Is sensitive data encrypted at rest?</li>
+                        <li>Are network communications using TLS?</li>
+                        <li>Are there proper access controls?</li>
+                    </ul>
+                </div>
+
+                <div class="best-practice">
+                    <h4>Bitcoin-Specific Review Points</h4>
+                    <ul>
+                        <li>Are transaction amounts validated against limits?</li>
+                        <li>Is the fee calculation correct?</li>
+                        <li>Are UTXO selections optimal?</li>
+                        <li>Is signature generation using RFC6979 (deterministic)?</li>
+                        <li>Are all transaction fields properly set?</li>
+                        <li>Is the correct network (mainnet/testnet/regtest) being used?</li>
+                        <li>Are dust outputs prevented?</li>
+                        <li>Is RBF signaling correct?</li>
+                        <li>Are timelocks and sequence numbers used correctly?</li>
+                        <li>Is there proper handling of unconfirmed transactions?</li>
+                    </ul>
+                </div>
+
+                <h3>Review Process</h3>
+                <ol>
+                    <li><strong>Automated checks first:</strong> Run linters, formatters, and tests</li>
+                    <li><strong>Security review:</strong> Focus on security implications</li>
+                    <li><strong>Logic review:</strong> Verify business logic is correct</li>
+                    <li><strong>Performance review:</strong> Check for optimization opportunities</li>
+                    <li><strong>Documentation review:</strong> Ensure code is well-documented</li>
+                    <li><strong>Test coverage review:</strong> Verify adequate testing</li>
+                </ol>
+            </section>
+
+            <!-- Production Readiness -->
+            <section class="content-section">
+                <h2>Production Readiness Checklist</h2>
+
+                <p>
+                    Before deploying to production, ensure your application meets these requirements:
+                </p>
+
+                <div class="checklist-box">
+                    <h3>🎯 Production Readiness Checklist</h3>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check1">
+                        <label for="check1">
+                            <strong>Security Audit Complete</strong><br>
+                            <span style="font-size: 0.9rem; color: var(--text-dim);">
+                                Code reviewed by security expert, no critical vulnerabilities
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check2">
+                        <label for="check2">
+                            <strong>Comprehensive Test Coverage</strong><br>
+                            <span style="font-size: 0.9rem; color: var(--text-dim);">
+                                Unit tests, integration tests, and property-based tests with >90% coverage
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check3">
+                        <label for="check3">
+                            <strong>Tested on Testnet</strong><br>
+                            <span style="font-size: 0.9rem; color: var(--text-dim);">
+                                Successfully tested complete user flows on Bitcoin testnet
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check4">
+                        <label for="check4">
+                            <strong>Error Handling Verified</strong><br>
+                            <span style="font-size: 0.9rem; color: var(--text-dim);">
+                                All error paths tested, graceful degradation implemented
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check5">
+                        <label for="check5">
+                            <strong>Monitoring and Alerting</strong><br>
+                            <span style="font-size: 0.9rem; color: var(--text-dim);">
+                                Logging, metrics, and alerts configured for critical operations
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check6">
+                        <label for="check6">
+                            <strong>Backup and Recovery</strong><br>
+                            <span style="font-size: 0.9rem; color: var(--text-dim);">
+                                Backup procedures documented and tested, recovery plan in place
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check7">
+                        <label for="check7">
+                            <strong>Key Management Solution</strong><br>
+                            <span style="font-size: 0.9rem; color: var(--text-dim);">
+                                HSM or hardware wallet integration, keys never in application memory
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check8">
+                        <label for="check8">
+                            <strong>Rate Limiting</strong><br>
+                            <span style="font-size: 0.9rem; color: var(--text-dim);">
+                                API rate limits, transaction velocity checks, abuse prevention
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check9">
+                        <label for="check9">
+                            <strong>Documentation Complete</strong><br>
+                            <span style="font-size: 0.9rem; color: var(--text-dim);">
+                                API docs, deployment guide, runbooks, disaster recovery procedures
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check10">
+                        <label for="check10">
+                            <strong>Incident Response Plan</strong><br>
+                            <span style="font-size: 0.9rem; color: var(--text-dim);">
+                                Documented procedures for security incidents, bugs, and service outages
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check11">
+                        <label for="check11">
+                            <strong>Performance Testing</strong><br>
+                            <span style="font-size: 0.9rem; color: var(--text-dim);">
+                                Load testing completed, bottlenecks identified and resolved
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check12">
+                        <label for="check12">
+                            <strong>Dependency Audit</strong><br>
+                            <span style="font-size: 0.9rem; color: var(--text-dim);">
+                                All dependencies reviewed, no known vulnerabilities, minimal attack surface
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="warning-box">
+                    <h3>⚠️ Never Skip These</h3>
+                    <p>Some items cannot be compromised:</p>
+                    <ul>
+                        <li><strong>Security audit:</strong> Have an expert review your code</li>
+                        <li><strong>Testnet testing:</strong> Always test on testnet first</li>
+                        <li><strong>Key management:</strong> Use proper HSM/hardware wallet solution</li>
+                        <li><strong>Backup procedures:</strong> Test your disaster recovery plan</li>
+                        <li><strong>Monitoring:</strong> You must know when things break</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Deployment -->
+            <section class="content-section">
+                <h2>Deployment Considerations</h2>
+
+                <h3>Environment Configuration</h3>
+                <pre><code># config.py - Never commit secrets!
+import os
+
+class Config:
+    # Bitcoin Core connection
+    BITCOIN_RPC_HOST = os.getenv('BITCOIN_RPC_HOST', 'localhost')
+    BITCOIN_RPC_PORT = os.getenv('BITCOIN_RPC_PORT', '8332')
+    BITCOIN_RPC_USER = os.getenv('BITCOIN_RPC_USER')
+    BITCOIN_RPC_PASSWORD = os.getenv('BITCOIN_RPC_PASSWORD')
+
+    # Network selection
+    NETWORK = os.getenv('BITCOIN_NETWORK', 'mainnet')
+
+    # Database
+    DATABASE_URL = os.getenv('DATABASE_URL')
+
+    # Security
+    ENCRYPTION_KEY = os.getenv('ENCRYPTION_KEY')
+
+    # Feature flags
+    ENABLE_RBF = os.getenv('ENABLE_RBF', 'true').lower() == 'true'
+
+    @classmethod
+    def validate(cls):
+        """Validate required configuration"""
+        required = [
+            'BITCOIN_RPC_USER',
+            'BITCOIN_RPC_PASSWORD',
+            'DATABASE_URL',
+            'ENCRYPTION_KEY'
+        ]
+        missing = [key for key in required if not getattr(cls, key)]
+        if missing:
+            raise ValueError(f"Missing required config: {missing}")</code></pre>
+
+                <h3>Gradual Rollout Strategy</h3>
+                <ol>
+                    <li><strong>Deploy to staging:</strong> Exact copy of production, safe testing environment</li>
+                    <li><strong>Canary deployment:</strong> Route small percentage of traffic to new version</li>
+                    <li><strong>Monitor metrics:</strong> Watch error rates, latency, transaction success</li>
+                    <li><strong>Gradual rollout:</strong> Increase traffic percentage incrementally</li>
+                    <li><strong>Full deployment:</strong> 100% traffic only after success metrics</li>
+                    <li><strong>Rollback plan:</strong> One-click revert to previous version</li>
+                </ol>
+            </section>
+
+            <!-- Key Takeaways -->
+            <section class="content-section">
+                <div class="takeaway-box">
+                    <h3>Key Takeaways</h3>
+                    <ul>
+                        <li>Security is not optional—it's the foundation of Bitcoin applications</li>
+                        <li>Never store or log private keys in plaintext</li>
+                        <li>Validate all inputs—never trust user data</li>
+                        <li>Test thoroughly: unit, integration, property-based, and fuzzing</li>
+                        <li>Use defensive programming—assume operations will fail</li>
+                        <li>Implement comprehensive error handling with specific exception types</li>
+                        <li>All code should be reviewed by multiple people</li>
+                        <li>Use hardware security modules or hardware wallets for key storage</li>
+                        <li>Test on testnet extensively before mainnet deployment</li>
+                        <li>Have incident response and disaster recovery plans ready</li>
+                        <li>Monitor everything—you need to know when things break</li>
+                        <li>Deploy gradually with ability to rollback quickly</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Conclusion -->
+            <section class="content-section">
+                <h2>Congratulations!</h2>
+                <p>
+                    You've completed Stage 3 of the Builder Path. You now have the knowledge and tools to build production-ready
+                    Bitcoin applications—from setting up development environments to deploying secure, tested code.
+                </p>
+                <p>
+                    But building applications is just the beginning. The next stage takes you deeper: contributing to Bitcoin Core
+                    itself, understanding consensus rules, and becoming part of the protocol development community.
+                </p>
+                <p style="margin-top: 1.5rem; padding: 1rem; background: rgba(156, 39, 176, 0.1); border-radius: 0.5rem;">
+                    <strong style="color: var(--builder-purple);">You're now a Bitcoin Builder.</strong>
+                    You can create applications that handle real value, secure user funds, and contribute to Bitcoin's ecosystem.
+                    That's a significant achievement—wear it with pride and responsibility.
+                </p>
+            </section>
+
+            <!-- Navigation -->
+            <nav class="module-navigation">
+                <a href="/paths/builder/stage-3/" class="nav-btn nav-btn-secondary">← Back to Stage 3</a>
+                <button id="complete-module" class="nav-btn">Mark Complete & Finish Stage 3 →</button>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('complete-module').addEventListener('click', function() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+
+            if (!progress.completedModules) {
+                progress.completedModules = [];
+            }
+
+            if (!progress.completedModules.includes('builder-3-3')) {
+                progress.completedModules.push('builder-3-3');
+            }
+
+            progress.lastActivity = new Date().toISOString();
+            progress.path = 'builder';
+            progress.currentStage = 3;
+
+            localStorage.setItem('learningProgress', JSON.stringify(progress));
+
+            alert('✓ Congratulations! Stage 3 completed! You\'ve earned the Bitcoin Builder badge!');
+            window.location.href = '/paths/builder/stage-3/';
+        });
+    </script>
+</body>
+</html>

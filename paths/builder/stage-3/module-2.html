@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Building with Bitcoin | Building Applications | The Builder Path</title>
+    <meta name="description" content="Build Bitcoin applications from scratch: HD wallets, transaction construction, UTXO management, and broadcasting to the network.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --builder-purple: #9C27B0;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .module-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--builder-purple);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .module-title-section h1 {
+            font-size: 1.75rem;
+            color: var(--builder-purple);
+        }
+
+        .content-section {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--builder-purple);
+        }
+
+        .content-section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-blue);
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .content-section ul, .content-section ol {
+            margin-left: 2rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .content-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background: rgba(156, 39, 176, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            color: var(--builder-purple);
+        }
+
+        pre {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-light);
+        }
+
+        .project-box {
+            background: linear-gradient(135deg, rgba(156, 39, 176, 0.15), rgba(156, 39, 176, 0.05));
+            border: 2px solid var(--builder-purple);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .project-box h3 {
+            color: var(--builder-purple);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .exercise-box {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .exercise-box h3 {
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+
+        .warning-box {
+            background: rgba(255, 152, 0, 0.1);
+            border-left: 4px solid #ff9800;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .warning-box h3 {
+            color: #ff9800;
+            margin-bottom: 1rem;
+        }
+
+        .takeaway-box {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--accent-green);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .takeaway-box h3 {
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .takeaway-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .takeaway-box li {
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .takeaway-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        .bip-card {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .bip-card h4 {
+            color: var(--builder-purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--builder-purple);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .nav-btn:hover {
+            background: #7B1FA2;
+        }
+
+        .nav-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+
+        .step-number {
+            display: inline-block;
+            background: var(--builder-purple);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+
+        .diagram-box {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <header class="module-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/builder/">The Builder Path</a> →
+                <a href="/paths/builder/stage-3/">Stage 3</a> →
+                <span>Module 2</span>
+            </div>
+            <div class="module-title-section">
+                <h1>Module 2: Building with Bitcoin</h1>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- Introduction -->
+            <section class="content-section">
+                <h2>From Theory to Practice</h2>
+                <p>
+                    You've mastered Bitcoin's protocol. You have a development environment. Now it's time to build something real.
+                </p>
+                <p>
+                    In this module, you'll create a functional Bitcoin wallet from scratch. You'll generate HD wallets using industry
+                    standards (BIP32/39/44), manage UTXOs, construct and sign transactions, estimate fees, and broadcast to the network.
+                </p>
+                <p style="margin-top: 1.5rem; padding: 1rem; background: rgba(156, 39, 176, 0.1); border-radius: 0.5rem;">
+                    <strong style="color: var(--builder-purple);">This is the most hands-on module yet.</strong> By the end,
+                    you'll have built software that creates real Bitcoin transactions. This is what separates Bitcoin enthusiasts
+                    from Bitcoin developers.
+                </p>
+            </section>
+
+            <!-- HD Wallets -->
+            <section class="content-section">
+                <h2>HD Wallet Generation: BIP32/39/44</h2>
+
+                <p>
+                    Modern Bitcoin wallets use <strong>Hierarchical Deterministic (HD)</strong> wallets. From a single seed phrase,
+                    you can generate billions of addresses deterministically. Lose your phone? Restore everything from 12 words.
+                </p>
+
+                <h3>The BIP Standards</h3>
+
+                <div class="bip-card">
+                    <h4>BIP39: Mnemonic Code</h4>
+                    <p>
+                        Converts entropy into human-readable seed phrases (12-24 words). "witch collapse practice feed shame open
+                        despair creek road again ice least" is easier to back up than raw hex.
+                    </p>
+                    <pre><code>Entropy (128 bits) → Checksum → Mnemonic Words (12)
+Mnemonic + Passphrase → PBKDF2 → Seed (512 bits)</code></pre>
+                </div>
+
+                <div class="bip-card">
+                    <h4>BIP32: Hierarchical Deterministic Wallets</h4>
+                    <p>
+                        Derives child keys from a master key using a derivation path. Each level represents a different purpose
+                        (purpose, coin type, account, change, address index).
+                    </p>
+                    <pre><code>Master Key → m/44'/0'/0'/0/0
+             → m/44'/0'/0'/0/1
+             → m/44'/0'/0'/0/2
+             ... infinite addresses from one seed!</code></pre>
+                </div>
+
+                <div class="bip-card">
+                    <h4>BIP44: Multi-Account Hierarchy</h4>
+                    <p>
+                        Defines a standard derivation path structure:
+                    </p>
+                    <pre><code>m / purpose' / coin_type' / account' / change / address_index
+
+Example:
+m/44'/0'/0'/0/0  - First receiving address
+m/44'/0'/0'/1/0  - First change address
+m/84'/0'/0'/0/0  - First native SegWit address (P2WPKH)</code></pre>
+                </div>
+
+                <h3>Implementing HD Wallet Generation</h3>
+
+                <p>Let's build a HD wallet generator in Python:</p>
+
+                <pre><code>from mnemonic import Mnemonic
+from bip32 import BIP32
+import hashlib
+
+class BitcoinHDWallet:
+    def __init__(self, mnemonic=None, passphrase=""):
+        """Create HD wallet from mnemonic or generate new one"""
+        self.mnemo = Mnemonic("english")
+
+        if mnemonic is None:
+            # Generate new mnemonic (128 bits = 12 words)
+            mnemonic = self.mnemo.generate(strength=128)
+
+        self.mnemonic = mnemonic
+        self.passphrase = passphrase
+
+        # Convert mnemonic to seed
+        self.seed = self.mnemo.to_seed(mnemonic, passphrase)
+
+        # Create BIP32 master key
+        self.master_key = BIP32.from_seed(self.seed)
+
+    def get_address(self, purpose=84, coin=0, account=0, change=0, index=0):
+        """
+        Derive address using BIP44/84 path
+        purpose: 44 (P2PKH), 49 (P2SH-P2WPKH), 84 (P2WPKH)
+        """
+        # Build derivation path
+        path = f"m/{purpose}'/{coin}'/{account}'/{change}/{index}"
+
+        # Derive child key
+        child_key = self.master_key.get_privkey_from_path(path)
+        pubkey = self.master_key.get_pubkey_from_path(path)
+
+        # Convert to address (this is simplified)
+        address = self._pubkey_to_address(pubkey, purpose)
+
+        return {
+            'path': path,
+            'address': address,
+            'pubkey': pubkey.hex(),
+            'privkey': child_key.hex()
+        }
+
+    def get_xpub(self, purpose=84, coin=0, account=0):
+        """Get extended public key for account"""
+        path = f"m/{purpose}'/{coin}'/{account}'"
+        return self.master_key.get_xpub_from_path(path)
+
+# Example usage
+wallet = BitcoinHDWallet()
+print(f"Mnemonic: {wallet.mnemonic}")
+print(f"Master Key: {wallet.master_key.get_xpriv()}")
+
+# Generate receiving addresses
+for i in range(5):
+    addr = wallet.get_address(purpose=84, index=i)
+    print(f"Address {i}: {addr['address']}")
+    print(f"  Path: {addr['path']}")
+</code></pre>
+
+                <div class="warning-box">
+                    <h3>🔐 Security Critical</h3>
+                    <p>
+                        <strong>Never</strong> expose private keys or seed phrases in production code. This example is for
+                        education. Real wallets should:
+                    </p>
+                    <ul>
+                        <li>Store seeds encrypted at rest</li>
+                        <li>Use hardware security modules (HSMs) for production</li>
+                        <li>Implement secure key derivation</li>
+                        <li>Never log private keys or seeds</li>
+                        <li>Use secure random number generation</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- UTXO Selection -->
+            <section class="content-section">
+                <h2>UTXO Selection and Coin Control</h2>
+
+                <p>
+                    When creating a transaction, you need to select which UTXOs to spend. This is called <strong>coin selection</strong>
+                    or <strong>coin control</strong>. The strategy you choose affects fees, privacy, and transaction size.
+                </p>
+
+                <h3>UTXO Selection Strategies</h3>
+
+                <p><strong>1. Largest First (Minimize Inputs)</strong></p>
+                <ul>
+                    <li>Selects largest UTXOs first</li>
+                    <li>Minimizes transaction size (fewer inputs)</li>
+                    <li>Poor for privacy (reveals large holdings)</li>
+                    <li>Good for reducing UTXO fragmentation</li>
+                </ul>
+
+                <p style="margin-top: 1rem;"><strong>2. Smallest First (Privacy)</strong></p>
+                <ul>
+                    <li>Selects smallest UTXOs first</li>
+                    <li>Better privacy (doesn't reveal large UTXOs)</li>
+                    <li>May require more inputs (higher fees)</li>
+                    <li>Good for consolidation</li>
+                </ul>
+
+                <p style="margin-top: 1rem;"><strong>3. Branch and Bound (Bitcoin Core Default)</strong></p>
+                <ul>
+                    <li>Finds exact match when possible (no change output)</li>
+                    <li>Optimizes for privacy and fees</li>
+                    <li>Computationally expensive but worth it</li>
+                    <li>Falls back to other strategies if no exact match</li>
+                </ul>
+
+                <h3>Implementing UTXO Selection</h3>
+
+                <pre><code>class UTXOSelector:
+    def __init__(self, utxos):
+        """Initialize with list of UTXOs"""
+        self.utxos = sorted(utxos, key=lambda u: u['amount'], reverse=True)
+
+    def select_for_amount(self, target_amount, fee_rate):
+        """
+        Select UTXOs to meet target amount + fees
+        Returns: (selected_utxos, total_amount, estimated_fee)
+        """
+        selected = []
+        total = 0
+
+        for utxo in self.utxos:
+            selected.append(utxo)
+            total += utxo['amount']
+
+            # Calculate estimated fee
+            estimated_fee = self._estimate_fee(len(selected), 2, fee_rate)
+
+            # Check if we have enough
+            if total >= target_amount + estimated_fee:
+                return selected, total, estimated_fee
+
+        raise ValueError("Insufficient funds")
+
+    def _estimate_fee(self, num_inputs, num_outputs, fee_rate):
+        """
+        Estimate transaction fee
+        fee_rate in sat/vB
+        """
+        # P2WPKH input: ~68 vBytes
+        # P2WPKH output: ~31 vBytes
+        # Overhead: ~11 vBytes
+
+        input_size = num_inputs * 68
+        output_size = num_outputs * 31
+        overhead = 11
+
+        total_vbytes = input_size + output_size + overhead
+        return total_vbytes * fee_rate
+
+    def branch_and_bound(self, target_amount, fee_rate, max_iterations=1000):
+        """
+        Branch and Bound algorithm to find exact match
+        Avoids change output when possible
+        """
+        # Calculate target with fees
+        base_fee = self._estimate_fee(1, 1, fee_rate)
+        target = target_amount + base_fee
+
+        # Try to find exact match
+        def search(index, current_utxos, current_sum):
+            if current_sum == target:
+                return current_utxos
+
+            if current_sum > target or index >= len(self.utxos):
+                return None
+
+            # Try including this UTXO
+            with_utxo = search(
+                index + 1,
+                current_utxos + [self.utxos[index]],
+                current_sum + self.utxos[index]['amount']
+            )
+            if with_utxo:
+                return with_utxo
+
+            # Try excluding this UTXO
+            return search(index + 1, current_utxos, current_sum)
+
+        result = search(0, [], 0)
+        if result:
+            return result, target, base_fee
+
+        # No exact match, fall back to largest-first
+        return self.select_for_amount(target_amount, fee_rate)
+
+# Example usage
+utxos = [
+    {'txid': 'abc...', 'vout': 0, 'amount': 100000},
+    {'txid': 'def...', 'vout': 1, 'amount': 50000},
+    {'txid': 'ghi...', 'vout': 0, 'amount': 25000},
+    {'txid': 'jkl...', 'vout': 2, 'amount': 10000},
+]
+
+selector = UTXOSelector(utxos)
+selected, total, fee = selector.select_for_amount(60000, fee_rate=10)
+
+print(f"Selected {len(selected)} UTXOs")
+print(f"Total input: {total} sats")
+print(f"Estimated fee: {fee} sats")
+print(f"Change: {total - 60000 - fee} sats")
+</code></pre>
+            </section>
+
+            <!-- Transaction Construction -->
+            <section class="content-section">
+                <h2>Transaction Construction and Signing</h2>
+
+                <p>
+                    Now we build the actual transaction. Bitcoin transactions are surprisingly simple at their core:
+                    inputs + outputs + signatures = valid transaction.
+                </p>
+
+                <h3>Transaction Structure Review</h3>
+
+                <div class="diagram-box">
+                    <pre>Transaction {
+  version: 2
+  inputs: [
+    {
+      previous_txid: "abc123..."
+      previous_vout: 0
+      scriptSig: ""  (empty for SegWit)
+      witness: [...signatures, ...pubkeys...]
+      sequence: 0xfffffffd
+    }
+  ]
+  outputs: [
+    {
+      amount: 50000  (satoshis)
+      scriptPubKey: "0014..." (P2WPKH address)
+    },
+    {
+      amount: 25000  (change)
+      scriptPubKey: "0014..."
+    }
+  ]
+  locktime: 0
+}</pre>
+                </div>
+
+                <h3>Building a Transaction</h3>
+
+                <pre><code>import hashlib
+from bitcoin import SelectParams
+from bitcoin.core import CTransaction, CTxIn, CTxOut, COutPoint, COIN
+from bitcoin.core.script import CScript, OP_0, Hash160
+from bitcoin.wallet import P2WPKHBitcoinAddress
+
+class TransactionBuilder:
+    def __init__(self, network='regtest'):
+        """Initialize transaction builder"""
+        SelectParams(network)
+        self.tx_ins = []
+        self.tx_outs = []
+
+    def add_input(self, txid, vout, sequence=0xfffffffd):
+        """Add input to transaction"""
+        # Convert txid string to bytes (reversed for Bitcoin)
+        txid_bytes = bytes.fromhex(txid)[::-1]
+
+        # Create outpoint (reference to previous output)
+        outpoint = COutPoint(txid_bytes, vout)
+
+        # Create input
+        tx_in = CTxIn(outpoint, nSequence=sequence)
+        self.tx_ins.append(tx_in)
+
+    def add_output(self, address, amount):
+        """Add output to transaction"""
+        # Convert address to scriptPubKey
+        addr = P2WPKHBitcoinAddress(address)
+        script = addr.to_scriptPubKey()
+
+        # Create output
+        tx_out = CTxOut(amount, script)
+        self.tx_outs.append(tx_out)
+
+    def create_transaction(self, locktime=0):
+        """Create unsigned transaction"""
+        tx = CTransaction(
+            self.tx_ins,
+            self.tx_outs,
+            nLockTime=locktime,
+            nVersion=2
+        )
+        return tx
+
+    def sign_input(self, tx, input_index, private_key, utxo_amount, utxo_script):
+        """
+        Sign a SegWit input
+        This is simplified - real implementation needs full BIP143 sighash
+        """
+        # Create signature hash for this input
+        sighash = self._calculate_sighash_segwit(
+            tx, input_index, utxo_amount, utxo_script
+        )
+
+        # Sign with private key
+        signature = private_key.sign(sighash)
+
+        # Add signature to witness
+        tx.wit.vtxinwit[input_index].scriptWitness = CScriptWitness([
+            signature,
+            private_key.pub.serialize()
+        ])
+
+        return tx
+
+# Example: Build a transaction
+builder = TransactionBuilder('regtest')
+
+# Add input (spending from previous transaction)
+builder.add_input(
+    txid="abc123def456...",
+    vout=0
+)
+
+# Add output (payment)
+builder.add_output(
+    address="bcrt1q...",  # Recipient address
+    amount=50000  # 0.0005 BTC
+)
+
+# Add output (change)
+builder.add_output(
+    address="bcrt1q...",  # Your change address
+    amount=48000  # Remaining amount after fee
+)
+
+# Create transaction
+tx = builder.create_transaction()
+
+# Sign inputs (requires private keys)
+# signed_tx = builder.sign_input(tx, 0, private_key, utxo_amount, utxo_script)
+
+# Serialize for broadcasting
+print(f"Raw transaction: {tx.serialize().hex()}")
+</code></pre>
+
+                <div class="warning-box">
+                    <h3>⚠️ Transaction Signing is Complex</h3>
+                    <p>
+                        The signing process involves multiple steps and cryptographic operations. In production:
+                    </p>
+                    <ul>
+                        <li>Use battle-tested libraries (python-bitcoinlib, bitcoinjs-lib, rust-bitcoin)</li>
+                        <li>Implement BIP143 (SegWit signature hashing) correctly</li>
+                        <li>Handle different script types (P2PKH, P2SH, P2WPKH, P2WSH)</li>
+                        <li>Validate all inputs before signing</li>
+                        <li>Use hardware wallets for key storage when possible</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Fee Estimation -->
+            <section class="content-section">
+                <h2>Fee Estimation and RBF</h2>
+
+                <p>
+                    Bitcoin fees are a market—pay too little and your transaction gets stuck. Pay too much and you waste money.
+                    Getting fees right is crucial for good UX.
+                </p>
+
+                <h3>How Bitcoin Fees Work</h3>
+                <ul>
+                    <li>Fees = Total Input Amount - Total Output Amount</li>
+                    <li>Fee rate measured in satoshis per virtual byte (sat/vB)</li>
+                    <li>Miners prioritize higher fee-rate transactions</li>
+                    <li>Transaction weight depends on inputs, outputs, and script types</li>
+                </ul>
+
+                <h3>Fee Estimation Strategies</h3>
+
+                <pre><code>import requests
+
+class FeeEstimator:
+    def __init__(self, bitcoin_rpc):
+        self.rpc = bitcoin_rpc
+
+    def estimate_smart_fee(self, target_blocks=6):
+        """
+        Use Bitcoin Core's smart fee estimation
+        target_blocks: confirmation target (1=next block, 6=~1 hour)
+        """
+        result = self.rpc.estimatesmartfee(target_blocks)
+
+        if 'feerate' in result:
+            # Convert BTC/kB to sat/vB
+            btc_per_kb = result['feerate']
+            sat_per_byte = (btc_per_kb * 100000000) / 1000
+            return sat_per_byte
+
+        # Fallback if estimation not available
+        return 10  # 10 sat/vB default
+
+    def get_mempool_fees(self):
+        """
+        Analyze mempool to estimate appropriate fees
+        Returns fee rates for different confirmation targets
+        """
+        mempool_info = self.rpc.getmempoolinfo()
+
+        # Get fee histogram from mempool
+        # This is simplified - real implementation would analyze mempool
+        return {
+            'fastest': 50,   # Next block
+            'fast': 25,      # 1-2 blocks
+            'medium': 10,    # 3-6 blocks
+            'slow': 5        # 6+ blocks
+        }
+
+    def calculate_tx_fee(self, num_inputs, num_outputs, fee_rate):
+        """
+        Calculate absolute fee for transaction
+        """
+        # P2WPKH transaction sizes (approximate)
+        base_size = 10  # Version, locktime, etc.
+        input_size = num_inputs * 68  # ~68 vBytes per P2WPKH input
+        output_size = num_outputs * 31  # ~31 vBytes per P2WPKH output
+
+        total_vbytes = base_size + input_size + output_size
+        total_fee = total_vbytes * fee_rate
+
+        return int(total_fee)
+
+# Example usage
+estimator = FeeEstimator(bitcoin_rpc)
+
+# Get recommended fee rate
+fee_rate = estimator.estimate_smart_fee(target_blocks=3)
+print(f"Recommended fee rate: {fee_rate} sat/vB")
+
+# Calculate fee for specific transaction
+fee = estimator.calculate_tx_fee(
+    num_inputs=2,
+    num_outputs=2,
+    fee_rate=fee_rate
+)
+print(f"Total fee: {fee} sats ({fee/100000000} BTC)")
+</code></pre>
+
+                <h3>Replace-By-Fee (RBF)</h3>
+                <p>
+                    RBF allows you to "bump" a stuck transaction by creating a new version with higher fees:
+                </p>
+
+                <pre><code># Enable RBF when creating transaction (set sequence < 0xfffffffe)
+builder.add_input(txid, vout, sequence=0xfffffffd)  # RBF-enabled
+
+# Later, if transaction is stuck, create replacement:
+# 1. Use same inputs
+# 2. Increase fee (decrease change output)
+# 3. Broadcast replacement
+
+# Bitcoin Core RBF
+result = bitcoin_rpc.bumpfee(
+    txid,
+    options={'fee_rate': 25}  # New fee rate in sat/vB
+)
+</code></pre>
+            </section>
+
+            <!-- Broadcasting -->
+            <section class="content-section">
+                <h2>Broadcasting Transactions</h2>
+
+                <p>
+                    Once your transaction is signed, you need to broadcast it to the network. There are several methods:
+                </p>
+
+                <h3>1. Bitcoin Core RPC</h3>
+                <pre><code># Using bitcoin-cli
+bitcoin-cli -regtest sendrawtransaction "hex_encoded_tx"
+
+# Using Python RPC
+txid = bitcoin_rpc.sendrawtransaction(raw_tx_hex)
+print(f"Transaction broadcast: {txid}")
+</code></pre>
+
+                <h3>2. Public APIs (Testnet/Mainnet)</h3>
+                <pre><code>import requests
+
+def broadcast_transaction(raw_tx_hex, network='testnet'):
+    """Broadcast using public API"""
+    if network == 'testnet':
+        url = "https://blockstream.info/testnet/api/tx"
+    else:
+        url = "https://blockstream.info/api/tx"
+
+    response = requests.post(url, data=raw_tx_hex)
+
+    if response.status_code == 200:
+        return response.text  # Returns txid
+    else:
+        raise Exception(f"Broadcast failed: {response.text}")
+
+# Example
+txid = broadcast_transaction(signed_tx.serialize().hex(), network='testnet')
+print(f"Transaction broadcast: {txid}")
+</code></pre>
+
+                <h3>3. Direct P2P Broadcasting</h3>
+                <p>
+                    For maximum privacy and reliability, broadcast directly to multiple peers:
+                </p>
+                <pre><code># Connect to multiple Bitcoin nodes
+# Send "tx" message with your transaction
+# This requires implementing Bitcoin P2P protocol
+# Libraries like python-bitcoinlib can help
+</code></pre>
+
+                <div class="warning-box">
+                    <h3>🔍 Transaction Monitoring</h3>
+                    <p>After broadcasting, monitor your transaction:</p>
+                    <ul>
+                        <li>Check if it appears in mempool</li>
+                        <li>Monitor for confirmations</li>
+                        <li>Be prepared to RBF if needed</li>
+                        <li>Watch for chain reorganizations</li>
+                        <li>Wait for sufficient confirmations (typically 6)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Wallet Project -->
+            <section class="content-section">
+                <div class="project-box">
+                    <h3>🚀 Project: Build a Bitcoin Wallet</h3>
+                    <p>
+                        Put everything together and build a functional command-line wallet!
+                    </p>
+
+                    <p style="margin-top: 1rem;"><strong>Requirements:</strong></p>
+                    <ol>
+                        <li><strong>Wallet Generation:</strong> Create HD wallet from mnemonic (BIP39/44)</li>
+                        <li><strong>Address Management:</strong> Generate receiving and change addresses</li>
+                        <li><strong>Balance Checking:</strong> Query UTXOs and calculate balance</li>
+                        <li><strong>Transaction Creation:</strong> Build transactions with proper UTXO selection</li>
+                        <li><strong>Fee Estimation:</strong> Implement smart fee calculation</li>
+                        <li><strong>Signing:</strong> Sign transactions with derived keys</li>
+                        <li><strong>Broadcasting:</strong> Send transactions to network</li>
+                    </ol>
+
+                    <p style="margin-top: 1rem;"><strong>Bonus Features:</strong></p>
+                    <ul>
+                        <li>Support multiple accounts</li>
+                        <li>Implement RBF for stuck transactions</li>
+                        <li>Add transaction history viewing</li>
+                        <li>Create QR codes for addresses</li>
+                        <li>Implement PSBT (Partially Signed Bitcoin Transactions)</li>
+                    </ul>
+
+                    <details style="margin-top: 1.5rem;">
+                        <summary style="cursor: pointer; color: var(--builder-purple); font-weight: 600;">View Starter Code</summary>
+                        <pre style="margin-top: 1rem;"><code>#!/usr/bin/env python3
+"""
+Simple Bitcoin HD Wallet
+Usage: python wallet.py [command] [args]
+"""
+
+import sys
+from bitcoin import SelectParams
+from mnemonic import Mnemonic
+
+class SimpleWallet:
+    def __init__(self):
+        SelectParams('regtest')
+        self.wallet = None
+
+    def create(self, mnemonic=None):
+        """Create new wallet or restore from mnemonic"""
+        if mnemonic is None:
+            mnemo = Mnemonic("english")
+            mnemonic = mnemo.generate(strength=128)
+            print(f"🔑 New wallet created!")
+            print(f"Mnemonic (SAVE THIS!): {mnemonic}")
+        else:
+            print(f"🔄 Wallet restored from mnemonic")
+
+        # Initialize HD wallet
+        # TODO: Implement HD wallet creation
+
+    def get_address(self, index=0):
+        """Get receiving address"""
+        # TODO: Derive address from HD wallet
+        pass
+
+    def get_balance(self):
+        """Get wallet balance"""
+        # TODO: Query UTXOs and sum amounts
+        pass
+
+    def send(self, address, amount):
+        """Send bitcoin to address"""
+        # TODO:
+        # 1. Select UTXOs
+        # 2. Build transaction
+        # 3. Sign transaction
+        # 4. Broadcast transaction
+        pass
+
+if __name__ == "__main__":
+    wallet = SimpleWallet()
+
+    if len(sys.argv) < 2:
+        print("Usage: wallet.py [create|balance|address|send]")
+        sys.exit(1)
+
+    command = sys.argv[1]
+
+    if command == "create":
+        wallet.create()
+    elif command == "balance":
+        print(f"Balance: {wallet.get_balance()} BTC")
+    elif command == "address":
+        print(f"Address: {wallet.get_address()}")
+    elif command == "send" and len(sys.argv) == 4:
+        address, amount = sys.argv[2], float(sys.argv[3])
+        wallet.send(address, amount)
+    else:
+        print("Invalid command")
+</code></pre>
+                    </details>
+                </div>
+            </section>
+
+            <!-- Key Takeaways -->
+            <section class="content-section">
+                <div class="takeaway-box">
+                    <h3>Key Takeaways</h3>
+                    <ul>
+                        <li>HD wallets (BIP32/39/44) allow infinite addresses from one seed</li>
+                        <li>UTXO selection strategies balance fees, privacy, and usability</li>
+                        <li>Transaction construction involves inputs, outputs, and witness data</li>
+                        <li>Fee estimation should consider network conditions and confirmation urgency</li>
+                        <li>RBF allows fee bumping for stuck transactions</li>
+                        <li>Broadcasting can be done via RPC, APIs, or P2P network</li>
+                        <li>Always use battle-tested libraries for cryptographic operations</li>
+                        <li>Seed phrases must be stored securely and never exposed</li>
+                        <li>Test thoroughly on regtest before using testnet or mainnet</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <nav class="module-navigation">
+                <a href="/paths/builder/stage-3/" class="nav-btn nav-btn-secondary">← Back to Stage 3</a>
+                <button id="complete-module" class="nav-btn">Mark Complete & Continue →</button>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('complete-module').addEventListener('click', function() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+
+            if (!progress.completedModules) {
+                progress.completedModules = [];
+            }
+
+            if (!progress.completedModules.includes('builder-3-2')) {
+                progress.completedModules.push('builder-3-2');
+            }
+
+            progress.lastActivity = new Date().toISOString();
+            progress.path = 'builder';
+            progress.currentStage = 3;
+            progress.currentModule = 3;
+
+            localStorage.setItem('learningProgress', JSON.stringify(progress));
+
+            alert('✓ Module 2 completed! Redirecting to Stage 3 overview...');
+            window.location.href = '/paths/builder/stage-3/';
+        });
+    </script>
+</body>
+</html>
