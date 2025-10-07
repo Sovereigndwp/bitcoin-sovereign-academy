@@ -162,6 +162,8 @@ bitcoin-sovereign-academy/
 
 ## 💡 Key Features
 
+> This project is shared publicly to inspire and educate. Please do not copy, redistribute, or reuse the code or assets without permission. You're welcome to explore, learn from, and reference it -- but not to clone or publish derivatives.
+
 ### 🧠 Intelligent Learning Path
 - **Adaptive Curriculum**: Content adjusts to your knowledge level
 - **Progress Tracking**: Visual journey through Bitcoin mastery

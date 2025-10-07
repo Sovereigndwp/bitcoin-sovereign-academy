@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage Redesign Test Suite</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #121212;
+            --panel: #1f1f1f;
+            --border: #2c2c2c;
+            --pass: #2e7d32;
+            --fail: #c62828;
+            --info: #1565c0;
+            --text: #f5f5f5;
+            --muted: #b0bec5;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 2.5rem 1.5rem 4rem;
+            line-height: 1.6;
+        }
+
+        h1 {
+            margin-bottom: 0.25rem;
+            font-size: 1.8rem;
+        }
+
+        h2 {
+            margin: 2.5rem 0 1rem;
+            font-size: 1.3rem;
+            color: var(--muted);
+        }
+
+        p {
+            margin-top: 0;
+            color: var(--muted);
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .results {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .result {
+            border-left: 4px solid var(--info);
+            padding: 1rem 1.25rem;
+            border-radius: 10px;
+            background: rgba(21, 101, 192, 0.15);
+        }
+
+        .result.pass {
+            border-color: var(--pass);
+            background: rgba(46, 125, 50, 0.15);
+        }
+
+        .result.fail {
+            border-color: var(--fail);
+            background: rgba(198, 40, 40, 0.15);
+        }
+
+        .result strong {
+            display: block;
+            font-size: 1.05rem;
+        }
+
+        .result small {
+            display: block;
+            margin-top: 0.35rem;
+            color: var(--muted);
+        }
+
+        .summary {
+            display: inline-flex;
+            gap: 0.75rem;
+            padding: 0.6rem 0.85rem;
+            border-radius: 999px;
+            margin-top: 1.25rem;
+            font-weight: 600;
+            background: rgba(247, 147, 26, 0.18);
+            border: 1px solid rgba(247, 147, 26, 0.35);
+        }
+
+        .summary span:first-child {
+            color: #f7931a;
+        }
+
+        code {
+            padding: 0.1rem 0.35rem;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🧪 Homepage Redesign Test Suite</h1>
+        <p>Automated checks that the redesigned homepage (<code>index-new.html</code>) matches critical structure and links to every learning path.</p>
+        <div class="summary" id="summary">
+            <span>Running…</span>
+            <span>Please wait</span>
+        </div>
+    </header>
+
+    <section class="card">
+        <h2>Test Results</h2>
+        <div id="results" class="results">
+            <div class="result">
+                <strong>Loading homepage markup…</strong>
+                <small>Fetching <code>index-new.html</code> to run structural checks.</small>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>How to Use</h2>
+        <p>Load this page from the project root (or any static server) and it will fetch <code>index-new.html</code> directly. The tests confirm:</p>
+        <ul>
+            <li>Hero, CTA buttons, and creator badge exist.</li>
+            <li>Exactly three learning path cards render.</li>
+            <li>Each path card links to its correct destination.</li>
+            <li>The “Take Our 2-Minute Path Finder” action is hooked up.</li>
+        </ul>
+        <p>If you run this locally from the filesystem (<code>file://</code>), use a lightweight server such as <code>python -m http.server</code> so fetch requests succeed.</p>
+    </section>
+
+    <script>
+        const summary = document.getElementById('summary');
+        const resultsEl = document.getElementById('results');
+
+        function addResult({ name, pass, details }) {
+            const div = document.createElement('div');
+            div.className = `result ${pass ? 'pass' : 'fail'}`;
+            div.innerHTML = `
+                <strong>${pass ? '✅' : '❌'} ${name}</strong>
+                ${details ? `<small>${details}</small>` : ''}
+            `;
+            resultsEl.appendChild(div);
+        }
+
+        function updateSummary(passed, total) {
+            summary.innerHTML = `
+                <span>${passed}/${total} checks passed</span>
+                <span>${passed === total ? 'All good to publish' : 'Review failing checks'}</span>
+            `;
+        }
+
+        async function runTests() {
+            const tests = [];
+            try {
+                const response = await fetch('index-new.html', { cache: 'no-store' });
+                const statusOk = response.ok;
+                tests.push({
+                    name: 'Homepage redesign file reachable',
+                    pass: statusOk,
+                    details: statusOk ? `HTTP ${response.status}` : `Unable to fetch index-new.html (HTTP ${response.status})`
+                });
+
+                if (!statusOk) {
+                    tests.forEach(addResult);
+                    updateSummary(tests.filter(t => t.pass).length, tests.length);
+                    return;
+                }
+
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                const hero = doc.querySelector('.hero');
+                tests.push({
+                    name: 'Hero section present',
+                    pass: Boolean(hero),
+                    details: hero ? 'Found .hero container' : 'Missing .hero element'
+                });
+
+                const primaryCta = doc.querySelector('.hero .btn-primary, .hero .cta-primary, .hero button');
+                tests.push({
+                    name: 'Primary call-to-action detected',
+                    pass: Boolean(primaryCta),
+                    details: primaryCta ? `Element tag: ${primaryCta.tagName.toLowerCase()}` : 'No primary CTA element found in hero'
+                });
+
+                const creatorBadge = doc.querySelector('.creator-badge');
+                tests.push({
+                    name: 'Creator badge included',
+                    pass: Boolean(creatorBadge),
+                    details: creatorBadge ? 'Creator badge present' : 'Creator badge missing'
+                });
+
+                const pathCards = doc.querySelectorAll('.path-card');
+                tests.push({
+                    name: 'Learning path cards rendered',
+                    pass: pathCards.length === 3,
+                    details: `Detected ${pathCards.length} path card(s)`
+                });
+
+                const expectedPaths = [
+                    { label: 'Curious', href: '/paths/curious/' },
+                    { label: 'Builder', href: '/paths/builder/' },
+                    { label: 'Sovereign', href: '/paths/sovereign/' }
+                ];
+
+                expectedPaths.forEach(({ label, href }) => {
+                    const anchor = doc.querySelector(`.path-card a[href="${href}"]`);
+                    tests.push({
+                        name: `${label} path CTA points to ${href}`,
+                        pass: Boolean(anchor),
+                        details: anchor ? 'Link found' : 'Link missing or incorrect'
+                    });
+                });
+
+                const pathFinderBtn = doc.querySelector('.path-quiz button, button[data-path-quiz]');
+                tests.push({
+                    name: 'Path finder action available',
+                    pass: Boolean(pathFinderBtn),
+                    details: pathFinderBtn ? `Button text: "${pathFinderBtn.textContent.trim()}"` : 'Unable to find path finder button'
+                });
+
+                const demoSection = doc.querySelector('.demos, #demos');
+                tests.push({
+                    name: 'Featured demos section present',
+                    pass: Boolean(demoSection),
+                    details: demoSection ? 'Demo grid detected' : 'Missing demo highlight section'
+                });
+
+                const footerCta = doc.querySelector('.final-cta, .cta-final, footer .btn-primary');
+                tests.push({
+                    name: 'Final CTA exists',
+                    pass: Boolean(footerCta),
+                    details: footerCta ? 'Final CTA element found' : 'No closing CTA detected'
+                });
+
+            } catch (error) {
+                tests.push({
+                    name: 'Unhandled error while running tests',
+                    pass: false,
+                    details: error.message
+                });
+            }
+
+            resultsEl.innerHTML = '';
+            tests.forEach(addResult);
+            updateSummary(tests.filter(t => t.pass).length, tests.length);
+        }
+
+        window.addEventListener('DOMContentLoaded', runTests);
+    </script>
+</body>
+</html>
