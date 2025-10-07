@@ -32,7 +32,9 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "https://plausible.io"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://plausible.io"]
+      connectSrc: ["'self'", "https://plausible.io"],
+      frameSrc: ["'self'", "https://www.canva.com"],
+      childSrc: ["'self'", "https://www.canva.com"]
     }
   }
 }));

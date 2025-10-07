@@ -165,35 +165,74 @@ class WalletWorkshop {
 
         <div class="interactive-section">
           <h3>Generate Your Entropy</h3>
-          <p>We need 256 bits (32 bytes) of randomness. Click the dice to generate!</p>
+          <p>We need 256 bits (32 bytes) of randomness. Choose the path that matches how you’d like to experience it.</p>
 
-          <div class="entropy-generator">
-            <div class="dice-roller">
-              <button class="dice-btn" id="roll-dice">
-                <div class="dice">🎲</div>
-                <div>Roll Dice</div>
-              </button>
-              <div class="roll-counter">
-                <div class="progress-bar">
-                  <div class="progress-fill" id="entropy-progress" style="width: 0%"></div>
+          <div class="entropy-mode-toggle" role="tablist" aria-label="Entropy generation modes">
+            <button class="toggle-btn active" data-mode="dice" role="tab" aria-selected="true">
+              <span class="toggle-icon">🎲</span>
+              <span>Roll Dice</span>
+            </button>
+            <button class="toggle-btn" data-mode="rng" role="tab" aria-selected="false">
+              <span class="toggle-icon">⚡</span>
+              <span>Visual RNG Demo</span>
+            </button>
+          </div>
+
+          <div class="entropy-panels">
+            <div class="entropy-panel" id="dice-panel" role="tabpanel" aria-hidden="false">
+              <div class="entropy-generator">
+                <div class="dice-roller">
+                  <button class="dice-btn" id="roll-dice">
+                    <div class="dice">🎲</div>
+                    <div>Roll Dice</div>
+                  </button>
+                  <div class="roll-counter">
+                    <div class="progress-bar">
+                      <div class="progress-fill" id="entropy-progress" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                      <span id="entropy-bits">0</span> / 256 bits collected
+                    </div>
+                  </div>
                 </div>
-                <div class="progress-text">
-                  <span id="entropy-bits">0</span> / 256 bits collected
+
+                <div class="entropy-display">
+                  <h4>Binary Entropy</h4>
+                  <div class="binary-output" id="binary-entropy">
+                    Click dice to generate random bits...
+                  </div>
+                </div>
+
+                <div class="entropy-hex" id="entropy-hex-display" style="display: none;">
+                  <h4>Hexadecimal Representation</h4>
+                  <code id="hex-entropy"></code>
+                  <small>This 64-character hex string is your 256-bit entropy</small>
                 </div>
               </div>
             </div>
 
-            <div class="entropy-display">
-              <h4>Binary Entropy</h4>
-              <div class="binary-output" id="binary-entropy">
-                Click dice to generate random bits...
+            <div class="entropy-panel hidden" id="rng-panel" role="tabpanel" aria-hidden="true">
+              <div class="entropy-rng">
+                <p class="rng-tip">Click to generate a random 256-bit number faster.</p>
+                <div class="iframe-wrapper">
+                  <iframe
+                    loading="lazy"
+                    src="https://www.canva.com/design/DAG1HuFhFgQ/oJVTvLbrtgMiyXgXrMTbkA/view?embed"
+                    allowfullscreen
+                    allow="fullscreen"
+                  ></iframe>
+                </div>
+                <p class="iframe-attrib">
+                  <a
+                    href="https://www.canva.com/design/DAG1HuFhFgQ/oJVTvLbrtgMiyXgXrMTbkA/view?utm_content=DAG1HuFhFgQ&amp;utm_campaign=designshare&amp;utm_medium=link2&amp;utm_source=sharebutton"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Copy of Visualizing Bitcoin Private Seeds Data Generation
+                  </a> by Dalia Platt
+                </p>
+                <p class="rng-tip">Explore the live demo to see another way hardware wallets gather unstoppable randomness.</p>
               </div>
-            </div>
-
-            <div class="entropy-hex" id="entropy-hex-display" style="display: none;">
-              <h4>Hexadecimal Representation</h4>
-              <code id="hex-entropy"></code>
-              <small>This 64-character hex string is your 256-bit entropy</small>
             </div>
           </div>
         </div>
@@ -842,6 +881,33 @@ class WalletWorkshop {
   }
 
   attachStepListeners() {
+    // Entropy mode toggle
+    const entropyModeButtons = document.querySelectorAll('.entropy-mode-toggle .toggle-btn');
+    if (entropyModeButtons.length) {
+      const panels = {
+        dice: document.getElementById('dice-panel'),
+        rng: document.getElementById('rng-panel')
+      };
+
+      entropyModeButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const mode = btn.dataset.mode;
+          entropyModeButtons.forEach((control) => {
+            const isActive = control === btn;
+            control.classList.toggle('active', isActive);
+            control.setAttribute('aria-selected', String(isActive));
+          });
+
+          Object.entries(panels).forEach(([key, panel]) => {
+            if (!panel) return;
+            const isVisible = key === mode;
+            panel.classList.toggle('hidden', !isVisible);
+            panel.setAttribute('aria-hidden', String(!isVisible));
+          });
+        });
+      });
+    }
+
     // Entropy generation
     const rollDice = document.getElementById('roll-dice');
     if (rollDice) {
@@ -1166,6 +1232,117 @@ class WalletWorkshop {
       .interactive-section h3 {
         color: #f7931a;
         margin-bottom: 1rem;
+      }
+
+      .entropy-mode-toggle {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+      }
+
+      .toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.85rem 1.5rem;
+        border-radius: 999px;
+        border: 1px solid rgba(247, 147, 26, 0.4);
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .toggle-btn:hover {
+        border-color: #f7931a;
+        transform: translateY(-1px);
+      }
+
+      .toggle-btn.active {
+        background: linear-gradient(135deg, #f7931a, #ff6b00);
+        color: #1a1a1a;
+        box-shadow: 0 10px 25px rgba(247, 147, 26, 0.35);
+      }
+
+      .toggle-icon {
+        font-size: 1.4rem;
+        line-height: 1;
+      }
+
+      .entropy-panels {
+        display: grid;
+        gap: 1.5rem;
+      }
+
+      .entropy-panel {
+        background: rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(247, 147, 26, 0.25);
+        border-radius: 12px;
+        padding: 1.5rem;
+      }
+
+      .entropy-panel .entropy-generator {
+        background: rgba(0, 0, 0, 0.25);
+        padding: 2rem;
+        border-radius: 8px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .entropy-rng {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .iframe-wrapper {
+        position: relative;
+        width: 100%;
+        height: 0;
+        padding-top: 100%;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(63, 69, 81, 0.16);
+      }
+
+      .iframe-wrapper iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+
+      .iframe-attrib {
+        text-align: center;
+        font-size: 0.9rem;
+        color: #bbb;
+      }
+
+      .iframe-attrib a {
+        color: #f7931a;
+        text-decoration: none;
+      }
+
+      .iframe-attrib a:hover {
+        text-decoration: underline;
+      }
+
+      .rng-tip {
+        text-align: center;
+        font-size: 0.95rem;
+        color: #999;
+      }
+
+      @media (min-width: 768px) {
+        .iframe-wrapper {
+          padding-top: 56.25%;
+        }
       }
 
       .entropy-generator {

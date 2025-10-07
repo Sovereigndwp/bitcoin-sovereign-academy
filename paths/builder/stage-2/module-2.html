@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Routing & HTLCs | Lightning Network | The Builder Path</title>
+    <meta name="description" content="Master Hash Time-Locked Contracts and multi-hop payment routing in the Lightning Network.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --lightning-yellow: #FFC107;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Module Header */
+        .module-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--lightning-yellow);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .module-title-section h1 {
+            font-size: 1.75rem;
+            color: var(--lightning-yellow);
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--lightning-yellow);
+        }
+
+        .content-section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-blue);
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .content-section ul, .content-section ol {
+            margin-left: 2rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .content-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background: rgba(255, 193, 7, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            color: var(--lightning-yellow);
+        }
+
+        pre {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-light);
+        }
+
+        /* Interactive Demo */
+        .demo-container {
+            background: var(--secondary-dark);
+            border: 2px solid var(--lightning-yellow);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-container h3 {
+            color: var(--lightning-yellow);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Insight Box */
+        .insight-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid var(--lightning-yellow);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .insight-box h3 {
+            color: var(--lightning-yellow);
+            margin-bottom: 1rem;
+        }
+
+        /* Challenge Box */
+        .challenge-box {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .challenge-box h3 {
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+
+        /* Key Takeaways */
+        .takeaway-box {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--accent-green);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .takeaway-box h3 {
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .takeaway-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .takeaway-box li {
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .takeaway-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        /* Navigation */
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--lightning-yellow);
+            color: var(--primary-dark);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .nav-btn:hover {
+            background: #ffb300;
+        }
+
+        .nav-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+
+        /* Diagram Styles */
+        .diagram {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .diagram pre {
+            text-align: left;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <!-- Module Header -->
+    <header class="module-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/builder/">The Builder Path</a> →
+                <a href="/paths/builder/stage-2/">Stage 2</a> →
+                <span>Module 2</span>
+            </div>
+            <div class="module-title-section">
+                <h1>⚡ Module 2: Routing & HTLCs</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Introduction -->
+            <section class="content-section">
+                <h2>🤔 The Network Effect Problem</h2>
+                <p>
+                    You now understand payment channels between two parties. But here's the problem: you can't open a channel
+                    with everyone you might want to pay. That would require millions of on-chain transactions and locked capital.
+                </p>
+
+                <p style="margin-top: 1.5rem;">
+                    <strong>The Question:</strong> How can Alice pay Dave if they don't have a direct channel?
+                </p>
+
+                <div class="diagram">
+                    <pre><code>Alice ←channel→ Bob ←channel→ Carol ←channel→ Dave
+
+Alice wants to pay Dave 0.1 BTC
+But Alice only has a channel with Bob!</code></pre>
+                </div>
+
+                <p style="margin-top: 1.5rem; padding: 1rem; background: rgba(255, 193, 7, 0.1); border-radius: 0.5rem;">
+                    <strong>Key Insight:</strong> What if Alice could route the payment <em>through</em> Bob and Carol to reach Dave,
+                    without trusting them? What if the payment could only complete if Dave receives it, or automatically refund if
+                    something goes wrong?
+                </p>
+
+                <p style="margin-top: 1.5rem;">
+                    <strong style="color: var(--lightning-yellow);">This is exactly what Hash Time-Locked Contracts (HTLCs) enable.</strong>
+                </p>
+            </section>
+
+            <!-- HTLCs Explained -->
+            <section class="content-section">
+                <h2>Hash Time-Locked Contracts (HTLCs)</h2>
+
+                <p>
+                    An HTLC is a conditional payment that uses <strong>cryptographic hashes</strong> and <strong>timelocks</strong>
+                    to create trustless multi-hop payments.
+                </p>
+
+                <h3>The Two Conditions</h3>
+                <p>An HTLC can be spent in two ways:</p>
+
+                <ol>
+                    <li>
+                        <strong>Hash Condition:</strong> Reveal the preimage of a hash (the secret) before the timeout expires
+                        → <em>Payment succeeds</em>
+                    </li>
+                    <li>
+                        <strong>Timelock Condition:</strong> After the timeout expires, refund to the sender
+                        → <em>Payment fails, money returned</em>
+                    </li>
+                </ol>
+
+                <h3>HTLC Script Structure</h3>
+                <pre><code>OP_IF
+    # Payment path (reveal preimage)
+    OP_HASH160 &lt;payment_hash&gt; OP_EQUALVERIFY
+    &lt;receiver_pubkey&gt;
+OP_ELSE
+    # Refund path (after timeout)
+    &lt;timeout_blocks&gt; OP_CHECKLOCKTIMEVERIFY OP_DROP
+    &lt;sender_pubkey&gt;
+OP_ENDIF
+OP_CHECKSIG</code></pre>
+
+                <p style="margin-top: 1rem;">
+                    This script says: "Pay to receiver if they know the preimage, or refund to sender after timeout."
+                </p>
+            </section>
+
+            <!-- How Routing Works -->
+            <section class="content-section">
+                <h2>Multi-Hop Payment Flow</h2>
+
+                <p>
+                    Let's walk through how Alice pays Dave through Bob and Carol:
+                </p>
+
+                <h3>Step 1: Invoice & Secret Generation</h3>
+                <p>
+                    Dave generates a random secret (<code>preimage</code>) and hashes it to create <code>payment_hash</code>.
+                    He sends Alice an invoice containing the <code>payment_hash</code> and the amount (0.1 BTC).
+                </p>
+
+                <div class="diagram">
+                    <pre><code>Dave: preimage = random()
+      payment_hash = SHA256(preimage)
+
+Invoice: "Pay 0.1 BTC to payment_hash abc123..."</code></pre>
+                </div>
+
+                <h3>Step 2: Alice Sets Up HTLCs</h3>
+                <p>
+                    Alice constructs a payment route: <code>Alice → Bob → Carol → Dave</code>
+                </p>
+
+                <p>She sets up HTLCs with decreasing timeouts:</p>
+
+                <div class="diagram">
+                    <pre><code>Alice → Bob:   HTLC for 0.101 BTC, timeout 100 blocks
+Bob → Carol:   HTLC for 0.1005 BTC, timeout 90 blocks
+Carol → Dave:  HTLC for 0.1 BTC, timeout 80 blocks
+
+(Each hop takes a small fee and reduces timeout)</code></pre>
+                </div>
+
+                <h3>Step 3: Dave Reveals the Secret</h3>
+                <p>
+                    Dave sees the HTLC from Carol. To claim it, he reveals the <code>preimage</code> to Carol.
+                </p>
+
+                <div class="insight-box">
+                    <h3>💡 The Magic Moment</h3>
+                    <p>
+                        When Dave reveals the <code>preimage</code> to claim the payment from Carol, Carol now knows the secret!
+                        She can use it to claim the payment from Bob. Bob can use it to claim from Alice.
+                    </p>
+                    <p style="margin-top: 1rem;">
+                        <strong>The secret propagates backwards along the route, settling all HTLCs.</strong>
+                    </p>
+                </div>
+
+                <h3>Step 4: HTLCs Settle Backwards</h3>
+                <div class="diagram">
+                    <pre><code>Dave reveals preimage to Carol  → Carol claims 0.1 BTC
+Carol uses preimage with Bob     → Bob claims 0.1005 BTC
+Bob uses preimage with Alice     → Alice pays 0.101 BTC
+
+Result:
+- Dave received 0.1 BTC
+- Carol earned 0.0005 BTC (routing fee)
+- Bob earned 0.0005 BTC (routing fee)
+- Alice paid 0.101 BTC total</code></pre>
+                </div>
+
+                <h3>What if Something Goes Wrong?</h3>
+                <p>
+                    If any hop fails to forward the payment, the HTLCs automatically time out and refund in reverse order:
+                </p>
+                <ul>
+                    <li>Carol's HTLC to Dave times out at block 80 → Carol gets refund</li>
+                    <li>Bob's HTLC to Carol times out at block 90 → Bob gets refund</li>
+                    <li>Alice's HTLC to Bob times out at block 100 → Alice gets full refund</li>
+                </ul>
+
+                <p style="margin-top: 1rem;">
+                    <strong>No one can steal funds. The payment is atomic: either it completes entirely or refunds entirely.</strong>
+                </p>
+            </section>
+
+            <!-- Onion Routing -->
+            <section class="content-section">
+                <h2>Onion Routing: Privacy by Design</h2>
+
+                <p>
+                    Lightning uses <strong>onion routing</strong> (inspired by Tor) to protect payment privacy. Each hop only
+                    knows the previous and next hop—not the full route.
+                </p>
+
+                <h3>How Onion Routing Works</h3>
+                <p>
+                    Alice encrypts the payment instructions in layers, like an onion:
+                </p>
+
+                <div class="diagram">
+                    <pre><code>Layer 3 (innermost): [Dave: Final destination, 0.1 BTC]
+Layer 2:             [Carol → Dave, 0.1 BTC]
+Layer 1 (outermost): [Bob → Carol, 0.1005 BTC]
+
+Alice sends the onion to Bob.
+Bob decrypts layer 1 → sees "forward to Carol"
+Carol decrypts layer 2 → sees "forward to Dave"
+Dave decrypts layer 3 → sees "I'm the final recipient"</code></pre>
+                </div>
+
+                <p>
+                    Each node only knows:
+                </p>
+                <ul>
+                    <li><strong>Bob knows:</strong> Alice sent something, forward to Carol (doesn't know final destination)</li>
+                    <li><strong>Carol knows:</strong> Bob forwarded something, forward to Dave (doesn't know if Bob is sender)</li>
+                    <li><strong>Dave knows:</strong> He's the final recipient (doesn't know if Carol is sender or forwarder)</li>
+                </ul>
+
+                <p style="margin-top: 1.5rem;">
+                    <strong>Result:</strong> Payment privacy without a central coordinator. No one knows the full route except Alice (the sender).
+                </p>
+            </section>
+
+            <!-- Path Finding -->
+            <section class="content-section">
+                <h2>Path Finding: Discovering Routes</h2>
+
+                <p>
+                    How does Alice know to route through Bob and Carol? The Lightning Network uses <strong>source routing</strong>—
+                    the sender constructs the entire path.
+                </p>
+
+                <h3>Network Gossip</h3>
+                <p>
+                    Nodes broadcast information about their channels:
+                </p>
+                <ul>
+                    <li>Channel existence and capacity</li>
+                    <li>Routing fees and policies</li>
+                    <li>Channel updates (enabled/disabled)</li>
+                </ul>
+
+                <p>
+                    This creates a <strong>network graph</strong> that each node uses to find routes.
+                </p>
+
+                <h3>Route Selection Criteria</h3>
+                <p>When finding a route, nodes consider:</p>
+                <ul>
+                    <li><strong>Liquidity:</strong> Does each channel have enough balance?</li>
+                    <li><strong>Fees:</strong> What's the total routing cost?</li>
+                    <li><strong>Reliability:</strong> Has this route succeeded before?</li>
+                    <li><strong>Privacy:</strong> Shorter routes leak less information but may have higher fees</li>
+                </ul>
+
+                <div class="insight-box">
+                    <h3>💡 The Liquidity Problem</h3>
+                    <p>
+                        Channel <em>capacity</em> is public (on-chain), but channel <em>balance distribution</em> is private.
+                        This is good for privacy but makes routing tricky—you might try a route that doesn't have enough liquidity
+                        on one side.
+                    </p>
+                    <p style="margin-top: 1rem;">
+                        Modern Lightning nodes use probabilistic routing and learn from failures to improve route selection over time.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Interactive Demo -->
+            <section class="content-section">
+                <div class="demo-container">
+                    <h3>🎮 Interactive Route Simulator</h3>
+                    <p style="color: var(--text-dim); text-align: center; margin-bottom: 1.5rem;">
+                        Simulate multi-hop payments, watch HTLCs propagate, and see how failures result in refunds.
+                    </p>
+
+                    <iframe
+                        src="/interactive-demos/lightning-routing-sim.html"
+                        style="width: 100%; height: 700px; border: none; border-radius: 0.5rem; background: white;"
+                        title="Lightning Routing Simulator">
+                    </iframe>
+
+                    <p style="margin-top: 1rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;">
+                        💡 Try creating a route with insufficient liquidity to see how payment failures work!
+                    </p>
+                </div>
+            </section>
+
+            <!-- Advanced Topics -->
+            <section class="content-section">
+                <h2>Advanced Routing Concepts</h2>
+
+                <h3>Multi-Path Payments (MPP)</h3>
+                <p>
+                    Instead of sending 1 BTC through a single route, you can split it across multiple routes:
+                </p>
+                <div class="diagram">
+                    <pre><code>Alice wants to pay Dave 1 BTC:
+Route 1: Alice → Bob → Dave (0.6 BTC)
+Route 2: Alice → Carol → Dave (0.4 BTC)
+
+Total: 1 BTC delivered via 2 separate HTLCs</code></pre>
+                </div>
+
+                <p>
+                    <strong>Benefits:</strong> Better success rates, improved privacy, better liquidity utilization
+                </p>
+
+                <h3>Just-In-Time (JIT) Routing</h3>
+                <p>
+                    Some routing nodes open new channels on-the-fly to facilitate payments, reducing the need for pre-existing
+                    channel connectivity.
+                </p>
+
+                <h3>Trampoline Routing</h3>
+                <p>
+                    Mobile wallets can delegate route computation to trusted nodes (trampolines) to save bandwidth and computation,
+                    while still maintaining payment security.
+                </p>
+            </section>
+
+            <!-- Challenge -->
+            <section class="content-section">
+                <div class="challenge-box">
+                    <h3>💡 Think About It</h3>
+                    <p><strong>Question:</strong> Why do HTLC timeouts need to decrease along the route (100 → 90 → 80 blocks)?</p>
+                    <p style="margin-top: 1rem; color: var(--text-dim); font-size: 0.95rem;">
+                        <strong>Answer:</strong> To ensure that if a downstream hop times out, the upstream hops have time to
+                        also refund. If Alice's timeout was 80 blocks and Dave's was 100 blocks, Dave could claim the payment
+                        at block 99, but Alice's HTLC would have already timed out—Alice wouldn't get the preimage and would
+                        lose money! Decreasing timeouts ensure safety.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Key Takeaways -->
+            <section class="content-section">
+                <div class="takeaway-box">
+                    <h3>🎯 Key Takeaways</h3>
+                    <ul>
+                        <li>HTLCs enable trustless multi-hop payments across channels</li>
+                        <li>Payments are atomic: they either complete fully or refund fully</li>
+                        <li>The secret (preimage) propagates backwards, settling all HTLCs</li>
+                        <li>Onion routing provides payment privacy—hops don't know the full route</li>
+                        <li>Timeouts must decrease along the route to ensure safety</li>
+                        <li>Path finding uses network gossip to build a routing graph</li>
+                        <li>Multi-path payments split large payments across multiple routes</li>
+                        <li>No intermediary can steal funds—cryptography enforces atomicity</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <nav class="module-navigation">
+                <a href="/paths/builder/stage-2/module-1.html" class="nav-btn nav-btn-secondary">← Previous Module</a>
+                <button id="complete-module" class="nav-btn">Mark Complete & Continue →</button>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('complete-module').addEventListener('click', function() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+
+            if (!progress.completedModules) {
+                progress.completedModules = [];
+            }
+
+            if (!progress.completedModules.includes('builder-2-2')) {
+                progress.completedModules.push('builder-2-2');
+            }
+
+            progress.lastActivity = new Date().toISOString();
+            progress.path = 'builder';
+            progress.currentStage = 2;
+            progress.currentModule = 3;
+
+            localStorage.setItem('learningProgress', JSON.stringify(progress));
+
+            alert('✓ Module 2 completed! Redirecting to Stage 2 overview...');
+            window.location.href = '/paths/builder/stage-2/';
+        });
+    </script>
+</body>
+</html>

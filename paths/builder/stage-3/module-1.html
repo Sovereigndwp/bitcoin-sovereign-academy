@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Development Environment | Building Applications | The Builder Path</title>
+    <meta name="description" content="Set up a complete Bitcoin development environment with Bitcoin Core, regtest mode, and RPC interface for building applications.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --builder-purple: #9C27B0;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Module Header */
+        .module-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--builder-purple);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .module-title-section h1 {
+            font-size: 1.75rem;
+            color: var(--builder-purple);
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--builder-purple);
+        }
+
+        .content-section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-blue);
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .content-section ul, .content-section ol {
+            margin-left: 2rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .content-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background: rgba(156, 39, 176, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            color: var(--builder-purple);
+        }
+
+        pre {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-light);
+        }
+
+        /* Interactive Demo */
+        .demo-container {
+            background: var(--secondary-dark);
+            border: 2px solid var(--builder-purple);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-container h3 {
+            color: var(--builder-purple);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Exercise Box */
+        .exercise-box {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .exercise-box h3 {
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+
+        /* Warning Box */
+        .warning-box {
+            background: rgba(255, 152, 0, 0.1);
+            border-left: 4px solid #ff9800;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .warning-box h3 {
+            color: #ff9800;
+            margin-bottom: 1rem;
+        }
+
+        /* Key Takeaways */
+        .takeaway-box {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--accent-green);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .takeaway-box h3 {
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .takeaway-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .takeaway-box li {
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .takeaway-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        /* Socratic Box */
+        .socratic-box {
+            background: var(--secondary-dark);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .socratic-item {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .socratic-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .socratic-item strong {
+            color: var(--accent-blue);
+        }
+
+        /* Navigation */
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--builder-purple);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .nav-btn:hover {
+            background: #7B1FA2;
+        }
+
+        .nav-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+
+        .step-box {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: var(--builder-purple);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Module Header -->
+    <header class="module-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/builder/">The Builder Path</a> →
+                <a href="/paths/builder/stage-3/">Stage 3</a> →
+                <span>Module 1</span>
+            </div>
+            <div class="module-title-section">
+                <h1>Module 1: Bitcoin Development Environment</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Socratic Questions -->
+            <section class="content-section">
+                <h2>Before We Begin: Think Like a Developer</h2>
+                <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                    Before diving into development tools, consider the fundamental challenges of building Bitcoin applications:
+                </p>
+
+                <div class="socratic-box">
+                    <div class="socratic-item">
+                        <span style="font-size: 1.5rem;">🧪</span>
+                        <div>
+                            <strong>How do you test Bitcoin applications without risking real money?</strong>
+                            <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">
+                                You can't practice on mainnet—mistakes could cost thousands. But testnet coins have value too.
+                                What's the solution?
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="socratic-item">
+                        <span style="font-size: 1.5rem;">⚡</span>
+                        <div>
+                            <strong>How do you quickly iterate when Bitcoin blocks take 10 minutes?</strong>
+                            <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">
+                                Waiting 10 minutes (or 60 minutes for 6 confirmations) for every test would make development impossibly slow.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="socratic-item">
+                        <span style="font-size: 1.5rem;">🔌</span>
+                        <div>
+                            <strong>How do applications communicate with Bitcoin Core?</strong>
+                            <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">
+                                Bitcoin Core doesn't have a "click here to send" button. How do programmatic tools interact with it?
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="socratic-item">
+                        <span style="font-size: 1.5rem;">🔄</span>
+                        <div>
+                            <strong>What's the workflow for reliable Bitcoin development?</strong>
+                            <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">
+                                How do professional developers build, test, and deploy Bitcoin applications safely?
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="margin-top: 1.5rem; text-align: center; font-size: 1.1rem;">
+                    <strong style="color: var(--accent-green);">This module teaches you the professional Bitcoin development workflow</strong>
+                </p>
+            </section>
+
+            <!-- Bitcoin Core Installation -->
+            <section class="content-section">
+                <h2>Bitcoin Core: Your Development Foundation</h2>
+
+                <p>
+                    Bitcoin Core is the reference implementation of Bitcoin. It's not just a wallet—it's a complete Bitcoin node
+                    that validates all transactions and blocks according to consensus rules. For developers, it's your Swiss Army knife.
+                </p>
+
+                <h3>Why Bitcoin Core for Development?</h3>
+                <ul>
+                    <li><strong>Reference Implementation:</strong> The authoritative Bitcoin protocol implementation</li>
+                    <li><strong>Full Validation:</strong> Independently verify every transaction and block</li>
+                    <li><strong>RPC Interface:</strong> Programmatic access to all Bitcoin functionality</li>
+                    <li><strong>Built-in Wallet:</strong> Create transactions, manage keys, sign PSBTs</li>
+                    <li><strong>Regtest Mode:</strong> Your personal Bitcoin network for instant testing</li>
+                </ul>
+
+                <h3>Installation</h3>
+
+                <div class="step-box">
+                    <p><span class="step-number">1</span><strong>Download Bitcoin Core</strong></p>
+                    <p style="margin-top: 0.5rem; margin-left: 2.5rem;">
+                        Visit <a href="https://bitcoincore.org/en/download/" style="color: var(--builder-purple);">bitcoincore.org/en/download/</a>
+                        and download the latest version for your operating system.
+                    </p>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">2</span><strong>Verify the Download</strong></p>
+                    <p style="margin-top: 0.5rem; margin-left: 2.5rem;">
+                        Always verify signatures! This is critical for security:
+                    </p>
+                    <pre style="margin-left: 2.5rem;"><code># Import Bitcoin Core release signing keys
+gpg --keyserver hkps://keys.openpgp.org --recv-keys \
+  01EA5486DE18A882D4C2684590C8019E36C2E964
+
+# Verify the signature
+gpg --verify SHA256SUMS.asc SHA256SUMS
+
+# Check file hash
+sha256sum --ignore-missing --check SHA256SUMS</code></pre>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">3</span><strong>Install Bitcoin Core</strong></p>
+                    <p style="margin-top: 0.5rem; margin-left: 2.5rem;">
+                        Extract and install based on your OS:
+                    </p>
+                    <pre style="margin-left: 2.5rem;"><code># Linux/macOS
+tar -xzf bitcoin-*.tar.gz
+sudo install -m 0755 -o root -g root -t /usr/local/bin bitcoin-*/bin/*
+
+# Verify installation
+bitcoind --version</code></pre>
+                </div>
+
+                <div class="warning-box">
+                    <h3>⚠️ Development Setup Note</h3>
+                    <p>
+                        For development, you don't need to sync the entire mainnet blockchain (500+ GB). We'll use
+                        <strong>regtest mode</strong> which creates a private blockchain on your machine. Perfect for testing!
+                    </p>
+                </div>
+            </section>
+
+            <!-- Regtest Mode -->
+            <section class="content-section">
+                <h2>Regtest Mode: Your Personal Bitcoin Network</h2>
+
+                <p>
+                    <strong>Regression Test Mode (regtest)</strong> is a local Bitcoin network where you have complete control.
+                    Mine blocks instantly, reset the chain anytime, and test without limits.
+                </p>
+
+                <h3>Why Regtest?</h3>
+                <ul>
+                    <li><strong>Instant blocks:</strong> Mine blocks on demand (no 10-minute wait)</li>
+                    <li><strong>Free coins:</strong> Mine as much BTC as you need for testing</li>
+                    <li><strong>Complete control:</strong> Reset, reorganize, test edge cases</li>
+                    <li><strong>Isolated:</strong> No network connection needed, completely private</li>
+                    <li><strong>Fast iteration:</strong> Test, break, reset, repeat</li>
+                </ul>
+
+                <h3>Configuring Bitcoin Core for Regtest</h3>
+
+                <p>Create a <code>bitcoin.conf</code> file for your development environment:</p>
+
+                <pre><code># ~/.bitcoin/bitcoin.conf (or your custom datadir)
+
+# Enable regtest mode
+regtest=1
+
+# RPC Settings
+server=1
+rpcuser=your_username
+rpcpassword=your_strong_password
+rpcallowip=127.0.0.1
+
+# Network settings
+listen=0
+dnsseed=0
+upnp=0
+
+# Development preferences
+txindex=1          # Index all transactions (useful for development)
+blockfilterindex=1 # Enable compact block filters
+fallbackfee=0.00001 # Default fee rate
+
+# Logging (helpful for debugging)
+debug=rpc
+debug=net</code></pre>
+
+                <div class="warning-box">
+                    <h3>🔐 Security Note</h3>
+                    <p>
+                        The RPC credentials in your <code>bitcoin.conf</code> control your node. For development,
+                        simple passwords are fine. For production or mainnet nodes, use strong passwords and consider
+                        <code>rpcauth</code> instead of plain <code>rpcpassword</code>.
+                    </p>
+                </div>
+
+                <h3>Starting Bitcoin Core in Regtest</h3>
+
+                <pre><code># Start bitcoind in regtest mode
+bitcoind -regtest -daemon
+
+# Or specify a custom datadir
+bitcoind -regtest -datadir=/path/to/dev/datadir -daemon
+
+# Check it's running
+bitcoin-cli -regtest getblockchaininfo</code></pre>
+
+                <p>
+                    You should see output showing 0 blocks, confirming you have a fresh regtest network!
+                </p>
+            </section>
+
+            <!-- RPC Interface -->
+            <section class="content-section">
+                <h2>Bitcoin RPC: Controlling Bitcoin Core Programmatically</h2>
+
+                <p>
+                    The <strong>Remote Procedure Call (RPC)</strong> interface is how your applications communicate with Bitcoin Core.
+                    It's a JSON-RPC interface accessible via HTTP or through <code>bitcoin-cli</code>.
+                </p>
+
+                <h3>Essential RPC Commands</h3>
+
+                <p><strong>Blockchain Information:</strong></p>
+                <pre><code># Get blockchain status
+bitcoin-cli -regtest getblockchaininfo
+
+# Get network info
+bitcoin-cli -regtest getnetworkinfo
+
+# Get wallet info
+bitcoin-cli -regtest getwalletinfo
+
+# Get mempool info
+bitcoin-cli -regtest getmempoolinfo</code></pre>
+
+                <p style="margin-top: 1.5rem;"><strong>Wallet Operations:</strong></p>
+                <pre><code># Create a new wallet
+bitcoin-cli -regtest createwallet "dev_wallet"
+
+# Get a new address
+bitcoin-cli -regtest getnewaddress
+
+# Get wallet balance
+bitcoin-cli -regtest getbalance
+
+# List unspent outputs (UTXOs)
+bitcoin-cli -regtest listunspent
+
+# Send bitcoin
+bitcoin-cli -regtest sendtoaddress "bcrt1q..." 1.5</code></pre>
+
+                <p style="margin-top: 1.5rem;"><strong>Transaction Operations:</strong></p>
+                <pre><code># Get raw transaction
+bitcoin-cli -regtest getrawtransaction "txid" true
+
+# Decode raw transaction
+bitcoin-cli -regtest decoderawtransaction "hex"
+
+# Create raw transaction
+bitcoin-cli -regtest createrawtransaction '[...]' '{...}'
+
+# Sign raw transaction
+bitcoin-cli -regtest signrawtransactionwithwallet "hex"
+
+# Send raw transaction
+bitcoin-cli -regtest sendrawtransaction "hex"</code></pre>
+
+                <h3>Using RPC from Code</h3>
+
+                <p>
+                    Most Bitcoin applications use RPC libraries. Here's an example using Python:
+                </p>
+
+                <pre><code>from bitcoinrpc.authproxy import AuthServiceProxy
+
+# Connect to Bitcoin Core
+rpc_connection = AuthServiceProxy(
+    "http://your_username:your_password@127.0.0.1:18443"
+)
+
+# Get blockchain info
+info = rpc_connection.getblockchaininfo()
+print(f"Chain: {info['chain']}")
+print(f"Blocks: {info['blocks']}")
+
+# Create a new address
+new_address = rpc_connection.getnewaddress()
+print(f"New address: {new_address}")
+
+# Get balance
+balance = rpc_connection.getbalance()
+print(f"Balance: {balance} BTC")</code></pre>
+
+                <div class="warning-box">
+                    <h3>🔍 RPC Documentation</h3>
+                    <p>
+                        Bitcoin Core has excellent built-in documentation. Use <code>bitcoin-cli help</code> to see all commands,
+                        and <code>bitcoin-cli help &lt;command&gt;</code> for detailed information about specific commands.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Test Wallets and Mining -->
+            <section class="content-section">
+                <h2>Creating Test Wallets and Mining Blocks</h2>
+
+                <p>
+                    Now let's put it all together: create wallets, generate addresses, mine blocks, and send transactions.
+                </p>
+
+                <h3>Step-by-Step: Your First Regtest Workflow</h3>
+
+                <div class="step-box">
+                    <p><span class="step-number">1</span><strong>Create Development Wallets</strong></p>
+                    <pre style="margin-top: 0.5rem;"><code># Create two wallets for testing
+bitcoin-cli -regtest createwallet "alice"
+bitcoin-cli -regtest createwallet "bob"
+
+# Load a wallet
+bitcoin-cli -regtest -rpcwallet=alice getwalletinfo</code></pre>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">2</span><strong>Generate Addresses</strong></p>
+                    <pre style="margin-top: 0.5rem;"><code># Get Alice's address
+bitcoin-cli -regtest -rpcwallet=alice getnewaddress
+
+# Get Bob's address
+bitcoin-cli -regtest -rpcwallet=bob getnewaddress
+
+# Generate a P2WPKH (native SegWit) address
+bitcoin-cli -regtest -rpcwallet=alice getnewaddress "" "bech32"</code></pre>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">3</span><strong>Mine Blocks to Alice</strong></p>
+                    <pre style="margin-top: 0.5rem;"><code># Generate 101 blocks to Alice's address (coinbase requires 100 confirmations)
+ALICE_ADDR=$(bitcoin-cli -regtest -rpcwallet=alice getnewaddress)
+bitcoin-cli -regtest generatetoaddress 101 $ALICE_ADDR
+
+# Check Alice's balance
+bitcoin-cli -regtest -rpcwallet=alice getbalance
+# Output: 50.00000000 (one mature coinbase)</code></pre>
+                    <p style="margin-top: 0.5rem; margin-left: 2.5rem; color: var(--text-dim);">
+                        <strong>Why 101 blocks?</strong> Coinbase transactions (mining rewards) require 100 confirmations
+                        before they can be spent. Mining 101 blocks gives us 1 spendable coinbase.
+                    </p>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">4</span><strong>Send Transaction from Alice to Bob</strong></p>
+                    <pre style="margin-top: 0.5rem;"><code># Get Bob's address
+BOB_ADDR=$(bitcoin-cli -regtest -rpcwallet=bob getnewaddress)
+
+# Alice sends 10 BTC to Bob
+bitcoin-cli -regtest -rpcwallet=alice sendtoaddress $BOB_ADDR 10
+
+# Mine a block to confirm the transaction
+bitcoin-cli -regtest generatetoaddress 1 $ALICE_ADDR
+
+# Check balances
+bitcoin-cli -regtest -rpcwallet=alice getbalance
+# ~40 BTC (50 - 10 sent, plus new coinbase)
+
+bitcoin-cli -regtest -rpcwallet=bob getbalance
+# 10 BTC</code></pre>
+                </div>
+
+                <div class="step-box">
+                    <p><span class="step-number">5</span><strong>Inspect Transactions</strong></p>
+                    <pre style="margin-top: 0.5rem;"><code># List recent transactions
+bitcoin-cli -regtest -rpcwallet=alice listtransactions
+
+# Get detailed transaction info
+TXID=$(bitcoin-cli -regtest -rpcwallet=alice listtransactions | jq -r '.[0].txid')
+bitcoin-cli -regtest getrawtransaction $TXID true
+
+# See the UTXO set
+bitcoin-cli -regtest -rpcwallet=alice listunspent</code></pre>
+                </div>
+            </section>
+
+            <!-- Interactive Exercise -->
+            <section class="content-section">
+                <div class="exercise-box">
+                    <h3>Hands-On Exercise: Build a Mini Blockchain</h3>
+                    <p><strong>Goal:</strong> Practice the complete regtest workflow</p>
+
+                    <p style="margin-top: 1rem;"><strong>Tasks:</strong></p>
+                    <ol style="margin-left: 1rem;">
+                        <li>Start Bitcoin Core in regtest mode</li>
+                        <li>Create three wallets: "miner", "merchant", "customer"</li>
+                        <li>Mine 150 blocks to the miner wallet</li>
+                        <li>Send 25 BTC from miner to merchant</li>
+                        <li>Send 5 BTC from merchant to customer</li>
+                        <li>Verify all balances are correct</li>
+                        <li>Export the transaction hex and decode it</li>
+                        <li>Inspect the UTXOs for each wallet</li>
+                    </ol>
+
+                    <p style="margin-top: 1rem;"><strong>Bonus Challenge:</strong></p>
+                    <ul style="margin-left: 1rem;">
+                        <li>Create a multisig address (2-of-3) using addresses from all three wallets</li>
+                        <li>Send funds to the multisig address</li>
+                        <li>Create a transaction spending from the multisig (requires 2 signatures)</li>
+                    </ul>
+
+                    <details style="margin-top: 1rem;">
+                        <summary style="cursor: pointer; color: var(--accent-blue); font-weight: 600;">Show Solution</summary>
+                        <pre style="margin-top: 1rem;"><code># Start Bitcoin Core
+bitcoind -regtest -daemon
+
+# Create wallets
+bitcoin-cli -regtest createwallet "miner"
+bitcoin-cli -regtest createwallet "merchant"
+bitcoin-cli -regtest createwallet "customer"
+
+# Mine blocks
+MINER_ADDR=$(bitcoin-cli -regtest -rpcwallet=miner getnewaddress)
+bitcoin-cli -regtest generatetoaddress 150 $MINER_ADDR
+
+# Send transactions
+MERCHANT_ADDR=$(bitcoin-cli -regtest -rpcwallet=merchant getnewaddress)
+bitcoin-cli -regtest -rpcwallet=miner sendtoaddress $MERCHANT_ADDR 25
+
+CUSTOMER_ADDR=$(bitcoin-cli -regtest -rpcwallet=customer getnewaddress)
+bitcoin-cli -regtest -rpcwallet=merchant sendtoaddress $CUSTOMER_ADDR 5
+
+# Confirm transactions
+bitcoin-cli -regtest generatetoaddress 1 $MINER_ADDR
+
+# Check balances
+bitcoin-cli -regtest -rpcwallet=miner getbalance
+bitcoin-cli -regtest -rpcwallet=merchant getbalance
+bitcoin-cli -regtest -rpcwallet=customer getbalance</code></pre>
+                    </details>
+                </div>
+            </section>
+
+            <!-- Advanced Topics -->
+            <section class="content-section">
+                <h2>Advanced Regtest Techniques</h2>
+
+                <h3>Testing Edge Cases</h3>
+                <p>Regtest lets you test scenarios that are hard to reproduce on testnet:</p>
+
+                <pre><code># Simulate a chain reorganization
+bitcoin-cli -regtest invalidateblock &lt;block_hash&gt;
+bitcoin-cli -regtest reconsiderblock &lt;block_hash&gt;
+
+# Create a transaction with custom fee
+bitcoin-cli -regtest -rpcwallet=alice sendtoaddress $ADDR 1 "" "" true 10
+
+# Test Replace-By-Fee (RBF)
+bitcoin-cli -regtest -rpcwallet=alice sendtoaddress $ADDR 1 "" "" false false 1 "unset" null true
+
+# Create unconfirmed transaction chains
+# (send transaction, don't mine, send another spending the output)</code></pre>
+
+                <h3>Using Bitcoin-CLI with Scripts</h3>
+                <pre><code>#!/bin/bash
+# dev-setup.sh - Quick regtest environment setup
+
+# Start Bitcoin Core
+bitcoind -regtest -daemon
+sleep 2
+
+# Create wallets
+bitcoin-cli -regtest createwallet "dev" > /dev/null 2>&1
+
+# Mine blocks
+ADDR=$(bitcoin-cli -regtest -rpcwallet=dev getnewaddress)
+bitcoin-cli -regtest generatetoaddress 101 $ADDR > /dev/null
+
+# Display status
+echo "Regtest environment ready!"
+echo "Balance: $(bitcoin-cli -regtest -rpcwallet=dev getbalance) BTC"
+echo "Blocks: $(bitcoin-cli -regtest getblockcount)"
+echo "Address: $ADDR"</code></pre>
+
+                <h3>Connecting Multiple Nodes</h3>
+                <p>You can run multiple regtest nodes and connect them to test P2P behavior:</p>
+
+                <pre><code># Start two nodes on different ports
+bitcoind -regtest -port=18444 -rpcport=18443 -datadir=~/.bitcoin-node1 -daemon
+bitcoind -regtest -port=18445 -rpcport=18444 -datadir=~/.bitcoin-node2 -daemon
+
+# Connect them
+bitcoin-cli -regtest -rpcport=18443 addnode "127.0.0.1:18445" "add"
+
+# Verify connection
+bitcoin-cli -regtest -rpcport=18443 getpeerinfo</code></pre>
+            </section>
+
+            <!-- Key Takeaways -->
+            <section class="content-section">
+                <div class="takeaway-box">
+                    <h3>Key Takeaways</h3>
+                    <ul>
+                        <li>Bitcoin Core is the reference implementation and primary development tool</li>
+                        <li>Regtest mode creates a private blockchain for instant, cost-free testing</li>
+                        <li>The RPC interface provides programmatic access to all Bitcoin Core functionality</li>
+                        <li>Always verify Bitcoin Core downloads with GPG signatures</li>
+                        <li>Coinbase outputs require 100 confirmations before spending</li>
+                        <li>bitcoin-cli is your primary tool for interacting with Bitcoin Core</li>
+                        <li>Test wallets allow you to simulate real-world scenarios safely</li>
+                        <li>Regtest enables testing of edge cases impossible on testnet</li>
+                        <li>Development workflow: regtest → testnet → mainnet</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Next Steps -->
+            <section class="content-section">
+                <h2>Next: Building with Bitcoin</h2>
+                <p>
+                    Now that you have a complete development environment, you're ready to build! In Module 2,
+                    we'll use this setup to create transactions from scratch, build a HD wallet, and construct
+                    a full Bitcoin application.
+                </p>
+                <p>
+                    Keep your regtest environment running—you'll need it for all the hands-on exercises in the next module!
+                </p>
+            </section>
+
+            <!-- Navigation -->
+            <nav class="module-navigation">
+                <a href="/paths/builder/stage-3/" class="nav-btn nav-btn-secondary">← Back to Stage 3</a>
+                <button id="complete-module" class="nav-btn">Mark Complete & Continue →</button>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('complete-module').addEventListener('click', function() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+
+            if (!progress.completedModules) {
+                progress.completedModules = [];
+            }
+
+            if (!progress.completedModules.includes('builder-3-1')) {
+                progress.completedModules.push('builder-3-1');
+            }
+
+            progress.lastActivity = new Date().toISOString();
+            progress.path = 'builder';
+            progress.currentStage = 3;
+            progress.currentModule = 2;
+
+            localStorage.setItem('learningProgress', JSON.stringify(progress));
+
+            alert('✓ Module 1 completed! Redirecting to Stage 3 overview...');
+            window.location.href = '/paths/builder/stage-3/';
+        });
+    </script>
+</body>
+</html>

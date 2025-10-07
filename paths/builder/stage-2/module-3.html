@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning App Development | Lightning Network | The Builder Path</title>
+    <meta name="description" content="Build Lightning applications with LND, c-lightning, and Eclair. Create invoices, handle payments, and develop real-world Lightning apps.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --lightning-yellow: #FFC107;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Module Header */
+        .module-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--lightning-yellow);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .module-title-section h1 {
+            font-size: 1.75rem;
+            color: var(--lightning-yellow);
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--lightning-yellow);
+        }
+
+        .content-section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-blue);
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .content-section ul, .content-section ol {
+            margin-left: 2rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .content-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background: rgba(255, 193, 7, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            color: var(--lightning-yellow);
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .comparison-table th {
+            background: var(--secondary-dark);
+            color: var(--lightning-yellow);
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            color: var(--text-dim);
+        }
+
+        /* Code Project Box */
+        .project-box {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-green);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .project-box h3 {
+            color: var(--accent-green);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* API Reference */
+        .api-reference {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .api-reference h4 {
+            color: var(--accent-blue);
+            margin-bottom: 0.75rem;
+        }
+
+        /* Key Takeaways */
+        .takeaway-box {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--accent-green);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .takeaway-box h3 {
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .takeaway-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .takeaway-box li {
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .takeaway-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        /* Navigation */
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--lightning-yellow);
+            color: var(--primary-dark);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .nav-btn:hover {
+            background: #ffb300;
+        }
+
+        .nav-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <!-- Module Header -->
+    <header class="module-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/builder/">The Builder Path</a> →
+                <a href="/paths/builder/stage-2/">Stage 2</a> →
+                <span>Module 3</span>
+            </div>
+            <div class="module-title-section">
+                <h1>⚡ Module 3: Lightning Application Development</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Introduction -->
+            <section class="content-section">
+                <h2>Building on Lightning</h2>
+                <p>
+                    You now understand how Lightning works at the protocol level: payment channels, commitment transactions,
+                    HTLCs, and routing. Now it's time to build applications that leverage this technology.
+                </p>
+
+                <p>
+                    In this module, you'll learn how to interact with Lightning nodes via APIs, create invoices, handle payments,
+                    and build a real Lightning-powered application.
+                </p>
+            </section>
+
+            <!-- Lightning Implementations -->
+            <section class="content-section">
+                <h2>Lightning Implementations</h2>
+
+                <p>
+                    There are three major Lightning implementations, each with different design philosophies and features:
+                </p>
+
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Implementation</th>
+                            <th>Language</th>
+                            <th>Developer</th>
+                            <th>Best For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>LND</strong></td>
+                            <td>Go</td>
+                            <td>Lightning Labs</td>
+                            <td>Production apps, well-documented APIs</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Core Lightning (CLN)</strong></td>
+                            <td>C</td>
+                            <td>Blockstream</td>
+                            <td>Plugin architecture, lightweight</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Eclair</strong></td>
+                            <td>Scala</td>
+                            <td>ACINQ</td>
+                            <td>Mobile (Eclair Mobile), Scala ecosystem</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p style="margin-top: 1.5rem;">
+                    For this module, we'll focus on <strong>LND</strong> as it has the most extensive API documentation and
+                    is widely used in production applications.
+                </p>
+
+                <h3>LND Architecture</h3>
+                <p>LND provides multiple interfaces for developers:</p>
+                <ul>
+                    <li><strong>gRPC API:</strong> High-performance remote procedure calls</li>
+                    <li><strong>REST API:</strong> HTTP JSON endpoints (easier to use)</li>
+                    <li><strong>CLI:</strong> Command-line interface (<code>lncli</code>)</li>
+                </ul>
+            </section>
+
+            <!-- Getting Started -->
+            <section class="content-section">
+                <h2>Setting Up Your Development Environment</h2>
+
+                <h3>1. Install LND</h3>
+                <pre><code># Download LND
+wget https://github.com/lightningnetwork/lnd/releases/download/v0.17.0-beta/lnd-darwin-amd64-v0.17.0-beta.tar.gz
+
+# Extract and install
+tar -xzf lnd-darwin-amd64-v0.17.0-beta.tar.gz
+sudo mv lnd-darwin-amd64-v0.17.0-beta/* /usr/local/bin/</code></pre>
+
+                <h3>2. Configure LND for Testnet</h3>
+                <p>Create <code>~/.lnd/lnd.conf</code>:</p>
+                <pre><code>[Application Options]
+listen=0.0.0.0:9735
+rpclisten=0.0.0.0:10009
+restlisten=0.0.0.0:8080
+
+[Bitcoin]
+bitcoin.active=true
+bitcoin.testnet=true
+bitcoin.node=neutrino
+
+[Neutrino]
+neutrino.connect=faucet.lightning.community</code></pre>
+
+                <h3>3. Start LND</h3>
+                <pre><code># Start LND
+lnd
+
+# In another terminal, create a wallet
+lncli create
+
+# Check status
+lncli getinfo</code></pre>
+
+                <p style="margin-top: 1rem; padding: 1rem; background: rgba(255, 193, 7, 0.1); border-radius: 0.5rem;">
+                    <strong>Note:</strong> This uses Neutrino (SPV mode) for quick setup. For production, you should connect
+                    to your own Bitcoin full node.
+                </p>
+            </section>
+
+            <!-- Working with Invoices -->
+            <section class="content-section">
+                <h2>Lightning Invoices (BOLT 11)</h2>
+
+                <p>
+                    Lightning invoices are encoded payment requests that contain:
+                </p>
+                <ul>
+                    <li>Payment hash</li>
+                    <li>Amount (in satoshis or millisatoshis)</li>
+                    <li>Expiry time</li>
+                    <li>Description</li>
+                    <li>Routing hints (optional)</li>
+                </ul>
+
+                <h3>Creating an Invoice via CLI</h3>
+                <pre><code># Create invoice for 10,000 satoshis
+lncli addinvoice --amt 10000 --memo "Payment for coffee"
+
+# Output:
+{
+    "r_hash": "a1b2c3d4e5f6...",
+    "payment_request": "lntb100u1p3abcd...",
+    "add_index": "1"
+}</code></pre>
+
+                <h3>Creating an Invoice via REST API</h3>
+                <pre><code>// JavaScript example using fetch
+const createInvoice = async (amount, memo) => {
+    const response = await fetch('https://localhost:8080/v1/invoices', {
+        method: 'POST',
+        headers: {
+            'Grpc-Metadata-macaroon': MACAROON_HEX,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            value: amount,
+            memo: memo,
+            expiry: 3600 // 1 hour
+        })
+    });
+
+    const invoice = await response.json();
+    return invoice.payment_request;
+};
+
+// Usage
+const paymentRequest = await createInvoice(10000, "Coffee payment");
+console.log(`Pay here: ${paymentRequest}`);</code></pre>
+
+                <h3>Decoding an Invoice</h3>
+                <pre><code># Decode invoice to see details
+lncli decodepayreq lntb100u1p3abcd...
+
+# Output shows:
+{
+    "destination": "03abc...",
+    "payment_hash": "a1b2c3...",
+    "num_satoshis": "10000",
+    "timestamp": "1696867200",
+    "expiry": "3600",
+    "description": "Payment for coffee",
+    "cltv_expiry": "40"
+}</code></pre>
+            </section>
+
+            <!-- Sending Payments -->
+            <section class="content-section">
+                <h2>Sending Lightning Payments</h2>
+
+                <h3>Pay an Invoice via CLI</h3>
+                <pre><code># Pay invoice
+lncli payinvoice lntb100u1p3abcd...
+
+# Check payment status
+lncli listpayments</code></pre>
+
+                <h3>Pay via REST API</h3>
+                <pre><code>const payInvoice = async (paymentRequest) => {
+    const response = await fetch('https://localhost:8080/v1/channels/transactions', {
+        method: 'POST',
+        headers: {
+            'Grpc-Metadata-macaroon': MACAROON_HEX,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            payment_request: paymentRequest
+        })
+    });
+
+    const payment = await response.json();
+    return payment;
+};
+
+// Usage
+const result = await payInvoice('lntb100u1p3abcd...');
+if (result.payment_preimage) {
+    console.log('Payment successful!');
+    console.log('Preimage:', result.payment_preimage);
+}</code></pre>
+
+                <h3>Monitoring Payment Status</h3>
+                <pre><code>// Subscribe to invoice updates via WebSocket
+const subscribeToInvoices = () => {
+    const ws = new WebSocket('wss://localhost:8080/v1/invoices/subscribe');
+
+    ws.onmessage = (event) => {
+        const invoice = JSON.parse(event.data);
+        console.log('Invoice update:', invoice);
+
+        if (invoice.state === 'SETTLED') {
+            console.log('Payment received!', invoice.value, 'sats');
+            // Update your database, fulfill order, etc.
+        }
+    };
+};
+
+subscribeToInvoices();</code></pre>
+            </section>
+
+            <!-- Code Project -->
+            <section class="content-section">
+                <div class="project-box">
+                    <h3>💻 Code Project: Lightning Invoice Generator</h3>
+                    <p style="color: var(--text-dim); text-align: center; margin-bottom: 1.5rem;">
+                        Build a simple web application that generates Lightning invoices and monitors payments in real-time.
+                    </p>
+
+                    <h4 style="color: var(--accent-green); margin: 1.5rem 0 0.75rem;">Project Requirements:</h4>
+                    <ol style="margin-left: 2rem; color: var(--text-light);">
+                        <li>Create a form that accepts amount and description</li>
+                        <li>Generate Lightning invoice using LND REST API</li>
+                        <li>Display invoice as QR code (use <code>qrcode.js</code>)</li>
+                        <li>Subscribe to invoice updates via WebSocket</li>
+                        <li>Show "Payment Received" when invoice is settled</li>
+                        <li>Display payment history</li>
+                    </ol>
+
+                    <h4 style="color: var(--accent-green); margin: 1.5rem 0 0.75rem;">Starter Code:</h4>
+                    <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Lightning Invoice Generator&lt;/title&gt;
+    &lt;script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;⚡ Lightning Invoice Generator&lt;/h1&gt;
+
+    &lt;form id="invoice-form"&gt;
+        &lt;input type="number" id="amount" placeholder="Amount (sats)" required&gt;
+        &lt;input type="text" id="memo" placeholder="Description" required&gt;
+        &lt;button type="submit"&gt;Generate Invoice&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;div id="invoice-display"&gt;&lt;/div&gt;
+    &lt;canvas id="qr-code"&gt;&lt;/canvas&gt;
+
+    &lt;script&gt;
+        const LND_REST_URL = 'https://localhost:8080';
+        const MACAROON = 'your_macaroon_hex_here';
+
+        document.getElementById('invoice-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const amount = document.getElementById('amount').value;
+            const memo = document.getElementById('memo').value;
+
+            // TODO: Call LND API to create invoice
+            // TODO: Display invoice and generate QR code
+            // TODO: Subscribe to invoice updates
+        });
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                    <p style="margin-top: 1.5rem; text-align: center; color: var(--text-dim);">
+                        <strong>Challenge:</strong> Add support for multi-currency (USD → BTC conversion via API) and invoice expiry countdown!
+                    </p>
+                </div>
+            </section>
+
+            <!-- Advanced Topics -->
+            <section class="content-section">
+                <h2>Advanced Lightning Development</h2>
+
+                <h3>1. Channel Management</h3>
+                <p>Programmatically manage channels:</p>
+                <div class="api-reference">
+                    <h4>Open Channel</h4>
+                    <pre><code>lncli openchannel --node_key 03abc... --local_amt 1000000</code></pre>
+
+                    <h4>Close Channel</h4>
+                    <pre><code>lncli closechannel --funding_txid abc123 --output_index 0</code></pre>
+
+                    <h4>List Channels</h4>
+                    <pre><code>lncli listchannels</code></pre>
+                </div>
+
+                <h3>2. Keysend (Spontaneous Payments)</h3>
+                <p>
+                    Send payments without an invoice (push payments):
+                </p>
+                <pre><code>lncli sendpayment --dest 03abc... --amt 1000 --keysend</code></pre>
+
+                <h3>3. Submarine Swaps</h3>
+                <p>
+                    Atomic swaps between on-chain and Lightning using HTLCs. Useful for:
+                </p>
+                <ul>
+                    <li>Moving funds from on-chain to Lightning</li>
+                    <li>Withdrawing Lightning funds to cold storage</li>
+                    <li>Trustless exchange between BTC and L-BTC</li>
+                </ul>
+
+                <h3>4. LNURL</h3>
+                <p>
+                    Higher-level protocol for Lightning interactions:
+                </p>
+                <ul>
+                    <li><strong>LNURL-pay:</strong> Simplified payment requests</li>
+                    <li><strong>LNURL-withdraw:</strong> Let users withdraw from your service</li>
+                    <li><strong>LNURL-auth:</strong> Login with Lightning</li>
+                </ul>
+            </section>
+
+            <!-- Production Considerations -->
+            <section class="content-section">
+                <h2>Production Best Practices</h2>
+
+                <h3>Security</h3>
+                <ul>
+                    <li>Never expose macaroons in client-side code</li>
+                    <li>Use invoice macaroons (limited permissions) for invoice generation</li>
+                    <li>Run LND behind a secure proxy with HTTPS</li>
+                    <li>Regularly backup <code>channel.backup</code> file</li>
+                </ul>
+
+                <h3>Reliability</h3>
+                <ul>
+                    <li>Run watchtowers to monitor for breach attempts</li>
+                    <li>Set up monitoring and alerts for channel states</li>
+                    <li>Maintain multiple channels for redundancy</li>
+                    <li>Implement automatic channel rebalancing</li>
+                </ul>
+
+                <h3>Liquidity Management</h3>
+                <ul>
+                    <li>Monitor inbound vs outbound liquidity</li>
+                    <li>Use circular rebalancing to maintain balanced channels</li>
+                    <li>Consider Loop Out/In for liquidity management</li>
+                    <li>Open channels to well-connected routing nodes</li>
+                </ul>
+            </section>
+
+            <!-- Key Takeaways -->
+            <section class="content-section">
+                <div class="takeaway-box">
+                    <h3>🎯 Key Takeaways</h3>
+                    <ul>
+                        <li>Three major Lightning implementations: LND, Core Lightning, Eclair</li>
+                        <li>LND provides gRPC, REST, and CLI interfaces for developers</li>
+                        <li>BOLT 11 invoices encode payment requests with hash, amount, and metadata</li>
+                        <li>Subscribe to invoice updates via WebSocket for real-time payment monitoring</li>
+                        <li>Macaroons provide capability-based authentication for LND APIs</li>
+                        <li>Production apps need proper security, monitoring, and backup strategies</li>
+                        <li>Advanced features: keysend, submarine swaps, LNURL protocols</li>
+                        <li>Liquidity management is crucial for reliable payment routing</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Resources -->
+            <section class="content-section">
+                <h2>📚 Additional Resources</h2>
+                <ul>
+                    <li><a href="https://docs.lightning.engineering/" style="color: var(--lightning-yellow);">LND Documentation</a></li>
+                    <li><a href="https://github.com/lightningnetwork/lnd/tree/master/docs" style="color: var(--lightning-yellow);">LND Developer Guide</a></li>
+                    <li><a href="https://lightninghood.com/lightning-network-specifications/" style="color: var(--lightning-yellow);">BOLT Specifications</a></li>
+                    <li><a href="https://github.com/bcongdon/awesome-lightning-network" style="color: var(--lightning-yellow);">Awesome Lightning Network</a></li>
+                </ul>
+            </section>
+
+            <!-- Navigation -->
+            <nav class="module-navigation">
+                <a href="/paths/builder/stage-2/module-2.html" class="nav-btn nav-btn-secondary">← Previous Module</a>
+                <button id="complete-module" class="nav-btn">Complete Stage 2 →</button>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('complete-module').addEventListener('click', function() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+
+            if (!progress.completedModules) {
+                progress.completedModules = [];
+            }
+
+            if (!progress.completedModules.includes('builder-2-3')) {
+                progress.completedModules.push('builder-2-3');
+            }
+
+            if (!progress.badges) {
+                progress.badges = [];
+            }
+
+            if (!progress.badges.includes('lightning-developer')) {
+                progress.badges.push('lightning-developer');
+            }
+
+            progress.lastActivity = new Date().toISOString();
+            progress.path = 'builder';
+            progress.currentStage = 2;
+
+            localStorage.setItem('learningProgress', JSON.stringify(progress));
+
+            alert('🎉 Stage 2 Complete! You earned the "Lightning Developer" badge! Redirecting...');
+            window.location.href = '/paths/builder/stage-2/';
+        });
+    </script>
+</body>
+</html>

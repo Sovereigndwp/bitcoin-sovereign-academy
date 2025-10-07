@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Channels | Lightning Network | The Builder Path</title>
+    <meta name="description" content="Master Lightning Network payment channels: channel construction, commitment transactions, and revocation mechanisms.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --lightning-yellow: #FFC107;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Module Header */
+        .module-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--lightning-yellow);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .module-title-section h1 {
+            font-size: 1.75rem;
+            color: var(--lightning-yellow);
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--lightning-yellow);
+        }
+
+        .content-section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-blue);
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .content-section ul, .content-section ol {
+            margin-left: 2rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .content-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background: rgba(255, 193, 7, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            color: var(--lightning-yellow);
+        }
+
+        pre {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-light);
+        }
+
+        /* Interactive Demo */
+        .demo-container {
+            background: var(--secondary-dark);
+            border: 2px solid var(--lightning-yellow);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-container h3 {
+            color: var(--lightning-yellow);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Challenge Box */
+        .challenge-box {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .challenge-box h3 {
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+
+        /* Key Takeaways */
+        .takeaway-box {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--accent-green);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .takeaway-box h3 {
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .takeaway-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .takeaway-box li {
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .takeaway-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        /* Navigation */
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--lightning-yellow);
+            color: var(--primary-dark);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .nav-btn:hover {
+            background: #ffb300;
+        }
+
+        .nav-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+
+        /* Diagram Styles */
+        .diagram {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .diagram pre {
+            text-align: left;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <!-- Module Header -->
+    <header class="module-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/builder/">The Builder Path</a> →
+                <a href="/paths/builder/stage-2/">Stage 2</a> →
+                <span>Module 1</span>
+            </div>
+            <div class="module-title-section">
+                <h1>⚡ Module 1: Payment Channels</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Introduction -->
+            <section class="content-section">
+                <h2>🤔 The Scaling Problem</h2>
+                <p>
+                    Bitcoin's base layer processes ~7 transactions per second. To become global money, we need millions of
+                    transactions per second. But increasing the block size would centralize the network by making it expensive
+                    to run a full node.
+                </p>
+
+                <p style="margin-top: 1.5rem; padding: 1rem; background: rgba(255, 193, 7, 0.1); border-radius: 0.5rem;">
+                    <strong>Key Insight:</strong> What if most transactions didn't need to be on the blockchain?
+                    What if two parties could transact thousands of times with only two on-chain transactions: one to open a channel,
+                    one to close it?
+                </p>
+
+                <p style="margin-top: 1.5rem;">
+                    <strong style="color: var(--lightning-yellow);">That's exactly what Lightning payment channels enable.</strong>
+                </p>
+            </section>
+
+            <!-- Payment Channel Basics -->
+            <section class="content-section">
+                <h2>What is a Payment Channel?</h2>
+
+                <p>
+                    A payment channel is a <strong>bidirectional payment relationship</strong> between two parties (Alice and Bob)
+                    that allows them to send Bitcoin back and forth instantly, with near-zero fees, without broadcasting
+                    transactions to the blockchain.
+                </p>
+
+                <h3>The Core Concept</h3>
+                <p>Think of it like a bar tab:</p>
+                <ol>
+                    <li>You open a tab (put money down) → <strong>Opening transaction (on-chain)</strong></li>
+                    <li>You order drinks throughout the night → <strong>Off-chain payments</strong></li>
+                    <li>At the end, you settle the final balance → <strong>Closing transaction (on-chain)</strong></li>
+                </ol>
+
+                <p style="margin-top: 1.5rem;">
+                    But unlike a bar tab where you trust the bartender, Lightning channels are <strong>trustless</strong>—
+                    either party can close the channel at any time and get their correct balance, enforced by Bitcoin's
+                    consensus rules.
+                </p>
+            </section>
+
+            <!-- Channel Lifecycle -->
+            <section class="content-section">
+                <h2>Channel Lifecycle</h2>
+
+                <h3>1. Channel Opening</h3>
+                <p>
+                    Alice wants to open a channel with Bob. She creates a <strong>funding transaction</strong> that locks
+                    Bitcoin in a 2-of-2 multisig address controlled by both Alice and Bob.
+                </p>
+
+                <div class="diagram">
+                    <pre><code>┌─────────────────────────────────────┐
+│   Funding Transaction (on-chain)   │
+├─────────────────────────────────────┤
+│                                     │
+│  Alice locks: 0.5 BTC               │
+│  Bob locks:   0.3 BTC               │
+│  ─────────────────────              │
+│  Total:       0.8 BTC               │
+│                                     │
+│  → 2-of-2 Multisig Address          │
+│    (requires both signatures)       │
+└─────────────────────────────────────┘</code></pre>
+                </div>
+
+                <p>
+                    <strong>Important:</strong> Before broadcasting the funding transaction, Alice and Bob create the first
+                    <strong>commitment transaction</strong> that allows them to get their money back. This prevents one party
+                    from stealing funds.
+                </p>
+
+                <h3>2. Channel Updates (Off-Chain Payments)</h3>
+                <p>
+                    Once the channel is open, Alice and Bob can update the balance distribution as many times as they want
+                    without touching the blockchain. Each update creates a new <strong>commitment transaction</strong>
+                    that spends from the funding transaction.
+                </p>
+
+                <div class="diagram">
+                    <pre><code>State 0 (Opening):
+Alice: 0.5 BTC  |  Bob: 0.3 BTC
+
+Alice pays Bob 0.1 BTC → State 1:
+Alice: 0.4 BTC  |  Bob: 0.4 BTC
+
+Bob pays Alice 0.2 BTC → State 2:
+Alice: 0.6 BTC  |  Bob: 0.2 BTC
+
+Alice pays Bob 0.05 BTC → State 3:
+Alice: 0.55 BTC  |  Bob: 0.25 BTC</code></pre>
+                </div>
+
+                <p>
+                    Each state is represented by a pair of commitment transactions (one for Alice, one for Bob). Only the
+                    <strong>latest state</strong> should be broadcastable—old states must be revoked.
+                </p>
+
+                <h3>3. Channel Closing</h3>
+                <p>
+                    Either party can close the channel at any time:
+                </p>
+                <ul>
+                    <li><strong>Cooperative Close:</strong> Both parties agree on the final balance and sign a closing transaction. Fast and cheap.</li>
+                    <li><strong>Unilateral Close:</strong> One party broadcasts their latest commitment transaction. Requires a time delay for security.</li>
+                    <li><strong>Breach Close:</strong> If someone tries to broadcast an old state, the other party can claim all funds as a penalty.</li>
+                </ul>
+            </section>
+
+            <!-- Commitment Transactions -->
+            <section class="content-section">
+                <h2>Commitment Transactions: The Security Mechanism</h2>
+
+                <p>
+                    The brilliant part of Lightning is the <strong>revocation mechanism</strong> that makes old channel states
+                    unbroadcastable (or extremely costly to broadcast).
+                </p>
+
+                <h3>How Commitment Transactions Work</h3>
+                <p>
+                    Each time Alice and Bob update the channel balance, they create <strong>two</strong> commitment transactions:
+                </p>
+                <ul>
+                    <li><strong>Alice's commitment tx:</strong> Spends the funding output, gives Bob his balance immediately, but delays Alice's balance</li>
+                    <li><strong>Bob's commitment tx:</strong> Spends the funding output, gives Alice her balance immediately, but delays Bob's balance</li>
+                </ul>
+
+                <p style="margin-top: 1.5rem;">
+                    <strong>Why the delay?</strong> The delay (typically 144 blocks / ~1 day) gives the other party time to
+                    detect if you're broadcasting an old state and punish you.
+                </p>
+
+                <h3>Revocation Keys</h3>
+                <p>
+                    When moving to a new state, both parties exchange <strong>revocation keys</strong> for the previous state.
+                    This key allows the other party to spend your delayed output if you cheat by broadcasting an old commitment
+                    transaction.
+                </p>
+
+                <div class="diagram">
+                    <pre><code>Alice broadcasts old State 1 (cheating):
+┌────────────────────────────────┐
+│ State 1: Alice 0.4, Bob 0.4    │
+└────────────────────────────────┘
+         ↓
+Bob detects this (watchtower or running node)
+         ↓
+Bob uses revocation key to claim ALL 0.8 BTC
+         ↓
+🎉 Bob gets 0.8 BTC, Alice gets 0 (penalty)</code></pre>
+                </div>
+
+                <p>
+                    This <strong>penalty mechanism</strong> is what makes Lightning trustless—trying to cheat results in
+                    losing all your funds.
+                </p>
+            </section>
+
+            <!-- Interactive Demo -->
+            <section class="content-section">
+                <div class="demo-container">
+                    <h3>🎮 Lightning Lab: Build a Payment Channel</h3>
+                    <p style="color: var(--text-dim); text-align: center; margin-bottom: 1.5rem;">
+                        Experience opening a channel, making payments, and understanding commitment transactions interactively.
+                    </p>
+
+                    <iframe
+                        src="/interactive-demos/lightning-channel-sim.html"
+                        style="width: 100%; height: 700px; border: none; border-radius: 0.5rem; background: white;"
+                        title="Lightning Channel Simulator">
+                    </iframe>
+
+                    <p style="margin-top: 1rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;">
+                        💡 Try broadcasting an old state to see the penalty mechanism in action!
+                    </p>
+                </div>
+            </section>
+
+            <!-- Technical Details -->
+            <section class="content-section">
+                <h2>Technical Deep Dive</h2>
+
+                <h3>Commitment Transaction Structure</h3>
+                <p>
+                    A commitment transaction has two outputs:
+                </p>
+
+                <pre><code>Commitment Transaction (Alice's version):
+├─ Output 0: Bob's balance
+│  └─ scriptPubKey: Bob can spend immediately
+│
+├─ Output 1: Alice's balance
+   └─ scriptPubKey: Two spending paths:
+      ├─ Path 1: Alice can spend after timelock (144 blocks)
+      └─ Path 2: Bob can spend immediately using revocation key</code></pre>
+
+                <h3>RSMC (Revocable Sequence Maturity Contract)</h3>
+                <p>
+                    The script that enables revocable commitments uses <code>OP_CHECKSEQUENCEVERIFY</code>:
+                </p>
+
+                <pre><code>OP_IF
+    # Revocation path
+    &lt;revocation_pubkey&gt;
+OP_ELSE
+    # Delayed path
+    &lt;to_self_delay&gt;
+    OP_CHECKSEQUENCEVERIFY
+    OP_DROP
+    &lt;local_delayed_pubkey&gt;
+OP_ENDIF
+OP_CHECKSIG</code></pre>
+
+                <p style="margin-top: 1rem;">
+                    This allows either the revocation key to spend immediately (if cheating is detected) or the owner to
+                    spend after a delay.
+                </p>
+            </section>
+
+            <!-- Challenge -->
+            <section class="content-section">
+                <div class="challenge-box">
+                    <h3>💡 Think About It</h3>
+                    <p><strong>Question:</strong> Why does each party need their own commitment transaction? Why can't they share one?</p>
+                    <p style="margin-top: 1rem; color: var(--text-dim); font-size: 0.95rem;">
+                        <strong>Answer:</strong> Because each party needs to be penalized for broadcasting old states.
+                        In Alice's commitment tx, her output is delayed (so Bob can penalize her). In Bob's commitment tx,
+                        his output is delayed (so Alice can penalize him). If they shared one commitment tx, only one party
+                        could be penalized!
+                    </p>
+                </div>
+            </section>
+
+            <!-- Key Takeaways -->
+            <section class="content-section">
+                <div class="takeaway-box">
+                    <h3>🎯 Key Takeaways</h3>
+                    <ul>
+                        <li>Payment channels enable instant, low-fee Bitcoin payments off-chain</li>
+                        <li>Channels require only 2 on-chain transactions: open and close</li>
+                        <li>Each channel state has two commitment transactions (one for each party)</li>
+                        <li>Commitment transactions use time delays and revocation keys to prevent cheating</li>
+                        <li>Broadcasting an old state results in losing all your funds (penalty transaction)</li>
+                        <li>Channels are trustless—no need to trust your counterparty</li>
+                        <li>Watchtowers can monitor for fraud attempts while you're offline</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <nav class="module-navigation">
+                <a href="/paths/builder/stage-2/" class="nav-btn nav-btn-secondary">← Back to Stage 2</a>
+                <button id="complete-module" class="nav-btn">Mark Complete & Continue →</button>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('complete-module').addEventListener('click', function() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+
+            if (!progress.completedModules) {
+                progress.completedModules = [];
+            }
+
+            if (!progress.completedModules.includes('builder-2-1')) {
+                progress.completedModules.push('builder-2-1');
+            }
+
+            progress.lastActivity = new Date().toISOString();
+            progress.path = 'builder';
+            progress.currentStage = 2;
+            progress.currentModule = 2;
+
+            localStorage.setItem('learningProgress', JSON.stringify(progress));
+
+            alert('✓ Module 1 completed! Redirecting to Stage 2 overview...');
+            window.location.href = '/paths/builder/stage-2/';
+        });
+    </script>
+</body>
+</html>

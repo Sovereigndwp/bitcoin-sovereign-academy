@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIPs and Protocol Evolution | Contributing to Bitcoin | The Builder Path</title>
+    <meta name="description" content="Understand the BIP process, soft forks vs hard forks, and how Bitcoin's protocol evolves through consensus with case studies of SegWit, Taproot, and Schnorr.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --contributor-red: #E53935;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .module-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--contributor-red);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .module-title-section h1 {
+            font-size: 1.75rem;
+            color: var(--contributor-red);
+        }
+
+        .module-meta {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .content-section {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--contributor-red);
+        }
+
+        .content-section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-blue);
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .content-section ul, .content-section ol {
+            margin-left: 2rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .content-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background: rgba(229, 57, 53, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            color: var(--contributor-red);
+        }
+
+        pre {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-light);
+        }
+
+        .demo-container {
+            background: var(--secondary-dark);
+            border: 2px solid var(--contributor-red);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .case-study {
+            background: var(--secondary-dark);
+            border-left: 4px solid var(--contributor-red);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .case-study h3 {
+            color: var(--contributor-red);
+            margin-bottom: 1rem;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--contributor-red);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.5rem;
+            top: 0.5rem;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--contributor-red);
+            border: 2px solid var(--primary-dark);
+        }
+
+        .timeline-date {
+            color: var(--contributor-red);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .exercise-box {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .exercise-box h3 {
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+
+        .warning-box {
+            background: rgba(255, 152, 0, 0.1);
+            border-left: 4px solid #ff9800;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .warning-box h3 {
+            color: #ff9800;
+            margin-bottom: 1rem;
+        }
+
+        .takeaway-box {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--accent-green);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .takeaway-box h3 {
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .takeaway-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .takeaway-box li {
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .takeaway-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        .socratic-box {
+            background: var(--secondary-dark);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .socratic-item {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .socratic-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .socratic-item strong {
+            color: var(--accent-blue);
+        }
+
+        .comparison-table {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin: 1.5rem 0;
+        }
+
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th {
+            background: rgba(229, 57, 53, 0.2);
+            color: var(--contributor-red);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(247, 147, 26, 0.05);
+        }
+
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--contributor-red);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .nav-btn:hover {
+            background: #C62828;
+        }
+
+        .nav-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+
+        .bip-box {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .bip-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .bip-number {
+            background: var(--contributor-red);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-weight: 700;
+        }
+
+        .bip-status {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--accent-green);
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Module Header -->
+    <header class="module-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/builder/">The Builder Path</a> →
+                <a href="/paths/builder/stage-4/">Stage 4</a> →
+                <span>Module 2</span>
+            </div>
+            <div class="module-title-section">
+                <h1>Module 2: BIPs and Protocol Evolution</h1>
+                <div class="module-meta">Estimated time: 60 minutes</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Socratic Questions -->
+            <section class="content-section">
+                <h2>Before We Begin: Think About Protocol Governance</h2>
+                <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                    Bitcoin has no CEO, no board of directors, no formal governance structure. Yet it evolves
+                    and improves. How is this possible?
+                </p>
+
+                <div class="socratic-box">
+                    <div class="socratic-item">
+                        <span style="font-size: 1.5rem;">🗳️</span>
+                        <div>
+                            <strong>How do thousands of independent node operators agree on protocol changes?</strong>
+                            <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">
+                                No one can force nodes to upgrade. So how do new features get adopted across the network?
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="socratic-item">
+                        <span style="font-size: 1.5rem;">⚖️</span>
+                        <div>
+                            <strong>What's the difference between a soft fork and a hard fork?</strong>
+                            <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">
+                                Both change Bitcoin's rules, but one is backward compatible and one isn't. Why does this matter?
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="socratic-item">
+                        <span style="font-size: 1.5rem;">📜</span>
+                        <div>
+                            <strong>How do you propose improvements to a decentralized protocol?</strong>
+                            <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">
+                                There's no "suggestion box" at Bitcoin HQ. What's the process for suggesting changes?
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="socratic-item">
+                        <span style="font-size: 1.5rem;">🔐</span>
+                        <div>
+                            <strong>Why did it take years to activate SegWit and Taproot?</strong>
+                            <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">
+                                These were widely desired improvements. Why the slow rollout compared to traditional software?
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="margin-top: 1.5rem; text-align: center; font-size: 1.1rem;">
+                    <strong style="color: var(--accent-green);">Bitcoin's answer: Bitcoin Improvement Proposals (BIPs)</strong>
+                </p>
+            </section>
+
+            <!-- BIP Process -->
+            <section class="content-section">
+                <h2>The BIP Process: How Bitcoin Evolves</h2>
+
+                <p>
+                    <strong>Bitcoin Improvement Proposals (BIPs)</strong> are the primary mechanism for proposing changes
+                    to Bitcoin's protocol, applications, and processes. They provide a formal, documented way for the
+                    community to discuss and evaluate potential improvements.
+                </p>
+
+                <h3>What is a BIP?</h3>
+                <p>
+                    A BIP is a design document that:
+                </p>
+                <ul>
+                    <li>Describes a new feature or change to Bitcoin</li>
+                    <li>Provides technical specifications</li>
+                    <li>Explains the rationale and motivation</li>
+                    <li>Documents discussion and consensus-building</li>
+                    <li>Serves as permanent documentation if implemented</li>
+                </ul>
+
+                <h3>BIP Types</h3>
+
+                <div class="comparison-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Examples</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Standards Track</strong></td>
+                                <td>Changes to the Bitcoin protocol, network, or validation rules</td>
+                                <td>BIP 141 (SegWit), BIP 340-342 (Taproot)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Informational</strong></td>
+                                <td>Design issues, guidelines, or information for community</td>
+                                <td>BIP 39 (Mnemonic seeds)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Process</strong></td>
+                                <td>Changes to Bitcoin development processes</td>
+                                <td>BIP 2 (BIP process itself)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>BIP Lifecycle</h3>
+
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">1. Draft</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            Initial proposal written and submitted to BIPs repository. Open for feedback and discussion.
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">2. Proposed</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            Proposal is complete and ready for community review. Discussion continues.
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">3. Final</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            BIP has been implemented and activated on the network. No longer changing.
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">Alternative: Rejected/Withdrawn</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            Proposal doesn't gain consensus or is withdrawn by author.
+                        </p>
+                    </div>
+                </div>
+
+                <h3>How to Read a BIP</h3>
+
+                <p>Every BIP follows a standard structure:</p>
+
+                <pre><code>BIP: [number]
+Title: [descriptive title]
+Author: [names and emails]
+Status: [Draft/Proposed/Final/etc]
+Type: [Standards Track/Informational/Process]
+Created: [date]
+License: [license type]
+
+Abstract
+--------
+Brief summary of what the BIP proposes
+
+Motivation
+----------
+Why is this change needed? What problem does it solve?
+
+Specification
+-------------
+Detailed technical description of the change
+
+Rationale
+---------
+Why this approach over alternatives?
+
+Backward Compatibility
+----------------------
+How does this affect existing systems?
+
+Reference Implementation
+------------------------
+Link to code implementing this BIP</code></pre>
+
+                <div class="exercise-box">
+                    <h3>Practice: Read Your First BIP</h3>
+                    <p>
+                        Go to <a href="https://github.com/bitcoin/bips" style="color: var(--accent-blue);">github.com/bitcoin/bips</a>
+                        and read <strong>BIP 32: Hierarchical Deterministic Wallets</strong>.
+                    </p>
+                    <p style="margin-top: 1rem;">As you read, identify:</p>
+                    <ul style="margin-left: 1rem;">
+                        <li>What problem does it solve?</li>
+                        <li>What are the key technical innovations?</li>
+                        <li>Why is this better than previous approaches?</li>
+                        <li>Are there any tradeoffs or limitations?</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Soft Forks vs Hard Forks -->
+            <section class="content-section">
+                <h2>Soft Forks vs Hard Forks</h2>
+
+                <p>
+                    Understanding the difference between soft forks and hard forks is crucial for Bitcoin development.
+                    It's not just technical—it's about how changes can (or can't) be deployed in a decentralized network.
+                </p>
+
+                <h3>Hard Fork: Breaking Change</h3>
+
+                <p>
+                    A <strong>hard fork</strong> makes previously invalid blocks/transactions valid. Old nodes will
+                    reject new blocks, causing a permanent chain split.
+                </p>
+
+                <div class="comparison-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Characteristic</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Compatibility</strong></td>
+                                <td>NOT backward compatible. Old nodes reject new blocks.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Activation</strong></td>
+                                <td>Requires ALL nodes to upgrade or be left on old chain</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Risk</strong></td>
+                                <td>HIGH - Can split network, create two coins</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Examples</strong></td>
+                                <td>Increasing block size, changing PoW algorithm</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Used in Bitcoin?</strong></td>
+                                <td>Extremely rare - last scheduled hard fork was in 2013</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p style="margin-top: 1.5rem;"><strong>Example of a hard fork change:</strong></p>
+                <pre><code>// Increasing block size from 1MB to 2MB
+// Old rule: blocks > 1MB are invalid
+if (block.size > 1_000_000) {
+    return false; // INVALID
+}
+
+// New rule: blocks up to 2MB are valid
+if (block.size > 2_000_000) {
+    return false; // INVALID
+}
+
+// Problem: Old nodes reject new 1.5MB blocks → chain split!</code></pre>
+
+                <h3>Soft Fork: Backward Compatible Change</h3>
+
+                <p>
+                    A <strong>soft fork</strong> makes previously valid blocks/transactions invalid (stricter rules).
+                    Old nodes still accept new blocks, remaining compatible.
+                </p>
+
+                <div class="comparison-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Characteristic</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Compatibility</strong></td>
+                                <td>Backward compatible. Old nodes accept new blocks.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Activation</strong></td>
+                                <td>Only requires majority of miners to upgrade</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Risk</strong></td>
+                                <td>LOWER - Network stays unified</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Examples</strong></td>
+                                <td>SegWit, Taproot, P2SH, CLTV, CSV</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Used in Bitcoin?</strong></td>
+                                <td>Preferred method for protocol upgrades</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p style="margin-top: 1.5rem;"><strong>Example of a soft fork change:</strong></p>
+                <pre><code>// Adding new script opcode via soft fork
+// Old rule: Any script is potentially valid
+// New rule: OP_CHECKSEQUENCEVERIFY must pass new check
+
+// Old nodes see new transactions as "anyone can spend"
+// But miners enforce the new rule
+// So old nodes still accept blocks with new transactions
+
+// Result: Network stays unified, new feature deployed!</code></pre>
+
+                <div class="warning-box">
+                    <h3>⚠️ Why Bitcoin Avoids Hard Forks</h3>
+                    <p>
+                        Hard forks require coordinating thousands of independent node operators to upgrade simultaneously.
+                        This is:
+                    </p>
+                    <ul style="margin-top: 0.5rem;">
+                        <li>Nearly impossible in a decentralized system</li>
+                        <li>Creates risk of permanent chain splits</li>
+                        <li>Can be exploited for contentious changes</li>
+                        <li>Reduces nodes' ability to independently validate rules</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">
+                        <strong>Bitcoin's principle:</strong> Your node, your rules. Soft forks preserve this by making
+                        changes opt-in while maintaining network unity.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Case Study: SegWit -->
+            <section class="content-section">
+                <h2>Case Study: Segregated Witness (SegWit)</h2>
+
+                <div class="case-study">
+                    <div class="bip-header">
+                        <h3 style="margin: 0;">Segregated Witness</h3>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <span class="bip-number">BIP 141</span>
+                            <span class="bip-status">Final (2017)</span>
+                        </div>
+                    </div>
+
+                    <p><strong>The Problem:</strong></p>
+                    <p>
+                        Bitcoin faced several issues that SegWit addressed:
+                    </p>
+                    <ul>
+                        <li><strong>Transaction Malleability:</strong> Transaction IDs could change before confirmation</li>
+                        <li><strong>Block Size Limitation:</strong> 1MB block limit constraining transaction capacity</li>
+                        <li><strong>Signature Data Overhead:</strong> Signatures took up ~65% of transaction data</li>
+                        <li><strong>Script Versioning:</strong> Hard to deploy new script features</li>
+                    </ul>
+
+                    <p style="margin-top: 1.5rem;"><strong>The Solution:</strong></p>
+                    <p>
+                        SegWit separated (segregated) the signature data (witness) from transaction data:
+                    </p>
+
+                    <pre><code>// Before SegWit - Signature included in transaction
+Transaction {
+    inputs: [...],
+    outputs: [...],
+    signatures: [...]  // Part of transaction hash
+}
+
+// After SegWit - Signature separated
+Transaction {
+    inputs: [...],
+    outputs: [...]
+}
+Witness {
+    signatures: [...]  // Separate, not in transaction hash
+}</code></pre>
+
+                    <p style="margin-top: 1.5rem;"><strong>Benefits Achieved:</strong></p>
+                    <ul>
+                        <li><strong>Fixed malleability:</strong> Txid no longer includes signatures</li>
+                        <li><strong>Increased capacity:</strong> ~1.8MB effective block size</li>
+                        <li><strong>Lower fees:</strong> Witness data gets 75% discount</li>
+                        <li><strong>Enabled Lightning:</strong> Made payment channels practical</li>
+                        <li><strong>Script versioning:</strong> Enabled future upgrades (like Taproot)</li>
+                    </ul>
+
+                    <p style="margin-top: 1.5rem;"><strong>Why It's a Soft Fork:</strong></p>
+                    <p>
+                        SegWit transactions appear as "anyone can spend" to old nodes. But miners enforcing new rules
+                        prevent actual spending without proper signatures. Old nodes still validate blocks, just with
+                        reduced security guarantees.
+                    </p>
+                </div>
+
+                <h3>SegWit Activation Timeline</h3>
+
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">December 2015</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            BIP 141 proposed by Pieter Wuille
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">November 2016</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            SegWit merged into Bitcoin Core 0.13.1
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">November 2016 - July 2017</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            Signaling period - miners vote for activation (contentious!)
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">August 24, 2017</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            SegWit activated at block 481,824 (95% miner support achieved)
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">2017 - Present</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            Gradual adoption - now ~85%+ of transactions use SegWit
+                        </p>
+                    </div>
+                </div>
+
+                <div class="warning-box">
+                    <h3>Lessons from SegWit</h3>
+                    <ul>
+                        <li>Consensus building takes time - even for good ideas</li>
+                        <li>Soft forks are technically backward compatible, but adoption is gradual</li>
+                        <li>Protocol changes are political as much as technical</li>
+                        <li>The Bitcoin community values caution over speed</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Case Study: Taproot -->
+            <section class="content-section">
+                <h2>Case Study: Taproot & Schnorr Signatures</h2>
+
+                <div class="case-study">
+                    <div class="bip-header">
+                        <h3 style="margin: 0;">Taproot Upgrade</h3>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <span class="bip-number">BIP 340-342</span>
+                            <span class="bip-status">Final (2021)</span>
+                        </div>
+                    </div>
+
+                    <p><strong>Three BIPs, One Upgrade:</strong></p>
+                    <ul>
+                        <li><strong>BIP 340:</strong> Schnorr signatures for secp256k1</li>
+                        <li><strong>BIP 341:</strong> Taproot (SegWit v1 output spending rules)</li>
+                        <li><strong>BIP 342:</strong> Tapscript (new scripting language)</li>
+                    </ul>
+
+                    <p style="margin-top: 1.5rem;"><strong>Key Innovations:</strong></p>
+
+                    <h3>1. Schnorr Signatures (BIP 340)</h3>
+                    <p>
+                        Replaced ECDSA with Schnorr signatures, enabling:
+                    </p>
+                    <ul>
+                        <li><strong>Signature aggregation:</strong> Combine multiple signatures into one</li>
+                        <li><strong>Smaller size:</strong> More compact than ECDSA</li>
+                        <li><strong>Provable security:</strong> Stronger mathematical foundation</li>
+                        <li><strong>Better privacy:</strong> Multi-sig looks like single-sig</li>
+                    </ul>
+
+                    <pre><code>// Before: 2-of-3 multisig requires 2 separate signatures
+scriptPubKey: OP_2 <pubkey1> <pubkey2> <pubkey3> OP_3 OP_CHECKMULTISIG
+scriptSig: <sig1> <sig2>
+
+// After: Schnorr MuSig - single aggregated signature
+scriptPubKey: <aggregated_pubkey> OP_CHECKSIG
+scriptSig: <aggregated_sig>
+
+// Same security, smaller size, better privacy!</code></pre>
+
+                    <h3>2. Taproot (BIP 341)</h3>
+                    <p>
+                        Allows complex scripts to look like simple payments, improving privacy and efficiency:
+                    </p>
+                    <ul>
+                        <li>Most outputs look identical on-chain</li>
+                        <li>Only reveal script conditions when spending via that path</li>
+                        <li>Can have multiple spending paths (scripts) in one output</li>
+                        <li>Simple case (key path) is very efficient</li>
+                    </ul>
+
+                    <pre><code>// Taproot output can be spent via:
+// 1. Key path (most common): Simple signature
+// 2. Script path: Reveal one of many possible scripts
+
+// Example: Lightning channel
+// Key path: Both parties agree (cooperative close)
+// Script path: Timelock recovery (uncooperative close)
+
+// On-chain, both look identical until spent!</code></pre>
+
+                    <h3>3. Tapscript (BIP 342)</h3>
+                    <p>
+                        New version of Bitcoin Script with improvements:
+                    </p>
+                    <ul>
+                        <li>Signature operations use Schnorr</li>
+                        <li>OP_CHECKSIGADD for batch verification</li>
+                        <li>Removed 10,000 op limit</li>
+                        <li>Future upgradability via OP_SUCCESSx opcodes</li>
+                    </ul>
+                </div>
+
+                <h3>Taproot Activation Timeline</h3>
+
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">January 2018</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            Pieter Wuille proposes Schnorr signatures
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">January 2020</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            BIPs 340-342 published
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">November 2020</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            Merged into Bitcoin Core 0.21.0
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">June 2021</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            Speedy Trial activation method - 90% miner signaling threshold achieved
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">November 14, 2021</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            Taproot activated at block 709,632
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">2021 - Present</div>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.25rem;">
+                            Growing adoption - wallet/exchange support expanding
+                        </p>
+                    </div>
+                </div>
+
+                <div class="takeaway-box">
+                    <h3>Lessons from Taproot</h3>
+                    <ul>
+                        <li>Taproot learned from SegWit - smoother activation process</li>
+                        <li>"Speedy Trial" gave miners/community clear timeframe to signal</li>
+                        <li>Bundling related improvements (Schnorr + Taproot + Tapscript) reduced coordination overhead</li>
+                        <li>Privacy and efficiency improvements encourage adoption</li>
+                        <li>Forward compatibility designed in from the start</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Activation Mechanisms -->
+            <section class="content-section">
+                <h2>Soft Fork Activation Mechanisms</h2>
+
+                <p>
+                    How does a soft fork actually activate across the network? Bitcoin has tried several methods:
+                </p>
+
+                <h3>1. Flag Day Activation</h3>
+                <p>
+                    Activate at a specific block height or time, regardless of miner support.
+                </p>
+                <ul>
+                    <li><strong>Pro:</strong> Simple, predictable</li>
+                    <li><strong>Con:</strong> No signal of readiness, risk of chain split if controversial</li>
+                    <li><strong>Used for:</strong> Early Bitcoin upgrades (P2SH)</li>
+                </ul>
+
+                <h3>2. IsSuperMajority (ISM)</h3>
+                <p>
+                    Activate when 950 of last 1,000 blocks signal readiness (95% threshold).
+                </p>
+                <ul>
+                    <li><strong>Pro:</strong> Measures miner readiness</li>
+                    <li><strong>Con:</strong> No timeout, could stall forever</li>
+                    <li><strong>Used for:</strong> BIP 66 (strict DER signatures), BIP 65 (CLTV)</li>
+                </ul>
+
+                <h3>3. BIP 9 (Version Bits)</h3>
+                <p>
+                    95% miner signaling within defined time window. Fails if threshold not met by timeout.
+                </p>
+                <ul>
+                    <li><strong>Pro:</strong> Multiple forks can be deployed in parallel</li>
+                    <li><strong>Con:</strong> Can fail if miners don't signal (SegWit issue)</li>
+                    <li><strong>Used for:</strong> BIP 68, 112, 113 (CSV)</li>
+                </ul>
+
+                <h3>4. BIP 148 (UASF - User Activated Soft Fork)</h3>
+                <p>
+                    Users run nodes that reject blocks not signaling for upgrade (controversial!).
+                </p>
+                <ul>
+                    <li><strong>Pro:</strong> Gives users/nodes power, not just miners</li>
+                    <li><strong>Con:</strong> Risk of chain split if miners don't comply</li>
+                    <li><strong>Used for:</strong> Pressured SegWit activation (combined with BIP 91)</li>
+                </ul>
+
+                <h3>5. Speedy Trial</h3>
+                <p>
+                    Short signaling period (~3 months), 90% threshold. If successful, activates after 6-month delay.
+                </p>
+                <ul>
+                    <li><strong>Pro:</strong> Fast feedback, clear timeline, lower threshold than BIP 9</li>
+                    <li><strong>Con:</strong> Only works for non-controversial changes</li>
+                    <li><strong>Used for:</strong> Taproot (BIP 341)</li>
+                </ul>
+
+                <div class="warning-box">
+                    <h3>There's No Perfect Activation Method</h3>
+                    <p>
+                        Each method balances:
+                    </p>
+                    <ul>
+                        <li>Speed vs. safety</li>
+                        <li>Miner signaling vs. user choice</li>
+                        <li>Predictability vs. flexibility</li>
+                        <li>Coordination vs. decentralization</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">
+                        The "right" method depends on the specific upgrade and community consensus.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Hands-On Exercise -->
+            <section class="content-section">
+                <div class="exercise-box">
+                    <h3>Hands-On Exercise: BIP Analysis</h3>
+                    <p><strong>Goal:</strong> Learn to analyze and understand BIPs</p>
+
+                    <p style="margin-top: 1rem;"><strong>Tasks:</strong></p>
+                    <ol style="margin-left: 1rem;">
+                        <li>Pick one BIP from each category:
+                            <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                                <li>Consensus change (e.g., BIP 65 - CHECKLOCKTIMEVERIFY)</li>
+                                <li>Wallet standard (e.g., BIP 84 - Native SegWit derivation)</li>
+                                <li>Process (e.g., BIP 2 - BIP process)</li>
+                            </ul>
+                        </li>
+                        <li>For each BIP, answer:
+                            <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                                <li>What problem does it solve?</li>
+                                <li>What is the proposed solution?</li>
+                                <li>Is it a soft fork, hard fork, or neither?</li>
+                                <li>What are the tradeoffs?</li>
+                                <li>Has it been implemented? When?</li>
+                            </ul>
+                        </li>
+                        <li>Compare SegWit and Taproot activation:
+                            <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+                                <li>How long did each take from proposal to activation?</li>
+                                <li>What activation method was used?</li>
+                                <li>Were there controversies? How were they resolved?</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <p style="margin-top: 1rem;"><strong>Bonus Challenge:</strong></p>
+                    <ul style="margin-left: 1rem;">
+                        <li>Find a BIP currently in Draft status and read the discussion</li>
+                        <li>Identify what concerns/questions people have</li>
+                        <li>Form your own opinion: Would you support this BIP?</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Key Takeaways -->
+            <section class="content-section">
+                <div class="takeaway-box">
+                    <h3>Key Takeaways</h3>
+                    <ul>
+                        <li>BIPs are Bitcoin's formal proposal process for changes and improvements</li>
+                        <li>Three BIP types: Standards Track, Informational, Process</li>
+                        <li>Hard forks break backward compatibility; soft forks maintain it</li>
+                        <li>Bitcoin strongly prefers soft forks to maintain network unity</li>
+                        <li>SegWit fixed malleability, increased capacity, enabled Lightning</li>
+                        <li>Taproot brought Schnorr signatures, better privacy, and script efficiency</li>
+                        <li>Activation mechanisms balance speed, safety, and decentralization</li>
+                        <li>Protocol changes take years - this is a feature, not a bug</li>
+                        <li>Consensus building is as important as technical merit</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Resources -->
+            <section class="content-section">
+                <h2>Essential Resources</h2>
+                <ul>
+                    <li><a href="https://github.com/bitcoin/bips" style="color: var(--contributor-red);">Bitcoin BIPs Repository</a> - All Bitcoin Improvement Proposals</li>
+                    <li><a href="https://bips.dev/" style="color: var(--contributor-red);">BIPs.dev</a> - Searchable BIP database</li>
+                    <li><a href="https://bitcoinops.org/" style="color: var(--contributor-red);">Bitcoin Optech</a> - Weekly newsletter on Bitcoin tech</li>
+                    <li><a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bips.md" style="color: var(--contributor-red);">Bitcoin Core BIP Support</a> - Which BIPs are implemented</li>
+                    <li><a href="https://en.bitcoin.it/wiki/Softfork" style="color: var(--contributor-red);">Bitcoin Wiki: Soft Fork</a></li>
+                </ul>
+            </section>
+
+            <!-- Navigation -->
+            <nav class="module-navigation">
+                <a href="/paths/builder/stage-4/module-1.html" class="nav-btn nav-btn-secondary">← Previous Module</a>
+                <button id="complete-module" class="nav-btn">Mark Complete & Continue →</button>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('complete-module').addEventListener('click', function() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+
+            if (!progress.completedModules) {
+                progress.completedModules = [];
+            }
+
+            if (!progress.completedModules.includes('builder-4-2')) {
+                progress.completedModules.push('builder-4-2');
+            }
+
+            progress.lastActivity = new Date().toISOString();
+            progress.path = 'builder';
+            progress.currentStage = 4;
+            progress.currentModule = 3;
+
+            localStorage.setItem('learningProgress', JSON.stringify(progress));
+
+            alert('✓ Module 2 completed! Time for your first contribution...');
+            window.location.href = '/paths/builder/stage-4/module-3.html';
+        });
+    </script>
+</body>
+</html>
