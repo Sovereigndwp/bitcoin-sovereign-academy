@@ -1585,17 +1585,6 @@
                 <div class="logo-icon">₿</div>
                 <span class="logo-text">Bitcoin Sovereign Academy</span>
             </a>
-            <nav>
-                <ul class="nav-links" id="navLinks">
-                    <li><a href="/interactive-demos/" class="nav-link" onclick="track('Click Demos',{ab:abVariant()})">Demos</a></li>
-                    <li><a href="#path" class="nav-link" onclick="track('Click Learning Path',{ab:abVariant()})">Learning Path</a></li>
-                    <li><a href="#bitcoin-data" class="nav-link">Live Data</a></li>
-                    <li><a href="#agents" class="nav-link">AI Tutors</a></li>
-                    <li><a href="#featured" class="nav-link">Featured</a></li>
-                    <li><a href="#recommendations" class="nav-link">Recommendations</a></li>
-                    <li><a href="/api/health" class="nav-link">API Status</a></li>
-                </ul>
-            </nav>
             <div class="mobile-menu-toggle" id="mobileMenu">
                 <span></span>
                 <span></span>
@@ -1606,6 +1595,8 @@
             <div class="live-stat"><span class="label">₿ Price:</span> <span class="value" id="bar-btc-price">—</span></div>
             <div class="live-stat"><span class="label">Block:</span> <span class="value" id="bar-block-height">—</span></div>
             <div class="live-stat"><span class="label">Mempool:</span> <span class="value" id="bar-mempool-count">—</span></div>
+            <div class="live-stat"><span class="label">Fees:</span> <span class="value" id="bar-fee-estimate">—</span></div>
+            <div class="live-stat"><span class="label">Difficulty:</span> <span class="value" id="bar-difficulty">—</span></div>
         </div>
     </header>
 
@@ -1633,24 +1624,6 @@
                         🎮 Try Interactive Demos
                     </a>
                 </div>
-            </div>
-        </div>
-        <div class="hero3d__stats" id="bitcoin-data" aria-label="Live Bitcoin statistics">
-            <div class="hero3d__stat">
-                <span class="label">Block</span>
-                <span class="value" id="block-height">—</span>
-            </div>
-            <div class="hero3d__stat">
-                <span class="label">Mempool</span>
-                <span class="value" id="mempool-size">—</span>
-            </div>
-            <div class="hero3d__stat">
-                <span class="label">Fees</span>
-                <span class="value" id="fee-estimate">—</span>
-            </div>
-            <div class="hero3d__stat">
-                <span class="label">Difficulty</span>
-                <span class="value" id="difficulty">—</span>
             </div>
         </div>
         <div class="hero3d__fallback" id="hero3d-fallback"></div>
@@ -2453,6 +2426,31 @@
                             if (el && !el.textContent.includes('vMB')) {
                                 el.textContent += ` · ${(vsize/1e6).toFixed(1)} vMB`;
                             }
+                        }
+                    }
+                } catch(e) {}
+
+                // Fetch fee estimates (mempool.space)
+                try {
+                    const r = await fetch('https://mempool.space/api/v1/fees/recommended', { cache: 'no-store' });
+                    if (r.ok) {
+                        const j = await r.json();
+                        const fastestFee = j?.fastestFee;
+                        if (typeof fastestFee === 'number') {
+                            setText('bar-fee-estimate', `${fastestFee} sat/vB`);
+                        }
+                    }
+                } catch(e) {}
+
+                // Fetch difficulty (mempool.space)
+                try {
+                    const r = await fetch('https://mempool.space/api/v1/difficulty-adjustment', { cache: 'no-store' });
+                    if (r.ok) {
+                        const j = await r.json();
+                        const difficulty = j?.difficulty;
+                        if (typeof difficulty === 'number') {
+                            const diffStr = (difficulty / 1e12).toFixed(2) + 'T';
+                            setText('bar-difficulty', diffStr);
                         }
                     }
                 } catch(e) {}
