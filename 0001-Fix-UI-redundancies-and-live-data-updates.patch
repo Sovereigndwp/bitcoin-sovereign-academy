@@ -1,0 +1,169 @@
+From 58d0dd855bab27ecc63a890e8cb89762ff0bdb21 Mon Sep 17 00:00:00 2001
+From: "Claude (via Anthropic)" <claude@anthropic.com>
+Date: Thu, 9 Oct 2025 16:45:39 +0000
+Subject: [PATCH] Fix UI redundancies and live data updates
+
+- Remove 'reduced motion' and status text displays from hero3d.js
+- Remove 'Loading visual...' text from hero fallback element
+- Add difficulty fetching with multiple API fallbacks
+- Update live data system to fetch and display difficulty
+- Clean up fallback text display logic for better UX
+
+This fixes all remaining display issues and ensures live updates work correctly for price, block height, mempool, fees, and difficulty.
+---
+ assets/hero3d.js            | 23 +++-----------
+ index.html                  |  2 +-
+ js/bitcoin-data-fallback.js | 62 +++++++++++++++++++++++++++++++++++--
+ 3 files changed, 66 insertions(+), 21 deletions(-)
+
+diff --git a/assets/hero3d.js b/assets/hero3d.js
+index 170cbcd4..659eedb0 100644
+--- a/assets/hero3d.js
++++ b/assets/hero3d.js
+@@ -152,16 +152,9 @@ async function init3D() {
+     if (renderer.domElement.parentNode === container) {
+       container.removeChild(renderer.domElement);
+     }
+-    if (fallbackEl) {
+-      fallbackEl.textContent = reason;
+-    } else {
+-      fallbackEl = document.createElement('div');
+-      fallbackEl.id = 'hero3d-fallback';
+-      fallbackEl.className = 'hero3d__fallback';
+-      fallbackEl.textContent = reason;
+-    }
+-    if (!fallbackEl.parentNode) {
+-      container.appendChild(fallbackEl);
++    // Don't display status text to users - just clean up
++    if (fallbackEl && fallbackEl.parentNode) {
++      fallbackEl.remove();
+     }
+   };
+
+@@ -178,9 +171,8 @@ async function evaluate() {
+     if (cleanup) {
+       cleanup(reason);
+       cleanup = null;
+-    } else if (fallbackEl) {
+-      fallbackEl.textContent = reason;
+     }
++    // Don't display status text to users
+     return;
+   }
+
+@@ -190,12 +182,7 @@ async function evaluate() {
+     cleanup = await init3D();
+   } catch (error) {
+     console.error('[hero3d] unable to initialise 3D hero', error);
+-    if (fallbackEl) {
+-      fallbackEl.textContent = 'Lightweight mode';
+-      if (!fallbackEl.parentNode && container) {
+-        container.appendChild(fallbackEl);
+-      }
+-    }
++    // Don't display error text to users - silently fall back
+   } finally {
+     initializing = false;
+   }
+diff --git a/index.html b/index.html
+index 8f6b0dd1..6d76c0ec 100644
+--- a/index.html
++++ b/index.html
+@@ -1653,7 +1653,7 @@
+                 <span class="value" id="difficulty">—</span>
+             </div>
+         </div>
+-        <div class="hero3d__fallback" id="hero3d-fallback">Loading visual…</div>
++        <div class="hero3d__fallback" id="hero3d-fallback"></div>
+     </section>
+
+     <!-- Choose Your Path Section -->
+diff --git a/js/bitcoin-data-fallback.js b/js/bitcoin-data-fallback.js
+index dd70f1e1..eff46921 100644
+--- a/js/bitcoin-data-fallback.js
++++ b/js/bitcoin-data-fallback.js
+@@ -12,7 +12,8 @@
+             fetchBitcoinPrice(),
+             fetchBlockHeight(),
+             fetchMempoolData(),
+-            fetchFeeEstimate()
++            fetchFeeEstimate(),
++            fetchDifficulty()
+         ]);
+     }
+
+@@ -238,6 +239,63 @@
+         updateElement('fee-estimate', 'Unavailable');
+     }
+
++    // Difficulty fetching
++    async function fetchDifficulty() {
++        const difficultyAPIs = [
++            {
++                name: 'Blockchain.info',
++                url: 'https://blockchain.info/q/getdifficulty',
++                parse: (text) => parseFloat(text)
++            },
++            {
++                name: 'Mempool.space',
++                url: 'https://mempool.space/api/v1/difficulty-adjustment',
++                parse: (data) => parseFloat(data?.currentDifficulty || 0)
++            }
++        ];
++
++        for (const api of difficultyAPIs) {
++            const controller = new AbortController();
++            const timeoutId = setTimeout(() => controller.abort(), 5000);
++
++            try {
++                const response = await fetch(api.url, {
++                    cache: 'no-store',
++                    signal: controller.signal
++                });
++
++                clearTimeout(timeoutId);
++
++                if (response.ok) {
++                    const text = await response.text();
++                    let difficulty;
++
++                    try {
++                        const data = JSON.parse(text);
++                        difficulty = api.parse(data);
++                    } catch {
++                        difficulty = api.parse(text);
++                    }
++
++                    if (!isNaN(difficulty) && difficulty > 0) {
++                        // Format difficulty in T (trillions)
++                        const difficultyT = (difficulty / 1e12).toFixed(2);
++                        updateElement('difficulty', `${difficultyT}T`);
++                        console.log(`✓ Difficulty fetched from ${api.name}: ${difficultyT}T`);
++                        return;
++                    }
++                }
++            } catch (error) {
++                clearTimeout(timeoutId);
++                console.warn(`${api.name} difficulty failed:`, error.message);
++                continue;
++            }
++        }
++
++        console.error('All difficulty APIs failed');
++        updateElement('difficulty', 'Unavailable');
++    }
++
+     // Helper function to update multiple elements with the same ID pattern
+     function updateElement(id, value) {
+         const elements = document.querySelectorAll(`#${id}, [id="${id}"]`);
+@@ -251,7 +309,7 @@
+
+     // Set initial loading state
+     function setLoadingState() {
+-        const ids = ['btc-price', 'block-height', 'bar-block-height', 'mempool-size', 'fee-estimate'];
++        const ids = ['btc-price', 'block-height', 'bar-block-height', 'mempool-size', 'fee-estimate', 'difficulty'];
+         ids.forEach(id => updateElement(id, 'Loading...'));
+     }
+
+--
+2.43.0

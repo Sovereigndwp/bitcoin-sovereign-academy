@@ -152,16 +152,9 @@ async function init3D() {
     if (renderer.domElement.parentNode === container) {
       container.removeChild(renderer.domElement);
     }
-    if (fallbackEl) {
-      fallbackEl.textContent = reason;
-    } else {
-      fallbackEl = document.createElement('div');
-      fallbackEl.id = 'hero3d-fallback';
-      fallbackEl.className = 'hero3d__fallback';
-      fallbackEl.textContent = reason;
-    }
-    if (!fallbackEl.parentNode) {
-      container.appendChild(fallbackEl);
+    // Don't display status text to users - just clean up
+    if (fallbackEl && fallbackEl.parentNode) {
+      fallbackEl.remove();
     }
   };
 
@@ -178,9 +171,8 @@ async function evaluate() {
     if (cleanup) {
       cleanup(reason);
       cleanup = null;
-    } else if (fallbackEl) {
-      fallbackEl.textContent = reason;
     }
+    // Don't display status text to users
     return;
   }
 
@@ -190,12 +182,7 @@ async function evaluate() {
     cleanup = await init3D();
   } catch (error) {
     console.error('[hero3d] unable to initialise 3D hero', error);
-    if (fallbackEl) {
-      fallbackEl.textContent = 'Lightweight mode';
-      if (!fallbackEl.parentNode && container) {
-        container.appendChild(fallbackEl);
-      }
-    }
+    // Don't display error text to users - silently fall back
   } finally {
     initializing = false;
   }

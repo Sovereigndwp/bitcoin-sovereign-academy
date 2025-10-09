@@ -12,7 +12,8 @@
             fetchBitcoinPrice(),
             fetchBlockHeight(),
             fetchMempoolData(),
-            fetchFeeEstimate()
+            fetchFeeEstimate(),
+            fetchDifficulty()
         ]);
     }
 
@@ -238,6 +239,63 @@
         updateElement('fee-estimate', 'Unavailable');
     }
 
+    // Difficulty fetching
+    async function fetchDifficulty() {
+        const difficultyAPIs = [
+            {
+                name: 'Blockchain.info',
+                url: 'https://blockchain.info/q/getdifficulty',
+                parse: (text) => parseFloat(text)
+            },
+            {
+                name: 'Mempool.space',
+                url: 'https://mempool.space/api/v1/difficulty-adjustment',
+                parse: (data) => parseFloat(data?.currentDifficulty || 0)
+            }
+        ];
+
+        for (const api of difficultyAPIs) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+            try {
+                const response = await fetch(api.url, {
+                    cache: 'no-store',
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    const text = await response.text();
+                    let difficulty;
+
+                    try {
+                        const data = JSON.parse(text);
+                        difficulty = api.parse(data);
+                    } catch {
+                        difficulty = api.parse(text);
+                    }
+
+                    if (!isNaN(difficulty) && difficulty > 0) {
+                        // Format difficulty in T (trillions)
+                        const difficultyT = (difficulty / 1e12).toFixed(2);
+                        updateElement('difficulty', `${difficultyT}T`);
+                        console.log(`✓ Difficulty fetched from ${api.name}: ${difficultyT}T`);
+                        return;
+                    }
+                }
+            } catch (error) {
+                clearTimeout(timeoutId);
+                console.warn(`${api.name} difficulty failed:`, error.message);
+                continue;
+            }
+        }
+
+        console.error('All difficulty APIs failed');
+        updateElement('difficulty', 'Unavailable');
+    }
+
     // Helper function to update multiple elements with the same ID pattern
     function updateElement(id, value) {
         const elements = document.querySelectorAll(`#${id}, [id="${id}"]`);
@@ -251,7 +309,7 @@
 
     // Set initial loading state
     function setLoadingState() {
-        const ids = ['btc-price', 'block-height', 'bar-block-height', 'mempool-size', 'fee-estimate'];
+        const ids = ['btc-price', 'block-height', 'bar-block-height', 'mempool-size', 'fee-estimate', 'difficulty'];
         ids.forEach(id => updateElement(id, 'Loading...'));
     }
 
