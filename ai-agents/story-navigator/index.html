@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Navigator - Bitcoin Sovereign Academy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #404040 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b00 0%, #ffdd00 100%);
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            z-index: 3;
+        }
+
+        .back-button:hover {
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateX(-4px);
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #0a0a0a;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            color: #1a1a1a;
+            max-width: 700px;
+            margin: 0 auto;
+            font-weight: 500;
+        }
+
+        .main-content {
+            padding: 4rem 2rem;
+        }
+
+        .intro-section {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .intro-section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ff6b00, #ffdd00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .intro-section p {
+            font-size: 1.1rem;
+            color: #b0b0b0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .lessons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .lesson-card {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 2.5rem;
+            border: 2px solid #2a2a2a;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lesson-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #ff6b00, #ffdd00);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .lesson-card:hover {
+            border-color: #ff6b00;
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(255, 107, 0, 0.3);
+        }
+
+        .lesson-card:hover::before {
+            opacity: 1;
+        }
+
+        .lesson-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .lesson-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+
+        .lesson-description {
+            font-size: 1rem;
+            color: #b0b0b0;
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .lesson-meta {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .lesson-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .lesson-meta-icon {
+            font-size: 1.2rem;
+        }
+
+        .lesson-tags {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .lesson-tag {
+            padding: 0.4rem 0.9rem;
+            background: rgba(255, 221, 0, 0.1);
+            color: #ffdd00;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 221, 0, 0.3);
+        }
+
+        .lesson-button {
+            display: inline-block;
+            padding: 0.9rem 1.8rem;
+            background: linear-gradient(45deg, #ff6b00, #ffdd00);
+            color: #0a0a0a;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .lesson-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 0, 0.4);
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .status-active {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+            border: 1px solid rgba(0, 255, 0, 0.4);
+        }
+
+        .status-coming-soon {
+            background: rgba(255, 255, 0, 0.2);
+            color: #ffdd00;
+            border: 1px solid rgba(255, 255, 0, 0.4);
+        }
+
+        .coming-soon-overlay {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .features-section {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            border: 1px solid #2a2a2a;
+        }
+
+        .features-section h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            background: linear-gradient(45deg, #ff6b00, #ffdd00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-item {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #ffdd00;
+        }
+
+        .feature-description {
+            font-size: 0.95rem;
+            color: #b0b0b0;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .lessons-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .back-button {
+                position: static;
+                display: block;
+                width: fit-content;
+                margin: 0 auto 1rem auto;
+            }
+
+            .main-content {
+                padding: 2rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/index.html" class="back-button">← Back to Home</a>
+            <div class="header-content">
+                <div class="header-icon">📖</div>
+                <h1>Story Navigator</h1>
+                <p>Personalized Bitcoin journey narratives that bring concepts to life through interactive storytelling</p>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="intro-section">
+                <h2>Learn Bitcoin Through Stories</h2>
+                <p>Each lesson uses real-world scenarios and interactive demonstrations to help you understand Bitcoin's value proposition. Choose a story below to begin your journey.</p>
+            </div>
+
+            <div class="lessons-grid">
+                <!-- Active Lesson: True Cost of Money -->
+                <div class="lesson-card" onclick="window.location.href='lessons/true-cost-of-money.html'">
+                    <span class="status-badge status-active">Active</span>
+                    <div class="lesson-icon">💰</div>
+                    <h3 class="lesson-title">Understanding the "True" Cost of Money</h3>
+                    <p class="lesson-description">
+                        Discover the hidden costs in "free" payment systems like Zelle and compare them to Bitcoin Lightning. Through interactive scenarios, you'll see exactly where your money goes and why Bitcoin offers a better alternative.
+                    </p>
+                    <div class="lesson-meta">
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">⏱️</span>
+                            <span>15-20 min</span>
+                        </div>
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">📊</span>
+                            <span>Interactive</span>
+                        </div>
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">🎯</span>
+                            <span>Beginner</span>
+                        </div>
+                    </div>
+                    <div class="lesson-tags">
+                        <span class="lesson-tag">Payment Systems</span>
+                        <span class="lesson-tag">Lightning Network</span>
+                        <span class="lesson-tag">Hidden Costs</span>
+                    </div>
+                    <a href="lessons/true-cost-of-money.html" class="lesson-button">Start Lesson →</a>
+                </div>
+
+                <!-- Coming Soon Lessons -->
+                <div class="lesson-card coming-soon-overlay">
+                    <span class="status-badge status-coming-soon">Coming Soon</span>
+                    <div class="lesson-icon">🏦</div>
+                    <h3 class="lesson-title">The Inflation Story</h3>
+                    <p class="lesson-description">
+                        Follow a family across three generations to understand how inflation silently erodes purchasing power and why Bitcoin's fixed supply offers protection.
+                    </p>
+                    <div class="lesson-meta">
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">⏱️</span>
+                            <span>20-25 min</span>
+                        </div>
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">📊</span>
+                            <span>Interactive</span>
+                        </div>
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">🎯</span>
+                            <span>Beginner</span>
+                        </div>
+                    </div>
+                    <div class="lesson-tags">
+                        <span class="lesson-tag">Inflation</span>
+                        <span class="lesson-tag">Monetary Policy</span>
+                        <span class="lesson-tag">Store of Value</span>
+                    </div>
+                </div>
+
+                <div class="lesson-card coming-soon-overlay">
+                    <span class="status-badge status-coming-soon">Coming Soon</span>
+                    <div class="lesson-icon">🌍</div>
+                    <h3 class="lesson-title">Banking the Unbanked</h3>
+                    <p class="lesson-description">
+                        Experience the challenges faced by 1.7 billion unbanked people worldwide and discover how Bitcoin provides financial access without traditional infrastructure.
+                    </p>
+                    <div class="lesson-meta">
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">⏱️</span>
+                            <span>18-22 min</span>
+                        </div>
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">📊</span>
+                            <span>Interactive</span>
+                        </div>
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">🎯</span>
+                            <span>Beginner</span>
+                        </div>
+                    </div>
+                    <div class="lesson-tags">
+                        <span class="lesson-tag">Financial Inclusion</span>
+                        <span class="lesson-tag">Global Access</span>
+                        <span class="lesson-tag">Remittances</span>
+                    </div>
+                </div>
+
+                <div class="lesson-card coming-soon-overlay">
+                    <span class="status-badge status-coming-soon">Coming Soon</span>
+                    <div class="lesson-icon">🔒</div>
+                    <h3 class="lesson-title">Your Keys, Your Bitcoin</h3>
+                    <p class="lesson-description">
+                        Follow a security journey that illustrates why self-custody matters and how Bitcoin's cryptographic principles protect your wealth better than traditional banks.
+                    </p>
+                    <div class="lesson-meta">
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">⏱️</span>
+                            <span>25-30 min</span>
+                        </div>
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">📊</span>
+                            <span>Interactive</span>
+                        </div>
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">🎯</span>
+                            <span>Intermediate</span>
+                        </div>
+                    </div>
+                    <div class="lesson-tags">
+                        <span class="lesson-tag">Security</span>
+                        <span class="lesson-tag">Self-Custody</span>
+                        <span class="lesson-tag">Private Keys</span>
+                    </div>
+                </div>
+
+                <div class="lesson-card coming-soon-overlay">
+                    <span class="status-badge status-coming-soon">Coming Soon</span>
+                    <div class="lesson-icon">⚡</div>
+                    <h3 class="lesson-title">The Lightning Revolution</h3>
+                    <p class="lesson-description">
+                        Explore how the Lightning Network enables instant, nearly-free Bitcoin transactions through an interactive simulation of payment channels and routing.
+                    </p>
+                    <div class="lesson-meta">
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">⏱️</span>
+                            <span>30-35 min</span>
+                        </div>
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">📊</span>
+                            <span>Highly Interactive</span>
+                        </div>
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">🎯</span>
+                            <span>Intermediate</span>
+                        </div>
+                    </div>
+                    <div class="lesson-tags">
+                        <span class="lesson-tag">Lightning Network</span>
+                        <span class="lesson-tag">Layer 2</span>
+                        <span class="lesson-tag">Payments</span>
+                    </div>
+                </div>
+
+                <div class="lesson-card coming-soon-overlay">
+                    <span class="status-badge status-coming-soon">Coming Soon</span>
+                    <div class="lesson-icon">🎓</div>
+                    <h3 class="lesson-title">From Barter to Bitcoin</h3>
+                    <p class="lesson-description">
+                        Travel through monetary history from ancient barter systems to modern cryptocurrencies, understanding why Bitcoin represents the next evolution of money.
+                    </p>
+                    <div class="lesson-meta">
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">⏱️</span>
+                            <span>22-28 min</span>
+                        </div>
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">📊</span>
+                            <span>Interactive</span>
+                        </div>
+                        <div class="lesson-meta-item">
+                            <span class="lesson-meta-icon">🎯</span>
+                            <span>Beginner</span>
+                        </div>
+                    </div>
+                    <div class="lesson-tags">
+                        <span class="lesson-tag">History</span>
+                        <span class="lesson-tag">Money</span>
+                        <span class="lesson-tag">Evolution</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="features-section">
+                <h2>What Makes Story Navigator Special</h2>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🎭</div>
+                        <div class="feature-title">Relatable Scenarios</div>
+                        <div class="feature-description">Learn through real-world situations you can relate to</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🎮</div>
+                        <div class="feature-title">Interactive Demos</div>
+                        <div class="feature-description">See concepts in action with hands-on simulations</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📊</div>
+                        <div class="feature-title">Visual Comparisons</div>
+                        <div class="feature-description">Clear side-by-side comparisons make differences obvious</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">💡</div>
+                        <div class="feature-title">Key Insights</div>
+                        <div class="feature-description">Memorable takeaways you can apply immediately</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add click handlers for active lessons
+        document.querySelectorAll('.lesson-card:not(.coming-soon-overlay)').forEach(card => {
+            card.style.cursor = 'pointer';
+        });
+
+        // Disable clicks on coming soon lessons
+        document.querySelectorAll('.lesson-card.coming-soon-overlay').forEach(card => {
+            card.style.cursor = 'not-allowed';
+            card.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            };
+        });
+    </script>
+</body>
+</html>
