@@ -420,15 +420,1322 @@ Bob uses revocation key to claim ALL 0.8 BTC
                         Experience opening a channel, making payments, and understanding commitment transactions interactively.
                     </p>
 
-                    <iframe
-                        src="/interactive-demos/lightning-channel-sim.html"
-                        style="width: 100%; height: 700px; border: none; border-radius: 0.5rem; background: white;"
-                        title="Lightning Channel Simulator">
-                    </iframe>
+                    <!-- Lightning Channel Simulator -->
+                    <div id="lightning-simulator">
+                        <!-- Phase Indicator -->
+                        <div class="phase-indicator">
+                            <div class="phase-step active" data-phase="1">
+                                <div class="phase-number">1</div>
+                                <div class="phase-label">Opening</div>
+                            </div>
+                            <div class="phase-step" data-phase="2">
+                                <div class="phase-number">2</div>
+                                <div class="phase-label">Payments</div>
+                            </div>
+                            <div class="phase-step" data-phase="3">
+                                <div class="phase-number">3</div>
+                                <div class="phase-label">Closing</div>
+                            </div>
+                        </div>
 
-                    <p style="margin-top: 1rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;">
-                        💡 Try broadcasting an old state to see the penalty mechanism in action!
-                    </p>
+                        <!-- Explanation Box -->
+                        <div class="explanation-box" id="explanation">
+                            <strong>Step 1:</strong> Set initial balances for Alice and Bob, then click "Open Channel" to create the funding transaction.
+                        </div>
+
+                        <!-- Phase 1: Channel Opening -->
+                        <div id="phase-1" class="simulator-phase active">
+                            <div class="participant-setup">
+                                <div class="participant">
+                                    <h4>👩 Alice</h4>
+                                    <div class="balance-input">
+                                        <label>Initial Balance:</label>
+                                        <input type="number" id="alice-initial" value="0.5" step="0.1" min="0" max="2">
+                                        <span class="btc-label">BTC</span>
+                                    </div>
+                                </div>
+                                <div class="participant">
+                                    <h4>👨 Bob</h4>
+                                    <div class="balance-input">
+                                        <label>Initial Balance:</label>
+                                        <input type="number" id="bob-initial" value="0.3" step="0.1" min="0" max="2">
+                                        <span class="btc-label">BTC</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="sim-btn sim-btn-primary" onclick="openChannel()">⚡ Open Channel</button>
+                        </div>
+
+                        <!-- Funding Transaction Visualization -->
+                        <div id="funding-tx" class="transaction-box" style="display: none;">
+                            <h4>📝 Funding Transaction (On-Chain)</h4>
+                            <div class="tx-details">
+                                <div class="tx-row">
+                                    <span>Alice contributes:</span>
+                                    <span id="alice-contribution" class="amount">0.5 BTC</span>
+                                </div>
+                                <div class="tx-row">
+                                    <span>Bob contributes:</span>
+                                    <span id="bob-contribution" class="amount">0.3 BTC</span>
+                                </div>
+                                <div class="tx-row total">
+                                    <span>Total Capacity:</span>
+                                    <span id="total-capacity" class="amount">0.8 BTC</span>
+                                </div>
+                                <div class="multisig-address">
+                                    <strong>2-of-2 Multisig Address:</strong>
+                                    <code id="multisig-addr">bc1q...</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Commitment Transaction #0 -->
+                        <div id="commitment-0" class="transaction-box" style="display: none;">
+                            <h4>🔐 Commitment Transaction #0 (Initial State)</h4>
+                            <p class="tx-note">Created before broadcasting funding tx (safety first!)</p>
+                            <div class="commitment-outputs">
+                                <div class="output">
+                                    <div class="output-label">Output 0 → Bob</div>
+                                    <div class="output-amount" id="commit0-bob">0.3 BTC</div>
+                                    <div class="output-script">Can spend immediately</div>
+                                </div>
+                                <div class="output">
+                                    <div class="output-label">Output 1 → Alice</div>
+                                    <div class="output-amount" id="commit0-alice">0.5 BTC</div>
+                                    <div class="output-script">Timelock: 144 blocks (~1 day)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase 2: Channel Payments -->
+                        <div id="phase-2" class="simulator-phase">
+                            <div class="channel-view">
+                                <div class="participant-view">
+                                    <h4>👩 Alice</h4>
+                                    <div class="balance-bar-container">
+                                        <div class="balance-bar alice-bar" id="alice-bar" style="width: 62.5%">
+                                            <span class="balance-value" id="alice-balance">0.5 BTC</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="payment-arrow" id="payment-arrow">
+                                    <div class="arrow-line"></div>
+                                </div>
+
+                                <div class="participant-view">
+                                    <h4>👨 Bob</h4>
+                                    <div class="balance-bar-container">
+                                        <div class="balance-bar bob-bar" id="bob-bar" style="width: 37.5%">
+                                            <span class="balance-value" id="bob-balance">0.3 BTC</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="channel-state-info">
+                                <div class="state-number">State #<span id="state-number">0</span></div>
+                                <div class="capacity-info">Channel Capacity: <span id="current-capacity">0.8 BTC</span></div>
+                            </div>
+
+                            <!-- Payment Controls -->
+                            <div class="payment-controls">
+                                <div class="payment-amount">
+                                    <label>Payment Amount:</label>
+                                    <input type="range" id="payment-slider" min="0.01" max="0.5" step="0.01" value="0.1">
+                                    <span id="payment-amount-display" class="amount">0.10 BTC</span>
+                                </div>
+                                <div class="payment-buttons">
+                                    <button class="sim-btn sim-btn-alice" onclick="makePayment('alice')">
+                                        Alice → Bob
+                                    </button>
+                                    <button class="sim-btn sim-btn-bob" onclick="makePayment('bob')">
+                                        Bob → Alice
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Current Commitment Transaction -->
+                            <div id="current-commitment" class="transaction-box">
+                                <h4>🔐 Current Commitment Transaction #<span id="current-commit-num">0</span></h4>
+                                <div class="commitment-outputs">
+                                    <div class="output">
+                                        <div class="output-label">Alice's Output</div>
+                                        <div class="output-amount" id="current-alice-output">0.5 BTC</div>
+                                        <div class="output-script">
+                                            <div class="script-path">
+                                                <strong>Path 1:</strong> Alice spends after 144 blocks
+                                            </div>
+                                            <div class="script-path revocation">
+                                                <strong>Path 2:</strong> Bob spends with revocation key
+                                                <span class="revocation-indicator" id="alice-revocation"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="output">
+                                        <div class="output-label">Bob's Output</div>
+                                        <div class="output-amount" id="current-bob-output">0.3 BTC</div>
+                                        <div class="output-script">
+                                            <div class="script-path">
+                                                <strong>Path 1:</strong> Bob spends after 144 blocks
+                                            </div>
+                                            <div class="script-path revocation">
+                                                <strong>Path 2:</strong> Alice spends with revocation key
+                                                <span class="revocation-indicator" id="bob-revocation"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Balance History Graph -->
+                            <div class="balance-history">
+                                <h4>📊 Balance History</h4>
+                                <canvas id="balance-chart" width="600" height="200"></canvas>
+                            </div>
+
+                            <button class="sim-btn sim-btn-primary" onclick="moveToClosing()" style="margin-top: 1rem;">
+                                Proceed to Closing →
+                            </button>
+                        </div>
+
+                        <!-- Phase 3: Channel Closing -->
+                        <div id="phase-3" class="simulator-phase">
+                            <div class="closing-options">
+                                <div class="closing-option">
+                                    <h4>✅ Cooperative Close</h4>
+                                    <p>Both parties agree on final balance. Fast and efficient.</p>
+                                    <button class="sim-btn sim-btn-success" onclick="cooperativeClose()">
+                                        Cooperative Close
+                                    </button>
+                                </div>
+
+                                <div class="closing-option">
+                                    <h4>⏰ Unilateral Close</h4>
+                                    <p>One party broadcasts latest commitment. Requires waiting period.</p>
+                                    <button class="sim-btn sim-btn-warning" onclick="unilateralClose()">
+                                        Unilateral Close
+                                    </button>
+                                </div>
+
+                                <div class="closing-option cheat-mode">
+                                    <h4>🚨 Cheat Mode</h4>
+                                    <p>Try to broadcast an old state (penalty will apply!)</p>
+                                    <div class="cheat-controls">
+                                        <select id="old-state-selector" class="state-selector">
+                                            <option value="">Select old state...</option>
+                                        </select>
+                                        <button class="sim-btn sim-btn-danger" onclick="cheatBroadcast()">
+                                            Broadcast Old State
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Closing Transaction Display -->
+                            <div id="closing-result" class="transaction-box" style="display: none;">
+                                <h4 id="closing-title">Closing Transaction</h4>
+                                <div id="closing-details"></div>
+                            </div>
+
+                            <!-- Penalty Transaction -->
+                            <div id="penalty-tx" class="transaction-box penalty-box" style="display: none;">
+                                <h4>⚡ PENALTY TRANSACTION</h4>
+                                <div class="penalty-details">
+                                    <p class="penalty-message">🚨 Cheating detected! Broadcasting old state #<span id="cheat-state-num"></span></p>
+                                    <div class="penalty-calculation">
+                                        <div class="penalty-row">
+                                            <span>Cheater attempted to claim:</span>
+                                            <span id="attempted-claim" class="amount"></span>
+                                        </div>
+                                        <div class="penalty-row">
+                                            <span>Honest party uses revocation key:</span>
+                                            <span class="revocation-key-used">✓</span>
+                                        </div>
+                                        <div class="penalty-row total">
+                                            <span>Honest party receives ALL funds:</span>
+                                            <span id="penalty-amount" class="amount"></span>
+                                        </div>
+                                        <div class="penalty-row loss">
+                                            <span>Cheater receives:</span>
+                                            <span class="amount">0 BTC</span>
+                                        </div>
+                                    </div>
+                                    <p class="penalty-lesson">
+                                        💡 This is why Lightning is trustless! Attempting to cheat results in losing ALL your funds.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Watchtower Explanation -->
+                            <div class="watchtower-box">
+                                <h4>🗼 Watchtower Concept</h4>
+                                <p>
+                                    A <strong>watchtower</strong> is a service that monitors the blockchain for old commitment
+                                    transactions while you're offline. If it detects cheating, it broadcasts the penalty transaction
+                                    on your behalf, ensuring your funds are protected even when you're not watching.
+                                </p>
+                            </div>
+
+                            <button class="sim-btn sim-btn-primary" onclick="resetSimulator()">
+                                🔄 Start New Channel
+                            </button>
+                        </div>
+                    </div>
+
+                    <style>
+                        /* Lightning Simulator Styles */
+                        #lightning-simulator {
+                            background: #1a1a1a;
+                            border-radius: 0.5rem;
+                            padding: 1.5rem;
+                        }
+
+                        /* Phase Indicator */
+                        .phase-indicator {
+                            display: flex;
+                            justify-content: center;
+                            gap: 2rem;
+                            margin-bottom: 2rem;
+                            padding: 1rem;
+                            background: rgba(255, 193, 7, 0.1);
+                            border-radius: 0.5rem;
+                        }
+
+                        .phase-step {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            gap: 0.5rem;
+                            opacity: 0.5;
+                            transition: all 0.3s ease;
+                        }
+
+                        .phase-step.active {
+                            opacity: 1;
+                        }
+
+                        .phase-number {
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 50%;
+                            background: var(--secondary-dark);
+                            border: 2px solid var(--text-dim);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: 700;
+                            transition: all 0.3s ease;
+                        }
+
+                        .phase-step.active .phase-number {
+                            background: var(--lightning-yellow);
+                            border-color: var(--lightning-yellow);
+                            color: var(--primary-dark);
+                        }
+
+                        .phase-label {
+                            font-size: 0.9rem;
+                            font-weight: 600;
+                        }
+
+                        /* Explanation Box */
+                        .explanation-box {
+                            background: rgba(33, 150, 243, 0.15);
+                            border-left: 4px solid var(--accent-blue);
+                            padding: 1rem;
+                            margin-bottom: 1.5rem;
+                            border-radius: 0.25rem;
+                            animation: fadeIn 0.5s ease;
+                        }
+
+                        @keyframes fadeIn {
+                            from { opacity: 0; transform: translateY(-10px); }
+                            to { opacity: 1; transform: translateY(0); }
+                        }
+
+                        /* Simulator Phases */
+                        .simulator-phase {
+                            display: none;
+                        }
+
+                        .simulator-phase.active {
+                            display: block;
+                            animation: slideIn 0.5s ease;
+                        }
+
+                        @keyframes slideIn {
+                            from { opacity: 0; transform: translateX(20px); }
+                            to { opacity: 1; transform: translateX(0); }
+                        }
+
+                        /* Participant Setup */
+                        .participant-setup {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 2rem;
+                            margin-bottom: 1.5rem;
+                        }
+
+                        .participant {
+                            background: var(--secondary-dark);
+                            padding: 1.5rem;
+                            border-radius: 0.5rem;
+                            text-align: center;
+                        }
+
+                        .participant h4 {
+                            color: var(--lightning-yellow);
+                            margin-bottom: 1rem;
+                            font-size: 1.2rem;
+                        }
+
+                        .balance-input {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 0.5rem;
+                            flex-wrap: wrap;
+                        }
+
+                        .balance-input label {
+                            font-size: 0.9rem;
+                            color: var(--text-dim);
+                        }
+
+                        .balance-input input {
+                            width: 100px;
+                            padding: 0.5rem;
+                            background: var(--primary-dark);
+                            border: 1px solid var(--border-color);
+                            border-radius: 0.25rem;
+                            color: var(--text-light);
+                            font-size: 1rem;
+                            text-align: center;
+                        }
+
+                        .btc-label {
+                            color: var(--lightning-yellow);
+                            font-weight: 600;
+                        }
+
+                        /* Buttons */
+                        .sim-btn {
+                            padding: 0.75rem 1.5rem;
+                            border: none;
+                            border-radius: 0.5rem;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            font-size: 1rem;
+                            display: block;
+                            margin: 0 auto;
+                        }
+
+                        .sim-btn-primary {
+                            background: var(--lightning-yellow);
+                            color: var(--primary-dark);
+                        }
+
+                        .sim-btn-primary:hover {
+                            background: #ffb300;
+                            transform: translateY(-2px);
+                        }
+
+                        .sim-btn-alice {
+                            background: #9c27b0;
+                            color: white;
+                        }
+
+                        .sim-btn-bob {
+                            background: #2196f3;
+                            color: white;
+                        }
+
+                        .sim-btn-alice:hover, .sim-btn-bob:hover {
+                            transform: translateY(-2px);
+                            opacity: 0.9;
+                        }
+
+                        .sim-btn-success {
+                            background: var(--accent-green);
+                            color: white;
+                        }
+
+                        .sim-btn-warning {
+                            background: #ff9800;
+                            color: white;
+                        }
+
+                        .sim-btn-danger {
+                            background: #f44336;
+                            color: white;
+                        }
+
+                        /* Transaction Box */
+                        .transaction-box {
+                            background: var(--secondary-dark);
+                            border: 1px solid var(--border-color);
+                            border-radius: 0.5rem;
+                            padding: 1.5rem;
+                            margin: 1.5rem 0;
+                            animation: fadeIn 0.5s ease;
+                        }
+
+                        .transaction-box h4 {
+                            color: var(--lightning-yellow);
+                            margin-bottom: 1rem;
+                        }
+
+                        .tx-note {
+                            color: var(--text-dim);
+                            font-size: 0.9rem;
+                            margin-bottom: 1rem;
+                            font-style: italic;
+                        }
+
+                        .tx-details {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.75rem;
+                        }
+
+                        .tx-row {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            padding: 0.5rem;
+                            background: rgba(255, 193, 7, 0.05);
+                            border-radius: 0.25rem;
+                        }
+
+                        .tx-row.total {
+                            background: rgba(255, 193, 7, 0.15);
+                            font-weight: 700;
+                            border: 1px solid var(--lightning-yellow);
+                        }
+
+                        .amount {
+                            color: var(--lightning-yellow);
+                            font-weight: 600;
+                        }
+
+                        .multisig-address {
+                            margin-top: 1rem;
+                            padding: 1rem;
+                            background: var(--primary-dark);
+                            border-radius: 0.25rem;
+                            text-align: center;
+                        }
+
+                        .multisig-address code {
+                            font-size: 0.85rem;
+                            word-break: break-all;
+                        }
+
+                        /* Commitment Transaction Outputs */
+                        .commitment-outputs {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 1rem;
+                        }
+
+                        .output {
+                            background: rgba(255, 193, 7, 0.05);
+                            border: 1px solid var(--border-color);
+                            border-radius: 0.5rem;
+                            padding: 1rem;
+                        }
+
+                        .output-label {
+                            font-weight: 600;
+                            color: var(--accent-blue);
+                            margin-bottom: 0.5rem;
+                        }
+
+                        .output-amount {
+                            font-size: 1.2rem;
+                            color: var(--lightning-yellow);
+                            font-weight: 700;
+                            margin-bottom: 0.75rem;
+                        }
+
+                        .output-script {
+                            font-size: 0.85rem;
+                            color: var(--text-dim);
+                        }
+
+                        .script-path {
+                            margin: 0.5rem 0;
+                            padding: 0.5rem;
+                            background: rgba(0, 0, 0, 0.3);
+                            border-radius: 0.25rem;
+                        }
+
+                        .script-path.revocation {
+                            border-left: 3px solid #f44336;
+                        }
+
+                        .revocation-indicator {
+                            display: inline-block;
+                            margin-left: 0.5rem;
+                            padding: 0.2rem 0.5rem;
+                            background: #f44336;
+                            border-radius: 0.25rem;
+                            font-size: 0.75rem;
+                            font-weight: 700;
+                        }
+
+                        /* Channel View */
+                        .channel-view {
+                            margin: 2rem 0;
+                        }
+
+                        .participant-view {
+                            margin-bottom: 2rem;
+                        }
+
+                        .participant-view h4 {
+                            color: var(--lightning-yellow);
+                            margin-bottom: 0.5rem;
+                        }
+
+                        .balance-bar-container {
+                            background: var(--secondary-dark);
+                            height: 60px;
+                            border-radius: 0.5rem;
+                            overflow: hidden;
+                            position: relative;
+                        }
+
+                        .balance-bar {
+                            height: 100%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            transition: width 0.5s ease;
+                            position: relative;
+                        }
+
+                        .alice-bar {
+                            background: linear-gradient(90deg, #9c27b0, #ba68c8);
+                        }
+
+                        .bob-bar {
+                            background: linear-gradient(90deg, #2196f3, #64b5f6);
+                        }
+
+                        .balance-value {
+                            font-weight: 700;
+                            color: white;
+                            font-size: 1.1rem;
+                            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+                        }
+
+                        /* Payment Arrow */
+                        .payment-arrow {
+                            height: 40px;
+                            margin: 1rem 0;
+                            position: relative;
+                            opacity: 0;
+                            transition: opacity 0.3s ease;
+                        }
+
+                        .payment-arrow.active {
+                            opacity: 1;
+                        }
+
+                        .arrow-line {
+                            position: absolute;
+                            top: 50%;
+                            left: 0;
+                            right: 0;
+                            height: 4px;
+                            background: var(--lightning-yellow);
+                            transform: translateY(-50%);
+                        }
+
+                        .arrow-line::after {
+                            content: '';
+                            position: absolute;
+                            right: 0;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            width: 0;
+                            height: 0;
+                            border-left: 15px solid var(--lightning-yellow);
+                            border-top: 10px solid transparent;
+                            border-bottom: 10px solid transparent;
+                        }
+
+                        .payment-arrow.reverse .arrow-line::after {
+                            right: auto;
+                            left: 0;
+                            border-left: none;
+                            border-right: 15px solid var(--lightning-yellow);
+                        }
+
+                        /* Channel State Info */
+                        .channel-state-info {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            padding: 1rem;
+                            background: rgba(255, 193, 7, 0.1);
+                            border-radius: 0.5rem;
+                            margin: 1.5rem 0;
+                        }
+
+                        .state-number {
+                            font-size: 1.2rem;
+                            font-weight: 700;
+                            color: var(--lightning-yellow);
+                        }
+
+                        .capacity-info {
+                            color: var(--text-dim);
+                        }
+
+                        /* Payment Controls */
+                        .payment-controls {
+                            background: var(--secondary-dark);
+                            padding: 1.5rem;
+                            border-radius: 0.5rem;
+                            margin: 1.5rem 0;
+                        }
+
+                        .payment-amount {
+                            margin-bottom: 1.5rem;
+                            text-align: center;
+                        }
+
+                        .payment-amount label {
+                            display: block;
+                            margin-bottom: 0.5rem;
+                            color: var(--text-dim);
+                        }
+
+                        #payment-slider {
+                            width: 80%;
+                            margin: 0 auto;
+                            display: block;
+                            margin-bottom: 0.5rem;
+                        }
+
+                        #payment-amount-display {
+                            font-size: 1.3rem;
+                        }
+
+                        .payment-buttons {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 1rem;
+                        }
+
+                        .payment-buttons .sim-btn {
+                            margin: 0;
+                        }
+
+                        /* Balance History */
+                        .balance-history {
+                            margin: 2rem 0;
+                            padding: 1.5rem;
+                            background: var(--secondary-dark);
+                            border-radius: 0.5rem;
+                        }
+
+                        .balance-history h4 {
+                            color: var(--lightning-yellow);
+                            margin-bottom: 1rem;
+                            text-align: center;
+                        }
+
+                        #balance-chart {
+                            display: block;
+                            margin: 0 auto;
+                            max-width: 100%;
+                        }
+
+                        /* Closing Options */
+                        .closing-options {
+                            display: grid;
+                            gap: 1.5rem;
+                            margin-bottom: 2rem;
+                        }
+
+                        .closing-option {
+                            background: var(--secondary-dark);
+                            padding: 1.5rem;
+                            border-radius: 0.5rem;
+                            border: 2px solid var(--border-color);
+                        }
+
+                        .closing-option.cheat-mode {
+                            border-color: #f44336;
+                        }
+
+                        .closing-option h4 {
+                            color: var(--lightning-yellow);
+                            margin-bottom: 0.5rem;
+                        }
+
+                        .closing-option p {
+                            color: var(--text-dim);
+                            margin-bottom: 1rem;
+                            font-size: 0.9rem;
+                        }
+
+                        .cheat-controls {
+                            display: grid;
+                            grid-template-columns: 1fr auto;
+                            gap: 1rem;
+                        }
+
+                        .state-selector {
+                            padding: 0.75rem;
+                            background: var(--primary-dark);
+                            border: 1px solid var(--border-color);
+                            border-radius: 0.5rem;
+                            color: var(--text-light);
+                            font-size: 1rem;
+                        }
+
+                        /* Penalty Box */
+                        .penalty-box {
+                            border: 3px solid #f44336;
+                            background: rgba(244, 67, 54, 0.1);
+                            animation: pulseRed 2s infinite;
+                        }
+
+                        @keyframes pulseRed {
+                            0%, 100% { border-color: #f44336; }
+                            50% { border-color: #ff6b6b; }
+                        }
+
+                        .penalty-message {
+                            font-size: 1.1rem;
+                            font-weight: 700;
+                            color: #f44336;
+                            text-align: center;
+                            margin-bottom: 1rem;
+                        }
+
+                        .penalty-calculation {
+                            background: rgba(0, 0, 0, 0.3);
+                            padding: 1rem;
+                            border-radius: 0.5rem;
+                        }
+
+                        .penalty-row {
+                            display: flex;
+                            justify-content: space-between;
+                            padding: 0.75rem;
+                            margin: 0.5rem 0;
+                            background: rgba(255, 255, 255, 0.05);
+                            border-radius: 0.25rem;
+                        }
+
+                        .penalty-row.total {
+                            background: rgba(76, 175, 80, 0.2);
+                            border: 1px solid var(--accent-green);
+                            font-weight: 700;
+                        }
+
+                        .penalty-row.loss {
+                            background: rgba(244, 67, 54, 0.2);
+                            border: 1px solid #f44336;
+                            font-weight: 700;
+                        }
+
+                        .revocation-key-used {
+                            color: var(--accent-green);
+                            font-weight: 700;
+                            font-size: 1.2rem;
+                        }
+
+                        .penalty-lesson {
+                            margin-top: 1rem;
+                            padding: 1rem;
+                            background: rgba(255, 193, 7, 0.15);
+                            border-left: 4px solid var(--lightning-yellow);
+                            border-radius: 0.25rem;
+                        }
+
+                        /* Watchtower Box */
+                        .watchtower-box {
+                            background: rgba(33, 150, 243, 0.1);
+                            border: 2px solid var(--accent-blue);
+                            border-radius: 0.5rem;
+                            padding: 1.5rem;
+                            margin: 2rem 0;
+                        }
+
+                        .watchtower-box h4 {
+                            color: var(--accent-blue);
+                            margin-bottom: 0.75rem;
+                        }
+
+                        /* Responsive */
+                        @media (max-width: 768px) {
+                            .participant-setup {
+                                grid-template-columns: 1fr;
+                            }
+
+                            .commitment-outputs {
+                                grid-template-columns: 1fr;
+                            }
+
+                            .payment-buttons {
+                                grid-template-columns: 1fr;
+                            }
+
+                            .cheat-controls {
+                                grid-template-columns: 1fr;
+                            }
+                        }
+                    </style>
+
+                    <script>
+                        // Lightning Channel Simulator State
+                        const channelState = {
+                            phase: 1,
+                            aliceBalance: 0.5,
+                            bobBalance: 0.3,
+                            totalCapacity: 0.8,
+                            stateNumber: 0,
+                            history: [],
+                            oldStates: [],
+                            isOpen: false
+                        };
+
+                        // Initialize
+                        function initSimulator() {
+                            updatePaymentSlider();
+                            document.getElementById('payment-slider').addEventListener('input', function() {
+                                document.getElementById('payment-amount-display').textContent =
+                                    parseFloat(this.value).toFixed(2) + ' BTC';
+                            });
+                        }
+
+                        // Open Channel (Phase 1)
+                        function openChannel() {
+                            const aliceInitial = parseFloat(document.getElementById('alice-initial').value);
+                            const bobInitial = parseFloat(document.getElementById('bob-initial').value);
+
+                            if (aliceInitial <= 0 || bobInitial <= 0) {
+                                alert('Both Alice and Bob must contribute at least some BTC!');
+                                return;
+                            }
+
+                            channelState.aliceBalance = aliceInitial;
+                            channelState.bobBalance = bobInitial;
+                            channelState.totalCapacity = aliceInitial + bobInitial;
+                            channelState.stateNumber = 0;
+                            channelState.history = [{
+                                state: 0,
+                                alice: aliceInitial,
+                                bob: bobInitial
+                            }];
+                            channelState.oldStates = [];
+                            channelState.isOpen = true;
+
+                            // Update UI
+                            document.getElementById('alice-contribution').textContent = aliceInitial.toFixed(2) + ' BTC';
+                            document.getElementById('bob-contribution').textContent = bobInitial.toFixed(2) + ' BTC';
+                            document.getElementById('total-capacity').textContent = channelState.totalCapacity.toFixed(2) + ' BTC';
+
+                            const multisigAddr = generateMultisigAddress();
+                            document.getElementById('multisig-addr').textContent = multisigAddr;
+
+                            document.getElementById('commit0-alice').textContent = aliceInitial.toFixed(2) + ' BTC';
+                            document.getElementById('commit0-bob').textContent = bobInitial.toFixed(2) + ' BTC';
+
+                            // Show funding and commitment
+                            document.getElementById('funding-tx').style.display = 'block';
+                            document.getElementById('commitment-0').style.display = 'block';
+
+                            // Update explanation
+                            document.getElementById('explanation').innerHTML =
+                                '<strong>Success!</strong> Channel opened with funding transaction. Commitment Transaction #0 created for safety. Now proceeding to Phase 2...';
+
+                            // Move to Phase 2
+                            setTimeout(() => {
+                                moveToPhase(2);
+                                document.getElementById('explanation').innerHTML =
+                                    '<strong>Phase 2:</strong> Make payments! Use the slider to set an amount, then click a button to send BTC between Alice and Bob.';
+                                updateBalanceDisplay();
+                                updateCommitmentDisplay();
+                                drawBalanceChart();
+                            }, 2000);
+                        }
+
+                        // Make Payment (Phase 2)
+                        function makePayment(sender) {
+                            const amount = parseFloat(document.getElementById('payment-slider').value);
+
+                            if (sender === 'alice') {
+                                if (channelState.aliceBalance < amount) {
+                                    alert('Alice doesn\'t have enough balance!');
+                                    return;
+                                }
+
+                                // Save old state
+                                channelState.oldStates.push({
+                                    state: channelState.stateNumber,
+                                    alice: channelState.aliceBalance,
+                                    bob: channelState.bobBalance
+                                });
+
+                                channelState.aliceBalance -= amount;
+                                channelState.bobBalance += amount;
+                                showPaymentArrow('alice');
+                            } else {
+                                if (channelState.bobBalance < amount) {
+                                    alert('Bob doesn\'t have enough balance!');
+                                    return;
+                                }
+
+                                // Save old state
+                                channelState.oldStates.push({
+                                    state: channelState.stateNumber,
+                                    alice: channelState.aliceBalance,
+                                    bob: channelState.bobBalance
+                                });
+
+                                channelState.bobBalance -= amount;
+                                channelState.aliceBalance += amount;
+                                showPaymentArrow('bob');
+                            }
+
+                            channelState.stateNumber++;
+                            channelState.history.push({
+                                state: channelState.stateNumber,
+                                alice: channelState.aliceBalance,
+                                bob: channelState.bobBalance
+                            });
+
+                            // Update revocation indicators
+                            if (channelState.stateNumber > 0) {
+                                const prevState = channelState.stateNumber - 1;
+                                document.getElementById('alice-revocation').textContent = `Revoked (State ${prevState})`;
+                                document.getElementById('bob-revocation').textContent = `Revoked (State ${prevState})`;
+                            }
+
+                            updateBalanceDisplay();
+                            updateCommitmentDisplay();
+                            drawBalanceChart();
+                            updatePaymentSlider();
+                        }
+
+                        function showPaymentArrow(sender) {
+                            const arrow = document.getElementById('payment-arrow');
+                            arrow.className = 'payment-arrow active';
+                            if (sender === 'bob') {
+                                arrow.classList.add('reverse');
+                            }
+
+                            setTimeout(() => {
+                                arrow.classList.remove('active');
+                            }, 1000);
+                        }
+
+                        function updateBalanceDisplay() {
+                            const alicePercent = (channelState.aliceBalance / channelState.totalCapacity) * 100;
+                            const bobPercent = (channelState.bobBalance / channelState.totalCapacity) * 100;
+
+                            document.getElementById('alice-bar').style.width = alicePercent + '%';
+                            document.getElementById('bob-bar').style.width = bobPercent + '%';
+
+                            document.getElementById('alice-balance').textContent = channelState.aliceBalance.toFixed(2) + ' BTC';
+                            document.getElementById('bob-balance').textContent = channelState.bobBalance.toFixed(2) + ' BTC';
+
+                            document.getElementById('state-number').textContent = channelState.stateNumber;
+                            document.getElementById('current-capacity').textContent = channelState.totalCapacity.toFixed(2) + ' BTC';
+                        }
+
+                        function updateCommitmentDisplay() {
+                            document.getElementById('current-commit-num').textContent = channelState.stateNumber;
+                            document.getElementById('current-alice-output').textContent = channelState.aliceBalance.toFixed(2) + ' BTC';
+                            document.getElementById('current-bob-output').textContent = channelState.bobBalance.toFixed(2) + ' BTC';
+                        }
+
+                        function updatePaymentSlider() {
+                            const slider = document.getElementById('payment-slider');
+                            const maxAmount = Math.min(channelState.aliceBalance, channelState.bobBalance, 0.5);
+                            slider.max = maxAmount.toFixed(2);
+                            slider.value = Math.min(0.1, maxAmount).toFixed(2);
+                            document.getElementById('payment-amount-display').textContent =
+                                parseFloat(slider.value).toFixed(2) + ' BTC';
+                        }
+
+                        // Draw Balance Chart
+                        function drawBalanceChart() {
+                            const canvas = document.getElementById('balance-chart');
+                            const ctx = canvas.getContext('2d');
+                            const width = canvas.width;
+                            const height = canvas.height;
+
+                            // Clear canvas
+                            ctx.fillStyle = '#1a1a1a';
+                            ctx.fillRect(0, 0, width, height);
+
+                            if (channelState.history.length === 0) return;
+
+                            const padding = 40;
+                            const chartWidth = width - padding * 2;
+                            const chartHeight = height - padding * 2;
+
+                            // Draw axes
+                            ctx.strokeStyle = '#999';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(padding, padding);
+                            ctx.lineTo(padding, height - padding);
+                            ctx.lineTo(width - padding, height - padding);
+                            ctx.stroke();
+
+                            // Draw grid
+                            ctx.strokeStyle = 'rgba(255, 193, 7, 0.1)';
+                            ctx.lineWidth = 1;
+                            for (let i = 0; i <= 5; i++) {
+                                const y = padding + (chartHeight / 5) * i;
+                                ctx.beginPath();
+                                ctx.moveTo(padding, y);
+                                ctx.lineTo(width - padding, y);
+                                ctx.stroke();
+                            }
+
+                            // Draw data
+                            const stepWidth = chartWidth / Math.max(channelState.history.length - 1, 1);
+
+                            // Alice's line
+                            ctx.strokeStyle = '#9c27b0';
+                            ctx.lineWidth = 3;
+                            ctx.beginPath();
+                            channelState.history.forEach((point, i) => {
+                                const x = padding + i * stepWidth;
+                                const y = height - padding - (point.alice / channelState.totalCapacity) * chartHeight;
+                                if (i === 0) ctx.moveTo(x, y);
+                                else ctx.lineTo(x, y);
+                            });
+                            ctx.stroke();
+
+                            // Bob's line
+                            ctx.strokeStyle = '#2196f3';
+                            ctx.lineWidth = 3;
+                            ctx.beginPath();
+                            channelState.history.forEach((point, i) => {
+                                const x = padding + i * stepWidth;
+                                const y = height - padding - (point.bob / channelState.totalCapacity) * chartHeight;
+                                if (i === 0) ctx.moveTo(x, y);
+                                else ctx.lineTo(x, y);
+                            });
+                            ctx.stroke();
+
+                            // Draw points
+                            channelState.history.forEach((point, i) => {
+                                const x = padding + i * stepWidth;
+
+                                // Alice point
+                                const yAlice = height - padding - (point.alice / channelState.totalCapacity) * chartHeight;
+                                ctx.fillStyle = '#9c27b0';
+                                ctx.beginPath();
+                                ctx.arc(x, yAlice, 4, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                // Bob point
+                                const yBob = height - padding - (point.bob / channelState.totalCapacity) * chartHeight;
+                                ctx.fillStyle = '#2196f3';
+                                ctx.beginPath();
+                                ctx.arc(x, yBob, 4, 0, Math.PI * 2);
+                                ctx.fill();
+                            });
+
+                            // Labels
+                            ctx.fillStyle = '#e0e0e0';
+                            ctx.font = '12px sans-serif';
+                            ctx.fillText('State', width / 2 - 20, height - 10);
+                            ctx.save();
+                            ctx.translate(15, height / 2);
+                            ctx.rotate(-Math.PI / 2);
+                            ctx.fillText('Balance (BTC)', -30, 0);
+                            ctx.restore();
+
+                            // Legend
+                            ctx.fillStyle = '#9c27b0';
+                            ctx.fillRect(width - 150, 20, 20, 10);
+                            ctx.fillStyle = '#e0e0e0';
+                            ctx.fillText('Alice', width - 125, 29);
+
+                            ctx.fillStyle = '#2196f3';
+                            ctx.fillRect(width - 150, 40, 20, 10);
+                            ctx.fillStyle = '#e0e0e0';
+                            ctx.fillText('Bob', width - 125, 49);
+                        }
+
+                        // Move to Closing (Phase 3)
+                        function moveToClosing() {
+                            moveToPhase(3);
+                            document.getElementById('explanation').innerHTML =
+                                '<strong>Phase 3:</strong> Choose how to close the channel. Try the "Cheat Mode" to see the penalty mechanism!';
+
+                            // Populate old states selector
+                            const selector = document.getElementById('old-state-selector');
+                            selector.innerHTML = '<option value="">Select old state...</option>';
+                            channelState.oldStates.forEach(state => {
+                                const option = document.createElement('option');
+                                option.value = state.state;
+                                option.textContent = `State #${state.state} (Alice: ${state.alice.toFixed(2)}, Bob: ${state.bob.toFixed(2)})`;
+                                selector.appendChild(option);
+                            });
+                        }
+
+                        // Cooperative Close
+                        function cooperativeClose() {
+                            const result = document.getElementById('closing-result');
+                            document.getElementById('closing-title').textContent = '✅ Cooperative Close Transaction';
+                            document.getElementById('closing-details').innerHTML = `
+                                <div class="tx-details">
+                                    <p class="tx-note">Both parties signed the closing transaction. Final settlement:</p>
+                                    <div class="tx-row">
+                                        <span>Alice receives:</span>
+                                        <span class="amount">${channelState.aliceBalance.toFixed(2)} BTC</span>
+                                    </div>
+                                    <div class="tx-row">
+                                        <span>Bob receives:</span>
+                                        <span class="amount">${channelState.bobBalance.toFixed(2)} BTC</span>
+                                    </div>
+                                    <div class="tx-row total">
+                                        <span>Transaction fee:</span>
+                                        <span class="amount">~500 sats</span>
+                                    </div>
+                                    <p style="margin-top: 1rem; color: var(--accent-green);">
+                                        ✓ Channel closed cooperatively. Fastest and most efficient method!
+                                    </p>
+                                </div>
+                            `;
+                            result.style.display = 'block';
+                            document.getElementById('penalty-tx').style.display = 'none';
+                        }
+
+                        // Unilateral Close
+                        function unilateralClose() {
+                            const result = document.getElementById('closing-result');
+                            document.getElementById('closing-title').textContent = '⏰ Unilateral Close Transaction';
+                            document.getElementById('closing-details').innerHTML = `
+                                <div class="tx-details">
+                                    <p class="tx-note">One party broadcast latest commitment transaction. Timelock in effect:</p>
+                                    <div class="tx-row">
+                                        <span>Alice's output:</span>
+                                        <span class="amount">${channelState.aliceBalance.toFixed(2)} BTC (available after 144 blocks)</span>
+                                    </div>
+                                    <div class="tx-row">
+                                        <span>Bob's output:</span>
+                                        <span class="amount">${channelState.bobBalance.toFixed(2)} BTC (available after 144 blocks)</span>
+                                    </div>
+                                    <div class="tx-row total">
+                                        <span>Estimated wait time:</span>
+                                        <span class="amount">~24 hours</span>
+                                    </div>
+                                    <p style="margin-top: 1rem; color: #ff9800;">
+                                        ⏰ Waiting period gives the other party time to detect fraud and apply penalty if needed.
+                                    </p>
+                                </div>
+                            `;
+                            result.style.display = 'block';
+                            document.getElementById('penalty-tx').style.display = 'none';
+                        }
+
+                        // Cheat Broadcast
+                        function cheatBroadcast() {
+                            const stateNum = parseInt(document.getElementById('old-state-selector').value);
+                            if (isNaN(stateNum)) {
+                                alert('Please select an old state to broadcast!');
+                                return;
+                            }
+
+                            const oldState = channelState.oldStates.find(s => s.state === stateNum);
+                            if (!oldState) {
+                                alert('State not found!');
+                                return;
+                            }
+
+                            // Hide closing result
+                            document.getElementById('closing-result').style.display = 'none';
+
+                            // Show penalty
+                            const penalty = document.getElementById('penalty-tx');
+                            document.getElementById('cheat-state-num').textContent = stateNum;
+
+                            // Determine who cheated (assume Alice tried to cheat for demo)
+                            const attemptedClaim = oldState.alice;
+                            const actualBalance = channelState.aliceBalance;
+                            const penaltyAmount = channelState.totalCapacity;
+
+                            document.getElementById('attempted-claim').textContent = attemptedClaim.toFixed(2) + ' BTC';
+                            document.getElementById('penalty-amount').textContent = penaltyAmount.toFixed(2) + ' BTC';
+
+                            penalty.style.display = 'block';
+
+                            // Update explanation
+                            document.getElementById('explanation').innerHTML =
+                                '<strong style="color: #f44336;">CHEATING DETECTED!</strong> The honest party detected the old state broadcast and used the revocation key to claim all funds as penalty.';
+                        }
+
+                        // Move to Phase
+                        function moveToPhase(phase) {
+                            // Update phase indicator
+                            document.querySelectorAll('.phase-step').forEach(step => {
+                                step.classList.remove('active');
+                            });
+                            document.querySelector(`.phase-step[data-phase="${phase}"]`).classList.add('active');
+
+                            // Update phase content
+                            document.querySelectorAll('.simulator-phase').forEach(p => {
+                                p.classList.remove('active');
+                            });
+                            document.getElementById(`phase-${phase}`).classList.add('active');
+
+                            channelState.phase = phase;
+                        }
+
+                        // Reset Simulator
+                        function resetSimulator() {
+                            // Reset state
+                            channelState.phase = 1;
+                            channelState.aliceBalance = 0.5;
+                            channelState.bobBalance = 0.3;
+                            channelState.stateNumber = 0;
+                            channelState.history = [];
+                            channelState.oldStates = [];
+                            channelState.isOpen = false;
+
+                            // Reset UI
+                            document.getElementById('alice-initial').value = 0.5;
+                            document.getElementById('bob-initial').value = 0.3;
+                            document.getElementById('funding-tx').style.display = 'none';
+                            document.getElementById('commitment-0').style.display = 'none';
+                            document.getElementById('closing-result').style.display = 'none';
+                            document.getElementById('penalty-tx').style.display = 'none';
+
+                            moveToPhase(1);
+                            document.getElementById('explanation').innerHTML =
+                                '<strong>Step 1:</strong> Set initial balances for Alice and Bob, then click "Open Channel" to create the funding transaction.';
+                        }
+
+                        // Utility Functions
+                        function generateMultisigAddress() {
+                            const chars = '0123456789abcdef';
+                            let addr = 'bc1q';
+                            for (let i = 0; i < 39; i++) {
+                                addr += chars[Math.floor(Math.random() * chars.length)];
+                            }
+                            return addr;
+                        }
+
+                        // Initialize on load
+                        initSimulator();
+                    </script>
                 </div>
             </section>
 

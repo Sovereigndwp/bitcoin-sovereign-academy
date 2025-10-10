@@ -333,20 +333,455 @@ Hash = SHA-256(SHA-256(Block Header))</code></pre>
 
             <!-- Interactive Mining Simulator -->
             <section class="content-section">
-                <div class="demo-container">
+                <div class="demo-container" id="mining-simulator">
                     <h3>⛏️ Interactive Mining Simulator</h3>
                     <p style="margin-bottom: 1.5rem; text-align: center; color: var(--text-dim);">
                         Experience Bitcoin mining! Adjust difficulty, watch hash attempts, and understand why PoW is computationally hard.
                     </p>
-                    <iframe
-                        src="/interactive-demos/mining-simulator/index.html"
-                        style="width: 100%; height: 900px; border: none; border-radius: 0.75rem; background: white;"
-                        title="Mining Simulator">
-                    </iframe>
-                    <p style="margin-top: 1rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;">
-                        💡 Start with Easy Mode (2 leading zeros) then try Realistic Mode (19+ leading zeros)
+
+                    <!-- Difficulty Selector -->
+                    <div style="margin-bottom: 2rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--accent-blue); font-weight: 600;">Difficulty Level:</label>
+                        <select id="difficulty" style="width: 100%; padding: 0.75rem; background: var(--primary-dark); color: var(--text-light); border: 1px solid var(--border-color); border-radius: 0.5rem; font-size: 1rem;">
+                            <option value="2">Easy (2 leading zeros)</option>
+                            <option value="4" selected>Medium (4 leading zeros)</option>
+                            <option value="6">Hard (6 leading zeros)</option>
+                            <option value="realistic">Realistic (Explanation Only)</option>
+                        </select>
+                    </div>
+
+                    <!-- Transaction Input -->
+                    <div style="margin-bottom: 2rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--accent-blue); font-weight: 600;">Transactions (one per line):</label>
+                        <textarea id="transactions" rows="4" style="width: 100%; padding: 0.75rem; background: var(--primary-dark); color: var(--text-light); border: 1px solid var(--border-color); border-radius: 0.5rem; font-family: 'Courier New', monospace; font-size: 0.9rem; resize: vertical;">Alice sends 1.5 BTC to Bob
+Bob sends 0.3 BTC to Charlie
+Charlie sends 2.1 BTC to Diana
+Diana sends 0.8 BTC to Eve
+Eve sends 1.2 BTC to Frank</textarea>
+                    </div>
+
+                    <!-- Block Header Visualization -->
+                    <div style="background: var(--primary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem; margin-bottom: 2rem;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">Block Header Components:</h4>
+                        <div style="font-family: 'Courier New', monospace; font-size: 0.85rem; display: grid; gap: 0.5rem;">
+                            <div><span style="color: var(--text-dim);">Version:</span> <span id="version">1</span></div>
+                            <div><span style="color: var(--text-dim);">Previous Hash:</span> <span id="prevHash">0000000000000000000...</span></div>
+                            <div><span style="color: var(--text-dim);">Merkle Root:</span> <span id="merkleRoot">calculating...</span></div>
+                            <div><span style="color: var(--text-dim);">Timestamp:</span> <span id="timestamp">-</span></div>
+                            <div><span style="color: var(--text-dim);">Target:</span> <span id="target">-</span></div>
+                            <div><span style="color: var(--text-dim);">Nonce:</span> <span id="nonceDisplay">0</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Mining Controls -->
+                    <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                        <button id="startMining" style="flex: 1; min-width: 150px; padding: 1rem; background: var(--accent-green); color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; font-size: 1rem;">Start Mining</button>
+                        <button id="stopMining" style="flex: 1; min-width: 150px; padding: 1rem; background: #d32f2f; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; font-size: 1rem;" disabled>Stop Mining</button>
+                    </div>
+
+                    <!-- Mining Stats -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <div style="background: var(--primary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem; text-align: center;">
+                            <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.25rem;">Hash Rate</div>
+                            <div id="hashRate" style="color: var(--primary-orange); font-size: 1.5rem; font-weight: 700;">0</div>
+                            <div style="color: var(--text-dim); font-size: 0.75rem;">hashes/sec</div>
+                        </div>
+                        <div style="background: var(--primary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem; text-align: center;">
+                            <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.25rem;">Attempts</div>
+                            <div id="attempts" style="color: var(--accent-blue); font-size: 1.5rem; font-weight: 700;">0</div>
+                            <div style="color: var(--text-dim); font-size: 0.75rem;">nonces tested</div>
+                        </div>
+                        <div style="background: var(--primary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem; text-align: center;">
+                            <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.25rem;">Time Elapsed</div>
+                            <div id="timeElapsed" style="color: var(--accent-green); font-size: 1.5rem; font-weight: 700;">0.0s</div>
+                            <div style="color: var(--text-dim); font-size: 0.75rem;">seconds</div>
+                        </div>
+                    </div>
+
+                    <!-- Hash Visualization -->
+                    <div style="background: var(--primary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem; margin-bottom: 2rem;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">Current Hash Attempt:</h4>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <div id="hashStatus" style="width: 20px; height: 20px; border-radius: 50%; background: #666;"></div>
+                            <div id="currentHash" style="font-family: 'Courier New', monospace; font-size: 0.9rem; word-break: break-all; flex: 1;">waiting to start...</div>
+                        </div>
+                        <div id="leadingZeros" style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem;">Leading zeros: <span style="color: var(--primary-orange); font-weight: 600;">0</span></div>
+
+                        <!-- Target Comparison Chart -->
+                        <div style="margin-top: 1rem;">
+                            <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.5rem;">Hash vs Target:</div>
+                            <div style="background: var(--secondary-dark); border-radius: 0.25rem; height: 30px; position: relative; overflow: hidden;">
+                                <div id="targetBar" style="position: absolute; left: 0; top: 0; height: 100%; background: rgba(76, 175, 80, 0.3); border-right: 2px solid var(--accent-green);"></div>
+                                <div id="hashBar" style="position: absolute; left: 0; top: 0; height: 100%; background: var(--primary-orange); opacity: 0.6; transition: all 0.1s;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 0.25rem; font-size: 0.75rem; color: var(--text-dim);">
+                                <span>0 (lowest)</span>
+                                <span>Max Hash Value</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Success Animation -->
+                    <div id="successAnimation" style="display: none; background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(76, 175, 80, 0.1)); border: 3px solid var(--accent-green); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; text-align: center;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">🎉</div>
+                        <h4 style="color: var(--accent-green); font-size: 1.5rem; margin-bottom: 0.5rem;">Block Found!</h4>
+                        <div id="successMessage" style="color: var(--text-light); margin-bottom: 1rem;"></div>
+                        <div id="validHash" style="font-family: 'Courier New', monospace; font-size: 0.85rem; word-break: break-all; color: var(--accent-green);"></div>
+                    </div>
+
+                    <!-- Educational Feedback -->
+                    <div style="background: var(--primary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">⚡ Mining Insights:</h4>
+                        <div style="display: grid; gap: 1rem;">
+                            <div>
+                                <div style="color: var(--text-dim); font-size: 0.85rem;">Estimated Time to Find Block:</div>
+                                <div id="estimatedTime" style="color: var(--primary-orange); font-weight: 600;">-</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-dim); font-size: 0.85rem;">Your Hashrate vs Bitcoin Network:</div>
+                                <div id="networkComparison" style="color: var(--accent-blue); font-weight: 600;">-</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-dim); font-size: 0.85rem;">Energy Estimate:</div>
+                                <div id="energyEstimate" style="color: var(--accent-green); font-weight: 600;">-</div>
+                            </div>
+                            <div id="realisticMode" style="display: none; background: rgba(247, 147, 26, 0.1); border-left: 3px solid var(--primary-orange); padding: 1rem; border-radius: 0.25rem;">
+                                <div style="color: var(--primary-orange); font-weight: 600; margin-bottom: 0.5rem;">Realistic Bitcoin Mining (76 leading zeros required):</div>
+                                <div style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.6;">
+                                    At current difficulty, finding a valid block requires approximately 2^77 hash attempts.
+                                    The Bitcoin network performs ~400 EH/s (400 quintillion hashes/second) and finds one block every ~10 minutes.
+                                    A typical laptop performs ~50,000 hashes/second, meaning it would take <strong style="color: var(--text-light);">over 9 trillion years</strong> to find a block on average.
+                                    This is why miners use specialized ASIC hardware and pool their resources!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Difficulty Chart -->
+                    <div style="margin-top: 2rem; background: var(--primary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">Difficulty Exponential Growth:</h4>
+                        <div style="display: grid; gap: 0.5rem; font-size: 0.9rem; font-family: 'Courier New', monospace;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-dim);">2 leading zeros:</span>
+                                <span style="color: var(--text-light);">~256 attempts (instant)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-dim);">4 leading zeros:</span>
+                                <span style="color: var(--text-light);">~65,536 attempts (~1 sec)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-dim);">6 leading zeros:</span>
+                                <span style="color: var(--text-light);">~16.7 million attempts (~5 min)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-dim);">8 leading zeros:</span>
+                                <span style="color: var(--text-light);">~4.3 billion attempts (~24 hours)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 1px solid var(--border-color);">
+                                <span style="color: var(--primary-orange);">Bitcoin (76 zeros):</span>
+                                <span style="color: var(--primary-orange);">~2^77 attempts (10 min @ 400 EH/s)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 1.5rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;">
+                        💡 Start with Easy Mode (2 zeros) then try Medium/Hard. Realistic mode shows why specialized hardware is essential!
                     </p>
                 </div>
+
+                <style>
+                    @keyframes pulse {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.5; }
+                    }
+
+                    @keyframes success {
+                        0% { transform: scale(0.8); opacity: 0; }
+                        50% { transform: scale(1.1); }
+                        100% { transform: scale(1); opacity: 1; }
+                    }
+
+                    #successAnimation {
+                        animation: success 0.5s ease-out;
+                    }
+
+                    @media (max-width: 640px) {
+                        #mining-simulator button {
+                            min-width: 100%;
+                        }
+                    }
+                </style>
+
+                <script>
+                    (function() {
+                        let mining = false;
+                        let nonce = 0;
+                        let attempts = 0;
+                        let startTime = 0;
+                        let animationFrame = null;
+                        let hashCount = 0;
+                        let lastHashRateUpdate = 0;
+                        let difficulty = 4;
+
+                        const startBtn = document.getElementById('startMining');
+                        const stopBtn = document.getElementById('stopMining');
+                        const difficultySelect = document.getElementById('difficulty');
+                        const transactionsInput = document.getElementById('transactions');
+
+                        // SHA-256 hashing using SubtleCrypto API
+                        async function sha256(message) {
+                            const msgBuffer = new TextEncoder().encode(message);
+                            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                            const hashArray = Array.from(new Uint8Array(hashBuffer));
+                            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                        }
+
+                        // Double SHA-256 (Bitcoin's hashing)
+                        async function doubleSha256(message) {
+                            const hash1 = await sha256(message);
+                            return await sha256(hash1);
+                        }
+
+                        // Calculate Merkle Root
+                        async function calculateMerkleRoot(transactions) {
+                            const txList = transactions.split('\n').filter(tx => tx.trim());
+                            if (txList.length === 0) return '0000000000000000000000000000000000000000000000000000000000000000';
+
+                            let hashes = await Promise.all(txList.map(tx => sha256(tx)));
+
+                            while (hashes.length > 1) {
+                                const newHashes = [];
+                                for (let i = 0; i < hashes.length; i += 2) {
+                                    if (i + 1 < hashes.length) {
+                                        newHashes.push(await sha256(hashes[i] + hashes[i + 1]));
+                                    } else {
+                                        newHashes.push(await sha256(hashes[i] + hashes[i]));
+                                    }
+                                }
+                                hashes = newHashes;
+                            }
+
+                            return hashes[0];
+                        }
+
+                        // Count leading zeros in hex string
+                        function countLeadingZeros(hash) {
+                            let count = 0;
+                            for (let char of hash) {
+                                if (char === '0') count++;
+                                else break;
+                            }
+                            return count;
+                        }
+
+                        // Format hash with highlighted leading zeros
+                        function formatHash(hash, targetZeros) {
+                            const zeros = hash.slice(0, targetZeros);
+                            const rest = hash.slice(targetZeros);
+                            return `<span style="color: var(--accent-green); font-weight: 700;">${zeros}</span><span style="color: var(--text-light);">${rest}</span>`;
+                        }
+
+                        // Update UI elements
+                        function updateUI(hash, isValid = false) {
+                            const currentHashEl = document.getElementById('currentHash');
+                            const leadingZerosEl = document.getElementById('leadingZeros');
+                            const hashStatusEl = document.getElementById('hashStatus');
+                            const attemptsEl = document.getElementById('attempts');
+                            const nonceDisplayEl = document.getElementById('nonceDisplay');
+                            const timeElapsedEl = document.getElementById('timeElapsed');
+
+                            const leadingZeros = countLeadingZeros(hash);
+                            currentHashEl.innerHTML = formatHash(hash, leadingZeros);
+                            leadingZerosEl.innerHTML = `Leading zeros: <span style="color: var(--primary-orange); font-weight: 600;">${leadingZeros}</span>`;
+
+                            // Update hash status indicator
+                            if (isValid) {
+                                hashStatusEl.style.background = 'var(--accent-green)';
+                                hashStatusEl.style.boxShadow = '0 0 10px var(--accent-green)';
+                            } else {
+                                hashStatusEl.style.background = '#d32f2f';
+                            }
+
+                            // Update hash bar visualization
+                            const hashValue = parseInt(hash.slice(0, 16), 16);
+                            const maxValue = parseInt('ffffffffffffffff', 16);
+                            const percentage = (hashValue / maxValue) * 100;
+                            document.getElementById('hashBar').style.width = percentage + '%';
+
+                            // Update stats
+                            attemptsEl.textContent = attempts.toLocaleString();
+                            nonceDisplayEl.textContent = nonce.toLocaleString();
+
+                            const elapsed = (Date.now() - startTime) / 1000;
+                            timeElapsedEl.textContent = elapsed.toFixed(1) + 's';
+
+                            // Update hash rate
+                            const now = Date.now();
+                            if (now - lastHashRateUpdate >= 1000) {
+                                const hashRate = Math.round(hashCount);
+                                document.getElementById('hashRate').textContent = hashRate.toLocaleString();
+                                updateEducationalFeedback(hashRate);
+                                hashCount = 0;
+                                lastHashRateUpdate = now;
+                            }
+                        }
+
+                        // Update educational feedback
+                        function updateEducationalFeedback(hashRate) {
+                            const avgAttempts = Math.pow(16, difficulty);
+                            const estimatedSeconds = avgAttempts / hashRate;
+
+                            let timeStr;
+                            if (estimatedSeconds < 60) {
+                                timeStr = `~${Math.round(estimatedSeconds)} seconds`;
+                            } else if (estimatedSeconds < 3600) {
+                                timeStr = `~${Math.round(estimatedSeconds / 60)} minutes`;
+                            } else if (estimatedSeconds < 86400) {
+                                timeStr = `~${Math.round(estimatedSeconds / 3600)} hours`;
+                            } else {
+                                timeStr = `~${Math.round(estimatedSeconds / 86400)} days`;
+                            }
+
+                            document.getElementById('estimatedTime').textContent = timeStr + ' (average)';
+
+                            // Network comparison
+                            const networkHashrate = 400e18; // 400 EH/s
+                            const ratio = networkHashrate / hashRate;
+                            document.getElementById('networkComparison').textContent =
+                                `Bitcoin network is ${ratio.toExponential(2)}x faster than your computer`;
+
+                            // Energy estimate (assuming ~100W laptop)
+                            const watts = 100;
+                            const joules = (watts / hashRate).toFixed(6);
+                            document.getElementById('energyEstimate').textContent =
+                                `~${joules} joules per hash (~100W laptop)`;
+                        }
+
+                        // Mining loop using requestAnimationFrame
+                        async function miningLoop() {
+                            if (!mining) return;
+
+                            const batchSize = 1000; // Hash in batches for better performance
+
+                            for (let i = 0; i < batchSize && mining; i++) {
+                                const merkleRoot = document.getElementById('merkleRoot').textContent;
+                                const prevHash = document.getElementById('prevHash').textContent;
+                                const timestamp = document.getElementById('timestamp').textContent;
+                                const version = document.getElementById('version').textContent;
+
+                                const blockHeader = `${version}${prevHash}${merkleRoot}${timestamp}${difficulty}${nonce}`;
+                                const hash = await doubleSha256(blockHeader);
+
+                                attempts++;
+                                hashCount++;
+                                nonce++;
+
+                                const leadingZeros = countLeadingZeros(hash);
+                                const isValid = leadingZeros >= difficulty;
+
+                                if (i === batchSize - 1 || isValid) {
+                                    updateUI(hash, isValid);
+                                }
+
+                                if (isValid) {
+                                    mining = false;
+                                    showSuccess(hash);
+                                    startBtn.disabled = false;
+                                    stopBtn.disabled = true;
+                                    return;
+                                }
+                            }
+
+                            if (mining) {
+                                animationFrame = requestAnimationFrame(miningLoop);
+                            }
+                        }
+
+                        // Show success animation
+                        function showSuccess(hash) {
+                            const successEl = document.getElementById('successAnimation');
+                            const messageEl = document.getElementById('successMessage');
+                            const validHashEl = document.getElementById('validHash');
+
+                            const elapsed = (Date.now() - startTime) / 1000;
+                            messageEl.textContent = `Found valid hash after ${attempts.toLocaleString()} attempts in ${elapsed.toFixed(1)} seconds!`;
+                            validHashEl.innerHTML = formatHash(hash, difficulty);
+
+                            successEl.style.display = 'block';
+                            successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+
+                        // Initialize block header
+                        async function initializeBlockHeader() {
+                            const transactions = transactionsInput.value;
+                            const merkleRoot = await calculateMerkleRoot(transactions);
+                            document.getElementById('merkleRoot').textContent = merkleRoot.slice(0, 20) + '...';
+                            document.getElementById('merkleRoot').title = merkleRoot;
+
+                            const timestamp = Math.floor(Date.now() / 1000);
+                            document.getElementById('timestamp').textContent = timestamp;
+
+                            const targetZeros = '0'.repeat(difficulty);
+                            const targetValue = targetZeros + 'f'.repeat(64 - difficulty);
+                            document.getElementById('target').textContent = targetValue.slice(0, 20) + '...';
+                            document.getElementById('target').title = targetValue;
+
+                            // Update target bar
+                            const targetNum = parseInt(targetValue.slice(0, 16), 16);
+                            const maxNum = parseInt('ffffffffffffffff', 16);
+                            const targetPercentage = (targetNum / maxNum) * 100;
+                            document.getElementById('targetBar').style.width = targetPercentage + '%';
+                        }
+
+                        // Start mining
+                        startBtn.addEventListener('click', async () => {
+                            const selectedDifficulty = difficultySelect.value;
+
+                            if (selectedDifficulty === 'realistic') {
+                                document.getElementById('realisticMode').style.display = 'block';
+                                document.getElementById('realisticMode').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                return;
+                            } else {
+                                document.getElementById('realisticMode').style.display = 'none';
+                            }
+
+                            difficulty = parseInt(selectedDifficulty);
+                            mining = true;
+                            nonce = 0;
+                            attempts = 0;
+                            hashCount = 0;
+                            startTime = Date.now();
+                            lastHashRateUpdate = startTime;
+
+                            startBtn.disabled = true;
+                            stopBtn.disabled = false;
+                            document.getElementById('successAnimation').style.display = 'none';
+
+                            await initializeBlockHeader();
+                            miningLoop();
+                        });
+
+                        // Stop mining
+                        stopBtn.addEventListener('click', () => {
+                            mining = false;
+                            if (animationFrame) {
+                                cancelAnimationFrame(animationFrame);
+                            }
+                            startBtn.disabled = false;
+                            stopBtn.disabled = true;
+                        });
+
+                        // Update block header when transactions change
+                        transactionsInput.addEventListener('input', async () => {
+                            if (!mining) {
+                                await initializeBlockHeader();
+                            }
+                        });
+
+                        // Initialize on load
+                        initializeBlockHeader();
+                    })();
+                </script>
             </section>
 
             <!-- Difficulty Adjustment -->
