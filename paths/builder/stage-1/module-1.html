@@ -282,11 +282,99 @@
                         Build a transaction by selecting UTXOs and creating outputs. See how change works!
                     </p>
 
-                    <iframe
-                        src="/interactive-demos/utxo-visualizer-v2.html"
-                        style="width: 100%; height: 600px; border: none; border-radius: 0.5rem; background: white;"
-                        title="UTXO Visualizer">
-                    </iframe>
+                    <!-- UTXO Builder Interface -->
+                    <div id="utxo-builder" style="background: var(--primary-dark); padding: 2rem; border-radius: 0.75rem;">
+                        <!-- Available UTXOs -->
+                        <div style="margin-bottom: 2rem;">
+                            <h4 style="color: var(--accent-blue); margin-bottom: 1rem; font-size: 1.1rem;">📦 Your Available UTXOs (Click to Select)</h4>
+                            <div id="available-utxos" style="display: grid; gap: 0.75rem;">
+                                <!-- UTXOs will be dynamically added here -->
+                            </div>
+                        </div>
+
+                        <!-- Transaction Inputs -->
+                        <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(33, 150, 243, 0.1); border-left: 4px solid var(--accent-blue); border-radius: 0.5rem;">
+                            <h4 style="color: var(--accent-blue); margin-bottom: 1rem; font-size: 1.1rem;">📥 Transaction Inputs (Selected UTXOs)</h4>
+                            <div id="selected-inputs" style="min-height: 60px;">
+                                <p style="color: var(--text-dim); font-size: 0.9rem; font-style: italic;">Click UTXOs above to add as inputs...</p>
+                            </div>
+                            <div style="margin-top: 1rem; padding: 0.75rem; background: var(--secondary-dark); border-radius: 0.5rem;">
+                                <strong style="color: var(--accent-blue);">Total Input Value:</strong>
+                                <span id="total-input" style="color: var(--accent-green); font-size: 1.2rem; margin-left: 0.5rem;">0 sats</span>
+                            </div>
+                        </div>
+
+                        <!-- Transaction Outputs -->
+                        <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(76, 175, 80, 0.1); border-left: 4px solid var(--accent-green); border-radius: 0.5rem;">
+                            <h4 style="color: var(--accent-green); margin-bottom: 1rem; font-size: 1.1rem;">📤 Transaction Outputs</h4>
+
+                            <div style="display: grid; gap: 1rem; margin-bottom: 1rem;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-light); font-weight: 600;">Recipient Address:</label>
+                                    <input type="text" id="recipient-address" placeholder="bc1q..."
+                                           style="width: 100%; padding: 0.75rem; background: var(--secondary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--text-light); font-family: monospace;">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-light); font-weight: 600;">Amount (satoshis):</label>
+                                    <input type="number" id="output-amount" placeholder="e.g., 50000" min="0"
+                                           style="width: 100%; padding: 0.75rem; background: var(--secondary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--text-light);">
+                                </div>
+                                <button id="add-output" style="padding: 0.75rem 1.5rem; background: var(--accent-green); color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                    Add Output
+                                </button>
+                            </div>
+
+                            <div id="output-list" style="margin-top: 1rem;">
+                                <p style="color: var(--text-dim); font-size: 0.9rem; font-style: italic;">No outputs added yet...</p>
+                            </div>
+
+                            <div style="margin-top: 1rem; padding: 0.75rem; background: var(--secondary-dark); border-radius: 0.5rem;">
+                                <strong style="color: var(--accent-green);">Total Output Value:</strong>
+                                <span id="total-output" style="color: var(--accent-green); font-size: 1.2rem; margin-left: 0.5rem;">0 sats</span>
+                            </div>
+                        </div>
+
+                        <!-- Transaction Summary -->
+                        <div style="padding: 1.5rem; background: rgba(247, 147, 26, 0.1); border: 2px solid var(--primary-orange); border-radius: 0.75rem;">
+                            <h4 style="color: var(--primary-orange); margin-bottom: 1rem; font-size: 1.2rem; text-align: center;">⚡ Transaction Summary</h4>
+                            <div style="display: grid; gap: 0.75rem; font-size: 1rem;">
+                                <div style="display: flex; justify-content: space-between; padding: 0.5rem;">
+                                    <span style="color: var(--text-light);">Total Inputs:</span>
+                                    <span id="summary-inputs" style="color: var(--accent-blue); font-weight: 600;">0 sats</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 0.5rem;">
+                                    <span style="color: var(--text-light);">Total Outputs:</span>
+                                    <span id="summary-outputs" style="color: var(--accent-green); font-weight: 600;">0 sats</span>
+                                </div>
+                                <div style="height: 1px; background: var(--border-color);"></div>
+                                <div style="display: flex; justify-content: space-between; padding: 0.5rem;">
+                                    <span style="color: var(--text-light); font-weight: 600;">Miner Fee:</span>
+                                    <span id="summary-fee" style="color: var(--primary-orange); font-weight: 700; font-size: 1.1rem;">0 sats</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: rgba(76, 175, 80, 0.2); border-radius: 0.5rem;">
+                                    <span style="color: var(--text-light); font-weight: 600;">Change Required:</span>
+                                    <span id="summary-change" style="color: var(--accent-green); font-weight: 700; font-size: 1.1rem;">0 sats</span>
+                                </div>
+                            </div>
+
+                            <div id="validation-message" style="margin-top: 1rem; padding: 0.75rem; border-radius: 0.5rem; text-align: center; font-weight: 600;">
+                                <!-- Validation messages will appear here -->
+                            </div>
+
+                            <button id="build-transaction" style="width: 100%; margin-top: 1rem; padding: 1rem; background: var(--primary-orange); color: white; border: none; border-radius: 0.5rem; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: all 0.3s;">
+                                Build Transaction
+                            </button>
+                        </div>
+
+                        <!-- Transaction Result -->
+                        <div id="transaction-result" style="margin-top: 2rem; padding: 1.5rem; background: var(--secondary-dark); border-radius: 0.75rem; display: none;">
+                            <h4 style="color: var(--accent-green); margin-bottom: 1rem; text-align: center;">✅ Transaction Built Successfully!</h4>
+                            <pre id="transaction-json" style="font-size: 0.85rem; max-height: 400px; overflow-y: auto;"></pre>
+                            <button id="reset-builder" style="width: 100%; margin-top: 1rem; padding: 0.75rem; background: var(--secondary-dark); color: var(--text-light); border: 2px solid var(--border-color); border-radius: 0.5rem; font-weight: 600; cursor: pointer;">
+                                Build Another Transaction
+                            </button>
+                        </div>
+                    </div>
 
                     <p style="margin-top: 1rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;">
                         💡 Try creating a transaction with exact change vs. requiring change output. Notice how fees work!
@@ -358,6 +446,266 @@
             </nav>
         </div>
     </main>
+
+    <script>
+        // UTXO Transaction Builder Logic
+        const utxoBuilder = {
+            availableUTXOs: [
+                { id: 'utxo-1', txid: 'abc123...def456', vout: 0, value: 100000, address: 'bc1q...xyz', selected: false },
+                { id: 'utxo-2', txid: 'def456...ghi789', vout: 1, value: 50000, address: 'bc1q...abc', selected: false },
+                { id: 'utxo-3', txid: 'ghi789...jkl012', vout: 0, value: 75000, address: 'bc1q...def', selected: false },
+                { id: 'utxo-4', txid: 'jkl012...mno345', vout: 2, value: 150000, address: 'bc1q...ghi', selected: false },
+                { id: 'utxo-5', txid: 'mno345...pqr678', vout: 0, value: 25000, address: 'bc1q...jkl', selected: false }
+            ],
+            outputs: [],
+            feeRate: 10 // sats per vbyte (simplified for learning)
+        };
+
+        function initializeBuilder() {
+            renderAvailableUTXOs();
+            updateSummary();
+        }
+
+        function renderAvailableUTXOs() {
+            const container = document.getElementById('available-utxos');
+            container.innerHTML = utxoBuilder.availableUTXOs.map(utxo => `
+                <div id="${utxo.id}" onclick="toggleUTXO('${utxo.id}')"
+                     style="padding: 1rem; background: ${utxo.selected ? 'rgba(33, 150, 243, 0.3)' : 'var(--secondary-dark)'};
+                            border: 2px solid ${utxo.selected ? 'var(--accent-blue)' : 'var(--border-color)'};
+                            border-radius: 0.5rem; cursor: pointer; transition: all 0.3s;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                        <div>
+                            <div style="font-family: monospace; font-size: 0.85rem; color: var(--text-dim);">${utxo.txid}:${utxo.vout}</div>
+                            <div style="margin-top: 0.25rem; font-size: 0.85rem; color: var(--text-dim);">From: ${utxo.address}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent-green);">${utxo.value.toLocaleString()} sats</div>
+                            <div style="font-size: 0.85rem; color: var(--text-dim);">${(utxo.value / 100000000).toFixed(8)} BTC</div>
+                        </div>
+                    </div>
+                    ${utxo.selected ? '<div style="margin-top: 0.5rem; color: var(--accent-blue); font-weight: 600; text-align: center;">✓ Selected as Input</div>' : ''}
+                </div>
+            `).join('');
+        }
+
+        function toggleUTXO(utxoId) {
+            const utxo = utxoBuilder.availableUTXOs.find(u => u.id === utxoId);
+            utxo.selected = !utxo.selected;
+            renderAvailableUTXOs();
+            renderSelectedInputs();
+            updateSummary();
+        }
+
+        function renderSelectedInputs() {
+            const container = document.getElementById('selected-inputs');
+            const selected = utxoBuilder.availableUTXOs.filter(u => u.selected);
+
+            if (selected.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-dim); font-size: 0.9rem; font-style: italic;">Click UTXOs above to add as inputs...</p>';
+                return;
+            }
+
+            container.innerHTML = selected.map((utxo, index) => `
+                <div style="padding: 0.75rem; background: var(--secondary-dark); border-radius: 0.5rem; margin-bottom: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600;">Input #${index + 1}</div>
+                            <div style="font-family: monospace; font-size: 0.85rem; color: var(--text-dim);">${utxo.txid}:${utxo.vout}</div>
+                        </div>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: var(--accent-blue);">${utxo.value.toLocaleString()} sats</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function calculateTotalInput() {
+            return utxoBuilder.availableUTXOs
+                .filter(u => u.selected)
+                .reduce((sum, u) => sum + u.value, 0);
+        }
+
+        function calculateTotalOutput() {
+            return utxoBuilder.outputs.reduce((sum, o) => sum + o.value, 0);
+        }
+
+        function calculateFee() {
+            const selectedInputs = utxoBuilder.availableUTXOs.filter(u => u.selected).length;
+            const numOutputs = utxoBuilder.outputs.length;
+
+            // Simplified fee calculation for learning purposes
+            // Actual: 10 + (148 * inputs) + (34 * outputs) vbytes
+            const estimatedSize = 10 + (148 * selectedInputs) + (34 * numOutputs);
+            return Math.ceil(estimatedSize * utxoBuilder.feeRate);
+        }
+
+        function updateSummary() {
+            const totalInput = calculateTotalInput();
+            const totalOutput = calculateTotalOutput();
+            const fee = calculateFee();
+            const change = totalInput - totalOutput - fee;
+
+            document.getElementById('total-input').textContent = `${totalInput.toLocaleString()} sats`;
+            document.getElementById('total-output').textContent = `${totalOutput.toLocaleString()} sats`;
+            document.getElementById('summary-inputs').textContent = `${totalInput.toLocaleString()} sats`;
+            document.getElementById('summary-outputs').textContent = `${totalOutput.toLocaleString()} sats`;
+            document.getElementById('summary-fee').textContent = `${fee.toLocaleString()} sats`;
+            document.getElementById('summary-change').textContent = change >= 0 ? `${change.toLocaleString()} sats` : '⚠️ Insufficient funds';
+
+            // Validation message
+            const validationEl = document.getElementById('validation-message');
+            if (totalInput === 0) {
+                validationEl.innerHTML = '';
+                validationEl.style.background = '';
+            } else if (totalInput < totalOutput + fee) {
+                validationEl.innerHTML = '⚠️ Inputs must be greater than outputs + fee';
+                validationEl.style.background = 'rgba(255, 0, 0, 0.2)';
+                validationEl.style.color = '#ff6666';
+            } else if (utxoBuilder.outputs.length === 0) {
+                validationEl.innerHTML = '💡 Add at least one output to build transaction';
+                validationEl.style.background = 'rgba(255, 221, 0, 0.2)';
+                validationEl.style.color = 'var(--primary-orange)';
+            } else {
+                validationEl.innerHTML = '✓ Transaction is valid! Ready to build.';
+                validationEl.style.background = 'rgba(76, 175, 80, 0.2)';
+                validationEl.style.color = 'var(--accent-green)';
+            }
+        }
+
+        document.getElementById('add-output').addEventListener('click', function() {
+            const address = document.getElementById('recipient-address').value.trim();
+            const amount = parseInt(document.getElementById('output-amount').value);
+
+            if (!address) {
+                alert('Please enter a recipient address');
+                return;
+            }
+
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            utxoBuilder.outputs.push({
+                address: address,
+                value: amount
+            });
+
+            renderOutputList();
+            updateSummary();
+
+            // Clear inputs
+            document.getElementById('recipient-address').value = '';
+            document.getElementById('output-amount').value = '';
+        });
+
+        function renderOutputList() {
+            const container = document.getElementById('output-list');
+
+            if (utxoBuilder.outputs.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-dim); font-size: 0.9rem; font-style: italic;">No outputs added yet...</p>';
+                return;
+            }
+
+            container.innerHTML = utxoBuilder.outputs.map((output, index) => `
+                <div style="padding: 0.75rem; background: var(--secondary-dark); border-radius: 0.5rem; margin-bottom: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Output #${index + 1}</div>
+                            <div style="font-family: monospace; font-size: 0.85rem; color: var(--text-dim); word-break: break-all;">${output.address}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.1rem; font-weight: 700; color: var(--accent-green);">${output.value.toLocaleString()} sats</div>
+                            <button onclick="removeOutput(${index})" style="margin-top: 0.5rem; padding: 0.25rem 0.75rem; background: rgba(255, 0, 0, 0.2); color: #ff6666; border: 1px solid #ff6666; border-radius: 0.25rem; cursor: pointer; font-size: 0.85rem;">Remove</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.removeOutput = function(index) {
+            utxoBuilder.outputs.splice(index, 1);
+            renderOutputList();
+            updateSummary();
+        };
+
+        document.getElementById('build-transaction').addEventListener('click', function() {
+            const totalInput = calculateTotalInput();
+            const totalOutput = calculateTotalOutput();
+            const fee = calculateFee();
+
+            if (totalInput === 0) {
+                alert('Please select at least one UTXO input');
+                return;
+            }
+
+            if (utxoBuilder.outputs.length === 0) {
+                alert('Please add at least one output');
+                return;
+            }
+
+            if (totalInput < totalOutput + fee) {
+                alert('Insufficient inputs! Total inputs must cover outputs + fees.');
+                return;
+            }
+
+            // Build transaction object
+            const selectedInputs = utxoBuilder.availableUTXOs.filter(u => u.selected);
+            const change = totalInput - totalOutput - fee;
+
+            const transaction = {
+                version: 2,
+                inputs: selectedInputs.map(utxo => ({
+                    txid: utxo.txid,
+                    vout: utxo.vout,
+                    value: utxo.value,
+                    scriptSig: "<signature + pubkey>",
+                    sequence: 4294967295
+                })),
+                outputs: [...utxoBuilder.outputs],
+                locktime: 0,
+                metadata: {
+                    totalInput: totalInput,
+                    totalOutput: totalOutput,
+                    fee: fee,
+                    change: change,
+                    feeRate: `${utxoBuilder.feeRate} sats/vbyte`
+                }
+            };
+
+            // Add change output if needed
+            if (change > 546) { // Dust limit
+                transaction.outputs.push({
+                    address: "bc1q<change-address>",
+                    value: change,
+                    note: "Change output (back to sender)"
+                });
+            }
+
+            document.getElementById('transaction-json').textContent = JSON.stringify(transaction, null, 2);
+            document.getElementById('transaction-result').style.display = 'block';
+            document.getElementById('utxo-builder').style.display = 'none';
+        });
+
+        document.getElementById('reset-builder').addEventListener('click', function() {
+            // Reset state
+            utxoBuilder.availableUTXOs.forEach(u => u.selected = false);
+            utxoBuilder.outputs = [];
+
+            // Reset UI
+            document.getElementById('transaction-result').style.display = 'none';
+            document.getElementById('utxo-builder').style.display = 'block';
+            document.getElementById('recipient-address').value = '';
+            document.getElementById('output-amount').value = '';
+
+            renderAvailableUTXOs();
+            renderSelectedInputs();
+            renderOutputList();
+            updateSummary();
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeBuilder);
+    </script>
 
     <script>
         document.getElementById('complete-module').addEventListener('click', function() {
