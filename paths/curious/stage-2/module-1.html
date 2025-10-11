@@ -616,6 +616,444 @@
                     This is how Bitcoin achieves <strong>immutability</strong> without a central authority—mathematics and cryptography
                     make cheating virtually impossible.
                 </p>
+
+                <!-- The Double-Spend Wall Demo -->
+                <div class="double-spend-demo" style="background: linear-gradient(135deg, rgba(244, 67, 54, 0.15), rgba(76, 175, 80, 0.15)); border-radius: 1.5rem; padding: 3rem 2rem; margin: 3rem 0; border: 2px solid var(--border-color);">
+                    <style>
+                        .dspend-demo-title-section {
+                            text-align: center;
+                            margin-bottom: 2.5rem;
+                        }
+
+                        .dspend-demo-title-section h3 {
+                            font-size: 1.75rem;
+                            color: var(--primary-orange);
+                            margin-bottom: 0.75rem;
+                        }
+
+                        .dspend-demo-title-section p {
+                            font-size: 1rem;
+                            color: var(--text-dim);
+                            max-width: 700px;
+                            margin: 0 auto;
+                        }
+
+                        .dspend-comparison-container {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 2.5rem;
+                            margin-bottom: 2.5rem;
+                        }
+
+                        .dspend-scenario-box {
+                            background: rgba(0, 0, 0, 0.3);
+                            border: 2px solid var(--border-color);
+                            border-radius: 1rem;
+                            padding: 2rem;
+                            text-align: center;
+                            position: relative;
+                            overflow: hidden;
+                        }
+
+                        .dspend-scenario-box h4 {
+                            font-size: 1.25rem;
+                            margin-bottom: 0.5rem;
+                            color: var(--primary-orange);
+                        }
+
+                        .dspend-scenario-box .scenario-subtitle {
+                            font-size: 0.9rem;
+                            color: var(--text-dim);
+                            margin-bottom: 2rem;
+                        }
+
+                        .dspend-animation-area {
+                            min-height: 320px;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 1.5rem;
+                            position: relative;
+                        }
+
+                        .dspend-coin {
+                            font-size: 4rem;
+                            position: relative;
+                            z-index: 2;
+                        }
+
+                        .dspend-recipients {
+                            display: flex;
+                            gap: 3rem;
+                            margin-top: 1rem;
+                        }
+
+                        .dspend-recipient {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            gap: 0.5rem;
+                        }
+
+                        .dspend-person {
+                            font-size: 3rem;
+                            transition: all 0.4s ease;
+                        }
+
+                        .dspend-person.received {
+                            animation: receiveCoin 0.6s ease;
+                            transform: scale(1.2);
+                        }
+
+                        @keyframes receiveCoin {
+                            0% { transform: scale(1); }
+                            50% { transform: scale(1.3); }
+                            100% { transform: scale(1.2); }
+                        }
+
+                        .dspend-person-label {
+                            font-size: 0.85rem;
+                            color: var(--text-dim);
+                            font-weight: 600;
+                        }
+
+                        .dspend-coin-path {
+                            position: absolute;
+                            width: 3rem;
+                            height: 3rem;
+                            background: var(--primary-orange);
+                            border-radius: 50%;
+                            opacity: 0;
+                            pointer-events: none;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 1.5rem;
+                        }
+
+                        .dspend-coin-path.flying-left {
+                            animation: flyLeft 1.2s ease-out forwards;
+                        }
+
+                        .dspend-coin-path.flying-right {
+                            animation: flyRight 1.2s ease-out forwards;
+                        }
+
+                        @keyframes flyLeft {
+                            0% {
+                                opacity: 1;
+                                transform: translate(0, -50px) scale(1);
+                            }
+                            100% {
+                                opacity: 0.8;
+                                transform: translate(-120px, 80px) scale(0.8);
+                            }
+                        }
+
+                        @keyframes flyRight {
+                            0% {
+                                opacity: 1;
+                                transform: translate(0, -50px) scale(1);
+                            }
+                            100% {
+                                opacity: 0.8;
+                                transform: translate(120px, 80px) scale(0.8);
+                            }
+                        }
+
+                        .dspend-blockchain-wall {
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            font-size: 8rem;
+                            opacity: 0;
+                            z-index: 5;
+                            pointer-events: none;
+                        }
+
+                        .dspend-blockchain-wall.active {
+                            animation: wallBlock 1.5s ease-out forwards;
+                        }
+
+                        @keyframes wallBlock {
+                            0% {
+                                opacity: 0;
+                                transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+                            }
+                            40% {
+                                opacity: 1;
+                                transform: translate(-50%, -50%) scale(1.2) rotate(5deg);
+                            }
+                            100% {
+                                opacity: 0.9;
+                                transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                            }
+                        }
+
+                        .dspend-attack-button {
+                            margin-top: 1.5rem;
+                            padding: 0.9rem 1.8rem;
+                            background: var(--primary-orange);
+                            color: white;
+                            border: none;
+                            border-radius: 0.5rem;
+                            font-size: 1rem;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 4px 12px rgba(247, 147, 26, 0.3);
+                        }
+
+                        .dspend-attack-button:hover {
+                            background: #ff8c00;
+                            transform: translateY(-2px);
+                            box-shadow: 0 6px 16px rgba(247, 147, 26, 0.4);
+                        }
+
+                        .dspend-attack-button:active {
+                            transform: translateY(0);
+                        }
+
+                        .dspend-status-message {
+                            margin-top: 1.5rem;
+                            min-height: 60px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 1rem;
+                            border-radius: 0.5rem;
+                            font-weight: 600;
+                            font-size: 0.95rem;
+                        }
+
+                        .dspend-status-message .status-text {
+                            text-align: center;
+                            line-height: 1.4;
+                        }
+
+                        .dspend-status-message .status-text.danger {
+                            color: #ff6b6b;
+                        }
+
+                        .dspend-status-message .status-text.safe {
+                            color: var(--accent-green);
+                        }
+
+                        .dspend-socratic-question {
+                            text-align: center;
+                            margin-top: 2rem;
+                            padding: 1.5rem;
+                            background: rgba(247, 147, 26, 0.1);
+                            border-left: 4px solid var(--primary-orange);
+                            border-radius: 0.5rem;
+                        }
+
+                        .dspend-socratic-question strong {
+                            color: var(--primary-orange);
+                            display: block;
+                            margin-bottom: 0.5rem;
+                            font-size: 1.1rem;
+                        }
+
+                        .dspend-socratic-question em {
+                            color: var(--text-light);
+                            font-size: 1rem;
+                            font-style: italic;
+                        }
+
+                        @media (max-width: 768px) {
+                            .dspend-comparison-container {
+                                grid-template-columns: 1fr;
+                                gap: 2rem;
+                            }
+
+                            .dspend-demo-title-section h3 {
+                                font-size: 1.4rem;
+                            }
+
+                            .dspend-animation-area {
+                                min-height: 280px;
+                            }
+
+                            .dspend-recipients {
+                                gap: 2rem;
+                            }
+
+                            @keyframes flyLeft {
+                                100% {
+                                    transform: translate(-80px, 80px) scale(0.8);
+                                }
+                            }
+
+                            @keyframes flyRight {
+                                100% {
+                                    transform: translate(80px, 80px) scale(0.8);
+                                }
+                            }
+                        }
+                    </style>
+
+                    <div class="dspend-demo-title-section">
+                        <h3>🚫 The Double-Spend Wall</h3>
+                        <p>See how digital money without blockchain can be copied and spent twice—and how Bitcoin prevents this.</p>
+                    </div>
+
+                    <div class="dspend-comparison-container">
+                        <!-- Traditional Digital Cash: Double-Spend Succeeds -->
+                        <div class="dspend-scenario-box">
+                            <h4>❌ Traditional Digital Cash</h4>
+                            <p class="scenario-subtitle">No blockchain verification</p>
+
+                            <div class="dspend-animation-area" id="traditional-area">
+                                <div class="dspend-coin">💵</div>
+                                <div class="dspend-coin-path" id="trad-coin-left">💵</div>
+                                <div class="dspend-coin-path" id="trad-coin-right">💵</div>
+
+                                <div class="dspend-recipients">
+                                    <div class="dspend-recipient">
+                                        <div class="dspend-person" id="trad-alice">👩</div>
+                                        <div class="dspend-person-label">Alice</div>
+                                    </div>
+                                    <div class="dspend-recipient">
+                                        <div class="dspend-person" id="trad-bob">👨</div>
+                                        <div class="dspend-person-label">Bob</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="dspend-attack-button" id="traditional-attack">
+                                💸 Try to Double-Spend
+                            </button>
+
+                            <div class="dspend-status-message" id="traditional-status">
+                                <span class="status-text">Ready to attempt double-spend</span>
+                            </div>
+                        </div>
+
+                        <!-- Bitcoin: Double-Spend Blocked -->
+                        <div class="dspend-scenario-box">
+                            <h4>✅ Bitcoin with Blockchain</h4>
+                            <p class="scenario-subtitle">Cryptographic verification prevents fraud</p>
+
+                            <div class="dspend-animation-area" id="bitcoin-area">
+                                <div class="dspend-coin">₿</div>
+                                <div class="dspend-coin-path" id="btc-coin-left">₿</div>
+                                <div class="dspend-coin-path" id="btc-coin-right">₿</div>
+                                <div class="dspend-blockchain-wall" id="btc-wall">🧱</div>
+
+                                <div class="dspend-recipients">
+                                    <div class="dspend-recipient">
+                                        <div class="dspend-person" id="btc-alice">👩</div>
+                                        <div class="dspend-person-label">Alice</div>
+                                    </div>
+                                    <div class="dspend-recipient">
+                                        <div class="dspend-person" id="btc-bob">👨</div>
+                                        <div class="dspend-person-label">Bob</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="dspend-attack-button" id="bitcoin-attack">
+                                🔒 Try to Double-Spend
+                            </button>
+
+                            <div class="dspend-status-message" id="bitcoin-status">
+                                <span class="status-text">Ready to attempt double-spend</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dspend-socratic-question">
+                        <strong>The Socratic Question:</strong>
+                        <em>If digital money can be copied like a photo file, how can it ever be scarce without a trusted central authority?</em>
+                    </div>
+
+                    <script>
+                        (function() {
+                            let traditionalInProgress = false;
+                            let bitcoinInProgress = false;
+
+                            // Traditional Digital Cash Attack
+                            document.getElementById('traditional-attack').addEventListener('click', function() {
+                                if (traditionalInProgress) return;
+                                traditionalInProgress = true;
+
+                                const coinLeft = document.getElementById('trad-coin-left');
+                                const coinRight = document.getElementById('trad-coin-right');
+                                const alice = document.getElementById('trad-alice');
+                                const bob = document.getElementById('trad-bob');
+                                const status = document.getElementById('traditional-status');
+
+                                // Reset
+                                coinLeft.className = 'dspend-coin-path';
+                                coinRight.className = 'dspend-coin-path';
+                                alice.className = 'dspend-person';
+                                bob.className = 'dspend-person';
+
+                                // Start animation
+                                setTimeout(() => {
+                                    coinLeft.classList.add('flying-left');
+                                    coinRight.classList.add('flying-right');
+                                }, 100);
+
+                                // Both receive the coin
+                                setTimeout(() => {
+                                    alice.classList.add('received');
+                                    bob.classList.add('received');
+                                    status.innerHTML = '<span class="status-text danger">🚨 DOUBLE-SPEND SUCCESSFUL!<br>Same money spent twice!</span>';
+                                }, 1300);
+
+                                setTimeout(() => {
+                                    traditionalInProgress = false;
+                                }, 2500);
+                            });
+
+                            // Bitcoin Blockchain Attack
+                            document.getElementById('bitcoin-attack').addEventListener('click', function() {
+                                if (bitcoinInProgress) return;
+                                bitcoinInProgress = true;
+
+                                const coinLeft = document.getElementById('btc-coin-left');
+                                const coinRight = document.getElementById('btc-coin-right');
+                                const alice = document.getElementById('btc-alice');
+                                const bob = document.getElementById('btc-bob');
+                                const wall = document.getElementById('btc-wall');
+                                const status = document.getElementById('bitcoin-status');
+
+                                // Reset
+                                coinLeft.className = 'dspend-coin-path';
+                                coinRight.className = 'dspend-coin-path';
+                                alice.className = 'dspend-person';
+                                bob.className = 'dspend-person';
+                                wall.className = 'dspend-blockchain-wall';
+
+                                // Start animation
+                                setTimeout(() => {
+                                    coinLeft.classList.add('flying-left');
+                                    coinRight.classList.add('flying-right');
+                                }, 100);
+
+                                // Wall blocks the second transaction
+                                setTimeout(() => {
+                                    wall.classList.add('active');
+                                    status.innerHTML = '<span class="status-text safe">⏳ Blockchain verifying...</span>';
+                                }, 600);
+
+                                // Only Alice receives (first transaction wins)
+                                setTimeout(() => {
+                                    alice.classList.add('received');
+                                    status.innerHTML = '<span class="status-text safe">✅ DOUBLE-SPEND PREVENTED!<br>Only first transaction confirmed!</span>';
+                                }, 1500);
+
+                                setTimeout(() => {
+                                    bitcoinInProgress = false;
+                                }, 3000);
+                            });
+                        })();
+                    </script>
+                </div>
             </section>
 
             <!-- Part 2: Transactions -->

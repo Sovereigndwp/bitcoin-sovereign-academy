@@ -701,6 +701,428 @@
                 </div>
             </section>
 
+            <!-- The Centralization Tower Demo -->
+            <section class="content-section">
+                <style>
+                    .centralization-demo-container {
+                        background: linear-gradient(135deg, rgba(244, 67, 54, 0.15), rgba(76, 175, 80, 0.15));
+                        border: 2px solid var(--border-color);
+                        border-radius: 1rem;
+                        padding: 2.5rem;
+                        margin: 2rem 0;
+                    }
+
+                    .demo-title-center {
+                        text-align: center;
+                        margin-bottom: 2rem;
+                    }
+
+                    .demo-title-center h3 {
+                        color: var(--primary-orange);
+                        font-size: 1.5rem;
+                        margin-bottom: 0.5rem;
+                    }
+
+                    .demo-subtitle-center {
+                        color: var(--text-dim);
+                        font-style: italic;
+                        font-size: 1.1rem;
+                    }
+
+                    .comparison-sides-container {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 3rem;
+                        margin: 2rem 0;
+                    }
+
+                    .side-box {
+                        text-align: center;
+                        padding: 2rem;
+                        background: var(--secondary-dark);
+                        border-radius: 1rem;
+                        border: 2px solid var(--border-color);
+                        min-height: 450px;
+                        display: flex;
+                        flex-direction: column;
+                    }
+
+                    .side-label-text {
+                        font-size: 1.1rem;
+                        font-weight: 600;
+                        margin-bottom: 1.5rem;
+                        color: var(--text-light);
+                    }
+
+                    .tower-container {
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        position: relative;
+                        min-height: 250px;
+                    }
+
+                    .tower-icon {
+                        font-size: 8rem;
+                        transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                        animation: towerSway 3s ease-in-out infinite;
+                    }
+
+                    @keyframes towerSway {
+                        0%, 100% { transform: rotate(0deg); }
+                        50% { transform: rotate(2deg); }
+                    }
+
+                    .tower-icon.collapsed {
+                        animation: none;
+                        transform: translateY(80px) rotate(25deg) scale(0.7);
+                        opacity: 0.3;
+                        filter: grayscale(100%);
+                    }
+
+                    @keyframes towerCollapse {
+                        0% { transform: rotate(0) scale(1); opacity: 1; }
+                        30% { transform: rotate(-5deg) scale(1.05); }
+                        60% { transform: translateY(20px) rotate(15deg) scale(0.95); }
+                        100% { transform: translateY(80px) rotate(25deg) scale(0.7); opacity: 0.3; }
+                    }
+
+                    .network-nodes-grid {
+                        flex: 1;
+                        display: grid;
+                        grid-template-columns: repeat(5, 1fr);
+                        gap: 0.8rem;
+                        padding: 1.5rem;
+                        align-items: center;
+                        min-height: 250px;
+                    }
+
+                    .network-node-item {
+                        width: 45px;
+                        height: 45px;
+                        background: var(--primary-orange);
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 1.3rem;
+                        transition: all 0.4s ease;
+                        box-shadow: 0 0 15px rgba(247, 147, 26, 0.5);
+                        animation: nodePulse 2s ease-in-out infinite;
+                    }
+
+                    @keyframes nodePulse {
+                        0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(247, 147, 26, 0.5); }
+                        50% { transform: scale(1.08); box-shadow: 0 0 25px rgba(247, 147, 26, 0.8); }
+                    }
+
+                    .network-node-item.offline {
+                        background: #555;
+                        box-shadow: none;
+                        opacity: 0.4;
+                        animation: fadeOffline 0.6s ease;
+                    }
+
+                    @keyframes fadeOffline {
+                        0% { transform: scale(1); opacity: 1; }
+                        50% { transform: scale(0.5); opacity: 0.2; }
+                        100% { transform: scale(0.9); opacity: 0.4; }
+                    }
+
+                    .network-node-item.boosted {
+                        animation: nodeBoost 1s ease-in-out;
+                    }
+
+                    @keyframes nodeBoost {
+                        0%, 100% { transform: scale(1); }
+                        30% { transform: scale(1.3); box-shadow: 0 0 35px rgba(247, 147, 26, 1); }
+                        60% { transform: scale(1.15); }
+                    }
+
+                    .attack-button {
+                        padding: 1rem 2rem;
+                        background: var(--accent-red);
+                        color: white;
+                        border: none;
+                        border-radius: 0.5rem;
+                        font-size: 1rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        margin-top: 1.5rem;
+                    }
+
+                    .attack-button:hover {
+                        background: #d32f2f;
+                        transform: scale(1.05);
+                    }
+
+                    .attack-button:active {
+                        transform: scale(0.95);
+                    }
+
+                    .status-message {
+                        margin-top: 1.5rem;
+                        padding: 1rem;
+                        background: rgba(0, 0, 0, 0.3);
+                        border-radius: 0.5rem;
+                        min-height: 60px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .status-message.down {
+                        background: rgba(244, 67, 54, 0.2);
+                        border: 2px solid var(--accent-red);
+                    }
+
+                    .status-message.resilient {
+                        background: rgba(76, 175, 80, 0.2);
+                        border: 2px solid var(--accent-green);
+                    }
+
+                    .status-text {
+                        font-size: 1.1rem;
+                        font-weight: 700;
+                        text-align: center;
+                    }
+
+                    .status-text.down {
+                        color: var(--accent-red);
+                    }
+
+                    .status-text.resilient {
+                        color: var(--accent-green);
+                    }
+
+                    .comparison-insight-section {
+                        background: var(--secondary-dark);
+                        border-left: 4px solid var(--primary-orange);
+                        border-radius: 0.5rem;
+                        padding: 1.5rem;
+                        margin-top: 2rem;
+                    }
+
+                    .comparison-insight-section h4 {
+                        color: var(--primary-orange);
+                        margin-bottom: 1rem;
+                        font-size: 1.1rem;
+                    }
+
+                    .insights-comparison-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 1.5rem;
+                        margin-top: 1rem;
+                    }
+
+                    .insight-box {
+                        text-align: center;
+                        padding: 1.5rem;
+                        background: rgba(247, 147, 26, 0.1);
+                        border-radius: 0.5rem;
+                    }
+
+                    .insight-box.vulnerable {
+                        border: 2px solid rgba(244, 67, 54, 0.6);
+                    }
+
+                    .insight-box.robust {
+                        border: 2px solid var(--accent-green);
+                    }
+
+                    .insight-box strong {
+                        display: block;
+                        margin-bottom: 0.75rem;
+                        font-size: 1rem;
+                    }
+
+                    .insight-box p {
+                        font-size: 0.9rem;
+                        color: var(--text-dim);
+                        margin: 0;
+                    }
+
+                    @media (max-width: 768px) {
+                        .comparison-sides-container {
+                            grid-template-columns: 1fr;
+                            gap: 2rem;
+                        }
+
+                        .insights-comparison-grid {
+                            grid-template-columns: 1fr;
+                        }
+
+                        .tower-icon {
+                            font-size: 6rem;
+                        }
+
+                        .network-nodes-grid {
+                            grid-template-columns: repeat(4, 1fr);
+                        }
+
+                        .network-node-item {
+                            width: 40px;
+                            height: 40px;
+                            font-size: 1.1rem;
+                        }
+                    }
+                </style>
+
+                <div class="centralization-demo-container">
+                    <div class="demo-title-center">
+                        <h3>🏢 The Centralization Tower</h3>
+                        <p class="demo-subtitle-center">Single point of failure vs. Resilient network</p>
+                    </div>
+
+                    <div class="comparison-sides-container">
+                        <!-- Traditional Finance Side -->
+                        <div class="side-box">
+                            <div class="side-label-text">🏦 Traditional Finance</div>
+                            <div class="tower-container">
+                                <div class="tower-icon" id="tower">🏛️</div>
+                            </div>
+                            <button class="attack-button" id="attack-tower-btn">⚔️ Attack the System</button>
+                            <div class="status-message" id="tower-status">
+                                <span class="status-text">System operational</span>
+                            </div>
+                        </div>
+
+                        <!-- Bitcoin Network Side -->
+                        <div class="side-box">
+                            <div class="side-label-text">₿ Bitcoin Network</div>
+                            <div class="network-nodes-grid" id="bitcoin-nodes">
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                                <div class="network-node-item">🖥️</div>
+                            </div>
+                            <button class="attack-button" id="attack-nodes-btn">⚔️ Attack the Network</button>
+                            <div class="status-message" id="nodes-status">
+                                <span class="status-text">Network operational</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="comparison-insight-section">
+                        <h4>💡 The Critical Difference</h4>
+                        <div class="insights-comparison-grid">
+                            <div class="insight-box vulnerable">
+                                <strong>❌ Central Point of Failure</strong>
+                                <p>One building. One server. One decision-maker. Attack or corrupt the center, and the entire system collapses. Everyone loses access.</p>
+                            </div>
+                            <div class="insight-box robust">
+                                <strong>✓ Distributed Resilience</strong>
+                                <p>18,000+ independent nodes. No center to attack. Even if thousands go offline, the network continues operating. Self-healing design.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p style="text-align: center; margin-top: 2rem; font-size: 1.05rem; color: var(--text-light);">
+                        <strong style="color: var(--primary-orange);">The Socratic Question:</strong><br>
+                        <em style="color: var(--text-dim); font-size: 1.1rem;">If you could destroy one building or turn off one server, should that kill an entire monetary system?</em>
+                    </p>
+                </div>
+
+                <script>
+                    (function() {
+                        const tower = document.getElementById('tower');
+                        const towerStatus = document.getElementById('tower-status');
+                        const attackTowerBtn = document.getElementById('attack-tower-btn');
+
+                        const nodesContainer = document.getElementById('bitcoin-nodes');
+                        const nodesStatus = document.getElementById('nodes-status');
+                        const attackNodesBtn = document.getElementById('attack-nodes-btn');
+                        const allNodes = nodesContainer.querySelectorAll('.network-node-item');
+
+                        let towerCollapsed = false;
+                        let nodesAttacked = false;
+
+                        // Attack Tower (Traditional Finance)
+                        attackTowerBtn.addEventListener('click', function() {
+                            if (towerCollapsed) {
+                                // Reset
+                                tower.classList.remove('collapsed');
+                                towerStatus.classList.remove('down');
+                                towerStatus.innerHTML = '<span class="status-text">System operational</span>';
+                                attackTowerBtn.textContent = '⚔️ Attack the System';
+                                towerCollapsed = false;
+                            } else {
+                                // Collapse
+                                tower.classList.add('collapsed');
+                                towerStatus.classList.add('down');
+                                towerStatus.innerHTML = '<span class="status-text down">🚨 SYSTEM DOWN<br>Everyone locked out!</span>';
+                                attackTowerBtn.textContent = '🔄 Reset';
+                                towerCollapsed = true;
+                            }
+                        });
+
+                        // Attack Nodes (Bitcoin Network)
+                        attackNodesBtn.addEventListener('click', function() {
+                            if (nodesAttacked) {
+                                // Reset
+                                allNodes.forEach(node => {
+                                    node.classList.remove('offline', 'boosted');
+                                });
+                                nodesStatus.classList.remove('resilient');
+                                nodesStatus.innerHTML = '<span class="status-text">Network operational</span>';
+                                attackNodesBtn.textContent = '⚔️ Attack the Network';
+                                nodesAttacked = false;
+                            } else {
+                                // Attack: Take down 30% of nodes
+                                const nodesToAttack = Math.floor(allNodes.length * 0.3);
+                                const attackedIndices = new Set();
+
+                                while (attackedIndices.size < nodesToAttack) {
+                                    attackedIndices.add(Math.floor(Math.random() * allNodes.length));
+                                }
+
+                                allNodes.forEach((node, idx) => {
+                                    if (attackedIndices.has(idx)) {
+                                        setTimeout(() => {
+                                            node.classList.add('offline');
+                                        }, idx * 50);
+                                    } else {
+                                        // Remaining nodes get boosted
+                                        setTimeout(() => {
+                                            node.classList.add('boosted');
+                                            setTimeout(() => node.classList.remove('boosted'), 1000);
+                                        }, nodesToAttack * 50 + idx * 30);
+                                    }
+                                });
+
+                                setTimeout(() => {
+                                    nodesStatus.classList.add('resilient');
+                                    nodesStatus.innerHTML = '<span class="status-text resilient">✅ NETWORK CONTINUES<br>Remaining nodes compensate!</span>';
+                                }, (nodesToAttack + allNodes.length) * 50);
+
+                                attackNodesBtn.textContent = '🔄 Reset';
+                                nodesAttacked = true;
+                            }
+                        });
+                    })();
+                </script>
+            </section>
+
             <!-- The Three Key Participants -->
             <section class="content-section">
                 <h2>The Three Key Participants</h2>
