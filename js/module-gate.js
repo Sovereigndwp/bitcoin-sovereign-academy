@@ -3,6 +3,10 @@
     const previewParam = 'unlock';
     const previewLimit = 2;
 
+    // Preview mode for investors/demos
+    const previewKey = 'demo2024';  // Change this to your own secret key
+    const previewStorageKey = 'bsa_preview_mode';
+
     const alwaysOpen = new Set([
         '/paths/curious/stage-1/module-1.html',
         '/paths/builder/stage-1/module-1.html'
@@ -15,6 +19,22 @@
 
     const params = new URLSearchParams(window.location.search);
     const unlockParam = params.get(previewParam);
+    const previewParam_value = params.get('preview');
+
+    // Check for preview mode
+    if (previewParam_value === previewKey) {
+        sessionStorage.setItem(previewStorageKey, 'active');
+        showPreviewBanner();
+        return; // Bypass all gating in preview mode
+    } else if (previewParam_value === 'reset') {
+        sessionStorage.removeItem(previewStorageKey);
+    }
+
+    // If preview mode is active, bypass gating
+    if (sessionStorage.getItem(previewStorageKey) === 'active') {
+        showPreviewBanner();
+        return;
+    }
 
     if (unlockParam === 'true') {
         localStorage.setItem(storageKey, 'yes');
@@ -196,6 +216,33 @@
 
         document.head.appendChild(style);
     }
+
+    function showPreviewBanner() {
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check if banner already exists
+            if (document.getElementById('preview-mode-banner')) {
+                return;
+            }
+
+            // Create banner
+            const banner = document.createElement('div');
+            banner.id = 'preview-mode-banner';
+            banner.innerHTML = `
+                <div style="background: linear-gradient(135deg, #f7931a, #ffb347); color: #121212; padding: 0.75rem 1.5rem; text-align: center; font-weight: 600; position: fixed; top: 0; left: 0; right: 0; z-index: 10000; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+                    <span style="font-size: 1.1rem;">👁️ Preview Mode Active</span>
+                    <span style="margin: 0 1rem; opacity: 0.7;">|</span>
+                    <span style="font-size: 0.9rem;">All content unlocked for viewing</span>
+                    <button onclick="sessionStorage.removeItem('bsa_preview_mode'); location.reload();" style="margin-left: 1.5rem; background: rgba(18,18,18,0.8); color: white; border: none; padding: 0.4rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Exit Preview</button>
+                </div>
+            `;
+
+            document.body.insertBefore(banner, document.body.firstChild);
+
+            // Add padding to body to account for banner
+            document.body.style.paddingTop = '60px';
+        });
+    }
+
     window.BSAModuleGate = {
         unlock() {
             localStorage.setItem(storageKey, 'yes');
@@ -203,6 +250,14 @@
         },
         reset() {
             localStorage.removeItem(storageKey);
+            window.location.reload();
+        },
+        enablePreview() {
+            sessionStorage.setItem(previewStorageKey, 'active');
+            window.location.reload();
+        },
+        disablePreview() {
+            sessionStorage.removeItem(previewStorageKey);
             window.location.reload();
         }
     };
