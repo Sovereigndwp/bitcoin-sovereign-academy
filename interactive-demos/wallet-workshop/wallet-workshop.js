@@ -212,26 +212,82 @@ class WalletWorkshop {
             </div>
 
             <div class="entropy-panel hidden" id="rng-panel" role="tabpanel" aria-hidden="true">
-              <div class="entropy-rng">
-                <p class="rng-tip">Click to generate a random 256-bit number faster.</p>
-                <div class="iframe-wrapper">
-                  <iframe
-                    loading="lazy"
-                    src="https://www.canva.com/design/DAG1HuFhFgQ/oJVTvLbrtgMiyXgXrMTbkA/view?embed"
-                    allowfullscreen
-                    allow="fullscreen"
-                  ></iframe>
+              <div class="coin-flip-demo">
+                <div class="demo-header">
+                  <h3>🪙 The Coin Flip Challenge</h3>
+                  <p class="demo-subtitle">256 coin flips = Your Bitcoin private key. Can you recreate someone else's combination?</p>
                 </div>
-                <p class="iframe-attrib">
-                  <a
-                    href="https://www.canva.com/design/DAG1HuFhFgQ/oJVTvLbrtgMiyXgXrMTbkA/view?utm_content=DAG1HuFhFgQ&amp;utm_campaign=designshare&amp;utm_medium=link2&amp;utm_source=sharebutton"
-                    target="_blank"
-                    rel="noopener"
-                  >
-                    Copy of Visualizing Bitcoin Private Seeds Data Generation
-                  </a> by Dalia Platt
-                </p>
-                <p class="rng-tip">Explore the live demo to see another way hardware wallets gather unstoppable randomness.</p>
+
+                <div class="socratic-intro">
+                  <h4>🤔 Before You Start, Think:</h4>
+                  <div class="question-box">
+                    <p><strong>If you flip a coin 256 times, how many possible outcomes exist?</strong></p>
+                    <button class="mini-reveal-btn" onclick="this.nextElementSibling.style.display='block'; this.style.display='none';">
+                      Reveal Answer
+                    </button>
+                    <div class="mini-answer" style="display: none;">
+                      <p>2<sup>256</sup> = 115,792,089,237,316,195,423,570,985,008,687,907,853,269,984,665,640,564,039,457,584,007,913,129,639,936</p>
+                      <p>That's more combinations than atoms in the observable universe!</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="coin-grid-controls">
+                  <button class="flip-btn" id="flip-random">
+                    🎲 Flip Random Coin
+                  </button>
+                  <button class="flip-btn" id="flip-all">
+                    ⚡ Flip All 256 Coins
+                  </button>
+                  <button class="flip-btn secondary" id="reset-coins">
+                    🔄 Reset All
+                  </button>
+                </div>
+
+                <div class="coin-stats">
+                  <div class="stat-item">
+                    <span class="stat-label">Heads (1):</span>
+                    <span class="stat-value" id="heads-count">0</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Tails (0):</span>
+                    <span class="stat-value" id="tails-count">0</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Progress:</span>
+                    <span class="stat-value" id="flip-progress">0/256</span>
+                  </div>
+                </div>
+
+                <div class="coin-grid" id="coin-grid">
+                  <!-- 256 coins will be generated here -->
+                </div>
+
+                <div class="entropy-output">
+                  <h4>Your 256-bit Number (Hex)</h4>
+                  <div class="hex-output" id="coin-hex">
+                    Click coins to generate your unique 256-bit number...
+                  </div>
+                  <small class="output-note">Each coin represents 1 bit. 256 bits = 64 hexadecimal characters.</small>
+                </div>
+
+                <div class="collision-challenge">
+                  <h4>💡 The Impossibility Challenge</h4>
+                  <p><strong>Try to recreate this exact combination:</strong></p>
+                  <div class="target-combo" id="target-combo">
+                    Generate your first combination to see the challenge!
+                  </div>
+                  <button class="challenge-btn" id="new-challenge">
+                    🎯 New Challenge Combination
+                  </button>
+                  <div class="challenge-result" id="challenge-result" style="display: none;">
+                    <p class="result-text"></p>
+                  </div>
+                  <div class="probability-insight">
+                    <p><strong>Why is this impossible?</strong></p>
+                    <p>Even if every person on Earth (8 billion) tried one combination per second, it would take <strong>longer than the age of the universe</strong> (13.8 billion years) to find a match. This is how Bitcoin secures your money—through mathematical impossibility of guessing.</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -904,6 +960,11 @@ class WalletWorkshop {
             panel.classList.toggle('hidden', !isVisible);
             panel.setAttribute('aria-hidden', String(!isVisible));
           });
+
+          // Initialize coin grid when switching to RNG panel
+          if (mode === 'rng' && !this.coinGridInitialized) {
+            this.initializeCoinGrid();
+          }
         });
       });
     }
@@ -912,6 +973,27 @@ class WalletWorkshop {
     const rollDice = document.getElementById('roll-dice');
     if (rollDice) {
       rollDice.addEventListener('click', () => this.rollDice());
+    }
+
+    // Coin flip demo
+    const flipRandom = document.getElementById('flip-random');
+    if (flipRandom) {
+      flipRandom.addEventListener('click', () => this.flipRandomCoin());
+    }
+
+    const flipAll = document.getElementById('flip-all');
+    if (flipAll) {
+      flipAll.addEventListener('click', () => this.flipAllCoins());
+    }
+
+    const resetCoins = document.getElementById('reset-coins');
+    if (resetCoins) {
+      resetCoins.addEventListener('click', () => this.resetCoins());
+    }
+
+    const newChallenge = document.getElementById('new-challenge');
+    if (newChallenge) {
+      newChallenge.addEventListener('click', () => this.generateNewChallenge());
     }
 
     // Seed regeneration
@@ -925,6 +1007,148 @@ class WalletWorkshop {
     if (copyAddress) {
       copyAddress.addEventListener('click', () => this.copyAddress());
     }
+  }
+
+  initializeCoinGrid() {
+    const grid = document.getElementById('coin-grid');
+    if (!grid || this.coinGridInitialized) return;
+
+    this.coins = new Array(256).fill(null);
+    this.targetCombo = null;
+
+    for (let i = 0; i < 256; i++) {
+      const coin = document.createElement('div');
+      coin.className = 'coin unflipped';
+      coin.dataset.index = i;
+      coin.innerHTML = '<span class="coin-face">?</span>';
+
+      coin.addEventListener('click', () => {
+        if (this.coins[i] === null) {
+          this.coins[i] = Math.random() > 0.5 ? 1 : 0;
+        } else {
+          this.coins[i] = 1 - this.coins[i];
+        }
+        this.updateCoin(coin, this.coins[i]);
+        this.updateCoinStats();
+      });
+
+      grid.appendChild(coin);
+    }
+
+    this.coinGridInitialized = true;
+  }
+
+  updateCoin(coinElement, value) {
+    coinElement.classList.remove('unflipped', 'heads', 'tails');
+    if (value === 1) {
+      coinElement.classList.add('heads');
+      coinElement.innerHTML = '<span class="coin-face">1</span>';
+    } else if (value === 0) {
+      coinElement.classList.add('tails');
+      coinElement.innerHTML = '<span class="coin-face">0</span>';
+    } else {
+      coinElement.classList.add('unflipped');
+      coinElement.innerHTML = '<span class="coin-face">?</span>';
+    }
+  }
+
+  flipRandomCoin() {
+    if (!this.coins) return;
+
+    const unflippedIndices = this.coins
+      .map((val, idx) => val === null ? idx : null)
+      .filter(idx => idx !== null);
+
+    if (unflippedIndices.length === 0) return;
+
+    const randomIndex = unflippedIndices[Math.floor(Math.random() * unflippedIndices.length)];
+    this.coins[randomIndex] = Math.random() > 0.5 ? 1 : 0;
+
+    const coinElement = document.querySelector(`[data-index="${randomIndex}"]`);
+    this.updateCoin(coinElement, this.coins[randomIndex]);
+    this.updateCoinStats();
+  }
+
+  flipAllCoins() {
+    if (!this.coins) return;
+
+    for (let i = 0; i < 256; i++) {
+      this.coins[i] = Math.random() > 0.5 ? 1 : 0;
+      const coinElement = document.querySelector(`[data-index="${i}"]`);
+      this.updateCoin(coinElement, this.coins[i]);
+    }
+
+    this.updateCoinStats();
+  }
+
+  resetCoins() {
+    if (!this.coins) return;
+
+    for (let i = 0; i < 256; i++) {
+      this.coins[i] = null;
+      const coinElement = document.querySelector(`[data-index="${i}"]`);
+      this.updateCoin(coinElement, null);
+    }
+
+    this.updateCoinStats();
+  }
+
+  updateCoinStats() {
+    if (!this.coins) return;
+
+    const heads = this.coins.filter(v => v === 1).length;
+    const tails = this.coins.filter(v => v === 0).length;
+    const total = heads + tails;
+
+    document.getElementById('heads-count').textContent = heads;
+    document.getElementById('tails-count').textContent = tails;
+    document.getElementById('flip-progress').textContent = `${total}/256`;
+
+    // Update hex output
+    const hexOutput = document.getElementById('coin-hex');
+    if (total === 256) {
+      const binaryString = this.coins.join('');
+      const hexString = this.binaryToHex(binaryString);
+      hexOutput.textContent = hexString;
+      hexOutput.classList.add('complete');
+
+      // Check if matches target
+      if (this.targetCombo && hexString === this.targetCombo) {
+        const resultDiv = document.getElementById('challenge-result');
+        resultDiv.style.display = 'block';
+        resultDiv.querySelector('.result-text').innerHTML =
+          '🎉 <strong>IMPOSSIBLE!</strong> You actually matched the target! This is astronomically unlikely. Either you\'re the luckiest person alive or you memorized the pattern!';
+      }
+    } else if (total > 0) {
+      const binaryString = this.coins.map(v => v === null ? '0' : v).join('');
+      hexOutput.textContent = this.binaryToHex(binaryString) + ' (incomplete)';
+      hexOutput.classList.remove('complete');
+    } else {
+      hexOutput.textContent = 'Click coins to generate your unique 256-bit number...';
+      hexOutput.classList.remove('complete');
+    }
+  }
+
+  generateNewChallenge() {
+    const challengeCoins = new Array(256).fill(0).map(() => Math.random() > 0.5 ? 1 : 0);
+    const binaryString = challengeCoins.join('');
+    this.targetCombo = this.binaryToHex(binaryString);
+
+    const targetDiv = document.getElementById('target-combo');
+    targetDiv.textContent = this.targetCombo;
+    targetDiv.classList.add('active-challenge');
+
+    const resultDiv = document.getElementById('challenge-result');
+    resultDiv.style.display = 'none';
+  }
+
+  binaryToHex(binary) {
+    let hex = '';
+    for (let i = 0; i < binary.length; i += 4) {
+      const chunk = binary.substr(i, 4);
+      hex += parseInt(chunk, 2).toString(16);
+    }
+    return hex.padStart(64, '0');
   }
 
   rollDice() {
@@ -1339,9 +1563,378 @@ class WalletWorkshop {
         color: #999;
       }
 
+      /* Coin Flip Demo Styles */
+      .coin-flip-demo {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .demo-header {
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+
+      .demo-header h3 {
+        color: #f7931a;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .demo-subtitle {
+        color: #bbb;
+        font-size: 1rem;
+      }
+
+      .socratic-intro {
+        background: rgba(156, 39, 176, 0.1);
+        border-left: 4px solid #9C27B0;
+        padding: 1.25rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+      }
+
+      .socratic-intro h4 {
+        color: #9C27B0;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+      }
+
+      .question-box {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 1rem;
+        border-radius: 6px;
+      }
+
+      .mini-reveal-btn {
+        background: #9C27B0;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-top: 0.75rem;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+      }
+
+      .mini-reveal-btn:hover {
+        background: #7B1FA2;
+        transform: translateY(-1px);
+      }
+
+      .mini-answer {
+        margin-top: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(156, 39, 176, 0.05);
+        border-radius: 6px;
+        font-size: 0.95rem;
+      }
+
+      .coin-grid-controls {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 1rem;
+      }
+
+      .flip-btn {
+        background: linear-gradient(135deg, #f7931a, #ff6b00);
+        color: white;
+        border: none;
+        padding: 0.85rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .flip-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(247, 147, 26, 0.4);
+      }
+
+      .flip-btn.secondary {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(247, 147, 26, 0.4);
+      }
+
+      .flip-btn.secondary:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: #f7931a;
+      }
+
+      .coin-stats {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+      }
+
+      .stat-item {
+        text-align: center;
+      }
+
+      .stat-label {
+        display: block;
+        font-size: 0.9rem;
+        color: #999;
+        margin-bottom: 0.25rem;
+      }
+
+      .stat-value {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #f7931a;
+      }
+
+      .coin-grid {
+        display: grid;
+        grid-template-columns: repeat(16, 1fr);
+        gap: 0.4rem;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+      }
+
+      .coin {
+        aspect-ratio: 1;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        font-weight: 700;
+        font-size: 0.8rem;
+      }
+
+      .coin.unflipped {
+        background: rgba(255, 255, 255, 0.1);
+        color: #666;
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .coin.unflipped:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: #f7931a;
+        transform: scale(1.1);
+      }
+
+      .coin.heads {
+        background: linear-gradient(135deg, #4CAF50, #8BC34A);
+        color: white;
+        border-color: #4CAF50;
+        animation: flipIn 0.3s ease;
+      }
+
+      .coin.tails {
+        background: linear-gradient(135deg, #F44336, #FF6B6B);
+        color: white;
+        border-color: #F44336;
+        animation: flipIn 0.3s ease;
+      }
+
+      .coin.heads:hover, .coin.tails:hover {
+        transform: scale(1.15);
+        box-shadow: 0 0 15px rgba(247, 147, 26, 0.5);
+      }
+
+      @keyframes flipIn {
+        0% {
+          transform: rotateY(90deg) scale(0.5);
+          opacity: 0;
+        }
+        100% {
+          transform: rotateY(0deg) scale(1);
+          opacity: 1;
+        }
+      }
+
+      .coin-face {
+        display: block;
+      }
+
+      .entropy-output {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 1.25rem;
+        border-radius: 8px;
+        border: 2px solid rgba(247, 147, 26, 0.3);
+        margin-bottom: 1rem;
+      }
+
+      .entropy-output h4 {
+        color: #f7931a;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+      }
+
+      .hex-output {
+        font-family: monospace;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 1rem;
+        border-radius: 6px;
+        word-break: break-all;
+        color: #999;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        min-height: 3rem;
+        display: flex;
+        align-items: center;
+      }
+
+      .hex-output.complete {
+        color: #4CAF50;
+        border: 2px solid #4CAF50;
+        animation: glow 1.5s ease-in-out infinite;
+      }
+
+      @keyframes glow {
+        0%, 100% {
+          box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+        }
+        50% {
+          box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+        }
+      }
+
+      .output-note {
+        display: block;
+        font-size: 0.85rem;
+        color: #777;
+        margin-top: 0.5rem;
+      }
+
+      .collision-challenge {
+        background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(33, 150, 243, 0.05));
+        border: 2px solid #2196F3;
+        padding: 1.5rem;
+        border-radius: 8px;
+      }
+
+      .collision-challenge h4 {
+        color: #2196F3;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+      }
+
+      .target-combo {
+        font-family: monospace;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 1rem;
+        border-radius: 6px;
+        word-break: break-all;
+        color: #2196F3;
+        font-size: 0.9rem;
+        margin: 1rem 0;
+        border: 2px dashed rgba(33, 150, 243, 0.5);
+      }
+
+      .target-combo.active-challenge {
+        border-style: solid;
+        animation: pulse-border 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse-border {
+        0%, 100% {
+          border-color: #2196F3;
+        }
+        50% {
+          border-color: rgba(33, 150, 243, 0.3);
+        }
+      }
+
+      .challenge-btn {
+        background: #2196F3;
+        color: white;
+        border: none;
+        padding: 0.85rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        margin: 1rem 0;
+      }
+
+      .challenge-btn:hover {
+        background: #1976D2;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
+      }
+
+      .challenge-result {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: rgba(76, 175, 80, 0.2);
+        border: 2px solid #4CAF50;
+        border-radius: 8px;
+      }
+
+      .result-text {
+        color: #4CAF50;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .probability-insight {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: rgba(156, 39, 176, 0.1);
+        border-left: 4px solid #9C27B0;
+        border-radius: 6px;
+      }
+
+      .probability-insight p {
+        margin-bottom: 0.75rem;
+      }
+
+      .probability-insight p:last-child {
+        margin-bottom: 0;
+      }
+
       @media (min-width: 768px) {
         .iframe-wrapper {
           padding-top: 56.25%;
+        }
+      }
+
+      @media (max-width: 1024px) {
+        .coin-grid {
+          gap: 0.3rem;
+        }
+
+        .coin {
+          font-size: 0.7rem;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .coin-grid {
+          gap: 0.25rem;
+          padding: 0.5rem;
+        }
+
+        .coin {
+          font-size: 0.6rem;
+        }
+
+        .coin-stats {
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .flip-btn {
+          width: 100%;
         }
       }
 
