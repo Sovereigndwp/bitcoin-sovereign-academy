@@ -154,8 +154,41 @@
             padding: 1rem;
             margin-top: 1rem;
             min-height: 100px;
+            max-height: 400px;
+            overflow-y: auto;
             font-family: monospace;
             font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .demo-output:empty::before {
+            content: "Output will appear here...";
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .pulsing {
+            animation: pulse 1.5s ease-in-out infinite;
         }
 
         .aha-moment {
@@ -624,39 +657,68 @@
     <script>
         // Secret Stamp Demo
         let stampUsed = false;
+        let stampCount = 0;
 
         function stampTransaction() {
-            const recipient = document.getElementById('recipient').value || 'Alice';
-            const amount = document.getElementById('amount').value || 10;
+            const recipient = document.getElementById('recipient').value.trim() || 'Alice';
+            const amount = parseInt(document.getElementById('amount').value) || 10;
             const output = document.getElementById('stamp-output');
 
-            const stamp = '🔏 UNIQUE-STAMP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            if (amount <= 0) {
+                output.innerHTML = `<div style="color: #ff4444; font-weight: 600;">❌ Amount must be greater than 0!</div>`;
+                return;
+            }
 
+            stampCount++;
+            const stamp = '🔏 STAMP-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+            const mailbox = 'MB-' + stamp.substring(7, 13);
+
+            output.className = 'demo-output animate-in';
             output.innerHTML = `
-                <div style="color: var(--accent-green); font-weight: 600;">✅ Transaction Stamped!</div>
-                <div style="margin-top: 1rem; padding: 1rem; background: rgba(247, 147, 26, 0.1); border-radius: 0.25rem;">
-                    <strong>Transaction Details:</strong><br>
-                    From: You (your secret stamp)<br>
-                    To: ${recipient}<br>
-                    Amount: ${amount} coins<br><br>
+                <div style="color: var(--accent-green); font-weight: 600; font-size: 1.1rem; margin-bottom: 1rem;">
+                    ✅ Transaction #${stampCount} Stamped Successfully!
+                </div>
+                <div style="padding: 1.5rem; background: linear-gradient(135deg, rgba(247, 147, 26, 0.15), rgba(76, 175, 80, 0.15)); border-radius: 0.5rem; border: 2px solid var(--primary-orange);">
+                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                        <strong>From:</strong> <span>You (Secret Stamp Owner)</span>
+                        <strong>To:</strong> <span>${recipient}</span>
+                        <strong>Amount:</strong> <span style="color: var(--primary-orange); font-weight: 700;">${amount} coins</span>
+                        <strong>Your Mailbox:</strong> <code style="color: var(--accent-blue);">${mailbox}</code>
+                    </div>
 
-                    <strong>Your Secret Stamp Mark:</strong><br>
-                    <code style="color: var(--primary-orange);">${stamp}</code><br><br>
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 0.5rem; margin-top: 1rem;">
+                        <strong style="color: var(--primary-orange);">🔏 Secret Stamp Signature:</strong><br>
+                        <code style="color: var(--accent-green); word-break: break-all;">${stamp}</code>
+                    </div>
 
-                    <div style="color: var(--accent-blue); margin-top: 0.5rem;">
-                        ✨ Everyone can verify this stamp came from your mailbox, but nobody can forge it!
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(33, 150, 243, 0.1); border-left: 3px solid var(--accent-blue); border-radius: 0.25rem;">
+                        <strong style="color: var(--accent-blue);">✨ Verification Status:</strong><br>
+                        <span style="color: var(--text-light);">Everyone can verify this stamp came from mailbox <code>${mailbox}</code>, but nobody can forge your secret stamp!</span>
                     </div>
                 </div>
             `;
+
+            // Scroll to output
+            output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         // Shared Ledger Demo
         let ledger = [];
         let aliceBalance = 50;
+        const bobBalance = 20;
+        const carolBalance = 15;
 
         function addValidTransaction() {
+            const output = document.getElementById('ledger-output');
+
             if (aliceBalance < 10) {
-                updateLedger('❌ Insufficient balance! Alice only has ' + aliceBalance + ' coins.', 'red');
+                output.className = 'demo-output animate-in';
+                output.innerHTML = `
+                    <div style="color: #ff4444; font-weight: 600; font-size: 1.1rem; padding: 1rem; background: rgba(255, 68, 68, 0.15); border-radius: 0.5rem; border: 2px solid #ff4444;">
+                        ❌ TRANSACTION REJECTED!<br>
+                        <span style="font-size: 0.9rem; margin-top: 0.5rem; display: block;">Alice only has ${aliceBalance} coins but tried to send 10 coins.</span>
+                    </div>
+                `;
                 return;
             }
 
@@ -664,15 +726,27 @@
                 from: 'Alice',
                 to: 'Bob',
                 amount: 10,
-                valid: true
+                valid: true,
+                timestamp: new Date().toLocaleTimeString()
             });
             aliceBalance -= 10;
-            updateLedger('✅ Valid transaction recorded! Alice now has ' + aliceBalance + ' coins.', 'green');
+
+            updateLedger(`✅ TRANSACTION ACCEPTED! Alice sent 10 coins to Bob.`, 'green');
         }
 
         function tryDoubleSpend() {
+            const output = document.getElementById('ledger-output');
+
             if (aliceBalance < 10) {
-                updateLedger('❌ REJECTED! Alice tries to spend 10 coins but only has ' + aliceBalance + ' coins. The town catches the cheat!', 'red');
+                ledger.push({
+                    from: 'Alice',
+                    to: 'Carol',
+                    amount: 10,
+                    valid: false,
+                    reason: 'Insufficient funds - tried to double-spend!',
+                    timestamp: new Date().toLocaleTimeString()
+                });
+                updateLedger(`❌ DOUBLE-SPEND DETECTED! The town caught Alice trying to cheat!`, 'red');
                 return;
             }
 
@@ -681,50 +755,110 @@
                 to: 'Carol',
                 amount: 10,
                 valid: false,
-                reason: 'Attempted double-spend!'
+                reason: 'Attempted to spend same coins twice!',
+                timestamp: new Date().toLocaleTimeString()
             });
-            updateLedger('❌ DOUBLE-SPEND DETECTED! Transaction rejected by the town.', 'red');
+            updateLedger(`❌ DOUBLE-SPEND DETECTED! Everyone sees Alice already sent these coins!`, 'red');
         }
 
         function updateLedger(message, color) {
             const output = document.getElementById('ledger-output');
             const colorVar = color === 'green' ? 'var(--accent-green)' : '#ff4444';
 
-            let html = `<div style="color: ${colorVar}; font-weight: 600; margin-bottom: 1rem;">${message}</div>`;
-            html += '<div style="border-top: 1px solid #444; padding-top: 1rem;"><strong>Full Ledger:</strong><br><br>';
+            output.className = 'demo-output animate-in';
 
-            ledger.forEach((tx, i) => {
-                const status = tx.valid ? '✅' : '❌';
-                const reason = tx.reason ? ` (${tx.reason})` : '';
-                html += `
-                    <div style="margin: 0.5rem 0; padding: 0.5rem; background: ${tx.valid ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255, 68, 68, 0.1)'}; border-radius: 0.25rem;">
-                        ${status} Entry ${i + 1}: ${tx.from} → ${tx.to}: ${tx.amount} coins${reason}
+            let html = `
+                <div style="color: ${colorVar}; font-weight: 600; font-size: 1.1rem; padding: 1rem; background: ${color === 'green' ? 'rgba(76, 175, 80, 0.15)' : 'rgba(255, 68, 68, 0.15)'}; border-radius: 0.5rem; border: 2px solid ${colorVar}; margin-bottom: 1rem;">
+                    ${message}
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                    <strong style="color: var(--accent-blue); font-size: 1.05rem;">💰 Current Balances:</strong>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem; margin-top: 0.75rem;">
+                        <div style="background: rgba(247, 147, 26, 0.1); padding: 0.75rem; border-radius: 0.25rem; text-align: center;">
+                            <strong style="color: var(--primary-orange);">Alice</strong><br>
+                            <span style="font-size: 1.2rem; color: var(--accent-green);">${aliceBalance}</span> coins
+                        </div>
+                        <div style="background: rgba(33, 150, 243, 0.1); padding: 0.75rem; border-radius: 0.25rem; text-align: center;">
+                            <strong style="color: var(--accent-blue);">Bob</strong><br>
+                            <span style="font-size: 1.2rem;">${bobBalance + (ledger.filter(tx => tx.to === 'Bob' && tx.valid).length * 10)}</span> coins
+                        </div>
+                        <div style="background: rgba(156, 39, 176, 0.1); padding: 0.75rem; border-radius: 0.25rem; text-align: center;">
+                            <strong style="color: var(--accent-purple);">Carol</strong><br>
+                            <span style="font-size: 1.2rem;">${carolBalance}</span> coins
+                        </div>
                     </div>
-                `;
-            });
+                </div>
 
-            output.innerHTML = html + '</div>';
+                <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 0.5rem;">
+                    <strong style="color: var(--primary-orange); font-size: 1.05rem;">📖 Town Ledger (${ledger.length} entries):</strong>
+                    <div style="margin-top: 1rem;">
+            `;
+
+            if (ledger.length === 0) {
+                html += `<div style="color: var(--text-dim); font-style: italic; text-align: center; padding: 1rem;">No transactions yet...</div>`;
+            } else {
+                ledger.forEach((tx, i) => {
+                    const status = tx.valid ? '✅' : '❌';
+                    const bgColor = tx.valid ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255, 68, 68, 0.1)';
+                    const borderColor = tx.valid ? 'var(--accent-green)' : '#ff4444';
+                    const reason = tx.reason ? `<div style="color: #ff4444; margin-top: 0.5rem; font-size: 0.85rem;">⚠️ ${tx.reason}</div>` : '';
+
+                    html += `
+                        <div style="margin: 0.75rem 0; padding: 1rem; background: ${bgColor}; border-left: 4px solid ${borderColor}; border-radius: 0.25rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                <strong style="color: var(--text-light);">${status} Transaction #${i + 1}</strong>
+                                <code style="color: var(--text-dim); font-size: 0.75rem;">${tx.timestamp}</code>
+                            </div>
+                            <div style="color: var(--text-light);">
+                                ${tx.from} → ${tx.to}: <strong style="color: ${tx.valid ? 'var(--accent-green)' : '#ff4444'};">${tx.amount} coins</strong>
+                            </div>
+                            ${reason}
+                        </div>
+                    `;
+                });
+            }
+
+            html += `</div></div>`;
+            output.innerHTML = html;
+
+            // Scroll to output
+            output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         function resetLedger() {
             ledger = [];
             aliceBalance = 50;
-            document.getElementById('ledger-output').innerHTML = '<div style="color: var(--text-dim);">Ledger reset. Alice has 50 coins.</div>';
+            const output = document.getElementById('ledger-output');
+            output.className = 'demo-output';
+            output.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: var(--text-dim);">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">📖</div>
+                    <strong style="color: var(--primary-orange);">Ledger Reset</strong><br>
+                    <span style="font-size: 0.9rem;">Alice starts with 50 coins. Ready to try again!</span>
+                </div>
+            `;
         }
+
+        // Initialize ledger output on load
+        document.addEventListener('DOMContentLoaded', () => {
+            resetLedger();
+        });
 
         // Page Chain Demo
         let pages = [];
 
         function addPage() {
             const pageNum = pages.length + 1;
-            const prevMark = pages.length > 0 ? pages[pages.length - 1].mark : '0000000000';
+            const prevMark = pages.length > 0 ? pages[pages.length - 1].mark : 'GENESIS-0000';
             const mark = 'MARK-' + Math.random().toString(36).substring(2, 10).toUpperCase();
 
             pages.push({
                 num: pageNum,
                 prevMark,
                 mark,
-                tampered: false
+                tampered: false,
+                timestamp: new Date().toLocaleTimeString()
             });
 
             renderChain();
@@ -732,7 +866,15 @@
 
         function tamperPage() {
             if (pages.length === 0) {
-                document.getElementById('chain-output').innerHTML = '<div style="color: #ff4444;">Add some pages first!</div>';
+                const output = document.getElementById('chain-output');
+                output.className = 'demo-output animate-in';
+                output.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: #ff4444;">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">⚠️</div>
+                        <strong>No pages to tamper with!</strong><br>
+                        <span style="font-size: 0.9rem;">Add some pages first, then try to tamper.</span>
+                    </div>
+                `;
                 return;
             }
 
@@ -743,34 +885,93 @@
 
         function renderChain() {
             const output = document.getElementById('chain-output');
-            let html = '';
+            output.className = 'demo-output animate-in';
+
+            if (pages.length === 0) {
+                output.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--text-dim);">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">🔗</div>
+                        <strong style="color: var(--primary-orange);">Chain Empty</strong><br>
+                        <span style="font-size: 0.9rem;">Add pages to see how they link together!</span>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `<div style="font-weight: 600; font-size: 1.05rem; margin-bottom: 1.5rem; color: var(--accent-blue);">📄 Page Chain (${pages.length} pages)</div>`;
 
             pages.forEach((page, i) => {
                 const isValid = i === 0 || pages[i - 1].mark === page.prevMark;
                 const statusColor = isValid ? 'var(--accent-green)' : '#ff4444';
-                const statusText = isValid ? '✅ Valid' : '❌ BROKEN CHAIN!';
+                const statusText = isValid ? '✅ Valid Link' : '❌ BROKEN CHAIN!';
+                const bgColor = isValid ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255, 68, 68, 0.15)';
+
+                // Show connection arrow from previous page
+                if (i > 0) {
+                    const connectionValid = pages[i - 1].mark === page.prevMark;
+                    html += `
+                        <div style="text-align: center; margin: 0.5rem 0; color: ${connectionValid ? 'var(--accent-green)' : '#ff4444'};">
+                            ${connectionValid ? '⬇️ Valid Link' : '💔 Broken Link!'}<br>
+                            <span style="font-size: 0.75rem; font-family: monospace;">${page.prevMark}</span>
+                        </div>
+                    `;
+                }
 
                 html += `
-                    <div style="margin: 0.75rem 0; padding: 1rem; background: ${isValid ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255, 68, 68, 0.1)'}; border: 2px solid ${statusColor}; border-radius: 0.25rem;">
-                        <strong>Page ${page.num}</strong> ${statusText}<br>
-                        Previous Mark: <code>${page.prevMark}</code><br>
-                        This Page's Mark: <code style="color: ${page.tampered ? '#ff4444' : 'var(--accent-green)'};">${page.mark}</code>
-                        ${page.tampered ? '<br><span style="color: #ff4444;">⚠️ TAMPERED!</span>' : ''}
+                    <div style="margin: 0.5rem 0; padding: 1.5rem; background: ${bgColor}; border: 3px solid ${statusColor}; border-radius: 0.5rem; position: relative;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <strong style="font-size: 1.1rem; color: var(--primary-orange);">📄 Page ${page.num}</strong>
+                            <span style="color: ${statusColor}; font-weight: 600;">${statusText}</span>
+                        </div>
+
+                        ${page.tampered ? `
+                            <div style="background: rgba(255, 68, 68, 0.2); border: 2px solid #ff4444; border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 1rem;">
+                                <strong style="color: #ff4444;">⚠️ TAMPERED!</strong><br>
+                                <span style="font-size: 0.85rem;">Someone changed this page's content!</span>
+                            </div>
+                        ` : ''}
+
+                        <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.85rem;">
+                            <div style="margin-bottom: 0.75rem;">
+                                <strong style="color: var(--accent-blue);">Prev. Page Mark:</strong><br>
+                                <code style="color: ${i === 0 ? 'var(--accent-blue)' : 'var(--text-dim)'};">${page.prevMark}</code>
+                            </div>
+                            <div>
+                                <strong style="color: ${page.tampered ? '#ff4444' : 'var(--accent-green)'};">This Page's Mark:</strong><br>
+                                <code style="color: ${page.tampered ? '#ff4444' : 'var(--accent-green)'};">${page.mark}</code>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 0.75rem; text-align: right; color: var(--text-dim); font-size: 0.75rem;">
+                            Added: ${page.timestamp}
+                        </div>
                     </div>
                 `;
             });
 
-            output.innerHTML = html || '<div style="color: var(--text-dim);">No pages yet. Add one!</div>';
+            output.innerHTML = html;
+
+            // Scroll to latest page
+            output.scrollTop = output.scrollHeight;
         }
 
         function resetChain() {
             pages = [];
-            document.getElementById('chain-output').innerHTML = '<div style="color: var(--text-dim);">Chain reset.</div>';
+            const output = document.getElementById('chain-output');
+            output.className = 'demo-output';
+            output.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: var(--text-dim);">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">🔗</div>
+                    <strong style="color: var(--primary-orange);">Chain Reset</strong><br>
+                    <span style="font-size: 0.9rem;">Ready to build a new chain!</span>
+                </div>
+            `;
         }
 
         // Competition Demo
         let competitionRunning = false;
         let attempts = 0;
+        let competitionInterval = null;
 
         async function startCompetition() {
             if (competitionRunning) return;
@@ -778,42 +979,112 @@
             competitionRunning = true;
             attempts = 0;
             const output = document.getElementById('competition-output');
-            output.innerHTML = '<div style="color: var(--accent-blue); font-weight: 600;">🏁 Competition Started!</div><br>';
+            output.className = 'demo-output animate-in';
 
-            const target = Math.floor(Math.random() * 1000) + 500; // Random between 500-1500 attempts
+            const target = Math.floor(Math.random() * 800) + 400; // Random between 400-1200 attempts
+            const competitors = ['Alice', 'Bob', 'Carol', 'Dave', 'Eve'];
+            const winner = competitors[Math.floor(Math.random() * competitors.length)];
 
-            const compete = setInterval(() => {
+            output.innerHTML = `
+                <div style="background: linear-gradient(135deg, rgba(33, 150, 243, 0.15), rgba(247, 147, 26, 0.15)); border: 2px solid var(--accent-blue); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1rem;">
+                    <div style="font-size: 1.1rem; font-weight: 600; color: var(--accent-blue); margin-bottom: 1rem;">
+                        🏁 Puzzle Competition Started!
+                    </div>
+                    <div style="color: var(--text-light); font-size: 0.9rem;">
+                        <strong>${competitors.length} competitors</strong> are racing to find a number that creates a unique mark starting with <strong>000</strong>
+                    </div>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1rem;">
+                    <div style="margin-bottom: 0.5rem; color: var(--accent-blue); font-weight: 600;">Progress:</div>
+                    <div style="background: rgba(0,0,0,0.5); height: 30px; border-radius: 15px; overflow: hidden; border: 2px solid var(--accent-blue);">
+                        <div id="progress-bar" style="height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--primary-orange)); width: 0%; transition: width 0.1s linear; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.85rem;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <span id="attempt-count">Attempt: 0</span>
+                        <span>Target: ~${target}</span>
+                    </div>
+                </div>
+
+                <div id="competition-log" style="background: rgba(0,0,0,0.3); border-radius: 0.5rem; padding: 1rem; max-height: 200px; overflow-y: auto; font-size: 0.85rem;">
+                    <div class="pulsing" style="color: var(--accent-blue);">⚙️ Competitors trying numbers...</div>
+                </div>
+            `;
+
+            const progressBar = document.getElementById('progress-bar');
+            const attemptCount = document.getElementById('attempt-count');
+            const log = document.getElementById('competition-log');
+
+            competitionInterval = setInterval(() => {
                 if (!competitionRunning) {
-                    clearInterval(compete);
+                    clearInterval(competitionInterval);
                     return;
                 }
 
                 attempts++;
+                const progress = (attempts / target) * 100;
 
-                if (attempts % 10 === 0) {
-                    output.innerHTML += `<div>Attempt ${attempts}: Trying number ${attempts}... ❌</div>`;
-                    output.scrollTop = output.scrollHeight;
+                progressBar.style.width = Math.min(progress, 100) + '%';
+                progressBar.textContent = attempts < target ? Math.floor(progress) + '%' : '100%';
+                attemptCount.textContent = `Attempt: ${attempts}`;
+
+                if (attempts % 50 === 0 && attempts < target) {
+                    const randomCompetitor = competitors[Math.floor(Math.random() * competitors.length)];
+                    log.innerHTML += `<div style="color: var(--text-dim); margin: 0.25rem 0;">❌ ${randomCompetitor} tried ${attempts}... no match</div>`;
+                    log.scrollTop = log.scrollHeight;
                 }
 
                 if (attempts >= target) {
-                    output.innerHTML += `
-                        <br><div style="color: var(--accent-green); font-weight: 600; padding: 1rem; background: rgba(76, 175, 80, 0.2); border-radius: 0.25rem; margin-top: 1rem;">
-                            🏆 WINNER FOUND!<br>
-                            Competitor solved the puzzle after ${attempts} attempts!<br>
-                            Solution number: ${attempts}<br><br>
-                            ✨ They get to add the next page and earn the reward!
+                    clearInterval(competitionInterval);
+                    competitionRunning = false;
+
+                    progressBar.style.width = '100%';
+                    progressBar.textContent = '✓';
+                    progressBar.style.background = 'var(--accent-green)';
+
+                    log.innerHTML += `
+                        <div style="margin: 1rem 0; padding: 1.5rem; background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(247, 147, 26, 0.2)); border: 3px solid var(--accent-green); border-radius: 0.5rem; text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🏆</div>
+                            <div style="color: var(--accent-green); font-weight: 700; font-size: 1.2rem; margin-bottom: 0.5rem;">
+                                WINNER FOUND!
+                            </div>
+                            <div style="color: var(--text-light); margin-bottom: 1rem;">
+                                <strong>${winner}</strong> solved the puzzle after <strong style="color: var(--primary-orange);">${attempts}</strong> attempts!
+                            </div>
+                            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.85rem;">
+                                <strong style="color: var(--accent-blue);">Solution:</strong> <code style="color: var(--accent-green);">${attempts}</code><br>
+                                <strong style="color: var(--accent-blue);">Unique Mark:</strong> <code style="color: var(--accent-green);">000${Math.random().toString(36).substring(2, 10)}</code>
+                            </div>
+                            <div style="margin-top: 1rem; padding: 1rem; background: rgba(33, 150, 243, 0.1); border-radius: 0.5rem; color: var(--text-light); font-size: 0.9rem;">
+                                ✨ ${winner} gets to add the next page to the ledger and earns the reward!<br>
+                                The work ${winner} put in proves no cheating occurred.
+                            </div>
                         </div>
                     `;
-                    competitionRunning = false;
-                    clearInterval(compete);
+                    log.scrollTop = log.scrollHeight;
                 }
-            }, 50);
+            }, 30);
         }
 
         function stopCompetition() {
             competitionRunning = false;
+            if (competitionInterval) {
+                clearInterval(competitionInterval);
+                competitionInterval = null;
+            }
+
             const output = document.getElementById('competition-output');
-            output.innerHTML += '<br><div style="color: #ff4444;">⏹️ Competition stopped.</div>';
+            const log = document.getElementById('competition-log');
+
+            if (log) {
+                log.innerHTML += `
+                    <div style="color: #ff4444; font-weight: 600; margin-top: 1rem; padding: 1rem; background: rgba(255, 68, 68, 0.1); border-radius: 0.5rem; text-align: center;">
+                        ⏹️ Competition Stopped<br>
+                        <span style="font-size: 0.85rem; font-weight: normal;">Total attempts: ${attempts}</span>
+                    </div>
+                `;
+                log.scrollTop = log.scrollHeight;
+            }
         }
 
         // Module Completion
