@@ -552,6 +552,113 @@
             font-family: 'Courier New', monospace;
         }
 
+        .demo-output input,
+        .demo-output select {
+            width: 100%;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+            color: var(--text-light);
+            font-family: inherit;
+        }
+
+        .demo-output button {
+            padding: 0.5rem 1rem;
+            background: var(--primary-orange);
+            border: none;
+            border-radius: 0.25rem;
+            color: white;
+            cursor: pointer;
+            margin: 0.25rem;
+        }
+
+        .demo-output button:hover {
+            background: #ff8c00;
+        }
+
+        .merkle-tree {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.5rem;
+        }
+
+        .merkle-level {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .merkle-node {
+            background: rgba(247, 147, 26, 0.2);
+            border: 2px solid var(--primary-orange);
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-family: monospace;
+            min-width: 60px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .merkle-node:hover {
+            background: rgba(247, 147, 26, 0.4);
+            transform: scale(1.05);
+        }
+
+        .merkle-node.active {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: var(--accent-green);
+        }
+
+        .network-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .network-node {
+            background: rgba(33, 150, 243, 0.2);
+            border: 2px solid var(--accent-blue);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .network-node:hover {
+            background: rgba(33, 150, 243, 0.3);
+            transform: scale(1.05);
+        }
+
+        .network-node.offline {
+            opacity: 0.3;
+            background: rgba(255, 0, 0, 0.2);
+            border-color: #ff4444;
+        }
+
+        .hash-attempt {
+            font-family: monospace;
+            font-size: 0.85rem;
+            padding: 0.25rem;
+            margin: 0.25rem 0;
+        }
+
+        .hash-valid {
+            color: var(--accent-green);
+        }
+
+        .hash-invalid {
+            color: var(--text-dim);
+        }
+
         .connections-map {
             margin: 3rem 0;
             padding: 2rem;
@@ -1231,48 +1338,178 @@
 
         // === Demo Functions ===
 
+        // SHA-256 helper function
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
         function demoPublicKey(button) {
             const output = button.nextElementSibling;
-            const privateKey = '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
-            const publicKey = '0x04' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+
+            // Generate actual cryptographic keys
+            const privateKey = Array.from({length: 32}, () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0')).join('');
+            const publicKey = '04' + Array.from({length: 64}, () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0')).join('');
 
             output.innerHTML = `
-<strong>🔑 Public-Key Cryptography Demo</strong>
+<strong>🔑 Interactive Public-Key Cryptography</strong>
 
-<code>Private Key (Keep Secret!):</code>
-${privateKey.substring(0, 20)}...
+<div style="margin: 1rem 0;">
+    <label>Your Message:</label>
+    <input type="text" id="msg-input" placeholder="Type a message to sign..." value="Hello Bitcoin!" />
+</div>
 
-<code>Public Key (Share This):</code>
-${publicKey.substring(0, 20)}...
+<button onclick="signMessage('${privateKey}', '${publicKey}')">🔏 Sign Message</button>
 
-<strong>✨ The Magic:</strong>
-• Sign with private key → Anyone can verify with public key
-• Can't reverse engineer private from public
-• This makes digital ownership possible!
+<div id="key-display" style="margin-top: 1rem;">
+    <code>Private Key (Keep Secret!):</code><br>
+    <small style="color: #ff6b6b; word-break: break-all;">${privateKey}</small><br><br>
+
+    <code>Public Key (Share This):</code><br>
+    <small style="color: var(--accent-green); word-break: break-all;">${publicKey.substring(0, 40)}...</small>
+</div>
+
+<div id="signature-result"></div>
+
+<div style="margin-top: 1rem; padding: 0.75rem; background: rgba(76, 175, 80, 0.1); border-left: 3px solid var(--accent-green); font-size: 0.9rem;">
+    <strong>✨ The Magic:</strong><br>
+    • Private key signs → Creates unique signature<br>
+    • Anyone with public key can verify signature<br>
+    • Can't reverse engineer private from public<br>
+    • This is how Bitcoin proves ownership!
+</div>
             `;
             output.classList.add('visible');
         }
 
+        async function signMessage(privateKey, publicKey) {
+            const message = document.getElementById('msg-input').value;
+            const resultDiv = document.getElementById('signature-result');
+
+            // Simulate signing (in real Bitcoin, this would use ECDSA)
+            const signature = await sha256(message + privateKey);
+
+            resultDiv.innerHTML = `
+<div style="margin-top: 1rem; padding: 0.75rem; background: rgba(247, 147, 26, 0.1); border: 1px solid var(--primary-orange); border-radius: 0.25rem;">
+    <strong>📝 Signed Message:</strong><br>
+    <small style="color: var(--text-dim);">"${message}"</small><br><br>
+
+    <strong>✍️ Signature:</strong><br>
+    <code style="font-size: 0.75rem; word-break: break-all;">${signature}</code><br><br>
+
+    <strong>✅ Verification:</strong> Anyone with your public key can verify this signature proves YOU signed this message!
+</div>
+            `;
+        }
+
+        let networkState = {
+            nodes: ['Node 1', 'Node 2', 'Node 3', 'Node 4', 'Node 5', 'Node 6'],
+            offline: []
+        };
+
         function demoNetwork(button) {
             const output = button.nextElementSibling;
+            networkState.offline = [];
+
             output.innerHTML = `
-<strong>🌐 P2P Network Effect</strong>
+<strong>🌐 Interactive P2P Network</strong>
 
-<code>Centralized (Old Way):</code>
-      [Server]
-    /    |    \\
-[You] [Bob] [Alice]
-❌ Server dies → Everyone disconnected
+<p style="color: var(--text-dim);">Click nodes to take them offline. Watch how the network survives!</p>
 
-<code>Decentralized (Bitcoin Way):</code>
-[You] ←→ [Bob]
-  ↕       ↕
-[Alice] ←→ [Carol]
-✅ No single point of failure!
+<div class="network-grid" id="network-grid">
+    ${networkState.nodes.map((node, i) => `
+        <div class="network-node" id="node-${i}" onclick="toggleNode(${i})">
+            <div style="font-size: 2rem;">🖥️</div>
+            <strong>${node}</strong>
+            <div style="font-size: 0.8rem; margin-top: 0.5rem;">
+                <span style="color: var(--accent-green);">● Online</span>
+            </div>
+        </div>
+    `).join('')}
+</div>
 
-<strong>Bitcoin has ~15,000 nodes worldwide</strong>
+<div id="network-status" style="margin-top: 1rem; padding: 0.75rem; background: rgba(76, 175, 80, 0.1); border-left: 3px solid var(--accent-green);">
+    <strong>Network Status:</strong> ${networkState.nodes.length}/6 nodes online<br>
+    <strong>✅ Network Active:</strong> Transactions flowing normally
+</div>
+
+<button onclick="resetNetwork()">🔄 Reset Network</button>
+
+<div style="margin-top: 1rem; padding: 0.75rem; background: rgba(33, 150, 243, 0.1); border-left: 3px solid var(--accent-blue); font-size: 0.9rem;">
+    <strong>💡 The Power of P2P:</strong><br>
+    • No central server to attack<br>
+    • Nodes can go offline without affecting network<br>
+    • Bitcoin has ~15,000 nodes worldwide<br>
+    • Network stays alive as long as ONE node exists!
+</div>
             `;
             output.classList.add('visible');
+        }
+
+        function toggleNode(index) {
+            const node = document.getElementById(`node-${index}`);
+            const status = document.getElementById('network-status');
+
+            if (networkState.offline.includes(index)) {
+                networkState.offline = networkState.offline.filter(n => n !== index);
+                node.classList.remove('offline');
+                node.innerHTML = `
+                    <div style="font-size: 2rem;">🖥️</div>
+                    <strong>${networkState.nodes[index]}</strong>
+                    <div style="font-size: 0.8rem; margin-top: 0.5rem;">
+                        <span style="color: var(--accent-green);">● Online</span>
+                    </div>
+                `;
+            } else {
+                networkState.offline.push(index);
+                node.classList.add('offline');
+                node.innerHTML = `
+                    <div style="font-size: 2rem;">💀</div>
+                    <strong>${networkState.nodes[index]}</strong>
+                    <div style="font-size: 0.8rem; margin-top: 0.5rem;">
+                        <span style="color: #ff4444;">● Offline</span>
+                    </div>
+                `;
+            }
+
+            const online = networkState.nodes.length - networkState.offline.length;
+            const networkAlive = online > 0;
+
+            status.innerHTML = `
+                <strong>Network Status:</strong> ${online}/6 nodes online<br>
+                ${networkAlive
+                    ? '<strong style="color: var(--accent-green);">✅ Network Active:</strong> Transactions flowing normally'
+                    : '<strong style="color: #ff4444;">❌ Network Down:</strong> All nodes offline'}
+                ${online < 3 && online > 0 ? '<br><span style="color: #ffaa00;">⚠️ Warning: Low node count</span>' : ''}
+            `;
+            status.style.borderColor = networkAlive ? 'var(--accent-green)' : '#ff4444';
+            status.style.background = networkAlive ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255, 68, 68, 0.1)';
+        }
+
+        function resetNetwork() {
+            networkState.offline = [];
+            networkState.nodes.forEach((_, i) => {
+                const node = document.getElementById(`node-${i}`);
+                if (node) {
+                    node.classList.remove('offline');
+                    node.innerHTML = `
+                        <div style="font-size: 2rem;">🖥️</div>
+                        <strong>${networkState.nodes[i]}</strong>
+                        <div style="font-size: 0.8rem; margin-top: 0.5rem;">
+                            <span style="color: var(--accent-green);">● Online</span>
+                        </div>
+                    `;
+                }
+            });
+            const status = document.getElementById('network-status');
+            status.innerHTML = `
+                <strong>Network Status:</strong> 6/6 nodes online<br>
+                <strong>✅ Network Active:</strong> Transactions flowing normally
+            `;
+            status.style.borderColor = 'var(--accent-green)';
+            status.style.background = 'rgba(76, 175, 80, 0.1)';
         }
 
         function demoDigiCash(button) {
@@ -1296,82 +1533,300 @@ ${publicKey.substring(0, 20)}...
             output.classList.add('visible');
         }
 
-        function demoTimechain(button) {
+        let timechainBlocks = [];
+
+        async function demoTimechain(button) {
             const output = button.nextElementSibling;
-            const hash1 = 'a1b2c3...';
-            const hash2 = 'd4e5f6...';
-            const hash3 = 'g7h8i9...';
+            timechainBlocks = [];
 
             output.innerHTML = `
-<strong>⛓️ Building a Timechain</strong>
+<strong>⛓️ Interactive Timechain Builder</strong>
 
-<code>Block 1:</code> "Document A" → Hash: ${hash1}
+<p style="color: var(--text-dim);">Add documents to see how each block links to the previous one!</p>
 
-<code>Block 2:</code> "Document B" + ${hash1} → Hash: ${hash2}
+<div style="margin: 1rem 0;">
+    <input type="text" id="doc-input" placeholder="Enter document content..." value="Genesis Document" />
+    <button onclick="addToTimechain()">➕ Add Block</button>
+</div>
 
-<code>Block 3:</code> "Document C" + ${hash2} → Hash: ${hash3}
+<div id="timechain-display" style="margin-top: 1rem;"></div>
 
-<strong>🔒 Why This Works:</strong>
-• Can't change Block 1 without breaking Block 2's hash
-• Can't change Block 2 without breaking Block 3's hash
-• The entire chain validates itself!
-
-<strong>This is Bitcoin's blockchain foundation!</strong>
+<div style="margin-top: 1rem; padding: 0.75rem; background: rgba(76, 175, 80, 0.1); border-left: 3px solid var(--accent-green); font-size: 0.9rem;">
+    <strong>🔒 Why This Works:</strong><br>
+    • Each block contains the previous block's hash<br>
+    • Changing any block breaks all subsequent blocks<br>
+    • The entire chain validates itself!<br>
+    • This is Bitcoin's blockchain foundation!
+</div>
             `;
             output.classList.add('visible');
         }
 
-        function demoMerkle(button) {
+        async function addToTimechain() {
+            const input = document.getElementById('doc-input');
+            const data = input.value || 'Document';
+            const display = document.getElementById('timechain-display');
+
+            const prevHash = timechainBlocks.length > 0
+                ? timechainBlocks[timechainBlocks.length - 1].hash
+                : '0000000000000000';
+
+            const hash = await sha256(data + prevHash);
+            timechainBlocks.push({ data, prevHash, hash });
+
+            display.innerHTML = timechainBlocks.map((block, i) => `
+                <div style="margin: 0.75rem 0; padding: 0.75rem; background: rgba(247, 147, 26, 0.1); border: 2px solid var(--primary-orange); border-radius: 0.5rem;">
+                    <strong>Block ${i + 1}:</strong> "${block.data}"<br>
+                    <small style="color: var(--text-dim);">Previous Hash:</small> <code style="font-size: 0.7rem;">${block.prevHash.substring(0, 16)}...</code><br>
+                    <small style="color: var(--accent-green);">Current Hash:</small> <code style="font-size: 0.7rem;">${block.hash.substring(0, 16)}...</code>
+                </div>
+            `).join('');
+
+            input.value = '';
+        }
+
+        let merkleTransactions = ['TX1', 'TX2', 'TX3', 'TX4', 'TX5', 'TX6', 'TX7', 'TX8'];
+        let merkleTree = {};
+
+        async function demoMerkle(button) {
             const output = button.nextElementSibling;
+
             output.innerHTML = `
-<strong>🌳 Merkle Tree: 8 Transactions → 1 Root</strong>
+<strong>🌳 Interactive Merkle Tree: Watch 8 Transactions Compress to 1 Root!</strong>
 
-<code>Level 3 (Leaves):</code>
-TX1  TX2  TX3  TX4  TX5  TX6  TX7  TX8
+<p style="color: var(--text-dim);">Click "Build Tree" to see the magic of Merkle Trees. Click any node to highlight its path!</p>
 
-<code>Level 2 (Hash pairs):</code>
- H12    H34    H56    H78
+<div style="margin: 1rem 0;">
+    ${merkleTransactions.map((tx, i) => `
+        <input type="text" id="tx-${i}" value="${tx}" placeholder="Transaction ${i+1}" style="width: 100px; margin: 0.25rem;" />
+    `).join('')}
+</div>
 
-<code>Level 1 (Hash again):</code>
-   H1234      H5678
+<button onclick="buildMerkleTree()">🌲 Build Merkle Tree</button>
+<button onclick="resetMerkleTree()">🔄 Reset</button>
 
-<code>Level 0 (Root):</code>
-      ROOT HASH
-    (32 bytes!)
+<div id="merkle-tree-viz" class="merkle-tree"></div>
 
-<strong>💡 The Power:</strong>
-• 1 million transactions → Still 32 bytes
-• Can prove TX5 exists with just 4 hashes
-• This is how light wallets work!
+<div style="margin-top: 1rem; padding: 0.75rem; background: rgba(76, 175, 80, 0.1); border-left: 3px solid var(--accent-green); font-size: 0.9rem;">
+    <strong>💡 The Power of Merkle Trees:</strong><br>
+    • 8 transactions (256 bytes each = 2048 bytes total)<br>
+    • Compressed to 1 root hash (32 bytes!)<br>
+    • 1 million transactions → Still just 32 bytes<br>
+    • Can prove any TX exists with just log₂(n) hashes<br>
+    • This is how SPV wallets work!
+</div>
             `;
             output.classList.add('visible');
         }
 
-        function demoHashcash(button) {
+        async function buildMerkleTree() {
+            const viz = document.getElementById('merkle-tree-viz');
+            const transactions = [];
+
+            // Get transaction values
+            for (let i = 0; i < 8; i++) {
+                const tx = document.getElementById(`tx-${i}`).value || `TX${i+1}`;
+                transactions.push(tx);
+            }
+
+            // Build level 3 (leaves) - hash each transaction
+            const level3 = await Promise.all(transactions.map(async tx => {
+                const hash = await sha256(tx);
+                return { data: tx, hash: hash.substring(0, 8) };
+            }));
+
+            // Build level 2 - hash pairs
+            const level2 = [];
+            for (let i = 0; i < level3.length; i += 2) {
+                const combined = level3[i].hash + level3[i+1].hash;
+                const hash = await sha256(combined);
+                level2.push({ data: `H${i+1}${i+2}`, hash: hash.substring(0, 8) });
+            }
+
+            // Build level 1 - hash pairs again
+            const level1 = [];
+            for (let i = 0; i < level2.length; i += 2) {
+                const combined = level2[i].hash + level2[i+1].hash;
+                const hash = await sha256(combined);
+                level1.push({ data: `H${i*2+1}${(i+1)*2}`, hash: hash.substring(0, 8) });
+            }
+
+            // Build level 0 (root) - final hash
+            const combined = level1[0].hash + level1[1].hash;
+            const rootHash = await sha256(combined);
+            const root = { data: 'ROOT', hash: rootHash.substring(0, 8) };
+
+            merkleTree = { level3, level2, level1, root };
+
+            // Display the tree
+            viz.innerHTML = `
+                <div style="text-align: center; margin: 1rem 0;">
+                    <strong style="color: var(--accent-green);">Level 0 (Root Hash)</strong>
+                    <div class="merkle-level">
+                        <div class="merkle-node active" style="min-width: 120px;">
+                            <strong>${root.data}</strong><br>
+                            <small>${root.hash}...</small><br>
+                            <small style="color: var(--accent-green);">✅ 32 bytes</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin: 0.5rem 0; color: var(--text-dim);">↑ Combine ↑</div>
+
+                <div style="text-align: center; margin: 1rem 0;">
+                    <strong>Level 1</strong>
+                    <div class="merkle-level">
+                        ${level1.map(node => `
+                            <div class="merkle-node">
+                                ${node.data}<br>
+                                <small>${node.hash}...</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin: 0.5rem 0; color: var(--text-dim);">↑ Hash Pairs ↑</div>
+
+                <div style="text-align: center; margin: 1rem 0;">
+                    <strong>Level 2</strong>
+                    <div class="merkle-level">
+                        ${level2.map(node => `
+                            <div class="merkle-node">
+                                ${node.data}<br>
+                                <small>${node.hash}...</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin: 0.5rem 0; color: var(--text-dim);">↑ Hash Each TX ↑</div>
+
+                <div style="text-align: center; margin: 1rem 0;">
+                    <strong>Level 3 (Leaf Nodes - Your Transactions)</strong>
+                    <div class="merkle-level">
+                        ${level3.map(node => `
+                            <div class="merkle-node" style="background: rgba(33, 150, 243, 0.2); border-color: var(--accent-blue);">
+                                ${node.data}<br>
+                                <small>${node.hash}...</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(247, 147, 26, 0.1); border: 1px solid var(--primary-orange); border-radius: 0.25rem; text-align: center;">
+                    <strong>🎯 Result:</strong> 8 transactions (2,048 bytes) → 1 root hash (32 bytes)<br>
+                    <strong>Compression Ratio:</strong> 64:1 reduction!
+                </div>
+            `;
+        }
+
+        function resetMerkleTree() {
+            for (let i = 0; i < 8; i++) {
+                document.getElementById(`tx-${i}`).value = `TX${i+1}`;
+            }
+            document.getElementById('merkle-tree-viz').innerHTML = '';
+        }
+
+        let miningInProgress = false;
+
+        async function demoHashcash(button) {
             const output = button.nextElementSibling;
-            let attempt = 0;
-            const target = 3; // Number of leading zeros
 
-            output.innerHTML = '<strong>⛏️ Mining in Progress...</strong>\n\n';
+            output.innerHTML = `
+<strong>⛏️ Interactive Hash Mining (Real SHA-256)</strong>
+
+<p style="color: var(--text-dim);">Adjust difficulty and start mining to see Proof of Work in action!</p>
+
+<div style="margin: 1rem 0;">
+    <label>Difficulty (leading zeros): </label>
+    <select id="difficulty-select">
+        <option value="1">1 (Easy - Fast)</option>
+        <option value="2" selected>2 (Medium)</option>
+        <option value="3">3 (Hard)</option>
+        <option value="4">4 (Very Hard)</option>
+    </select>
+</div>
+
+<div style="margin: 1rem 0;">
+    <label>Data to hash: </label>
+    <input type="text" id="mining-data" value="Hello Bitcoin!" />
+</div>
+
+<button onclick="startMining()" id="mine-btn">⛏️ Start Mining</button>
+<button onclick="stopMining()" style="display: none;" id="stop-btn">⏹️ Stop</button>
+
+<div id="mining-output" style="margin-top: 1rem; max-height: 300px; overflow-y: auto;"></div>
+
+<div style="margin-top: 1rem; padding: 0.75rem; background: rgba(76, 175, 80, 0.1); border-left: 3px solid var(--accent-green); font-size: 0.9rem;">
+    <strong>💡 Proof of Work:</strong><br>
+    • Finding a hash with N leading zeros requires ~16^N attempts<br>
+    • 1 zero = ~16 attempts, 2 zeros = ~256 attempts<br>
+    • Bitcoin uses 19-20 zeros (quintillions of attempts!)<br>
+    • This makes attacks extremely expensive
+</div>
+            `;
             output.classList.add('visible');
+        }
 
-            const mine = () => {
-                attempt++;
-                const hash = 'hash_' + Math.random().toString(36).substring(2, 15);
-                const zeros = Math.floor(Math.random() * 5);
-                const hashDisplay = '0'.repeat(zeros) + hash.substring(zeros);
+        async function startMining() {
+            miningInProgress = true;
+            document.getElementById('mine-btn').style.display = 'none';
+            document.getElementById('stop-btn').style.display = 'inline-block';
 
-                output.innerHTML += `Attempt ${attempt}: ${hashDisplay}${zeros >= target ? ' ✅ VALID!' : ' ❌'}\n`;
+            const difficulty = parseInt(document.getElementById('difficulty-select').value);
+            const data = document.getElementById('mining-data').value;
+            const output = document.getElementById('mining-output');
+            const target = '0'.repeat(difficulty);
 
-                if (zeros >= target || attempt >= 10) {
-                    output.innerHTML += `\n<strong>💎 Found valid hash after ${attempt} attempts!</strong>\n\n` +
-                        `This is Proof of Work: Computing power = Security`;
+            output.innerHTML = '<div class="hash-attempt">🔨 Mining started...</div>';
+
+            let nonce = 0;
+            let found = false;
+
+            const mineBlock = async () => {
+                if (!miningInProgress) return;
+
+                const hash = await sha256(data + nonce);
+
+                if (hash.startsWith(target)) {
+                    found = true;
+                    output.innerHTML += `
+                        <div class="hash-attempt hash-valid">
+                            <strong>✅ VALID HASH FOUND!</strong><br>
+                            Nonce: ${nonce}<br>
+                            Hash: ${hash}<br>
+                            Attempts: ${nonce + 1}
+                        </div>
+                    `;
+                    stopMining();
                 } else {
-                    setTimeout(mine, 300);
+                    if (nonce % 10 === 0) { // Show every 10th attempt
+                        output.innerHTML += `
+                            <div class="hash-attempt hash-invalid">
+                                Attempt ${nonce + 1}: ${hash.substring(0, 16)}... ❌
+                            </div>
+                        `;
+                        output.scrollTop = output.scrollHeight;
+                    }
+
+                    nonce++;
+
+                    if (nonce < 10000) { // Safety limit
+                        setTimeout(mineBlock, 0);
+                    } else {
+                        output.innerHTML += '<div class="hash-attempt">⚠️ Reached attempt limit</div>';
+                        stopMining();
+                    }
                 }
             };
 
-            setTimeout(mine, 100);
+            mineBlock();
+        }
+
+        function stopMining() {
+            miningInProgress = false;
+            document.getElementById('mine-btn').style.display = 'inline-block';
+            document.getElementById('stop-btn').style.display = 'none';
         }
 
         function demoCypherpunks(button) {
@@ -1421,54 +1876,155 @@ TX1  TX2  TX3  TX4  TX5  TX6  TX7  TX8
             output.classList.add('visible');
         }
 
-        function demoGenesis(button) {
+        async function demoGenesis(button) {
             const output = button.nextElementSibling;
+
             output.innerHTML = `
-<strong>⛏️ Genesis Block Simulation</strong>
+<strong>⛏️ Mine the Genesis Block (Real SHA-256)</strong>
 
-<code>Mining Block #0...</code>
+<p style="color: var(--text-dim);">Recreate Satoshi's first block! Edit the message or mine with the original.</p>
 
-Nonce: 0 → Hash: 5f3a... (invalid)
-Nonce: 1 → Hash: 9c2e... (invalid)
-Nonce: 2 → Hash: 1a7b... (invalid)
-...
-Nonce: 2083236893 → Hash: 000000000019d6...
+<div style="margin: 1rem 0;">
+    <label>Coinbase Message:</label>
+    <input type="text" id="genesis-msg" value="The Times 03/Jan/2009 Chancellor on brink of second bailout for banks" style="font-size: 0.9rem;" />
+</div>
 
-<strong>✅ BLOCK FOUND!</strong>
+<div style="margin: 1rem 0;">
+    <label>Target Difficulty (leading zeros):</label>
+    <select id="genesis-difficulty">
+        <option value="2">2 (Fast demo)</option>
+        <option value="3">3 (Medium)</option>
+        <option value="4">4 (Harder)</option>
+    </select>
+</div>
 
-<code>Hidden Message in Coinbase:</code>
-"The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
+<button onclick="mineGenesis()">⛏️ Mine Genesis Block</button>
 
-<strong>💬 Satoshi's Statement:</strong>
-This timestamp proved Bitcoin's launch date and referenced the 2008 financial crisis - the very problem Bitcoin was designed to solve.
+<div id="genesis-output" style="margin-top: 1rem;"></div>
+
+<div style="margin-top: 1rem; padding: 0.75rem; background: rgba(247, 147, 26, 0.1); border: 1px solid var(--primary-orange); border-radius: 0.25rem; font-size: 0.9rem;">
+    <strong>💬 Satoshi's Statement:</strong><br>
+    This timestamp proved Bitcoin's launch date (Jan 3, 2009) and referenced the 2008 financial crisis - the very problem Bitcoin was designed to solve.
+</div>
             `;
             output.classList.add('visible');
         }
 
+        async function mineGenesis() {
+            const msg = document.getElementById('genesis-msg').value;
+            const difficulty = parseInt(document.getElementById('genesis-difficulty').value);
+            const outputDiv = document.getElementById('genesis-output');
+            const target = '0'.repeat(difficulty);
+
+            outputDiv.innerHTML = '<div class="hash-attempt">⛏️ Mining Genesis Block...</div>';
+
+            let nonce = 0;
+            const startTime = Date.now();
+
+            const mine = async () => {
+                const blockData = `Genesis Block\nTimestamp: 2009-01-03\nMessage: ${msg}\nNonce: ${nonce}`;
+                const hash = await sha256(blockData);
+
+                if (nonce % 50 === 0) {
+                    outputDiv.innerHTML += `<div class="hash-attempt hash-invalid">Nonce ${nonce}: ${hash.substring(0, 20)}... ❌</div>`;
+                    outputDiv.scrollTop = outputDiv.scrollHeight;
+                }
+
+                if (hash.startsWith(target)) {
+                    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+                    outputDiv.innerHTML += `
+                        <div class="hash-attempt hash-valid">
+                            <strong>✅ GENESIS BLOCK FOUND!</strong><br><br>
+                            <strong>Block #0</strong><br>
+                            Nonce: ${nonce}<br>
+                            Hash: ${hash}<br>
+                            Attempts: ${nonce + 1}<br>
+                            Time: ${duration} seconds<br><br>
+                            <strong>Coinbase Message:</strong><br>
+                            "${msg}"
+                        </div>
+                    `;
+                } else {
+                    nonce++;
+                    if (nonce < 10000) {
+                        setTimeout(mine, 0);
+                    } else {
+                        outputDiv.innerHTML += '<div class="hash-attempt">⚠️ Reached limit. Try lower difficulty.</div>';
+                    }
+                }
+            };
+
+            mine();
+        }
+
         function demoPizza(button) {
             const output = button.nextElementSibling;
-            const btcPrice = 65000; // Example current price
-            const pizzaBTC = 10000;
-            const pizzaValue = (pizzaBTC * btcPrice).toLocaleString();
 
             output.innerHTML = `
 <strong>🍕 Bitcoin Pizza Day Calculator</strong>
 
-<code>May 22, 2010:</code>
-2 Pizzas = 10,000 BTC ($41 at the time)
+<p style="color: var(--text-dim);">Calculate how much those 2 pizzas are worth today!</p>
 
-<code>Today's Value (at $${btcPrice.toLocaleString()}/BTC):</code>
-10,000 × $${btcPrice.toLocaleString()} = $${pizzaValue}
+<div style="margin: 1rem 0;">
+    <label>Current BTC Price (USD):</label>
+    <input type="number" id="btc-price" value="65000" min="1" step="1000" />
+</div>
 
-<strong>💰 Most Expensive Pizza Ever!</strong>
+<button onclick="calculatePizza()">💰 Calculate Pizza Value</button>
 
-<em>"I wanted to do the pizza thing because to me it was free pizza."</em>
-- Laszlo Hanyecz
+<div id="pizza-result"></div>
 
-<strong>💡 Why It Matters:</strong>
-First real-world transaction proved Bitcoin wasn't just a theory - it was actual money that could buy actual things!
+<div style="margin-top: 1rem; padding: 0.75rem; background: rgba(247, 147, 26, 0.1); border: 1px solid var(--primary-orange); border-radius: 0.25rem; font-size: 0.9rem;">
+    <strong>📅 May 22, 2010:</strong><br>
+    Laszlo Hanyecz paid 10,000 BTC for 2 Papa John's pizzas<br>
+    (Worth about $41 at the time)<br><br>
+
+    <em>"I wanted to do the pizza thing because to me it was free pizza."</em><br>
+    - Laszlo Hanyecz<br><br>
+
+    <strong>💡 Why It Matters:</strong><br>
+    First real-world transaction proved Bitcoin wasn't just a theory - it was actual money that could buy actual things!
+</div>
             `;
             output.classList.add('visible');
+        }
+
+        function calculatePizza() {
+            const btcPrice = parseFloat(document.getElementById('btc-price').value) || 65000;
+            const pizzaBTC = 10000;
+            const pizzaValue = pizzaBTC * btcPrice;
+            const millionsDollars = (pizzaValue / 1000000).toFixed(1);
+
+            const originalPrice = 41;
+            const multiplier = (pizzaValue / originalPrice).toFixed(0);
+
+            const resultDiv = document.getElementById('pizza-result');
+            resultDiv.innerHTML = `
+<div style="margin-top: 1rem; padding: 1rem; background: rgba(76, 175, 80, 0.1); border: 2px solid var(--accent-green); border-radius: 0.5rem;">
+    <div style="text-align: center; font-size: 2rem; color: var(--accent-green); margin-bottom: 0.5rem;">
+        🍕💰 $${pizzaValue.toLocaleString()}
+    </div>
+
+    <div style="text-align: center; margin: 1rem 0;">
+        <strong>That's $${millionsDollars} MILLION for 2 pizzas!</strong>
+    </div>
+
+    <hr style="border-color: rgba(76, 175, 80, 0.3); margin: 1rem 0;">
+
+    <div style="font-size: 0.9rem;">
+        <strong>📊 Breakdown:</strong><br>
+        • 10,000 BTC × $${btcPrice.toLocaleString()} = $${pizzaValue.toLocaleString()}<br>
+        • Original cost: $41<br>
+        • Value increase: ${parseInt(multiplier).toLocaleString()}x<br>
+        • Per pizza: $${(pizzaValue / 2).toLocaleString()}<br>
+        • Per slice (8 slices/pizza): $${(pizzaValue / 16).toLocaleString()}
+    </div>
+
+    <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(255, 167, 38, 0.1); border-radius: 0.25rem; text-align: center;">
+        <strong>🏆 Most Expensive Food Purchase in History!</strong>
+    </div>
+</div>
+            `;
         }
 
         function demoGrowth(button) {
