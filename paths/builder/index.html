@@ -579,41 +579,85 @@
         }
 
         .merkle-tree {
-            margin: 1rem 0;
-            padding: 1rem;
+            margin: 2rem 0;
+            padding: 2rem;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 0.5rem;
+            position: relative;
         }
 
         .merkle-level {
             display: flex;
             justify-content: center;
-            gap: 0.5rem;
-            margin: 0.5rem 0;
+            gap: 1rem;
+            margin: 2rem 0;
             flex-wrap: wrap;
+            position: relative;
         }
 
         .merkle-node {
             background: rgba(247, 147, 26, 0.2);
             border: 2px solid var(--primary-orange);
-            padding: 0.5rem;
-            border-radius: 0.25rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
             font-size: 0.75rem;
             font-family: monospace;
-            min-width: 60px;
+            min-width: 80px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
+            z-index: 10;
         }
 
         .merkle-node:hover {
             background: rgba(247, 147, 26, 0.4);
             transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(247, 147, 26, 0.5);
         }
 
         .merkle-node.active {
             background: rgba(76, 175, 80, 0.3);
             border-color: var(--accent-green);
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+        }
+
+        .merkle-node.highlighted {
+            background: rgba(33, 150, 243, 0.3);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.6);
+        }
+
+        .merkle-connector {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-orange), var(--accent-green));
+            transform-origin: left center;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .merkle-process {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(33, 150, 243, 0.1);
+            border: 2px solid var(--accent-blue);
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .merkle-process.visible {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        .hash-step {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.25rem;
+            border-left: 3px solid var(--accent-green);
         }
 
         .network-grid {
@@ -1585,146 +1629,268 @@
             input.value = '';
         }
 
-        let merkleTransactions = ['TX1', 'TX2', 'TX3', 'TX4', 'TX5', 'TX6', 'TX7', 'TX8'];
+        let merkleTransactions = ['Alice→Bob: 1 BTC', 'Carol→Dave: 0.5 BTC', 'Eve→Frank: 2 BTC', 'Grace→Henry: 0.3 BTC',
+                                  'Ivy→Jack: 1.5 BTC', 'Kim→Leo: 0.8 BTC', 'Mia→Noah: 0.2 BTC', 'Olivia→Paul: 3 BTC'];
         let merkleTree = {};
+        let merkleStepIndex = 0;
 
         async function demoMerkle(button) {
             const output = button.nextElementSibling;
 
             output.innerHTML = `
-<strong>🌳 Interactive Merkle Tree: Watch 8 Transactions Compress to 1 Root!</strong>
+<strong>🌳 Interactive Merkle Tree: Watch Transactions Combine Into a Single Root!</strong>
 
-<p style="color: var(--text-dim);">Click "Build Tree" to see the magic of Merkle Trees. Click any node to highlight its path!</p>
+<p style="color: var(--text-dim);">Enter your own transaction data below, then click "Build Tree Step-by-Step"</p>
 
-<div style="margin: 1rem 0;">
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin: 1rem 0;">
     ${merkleTransactions.map((tx, i) => `
-        <input type="text" id="tx-${i}" value="${tx}" placeholder="Transaction ${i+1}" style="width: 100px; margin: 0.25rem;" />
+        <div>
+            <label style="font-size: 0.75rem; color: var(--text-dim);">TX${i+1}:</label>
+            <input type="text" id="tx-${i}" value="${tx}" placeholder="Transaction ${i+1}" style="width: 100%; padding: 0.5rem; font-size: 0.75rem;" />
+        </div>
     `).join('')}
 </div>
 
-<button onclick="buildMerkleTree()">🌲 Build Merkle Tree</button>
-<button onclick="resetMerkleTree()">🔄 Reset</button>
+<div style="margin: 1rem 0;">
+    <button onclick="buildMerkleTreeStepByStep()">🌲 Build Tree Step-by-Step</button>
+    <button onclick="buildMerkleTreeInstant()">⚡ Build Instantly</button>
+    <button onclick="resetMerkleTree()">🔄 Reset</button>
+</div>
 
+<div id="merkle-process" class="merkle-process"></div>
 <div id="merkle-tree-viz" class="merkle-tree"></div>
 
 <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(76, 175, 80, 0.1); border-left: 3px solid var(--accent-green); font-size: 0.9rem;">
-    <strong>💡 The Power of Merkle Trees:</strong><br>
-    • 8 transactions (256 bytes each = 2048 bytes total)<br>
-    • Compressed to 1 root hash (32 bytes!)<br>
-    • 1 million transactions → Still just 32 bytes<br>
-    • Can prove any TX exists with just log₂(n) hashes<br>
-    • This is how SPV wallets work!
+    <strong>💡 How Merkle Trees Work:</strong><br>
+    • Transactions are hashed in pairs: Hash(TX7 + TX8)<br>
+    • Those hashes are paired again: Hash(H78 + H56)<br>
+    • Repeat until you get one ROOT hash<br>
+    • 8 transactions (2048 bytes) → 1 root (32 bytes) = 64x compression!<br>
+    • Bitcoin uses this in every block header
 </div>
             `;
             output.classList.add('visible');
         }
 
-        async function buildMerkleTree() {
-            const viz = document.getElementById('merkle-tree-viz');
-            const transactions = [];
+        async function buildMerkleTreeStepByStep() {
+            merkleStepIndex = 0;
+            const processDiv = document.getElementById('merkle-process');
+            processDiv.classList.add('visible');
+            processDiv.innerHTML = '<strong>🔨 Building Merkle Tree...</strong>';
 
-            // Get transaction values
+            // Get transactions
+            const transactions = [];
             for (let i = 0; i < 8; i++) {
-                const tx = document.getElementById(`tx-${i}`).value || `TX${i+1}`;
-                transactions.push(tx);
+                transactions.push(document.getElementById(`tx-${i}`).value);
             }
 
-            // Build level 3 (leaves) - hash each transaction
-            const level3 = await Promise.all(transactions.map(async tx => {
+            // Step 1: Hash each transaction
+            processDiv.innerHTML += `
+                <div class="hash-step">
+                    <strong>Step 1: Hash Each Transaction</strong><br>
+                    Hashing 8 transactions individually...
+                </div>
+            `;
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            const level3 = await Promise.all(transactions.map(async (tx, i) => {
                 const hash = await sha256(tx);
-                return { data: tx, hash: hash.substring(0, 8) };
+                processDiv.innerHTML += `
+                    <div style="font-size: 0.8rem; margin: 0.25rem 0; color: var(--text-dim);">
+                        TX${i+1}: "${tx.substring(0, 20)}..." → <code style="color: var(--accent-green);">${hash.substring(0, 12)}...</code>
+                    </div>
+                `;
+                return { data: tx, hash: hash.substring(0, 10), fullHash: hash };
             }));
 
-            // Build level 2 - hash pairs
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Step 2: Pair level 3
+            processDiv.innerHTML += `
+                <div class="hash-step">
+                    <strong>Step 2: Combine Pairs (Level 3 → Level 2)</strong><br>
+                    Hashing pairs together...
+                </div>
+            `;
+
             const level2 = [];
             for (let i = 0; i < level3.length; i += 2) {
-                const combined = level3[i].hash + level3[i+1].hash;
+                const left = level3[i];
+                const right = level3[i+1];
+                const combined = left.fullHash + right.fullHash;
                 const hash = await sha256(combined);
-                level2.push({ data: `H${i+1}${i+2}`, hash: hash.substring(0, 8) });
+
+                processDiv.innerHTML += `
+                    <div style="font-size: 0.8rem; margin: 0.5rem 0; padding: 0.5rem; background: rgba(247, 147, 26, 0.1); border-radius: 0.25rem;">
+                        <strong>Pair ${i/2 + 1}:</strong><br>
+                        TX${i+1} (<code>${left.hash}...</code>) +<br>
+                        TX${i+2} (<code>${right.hash}...</code>)<br>
+                        = Hash(<code style="color: var(--accent-green);">${hash.substring(0, 12)}...</code>)
+                    </div>
+                `;
+
+                level2.push({ data: `H${i+1}${i+2}`, hash: hash.substring(0, 10), fullHash: hash });
+                await new Promise(resolve => setTimeout(resolve, 600));
             }
 
-            // Build level 1 - hash pairs again
+            // Step 3: Pair level 2
+            processDiv.innerHTML += `
+                <div class="hash-step">
+                    <strong>Step 3: Combine Pairs Again (Level 2 → Level 1)</strong>
+                </div>
+            `;
+
             const level1 = [];
             for (let i = 0; i < level2.length; i += 2) {
-                const combined = level2[i].hash + level2[i+1].hash;
+                const left = level2[i];
+                const right = level2[i+1];
+                const combined = left.fullHash + right.fullHash;
                 const hash = await sha256(combined);
-                level1.push({ data: `H${i*2+1}${(i+1)*2}`, hash: hash.substring(0, 8) });
+
+                processDiv.innerHTML += `
+                    <div style="font-size: 0.8rem; margin: 0.5rem 0; padding: 0.5rem; background: rgba(247, 147, 26, 0.1); border-radius: 0.25rem;">
+                        ${left.data} + ${right.data} = <code style="color: var(--accent-green);">${hash.substring(0, 12)}...</code>
+                    </div>
+                `;
+
+                level1.push({ data: `H${i*2+1}-${(i+1)*2}`, hash: hash.substring(0, 10), fullHash: hash });
+                await new Promise(resolve => setTimeout(resolve, 600));
             }
 
-            // Build level 0 (root) - final hash
-            const combined = level1[0].hash + level1[1].hash;
+            // Step 4: Final root
+            processDiv.innerHTML += `
+                <div class="hash-step">
+                    <strong>Step 4: Combine Final Pair → MERKLE ROOT!</strong>
+                </div>
+            `;
+
+            const left = level1[0];
+            const right = level1[1];
+            const combined = left.fullHash + right.fullHash;
             const rootHash = await sha256(combined);
-            const root = { data: 'ROOT', hash: rootHash.substring(0, 8) };
+            const root = { data: 'MERKLE ROOT', hash: rootHash.substring(0, 10), fullHash: rootHash };
+
+            processDiv.innerHTML += `
+                <div style="font-size: 0.8rem; margin: 0.5rem 0; padding: 0.75rem; background: rgba(76, 175, 80, 0.2); border: 2px solid var(--accent-green); border-radius: 0.25rem; text-align: center;">
+                    <strong>🌳 MERKLE ROOT CREATED!</strong><br>
+                    <code style="color: var(--accent-green); font-size: 0.9rem;">${rootHash.substring(0, 20)}...</code><br>
+                    <small>This single 32-byte hash represents ALL 8 transactions!</small>
+                </div>
+            `;
 
             merkleTree = { level3, level2, level1, root };
+            renderMerkleTree();
+        }
 
-            // Display the tree
+        async function buildMerkleTreeInstant() {
+            // Same logic but without delays
+            const processDiv = document.getElementById('merkle-process');
+            processDiv.classList.remove('visible');
+
+            const transactions = [];
+            for (let i = 0; i < 8; i++) {
+                transactions.push(document.getElementById(`tx-${i}`).value);
+            }
+
+            const level3 = await Promise.all(transactions.map(async (tx) => {
+                const hash = await sha256(tx);
+                return { data: tx, hash: hash.substring(0, 10), fullHash: hash };
+            }));
+
+            const level2 = [];
+            for (let i = 0; i < level3.length; i += 2) {
+                const combined = level3[i].fullHash + level3[i+1].fullHash;
+                const hash = await sha256(combined);
+                level2.push({ data: `H${i+1}${i+2}`, hash: hash.substring(0, 10), fullHash: hash });
+            }
+
+            const level1 = [];
+            for (let i = 0; i < level2.length; i += 2) {
+                const combined = level2[i].fullHash + level2[i+1].fullHash;
+                const hash = await sha256(combined);
+                level1.push({ data: `H${i*2+1}-${(i+1)*2}`, hash: hash.substring(0, 10), fullHash: hash });
+            }
+
+            const combined = level1[0].fullHash + level1[1].fullHash;
+            const rootHash = await sha256(combined);
+            const root = { data: 'MERKLE ROOT', hash: rootHash.substring(0, 10), fullHash: rootHash };
+
+            merkleTree = { level3, level2, level1, root };
+            renderMerkleTree();
+        }
+
+        function renderMerkleTree() {
+            const viz = document.getElementById('merkle-tree-viz');
+            const { level3, level2, level1, root } = merkleTree;
+
             viz.innerHTML = `
-                <div style="text-align: center; margin: 1rem 0;">
-                    <strong style="color: var(--accent-green);">Level 0 (Root Hash)</strong>
-                    <div class="merkle-level">
-                        <div class="merkle-node active" style="min-width: 120px;">
-                            <strong>${root.data}</strong><br>
-                            <small>${root.hash}...</small><br>
-                            <small style="color: var(--accent-green);">✅ 32 bytes</small>
-                        </div>
+                <svg width="100%" height="60" style="position: absolute; top: 0; left: 0; pointer-events: none;">
+                    <!-- Connections will be drawn here if needed -->
+                </svg>
+
+                <div style="text-align: center; margin: 2rem 0 3rem 0;">
+                    <div style="color: var(--text-dim); margin-bottom: 0.5rem;">⬇️ Level 0: MERKLE ROOT ⬇️</div>
+                    <div class="merkle-node active" style="display: inline-block; min-width: 150px;">
+                        <div style="font-size: 1rem;"><strong>🌳 ${root.data}</strong></div>
+                        <code style="color: var(--accent-green); font-size: 0.75rem;">${root.hash}...</code><br>
+                        <small style="color: var(--accent-green);">✅ 32 bytes</small>
                     </div>
                 </div>
 
-                <div style="text-align: center; margin: 0.5rem 0; color: var(--text-dim);">↑ Combine ↑</div>
-
-                <div style="text-align: center; margin: 1rem 0;">
-                    <strong>Level 1</strong>
+                <div style="text-align: center; margin: 3rem 0;">
+                    <div style="color: var(--text-dim); margin-bottom: 0.5rem;">⬇️ Level 1: Branch Hashes ⬇️</div>
                     <div class="merkle-level">
                         ${level1.map(node => `
                             <div class="merkle-node">
-                                ${node.data}<br>
-                                <small>${node.hash}...</small>
+                                <strong>${node.data}</strong><br>
+                                <code>${node.hash}...</code>
                             </div>
                         `).join('')}
                     </div>
                 </div>
 
-                <div style="text-align: center; margin: 0.5rem 0; color: var(--text-dim);">↑ Hash Pairs ↑</div>
-
-                <div style="text-align: center; margin: 1rem 0;">
-                    <strong>Level 2</strong>
+                <div style="text-align: center; margin: 3rem 0;">
+                    <div style="color: var(--text-dim); margin-bottom: 0.5rem;">⬇️ Level 2: Pair Hashes ⬇️</div>
                     <div class="merkle-level">
                         ${level2.map(node => `
                             <div class="merkle-node">
-                                ${node.data}<br>
-                                <small>${node.hash}...</small>
+                                <strong>${node.data}</strong><br>
+                                <code>${node.hash}...</code>
                             </div>
                         `).join('')}
                     </div>
                 </div>
 
-                <div style="text-align: center; margin: 0.5rem 0; color: var(--text-dim);">↑ Hash Each TX ↑</div>
-
-                <div style="text-align: center; margin: 1rem 0;">
-                    <strong>Level 3 (Leaf Nodes - Your Transactions)</strong>
+                <div style="text-align: center; margin: 3rem 0;">
+                    <div style="color: var(--text-dim); margin-bottom: 0.5rem;">⬇️ Level 3: Transaction Hashes (Leaves) ⬇️</div>
                     <div class="merkle-level">
-                        ${level3.map(node => `
-                            <div class="merkle-node" style="background: rgba(33, 150, 243, 0.2); border-color: var(--accent-blue);">
-                                ${node.data}<br>
-                                <small>${node.hash}...</small>
+                        ${level3.map((node, i) => `
+                            <div class="merkle-node" style="background: rgba(33, 150, 243, 0.2); border-color: var(--accent-blue); max-width: 120px;">
+                                <strong style="font-size: 0.8rem;">TX${i+1}</strong><br>
+                                <div style="font-size: 0.7rem; margin: 0.25rem 0; color: var(--text-dim);">${node.data.substring(0, 15)}...</div>
+                                <code style="font-size: 0.7rem;">${node.hash}...</code>
                             </div>
                         `).join('')}
                     </div>
                 </div>
 
-                <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(247, 147, 26, 0.1); border: 1px solid var(--primary-orange); border-radius: 0.25rem; text-align: center;">
-                    <strong>🎯 Result:</strong> 8 transactions (2,048 bytes) → 1 root hash (32 bytes)<br>
-                    <strong>Compression Ratio:</strong> 64:1 reduction!
+                <div style="margin-top: 2rem; padding: 1rem; background: rgba(247, 147, 26, 0.1); border: 2px solid var(--primary-orange); border-radius: 0.5rem; text-align: center;">
+                    <strong>🎯 Compression Result:</strong><br>
+                    8 transactions (2,048 bytes) → 1 Merkle Root (32 bytes)<br>
+                    <strong style="color: var(--accent-green);">Compression Ratio: 64:1</strong>
                 </div>
             `;
         }
 
         function resetMerkleTree() {
+            merkleTransactions = ['Alice→Bob: 1 BTC', 'Carol→Dave: 0.5 BTC', 'Eve→Frank: 2 BTC', 'Grace→Henry: 0.3 BTC',
+                                  'Ivy→Jack: 1.5 BTC', 'Kim→Leo: 0.8 BTC', 'Mia→Noah: 0.2 BTC', 'Olivia→Paul: 3 BTC'];
             for (let i = 0; i < 8; i++) {
-                document.getElementById(`tx-${i}`).value = `TX${i+1}`;
+                document.getElementById(`tx-${i}`).value = merkleTransactions[i];
             }
             document.getElementById('merkle-tree-viz').innerHTML = '';
+            document.getElementById('merkle-process').innerHTML = '';
+            document.getElementById('merkle-process').classList.remove('visible');
         }
 
         let miningInProgress = false;
