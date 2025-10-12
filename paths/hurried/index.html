@@ -249,6 +249,12 @@
             background: linear-gradient(135deg, var(--accent-green), #66BB6A);
         }
 
+        .button.active {
+            background: linear-gradient(135deg, var(--accent-gold), var(--primary-orange));
+            box-shadow: 0 5px 20px rgba(255, 167, 38, 0.5);
+            transform: translateY(-2px);
+        }
+
         /* Mining Demo */
         .mining-stats {
             display: grid;
@@ -303,6 +309,25 @@
 
         .block.valid {
             border-color: var(--accent-green);
+        }
+
+        .block.new-block {
+            animation: blockPulse 0.6s ease-out;
+        }
+
+        @keyframes blockPulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+            }
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 0 20px 10px rgba(76, 175, 80, 0.3);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
         }
 
         .block-field {
@@ -501,10 +526,10 @@
                     <h4 style="margin-top: 2rem;">Interactive Demo: Bitcoin vs Traditional Money</h4>
                     <p style="color: var(--text-dim); margin-bottom: 1rem;">Click scenarios below to see how Bitcoin compares:</p>
 
-                    <div style="display: grid; gap: 1rem; margin: 1rem 0;">
-                        <button class="button secondary" onclick="showScenario('international')" style="width: 100%;">🌍 Sending Money Internationally</button>
-                        <button class="button secondary" onclick="showScenario('freeze')" style="width: 100%;">🔒 Account Control & Censorship</button>
-                        <button class="button secondary" onclick="showScenario('inflation')" style="width: 100%;">💸 Long-term Value Storage</button>
+                    <div style="display: grid; gap: 1rem; margin: 1rem 0;" id="scenario-buttons">
+                        <button class="button secondary" onclick="showScenario('international')" data-scenario="international" style="width: 100%;">🌍 Sending Money Internationally</button>
+                        <button class="button secondary" onclick="showScenario('freeze')" data-scenario="freeze" style="width: 100%;">🔒 Account Control & Censorship</button>
+                        <button class="button secondary" onclick="showScenario('inflation')" data-scenario="inflation" style="width: 100%;">💸 Long-term Value Storage</button>
                     </div>
 
                     <div id="scenario-display" style="display: none; margin-top: 1.5rem;">
@@ -641,10 +666,10 @@
                     </div>
 
                     <div class="demo-box">
-                        <h4>🎮 Interactive Demo: Build a Transaction</h4>
+                        <h4>🎮 Interactive Demo: Follow a Transaction</h4>
 
                         <div style="background: rgba(33, 150, 243, 0.1); padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 1.5rem;">
-                            <h5 style="color: var(--accent-blue); margin-bottom: 1rem;">Transaction Components:</h5>
+                            <h5 style="color: var(--accent-blue); margin-bottom: 1rem;">Sample Transaction:</h5>
                             <div style="display: grid; gap: 0.75rem;">
                                 <div><strong>From Address:</strong> <span style="font-family: monospace; color: var(--accent-gold);">1A2B3C4D5E6F7G8H9I</span></div>
                                 <div><strong>To Address:</strong> <span style="font-family: monospace; color: var(--accent-gold);">9I8H7G6F5E4D3C2B1A</span></div>
@@ -655,13 +680,27 @@
 
                         <div style="background: var(--secondary-dark); padding: 1.5rem; border-radius: 0.75rem; border: 2px solid var(--border-color);">
                             <h5 style="margin-bottom: 1rem;">Transaction Lifecycle:</h5>
-                            <ol style="padding-left: 1.5rem; line-height: 2;">
-                                <li>You create and sign the transaction with your private key</li>
-                                <li>Transaction is broadcast to the Bitcoin network</li>
-                                <li>Miners include it in the next block</li>
-                                <li>Block is added to the blockchain</li>
-                                <li>Transaction is confirmed (usually ~10 minutes)</li>
-                            </ol>
+                            <div style="margin-bottom: 1rem;">
+                                <button class="button secondary" onclick="simulateTransaction()" id="tx-start-btn" style="width: 100%;">▶️ Start Transaction Journey</button>
+                                <button class="button secondary" onclick="resetTransaction()" id="tx-reset-btn" style="width: 100%; display: none; margin-top: 0.5rem;">🔄 Reset</button>
+                            </div>
+                            <div id="tx-steps">
+                                <div class="tx-step" id="tx-step-1" style="opacity: 0.3; padding: 0.75rem; margin: 0.5rem 0; background: rgba(255, 167, 38, 0.1); border-radius: 0.5rem; transition: all 0.5s;">
+                                    <strong>1.</strong> You create and sign the transaction with your private key 🔑
+                                </div>
+                                <div class="tx-step" id="tx-step-2" style="opacity: 0.3; padding: 0.75rem; margin: 0.5rem 0; background: rgba(255, 167, 38, 0.1); border-radius: 0.5rem; transition: all 0.5s;">
+                                    <strong>2.</strong> Transaction is broadcast to the Bitcoin network 📡
+                                </div>
+                                <div class="tx-step" id="tx-step-3" style="opacity: 0.3; padding: 0.75rem; margin: 0.5rem 0; background: rgba(255, 167, 38, 0.1); border-radius: 0.5rem; transition: all 0.5s;">
+                                    <strong>3.</strong> Miners include it in the next block ⛏️
+                                </div>
+                                <div class="tx-step" id="tx-step-4" style="opacity: 0.3; padding: 0.75rem; margin: 0.5rem 0; background: rgba(255, 167, 38, 0.1); border-radius: 0.5rem; transition: all 0.5s;">
+                                    <strong>4.</strong> Block is added to the blockchain 🔗
+                                </div>
+                                <div class="tx-step" id="tx-step-5" style="opacity: 0.3; padding: 0.75rem; margin: 0.5rem 0; background: rgba(255, 167, 38, 0.1); border-radius: 0.5rem; transition: all 0.5s;">
+                                    <strong>5.</strong> Transaction is confirmed (usually ~10 minutes) ✅
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1129,10 +1168,60 @@
 
         function showScenario(type) {
             const scenario = scenarios[type];
+
+            // Remove active class from all scenario buttons
+            document.querySelectorAll('#scenario-buttons button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Add active class to clicked button
+            document.querySelector(`[data-scenario="${type}"]`).classList.add('active');
+
+            // Show comparison
             document.getElementById('scenario-display').style.display = 'block';
             document.getElementById('bank-content').innerHTML = scenario.bank;
             document.getElementById('bitcoin-content').innerHTML = scenario.bitcoin;
             document.getElementById('scenario-display').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Transaction Simulation (Module 3)
+        let txSimulationActive = false;
+
+        function simulateTransaction() {
+            if (txSimulationActive) return;
+            txSimulationActive = true;
+
+            document.getElementById('tx-start-btn').style.display = 'none';
+            document.getElementById('tx-reset-btn').style.display = 'block';
+
+            const steps = [1, 2, 3, 4, 5];
+            let currentStep = 0;
+
+            const interval = setInterval(() => {
+                if (currentStep < steps.length) {
+                    const stepEl = document.getElementById(`tx-step-${steps[currentStep]}`);
+                    stepEl.style.opacity = '1';
+                    stepEl.style.background = 'rgba(76, 175, 80, 0.2)';
+                    stepEl.style.borderLeft = '4px solid var(--accent-green)';
+                    currentStep++;
+                } else {
+                    clearInterval(interval);
+                    txSimulationActive = false;
+                }
+            }, 1000);
+        }
+
+        function resetTransaction() {
+            txSimulationActive = false;
+            document.getElementById('tx-start-btn').style.display = 'block';
+            document.getElementById('tx-reset-btn').style.display = 'none';
+
+            for (let i = 1; i <= 5; i++) {
+                const stepEl = document.getElementById(`tx-step-${i}`);
+                stepEl.style.opacity = '0.3';
+                stepEl.style.background = 'rgba(255, 167, 38, 0.1)';
+                stepEl.style.borderLeft = 'none';
+            }
         }
 
         // Wallet Generation with visual feedback
@@ -1258,13 +1347,20 @@
             }
         ];
 
-        async function renderBlockchain() {
+        async function renderBlockchain(highlightLast = false) {
             const container = document.getElementById('blockchain-container');
             container.innerHTML = '';
 
-            for (const block of blockchain) {
+            for (let i = 0; i < blockchain.length; i++) {
+                const block = blockchain[i];
                 const blockEl = document.createElement('div');
                 blockEl.className = 'block valid';
+
+                // Highlight the newly added block
+                if (highlightLast && i === blockchain.length - 1) {
+                    blockEl.classList.add('new-block');
+                }
+
                 blockEl.innerHTML = `
                     <div class="block-field">
                         <label>Block #:</label>
@@ -1288,6 +1384,11 @@
 
             document.getElementById('chain-length').textContent = blockchain.length;
             document.getElementById('total-transactions').textContent = blockchain.length;
+
+            // Scroll to the new block
+            if (highlightLast) {
+                container.lastChild.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
 
         async function addBlock() {
@@ -1303,7 +1404,7 @@
 
             blockchain.push(newBlock);
             document.getElementById('block-data').value = '';
-            renderBlockchain();
+            renderBlockchain(true); // Highlight the new block
         }
 
         // Security Checklist
