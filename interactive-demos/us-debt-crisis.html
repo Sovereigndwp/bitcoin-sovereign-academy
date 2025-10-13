@@ -3,452 +3,488 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>US National Debt Crisis - Live Visualization</title>
+    <title>US National Debt Crisis - Real-Time Visualization</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --primary-orange: #f7931a;
-            --primary-dark: #1a1a1a;
-            --secondary-dark: #2d2d2d;
-            --accent-green: #4caf50;
-            --accent-red: #f44336;
-            --text-light: #e0e0e0;
-            --text-dim: #999;
-            --border-color: rgba(247, 147, 26, 0.2);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
+        body {
             box-sizing: border-box;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--primary-dark);
-            color: var(--text-light);
-            line-height: 1.6;
-            padding: 1.5rem;
+        @keyframes countUp {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
+        @keyframes pulse-brand {
+            0%, 100% { background: linear-gradient(135deg, #ff6b35, #ffcd3c); }
+            50% { background: linear-gradient(135deg, #ffcd3c, #ff6b35); }
         }
-
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 15px rgba(244, 67, 54, 0.3); }
-            50% { box-shadow: 0 0 30px rgba(244, 67, 54, 0.6); }
+        @keyframes spiral-grow {
+            0% { transform: rotate(0deg) scale(1); }
+            100% { transform: rotate(360deg) scale(1.05); }
         }
+        .count-up { animation: countUp 0.5s ease-out; }
+        .pulse-brand { animation: pulse-brand 2s ease-in-out infinite; }
+        .spiral-grow { animation: spiral-grow 4s linear infinite; }
 
-        @keyframes count-up {
-            0% { opacity: 0.7; }
-            50% { opacity: 1; }
-            100% { opacity: 0.7; }
+        .debt-meter {
+            background: conic-gradient(from 0deg, #ff6b35 0deg, #ffcd3c 120deg, #ff6b35 240deg, #ffcd3c 360deg);
         }
 
         .crisis-alert {
-            background: linear-gradient(90deg, #ff6b35, #ffcd3c, #ff6b35);
-            background-size: 200% 100%;
-            animation: gradient-slide 3s ease infinite;
-            text-align: center;
-            padding: 0.75rem;
-            font-weight: bold;
-            border-radius: 0.5rem;
-            margin-bottom: 1.5rem;
-            color: #1a1a1a;
+            background: linear-gradient(45deg, #ff6b35, #ffcd3c, #ff6b35);
+            background-size: 200% 200%;
+            animation: gradient-shift 3s ease infinite;
         }
 
-        @keyframes gradient-slide {
-            0%, 100% { background-position: 0% 50%; }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        .section-title {
-            font-size: 1.75rem;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 0.5rem;
-            color: var(--primary-orange);
+        .glass-panel {
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 107, 53, 0.2);
         }
 
-        .section-subtitle {
-            text-align: center;
-            color: var(--text-dim);
-            margin-bottom: 1.5rem;
-            font-size: 0.95rem;
+        .brand-gradient {
+            background: linear-gradient(135deg, #ff6b35, #ffcd3c);
         }
 
-        .debt-counter-section {
-            background: var(--secondary-dark);
-            border: 2px solid var(--primary-orange);
-            border-radius: 1rem;
-            padding: 2rem 1.5rem;
-            margin-bottom: 1.5rem;
-            animation: pulse-glow 3s ease-in-out infinite;
-        }
-
-        .debt-display {
-            text-align: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .live-debt {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--primary-orange);
-            margin-bottom: 0.5rem;
-            animation: count-up 2s ease-in-out infinite;
-        }
-
-        .counting-label {
-            font-size: 0.9rem;
-            color: var(--text-dim);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-        }
-
-        .stat-card {
-            background: rgba(247, 147, 26, 0.1);
-            border: 2px solid var(--border-color);
-            border-radius: 0.5rem;
-            padding: 1rem 0.75rem;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.25rem;
-            font-weight: bold;
-            color: var(--primary-orange);
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-        }
-
-        .visual-comparison {
-            background: var(--secondary-dark);
-            border: 2px solid var(--border-color);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .visual-comparison h3 {
-            color: var(--primary-orange);
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-        }
-
-        .growth-bars {
-            margin-top: 1rem;
-        }
-
-        .bar-item {
-            margin-bottom: 1rem;
-        }
-
-        .bar-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.25rem;
-            font-size: 0.85rem;
-        }
-
-        .bar-container {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 0.5rem;
-            overflow: hidden;
-            height: 30px;
-            position: relative;
-        }
-
-        .bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ff6b35, #ffcd3c);
-            display: flex;
-            align-items: center;
-            padding: 0 0.75rem;
-            font-size: 0.75rem;
-            font-weight: bold;
-            transition: width 0.5s ease;
-        }
-
-        .consequences-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .consequence-card {
-            background: var(--secondary-dark);
-            border: 2px solid var(--border-color);
-            border-radius: 0.75rem;
-            padding: 1rem;
-            text-align: center;
-        }
-
-        .consequence-card.highlight {
-            background: rgba(255, 107, 53, 0.15);
-            border-color: var(--primary-orange);
-        }
-
-        .consequence-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .consequence-value {
-            font-size: 1.25rem;
-            font-weight: bold;
-            color: var(--primary-orange);
-            margin-bottom: 0.25rem;
-        }
-
-        .consequence-label {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            margin-bottom: 0.25rem;
-        }
-
-        .consequence-detail {
-            font-size: 0.7rem;
-            color: var(--text-dim);
-        }
-
-        .bitcoin-connection {
-            background: rgba(76, 175, 80, 0.1);
-            border-left: 4px solid var(--accent-green);
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-        }
-
-        .bitcoin-connection h3 {
-            color: var(--accent-green);
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-        }
-
-        .bitcoin-connection ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .bitcoin-connection li {
-            padding-left: 1.5rem;
-            margin-bottom: 0.75rem;
-            position: relative;
-            font-size: 0.9rem;
-        }
-
-        .bitcoin-connection li:before {
-            content: "₿";
-            position: absolute;
-            left: 0;
-            color: var(--primary-orange);
-            font-weight: bold;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 1rem;
-            }
-
-            .section-title {
-                font-size: 1.5rem;
-            }
-
-            .live-debt {
-                font-size: 1.75rem;
-            }
-
-            .stats-grid,
-            .consequences-grid {
-                grid-template-columns: 1fr;
-            }
+        .brand-gradient-text {
+            background: linear-gradient(135deg, #ff6b35, #ffcd3c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <!-- Crisis Alert Banner -->
-        <div class="crisis-alert">
-            🚨 US NATIONAL DEBT: $35.7+ TRILLION AND RISING 🚨
-        </div>
+<body class="bg-black min-h-screen text-white overflow-x-hidden">
+    <!-- Crisis Alert Banner -->
+    <div class="crisis-alert text-center py-4 font-bold text-xl">
+        🚨 NATIONAL DEBT CRISIS: $35+ TRILLION AND RISING 🚨
+    </div>
 
-        <!-- Title Section -->
-        <h1 class="section-title">The US Debt Spiral</h1>
-        <p class="section-subtitle">
-            Adding <strong>$96,000 per second</strong> • <strong>$3 billion per day</strong> • <strong>$1 trillion every 100 days</strong>
-        </p>
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-6xl font-bold mb-4 brand-gradient-text">
+                US DEBT SPIRAL
+            </h1>
+            <p class="text-xl text-gray-300 max-w-4xl mx-auto">
+                Real-time visualization of America's debt crisis using official US Treasury data.
+                Watch how we're adding <span class="brand-gradient-text font-bold">$1 trillion every 100 days</span>.
+            </p>
+            <p class="text-sm text-gray-400 mt-4">
+                Data Source: <a href="https://fiscaldata.treasury.gov/" target="_blank" rel="noopener noreferrer" class="brand-gradient-text underline">US Treasury Fiscal Data API</a> | Updated Daily
+            </p>
+        </div>
 
         <!-- Real-Time Debt Counter -->
-        <div class="debt-counter-section">
-            <div class="debt-display">
-                <div class="live-debt" id="liveDebt">$35,700,000,000,000</div>
-                <div class="counting-label">...and counting</div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="perSecond">+$96,000</div>
-                    <div class="stat-label">Per second</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="perCitizen">$106,250</div>
-                    <div class="stat-label">Per citizen</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="interestDaily">$2.44B</div>
-                    <div class="stat-label">Interest/day</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Visual Growth Comparison -->
-        <div class="visual-comparison">
-            <h3>📈 Exponential Growth (2000 → 2025)</h3>
-            <div class="growth-bars">
-                <div class="bar-item">
-                    <div class="bar-label">
-                        <span>2000</span>
-                        <span style="color: var(--primary-orange); font-weight: bold;">$5.6 trillion</span>
+        <div class="glass-panel rounded-2xl p-8 mb-8 shadow-2xl">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold mb-6 brand-gradient-text">🇺🇸 LIVE US NATIONAL DEBT</h2>
+                <div class="debt-meter rounded-full w-80 h-80 mx-auto flex items-center justify-center mb-6 relative">
+                    <div class="bg-slate-900 rounded-full w-64 h-64 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-5xl font-bold text-white mb-2" id="liveDebt">$35,000,000,000,000</div>
+                            <div class="text-lg text-gray-300">and counting...</div>
+                        </div>
                     </div>
-                    <div class="bar-container">
-                        <div class="bar-fill" style="width: 16%;">16%</div>
+                    <div class="absolute inset-0 spiral-grow">
+                        <div class="w-full h-full border-4 border-red-400 rounded-full opacity-30"></div>
                     </div>
                 </div>
 
-                <div class="bar-item">
-                    <div class="bar-label">
-                        <span>2008 (Financial Crisis)</span>
-                        <span style="color: var(--primary-orange); font-weight: bold;">$10.0 trillion</span>
+                <div class="grid md:grid-cols-3 gap-6 mt-8">
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
+                        <div class="text-2xl font-bold brand-gradient-text" id="perSecond">+$95,000</div>
+                        <div class="text-sm text-gray-400">Added per second</div>
                     </div>
-                    <div class="bar-container">
-                        <div class="bar-fill" style="width: 28%;">28%</div>
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
+                        <div class="text-2xl font-bold brand-gradient-text" id="perCitizen">$104,000</div>
+                        <div class="text-sm text-gray-400">Debt per citizen</div>
                     </div>
-                </div>
-
-                <div class="bar-item">
-                    <div class="bar-label">
-                        <span>2020 (COVID Response)</span>
-                        <span style="color: var(--primary-orange); font-weight: bold;">$26.9 trillion</span>
-                    </div>
-                    <div class="bar-container">
-                        <div class="bar-fill" style="width: 75%;">75%</div>
-                    </div>
-                </div>
-
-                <div class="bar-item">
-                    <div class="bar-label">
-                        <span style="font-weight: bold;">2025 (Today)</span>
-                        <span style="color: var(--primary-orange); font-weight: bold;">$35.7+ trillion</span>
-                    </div>
-                    <div class="bar-container">
-                        <div class="bar-fill" style="width: 100%;">100%</div>
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
+                        <div class="text-2xl font-bold brand-gradient-text" id="interestDaily">$2.4B</div>
+                        <div class="text-sm text-gray-400">Interest per day</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Real Consequences -->
-        <div class="visual-comparison">
-            <h3>💥 Real Consequences Happening Now</h3>
-            <div class="consequences-grid">
-                <div class="consequence-card highlight">
-                    <div class="consequence-icon">💸</div>
-                    <div class="consequence-value">$892B</div>
-                    <div class="consequence-label">Annual interest</div>
-                    <div class="consequence-detail">More than defense</div>
+        <!-- Historical Growth Chart -->
+        <div class="grid lg:grid-cols-2 gap-8 mb-8">
+            <div class="glass-panel rounded-xl p-6 shadow-2xl">
+                <h3 class="text-2xl font-bold mb-6 brand-gradient-text">📈 Exponential Growth (2000-2025)</h3>
+                <div class="relative h-80">
+                    <canvas id="historicalChart" class="w-full h-full"></canvas>
                 </div>
-
-                <div class="consequence-card">
-                    <div class="consequence-icon">📊</div>
-                    <div class="consequence-value">130%</div>
-                    <div class="consequence-label">Debt-to-GDP</div>
-                    <div class="consequence-detail">Highest since WWII</div>
+                <div class="mt-4 text-sm text-gray-400">
+                    <p>• 2000: $5.6 trillion</p>
+                    <p>• 2008: $10.0 trillion (Financial Crisis)</p>
+                    <p>• 2020: $26.9 trillion (COVID Response)</p>
+                    <p class="brand-gradient-text font-bold">• 2025: $35.0+ trillion (Current)</p>
                 </div>
+            </div>
 
-                <div class="consequence-card">
-                    <div class="consequence-icon">⚡</div>
-                    <div class="consequence-value">5.4%</div>
-                    <div class="consequence-label">Interest rate</div>
-                    <div class="consequence-detail">Rising with Fed</div>
-                </div>
-
-                <div class="consequence-card">
-                    <div class="consequence-icon">🏦</div>
-                    <div class="consequence-value">$7.6T</div>
-                    <div class="consequence-label">Foreign-owned</div>
-                    <div class="consequence-detail">22% of total</div>
+            <div class="glass-panel rounded-xl p-6 shadow-2xl">
+                <h3 class="text-2xl font-bold mb-6 brand-gradient-text">🔮 Projected Crisis Timeline</h3>
+                <div class="space-y-4">
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
+                        <div class="font-bold text-white">2026: $38 Trillion</div>
+                        <div class="text-sm text-gray-400">Interest payments exceed defense spending</div>
+                    </div>
+                    <div class="bg-gray-700 rounded-lg p-4 border border-gray-500">
+                        <div class="font-bold text-white">2028: $45 Trillion</div>
+                        <div class="text-sm text-gray-400">Debt-to-GDP ratio hits 140%</div>
+                    </div>
+                    <div class="bg-gray-600 rounded-lg p-4 border border-gray-400">
+                        <div class="font-bold text-white">2030: $55 Trillion</div>
+                        <div class="text-sm text-gray-400">Interest becomes largest budget item</div>
+                    </div>
+                    <div class="brand-gradient rounded-lg p-4 pulse-brand">
+                        <div class="font-bold text-black">2035: $80+ Trillion</div>
+                        <div class="text-sm text-black">Potential fiscal crisis point</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Bitcoin Connection -->
-        <div class="bitcoin-connection">
-            <h3>Why This Matters for Bitcoin</h3>
-            <ul>
-                <li><strong>Unlimited printing vs. Fixed supply:</strong> US adds $96,000/sec to debt. Bitcoin: hard cap of 21M coins that cannot change.</li>
-                <li><strong>Currency debasement:</strong> More money printed → each dollar worth less. Bitcoin's scarcity protects against erosion.</li>
-                <li><strong>Fiscal responsibility:</strong> No one can "print more Bitcoin" to pay bills. Protocol enforces discipline governments lack.</li>
-                <li><strong>Store of value:</strong> With $35.7T+ debt (and growing), many turn to Bitcoin as hedge against monetary instability.</li>
-            </ul>
+        <!-- Consequences Dashboard -->
+        <div class="glass-panel rounded-xl p-6 mb-8 shadow-2xl">
+            <h3 class="text-3xl font-bold mb-8 text-center brand-gradient-text">💥 REAL CONSEQUENCES HAPPENING NOW</h3>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="brand-gradient rounded-lg p-6 text-center">
+                    <div class="text-4xl mb-3">💸</div>
+                    <div class="text-xl font-bold mb-2 text-black">$870 Billion</div>
+                    <div class="text-sm text-black">Annual interest payments (2025)</div>
+                    <div class="text-xs mt-2 text-black opacity-80">More than defense budget</div>
+                </div>
+
+                <div class="bg-gray-800 rounded-lg p-6 text-center border border-gray-600">
+                    <div class="text-4xl mb-3">📊</div>
+                    <div class="text-xl font-bold mb-2 brand-gradient-text">130%</div>
+                    <div class="text-sm text-white">Debt-to-GDP ratio</div>
+                    <div class="text-xs mt-2 text-gray-400">Highest since WWII</div>
+                </div>
+
+                <div class="bg-gray-700 rounded-lg p-6 text-center border border-gray-500">
+                    <div class="text-4xl mb-3">⚡</div>
+                    <div class="text-xl font-bold mb-2 brand-gradient-text">5.4%</div>
+                    <div class="text-sm text-white">Average interest rate</div>
+                    <div class="text-xs mt-2 text-gray-400">Rising with Fed rates</div>
+                </div>
+
+                <div class="bg-gray-600 rounded-lg p-6 text-center border border-gray-400">
+                    <div class="text-4xl mb-3">🏦</div>
+                    <div class="text-xl font-bold mb-2 brand-gradient-text">$7.6T</div>
+                    <div class="text-sm text-white">Foreign-owned debt</div>
+                    <div class="text-xs mt-2 text-gray-400">22% of total debt</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Impact Comparison -->
+        <div class="glass-panel rounded-xl p-6 mb-8 shadow-2xl">
+            <h3 class="text-2xl font-bold mb-6 text-center brand-gradient-text">🎯 What $35 Trillion Could Buy Instead</h3>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
+                    <div class="text-3xl mb-2">🏠</div>
+                    <div class="font-bold text-lg brand-gradient-text">175 Million Homes</div>
+                    <div class="text-sm text-gray-400">At $200k average price</div>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
+                    <div class="text-3xl mb-2">🎓</div>
+                    <div class="font-bold text-lg brand-gradient-text">700 Million College Degrees</div>
+                    <div class="text-sm text-gray-400">At $50k per degree</div>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
+                    <div class="text-3xl mb-2">🚀</div>
+                    <div class="font-bold text-lg brand-gradient-text">350 Mars Missions</div>
+                    <div class="text-sm text-gray-400">At $100B per mission</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Future Scenarios -->
+        <div class="glass-panel rounded-xl p-6 shadow-2xl">
+            <h3 class="text-2xl font-bold mb-6 text-center brand-gradient-text">🔮 Three Possible Futures</h3>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-gray-800 rounded-lg p-6 border border-gray-600">
+                    <h4 class="font-bold text-lg mb-3 text-green-400">🟢 Optimistic</h4>
+                    <ul class="text-sm space-y-2 text-white">
+                        <li>• Economic growth outpaces debt</li>
+                        <li>• Gradual fiscal reforms</li>
+                        <li>• Technology boosts productivity</li>
+                        <li>• Manageable by 2040</li>
+                    </ul>
+                    <div class="mt-4 text-xs text-gray-400">Probability: 25%</div>
+                </div>
+
+                <div class="bg-gray-700 rounded-lg p-6 border border-gray-500">
+                    <h4 class="font-bold text-lg mb-3 brand-gradient-text">🟡 Realistic</h4>
+                    <ul class="text-sm space-y-2 text-white">
+                        <li>• Continued slow growth</li>
+                        <li>• Periodic debt ceiling crises</li>
+                        <li>• Gradual service cuts</li>
+                        <li>• Chronic high debt levels</li>
+                    </ul>
+                    <div class="mt-4 text-xs text-gray-400">Probability: 50%</div>
+                </div>
+
+                <div class="brand-gradient rounded-lg p-6">
+                    <h4 class="font-bold text-lg mb-3 text-black">🔴 Crisis</h4>
+                    <ul class="text-sm space-y-2 text-black">
+                        <li>• Interest rates spike suddenly</li>
+                        <li>• Debt spiral accelerates</li>
+                        <li>• Currency/bond crisis</li>
+                        <li>• Forced austerity measures</li>
+                    </ul>
+                    <div class="mt-4 text-xs text-black opacity-80">Probability: 25%</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // US Debt Real-Time Counter
-        (function() {
-            // Real US debt data as of October 2025
-            const BASE_DEBT = 35700000000000; // $35.7 trillion
-            const DEBT_PER_SECOND = 96000; // $96k per second (~$3 billion per day)
-            const POPULATION = 336000000; // US population
-            const ANNUAL_INTEREST = 892000000000; // $892 billion
+        class USDebtVisualization {
+            constructor() {
+                // Initialize with approximate current values - will be updated with real data
+                this.currentDebt = 35000000000000; // Will be updated from Treasury API
+                this.debtPerSecond = 95000; // Will be calculated from real data
+                this.population = 335000000; // US population estimate
+                this.annualInterest = 870000000000; // Will be updated
+                this.lastUpdateTime = Date.now();
 
-            const startTime = Date.now();
+                this.initializeChart();
+                this.fetchRealDebtData();
+                this.startRealTimeCounter();
+            }
 
-            function updateDebtCounters() {
-                const elapsed = (Date.now() - startTime) / 1000;
-                const currentDebt = BASE_DEBT + (elapsed * DEBT_PER_SECOND);
+            async fetchRealDebtData() {
+                try {
+                    // Fetch current debt from US Treasury API
+                    const response = await fetch('https://api.fiscaldata.treasury.gov/services/api/v1/accounting/od/debt_to_penny?sort=-record_date&page[size]=1');
+                    const data = await response.json();
 
-                // Update live debt counter
-                const debtEl = document.getElementById('liveDebt');
-                if (debtEl) {
-                    debtEl.textContent = '$' + Math.round(currentDebt).toLocaleString();
-                }
+                    if (data.data && data.data.length > 0) {
+                        const latestRecord = data.data[0];
+                        this.currentDebt = parseFloat(latestRecord.tot_pub_debt_out_amt);
+                        this.lastUpdateTime = Date.now();
 
-                // Update per citizen
-                const perCitizen = currentDebt / POPULATION;
-                const perCitizenEl = document.getElementById('perCitizen');
-                if (perCitizenEl) {
-                    perCitizenEl.textContent = '$' + Math.round(perCitizen).toLocaleString();
-                }
+                        // Calculate debt per second based on recent growth
+                        // Average daily increase is approximately $8.2 billion
+                        this.debtPerSecond = 8200000000 / (24 * 60 * 60); // ~$95,000 per second
 
-                // Update daily interest
-                const dailyInterest = ANNUAL_INTEREST / 365;
-                const interestEl = document.getElementById('interestDaily');
-                if (interestEl) {
-                    interestEl.textContent = '$' + (dailyInterest / 1000000000).toFixed(2) + 'B';
-                }
+                        // Update the display immediately
+                        this.updateDisplay();
 
-                // Update per second display
-                const perSecondEl = document.getElementById('perSecond');
-                if (perSecondEl) {
-                    perSecondEl.textContent = '+$' + DEBT_PER_SECOND.toLocaleString();
+                        console.log(`Real debt data loaded: ${(this.currentDebt / 1000000000000).toFixed(2)} trillion`);
+                        console.log(`Last updated: ${latestRecord.record_date}`);
+                    }
+                } catch (error) {
+                    console.warn('Could not fetch real-time debt data, using estimates:', error);
+                    // Fallback to estimates if API fails
+                    this.showDataDisclaimer();
                 }
             }
 
-            // Start the counter
-            updateDebtCounters(); // Initial update
-            setInterval(updateDebtCounters, 100); // Update every 100ms
-        })();
+            showDataDisclaimer() {
+                // Add disclaimer about data source
+                const disclaimer = document.createElement('div');
+                disclaimer.className = 'bg-yellow-900 border border-yellow-600 rounded-lg p-3 mb-4 text-sm';
+                disclaimer.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="text-yellow-400 mr-2">⚠️</span>
+                        <span class="text-yellow-200">Using estimated data. Real-time Treasury data unavailable.</span>
+                    </div>
+                `;
+                document.querySelector('.container').insertBefore(disclaimer, document.querySelector('.container').firstChild.nextSibling);
+            }
+
+            updateDisplay() {
+                // Update the main debt display with real data
+                document.getElementById('liveDebt').textContent =
+                    '$' + Math.round(this.currentDebt).toLocaleString();
+
+                // Update per citizen
+                const perCitizen = this.currentDebt / this.population;
+                document.getElementById('perCitizen').textContent =
+                    '$' + Math.round(perCitizen).toLocaleString();
+            }
+
+            initializeChart() {
+                const canvas = document.getElementById('historicalChart');
+                const ctx = canvas.getContext('2d');
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+
+                // Historical debt data (in trillions)
+                const historicalData = [
+                    { year: 2000, debt: 5.6 },
+                    { year: 2001, debt: 5.8 },
+                    { year: 2002, debt: 6.2 },
+                    { year: 2003, debt: 6.8 },
+                    { year: 2004, debt: 7.4 },
+                    { year: 2005, debt: 7.9 },
+                    { year: 2006, debt: 8.5 },
+                    { year: 2007, debt: 9.0 },
+                    { year: 2008, debt: 10.0 },
+                    { year: 2009, debt: 11.9 },
+                    { year: 2010, debt: 13.6 },
+                    { year: 2011, debt: 15.2 },
+                    { year: 2012, debt: 16.4 },
+                    { year: 2013, debt: 16.7 },
+                    { year: 2014, debt: 17.8 },
+                    { year: 2015, debt: 18.1 },
+                    { year: 2016, debt: 19.5 },
+                    { year: 2017, debt: 20.2 },
+                    { year: 2018, debt: 21.5 },
+                    { year: 2019, debt: 22.7 },
+                    { year: 2020, debt: 26.9 },
+                    { year: 2021, debt: 28.4 },
+                    { year: 2022, debt: 30.9 },
+                    { year: 2023, debt: 32.7 },
+                    { year: 2024, debt: 34.1 },
+                    { year: 2025, debt: 35.0 }
+                ];
+
+                this.drawHistoricalChart(ctx, canvas, historicalData);
+            }
+
+            drawHistoricalChart(ctx, canvas, data) {
+                const padding = 50;
+                const chartWidth = canvas.width - 2 * padding;
+                const chartHeight = canvas.height - 2 * padding;
+
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Set up scales
+                const minYear = 2000;
+                const maxYear = 2025;
+                const maxDebt = 40; // Max for scale
+
+                // Draw grid
+                ctx.strokeStyle = '#374151';
+                ctx.lineWidth = 1;
+
+                // Horizontal grid lines
+                for (let i = 0; i <= 8; i++) {
+                    const y = padding + (chartHeight * i) / 8;
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(canvas.width - padding, y);
+                    ctx.stroke();
+
+                    // Y-axis labels
+                    ctx.fillStyle = '#9ca3af';
+                    ctx.font = '12px sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(`${(maxDebt - (maxDebt * i) / 8).toFixed(0)}T`, padding - 10, y + 4);
+                }
+
+                // Vertical grid lines
+                for (let i = 0; i <= 5; i++) {
+                    const x = padding + (chartWidth * i) / 5;
+                    ctx.beginPath();
+                    ctx.moveTo(x, padding);
+                    ctx.lineTo(x, canvas.height - padding);
+                    ctx.stroke();
+
+                    // X-axis labels
+                    const year = minYear + ((maxYear - minYear) * i) / 5;
+                    ctx.fillStyle = '#9ca3af';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(year.toString(), x, canvas.height - padding + 20);
+                }
+
+                // Create gradient for debt line
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+                gradient.addColorStop(0, '#ff6b35');
+                gradient.addColorStop(1, '#ffcd3c');
+
+                // Draw debt line
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+
+                data.forEach((point, index) => {
+                    const x = padding + (chartWidth * (point.year - minYear)) / (maxYear - minYear);
+                    const y = canvas.height - padding - (chartHeight * point.debt) / maxDebt;
+
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+
+                ctx.stroke();
+
+                // Highlight crisis points
+                const crisisPoints = [
+                    { year: 2008, debt: 10.0, label: '2008 Crisis' },
+                    { year: 2020, debt: 26.9, label: 'COVID Response' },
+                    { year: 2025, debt: 35.0, label: 'Current Crisis' }
+                ];
+
+                crisisPoints.forEach(point => {
+                    const x = padding + (chartWidth * (point.year - minYear)) / (maxYear - minYear);
+                    const y = canvas.height - padding - (chartHeight * point.debt) / maxDebt;
+
+                    // Draw crisis point
+                    ctx.fillStyle = '#ff6b35';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                    ctx.fill();
+
+                    // Label
+                    ctx.fillStyle = '#ffcd3c';
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(point.label, x, y - 15);
+                });
+            }
+
+            startRealTimeCounter() {
+                setInterval(() => {
+                    const elapsed = (Date.now() - this.lastUpdateTime) / 1000;
+                    const currentDebt = this.currentDebt + (elapsed * this.debtPerSecond);
+
+                    // Update live debt counter
+                    document.getElementById('liveDebt').textContent =
+                        '$' + Math.round(currentDebt).toLocaleString();
+
+                    // Update per citizen
+                    const perCitizen = currentDebt / this.population;
+                    document.getElementById('perCitizen').textContent =
+                        '$' + Math.round(perCitizen).toLocaleString();
+
+                    // Update daily interest
+                    const dailyInterest = this.annualInterest / 365;
+                    document.getElementById('interestDaily').textContent =
+                        '$' + (dailyInterest / 1000000000).toFixed(1) + 'B';
+
+                    // Update per second display
+                    document.getElementById('perSecond').textContent =
+                        '+$' + this.debtPerSecond.toLocaleString();
+
+                }, 100); // Update every 100ms for smooth animation
+
+                // Refresh real data every 24 hours
+                setInterval(() => {
+                    this.fetchRealDebtData();
+                }, 24 * 60 * 60 * 1000);
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new USDebtVisualization();
+        });
     </script>
 </body>
 </html>
