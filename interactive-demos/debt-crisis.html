@@ -263,27 +263,37 @@
                 this.startRealTimeCounter();
             }
 
+            async fetchLatestDebt() {
+                const url = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/debt_to_penny?fields=record_date,tot_pub_debt_out_amt&sort=-record_date&page[size]=1";
+                const response = await fetch(url);
+                const json = await response.json();
+                if (json.data && json.data.length > 0) {
+                    const latest = json.data[0];
+                    return {
+                        date: latest.record_date,
+                        totalDebt: Number(latest.tot_pub_debt_out_amt)
+                    };
+                }
+                throw new Error("No debt data found");
+            }
+
             async fetchRealDebtData() {
                 try {
-                    // Fetch current debt from US Treasury API
-                    const response = await fetch('https://api.fiscaldata.treasury.gov/services/api/v1/accounting/od/debt_to_penny?sort=-record_date&page[size]=1');
-                    const data = await response.json();
+                    const debtData = await this.fetchLatestDebt();
 
-                    if (data.data && data.data.length > 0) {
-                        const latestRecord = data.data[0];
-                        this.currentDebt = parseFloat(latestRecord.tot_pub_debt_out_amt);
-                        this.lastUpdateTime = Date.now();
+                    this.currentDebt = debtData.totalDebt;
+                    this.lastUpdateTime = Date.now();
 
-                        // Calculate debt per second based on recent growth
-                        // Average daily increase is approximately $8.2 billion
-                        this.debtPerSecond = 8200000000 / (24 * 60 * 60); // ~$95,000 per second
+                    // Calculate debt per second based on recent growth
+                    // Average daily increase is approximately $8.2 billion
+                    this.debtPerSecond = 8200000000 / (24 * 60 * 60); // ~$95,000 per second
 
-                        // Update the display immediately
-                        this.updateDisplay();
+                    // Update the display immediately
+                    this.updateDisplay();
 
-                        console.log(`Real debt data loaded: ${(this.currentDebt / 1000000000000).toFixed(2)} trillion`);
-                        console.log(`Last updated: ${latestRecord.record_date}`);
-                    }
+                    console.log("Latest U.S. Debt", debtData.totalDebt, "on", debtData.date);
+                    console.log(`Real debt data loaded: ${(this.currentDebt / 1000000000000).toFixed(2)} trillion`);
+
                 } catch (error) {
                     console.warn('Could not fetch real-time debt data, using estimates:', error);
                     // Fallback to estimates if API fails
