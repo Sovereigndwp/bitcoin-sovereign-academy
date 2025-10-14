@@ -60,10 +60,12 @@
                     const price = api.parse(data);
 
                     if (!isNaN(price) && price > 0) {
-                        updateElement('btc-price', '$' + price.toLocaleString('en-US', {
+                        const formattedPrice = '$' + price.toLocaleString('en-US', {
                             minimumFractionDigits: 0,
                             maximumFractionDigits: 0
-                        }));
+                        });
+                        updateElement('btc-price', formattedPrice);
+                        updateElement('bar-btc-price', formattedPrice);
                         console.log(`✓ Price fetched from ${api.name}: $${price.toLocaleString()}`);
                         return;
                     }
@@ -175,7 +177,9 @@
                     }
 
                     if (!isNaN(size) && size >= 0) {
-                        updateElement('mempool-size', size.toLocaleString());
+                        const formattedSize = size.toLocaleString() + ' tx';
+                        updateElement('mempool-size', formattedSize);
+                        updateElement('bar-mempool-count', formattedSize);
                         console.log(`✓ Mempool size fetched from ${api.name}: ${size.toLocaleString()}`);
                         return;
                     }
@@ -223,7 +227,9 @@
                     const fee = api.parse(data);
 
                     if (!isNaN(fee) && fee > 0) {
-                        updateElement('fee-estimate', `${fee} sat/vB`);
+                        const formattedFee = `${fee} sat/vB`;
+                        updateElement('fee-estimate', formattedFee);
+                        updateElement('bar-fee-estimate', formattedFee);
                         console.log(`✓ Fee estimate fetched from ${api.name}: ${fee} sat/vB`);
                         return;
                     }
@@ -279,9 +285,10 @@
 
                     if (!isNaN(difficulty) && difficulty > 0) {
                         // Format difficulty in T (trillions)
-                        const difficultyT = (difficulty / 1e12).toFixed(2);
-                        updateElement('difficulty', `${difficultyT}T`);
-                        console.log(`✓ Difficulty fetched from ${api.name}: ${difficultyT}T`);
+                        const difficultyT = (difficulty / 1e12).toFixed(2) + 'T';
+                        updateElement('difficulty', difficultyT);
+                        updateElement('bar-difficulty', difficultyT);
+                        console.log(`✓ Difficulty fetched from ${api.name}: ${difficultyT}`);
                         return;
                     }
                 }
@@ -309,7 +316,13 @@
 
     // Set initial loading state
     function setLoadingState() {
-        const ids = ['btc-price', 'block-height', 'bar-block-height', 'mempool-size', 'fee-estimate', 'difficulty'];
+        const ids = [
+            'btc-price', 'bar-btc-price',
+            'block-height', 'bar-block-height',
+            'mempool-size', 'bar-mempool-count',
+            'fee-estimate', 'bar-fee-estimate',
+            'difficulty', 'bar-difficulty'
+        ];
         ids.forEach(id => updateElement(id, 'Loading...'));
     }
 
