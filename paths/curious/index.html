@@ -728,6 +728,84 @@
 
         // Update every 5 seconds (in case user has multiple tabs open)
         setInterval(updatePathProgress, 5000);
+
+        // ===== PREVIEW MODE ACCESS CONTROL =====
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isDeveloperMode = urlParams.get('unlock') === 'all' || localStorage.getItem('devUnlockAll') === 'true';
+
+            if (isDeveloperMode) {
+                // Dev mode indicator
+                const devIndicator = document.createElement('div');
+                devIndicator.style.cssText = `
+                    position: fixed; top: 10px; right: 10px; background: #4CAF50; color: white;
+                    padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold;
+                    z-index: 10000; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                `;
+                devIndicator.textContent = '🔓 DEV MODE';
+                devIndicator.title = 'All stages unlocked. Go to homepage with ?unlock=off to disable.';
+                document.body.appendChild(devIndicator);
+                return; // Skip restrictions
+            }
+
+            // PREVIEW MODE: Lock stages 2, 3, 4
+            console.log('🔒 Preview Mode: Only Stage 1 unlocked');
+
+            const lockedStages = ['stage-2', 'stage-3', 'stage-4'];
+            lockedStages.forEach(stageId => {
+                const stageCard = document.getElementById(stageId);
+                if (!stageCard) return;
+
+                // Force locked state
+                stageCard.classList.remove('current', 'completed');
+                stageCard.classList.add('locked');
+
+                // Update badge
+                const badge = stageCard.querySelector('.stage-badge');
+                if (badge) {
+                    badge.textContent = '🔒 Preview Locked';
+                    badge.style.background = 'rgba(244, 67, 54, 0.2)';
+                    badge.style.color = '#F44336';
+                }
+
+                // Add lock overlay to button
+                const btn = stageCard.querySelector('.stage-btn');
+                if (btn) {
+                    btn.style.background = '#666';
+                    btn.style.cursor = 'not-allowed';
+                    btn.style.pointerEvents = 'none';
+                    btn.textContent = '🔒 Available in Full Release';
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        alert('🔒 This stage is locked in preview mode.\n\nIt will be available in the full release.');
+                        return false;
+                    };
+                    // Force prevent click
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        alert('🔒 This stage is locked in preview mode.\n\nIt will be available in the full release.');
+                    }, true);
+                }
+
+                // Add visual lock indicator
+                const lockBadge = document.createElement('div');
+                lockBadge.style.cssText = `
+                    position: absolute; top: 20px; right: 20px; background: rgba(244, 67, 54, 0.9);
+                    color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px;
+                    font-weight: 700; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                `;
+                lockBadge.innerHTML = '🔒 PREVIEW LOCKED';
+                lockBadge.title = 'Available in full release';
+                stageCard.style.position = 'relative';
+                stageCard.insertBefore(lockBadge, stageCard.firstChild);
+
+                // Reduce opacity
+                stageCard.style.opacity = '0.6';
+            });
+
+        })();
     </script>
 </body>
 </html>

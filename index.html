@@ -3073,6 +3073,205 @@
           } catch { a.style.display = 'none'; }
         }
       })();
+
+      // ===== PREVIEW MODE ACCESS CONTROL =====
+      (function() {
+        // Check for developer override
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasUrlOverride = urlParams.get('unlock') === 'all';
+        const hasStorageOverride = localStorage.getItem('devUnlockAll') === 'true';
+        const isDeveloperMode = hasUrlOverride || hasStorageOverride;
+
+        // Save override to localStorage if URL parameter is used
+        if (hasUrlOverride && !hasStorageOverride) {
+          localStorage.setItem('devUnlockAll', 'true');
+          console.log('✅ Developer mode ENABLED. All content unlocked. To disable, use ?unlock=off or clear localStorage.');
+        }
+
+        // Allow disabling via URL
+        if (urlParams.get('unlock') === 'off') {
+          localStorage.removeItem('devUnlockAll');
+          console.log('🔒 Developer mode DISABLED. Preview mode restrictions active.');
+          window.location.href = window.location.pathname; // Reload without query params
+          return;
+        }
+
+        // If developer mode is active, show indicator and exit
+        if (isDeveloperMode) {
+          // Add dev mode indicator to page
+          const devIndicator = document.createElement('div');
+          devIndicator.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 10000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          `;
+          devIndicator.textContent = '🔓 DEV MODE';
+          devIndicator.title = 'All content unlocked. Add ?unlock=off to disable.';
+          document.body.appendChild(devIndicator);
+          console.log('🔓 Developer mode active. All content is unlocked.');
+          return; // Skip all restrictions
+        }
+
+        // PREVIEW MODE RESTRICTIONS
+        console.log('🔒 Preview mode active. Some content is locked.');
+        console.log('💡 To unlock all content for development, add ?unlock=all to the URL');
+
+        const previewConfig = {
+          paths: {
+            curious: {
+              unlocked: ['stage-1'], // Only stage-1 unlocked
+              locked: ['stage-2', 'stage-3', 'stage-4']
+            },
+            hurried: {
+              unlocked: ['all'], // All modules unlocked (Hurried path is single page)
+              locked: []
+            },
+            builder: {
+              unlocked: ['stage-1'], // Only Genesis timeline (assuming it's in stage-1)
+              locked: ['stage-2', 'stage-3', 'stage-4']
+            },
+            sovereign: {
+              unlocked: [], // Everything locked
+              locked: ['stage-1', 'stage-2', 'stage-3', 'stage-4', 'stage-5']
+            }
+          },
+          demos: {
+            unlocked: ['consensus-game'], // Only Consensus Game
+            locked: [
+              'bitcoin-sovereign-game',
+              'transaction-builder',
+              'mining-simulator',
+              'lightning-lab',
+              'wallet-workshop',
+              'utxo-visualizer-enhanced',
+              'security-dojo',
+              'time-machine'
+            ]
+          },
+          aiAgents: {
+            unlocked: ['visual-synthesizer'], // Only Visual Synthesizer
+            locked: ['story-navigator', 'debate-arena', 'future-oracle']
+          }
+        };
+
+        // Helper function to add lock overlay
+        function addLockOverlay(element, message = 'Coming Soon in Full Release') {
+          element.style.position = 'relative';
+          element.style.opacity = '0.5';
+          element.style.pointerEvents = 'none';
+          element.style.cursor = 'not-allowed';
+
+          const lockBadge = document.createElement('div');
+          lockBadge.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          `;
+          lockBadge.innerHTML = `🔒 LOCKED`;
+          lockBadge.title = message;
+          element.appendChild(lockBadge);
+
+          // Prevent clicks
+          element.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            alert(`🔒 ${message}\n\nThis content will be available in the full release.`);
+          }, true);
+        }
+
+        // Lock Learning Paths
+        const pathCards = document.querySelectorAll('.path-card');
+        pathCards.forEach(card => {
+          const href = card.getAttribute('href') || '';
+
+          // Curious Path - lock stages 2-4
+          if (href.includes('/paths/curious/')) {
+            card.setAttribute('data-path', 'curious');
+          }
+
+          // Hurried Path - all unlocked (single page)
+          if (href.includes('/paths/hurried/')) {
+            card.setAttribute('data-path', 'hurried');
+            // No locking needed
+          }
+
+          // Builder Path - lock stages 2-4
+          if (href.includes('/paths/builder/')) {
+            card.setAttribute('data-path', 'builder');
+          }
+
+          // Sovereign Path - lock everything
+          if (href.includes('/paths/sovereign/')) {
+            addLockOverlay(card, 'Sovereign Path - Coming in Full Release');
+          }
+        });
+
+        // Lock Demos
+        const demoCards = document.querySelectorAll('.feature-card');
+        demoCards.forEach(card => {
+          const href = card.getAttribute('href') || '';
+
+          // Check if demo is locked
+          const isLocked = previewConfig.demos.locked.some(demo =>
+            href.includes(demo)
+          );
+
+          if (isLocked) {
+            addLockOverlay(card, 'Demo - Coming in Full Release');
+          }
+        });
+
+        // Lock AI Agents
+        const agentCards = document.querySelectorAll('.agent-card');
+        agentCards.forEach(card => {
+          const dataLink = card.getAttribute('data-link') || '';
+
+          // Check if agent is locked
+          const isLocked = previewConfig.aiAgents.locked.some(agent =>
+            dataLink.includes(agent) ||
+            card.textContent.toLowerCase().includes(agent.replace('-', ' '))
+          );
+
+          if (isLocked) {
+            addLockOverlay(card, 'AI Agent - Coming in Full Release');
+          }
+        });
+
+        // Add info message to console
+        console.log('📋 Preview Mode Access:');
+        console.log('  Paths:');
+        console.log('    ✅ Curious: Stage 1 only');
+        console.log('    ✅ Hurried: All modules');
+        console.log('    ✅ Builder: Genesis timeline only');
+        console.log('    🔒 Sovereign: All locked');
+        console.log('  Demos:');
+        console.log('    ✅ Consensus Game');
+        console.log('    🔒 All other demos locked');
+        console.log('  AI Agents:');
+        console.log('    ✅ Visual Synthesizer');
+        console.log('    🔒 All other agents locked');
+        console.log('');
+        console.log('💡 Add ?unlock=all to URL to enable developer mode');
+
+      })();
     </script>
 
 </body>

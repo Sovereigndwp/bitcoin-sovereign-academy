@@ -728,6 +728,92 @@
 
         // Update every 5 seconds (in case user has multiple tabs open)
         setInterval(updatePathProgress, 5000);
+
+        // ===== PREVIEW MODE ACCESS CONTROL =====
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isDeveloperMode = urlParams.get('unlock') === 'all' || localStorage.getItem('devUnlockAll') === 'true';
+
+            if (isDeveloperMode) {
+                const devIndicator = document.createElement('div');
+                devIndicator.style.cssText = `
+                    position: fixed; top: 10px; right: 10px; background: #4CAF50; color: white;
+                    padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold;
+                    z-index: 10000; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                `;
+                devIndicator.textContent = '🔓 DEV MODE';
+                devIndicator.title = 'All stages unlocked. Go to homepage with ?unlock=off to disable.';
+                document.body.appendChild(devIndicator);
+                return;
+            }
+
+            // PREVIEW MODE: Lock ALL stages in Sovereign Path
+            console.log('🔒 Preview Mode: ALL Sovereign Path stages locked');
+
+            const allStages = ['stage-1', 'stage-2', 'stage-3', 'stage-4', 'stage-5'];
+            allStages.forEach(stageId => {
+                const stageCard = document.getElementById(stageId);
+                if (!stageCard) return;
+
+                stageCard.classList.remove('current', 'completed');
+                stageCard.classList.add('locked');
+
+                const badge = stageCard.querySelector('.stage-badge');
+                if (badge) {
+                    badge.textContent = '🔒 Preview Locked';
+                    badge.style.background = 'rgba(244, 67, 54, 0.2)';
+                    badge.style.color = '#F44336';
+                }
+
+                const btn = stageCard.querySelector('.stage-btn');
+                if (btn) {
+                    btn.style.background = '#666';
+                    btn.style.cursor = 'not-allowed';
+                    btn.style.pointerEvents = 'none';
+                    btn.textContent = '🔒 Available in Full Release';
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        alert('🔒 The Sovereign Path is locked in preview mode.\n\nIt will be available in the full release.');
+                    }, true);
+                }
+
+                const lockBadge = document.createElement('div');
+                lockBadge.style.cssText = `
+                    position: absolute; top: 20px; right: 20px; background: rgba(244, 67, 54, 0.9);
+                    color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px;
+                    font-weight: 700; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                `;
+                lockBadge.innerHTML = '🔒 PREVIEW LOCKED';
+                lockBadge.title = 'Available in full release';
+                stageCard.style.position = 'relative';
+                stageCard.insertBefore(lockBadge, stageCard.firstChild);
+                stageCard.style.opacity = '0.5';
+            });
+
+            // Add banner at top of page
+            const banner = document.createElement('div');
+            banner.style.cssText = `
+                background: linear-gradient(135deg, rgba(244, 67, 54, 0.2), rgba(233, 30, 99, 0.2));
+                border-bottom: 3px solid #F44336;
+                padding: 1.5rem;
+                text-align: center;
+                margin-bottom: 2rem;
+            `;
+            banner.innerHTML = `
+                <h3 style="color: #F44336; margin-bottom: 0.5rem; font-size: 1.3rem;">
+                    🔒 The Sovereign Path - Coming in Full Release
+                </h3>
+                <p style="color: #e0e0e0; font-size: 1rem;">
+                    This advanced path will be available in the full release. Explore The Curious Path or The Builder Path in the preview.
+                </p>
+            `;
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.insertBefore(banner, mainContent.firstChild);
+            }
+
+        })();
     </script>
 </body>
 </html>
