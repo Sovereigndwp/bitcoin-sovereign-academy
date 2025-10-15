@@ -277,7 +277,15 @@
                 
                 <div class="output" id="output1">
                     <label>Recipient Address:</label>
-                    <input type="text" class="address-input" placeholder="bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" />
+                    <select class="address-input address-select" style="width: 100%; padding: 0.8rem; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(247, 147, 26, 0.3); border-radius: 8px; color: var(--text-light); margin-top: 0.5rem;">
+                        <option value="">-- Select a recipient address --</option>
+                        <option value="bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq">bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq (Native SegWit)</option>
+                        <option value="3J98t1WpEZ73CNmYviecrnyiWrnqRhWNLy">3J98t1WpEZ73CNmYviecrnyiWrnqRhWNLy (Nested SegWit)</option>
+                        <option value="bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4">bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 (Bech32)</option>
+                        <option value="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa">1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa (Legacy P2PKH)</option>
+                        <option value="bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297">bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297 (Taproot)</option>
+                    </select>
+                    <input type="text" class="address-input address-text" placeholder="bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" style="display: none; width: 100%; padding: 0.8rem; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(247, 147, 26, 0.3); border-radius: 8px; color: var(--text-light); margin-top: 0.5rem;" />
                     <label>Amount (BTC):</label>
                     <input type="number" class="amount-input" placeholder="0.025" step="0.001" />
                 </div>
@@ -373,33 +381,47 @@
 
         function addOutput() {
             console.log('Adding new output...');
-            
+
             const outputsContainer = document.querySelector('.panel:nth-child(2)');
             if (!outputsContainer) {
                 console.error('Outputs container not found');
                 alert('❌ Interface error. Please refresh the page.');
                 return;
             }
-            
+
             outputCount++;
             const newOutput = document.createElement('div');
             newOutput.className = 'output';
             newOutput.innerHTML = `
                 <label>Recipient Address:</label>
-                <input type="text" class="address-input" placeholder="bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" />
+                <select class="address-input address-select" style="width: 100%; padding: 0.8rem; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(247, 147, 26, 0.3); border-radius: 8px; color: var(--text-light); margin-top: 0.5rem;">
+                    <option value="">-- Select a recipient address --</option>
+                    <option value="bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq">bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq (Native SegWit)</option>
+                    <option value="3J98t1WpEZ73CNmYviecrnyiWrnqRhWNLy">3J98t1WpEZ73CNmYviecrnyiWrnqRhWNLy (Nested SegWit)</option>
+                    <option value="bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4">bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 (Bech32)</option>
+                    <option value="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa">1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa (Legacy P2PKH)</option>
+                    <option value="bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297">bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297 (Taproot)</option>
+                </select>
+                <input type="text" class="address-input address-text" placeholder="bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" style="display: none; width: 100%; padding: 0.8rem; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(247, 147, 26, 0.3); border-radius: 8px; color: var(--text-light); margin-top: 0.5rem;" />
                 <label>Amount (BTC):</label>
                 <input type="number" class="amount-input" placeholder="0.025" step="0.001" onchange="updateTransactionPreview()" />
                 <button onclick="this.parentElement.remove(); outputCount--; updateTransactionPreview(); console.log('Output removed');" style="background: var(--danger-red); color: white; border: none; padding: 0.5rem; border-radius: 5px; margin-top: 0.5rem; cursor: pointer;">Remove</button>
             `;
-            
+
             const addButton = outputsContainer.querySelector('.add-output-btn');
             if (addButton) {
                 outputsContainer.insertBefore(newOutput, addButton);
             } else {
                 outputsContainer.appendChild(newOutput);
             }
-            
+
             console.log('Output added, total outputs:', outputCount);
+
+            // Apply current difficulty mode to new output if enhanced builder exists
+            if (window.transactionBuilder) {
+                window.transactionBuilder.updateAddressInputMode();
+            }
+
             updateTransactionPreview();
         }
 
@@ -443,9 +465,15 @@
             let totalOutput = 0;
             
             outputs.forEach(output => {
-                const addressInput = output.querySelector('.address-input');
+                // Get address from either select dropdown or text input
+                const addressSelect = output.querySelector('.address-select');
+                const addressText = output.querySelector('.address-text');
+                const addressValue = (addressSelect && addressSelect.style.display !== 'none')
+                    ? addressSelect.value
+                    : (addressText ? addressText.value : '');
+
                 const amountInput = output.querySelector('.amount-input');
-                if (addressInput?.value && amountInput?.value && !isNaN(parseFloat(amountInput.value))) {
+                if (addressValue && amountInput?.value && !isNaN(parseFloat(amountInput.value))) {
                     hasValidOutput = true;
                     totalOutput += parseFloat(amountInput.value);
                 }

@@ -410,6 +410,42 @@ This is why selecting fewer, larger UTXOs saves on fees!`
         questions.forEach(q => q.style.display = 'none');
         break;
     }
+
+    // Update address input mode based on difficulty
+    this.updateAddressInputMode();
+  }
+
+  updateAddressInputMode() {
+    const useDropdown = (this.difficulty === 'guided' || this.difficulty === 'interactive');
+
+    // Update all existing outputs
+    document.querySelectorAll('.output').forEach(output => {
+      const selectElement = output.querySelector('.address-select');
+      const textElement = output.querySelector('.address-text');
+
+      if (selectElement && textElement) {
+        if (useDropdown) {
+          // Show dropdown, hide text input
+          selectElement.style.display = 'block';
+          textElement.style.display = 'none';
+          // Copy value from text to select if it matches an option
+          if (textElement.value) {
+            const matchingOption = selectElement.querySelector(`option[value="${textElement.value}"]`);
+            if (matchingOption) {
+              selectElement.value = textElement.value;
+            }
+          }
+        } else {
+          // Show text input, hide dropdown
+          selectElement.style.display = 'none';
+          textElement.style.display = 'block';
+          // Copy value from select to text if something is selected
+          if (selectElement.value) {
+            textElement.value = selectElement.value;
+          }
+        }
+      }
+    });
   }
 }
 
