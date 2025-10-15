@@ -3169,6 +3169,10 @@
           element.style.pointerEvents = 'none';
           element.style.cursor = 'not-allowed';
 
+          // Remove any existing onclick handlers
+          element.removeAttribute('onclick');
+          element.onclick = null;
+
           const lockBadge = document.createElement('div');
           lockBadge.style.cssText = `
             position: absolute;
@@ -3189,12 +3193,20 @@
           lockBadge.title = message;
           element.appendChild(lockBadge);
 
-          // Prevent clicks
+          // Prevent clicks with capture phase
           element.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             alert(`🔒 ${message}\n\nThis content will be available in the full release.`);
+            return false;
           }, true);
+
+          // Also prevent with standard phase
+          element.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          });
         }
 
         // Lock Learning Paths
@@ -3220,6 +3232,7 @@
 
           // Sovereign Path - lock everything
           if (href.includes('/paths/sovereign/')) {
+            console.log('🔒 Locking Sovereign Path card on homepage');
             addLockOverlay(card, 'Sovereign Path - Coming in Full Release');
           }
         });
