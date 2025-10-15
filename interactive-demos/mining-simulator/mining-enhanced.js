@@ -1,15 +1,20 @@
 /**
- * Mining Simulator Enhancements
- * Adds Socratic questions, difficulty levels, and enhanced visualizations
+ * Mining Simulator Enhanced
+ * Complete rewrite with working difficulty modes and block visualization
  */
 
 class MiningSimulatorEnhanced {
   constructor() {
     this.difficulty = 'guided'; // guided, interactive, challenge, expert
     this.miningMode = 'easy'; // easy, realistic
+    this.easyModeDifficulty = 3; // Number of leading zeros (1-4)
     this.socraticQuestionsRevealed = [];
     this.totalHashAttempts = 0;
     this.successfulNonces = [];
+    this.candidateBlock = null;
+    this.miningIntervalId = null;
+    this.transactionPool = [];
+    this.currentNonce = 0;
 
     this.init();
   }
@@ -18,15 +23,12 @@ class MiningSimulatorEnhanced {
     console.log('⛏️ Mining Simulator Enhanced: Initializing...');
     try {
       this.addDifficultySelector();
-      console.log('  ✅ Difficulty selector added');
       this.addMiningModeToggle();
-      console.log('  ✅ Mining mode toggle added');
+      this.addBlockVisualization();
       this.addSocraticQuestions();
-      console.log('  ✅ Socratic questions added');
       this.addProofOfWorkVisualization();
-      console.log('  ✅ PoW visualization added');
       this.enhanceExistingFunctionality();
-      console.log('  ✅ Enhanced existing functionality');
+      this.generateTransactionPool();
       console.log('✅ Mining Simulator Enhanced: Initialization complete');
     } catch (error) {
       console.error('❌ Mining Simulator Enhanced: Initialization failed', error);
@@ -63,7 +65,6 @@ class MiningSimulatorEnhanced {
 
     header.insertAdjacentHTML('afterend', difficultyHTML);
 
-    // Add styles
     const style = document.createElement('style');
     style.textContent = `
       .difficulty-btn {
@@ -88,7 +89,6 @@ class MiningSimulatorEnhanced {
     `;
     document.head.appendChild(style);
 
-    // Event listeners
     document.querySelectorAll('.difficulty-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
@@ -109,22 +109,41 @@ class MiningSimulatorEnhanced {
         <div style="display: flex; gap: 1rem; justify-content: center;">
           <button class="mode-btn active" data-mode="easy" style="flex: 1; background: rgba(76, 175, 80, 0.2); border: 2px solid #4CAF50; color: var(--text-light); padding: 1rem; border-radius: 8px; cursor: pointer; font-weight: 600;">
             😊 Easy Mode
-            <div style="font-size: 0.85rem; margin-top: 0.5rem; opacity: 0.9;">See every hash attempt, find blocks quickly</div>
+            <div style="font-size: 0.85rem; margin-top: 0.5rem; opacity: 0.9;">Adjustable difficulty, find blocks quickly</div>
           </button>
           <button class="mode-btn" data-mode="realistic" style="flex: 1; background: rgba(0, 0, 0, 0.3); border: 2px solid rgba(244, 67, 54, 0.5); color: var(--text-light); padding: 1rem; border-radius: 8px; cursor: pointer; font-weight: 600;">
             ⚡ Realistic Mode
             <div style="font-size: 0.85rem; margin-top: 0.5rem; opacity: 0.9;">True Bitcoin difficulty, billions of attempts</div>
           </button>
         </div>
+
+        <!-- Easy Mode Difficulty Slider -->
+        <div id="easy-difficulty-controls" style="margin-top: 1.5rem; padding: 1rem; background: rgba(76, 175, 80, 0.1); border-radius: 8px;">
+          <label style="color: var(--text-light); font-weight: 600; display: block; margin-bottom: 0.75rem;">
+            Difficulty: <span id="difficulty-level" style="color: var(--primary-orange);">3 leading zeros</span>
+          </label>
+          <input type="range" id="difficulty-slider" min="1" max="4" value="3" style="width: 100%; height: 8px; border-radius: 5px; background: rgba(247, 147, 26, 0.2); outline: none; margin-bottom: 0.5rem;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-dim);">
+            <span>1 zero (easiest)</span>
+            <span>2 zeros</span>
+            <span>3 zeros</span>
+            <span>4 zeros (harder)</span>
+          </div>
+          <div style="margin-top: 0.75rem; padding: 0.75rem; background: rgba(0, 0, 0, 0.3); border-radius: 6px; font-size: 0.9rem;">
+            <strong style="color: var(--primary-orange);">Target Hash:</strong><br>
+            <span id="target-example" style="font-family: monospace; color: #4CAF50;">000...</span>
+          </div>
+        </div>
+
         <div id="mode-explanation" style="margin-top: 1rem; padding: 1rem; background: rgba(76, 175, 80, 0.1); border-radius: 6px; font-size: 0.9rem;">
-          <strong>Easy Mode:</strong> Simplified for learning. You'll find blocks in seconds to understand the process.
+          <strong>Easy Mode:</strong> Adjust difficulty from 1-4 leading zeros. You'll find blocks in seconds to understand the mining process.
         </div>
       </div>
     `;
 
     controls.insertAdjacentHTML('afterbegin', modeHTML);
 
-    // Event listeners
+    // Mode button event listeners
     document.querySelectorAll('.mode-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         document.querySelectorAll('.mode-btn').forEach(b => {
@@ -138,8 +157,41 @@ class MiningSimulatorEnhanced {
 
         this.miningMode = e.currentTarget.dataset.mode;
         this.updateModeExplanation();
+        this.updateDifficultyControls();
       });
     });
+
+    // Difficulty slider event listener
+    const difficultySlider = document.getElementById('difficulty-slider');
+    if (difficultySlider) {
+      difficultySlider.addEventListener('input', (e) => {
+        this.easyModeDifficulty = parseInt(e.target.value);
+        this.updateDifficultyDisplay();
+      });
+      this.updateDifficultyDisplay();
+    }
+  }
+
+  updateDifficultyDisplay() {
+    const levelEl = document.getElementById('difficulty-level');
+    const targetEl = document.getElementById('target-example');
+
+    if (levelEl) {
+      levelEl.textContent = `${this.easyModeDifficulty} leading zero${this.easyModeDifficulty > 1 ? 's' : ''}`;
+    }
+
+    if (targetEl) {
+      const zeros = '0'.repeat(this.easyModeDifficulty);
+      const fs = 'f'.repeat(64 - this.easyModeDifficulty);
+      targetEl.textContent = zeros + fs;
+    }
+  }
+
+  updateDifficultyControls() {
+    const easyControls = document.getElementById('easy-difficulty-controls');
+    if (easyControls) {
+      easyControls.style.display = this.miningMode === 'easy' ? 'block' : 'none';
+    }
   }
 
   updateModeExplanation() {
@@ -147,12 +199,346 @@ class MiningSimulatorEnhanced {
     if (!explanation) return;
 
     if (this.miningMode === 'easy') {
-      explanation.innerHTML = '<strong>Easy Mode:</strong> Simplified for learning. You\'ll find blocks in seconds to understand the process.';
+      explanation.innerHTML = '<strong>Easy Mode:</strong> Adjust difficulty from 1-4 leading zeros. You\'ll find blocks in seconds to understand the mining process.';
       explanation.style.background = 'rgba(76, 175, 80, 0.1)';
     } else {
-      explanation.innerHTML = '<strong>Realistic Mode:</strong> True Bitcoin difficulty. Finding a block requires billions of hash attempts. This shows the real computational challenge of mining.';
+      explanation.innerHTML = '<strong>Realistic Mode:</strong> True Bitcoin difficulty (~19 leading zeros). Finding a block requires billions of hash attempts. With 100 TH/s, you\'d expect to find a block every ~555 years! This shows the real computational challenge of mining.';
       explanation.style.background = 'rgba(244, 67, 54, 0.1)';
     }
+  }
+
+  generateTransactionPool() {
+    const names = ['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank', 'Grace', 'Hank', 'Ivy', 'Jack'];
+    this.transactionPool = [];
+
+    for (let i = 0; i < 20; i++) {
+      const from = names[Math.floor(Math.random() * names.length)];
+      let to = names[Math.floor(Math.random() * names.length)];
+      while (to === from) to = names[Math.floor(Math.random() * names.length)];
+
+      this.transactionPool.push({
+        id: `tx_${Date.now()}_${i}`,
+        from,
+        to,
+        amount: (Math.random() * 5).toFixed(4),
+        fee: (Math.random() * 0.001).toFixed(6)
+      });
+    }
+  }
+
+  addBlockVisualization() {
+    const animation = document.querySelector('.mining-animation');
+    if (!animation) return;
+
+    const blockVizHTML = `
+      <div class="block-visualization" style="background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 15px; padding: 2rem; margin: 2rem 0;">
+        <h3 style="color: var(--primary-orange); margin-bottom: 1.5rem; text-align: center;">📦 Candidate Block Being Mined</h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+          <!-- Block Header -->
+          <div>
+            <h4 style="color: #2196F3; margin-bottom: 1rem;">Block Header</h4>
+            <div class="block-field">
+              <span class="field-label">Version:</span>
+              <span class="field-value" id="block-version">4</span>
+            </div>
+            <div class="block-field">
+              <span class="field-label">Previous Hash:</span>
+              <span class="field-value" id="block-prev-hash" style="font-size: 0.75rem; word-break: break-all;">0000000000000000...</span>
+            </div>
+            <div class="block-field">
+              <span class="field-label">Merkle Root:</span>
+              <span class="field-value" id="block-merkle" style="font-size: 0.75rem; word-break: break-all;">Calculating...</span>
+            </div>
+            <div class="block-field">
+              <span class="field-label">Timestamp:</span>
+              <span class="field-value" id="block-timestamp">---</span>
+            </div>
+            <div class="block-field">
+              <span class="field-label">Difficulty Target:</span>
+              <span class="field-value" id="block-difficulty">---</span>
+            </div>
+            <div class="block-field" style="background: rgba(247, 147, 26, 0.1); border-left: 3px solid var(--primary-orange);">
+              <span class="field-label">🔢 Nonce:</span>
+              <span class="field-value" id="block-nonce" style="color: var(--primary-orange); font-weight: bold; font-size: 1.2rem;">0</span>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(0, 0, 0, 0.3); border-radius: 8px;">
+              <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.5rem;">Resulting Hash:</div>
+              <div id="block-hash-result" style="font-family: monospace; font-size: 0.85rem; word-break: break-all; color: #f44336; transition: all 0.3s;">---</div>
+            </div>
+          </div>
+
+          <!-- Transactions -->
+          <div>
+            <h4 style="color: #4CAF50; margin-bottom: 1rem;">Transactions in Block (<span id="tx-count">0</span>/10)</h4>
+            <div id="block-transactions" style="max-height: 400px; overflow-y: auto;">
+              <p style="color: var(--text-dim); text-align: center; padding: 2rem;">
+                Start mining to see transactions being added...
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(33, 150, 243, 0.1); border-left: 4px solid #2196F3; border-radius: 0 8px 8px 0;">
+          <strong style="color: #2196F3;">Mining Process:</strong>
+          The miner tries different nonce values, recalculates the hash, and checks if it meets the difficulty target.
+          When a valid hash is found (enough leading zeros), the block is broadcast to the network!
+        </div>
+      </div>
+    `;
+
+    animation.insertAdjacentHTML('afterend', blockVizHTML);
+
+    const style = document.createElement('style');
+    style.textContent = `
+      .block-field {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+      }
+      .field-label {
+        color: var(--text-dim);
+        font-size: 0.9rem;
+      }
+      .field-value {
+        color: var(--text-light);
+        font-family: monospace;
+        font-size: 0.9rem;
+      }
+      .tx-item {
+        padding: 0.75rem;
+        background: rgba(76, 175, 80, 0.1);
+        border-left: 3px solid #4CAF50;
+        border-radius: 0 6px 6px 0;
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
+        animation: slideIn 0.3s ease;
+      }
+      .tx-item.pending {
+        background: rgba(247, 147, 26, 0.1);
+        border-left-color: var(--primary-orange);
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes hashValid {
+        0%, 100% { background: rgba(76, 175, 80, 0.2); }
+        50% { background: rgba(76, 175, 80, 0.4); }
+      }
+      .hash-valid {
+        color: #4CAF50 !important;
+        font-weight: bold;
+        animation: hashValid 1s ease;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  createCandidateBlock() {
+    const prevHash = this.generateRandomHash().substring(0, 16) + '...';
+    const timestamp = Math.floor(Date.now() / 1000);
+
+    // Select random transactions from pool
+    const selectedTxs = [];
+    const txCount = Math.min(10, this.transactionPool.length);
+    const shuffled = [...this.transactionPool].sort(() => Math.random() - 0.5);
+
+    for (let i = 0; i < txCount; i++) {
+      selectedTxs.push(shuffled[i]);
+    }
+
+    this.candidateBlock = {
+      version: 4,
+      prevHash,
+      merkleRoot: 'calculating...',
+      timestamp,
+      difficulty: this.miningMode === 'easy' ? this.easyModeDifficulty : 19,
+      nonce: 0,
+      transactions: selectedTxs
+    };
+
+    this.currentNonce = 0;
+    this.updateBlockVisualization();
+  }
+
+  updateBlockVisualization() {
+    if (!this.candidateBlock) return;
+
+    document.getElementById('block-version').textContent = this.candidateBlock.version;
+    document.getElementById('block-prev-hash').textContent = this.candidateBlock.prevHash;
+
+    // Calculate simplified merkle root
+    const txHashes = this.candidateBlock.transactions.map(tx =>
+      this.hashString(tx.from + tx.to + tx.amount).substring(0, 8)
+    ).join('');
+    const merkleRoot = this.hashString(txHashes).substring(0, 16) + '...';
+    document.getElementById('block-merkle').textContent = merkleRoot;
+
+    document.getElementById('block-timestamp').textContent = new Date(this.candidateBlock.timestamp * 1000).toLocaleString();
+    document.getElementById('block-difficulty').textContent = this.candidateBlock.difficulty + ' leading zeros';
+    document.getElementById('block-nonce').textContent = this.currentNonce.toLocaleString();
+
+    // Update transactions list
+    const txContainer = document.getElementById('block-transactions');
+    if (txContainer && this.candidateBlock.transactions.length > 0) {
+      txContainer.innerHTML = this.candidateBlock.transactions.map(tx => `
+        <div class="tx-item">
+          <strong>${tx.from}</strong> → <strong>${tx.to}</strong><br>
+          <span style="color: var(--primary-orange);">${tx.amount} BTC</span>
+          <span style="color: var(--text-dim); margin-left: 1rem;">Fee: ${tx.fee} BTC</span>
+        </div>
+      `).join('');
+
+      document.getElementById('tx-count').textContent = this.candidateBlock.transactions.length;
+    }
+  }
+
+  simulateTransactionAnimation() {
+    if (!this.candidateBlock || this.candidateBlock.transactions.length >= 10) return;
+
+    // Randomly add or remove a transaction
+    if (Math.random() > 0.3 && this.candidateBlock.transactions.length < 10) {
+      // Add transaction
+      const available = this.transactionPool.filter(tx =>
+        !this.candidateBlock.transactions.includes(tx)
+      );
+      if (available.length > 0) {
+        const newTx = available[Math.floor(Math.random() * available.length)];
+        this.candidateBlock.transactions.push(newTx);
+        this.updateBlockVisualization();
+      }
+    }
+  }
+
+  hashString(str) {
+    // Simple hash function for demo purposes
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(16).padStart(8, '0') + this.generateRandomHash().substring(8);
+  }
+
+  generateRandomHash() {
+    const chars = '0123456789abcdef';
+    let hash = '';
+    for (let i = 0; i < 64; i++) {
+      hash += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return hash;
+  }
+
+  checkHashValidity(hash, difficulty) {
+    const requiredZeros = '0'.repeat(difficulty);
+    return hash.startsWith(requiredZeros);
+  }
+
+  startEnhancedMining() {
+    console.log(`🎯 Starting enhanced mining in ${this.miningMode} mode`);
+
+    // Create candidate block
+    this.createCandidateBlock();
+    this.totalHashAttempts = 0;
+
+    // Clear any existing interval
+    if (this.miningIntervalId) {
+      clearInterval(this.miningIntervalId);
+    }
+
+    // Mining simulation speed based on mode
+    const miningSpeed = this.miningMode === 'easy' ? 50 : 20;
+    const difficulty = this.miningMode === 'easy' ? this.easyModeDifficulty : 19;
+
+    this.miningIntervalId = setInterval(() => {
+      this.currentNonce++;
+      this.totalHashAttempts++;
+
+      // Generate hash for current nonce
+      const blockData = `${this.candidateBlock.version}${this.candidateBlock.prevHash}${this.candidateBlock.merkleRoot}${this.candidateBlock.timestamp}${this.candidateBlock.difficulty}${this.currentNonce}`;
+      const hash = this.hashString(blockData);
+
+      // Update visualization
+      const hashResultEl = document.getElementById('block-hash-result');
+      if (hashResultEl) {
+        hashResultEl.textContent = hash;
+        hashResultEl.classList.remove('hash-valid');
+        hashResultEl.style.color = '#f44336';
+      }
+
+      document.getElementById('block-nonce').textContent = this.currentNonce.toLocaleString();
+
+      // Update attempts counter
+      const totalAttemptsEl = document.getElementById('totalAttempts');
+      if (totalAttemptsEl) {
+        totalAttemptsEl.textContent = this.totalHashAttempts.toLocaleString();
+      }
+
+      const currentNonceEl = document.getElementById('currentNonce');
+      if (currentNonceEl) {
+        currentNonceEl.textContent = this.currentNonce.toLocaleString();
+      }
+
+      const currentHashEl = document.getElementById('currentHash');
+      if (currentHashEl) {
+        currentHashEl.textContent = hash;
+      }
+
+      // Occasionally shuffle transactions (only in easy mode)
+      if (this.miningMode === 'easy' && Math.random() > 0.95) {
+        this.simulateTransactionAnimation();
+      }
+
+      // Check if hash is valid
+      const isValid = this.miningMode === 'easy'
+        ? this.checkHashValidity(hash, difficulty)
+        : Math.random() < 0.000001; // Extremely rare in realistic mode
+
+      if (isValid) {
+        console.log(`🎉 BLOCK FOUND! Nonce: ${this.currentNonce}, Hash: ${hash}`);
+
+        // Celebrate!
+        if (hashResultEl) {
+          hashResultEl.classList.add('hash-valid');
+          hashResultEl.style.color = '#4CAF50';
+        }
+
+        // Call original findBlock function
+        if (typeof window.findBlock === 'function') {
+          setTimeout(() => window.findBlock(), 500);
+        }
+
+        // Stop mining
+        clearInterval(this.miningIntervalId);
+
+        // Reset for next block
+        setTimeout(() => {
+          if (window.isMining) {
+            this.startEnhancedMining();
+          }
+        }, 2000);
+      }
+    }, miningSpeed);
+  }
+
+  stopEnhancedMining() {
+    if (this.miningIntervalId) {
+      clearInterval(this.miningIntervalId);
+      this.miningIntervalId = null;
+    }
+    console.log('⏹️ Enhanced mining stopped');
   }
 
   addSocraticQuestions() {
@@ -226,148 +612,6 @@ New Difficulty = Old Difficulty × (Actual Time / Target Time)
 
 **Fun Fact:**
 Bitcoin's hashrate has grown from ~10 MH/s (2009) to ~400 EH/s (2024) — that's a 40 QUADRILLION times increase! Yet blocks still come every ~10 minutes thanks to difficulty adjustment.`
-      },
-      {
-        id: 'hash-function',
-        position: 'after-animation',
-        question: 'What makes SHA-256 hashing perfect for mining?',
-        answer: `SHA-256 (Secure Hash Algorithm 256-bit) has special properties that make it ideal for Bitcoin mining:
-
-**Key Properties:**
-
-**1. Deterministic**
-- Same input ALWAYS produces same output
-- Hash of "Hello" is always: 185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969
-- Allows anyone to verify work
-
-**2. One-Way Function (Preimage Resistance)**
-- Easy to compute: Data → Hash (milliseconds)
-- IMPOSSIBLE to reverse: Hash → Data
-- Given hash "00000abc...", you can't calculate which nonce produced it
-- Only way to find it: Try billions of nonces
-
-**3. Avalanche Effect**
-- Change ONE bit of input → Completely different hash
-- "Hello" → 185f8db3...
-- "hello" → 2cf24dba... (entirely different!)
-- Makes patterns impossible to find
-
-**4. Unpredictable**
-- No correlation between input and output
-- Nonce 1,234 might give: ff3c2a...
-- Nonce 1,235 might give: 0000ab...
-- Can't "get close" to a valid hash
-
-**5. Fixed Output Size**
-- Always exactly 256 bits (64 hex characters)
-- Whether input is 1 byte or 1 gigabyte
-
-**Mining Example:**
-
-Block Header (inputs):
-\`\`\`
-Version: 1
-Previous Block Hash: 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
-Merkle Root: 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b
-Timestamp: 1231006505
-Difficulty: 486604799
-Nonce: ??????
-\`\`\`
-
-Miners try nonces:
-- Nonce 0 → SHA-256 → fe3a92... (doesn't start with enough zeros, invalid)
-- Nonce 1 → SHA-256 → b3f88d... (doesn't start with enough zeros, invalid)
-- ...
-- Nonce 2,083,236,893 → SHA-256 → 00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048 ✅
-
-Found it! This hash has enough leading zeros to meet the difficulty target.
-
-**Why This Works for Mining:**
-- Can't predict which nonce will work (must try them all)
-- Can't work backwards from target hash
-- Easy for others to verify (one hash calculation)
-- Requires massive computational effort to succeed
-
-This is why mining is often called "SHA-256 lottery" — you're essentially generating random numbers until you get lucky!`
-      },
-      {
-        id: 'mining-economics',
-        position: 'after-chart',
-        question: 'Is Bitcoin mining profitable for individuals, or only for big companies?',
-        answer: `Bitcoin mining economics have evolved dramatically since 2009:
-
-**The Evolution:**
-
-**2009-2012: The CPU Era**
-- Anyone could mine on a laptop
-- Satoshi mined blocks on his computer
-- Block reward: 50 BTC (~$0.05 value)
-- Electricity cost was main expense
-
-**2013-2015: GPU & FPGA Era**
-- Graphics cards 10-100x more efficient than CPUs
-- Hobbyists building mining rigs
-- Block reward: 25 BTC (after first halving)
-- Home mining still profitable in some regions
-
-**2013-Present: ASIC Era**
-- Application-Specific Integrated Circuits (ASICs)
-- Designed ONLY for SHA-256 hashing
-- Millions of times more efficient than CPUs
-- Changed mining from hobby to industrial operation
-
-**2024 Reality Check:**
-
-**Small-Scale Mining (Home Setup):**
-- **Hardware**: Antminer S19 XP (~$5,000)
-  - Hashrate: 140 TH/s
-  - Power: 3,010 watts (3 kW)
-
-- **Electricity Cost** (key variable):
-  - $0.05/kWh (cheap): Possibly profitable
-  - $0.10/kWh (average US): Barely profitable
-  - $0.15/kWh (expensive): Losing money
-
-- **Your Network Share**: 140 TH/s ÷ 400 EH/s = 0.000000035%
-  - Expected blocks per year: ~0.0018 (you'd find a block every ~555 years!)
-  - Solution: Join a mining pool
-
-**Mining Pools:**
-- Combine hashrate with thousands of miners
-- Share block rewards proportionally
-- Get consistent small payouts instead of rare jackpots
-- Pool fees: 1-3% of earnings
-
-**Industrial Mining (Big Companies):**
-- Advantages:
-  - Bulk hardware discounts (30-50% off retail)
-  - Negotiated electricity rates ($0.02-0.04/kWh)
-  - Economies of scale (cheaper infrastructure per TH)
-  - Access to stranded energy (flare gas, curtailed renewables)
-
-- Examples:
-  - Marathon Digital: 23 EH/s
-  - Riot Platforms: 12 EH/s
-  - Use warehouses with thousands of ASICs
-
-**The Harsh Truth:**
-
-Unless you have:
-1. ✅ Cheap electricity (<$0.05/kWh)
-2. ✅ Access to latest ASICs at good prices
-3. ✅ Technical knowledge for maintenance
-4. ✅ Tolerance for noise and heat
-
-...home mining is more of a hobby/learning experience than a business.
-
-**Better Alternatives for Individuals:**
-- **Learn by mining altcoins**: Some can still be mined on GPUs
-- **Cloud mining**: Rent hashrate (watch for scams!)
-- **Just buy Bitcoin**: Often better ROI than mining equipment
-- **Contribute to network**: Run a full node instead (no profit, but helps decentralization)
-
-**Fun Fact:**
-In 2024, Bitcoin miners collectively spend ~$15 billion/year on electricity. That's more than the entire country of Portugal!`
       }
     ];
 
@@ -390,12 +634,6 @@ In 2024, Bitcoin miners collectively spend ~$15 billion/year on electricity. Tha
           break;
         case 'after-dashboard':
           insertPoint = document.querySelector('.mining-dashboard');
-          break;
-        case 'after-animation':
-          insertPoint = document.querySelector('.mining-animation');
-          break;
-        case 'after-chart':
-          insertPoint = document.querySelector('.difficulty-chart');
           break;
       }
 
@@ -425,7 +663,7 @@ In 2024, Bitcoin miners collectively spend ~$15 billion/year on electricity. Tha
 
     const vizHTML = `
       <div class="pow-visualization" style="background: rgba(0, 0, 0, 0.3); padding: 1.5rem; border-radius: 10px; margin-top: 1.5rem;">
-        <h4 style="color: var(--primary-orange); margin-bottom: 1rem;">🔍 Proof-of-Work Attempts</h4>
+        <h4 style="color: var(--primary-orange); margin-bottom: 1rem;">🔍 Proof-of-Work Statistics</h4>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
           <div style="background: rgba(0, 0, 0, 0.2); padding: 1rem; border-radius: 8px;">
             <div style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 0.5rem;">Total Hash Attempts</div>
@@ -436,84 +674,38 @@ In 2024, Bitcoin miners collectively spend ~$15 billion/year on electricity. Tha
             <div id="currentNonce" style="font-size: 1.5rem; font-weight: bold; color: #2196F3;">0</div>
           </div>
         </div>
-        <div style="margin-top: 1rem; padding: 1rem; background: rgba(76, 175, 80, 0.1); border-radius: 6px;">
-          <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.25rem;">Target (hash must be less than):</div>
-          <div id="target" style="font-family: monospace; font-size: 0.9rem; word-break: break-all; color: #4CAF50;">0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff</div>
-        </div>
         <div style="margin-top: 1rem; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: 6px;">
           <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.25rem;">Current Hash:</div>
-          <div id="currentHash" style="font-family: monospace; font-size: 0.9rem; word-break: break-all;" class="hash-comparison">Waiting to start mining...</div>
+          <div id="currentHash" style="font-family: monospace; font-size: 0.9rem; word-break: break-all; color: var(--text-light);">Waiting to start mining...</div>
         </div>
       </div>
     `;
 
     animation.insertAdjacentHTML('afterend', vizHTML);
-
-    // Add hash comparison style
-    const style = document.createElement('style');
-    style.textContent = `
-      .hash-comparison.valid {
-        color: #4CAF50 !important;
-        font-weight: bold;
-        animation: hashSuccess 0.5s ease;
-      }
-      .hash-comparison.invalid {
-        color: #f44336 !important;
-      }
-      @keyframes hashSuccess {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  updateVisualization(nonce, hash, isValid) {
-    const totalAttemptsEl = document.getElementById('totalAttempts');
-    const currentNonceEl = document.getElementById('currentNonce');
-    const currentHashEl = document.getElementById('currentHash');
-
-    if (totalAttemptsEl) {
-      this.totalHashAttempts++;
-      totalAttemptsEl.textContent = this.totalHashAttempts.toLocaleString();
-    }
-
-    if (currentNonceEl) {
-      currentNonceEl.textContent = nonce.toLocaleString();
-    }
-
-    if (currentHashEl) {
-      currentHashEl.textContent = hash;
-      currentHashEl.className = 'hash-comparison ' + (isValid ? 'valid' : 'invalid');
-    }
-
-    if (isValid) {
-      this.successfulNonces.push({ nonce, hash, attempts: this.totalHashAttempts });
-    }
   }
 
   enhanceExistingFunctionality() {
-    console.log('  → Checking for existing functions...');
+    // Override original startMining function
+    const originalStartMining = window.startMining;
+    window.startMining = () => {
+      console.log('🚀 Enhanced startMining called');
+      if (originalStartMining) {
+        originalStartMining();
+      }
+      this.startEnhancedMining();
+    };
 
-    // Check if startMining exists
-    if (typeof window.startMining === 'function') {
-      console.log('  ✅ startMining function found');
-    } else {
-      console.warn('  ⚠️ startMining function NOT found - mining button may not work!');
-    }
+    // Override original stopMining function
+    const originalStopMining = window.stopMining;
+    window.stopMining = () => {
+      console.log('🛑 Enhanced stopMining called');
+      this.stopEnhancedMining();
+      if (originalStopMining) {
+        originalStopMining();
+      }
+    };
 
-    // Hook into existing findBlock function
-    const originalFindBlock = window.findBlock;
-    if (originalFindBlock) {
-      console.log('  ✅ findBlock function found, hooking into it');
-      window.findBlock = () => {
-        originalFindBlock();
-        // Reset attempts counter for next block
-        this.totalHashAttempts = 0;
-      };
-    } else {
-      console.warn('  ⚠️ findBlock function NOT found');
-    }
+    console.log('✅ Enhanced mining functions installed');
   }
 
   updateForDifficulty() {
