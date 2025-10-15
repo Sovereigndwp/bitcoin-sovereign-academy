@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Bitcoin Genesis Timeline - Time Machine</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            background: #f7931a;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 147, 26, 0.4);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+            padding: 2rem 0;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #f7931a, #ffb347, #f7931a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(247, 147, 26, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #a0a0a0;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, #f7931a, #ffb347, #f7931a);
+            transform: translateX(-50%);
+            box-shadow: 0 0 20px rgba(247, 147, 26, 0.5);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin: 4rem 0;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.6s ease;
+        }
+
+        .timeline-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content {
+            margin-left: 0;
+            margin-right: 50%;
+            padding-right: 3rem;
+            text-align: right;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            margin-left: 50%;
+            margin-right: 0;
+            padding-left: 3rem;
+            text-align: left;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 50%;
+            top: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #f7931a, #ffb347);
+            border-radius: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 0 30px rgba(247, 147, 26, 0.6);
+            z-index: 10;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-marker:hover {
+            transform: translateX(-50%) scale(1.1);
+            box-shadow: 0 0 40px rgba(247, 147, 26, 0.8);
+        }
+
+        .timeline-content {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(247, 147, 26, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(247, 147, 26, 0.4);
+        }
+
+        .year {
+            font-size: 1.1rem;
+            color: #f7931a;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+
+        .description {
+            color: #b0b0b0;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-button {
+            background: linear-gradient(45deg, #f7931a, #ffb347);
+            color: #000;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 147, 26, 0.4);
+        }
+
+        .demo-area {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            display: none;
+        }
+
+        .demo-area.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .crypto-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .key-box {
+            background: rgba(247, 147, 26, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            text-align: center;
+        }
+
+        .network-demo {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 200px;
+            position: relative;
+        }
+
+        .node {
+            width: 40px;
+            height: 40px;
+            background: #f7931a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .node:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px rgba(247, 147, 26, 0.6);
+        }
+
+        .connection {
+            position: absolute;
+            height: 2px;
+            background: rgba(247, 147, 26, 0.5);
+            transform-origin: left center;
+        }
+
+        .hash-demo {
+            font-family: 'Courier New', monospace;
+        }
+
+        .hash-input {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .hash-output {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            word-break: break-all;
+            color: #f7931a;
+        }
+
+        .chain-demo {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding: 1rem 0;
+        }
+
+        .block {
+            min-width: 120px;
+            height: 80px;
+            background: linear-gradient(45deg, #f7931a, #ffb347);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .block:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(247, 147, 26, 0.4);
+        }
+
+        .block::after {
+            content: '→';
+            position: absolute;
+            right: -15px;
+            font-size: 1.5rem;
+            color: #f7931a;
+        }
+
+        .block:last-child::after {
+            display: none;
+        }
+
+        .mining-demo {
+            text-align: center;
+        }
+
+        .nonce-display {
+            font-size: 2rem;
+            color: #f7931a;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #f7931a, #ffb347);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .timeline::before {
+                left: 2rem;
+            }
+
+            .timeline-marker {
+                left: 2rem;
+            }
+
+            .timeline-item:nth-child(odd) .timeline-content,
+            .timeline-item:nth-child(even) .timeline-content {
+                margin-left: 4rem;
+                margin-right: 0;
+                padding-left: 2rem;
+                padding-right: 1rem;
+                text-align: left;
+            }
+
+            .crypto-demo {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .back-btn {
+                position: relative;
+                top: auto;
+                left: auto;
+                margin-bottom: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/interactive-demos/" class="back-btn">← Back to Demos</a>
+
+    <div class="container">
+        <div class="header">
+            <h1>⏰ The Bitcoin Genesis Timeline</h1>
+            <p>Discover the revolutionary technologies and brilliant minds that came together to create the world's first decentralized digital currency</p>
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-marker">🔐</div>
+                <div class="timeline-content">
+                    <div class="year">1970s</div>
+                    <div class="title">The Age of Secret Codes</div>
+                    <div class="description">
+                        Whitfield Diffie & Martin Hellman invented public-key cryptography (1976), followed by RSA encryption (1977). These breakthroughs made digital ownership possible for the first time.
+                    </div>
+                    <button class="demo-button" onclick="toggleDemo('crypto-demo')">🔑 Try Public Key Demo</button>
+                    <div id="crypto-demo" class="demo-area">
+                        <div class="crypto-demo">
+                            <div class="key-box">
+                                <h4>🔒 Public Key (Lock)</h4>
+                                <p>Everyone can see this</p>
+                                <code>04a1b2c3d4...</code>
+                            </div>
+                            <div class="key-box">
+                                <h4>🗝️ Private Key (Key)</h4>
+                                <p>Only you know this</p>
+                                <code>L5oLkpV3aqBj...</code>
+                            </div>
+                        </div>
+                        <p style="text-align: center; margin-top: 1rem; color: #f7931a;">
+                            Anyone can lock a message with your public key, but only you can unlock it with your private key!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-marker">🌐</div>
+                <div class="timeline-content">
+                    <div class="year">1983-1990s</div>
+                    <div class="title">The Internet Goes Global</div>
+                    <div class="description">
+                        TCP/IP protocol connects computers worldwide without central control. This peer-to-peer foundation became essential for Bitcoin's decentralized network.
+                    </div>
+                    <button class="demo-button" onclick="toggleDemo('network-demo')">🕸️ See Network Effect</button>
+                    <div id="network-demo" class="demo-area">
+                        <div class="network-demo">
+                            <div class="node" onclick="animateNetwork()">A</div>
+                            <div class="node" onclick="animateNetwork()">B</div>
+                            <div class="node" onclick="animateNetwork()">C</div>
+                            <div class="node" onclick="animateNetwork()">D</div>
+                            <div class="node" onclick="animateNetwork()">E</div>
+                        </div>
+                        <p style="text-align: center; margin-top: 1rem; color: #f7931a;">
+                            Click any node to see how information spreads across the network!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-marker">💰</div>
+                <div class="timeline-content">
+                    <div class="year">1989</div>
+                    <div class="title">DigiCash - First Digital Money</div>
+                    <div class="description">
+                        David Chaum created the first cryptographic digital currency. It worked perfectly but required trust in a central company - the missing piece Bitcoin would later solve.
+                    </div>
+                    <button class="demo-button" onclick="toggleDemo('digicash-demo')">💳 See DigiCash Model</button>
+                    <div id="digicash-demo" class="demo-area">
+                        <div style="text-align: center;">
+                            <div style="background: rgba(255,0,0,0.2); padding: 1rem; border-radius: 10px; border: 1px solid #ff4444;">
+                                <h4>❌ Centralized Model</h4>
+                                <p>DigiCash Company</p>
+                                <p>↓ ↓ ↓</p>
+                                <p>Users must trust the company</p>
+                            </div>
+                            <p style="margin-top: 1rem; color: #f7931a;">
+                                Problem: Single point of failure and control
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-marker">⏰</div>
+                <div class="timeline-content">
+                    <div class="year">1991</div>
+                    <div class="title">Time-Stamping & Timechains</div>
+                    <div class="description">
+                        Stuart Haber & Scott Stornetta created the first "timechain" - linking documents together so no one could backdate or alter them. This became Bitcoin's blockchain foundation.
+                    </div>
+                    <button class="demo-button" onclick="toggleDemo('chain-demo')">⛓️ Build a Chain</button>
+                    <div id="chain-demo" class="demo-area">
+                        <div class="chain-demo" id="blockchain">
+                            <div class="block" onclick="addBlock()">Genesis</div>
+                        </div>
+                        <p style="text-align: center; margin-top: 1rem; color: #f7931a;">
+                            Click any block to add the next one. Each block references the previous!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-marker">💎</div>
+                <div class="timeline-content">
+                    <div class="year">1997</div>
+                    <div class="title">Hashcash - Proof of Work</div>
+                    <div class="description">
+                        Adam Back invented Hashcash to fight email spam. Users had to solve a small math problem before sending emails, making spam expensive. Bitcoin uses this exact concept.
+                    </div>
+                    <button class="demo-button" onclick="toggleDemo('hash-demo')">⛏️ Try Hash Mining</button>
+                    <div id="hash-demo" class="demo-area">
+                        <div class="hash-demo">
+                            <input type="text" class="hash-input" id="hashInput" placeholder="Type anything here..." oninput="updateHash()">
+                            <div class="hash-output" id="hashOutput">Type something to see its hash...</div>
+                            <p style="margin-top: 1rem; color: #f7931a;">
+                                Notice how even tiny changes create completely different hashes!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-marker">👥</div>
+                <div class="timeline-content">
+                    <div class="year">1998-2005</div>
+                    <div class="title">Cypherpunks & Failed Prototypes</div>
+                    <div class="description">
+                        Privacy advocates created b-money (Wei Dai), Bit Gold (Nick Szabo), and e-gold (Douglas Jackson). Each solved part of the puzzle, but none achieved full decentralization.
+                    </div>
+                    <button class="demo-button" onclick="toggleDemo('cypherpunk-demo')">🧩 See the Pieces</button>
+                    <div id="cypherpunk-demo" class="demo-area">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div style="background: rgba(247,147,26,0.1); padding: 1rem; border-radius: 10px; text-align: center;">
+                                <h4>b-money</h4>
+                                <p>Peer-to-peer concept</p>
+                            </div>
+                            <div style="background: rgba(247,147,26,0.1); padding: 1rem; border-radius: 10px; text-align: center;">
+                                <h4>Bit Gold</h4>
+                                <p>Computational scarcity</p>
+                            </div>
+                            <div style="background: rgba(247,147,26,0.1); padding: 1rem; border-radius: 10px; text-align: center;">
+                                <h4>Hashcash</h4>
+                                <p>Proof of work</p>
+                            </div>
+                            <div style="background: rgba(247,147,26,0.1); padding: 1rem; border-radius: 10px; text-align: center;">
+                                <h4>Timechains</h4>
+                                <p>Immutable records</p>
+                            </div>
+                        </div>
+                        <p style="text-align: center; margin-top: 1rem; color: #f7931a; font-size: 1.2rem;">
+                            = Bitcoin! 🎯
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-marker">📜</div>
+                <div class="timeline-content">
+                    <div class="year">October 31, 2008</div>
+                    <div class="title">The Bitcoin White Paper</div>
+                    <div class="description">
+                        Satoshi Nakamoto publishes "Bitcoin: A Peer-to-Peer Electronic Cash System" - elegantly combining all previous innovations into one self-sustaining system.
+                    </div>
+                    <button class="demo-button" onclick="toggleDemo('whitepaper-demo')">📄 Read Key Excerpt</button>
+                    <div id="whitepaper-demo" class="demo-area">
+                        <div style="background: rgba(0,0,0,0.5); padding: 1.5rem; border-radius: 10px; font-style: italic; border-left: 4px solid #f7931a;">
+                            <p>"A purely peer-to-peer version of electronic cash would allow online payments to be sent directly from one party to another without going through a financial institution."</p>
+                            <p style="text-align: right; margin-top: 1rem; color: #f7931a;">- Satoshi Nakamoto</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-marker">⛏️</div>
+                <div class="timeline-content">
+                    <div class="year">January 3, 2009</div>
+                    <div class="title">Genesis Block</div>
+                    <div class="description">
+                        Satoshi mines the first Bitcoin block with a hidden message: "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks" - a protest encoded in history.
+                    </div>
+                    <button class="demo-button" onclick="toggleDemo('genesis-demo')">🎮 Mine Genesis Block</button>
+                    <div id="genesis-demo" class="demo-area">
+                        <div class="mining-demo">
+                            <div class="nonce-display" id="nonceDisplay">Nonce: 0</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <button class="demo-button" onclick="startMining()" id="mineButton">Start Mining</button>
+                            <div id="genesisMessage" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(247,147,26,0.1); border-radius: 10px;">
+                                <h4>🎉 Block Mined!</h4>
+                                <p>"The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-marker">🍕</div>
+                <div class="timeline-content">
+                    <div class="year">May 22, 2010</div>
+                    <div class="title">First Real Purchase</div>
+                    <div class="description">
+                        Laszlo Hanyecz buys 2 pizzas for 10,000 BTC - proving Bitcoin works as real money. Those pizzas are worth over $1.1 billion today!
+                    </div>
+                    <button class="demo-button" onclick="toggleDemo('pizza-demo')">🍕 Calculate Pizza Value</button>
+                    <div id="pizza-demo" class="demo-area">
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; margin: 1rem 0;">🍕🍕</div>
+                            <div style="font-size: 1.5rem; color: #f7931a;">10,000 BTC in 2010</div>
+                            <div style="font-size: 2rem; margin: 1rem 0;">≈ $40</div>
+                            <div style="font-size: 1.2rem; color: #ff6b6b;">Today's Value: ~$1,130,000,000</div>
+                            <p style="margin-top: 1rem; color: #a0a0a0;">The most expensive pizza in history! 🤯</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-marker">🌍</div>
+                <div class="timeline-content">
+                    <div class="year">2011-Today</div>
+                    <div class="title">Global Adoption</div>
+                    <div class="description">
+                        From $1 in 2011 to legal tender in El Salvador (2021). Bitcoin evolved from an experiment to global financial infrastructure with Lightning Network, institutional adoption, and scaling solutions.
+                    </div>
+                    <button class="demo-button" onclick="toggleDemo('adoption-demo')">📈 See Growth Timeline</button>
+                    <div id="adoption-demo" class="demo-area">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; text-align: center;">
+                            <div style="background: rgba(247,147,26,0.1); padding: 1rem; border-radius: 10px;">
+                                <div style="font-size: 1.5rem;">2011</div>
+                                <div>$1</div>
+                            </div>
+                            <div style="background: rgba(247,147,26,0.2); padding: 1rem; border-radius: 10px;">
+                                <div style="font-size: 1.5rem;">2013</div>
+                                <div>$1,000</div>
+                            </div>
+                            <div style="background: rgba(247,147,26,0.3); padding: 1rem; border-radius: 10px;">
+                                <div style="font-size: 1.5rem;">2017</div>
+                                <div>$20,000</div>
+                            </div>
+                            <div style="background: rgba(247,147,26,0.4); padding: 1rem; border-radius: 10px;">
+                                <div style="font-size: 1.5rem;">2021</div>
+                                <div>$69,000</div>
+                            </div>
+                            <div style="background: rgba(247,147,26,0.5); padding: 1rem; border-radius: 10px;">
+                                <div style="font-size: 1.5rem;">Today</div>
+                                <div>Global Currency</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Intersection Observer for timeline animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.timeline-item').forEach(item => {
+            observer.observe(item);
+        });
+
+        // Demo toggle function
+        function toggleDemo(demoId) {
+            const demo = document.getElementById(demoId);
+            const allDemos = document.querySelectorAll('.demo-area');
+
+            allDemos.forEach(d => {
+                if (d.id !== demoId) {
+                    d.classList.remove('active');
+                }
+            });
+
+            demo.classList.toggle('active');
+        }
+
+        // Network animation
+        function animateNetwork() {
+            const nodes = document.querySelectorAll('.node');
+            const networkDemo = document.querySelector('.network-demo');
+
+            // Clear existing connections
+            document.querySelectorAll('.connection').forEach(conn => conn.remove());
+
+            // Create connections
+            nodes.forEach((node, i) => {
+                nodes.forEach((otherNode, j) => {
+                    if (i !== j && Math.random() > 0.6) {
+                        const connection = document.createElement('div');
+                        connection.className = 'connection';
+
+                        const rect1 = node.getBoundingClientRect();
+                        const rect2 = otherNode.getBoundingClientRect();
+                        const containerRect = networkDemo.getBoundingClientRect();
+
+                        const x1 = rect1.left - containerRect.left + rect1.width / 2;
+                        const y1 = rect1.top - containerRect.top + rect1.height / 2;
+                        const x2 = rect2.left - containerRect.left + rect2.width / 2;
+                        const y2 = rect2.top - containerRect.top + rect2.height / 2;
+
+                        const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+                        const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+                        connection.style.left = x1 + 'px';
+                        connection.style.top = y1 + 'px';
+                        connection.style.width = length + 'px';
+                        connection.style.transform = `rotate(${angle}deg)`;
+
+                        networkDemo.appendChild(connection);
+                    }
+                });
+            });
+
+            // Animate nodes
+            nodes.forEach(node => {
+                node.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    node.style.transform = 'scale(1)';
+                }, 200);
+            });
+        }
+
+        // SHA-256 implementation
+        function sha256(message) {
+            // Convert string to bytes
+            const msgBytes = new TextEncoder().encode(message);
+
+            // SHA-256 constants
+            const K = [
+                0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+                0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+                0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+                0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+                0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+                0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+                0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+                0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+            ];
+
+            // Initial hash values
+            let h0 = 0x6a09e667, h1 = 0xbb67ae85, h2 = 0x3c6ef372, h3 = 0xa54ff53a;
+            let h4 = 0x510e527f, h5 = 0x9b05688c, h6 = 0x1f83d9ab, h7 = 0x5be0cd19;
+
+            // Pre-processing
+            const msgLen = msgBytes.length;
+            const bitLen = msgLen * 8;
+
+            // Append '1' bit and padding
+            const paddedMsg = new Uint8Array(Math.ceil((msgLen + 9) / 64) * 64);
+            paddedMsg.set(msgBytes);
+            paddedMsg[msgLen] = 0x80;
+
+            // Append length as 64-bit big-endian
+            const view = new DataView(paddedMsg.buffer);
+            view.setUint32(paddedMsg.length - 4, bitLen & 0xffffffff, false);
+            view.setUint32(paddedMsg.length - 8, Math.floor(bitLen / 0x100000000), false);
+
+            // Process message in 512-bit chunks
+            for (let chunk = 0; chunk < paddedMsg.length; chunk += 64) {
+                const w = new Array(64);
+
+                // Copy chunk into first 16 words
+                for (let i = 0; i < 16; i++) {
+                    w[i] = view.getUint32(chunk + i * 4, false);
+                }
+
+                // Extend the first 16 words into the remaining 48 words
+                for (let i = 16; i < 64; i++) {
+                    const s0 = rightRotate(w[i-15], 7) ^ rightRotate(w[i-15], 18) ^ (w[i-15] >>> 3);
+                    const s1 = rightRotate(w[i-2], 17) ^ rightRotate(w[i-2], 19) ^ (w[i-2] >>> 10);
+                    w[i] = (w[i-16] + s0 + w[i-7] + s1) >>> 0;
+                }
+
+                // Initialize working variables
+                let a = h0, b = h1, c = h2, d = h3, e = h4, f = h5, g = h6, h = h7;
+
+                // Main loop
+                for (let i = 0; i < 64; i++) {
+                    const S1 = rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25);
+                    const ch = (e & f) ^ (~e & g);
+                    const temp1 = (h + S1 + ch + K[i] + w[i]) >>> 0;
+                    const S0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22);
+                    const maj = (a & b) ^ (a & c) ^ (b & c);
+                    const temp2 = (S0 + maj) >>> 0;
+
+                    h = g; g = f; f = e; e = (d + temp1) >>> 0;
+                    d = c; c = b; b = a; a = (temp1 + temp2) >>> 0;
+                }
+
+                // Add this chunk's hash to result
+                h0 = (h0 + a) >>> 0; h1 = (h1 + b) >>> 0; h2 = (h2 + c) >>> 0; h3 = (h3 + d) >>> 0;
+                h4 = (h4 + e) >>> 0; h5 = (h5 + f) >>> 0; h6 = (h6 + g) >>> 0; h7 = (h7 + h) >>> 0;
+            }
+
+            // Produce final hash value
+            return [h0, h1, h2, h3, h4, h5, h6, h7]
+                .map(h => h.toString(16).padStart(8, '0'))
+                .join('');
+        }
+
+        function rightRotate(value, amount) {
+            return (value >>> amount) | (value << (32 - amount));
+        }
+
+        // Hash demo
+        function updateHash() {
+            const input = document.getElementById('hashInput').value;
+            const output = document.getElementById('hashOutput');
+
+            if (input) {
+                const hash = sha256(input);
+                output.textContent = `SHA-256: ${hash}`;
+            } else {
+                output.textContent = 'Type something to see its hash...';
+            }
+        }
+
+        // Blockchain demo
+        let blockCount = 1;
+        function addBlock() {
+            const blockchain = document.getElementById('blockchain');
+            const newBlock = document.createElement('div');
+            newBlock.className = 'block';
+            newBlock.textContent = `Block ${blockCount}`;
+            newBlock.onclick = addBlock;
+            blockchain.appendChild(newBlock);
+            blockCount++;
+
+            // Scroll to show new block
+            newBlock.scrollIntoView({ behavior: 'smooth', inline: 'end' });
+        }
+
+        // Mining demo
+        function startMining() {
+            const button = document.getElementById('mineButton');
+            const nonceDisplay = document.getElementById('nonceDisplay');
+            const progressFill = document.getElementById('progressFill');
+            const message = document.getElementById('genesisMessage');
+
+            button.disabled = true;
+            button.textContent = 'Mining...';
+
+            let nonce = 0;
+            const targetNonce = 2083236893; // Actual Genesis block nonce
+            const interval = setInterval(() => {
+                nonce += Math.floor(Math.random() * 1000000) + 100000;
+                nonceDisplay.textContent = `Nonce: ${nonce.toLocaleString()}`;
+
+                const progress = Math.min((nonce / targetNonce) * 100, 100);
+                progressFill.style.width = progress + '%';
+
+                if (nonce >= targetNonce) {
+                    clearInterval(interval);
+                    nonceDisplay.textContent = `Nonce: ${targetNonce.toLocaleString()}`;
+                    progressFill.style.width = '100%';
+                    message.style.display = 'block';
+                    button.textContent = 'Block Mined! 🎉';
+                }
+            }, 50);
+        }
+    </script>
+</body>
+</html>
