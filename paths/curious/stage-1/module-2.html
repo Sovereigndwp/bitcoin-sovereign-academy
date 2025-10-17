@@ -915,27 +915,55 @@
 
                         <!-- Interactive Simulator -->
                         <div style="background: rgba(33, 150, 243, 0.1); border: 2px solid #2196F3; border-radius: 0.75rem; padding: 1.5rem; margin: 1.5rem 0;">
-                            <h4 style="color: #2196F3; margin-bottom: 1rem;">🎮 Try It: Move the interest rate slider</h4>
+                            <h4 style="color: #2196F3; margin-bottom: 1rem;">🎮 Try It: Adjust the Economy</h4>
+                            <p style="color: var(--text-dim); font-size: 0.95rem; margin-bottom: 1.5rem;">Move the sliders to see how different conditions affect prices.</p>
 
-                            <!-- Interest Rate Slider -->
+                            <!-- Money Supply Slider -->
                             <div style="margin-bottom: 1.5rem;">
                                 <div style="text-align: center; margin-bottom: 0.5rem;">
-                                    <strong style="color: var(--primary-orange);">Interest Rate: <span id="interest-rate-value">3</span>%</strong>
+                                    <strong style="color: var(--primary-orange);">💰 Money Supply: <span id="money-supply-value">50</span>%</strong>
                                 </div>
-                                <input type="range" id="interest-rate" min="0" max="10" value="3" step="0.5"
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem;">
+                                    <span>Low</span>
+                                    <span>High</span>
+                                </div>
+                                <input type="range" id="money-supply" min="0" max="100" value="50" step="10"
                                     style="width: 100%; height: 8px; border-radius: 5px; background: linear-gradient(to right, #4CAF50, #FFC107, #F44336); outline: none; cursor: pointer;">
                             </div>
 
+                            <!-- Goods Supply Slider -->
+                            <div style="margin-bottom: 1.5rem;">
+                                <div style="text-align: center; margin-bottom: 0.5rem;">
+                                    <strong style="color: var(--primary-orange);">📦 Goods Supply: <span id="goods-supply-value">50</span>%</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem;">
+                                    <span>Scarce</span>
+                                    <span>Plentiful</span>
+                                </div>
+                                <input type="range" id="goods-supply" min="0" max="100" value="50" step="10"
+                                    style="width: 100%; height: 8px; border-radius: 5px; background: linear-gradient(to right, #F44336, #FFC107, #4CAF50); outline: none; cursor: pointer;">
+                            </div>
+
                             <!-- Result Display -->
-                            <div style="background: rgba(0, 0, 0, 0.3); border-radius: 0.5rem; padding: 1.5rem; text-align: center;">
-                                <div id="result-text" style="font-weight: 600; font-size: 1.1rem; color: #FFC107; margin-bottom: 0.5rem;">Result: Moderate Inflation</div>
+                            <div style="background: rgba(0, 0, 0, 0.3); border-radius: 0.5rem; padding: 1.5rem; text-align: center; margin-bottom: 1.5rem;">
+                                <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-dim); margin-bottom: 0.5rem;">🧠 Result:</div>
+                                <div id="economy-result" style="font-weight: 600; font-size: 1.2rem; color: #FFC107;">Moderate Inflation</div>
+                            </div>
+
+                            <!-- COVID Example -->
+                            <div style="padding: 1rem; background: rgba(244, 67, 54, 0.1); border-left: 3px solid #F44336; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                                <p style="color: var(--text-light); font-size: 0.95rem; margin: 0;">
+                                    <strong style="color: #F44336;">💡 Example:</strong>
+                                    During COVID, governments injected trillions into the economy while supply chains froze.
+                                    <strong>Result →</strong> Too much money + too few goods = record inflation.
+                                </p>
                             </div>
 
                             <!-- Cause and Effect -->
-                            <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(156, 39, 176, 0.1); border-left: 3px solid #9C27B0; border-radius: 0.5rem;">
+                            <div style="padding: 1rem; background: rgba(156, 39, 176, 0.1); border-left: 3px solid #9C27B0; border-radius: 0.5rem;">
                                 <p style="color: #b0b0b0; font-size: 0.95rem; margin: 0;">
                                     <strong style="color: #9C27B0;">💡 Cause → Effect:</strong>
-                                    Cheap money + limited supply = too many dollars chasing too few goods → prices climb.
+                                    Scarcity of goods magnifies inflation when money creation stays high.
                                 </p>
                             </div>
                         </div>
@@ -966,69 +994,46 @@
                     </div>
 
                     <script>
-                        // Money Pressure Simulator Logic
+                        // Two-Variable Economy Simulator
                         (function() {
-                            const interestRateSlider = document.getElementById('interest-rate');
-                            const supplySlider = document.getElementById('supply-level');
-                            const interestRateValue = document.getElementById('interest-rate-value');
-                            const supplyValue = document.getElementById('supply-value');
-                            const pressureGauge = document.getElementById('pressure-gauge');
-                            const gaugeEmoji = document.getElementById('gauge-emoji');
-                            const resultText = document.getElementById('result-text');
-                            const resultExplanation = document.getElementById('result-explanation');
+                            const moneySlider = document.getElementById('money-supply');
+                            const goodsSlider = document.getElementById('goods-supply');
+                            const moneyValue = document.getElementById('money-supply-value');
+                            const goodsValue = document.getElementById('goods-supply-value');
+                            const resultText = document.getElementById('economy-result');
 
-                            function updateSimulation() {
-                                const rate = parseFloat(interestRateSlider.value);
-                                const supply = parseInt(supplySlider.value);
+                            function updateEconomy() {
+                                const money = parseInt(moneySlider.value);
+                                const goods = parseInt(goodsSlider.value);
 
-                                interestRateValue.textContent = rate;
-                                supplyValue.textContent = supply;
+                                moneyValue.textContent = money;
+                                goodsValue.textContent = goods;
 
-                                // Calculate pressure: low rates + low supply = high inflation
-                                // High rates + high supply = stable/deflation
-                                const moneyPressure = (10 - rate) * 10; // 0-100, inverted (low rate = high pressure)
-                                const supplyPressure = (100 - supply); // 0-100, inverted (low supply = high pressure)
+                                // Calculate inflation pressure
+                                // High money + Low goods = High inflation
+                                const inflationPressure = money + (100 - goods);
 
-                                // Combined pressure score (0-100)
-                                const totalPressure = (moneyPressure * 0.6 + supplyPressure * 0.4);
-
-                                // Update gauge
-                                pressureGauge.style.width = totalPressure + '%';
-
-                                // Update result based on pressure
-                                if (totalPressure < 25) {
-                                    gaugeEmoji.textContent = '🟢';
-                                    resultText.textContent = 'Stable Economy';
+                                if (inflationPressure < 80) {
+                                    resultText.textContent = 'Stable Prices';
                                     resultText.style.color = '#4CAF50';
-                                    resultExplanation.textContent = 'Balanced rates and good supply keep prices stable.';
-                                } else if (totalPressure < 40) {
-                                    gaugeEmoji.textContent = '🟡';
+                                } else if (inflationPressure < 120) {
                                     resultText.textContent = 'Mild Inflation';
                                     resultText.style.color = '#8BC34A';
-                                    resultExplanation.textContent = 'Some upward price pressure, but manageable.';
-                                } else if (totalPressure < 60) {
-                                    gaugeEmoji.textContent = '🟠';
+                                } else if (inflationPressure < 150) {
                                     resultText.textContent = 'Moderate Inflation';
                                     resultText.style.color = '#FFC107';
-                                    resultExplanation.textContent = 'Prices rising noticeably. Savings losing value.';
-                                } else if (totalPressure < 80) {
-                                    gaugeEmoji.textContent = '🔴';
+                                } else if (inflationPressure < 180) {
                                     resultText.textContent = 'High Inflation';
                                     resultText.style.color = '#FF9800';
-                                    resultExplanation.textContent = 'Too much money chasing too few goods. Prices surging!';
                                 } else {
-                                    gaugeEmoji.textContent = '💥';
-                                    resultText.textContent = 'Crisis Territory';
+                                    resultText.textContent = 'Severe Inflation';
                                     resultText.style.color = '#F44336';
-                                    resultExplanation.textContent = 'Extreme inflation risk. People lose faith in currency.';
                                 }
                             }
 
-                            interestRateSlider.addEventListener('input', updateSimulation);
-                            supplySlider.addEventListener('input', updateSimulation);
-
-                            // Initialize
-                            updateSimulation();
+                            moneySlider.addEventListener('input', updateEconomy);
+                            goodsSlider.addEventListener('input', updateEconomy);
+                            updateEconomy();
                         })();
                     </script>
 
