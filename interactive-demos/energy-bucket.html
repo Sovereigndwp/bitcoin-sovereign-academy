@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Energy Bucket - Interactive Money Demo</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            background: #1a1a1a;
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        .container {
+            min-height: 100%;
+            padding: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f7931a, #ffb347);
+            width: 16.67%;
+            transition: width 0.5s ease;
+            border-radius: 3px;
+        }
+
+        .storyboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .frame {
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            opacity: 0.4;
+            transform: scale(0.95);
+            position: relative;
+            min-height: 320px;
+        }
+
+        .frame-nav {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        .frame-arrow {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .frame-arrow:hover {
+            background: #f7931a;
+            color: #000;
+            border-color: #f7931a;
+            transform: scale(1.1);
+        }
+
+        .frame-arrow:disabled {
+            background: #222;
+            color: #666;
+            border-color: #333;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .frame-arrow:disabled:hover {
+            background: #222;
+            color: #666;
+            border-color: #333;
+            transform: none;
+        }
+
+        .frame.active {
+            border-color: #f7931a;
+            opacity: 1;
+            transform: scale(1);
+            box-shadow: 0 0 30px rgba(247, 147, 26, 0.3);
+        }
+
+        .frame.completed {
+            border-color: #28a745;
+            opacity: 0.8;
+        }
+
+        .frame-number {
+            position: absolute;
+            top: -12px;
+            left: 15px;
+            background: #f7931a;
+            color: #000;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .frame.completed .frame-number {
+            background: #28a745;
+            color: #fff;
+        }
+
+        .frame.active .frame-number {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: #f7931a;
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        h2 {
+            color: #f7931a;
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1rem;
+            margin-bottom: 25px;
+        }
+
+        .demo-area {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .frame-title {
+            color: #f7931a;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .frame-subtitle {
+            color: #888;
+            font-size: 0.8rem;
+            margin-bottom: 12px;
+        }
+
+        .bike {
+            width: 60px;
+            height: 40px;
+            border: 3px solid #f7931a;
+            border-radius: 50%;
+            position: relative;
+            animation: pedal 1s ease-in-out infinite paused;
+        }
+
+        .bike.active {
+            animation-play-state: running;
+        }
+
+        @keyframes pedal {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(10deg); }
+        }
+
+        .energy-bar {
+            width: 100px;
+            height: 16px;
+            background: #333;
+            border: 1px solid #f7931a;
+            border-radius: 8px;
+            margin: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f7931a, #ffb347);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 13px;
+        }
+
+        .bucket {
+            width: 60px;
+            height: 80px;
+            background: #333;
+            border: 2px solid #888;
+            border-radius: 0 0 12px 12px;
+            position: relative;
+            margin: 10px;
+            overflow: hidden;
+        }
+
+        .bucket.bitcoin {
+            border-color: #f7931a;
+            background: #1a1a1a;
+        }
+
+        .bucket-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(180deg, #f7931a, #ff8c00);
+            transition: height 0.5s ease;
+            border-radius: 0 0 17px 17px;
+        }
+
+        .leak {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background: #f7931a;
+            border-radius: 50%;
+            animation: drip 2s infinite;
+            opacity: 0;
+        }
+
+        .bucket.leaking .leak {
+            opacity: 1;
+        }
+
+        @keyframes drip {
+            0% { transform: translateX(-50%) translateY(0); opacity: 1; }
+            100% { transform: translateX(-50%) translateY(30px); opacity: 0; }
+        }
+
+        .work-btn {
+            background: #f7931a;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .work-btn:hover {
+            background: #ffb347;
+            transform: scale(1.05);
+        }
+
+        .work-btn:active {
+            transform: scale(0.95);
+        }
+
+        .energy-spark {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #f7931a;
+            border-radius: 50%;
+            animation: spark 1s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes spark {
+            0% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.5) translateY(-100px);
+                opacity: 0;
+            }
+        }
+
+        .tooltip {
+            background: #222;
+            border: 1px solid #f7931a;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin: 8px 0;
+            font-size: 0.85rem;
+            color: #f7931a;
+            max-width: 500px;
+        }
+
+        .item {
+            background: #222;
+            border: 2px solid #555;
+            border-radius: 10px;
+            padding: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .item:hover {
+            border-color: #f7931a;
+            transform: translateY(-5px);
+        }
+
+        .item.purchased {
+            border-color: #f7931a;
+            background: #1a1a0a;
+        }
+
+        .item-cost {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #f7931a;
+            color: #000;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .clock {
+            font-size: 3rem;
+            margin: 20px;
+            animation: tick 1s infinite;
+        }
+
+        @keyframes tick {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .bitcoin-symbol {
+            font-size: 4rem;
+            color: #f7931a;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #f7931a; }
+            to { text-shadow: 0 0 40px #f7931a, 0 0 60px #f7931a; }
+        }
+
+        @media (max-width: 768px) {
+            .demo-area {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ The Energy Bucket</h1>
+            <p class="subtitle">Money isn't value. It's the tool we use to store our energy, time, and work.</p>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="storyboard">
+            <!-- Frame 1: Work Creates Energy -->
+            <div class="frame active" id="frame1">
+                <div class="frame-number">1</div>
+                <div class="frame-title">🧩 Work Creates Energy</div>
+                <div class="frame-subtitle">Click to start working and fill your energy bucket</div>
+
+                <div class="demo-area">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.5rem;">👤</div>
+                            <div class="bike" id="bike" style="width: 40px; height: 25px; margin: 5px auto;"></div>
+                            <p style="color: #888; font-size: 0.7rem; margin: 2px 0;">You Working</p>
+                        </div>
+
+                        <div style="text-align: center;">
+                            <p style="color: #f7931a; margin-bottom: 3px; font-size: 0.8rem;">Energy</p>
+                            <div class="energy-bar" style="width: 80px; height: 12px;">
+                                <div class="energy-fill" id="energyFill"></div>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center;">
+                            <div class="bucket" id="bucket1" style="width: 50px; height: 65px;">
+                                <div class="bucket-fill" id="bucketFill1"></div>
+                            </div>
+                            <p style="color: #888; font-size: 0.7rem; margin: 2px 0;">Money</p>
+                        </div>
+                    </div>
+
+                    <button class="work-btn" id="workBtn">💪 Work</button>
+                </div>
+
+                <div class="tooltip">
+                    💬 When you work, you create value. You store that effort as money.
+                </div>
+
+                <div class="frame-nav">
+                    <button class="frame-arrow" onclick="prevFrame()" disabled>←</button>
+                    <button class="frame-arrow" onclick="nextFrame()">→</button>
+                </div>
+            </div>
+
+            <!-- Frame 2: Time Passes -->
+            <div class="frame" id="frame2">
+                <div class="frame-number">2</div>
+                <div class="frame-title">💧 Money Stores Energy</div>
+                <div class="frame-subtitle">See how your stored energy persists over time</div>
+
+                <div class="demo-area">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                        <div class="bucket" style="width: 50px; height: 65px;">
+                            <div class="bucket-fill" style="height: 80%;"></div>
+                        </div>
+
+                        <div class="clock" id="clock" style="font-size: 1.5rem;">🕐</div>
+
+                        <div class="bucket" style="width: 50px; height: 65px;">
+                            <div class="bucket-fill" id="bucketAfterTime" style="height: 80%;"></div>
+                        </div>
+                    </div>
+
+                    <button class="work-btn" id="timeBtn">⏰ One Week Later</button>
+                    <button class="work-btn" id="inflationBtn" style="background: #dc3545; display: none;">💸 Inflation ON</button>
+                </div>
+
+                <div class="tooltip" style="font-size: 0.9rem; padding: 10px;">
+                    💬 Money should hold your stored energy — but what if it leaks?
+                </div>
+
+                <div class="frame-nav">
+                    <button class="frame-arrow" onclick="prevFrame()">←</button>
+                    <button class="frame-arrow" onclick="nextFrame()">→</button>
+                </div>
+            </div>
+
+            <!-- Frame 3: The Leaky Bucket -->
+            <div class="frame" id="frame3">
+                <div class="frame-number">3</div>
+                <div class="frame-title">🕳️ Inflation Leaks Energy</div>
+                <div class="frame-subtitle">Compare how different money types preserve value</div>
+
+                <div class="demo-area">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div style="text-align: center;">
+                            <h4 style="color: #888; margin: 3px 0; font-size: 0.8rem;">Fiat Money</h4>
+                            <div class="bucket leaking" id="fiatBucket" style="width: 50px; height: 65px;">
+                                <div class="bucket-fill" id="fiatFill" style="height: 80%;"></div>
+                                <div class="leak"></div>
+                            </div>
+                            <p style="color: #dc3545; font-size: 0.7rem;">Loses value</p>
+                        </div>
+
+                        <div style="text-align: center;">
+                            <h4 style="color: #f7931a; margin: 3px 0; font-size: 0.8rem;">Bitcoin</h4>
+                            <div class="bucket bitcoin" style="width: 50px; height: 65px;">
+                                <div class="bucket-fill" style="height: 80%;"></div>
+                            </div>
+                            <p style="color: #28a745; font-size: 0.7rem;">Preserves value</p>
+                        </div>
+                    </div>
+
+                    <button class="work-btn" id="timePassesBtn">⏳ Time Passes</button>
+                </div>
+
+                <div class="tooltip" style="font-size: 0.9rem; padding: 10px;">
+                    💬 Inflation drains your stored work. Bitcoin seals the leaks.
+                </div>
+
+                <div class="frame-nav">
+                    <button class="frame-arrow" onclick="prevFrame()">←</button>
+                    <button class="frame-arrow" onclick="nextFrame()">→</button>
+                </div>
+            </div>
+
+            <!-- Frame 4: Spend Energy -->
+            <div class="frame" id="frame4">
+                <div class="frame-number">4</div>
+                <div class="frame-title">🛠️ Spend Your Energy</div>
+                <div class="frame-subtitle">Use your stored energy to buy things you need</div>
+
+                <div class="demo-area">
+                    <div style="text-align: center; margin-bottom: 8px;">
+                        <div class="bucket bitcoin" style="width: 50px; height: 65px; margin: 0 auto;">
+                            <div class="bucket-fill" id="spendingBucket" style="height: 80%;"></div>
+                        </div>
+                        <p style="color: #f7931a; font-size: 0.7rem; margin: 2px 0;">Your Bitcoin</p>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+                        <div class="item" data-cost="20" onclick="buyItem(this)" style="padding: 6px;">
+                            <div class="item-cost" style="width: 16px; height: 16px; font-size: 0.6rem;">20%</div>
+                            <div style="font-size: 1.2rem;">🔨</div>
+                            <p style="font-size: 0.7rem; margin: 2px 0;">Hammer</p>
+                        </div>
+
+                        <div class="item" data-cost="40" onclick="buyItem(this)" style="padding: 6px;">
+                            <div class="item-cost" style="width: 16px; height: 16px; font-size: 0.6rem;">40%</div>
+                            <div style="font-size: 1.2rem;">🍕</div>
+                            <p style="font-size: 0.7rem; margin: 2px 0;">Pizza</p>
+                        </div>
+
+                        <div class="item" data-cost="60" onclick="buyItem(this)" style="padding: 6px;">
+                            <div class="item-cost" style="width: 16px; height: 16px; font-size: 0.6rem;">60%</div>
+                            <div style="font-size: 1.2rem;">✈️</div>
+                            <p style="font-size: 0.7rem; margin: 2px 0;">Flight</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tooltip" style="font-size: 0.9rem; padding: 10px;">
+                    💬 Money converts saved effort into useful things later.
+                </div>
+
+                <div class="frame-nav">
+                    <button class="frame-arrow" onclick="prevFrame()">←</button>
+                    <button class="frame-arrow" onclick="nextFrame()">→</button>
+                </div>
+            </div>
+
+            <!-- Frame 5: Compare Results -->
+            <div class="frame" id="frame5">
+                <div class="frame-number">5</div>
+                <div class="frame-title">🔄 Compare Outcomes</div>
+                <div class="frame-subtitle">Same work, different results based on money type</div>
+
+                <div class="demo-area">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <div style="text-align: center; background: #0a0a0a; padding: 6px; border-radius: 6px;">
+                            <h4 style="color: #888; margin: 2px 0; font-size: 0.8rem;">Fiat Path</h4>
+                            <div class="bucket leaking" style="width: 40px; height: 55px; margin: 0 auto;">
+                                <div class="bucket-fill" style="height: 20%;"></div>
+                                <div class="leak"></div>
+                            </div>
+                            <p style="color: #dc3545; font-size: 0.7rem;">Only: 🔨</p>
+                        </div>
+
+                        <div style="text-align: center; background: #0a0a0a; padding: 6px; border-radius: 6px;">
+                            <h4 style="color: #f7931a; margin: 2px 0; font-size: 0.8rem;">Bitcoin Path</h4>
+                            <div class="bucket bitcoin" style="width: 40px; height: 55px; margin: 0 auto;">
+                                <div class="bucket-fill" style="height: 60%;"></div>
+                            </div>
+                            <p style="color: #28a745; font-size: 0.7rem;">🔨 🍕 ✈️ +more!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tooltip" style="font-size: 0.9rem; padding: 10px;">
+                    💬 Same work, different outcomes. Good money preserves effort.
+                </div>
+
+                <div class="frame-nav">
+                    <button class="frame-arrow" onclick="prevFrame()">←</button>
+                    <button class="frame-arrow" onclick="nextFrame()">→</button>
+                </div>
+            </div>
+
+            <!-- Frame 6: Final Insight -->
+            <div class="frame" id="frame6">
+                <div class="frame-number">6</div>
+                <div class="frame-title">💡 The Big Picture</div>
+                <div class="frame-subtitle">Understanding money as an energy storage tool</div>
+
+                <div class="demo-area">
+                    <div class="bitcoin-symbol" style="font-size: 2rem;">₿</div>
+
+                    <div style="margin: 10px 0; line-height: 1.4;">
+                        <p style="font-size: 0.85rem; color: #f7931a; margin-bottom: 6px;">
+                            <strong>Money stores your time and effort</strong>
+                        </p>
+                        <p style="font-size: 0.75rem; margin-bottom: 4px;">
+                            Good money preserves energy across time
+                        </p>
+                        <p style="font-size: 0.75rem; color: #f7931a;">
+                            Bitcoin is the first leak-proof bucket
+                        </p>
+                    </div>
+                </div>
+
+                <div class="frame-nav">
+                    <button class="frame-arrow" onclick="prevFrame()">←</button>
+                    <button class="frame-arrow" onclick="restartDemo()">🔄</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFrame = 1;
+        let workEnergy = 0;
+        let bucketEnergy = 0;
+        let spendingEnergy = 80;
+        let frameCompleted = [false, false, false, false, false, false];
+
+        // Frame 1: Work functionality
+        document.getElementById('workBtn').addEventListener('click', function() {
+            const bike = document.getElementById('bike');
+            const energyFill = document.getElementById('energyFill');
+            const bucketFill = document.getElementById('bucketFill1');
+
+            // Animate bike
+            bike.classList.add('active');
+            setTimeout(() => bike.classList.remove('active'), 1000);
+
+            // Create energy spark
+            createSpark(this);
+
+            // Increase energy
+            workEnergy = Math.min(workEnergy + 20, 100);
+            bucketEnergy = Math.min(bucketEnergy + 20, 100);
+
+            energyFill.style.width = workEnergy + '%';
+            bucketFill.style.height = bucketEnergy + '%';
+
+            // Mark frame as completed when bucket is full
+            if (bucketEnergy >= 80) {
+                completeFrame(1);
+            }
+        });
+
+        // Frame 2: Time passage
+        document.getElementById('timeBtn').addEventListener('click', function() {
+            const clock = document.getElementById('clock');
+            const inflationBtn = document.getElementById('inflationBtn');
+
+            // Animate clock
+            clock.style.animation = 'tick 0.2s infinite';
+            setTimeout(() => {
+                clock.textContent = '🕐🕑🕒🕓🕔🕕🕖🕗';
+                clock.style.animation = 'tick 1s infinite';
+            }, 1000);
+
+            this.style.display = 'none';
+            inflationBtn.style.display = 'inline-block';
+        });
+
+        document.getElementById('inflationBtn').addEventListener('click', function() {
+            const bucketAfterTime = document.getElementById('bucketAfterTime');
+            bucketAfterTime.style.height = '40%';
+            bucketAfterTime.style.background = 'linear-gradient(180deg, #dc3545, #ff6b6b)';
+            completeFrame(2);
+        });
+
+        // Frame 3: Time passes with inflation
+        document.getElementById('timePassesBtn').addEventListener('click', function() {
+            const fiatFill = document.getElementById('fiatFill');
+
+            // Gradually drain fiat bucket
+            let height = 80;
+            const drainInterval = setInterval(() => {
+                height -= 5;
+                fiatFill.style.height = height + '%';
+
+                if (height <= 20) {
+                    clearInterval(drainInterval);
+                    completeFrame(3);
+                }
+            }, 200);
+        });
+
+        // Frame 4: Buying items
+        function buyItem(item) {
+            const cost = parseInt(item.dataset.cost);
+            const spendingBucket = document.getElementById('spendingBucket');
+
+            if (spendingEnergy >= cost && !item.classList.contains('purchased')) {
+                spendingEnergy -= cost;
+                spendingBucket.style.height = spendingEnergy + '%';
+                item.classList.add('purchased');
+
+                // Light up effect
+                item.style.boxShadow = '0 0 20px #f7931a';
+                setTimeout(() => {
+                    item.style.boxShadow = 'none';
+                }, 1000);
+
+                // Check if any item was purchased
+                if (document.querySelectorAll('.item.purchased').length > 0) {
+                    completeFrame(4);
+                }
+            }
+        }
+
+        function createSpark(button) {
+            const spark = document.createElement('div');
+            spark.className = 'energy-spark';
+
+            const rect = button.getBoundingClientRect();
+            const container = button.closest('.demo-area');
+            const containerRect = container.getBoundingClientRect();
+
+            spark.style.left = (rect.left - containerRect.left + rect.width / 2) + 'px';
+            spark.style.top = (rect.top - containerRect.top) + 'px';
+
+            container.appendChild(spark);
+
+            setTimeout(() => {
+                spark.remove();
+            }, 1000);
+        }
+
+        function completeFrame(frameNum) {
+            frameCompleted[frameNum - 1] = true;
+            document.getElementById('frame' + frameNum).classList.add('completed');
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const completedCount = frameCompleted.filter(Boolean).length;
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = (completedCount / 6 * 100) + '%';
+        }
+
+        function nextFrame() {
+            if (currentFrame < 6) {
+                // Deactivate current frame
+                document.getElementById('frame' + currentFrame).classList.remove('active');
+
+                // Move to next frame
+                currentFrame++;
+                document.getElementById('frame' + currentFrame).classList.add('active');
+
+                // Auto-complete frames 5 and 6 when viewed
+                if (currentFrame === 5) {
+                    completeFrame(5);
+                } else if (currentFrame === 6) {
+                    completeFrame(6);
+                }
+
+                updateNavigation();
+            }
+        }
+
+        function prevFrame() {
+            if (currentFrame > 1) {
+                // Deactivate current frame
+                document.getElementById('frame' + currentFrame).classList.remove('active');
+
+                // Move to previous frame
+                currentFrame--;
+                document.getElementById('frame' + currentFrame).classList.add('active');
+
+                updateNavigation();
+            }
+        }
+
+        function updateNavigation() {
+            // Update all frame navigation arrows
+            document.querySelectorAll('.frame').forEach((frame, index) => {
+                const frameNum = index + 1;
+                const prevArrow = frame.querySelector('.frame-nav .frame-arrow:first-child');
+                const nextArrow = frame.querySelector('.frame-nav .frame-arrow:last-child');
+
+                if (prevArrow) {
+                    prevArrow.disabled = frameNum === 1;
+                }
+            });
+        }
+
+        function restartDemo() {
+            // Reset all values
+            currentFrame = 1;
+            workEnergy = 0;
+            bucketEnergy = 0;
+            spendingEnergy = 80;
+            frameCompleted = [false, false, false, false, false, false];
+
+            // Reset UI elements
+            document.getElementById('energyFill').style.width = '0%';
+            document.getElementById('bucketFill1').style.height = '0%';
+            document.getElementById('bucketAfterTime').style.height = '80%';
+            document.getElementById('bucketAfterTime').style.background = 'linear-gradient(180deg, #f7931a, #ff8c00)';
+            document.getElementById('fiatFill').style.height = '80%';
+            document.getElementById('spendingBucket').style.height = '80%';
+            document.getElementById('clock').textContent = '🕐';
+            document.getElementById('timeBtn').style.display = 'inline-block';
+            document.getElementById('inflationBtn').style.display = 'none';
+
+            // Reset purchased items
+            document.querySelectorAll('.item.purchased').forEach(item => {
+                item.classList.remove('purchased');
+            });
+
+            // Reset all frames
+            document.querySelectorAll('.frame').forEach((frame, index) => {
+                frame.classList.remove('active', 'completed');
+                if (index === 0) {
+                    frame.classList.add('active');
+                }
+            });
+
+            // Reset progress and navigation
+            updateProgress();
+            updateNavigation();
+        }
+
+        // Initialize navigation on load
+        updateNavigation();
+    </script>
+</body>
+</html>
