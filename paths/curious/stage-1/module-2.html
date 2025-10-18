@@ -1387,10 +1387,232 @@
                     New loans expand the money supply; repayments destroy it.
                 </p>
 
-                <div style="background: rgba(156, 39, 176, 0.1); border-left: 4px solid #9C27B0; border-radius: 0.75rem; padding: 1.5rem; margin: 2rem 0;">
-                    <p style="margin: 0; font-style: italic; line-height: 1.8; color: var(--text-light);">
-                        <strong style="color: #9C27B0;">💭 Reflection:</strong> If banks create money by lending, what happens when everyone stops borrowing?
-                    </p>
+                <!-- Money Multiplication Interactive Demo -->
+                <div style="background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 1rem; padding: 1.5rem; margin: 2rem 0;">
+                    <style>
+                        .money-demo {
+                            max-width: 600px;
+                            margin: 0 auto;
+                        }
+
+                        .money-flow {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            gap: 0.75rem;
+                            margin: 1rem 0;
+                            padding: 1rem;
+                            background: rgba(26, 26, 26, 0.6);
+                            border-radius: 0.75rem;
+                        }
+
+                        .money-box {
+                            flex: 1;
+                            text-align: center;
+                            padding: 0.75rem;
+                            background: rgba(247, 147, 26, 0.1);
+                            border: 2px solid var(--border-color);
+                            border-radius: 0.5rem;
+                        }
+
+                        .money-box.active {
+                            border-color: var(--primary-orange);
+                            background: rgba(247, 147, 26, 0.2);
+                        }
+
+                        .money-label {
+                            font-size: 0.75rem;
+                            color: var(--text-dim);
+                            margin-bottom: 0.25rem;
+                        }
+
+                        .money-amount {
+                            font-size: 1.25rem;
+                            font-weight: 700;
+                            color: var(--primary-orange);
+                        }
+
+                        .arrow {
+                            font-size: 1.5rem;
+                            color: var(--primary-orange);
+                        }
+
+                        .demo-controls {
+                            display: flex;
+                            gap: 0.75rem;
+                            margin-top: 1rem;
+                            justify-content: center;
+                        }
+
+                        .demo-btn {
+                            padding: 0.75rem 1.5rem;
+                            border: 2px solid var(--border-color);
+                            border-radius: 0.5rem;
+                            background: rgba(26, 26, 26, 0.6);
+                            color: var(--text-light);
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                        }
+
+                        .demo-btn:hover {
+                            border-color: var(--primary-orange);
+                            background: rgba(247, 147, 26, 0.1);
+                        }
+
+                        .demo-btn.primary {
+                            background: var(--primary-orange);
+                            color: #000;
+                            border-color: var(--primary-orange);
+                        }
+
+                        .demo-btn.primary:hover {
+                            background: #ff8c00;
+                        }
+
+                        .total-display {
+                            text-align: center;
+                            padding: 1rem;
+                            background: rgba(76, 175, 80, 0.1);
+                            border: 2px solid var(--accent-green);
+                            border-radius: 0.75rem;
+                            margin-top: 1rem;
+                        }
+
+                        .total-label {
+                            font-size: 0.85rem;
+                            color: var(--text-dim);
+                            margin-bottom: 0.25rem;
+                        }
+
+                        .total-value {
+                            font-size: 1.75rem;
+                            font-weight: 700;
+                            color: var(--accent-green);
+                        }
+
+                        .demo-explanation {
+                            margin-top: 1rem;
+                            padding: 0.75rem;
+                            background: rgba(156, 39, 176, 0.1);
+                            border-left: 3px solid #9C27B0;
+                            border-radius: 0.5rem;
+                            font-size: 0.9rem;
+                            line-height: 1.6;
+                            color: var(--text-dim);
+                        }
+                    </style>
+
+                    <div class="money-demo">
+                        <h4 style="color: var(--primary-orange); text-align: center; margin-bottom: 1rem; font-size: 1.1rem;">💵 How Banks Create Money</h4>
+
+                        <div class="money-flow" id="moneyFlow">
+                            <div class="money-box" id="depositBox">
+                                <div class="money-label">You Deposit</div>
+                                <div class="money-amount">$<span id="depositAmount">0</span></div>
+                            </div>
+
+                            <div class="arrow">→</div>
+
+                            <div class="money-box" id="reserveBox">
+                                <div class="money-label">Bank Keeps (20%)</div>
+                                <div class="money-amount">$<span id="reserveAmount">0</span></div>
+                            </div>
+
+                            <div class="arrow">→</div>
+
+                            <div class="money-box" id="loanBox">
+                                <div class="money-label">Bank Loans (80%)</div>
+                                <div class="money-amount">$<span id="loanAmount">0</span></div>
+                            </div>
+                        </div>
+
+                        <div class="demo-controls">
+                            <button class="demo-btn primary" id="depositBtn">💰 Deposit $10</button>
+                            <button class="demo-btn" id="resetMoneyBtn">🔄 Reset</button>
+                        </div>
+
+                        <div class="total-display">
+                            <div class="total-label">Total Money Supply</div>
+                            <div class="total-value">$<span id="totalMoney">0</span></div>
+                        </div>
+
+                        <div class="demo-explanation">
+                            <span id="moneyExplanation">Click "Deposit $10" to see how banks multiply money through lending.</span>
+                        </div>
+                    </div>
+
+                    <script>
+                    (function() {
+                        let deposits = 0;
+                        let rounds = 0;
+                        const RESERVE_RATIO = 0.2; // 20% kept as reserves
+
+                        const depositEl = document.getElementById('depositAmount');
+                        const reserveEl = document.getElementById('reserveAmount');
+                        const loanEl = document.getElementById('loanAmount');
+                        const totalEl = document.getElementById('totalMoney');
+                        const explanationEl = document.getElementById('moneyExplanation');
+                        const depositBtn = document.getElementById('depositBtn');
+                        const resetBtn = document.getElementById('resetMoneyBtn');
+
+                        function formatMoney(num) {
+                            return num.toFixed(2);
+                        }
+
+                        function deposit() {
+                            rounds++;
+                            const depositAmount = rounds === 1 ? 10 : parseFloat(loanEl.textContent);
+                            deposits += depositAmount;
+
+                            const reserve = depositAmount * RESERVE_RATIO;
+                            const loan = depositAmount * (1 - RESERVE_RATIO);
+
+                            depositEl.textContent = formatMoney(depositAmount);
+                            reserveEl.textContent = formatMoney(reserve);
+                            loanEl.textContent = formatMoney(loan);
+
+                            // Calculate total money in system (original + all created through lending)
+                            let total = 10; // Initial deposit
+                            let multiplier = 1;
+                            for (let i = 1; i < rounds; i++) {
+                                multiplier *= (1 - RESERVE_RATIO);
+                                total += 10 * multiplier;
+                            }
+
+                            totalEl.textContent = formatMoney(total);
+
+                            // Update explanation
+                            if (rounds === 1) {
+                                explanationEl.textContent = `Your $10 deposit becomes $${formatMoney(reserve)} in reserves + $${formatMoney(loan)} available to loan. Click again to see the $${formatMoney(loan)} get re-deposited.`;
+                            } else if (rounds === 2) {
+                                explanationEl.textContent = `The $${formatMoney(depositAmount)} loaned out was deposited elsewhere. The bank keeps $${formatMoney(reserve)} and loans $${formatMoney(loan)}. Money supply: $${formatMoney(total)}! Click again to continue.`;
+                            } else {
+                                explanationEl.textContent = `Round ${rounds}: From your original $10 deposit, the system now has $${formatMoney(total)} in circulation. This is fractional reserve banking.`;
+                            }
+
+                            // Highlight active boxes
+                            document.getElementById('depositBox').classList.add('active');
+                            setTimeout(() => document.getElementById('reserveBox').classList.add('active'), 300);
+                            setTimeout(() => document.getElementById('loanBox').classList.add('active'), 600);
+                        }
+
+                        function reset() {
+                            deposits = 0;
+                            rounds = 0;
+                            depositEl.textContent = '0';
+                            reserveEl.textContent = '0';
+                            loanEl.textContent = '0';
+                            totalEl.textContent = '0';
+                            explanationEl.textContent = 'Click "Deposit $10" to see how banks multiply money through lending.';
+
+                            document.querySelectorAll('.money-box').forEach(box => box.classList.remove('active'));
+                        }
+
+                        depositBtn.addEventListener('click', deposit);
+                        resetBtn.addEventListener('click', reset);
+                    })();
+                    </script>
                 </div>
             </section>
 
