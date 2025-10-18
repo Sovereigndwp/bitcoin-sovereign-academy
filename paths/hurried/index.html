@@ -6,6 +6,9 @@
     <title>The Hurried: Bitcoin Straight Up | Bitcoin Sovereign Academy</title>
     <meta name="description" content="Learn Bitcoin through hands-on interactive demos. No fluff, just practical knowledge.">
 
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <style>
         :root {
             --primary-orange: #f7931a;
@@ -1410,55 +1413,53 @@
         }
 
         // Simple QR Code generator
+        // Real QR Code generation using qrcode.js library
         function generateQRCode(text, canvasId) {
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
 
+            // Clear the canvas first
             const ctx = canvas.getContext('2d');
-            const size = canvas.width;
-            const data = text;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Simple QR-like pattern (not a real QR code, just visual representation)
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, size, size);
-            ctx.fillStyle = 'black';
+            // Generate real QR code from the address
+            try {
+                // Create a temporary container for QR code generation
+                const tempDiv = document.createElement('div');
+                tempDiv.style.display = 'none';
+                document.body.appendChild(tempDiv);
 
-            // Generate random blocks to look like QR code
-            const blockSize = 5;
-            const blocks = size / blockSize;
+                // Generate QR code
+                const qrcode = new QRCode(tempDiv, {
+                    text: text,
+                    width: canvas.width,
+                    height: canvas.height,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
 
-            // Use text to seed pseudo-random pattern
-            let seed = 0;
-            for (let i = 0; i < text.length; i++) {
-                seed += text.charCodeAt(i);
-            }
-
-            for (let y = 0; y < blocks; y++) {
-                for (let x = 0; x < blocks; x++) {
-                    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-                    if (seed % 2 === 0) {
-                        ctx.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
+                // Wait for QR code to be generated, then draw it to canvas
+                setTimeout(() => {
+                    const img = tempDiv.querySelector('img');
+                    if (img && img.complete) {
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    } else if (img) {
+                        img.onload = () => {
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        };
                     }
-                }
+                    // Clean up temp div
+                    document.body.removeChild(tempDiv);
+                }, 100);
+            } catch (error) {
+                console.error('QR Code generation error:', error);
+                // Fallback: draw error message
+                ctx.fillStyle = '#f44336';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('QR Error', canvas.width / 2, canvas.height / 2);
             }
-
-            // Add corner squares (QR code markers)
-            const markerSize = 7 * blockSize;
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, markerSize, markerSize);
-            ctx.fillRect(size - markerSize, 0, markerSize, markerSize);
-            ctx.fillRect(0, size - markerSize, markerSize, markerSize);
-
-            ctx.fillStyle = 'black';
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = blockSize;
-            ctx.strokeRect(blockSize, blockSize, markerSize - 2*blockSize, markerSize - 2*blockSize);
-            ctx.strokeRect(size - markerSize + blockSize, blockSize, markerSize - 2*blockSize, markerSize - 2*blockSize);
-            ctx.strokeRect(blockSize, size - markerSize + blockSize, markerSize - 2*blockSize, markerSize - 2*blockSize);
-
-            ctx.fillRect(2.5*blockSize, 2.5*blockSize, 2*blockSize, 2*blockSize);
-            ctx.fillRect(size - markerSize + 2.5*blockSize, 2.5*blockSize, 2*blockSize, 2*blockSize);
-            ctx.fillRect(2.5*blockSize, size - markerSize + 2.5*blockSize, 2*blockSize, 2*blockSize);
         }
 
         // Wallet Generation with visual feedback
@@ -1474,9 +1475,20 @@
             setTimeout(() => {
                 document.getElementById('step-2').style.opacity = '1';
 
-                // Generate mnemonic (simplified - using random words for demo)
-                const words = ['abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract', 'absurd', 'abuse', 'access', 'accident', 'achieve', 'acid', 'acoustic', 'acquire', 'across', 'act', 'action', 'actor', 'actress', 'actual'];
-                const mnemonic = Array.from({length: 12}, () => words[Math.floor(Math.random() * words.length)]).join(' ');
+                // Generate mnemonic (simplified - using truly random selection for demo)
+                const words = ['abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract', 'absurd', 'abuse', 'access', 'accident', 'achieve', 'acid', 'acoustic', 'acquire', 'across', 'act', 'action', 'actor', 'actress', 'actual', 'address', 'adjust', 'admit', 'adult', 'advance', 'advice', 'aerobic', 'affair', 'afford', 'afraid', 'again', 'age', 'agent', 'agree', 'ahead', 'aim', 'air', 'airport', 'aisle', 'alarm', 'album', 'alcohol', 'alert', 'alien', 'all', 'alley', 'allow', 'almost', 'alone', 'alpha', 'already', 'also', 'alter', 'always', 'amateur', 'amazing', 'among', 'amount', 'amused', 'analyst', 'anchor', 'ancient', 'anger', 'angle', 'angry', 'animal', 'ankle', 'announce', 'annual', 'another', 'answer', 'antenna', 'antique', 'anxiety', 'any', 'apart', 'apology', 'appear', 'apple', 'approve', 'april', 'arch', 'arctic', 'area', 'arena', 'argue', 'arm', 'armed', 'armor', 'army', 'around', 'arrange', 'arrest', 'arrive', 'arrow', 'art', 'artefact', 'artist', 'artwork', 'ask', 'aspect', 'assault', 'asset', 'assist', 'assume', 'asthma', 'athlete', 'atom', 'attack', 'attend', 'attitude', 'attract', 'auction', 'audit', 'august', 'aunt', 'author', 'auto', 'autumn', 'average', 'avocado', 'avoid', 'awake', 'aware', 'away', 'awesome', 'awful', 'awkward', 'axis', 'baby', 'bachelor', 'bacon', 'badge', 'bag', 'balance', 'balcony', 'ball', 'bamboo', 'banana', 'banner', 'bar', 'barely', 'bargain', 'barrel', 'base', 'basic', 'basket', 'battle', 'beach', 'bean', 'beauty', 'because', 'become', 'beef', 'before', 'begin', 'behave', 'behind', 'believe', 'below', 'belt', 'bench', 'benefit', 'best', 'betray', 'better', 'between', 'beyond', 'bicycle', 'bid', 'bike', 'bind', 'biology', 'bird', 'birth', 'bitter', 'black', 'blade', 'blame', 'blanket', 'blast', 'bleak', 'bless', 'blind', 'blood', 'blossom', 'blouse', 'blue', 'blur', 'blush', 'board', 'boat', 'body', 'boil', 'bomb', 'bone', 'bonus', 'book', 'boost', 'border', 'boring', 'borrow', 'boss', 'bottom', 'bounce', 'box', 'boy', 'bracket', 'brain', 'brand', 'brass', 'brave', 'bread', 'breeze', 'brick', 'bridge', 'brief', 'bright', 'bring', 'brisk', 'broccoli', 'broken', 'bronze', 'broom', 'brother', 'brown', 'brush', 'bubble', 'buddy', 'budget', 'buffalo', 'build', 'bulb', 'bulk', 'bullet', 'bundle', 'bunker', 'burden', 'burger', 'burst', 'bus', 'business', 'busy', 'butter', 'buyer', 'buzz'];
+
+                // Use crypto.getRandomValues for truly random word selection
+                const mnemonicWords = [];
+                const randomIndices = new Uint32Array(12);
+                crypto.getRandomValues(randomIndices);
+
+                for (let i = 0; i < 12; i++) {
+                    const index = randomIndices[i] % words.length;
+                    mnemonicWords.push(words[index]);
+                }
+
+                const mnemonic = mnemonicWords.join(' ');
 
                 document.getElementById('mnemonic-output').style.display = 'block';
                 document.getElementById('mnemonic-output').textContent = mnemonic;
@@ -1485,8 +1497,11 @@
                 setTimeout(() => {
                     document.getElementById('step-3').style.opacity = '1';
 
-                    // Generate address (demo format)
-                    const address = '1' + Array.from({length: 25}, () => '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'[Math.floor(Math.random() * 58)]).join('');
+                    // Generate address (demo format using truly random characters)
+                    const base58Chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+                    const randomBytes = new Uint8Array(25);
+                    crypto.getRandomValues(randomBytes);
+                    const address = '1' + Array.from(randomBytes, byte => base58Chars[byte % 58]).join('');
 
                     document.getElementById('address-output').style.display = 'block';
                     document.getElementById('address-output').textContent = address;
@@ -1509,8 +1524,13 @@
             const container = document.getElementById('more-addresses');
             container.style.display = 'block';
             container.innerHTML = '';
+            const base58Chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
             for (let i = 0; i < 5; i++) {
-                const address = '1' + Array.from({length: 25}, () => '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'[Math.floor(Math.random() * 58)]).join('');
+                // Generate truly random address
+                const randomBytes = new Uint8Array(25);
+                crypto.getRandomValues(randomBytes);
+                const address = '1' + Array.from(randomBytes, byte => base58Chars[byte % 58]).join('');
                 const div = document.createElement('div');
                 div.className = 'demo-output';
                 div.style.marginTop = '0.5rem';
@@ -1921,6 +1941,13 @@
 
         // ===== NEW STEP 2 & 3 INTERACTIVE FUNCTIONS =====
 
+        // Helper function for truly random array selection
+        function getRandomIndex(arrayLength) {
+            const randomValue = new Uint32Array(1);
+            crypto.getRandomValues(randomValue);
+            return randomValue[0] % arrayLength;
+        }
+
         // Bank Comparison Toggle
         function toggleBankComparison() {
             const comparison = document.getElementById('bank-comparison');
@@ -1999,7 +2026,7 @@
                 'bc1q3j5wv8lzr6fgp2k9xth7mnbvcxz8shjf5qy4rt',
                 'bc1qnk7lqw3mxr8yh4t6zp5vf2g9jd3xa7c1s4e6b9'
             ];
-            const randomAddr = addresses[Math.floor(Math.random() * addresses.length)];
+            const randomAddr = addresses[getRandomIndex(addresses.length)];
             document.getElementById('wallet-address').textContent = randomAddr;
             generateQRCode(randomAddr, 'receive-qr-code');
             alert('New address generated for privacy!');
@@ -2034,7 +2061,7 @@
                 'bc1q3j5wv8lzr6fgp2k9xth7mnbvcxz8shjf5qy4rt',
                 'bc1qnk7lqw3mxr8yh4t6zp5vf2g9jd3xa7c1s4e6b9'
             ];
-            const randomAddr = addresses[Math.floor(Math.random() * addresses.length)];
+            const randomAddr = addresses[getRandomIndex(addresses.length)];
             document.getElementById('current-receive-address').value = randomAddr;
             generateQRCode(randomAddr, 'static-receive-qr');
             alert('New address generated for improved privacy!');
@@ -2084,7 +2111,7 @@
 
         function rotateReceiverAddress() {
             const addresses = ['bc1qxy2...x0wlh', 'bc1q3j5...qy4rt', 'bc1qnk7...e6b9'];
-            const randomAddr = addresses[Math.floor(Math.random() * addresses.length)];
+            const randomAddr = addresses[getRandomIndex(addresses.length)];
             document.querySelector('#receiver-qr-code-demo + p').textContent = randomAddr;
             generateQRCode(randomAddr, 'receiver-qr-code-demo');
             alert('Address rotated for privacy!');
