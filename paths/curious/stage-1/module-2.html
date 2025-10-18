@@ -1431,30 +1431,129 @@
                     Print too little → credit freezes → economy stalls → trust fades.
                 </p>
 
-                <div style="background: var(--secondary-dark); border: 2px solid var(--border-color); border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                <div id="trust-seesaw-demo" style="background: var(--secondary-dark); border: 2px solid var(--border-color); border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
                     <h3 style="color: var(--primary-orange); text-align: center; margin-bottom: 1.5rem;">⚖️ The Trust Seesaw</h3>
 
                     <div style="text-align: center; margin: 2rem 0;">
-                        <p style="font-size: 0.95rem; color: var(--text-dim); margin-bottom: 1rem;">
-                            <em>Interactive Concept: Money creation must balance with public trust</em>
+                        <p style="font-size: 0.95rem; color: var(--text-dim); margin-bottom: 2rem;">
+                            <em>Adjust the money printing rate and watch how trust tips</em>
                         </p>
 
-                        <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem; align-items: center; max-width: 600px; margin: 0 auto;">
-                            <div style="text-align: center; padding: 1.5rem; background: rgba(244, 67, 54, 0.1); border-radius: 0.75rem; border: 2px solid rgba(244, 67, 54, 0.3);">
-                                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💸</div>
-                                <div style="font-weight: 600; color: #ff6b6b; margin-bottom: 0.5rem;">Too Much Printing</div>
-                                <div style="font-size: 0.85rem; color: var(--text-dim);">Trust tips → currency weakens</div>
-                            </div>
-
-                            <div style="font-size: 2rem; color: var(--primary-orange);">⚖️</div>
-
-                            <div style="text-align: center; padding: 1.5rem; background: rgba(76, 175, 80, 0.1); border-radius: 0.75rem; border: 2px solid rgba(76, 175, 80, 0.3);">
-                                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🏦</div>
-                                <div style="font-weight: 600; color: var(--accent-green); margin-bottom: 0.5rem;">Balanced System</div>
-                                <div style="font-size: 0.85rem; color: var(--text-dim);">Public trust holds steady</div>
+                        <!-- Slider Control -->
+                        <div style="max-width: 500px; margin: 0 auto 3rem;">
+                            <label style="display: block; margin-bottom: 1rem; font-weight: 600; color: var(--primary-orange);">
+                                Money Printing Rate: <span id="seesaw-rate">5</span>%/year
+                            </label>
+                            <input
+                                type="range"
+                                id="seesaw-slider"
+                                min="0"
+                                max="30"
+                                value="5"
+                                step="1"
+                                style="width: 100%; height: 8px; border-radius: 4px; background: linear-gradient(to right, var(--accent-green), var(--primary-orange), #ff6b6b); outline: none; cursor: pointer;"
+                            />
+                            <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-dim);">
+                                <span>0% (Deflation)</span>
+                                <span>15% (High)</span>
+                                <span>30% (Crisis)</span>
                             </div>
                         </div>
+
+                        <!-- Seesaw Visual -->
+                        <div style="position: relative; max-width: 600px; margin: 0 auto 2rem; height: 250px;">
+                            <!-- Fulcrum -->
+                            <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 30px solid transparent; border-right: 30px solid transparent; border-bottom: 50px solid var(--primary-orange);"></div>
+
+                            <!-- Seesaw Board -->
+                            <div id="seesaw-board" style="position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%) rotate(0deg); width: 500px; height: 20px; background: var(--border-color); border-radius: 10px; transition: transform 0.3s ease;">
+                                <!-- Left Side: Money Printing -->
+                                <div id="seesaw-left" style="position: absolute; left: -80px; top: -80px; text-align: center; transition: all 0.3s ease;">
+                                    <div style="font-size: 3rem; margin-bottom: 0.5rem;">💸</div>
+                                    <div style="font-weight: 600; font-size: 0.9rem; color: #ff6b6b;">Money<br/>Printing</div>
+                                </div>
+
+                                <!-- Right Side: Public Trust -->
+                                <div id="seesaw-right" style="position: absolute; right: -80px; top: -80px; text-align: center; transition: all 0.3s ease;">
+                                    <div style="font-size: 3rem; margin-bottom: 0.5rem;">🏦</div>
+                                    <div style="font-weight: 600; font-size: 0.9rem; color: var(--accent-green);">Public<br/>Trust</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status Message -->
+                        <div id="seesaw-status" style="padding: 1.5rem; background: rgba(76, 175, 80, 0.1); border: 2px solid rgba(76, 175, 80, 0.3); border-radius: 0.75rem; max-width: 500px; margin: 0 auto;">
+                            <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--accent-green);">✅ Balanced System</div>
+                            <div style="font-size: 0.95rem; color: var(--text-light);">Moderate inflation keeps economy stable. Trust remains high.</div>
+                        </div>
                     </div>
+
+                    <script>
+                        (function() {
+                            const slider = document.getElementById('seesaw-slider');
+                            const rateDisplay = document.getElementById('seesaw-rate');
+                            const seesawBoard = document.getElementById('seesaw-board');
+                            const statusDiv = document.getElementById('seesaw-status');
+
+                            slider.addEventListener('input', function() {
+                                const rate = parseInt(this.value);
+                                rateDisplay.textContent = rate;
+
+                                // Calculate rotation (-15deg to +15deg based on rate)
+                                // 0-5% = balanced to slight left tilt
+                                // 5-10% = balanced
+                                // 10%+ = tilts right (trust falls)
+                                let rotation = 0;
+                                if (rate < 2) {
+                                    rotation = -10; // Too little printing, deflation
+                                } else if (rate <= 5) {
+                                    rotation = -2; // Slight left, healthy
+                                } else if (rate <= 8) {
+                                    rotation = 2; // Slight right
+                                } else if (rate <= 15) {
+                                    rotation = rate - 6; // Progressive tilt
+                                } else {
+                                    rotation = 15 + (rate - 15) * 0.5; // Accelerating tilt
+                                }
+
+                                seesawBoard.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+
+                                // Update status message
+                                let status = '';
+                                if (rate < 2) {
+                                    status = `
+                                        <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: #ff9800;">⚠️ Deflation Risk</div>
+                                        <div style="font-size: 0.95rem; color: var(--text-light);">Too little money creation. Credit freezes, economy stalls, unemployment rises.</div>
+                                    `;
+                                    statusDiv.style.background = 'rgba(255, 152, 0, 0.1)';
+                                    statusDiv.style.border = '2px solid rgba(255, 152, 0, 0.3)';
+                                } else if (rate <= 8) {
+                                    status = `
+                                        <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--accent-green);">✅ Balanced System</div>
+                                        <div style="font-size: 0.95rem; color: var(--text-light);">Moderate inflation keeps economy stable. Trust remains high.</div>
+                                    `;
+                                    statusDiv.style.background = 'rgba(76, 175, 80, 0.1)';
+                                    statusDiv.style.border = '2px solid rgba(76, 175, 80, 0.3)';
+                                } else if (rate <= 15) {
+                                    status = `
+                                        <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: #ff9800;">⚠️ Trust Eroding</div>
+                                        <div style="font-size: 0.95rem; color: var(--text-light);">High inflation. People lose confidence. Currency weakens. Savings erode.</div>
+                                    `;
+                                    statusDiv.style.background = 'rgba(255, 152, 0, 0.1)';
+                                    statusDiv.style.border = '2px solid rgba(255, 152, 0, 0.3)';
+                                } else {
+                                    status = `
+                                        <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: #ff6b6b;">❌ Crisis Mode</div>
+                                        <div style="font-size: 0.95rem; color: var(--text-light);">Hyperinflation. Trust collapses. People flee to foreign currencies or assets.</div>
+                                    `;
+                                    statusDiv.style.background = 'rgba(244, 67, 54, 0.1)';
+                                    statusDiv.style.border = '2px solid rgba(244, 67, 54, 0.3)';
+                                }
+
+                                statusDiv.innerHTML = status;
+                            });
+                        })();
+                    </script>
                 </div>
 
                 <div style="background: rgba(156, 39, 176, 0.1); border-left: 4px solid #9C27B0; border-radius: 0.75rem; padding: 1.5rem; margin: 2rem 0;">
