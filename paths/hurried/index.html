@@ -6,8 +6,8 @@
     <title>The Hurried: Bitcoin Straight Up | Bitcoin Sovereign Academy</title>
     <meta name="description" content="Learn Bitcoin through hands-on interactive demos. No fluff, just practical knowledge.">
 
-    <!-- QR Code Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- QR Code Library - using QRious for better reliability -->
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 
     <style>
         :root {
@@ -790,19 +790,8 @@
                                     <strong style="color: #f44336;">⚠️ Never screenshot. Write on paper.</strong>
                                 </div>
                                 <div id="recovery-words-blurred" style="background: var(--secondary-dark); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem; filter: blur(8px); transition: filter 0.3s;">
-                                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; font-family: 'Courier New', monospace;">
-                                        <div>1. abandon</div>
-                                        <div>2. ability</div>
-                                        <div>3. able</div>
-                                        <div>4. about</div>
-                                        <div>5. above</div>
-                                        <div>6. absent</div>
-                                        <div>7. absorb</div>
-                                        <div>8. abstract</div>
-                                        <div>9. absurd</div>
-                                        <div>10. abuse</div>
-                                        <div>11. access</div>
-                                        <div>12. accident</div>
+                                    <div id="recovery-words-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; font-family: 'Courier New', monospace;">
+                                        <!-- Words will be generated dynamically -->
                                     </div>
                                 </div>
                                 <button class="button secondary" onclick="revealRecoveryWords()" id="reveal-words-btn" style="width: 100%; margin-bottom: 1rem;">👁️ Reveal Words</button>
@@ -821,26 +810,26 @@
                                 <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Let's make sure you wrote them down correctly. Select the correct words:</p>
                                 <div style="margin-bottom: 1.5rem;">
                                     <p style="margin-bottom: 0.5rem;"><strong>Pick word #3:</strong></p>
-                                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
-                                        <button class="button secondary" onclick="checkWord(3, 'able', this)">able</button>
-                                        <button class="button secondary" onclick="checkWord(3, 'about', this)">about</button>
-                                        <button class="button secondary" onclick="checkWord(3, 'above', this)">above</button>
+                                    <div data-word-position="3" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+                                        <button class="button secondary">Loading...</button>
+                                        <button class="button secondary">Loading...</button>
+                                        <button class="button secondary">Loading...</button>
                                     </div>
                                 </div>
                                 <div style="margin-bottom: 1.5rem;">
                                     <p style="margin-bottom: 0.5rem;"><strong>Pick word #7:</strong></p>
-                                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
-                                        <button class="button secondary" onclick="checkWord(7, 'absent', this)">absent</button>
-                                        <button class="button secondary" onclick="checkWord(7, 'absorb', this)">absorb</button>
-                                        <button class="button secondary" onclick="checkWord(7, 'abstract', this)">abstract</button>
+                                    <div data-word-position="7" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+                                        <button class="button secondary">Loading...</button>
+                                        <button class="button secondary">Loading...</button>
+                                        <button class="button secondary">Loading...</button>
                                     </div>
                                 </div>
                                 <div style="margin-bottom: 1.5rem;">
                                     <p style="margin-bottom: 0.5rem;"><strong>Pick word #12:</strong></p>
-                                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
-                                        <button class="button secondary" onclick="checkWord(12, 'access', this)">access</button>
-                                        <button class="button secondary" onclick="checkWord(12, 'accident', this)">accident</button>
-                                        <button class="button secondary" onclick="checkWord(12, 'abuse', this)">abuse</button>
+                                    <div data-word-position="12" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+                                        <button class="button secondary">Loading...</button>
+                                        <button class="button secondary">Loading...</button>
+                                        <button class="button secondary">Loading...</button>
                                     </div>
                                 </div>
                                 <div id="quiz-feedback" style="display: none; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;"></div>
@@ -1413,50 +1402,33 @@
         }
 
         // Simple QR Code generator
-        // Real QR Code generation using qrcode.js library
+        // Real QR Code generation using QRious library
         function generateQRCode(text, canvasId) {
             const canvas = document.getElementById(canvasId);
-            if (!canvas) return;
+            if (!canvas) {
+                console.warn('Canvas not found:', canvasId);
+                return;
+            }
 
-            // Clear the canvas first
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Generate real QR code from the address
             try {
-                // Create a temporary container for QR code generation
-                const tempDiv = document.createElement('div');
-                tempDiv.style.display = 'none';
-                document.body.appendChild(tempDiv);
-
-                // Generate QR code
-                const qrcode = new QRCode(tempDiv, {
-                    text: text,
-                    width: canvas.width,
-                    height: canvas.height,
-                    colorDark: '#000000',
-                    colorLight: '#ffffff',
-                    correctLevel: QRCode.CorrectLevel.M
+                // Use QRious library for reliable QR code generation
+                const qr = new QRious({
+                    element: canvas,
+                    value: text,
+                    size: canvas.width || 200,
+                    background: '#ffffff',
+                    foreground: '#000000',
+                    level: 'M' // Error correction level
                 });
-
-                // Wait for QR code to be generated, then draw it to canvas
-                setTimeout(() => {
-                    const img = tempDiv.querySelector('img');
-                    if (img && img.complete) {
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    } else if (img) {
-                        img.onload = () => {
-                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        };
-                    }
-                    // Clean up temp div
-                    document.body.removeChild(tempDiv);
-                }, 100);
+                console.log('QR code generated successfully for:', text.substring(0, 20) + '...');
             } catch (error) {
                 console.error('QR Code generation error:', error);
                 // Fallback: draw error message
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = '#f44336';
-                ctx.font = '12px Arial';
+                ctx.font = '14px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText('QR Error', canvas.width / 2, canvas.height / 2);
             }
@@ -1958,8 +1930,34 @@
         // Wallet Onboarding Flow
         let onboardingScreen = 1;
         let wordsVerified = {3: false, 7: false, 12: false};
+        let generatedWords = []; // Store generated words for quiz
+
+        // BIP39 word list (first 256 words for variety)
+        const BIP39_WORDS = ['abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract', 'absurd', 'abuse', 'access', 'accident', 'account', 'accuse', 'achieve', 'acid', 'acoustic', 'acquire', 'across', 'act', 'action', 'actor', 'actress', 'actual', 'adapt', 'add', 'addict', 'address', 'adjust', 'admit', 'adult', 'advance', 'advice', 'aerobic', 'affair', 'afford', 'afraid', 'again', 'age', 'agent', 'agree', 'ahead', 'aim', 'air', 'airport', 'aisle', 'alarm', 'album', 'alcohol', 'alert', 'alien', 'all', 'alley', 'allow', 'almost', 'alone', 'alpha', 'already', 'also', 'alter', 'always', 'amateur', 'amazing', 'among', 'amount', 'amused', 'analyst', 'anchor', 'ancient', 'anger', 'angle', 'angry', 'animal', 'ankle', 'announce', 'annual', 'another', 'answer', 'antenna', 'antique', 'anxiety', 'any', 'apart', 'apology', 'appear', 'apple', 'approve', 'april', 'arch', 'arctic', 'area', 'arena', 'argue', 'arm', 'armed', 'armor', 'army', 'around', 'arrange', 'arrest', 'arrive', 'arrow', 'art', 'artefact', 'artist', 'artwork', 'ask', 'aspect', 'assault', 'asset', 'assist', 'assume', 'asthma', 'athlete', 'atom', 'attack', 'attend', 'attitude', 'attract', 'auction', 'audit', 'august', 'aunt', 'author', 'auto', 'autumn', 'average', 'avocado', 'avoid', 'awake', 'aware', 'away', 'awesome', 'awful', 'awkward', 'axis', 'baby', 'bachelor', 'bacon', 'badge', 'bag', 'balance', 'balcony', 'ball', 'bamboo', 'banana', 'banner', 'bar', 'barely', 'bargain', 'barrel', 'base', 'basic', 'basket', 'battle', 'beach', 'bean', 'beauty', 'because', 'become', 'beef', 'before', 'begin', 'behave', 'behind', 'believe', 'below', 'belt', 'bench', 'benefit', 'best', 'betray', 'better', 'between', 'beyond', 'bicycle', 'bid', 'bike', 'bind', 'biology', 'bird', 'birth', 'bitter', 'black', 'blade', 'blame', 'blanket', 'blast', 'bleak', 'bless', 'blind', 'blood', 'blossom', 'blouse', 'blue', 'blur', 'blush', 'board', 'boat', 'body', 'boil', 'bomb', 'bone', 'bonus', 'book', 'boost', 'border', 'boring', 'borrow', 'boss', 'bottom', 'bounce', 'box', 'boy', 'bracket', 'brain', 'brand', 'brass', 'brave', 'bread', 'breeze', 'brick', 'bridge', 'brief', 'bright', 'bring', 'brisk', 'broccoli', 'broken', 'bronze', 'broom', 'brother', 'brown', 'brush', 'bubble', 'buddy', 'budget', 'buffalo', 'build', 'bulb', 'bulk', 'bullet', 'bundle', 'bunker', 'burden', 'burger', 'burst', 'bus', 'business', 'busy', 'butter', 'buyer', 'buzz', 'cabbage', 'cabin', 'cable', 'cactus', 'cage', 'cake', 'call', 'calm', 'camera', 'camp', 'can', 'canal', 'cancel', 'candy', 'cannon', 'canoe', 'canvas', 'canyon', 'capable', 'capital'];
 
         function startWalletOnboarding() {
+            // Generate truly random 12-word seed phrase
+            generatedWords = [];
+            const randomIndices = new Uint32Array(12);
+            crypto.getRandomValues(randomIndices);
+
+            for (let i = 0; i < 12; i++) {
+                const index = randomIndices[i] % BIP39_WORDS.length;
+                generatedWords.push(BIP39_WORDS[index]);
+            }
+
+            // Display the words in the grid
+            const grid = document.getElementById('recovery-words-grid');
+            grid.innerHTML = '';
+            generatedWords.forEach((word, idx) => {
+                const div = document.createElement('div');
+                div.textContent = `${idx + 1}. ${word}`;
+                grid.appendChild(div);
+            });
+
+            // Reset verification state
+            wordsVerified = {3: false, 7: false, 12: false};
+
             document.getElementById('onboarding-screen-1').style.display = 'none';
             document.getElementById('onboarding-screen-2').style.display = 'block';
         }
@@ -1973,8 +1971,50 @@
         }
 
         function proceedToWordQuiz() {
+            // Generate quiz with random words from the generated phrase
+            generateWordQuiz();
+
             document.getElementById('onboarding-screen-2').style.display = 'none';
             document.getElementById('onboarding-screen-3').style.display = 'block';
+        }
+
+        function generateWordQuiz() {
+            // Create quiz for words #3, #7, and #12
+            const quizPositions = [3, 7, 12];
+
+            quizPositions.forEach(pos => {
+                const correctWord = generatedWords[pos - 1];
+
+                // Generate 2 random incorrect words from BIP39 list
+                const incorrectWords = [];
+                while (incorrectWords.length < 2) {
+                    const randomIndex = getRandomIndex(BIP39_WORDS.length);
+                    const word = BIP39_WORDS[randomIndex];
+                    if (word !== correctWord && !incorrectWords.includes(word)) {
+                        incorrectWords.push(word);
+                    }
+                }
+
+                // Shuffle correct and incorrect words
+                const allChoices = [correctWord, ...incorrectWords];
+                const shuffled = allChoices.sort(() => {
+                    const randomBytes = new Uint8Array(1);
+                    crypto.getRandomValues(randomBytes);
+                    return randomBytes[0] % 2 ? 1 : -1;
+                });
+
+                // Update the quiz buttons for this position
+                const container = document.querySelector(`[data-word-position="${pos}"]`);
+                if (container) {
+                    const buttons = container.querySelectorAll('button');
+                    shuffled.forEach((word, idx) => {
+                        if (buttons[idx]) {
+                            buttons[idx].textContent = word;
+                            buttons[idx].setAttribute('onclick', `checkWord(${pos}, '${correctWord}', this)`);
+                        }
+                    });
+                }
+            });
         }
 
         function checkWord(wordNum, correctWord, button) {
