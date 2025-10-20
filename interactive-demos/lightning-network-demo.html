@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning Network Interactive Demo - Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="../css/brand.css">
+    <link rel="stylesheet" href="../css/status-indicators.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #0a0a0a;
+            --secondary-dark: #1a1a1a;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --success-green: #4CAF50;
+            --danger-red: #F44336;
+            --lightning-yellow: #FFC107;
+            --accent-blue: #2196F3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--text-light);
+            padding: 1.5rem;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--lightning-yellow);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .level-switcher {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .level-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid rgba(255, 193, 7, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: all 0.2s;
+        }
+
+        .level-btn.active {
+            background: var(--lightning-yellow);
+            color: #000;
+            border-color: var(--lightning-yellow);
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.4);
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 193, 7, 0.3);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section h2 {
+            color: var(--lightning-yellow);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Channel Visualization */
+        .channel-demo {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .channel-bar {
+            height: 80px;
+            border-radius: 8px;
+            position: relative;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 20px rgba(255, 193, 7, 0.3);
+            transition: all 0.5s ease;
+            overflow: hidden;
+            background: linear-gradient(to right, var(--success-green) 50%, var(--primary-orange) 50%);
+        }
+
+        .channel-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+
+        .channel-label .amount {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--lightning-yellow);
+        }
+
+        .channel-label .name {
+            color: var(--text-dim);
+            font-size: 1rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Network Visualization */
+        .network-container {
+            position: relative;
+            min-height: 450px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .network-svg {
+            width: 100%;
+            height: 450px;
+        }
+
+        .node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .node circle {
+            fill: var(--accent-blue);
+            stroke: var(--lightning-yellow);
+            stroke-width: 2;
+        }
+
+        .node.sender circle {
+            fill: var(--success-green);
+        }
+
+        .node.receiver circle {
+            fill: var(--danger-red);
+        }
+
+        .node.active circle {
+            fill: var(--lightning-yellow);
+            stroke-width: 4;
+        }
+
+        .node text {
+            fill: white;
+            font-size: 14px;
+            font-weight: 600;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        .channel {
+            stroke: rgba(255, 193, 7, 0.4);
+            stroke-width: 3;
+            fill: none;
+        }
+
+        .channel.active {
+            stroke: var(--lightning-yellow);
+            stroke-width: 5;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .htlc {
+            fill: var(--lightning-yellow);
+            filter: drop-shadow(0 0 8px var(--lightning-yellow));
+        }
+
+        /* Controls */
+        .payment-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+        }
+
+        .payment-controls input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.8rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 193, 7, 0.3);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            background: var(--lightning-yellow);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-red);
+            color: white;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            color: var(--lightning-yellow);
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-top: 0.5rem;
+        }
+
+        /* Status Log */
+        .status-log {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(76, 175, 80, 0.3);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 1.5rem 0;
+        }
+
+        .status-log h3 {
+            color: var(--success-green);
+            margin-bottom: 1rem;
+        }
+
+        .log-entry {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid var(--success-green);
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .log-entry.error {
+            border-left-color: var(--danger-red);
+            color: #ff8a80;
+        }
+
+        .log-entry.success {
+            border-left-color: var(--success-green);
+            color: #81C784;
+        }
+
+        .log-entry.info {
+            border-left-color: var(--accent-blue);
+            color: #64B5F6;
+        }
+
+        .log-entry.warning {
+            border-left-color: var(--lightning-yellow);
+            color: #FFD54F;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Info Boxes */
+        .info-box {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            margin: 1rem 0;
+        }
+
+        .info-box h4 {
+            color: #64B5F6;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-box {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--success-green);
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .warning-box {
+            background: rgba(244, 67, 54, 0.1);
+            border: 2px solid var(--danger-red);
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .warning-box strong {
+            color: var(--danger-red);
+        }
+
+        /* Socratic Questions */
+        .question {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid var(--primary-orange);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .question strong {
+            color: var(--lightning-yellow);
+            font-size: 1.1rem;
+            display: block;
+            margin-bottom: 0.75rem;
+        }
+
+        .reveal-btn {
+            background: rgba(247, 147, 26, 0.2);
+            border: 2px solid var(--primary-orange);
+            color: var(--primary-orange);
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .reveal-btn:hover {
+            background: var(--primary-orange);
+            color: white;
+        }
+
+        .answer {
+            display: none;
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--success-green);
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        .answer.revealed {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Multi-Level Visibility */
+        .beginner-only, .intermediate-only, .advanced-only {
+            display: block;
+        }
+
+        body.level-beginner .intermediate-only,
+        body.level-beginner .advanced-only {
+            display: none;
+        }
+
+        body.level-intermediate .beginner-only,
+        body.level-intermediate .advanced-only {
+            display: none;
+        }
+
+        body.level-advanced .beginner-only,
+        body.level-advanced .intermediate-only {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .section { padding: 1.25rem; }
+            .payment-controls { flex-direction: column; }
+            .payment-controls input { min-width: 100%; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>⚡ Lightning Network Interactive Demo</h1>
+        <p class="subtitle">Learn how Bitcoin's instant payment layer works</p>
+
+        <div class="level-switcher">
+            <button class="level-btn" onclick="switchLevel('beginner')">🟡 Beginner</button>
+            <button class="level-btn" onclick="switchLevel('intermediate')">🟠 Intermediate</button>
+            <button class="level-btn" onclick="switchLevel('advanced')">🟢 Advanced</button>
+        </div>
+
+        <!-- Beginner: Single Channel Basics -->
+        <div class="beginner-only">
+            <div class="section">
+                <h2>💡 What is the Lightning Network?</h2>
+                <p style="margin-bottom: 1rem; line-height: 1.7;">
+                    The Lightning Network is Bitcoin's <strong>instant payment layer</strong>. Instead of waiting 10 minutes for each Bitcoin transaction,
+                    Lightning payments settle in <strong>milliseconds</strong> with fees less than a penny.
+                </p>
+
+                <div class="success-box">
+                    <strong>Key Benefits:</strong>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>⚡ <strong>Instant payments</strong> (milliseconds, not minutes)</li>
+                        <li>💰 <strong>Tiny fees</strong> (fraction of a cent)</li>
+                        <li>🔐 <strong>Still Bitcoin</strong> (backed by real BTC on-chain)</li>
+                        <li>🌍 <strong>Microtransactions</strong> (send $0.01 if you want)</li>
+                    </ul>
+                </div>
+
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem;">⚡ Payment Channels: The Foundation</h3>
+                <p style="margin-bottom: 1rem; line-height: 1.7;">
+                    A <strong>payment channel</strong> is like a Bitcoin bank account shared between two people.
+                    They lock up Bitcoin on-chain, then send it back and forth instantly off-chain.
+                </p>
+
+                <div class="channel-demo">
+                    <h4 style="text-align: center; color: var(--lightning-yellow); margin-bottom: 1.5rem;">
+                        Alice ⚡ Bob Payment Channel
+                    </h4>
+
+                    <div class="channel-bar" id="channel-bar-beginner"></div>
+
+                    <div class="channel-labels">
+                        <div class="channel-label">
+                            <div class="amount" id="alice-balance-beginner">500,000</div>
+                            <div class="name">Alice (sats)</div>
+                        </div>
+                        <div class="channel-label">
+                            <div class="amount" id="bob-balance-beginner">500,000</div>
+                            <div class="name">Bob (sats)</div>
+                        </div>
+                    </div>
+
+                    <div class="payment-controls">
+                        <input type="number" id="payment-amount-beginner" placeholder="Amount (sats)" value="50000">
+                        <button class="btn" onclick="sendPayment('alice')">Alice → Bob</button>
+                        <button class="btn" onclick="sendPayment('bob')">Bob → Alice</button>
+                        <button class="btn btn-danger" onclick="resetChannel()">Reset</button>
+                    </div>
+
+                    <div class="info-box">
+                        <h4>💡 How It Works:</h4>
+                        <p>
+                            <strong>1.</strong> Alice and Bob open a channel with 1,000,000 sats (0.01 BTC) total<br>
+                            <strong>2.</strong> Each starts with 500,000 sats<br>
+                            <strong>3.</strong> They can send payments back and forth instantly<br>
+                            <strong>4.</strong> When done, they close the channel and settle on Bitcoin's blockchain
+                        </p>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <strong>🤔 Why is Lightning faster than Bitcoin?</strong>
+                    <button class="reveal-btn" onclick="toggleAnswer('q1')">Show Answer</button>
+                    <div class="answer" id="q1">
+                        Lightning payments happen <strong>off-chain</strong> (outside the blockchain). Only the channel opening and closing are recorded on Bitcoin's blockchain. Everything in between is instant peer-to-peer updates!
+                    </div>
+                </div>
+
+                <div class="question">
+                    <strong>🤔 What happens if Alice runs out of balance?</strong>
+                    <button class="reveal-btn" onclick="toggleAnswer('q2')">Show Answer</button>
+                    <div class="answer" id="q2">
+                        Alice can't send more than she has in the channel. To receive more, someone needs to send her payment, or she needs to close the channel and open a new one with more funds.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Intermediate: Multi-Hop Routing -->
+        <div class="intermediate-only">
+            <div class="section">
+                <h2>🌐 Multi-Hop Routing: The Power of Lightning</h2>
+                <p style="margin-bottom: 1rem; line-height: 1.7;">
+                    You don't need a direct channel with everyone! Lightning can <strong>route payments through intermediate nodes</strong>,
+                    just like the internet routes data through routers.
+                </p>
+
+                <div class="info-box">
+                    <h4>Example: Alice → Carol</h4>
+                    <p>
+                        Alice wants to pay Carol, but doesn't have a direct channel. No problem!<br>
+                        <strong>Route:</strong> Alice → Bob → Carol<br>
+                        Payment goes through Bob's channel, and he forwards it to Carol (earning a small fee).
+                    </p>
+                </div>
+
+                <div class="network-container">
+                    <svg class="network-svg" id="network-svg">
+                        <!-- Network visualization will be drawn here -->
+                    </svg>
+                </div>
+
+                <div class="payment-controls">
+                    <input type="number" id="route-amount" placeholder="Amount (sats)" value="10000">
+                    <button class="btn" onclick="sendRouted Payment()">Send Payment (Alice → Carol)</button>
+                    <button class="btn btn-secondary" onclick="resetNetwork()">Reset Network</button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-sent">0</div>
+                        <div class="stat-label">Total Sent (sats)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-fees">0</div>
+                        <div class="stat-label">Total Fees (sats)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="hop-count">2</div>
+                        <div class="stat-label">Hops in Route</div>
+                    </div>
+                </div>
+
+                <div class="status-log">
+                    <h3>📋 Transaction Log</h3>
+                    <div id="log-container"></div>
+                </div>
+
+                <div class="question">
+                    <strong>🤔 How does Bob know to forward the payment to Carol?</strong>
+                    <button class="reveal-btn" onclick="toggleAnswer('q3')">Show Answer</button>
+                    <div class="answer" id="q3">
+                        Lightning uses <strong>onion routing</strong> (like Tor). Alice encrypts the payment path in layers. Each node can only see the previous and next hop, not the full route. Bob knows to forward to Carol because that's in his layer of the "onion".
+                    </div>
+                </div>
+
+                <div class="question">
+                    <strong>🤔 What if Bob tries to steal the payment?</strong>
+                    <button class="reveal-btn" onclick="toggleAnswer('q4')">Show Answer</button>
+                    <div class="answer" id="q4">
+                        Lightning uses <strong>HTLCs (Hash Time-Locked Contracts)</strong>. Bob can only claim the payment if he has the secret (preimage). He only gets that by forwarding to Carol. If he doesn't forward, he can't claim the funds, and they eventually time out back to Alice.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced: HTLCs & Technical Details -->
+        <div class="advanced-only">
+            <div class="section">
+                <h2>🔬 HTLCs: How Lightning Ensures Atomicity</h2>
+                <p style="margin-bottom: 1rem; line-height: 1.7;">
+                    <strong>Hash Time-Locked Contracts (HTLCs)</strong> are the cryptographic mechanism that makes multi-hop payments trustless.
+                </p>
+
+                <div class="warning-box">
+                    <strong>⚠️ The Problem:</strong> How do you ensure all intermediate nodes forward the payment correctly without trust?
+                </div>
+
+                <div class="success-box">
+                    <strong>✅ The Solution: HTLCs</strong>
+                    <ol style="margin-left: 1.5rem; margin-top: 0.5rem; line-height: 1.8;">
+                        <li><strong>Carol generates a secret</strong> (preimage) and sends Alice its hash</li>
+                        <li><strong>Alice creates HTLC</strong>: "Bob gets paid IF he reveals the preimage within 24 hours"</li>
+                        <li><strong>Bob creates HTLC with Carol</strong>: "Carol gets paid IF she reveals the preimage within 12 hours"</li>
+                        <li><strong>Carol reveals preimage</strong> to claim from Bob</li>
+                        <li><strong>Bob uses same preimage</strong> to claim from Alice</li>
+                        <li><strong>Result:</strong> Either everyone gets paid, or no one does (atomic)</li>
+                    </ol>
+                </div>
+
+                <div class="network-container">
+                    <svg class="network-svg" id="network-svg-advanced">
+                        <!-- Advanced network visualization -->
+                    </svg>
+                </div>
+
+                <div class="payment-controls">
+                    <input type="number" id="htlc-amount" placeholder="Amount (sats)" value="25000">
+                    <input type="number" id="htlc-fee" placeholder="Fee per hop (sats)" value="10">
+                    <button class="btn" onclick="sendHTLCPayment()">Send with HTLC Animation</button>
+                    <button class="btn btn-secondary" onclick="demonstrateFailure()">Simulate Failure</button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="success-rate">100%</div>
+                        <div class="stat-label">Success Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avg-fee">0.02%</div>
+                        <div class="stat-label">Avg Fee Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="liquidity">5M</div>
+                        <div class="stat-label">Network Liquidity</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="latency">250ms</div>
+                        <div class="stat-label">Avg Latency</div>
+                    </div>
+                </div>
+
+                <div class="status-log">
+                    <h3>📋 HTLC Execution Log</h3>
+                    <div id="advanced-log-container"></div>
+                </div>
+
+                <div class="info-box">
+                    <h4>Technical Details:</h4>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem; line-height: 1.7;">
+                        <li><strong>Hash Function:</strong> SHA256 (same as Bitcoin)</li>
+                        <li><strong>Preimage Size:</strong> 32 bytes (256 bits of entropy)</li>
+                        <li><strong>Time Locks:</strong> CLTV (CheckLockTimeVerify) for expiration</li>
+                        <li><strong>Routing Protocol:</strong> Onion routing with Sphinx packet format</li>
+                        <li><strong>Penalty Mechanism:</strong> Revocation keys for old channel states</li>
+                    </ul>
+                </div>
+
+                <div class="question">
+                    <strong>🤔 Why do HTLCs have decreasing timelocks?</strong>
+                    <button class="reveal-btn" onclick="toggleAnswer('q5')">Show Answer</button>
+                    <div class="answer" id="q5">
+                        Timelocks decrease along the route (24h → 12h → 6h) to ensure intermediaries have time to claim their funds before their own HTLCs expire. This prevents them from being stuck in a state where they've paid out but can't claim their incoming HTLC.
+                    </div>
+                </div>
+
+                <div class="question">
+                    <strong>🤔 What's the channel reserve requirement?</strong>
+                    <button class="reveal-btn" onclick="toggleAnswer('q6')">Show Answer</button>
+                    <div class="answer" id="q6">
+                        Each party must keep a minimum balance (typically 1% of channel capacity) as a <strong>channel reserve</strong>. This ensures there's always something at stake to penalize cheating (broadcasting old channel states). Without it, the penalty mechanism wouldn't work.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Steps (All Levels) -->
+        <div class="section">
+            <h2>🚀 What's Next?</h2>
+
+            <div class="beginner-only">
+                <p style="margin-bottom: 1rem;">Ready to try Lightning yourself?</p>
+                <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                    <li>Download a Lightning wallet (Phoenix, Muun, or Wallet of Satoshi)</li>
+                    <li>Practice on testnet first (free fake Bitcoin)</li>
+                    <li>Start with small amounts ($5-10)</li>
+                    <li>Try buying coffee or tipping content creators</li>
+                </ul>
+            </div>
+
+            <div class="intermediate-only">
+                <p style="margin-bottom: 1rem;">Dive deeper into Lightning:</p>
+                <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                    <li>Run your own Lightning node (Umbrel, RaspiBlitz, Start9)</li>
+                    <li>Open channels with well-connected nodes</li>
+                    <li>Learn about liquidity management and channel balancing</li>
+                    <li>Explore routing node economics (earning fees)</li>
+                </ul>
+            </div>
+
+            <div class="advanced-only">
+                <p style="margin-bottom: 1rem;">Advanced Lightning topics:</p>
+                <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                    <li>Implement Lightning with LND, CLN, or Eclair</li>
+                    <li>Build Lightning apps using LNURL or WebLN</li>
+                    <li>Study channel factories and multi-party channels (Eltoo)</li>
+                    <li>Explore Taproot channels and PTLCs (Point Time-Locked Contracts)</li>
+                    <li>Contribute to Lightning protocol development (BOLTs)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // Multi-Level Support
+        // ========================================
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLevel = urlParams.get('level') || 'beginner';
+        const currentPath = urlParams.get('path') || 'curious';
+
+        document.body.classList.add(`level-${currentLevel}`);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const buttons = document.querySelectorAll('.level-btn');
+            buttons.forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(currentLevel)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            if (currentLevel === 'intermediate' || currentLevel === 'advanced') {
+                initNetwork();
+            }
+        });
+
+        function switchLevel(level) {
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('level', level);
+            window.location.href = newUrl.toString();
+        }
+
+        // ========================================
+        // Beginner: Single Channel Demo
+        // ========================================
+
+        let aliceBalance = 500000;
+        let bobBalance = 500000;
+
+        function sendPayment(from) {
+            const amount = parseInt(document.getElementById('payment-amount-beginner').value) || 0;
+
+            if (amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            if (from === 'alice') {
+                if (amount > aliceBalance) {
+                    alert(`Alice doesn't have enough balance! (Has: ${aliceBalance} sats)`);
+                    return;
+                }
+                aliceBalance -= amount;
+                bobBalance += amount;
+            } else {
+                if (amount > bobBalance) {
+                    alert(`Bob doesn't have enough balance! (Has: ${bobBalance} sats)`);
+                    return;
+                }
+                bobBalance -= amount;
+                aliceBalance += amount;
+            }
+
+            updateChannelUI();
+        }
+
+        function resetChannel() {
+            aliceBalance = 500000;
+            bobBalance = 500000;
+            updateChannelUI();
+        }
+
+        function updateChannelUI() {
+            const alicePercent = (aliceBalance / 1000000) * 100;
+            const channelBar = document.getElementById('channel-bar-beginner');
+            channelBar.style.background = `linear-gradient(to right, var(--success-green) ${alicePercent}%, var(--primary-orange) ${alicePercent}%)`;
+
+            document.getElementById('alice-balance-beginner').textContent = aliceBalance.toLocaleString();
+            document.getElementById('bob-balance-beginner').textContent = bobBalance.toLocaleString();
+        }
+
+        // ========================================
+        // Intermediate/Advanced: Network Routing
+        // ========================================
+
+        let networkNodes = [];
+        let networkChannels = [];
+        let totalSent = 0;
+        let totalFees = 0;
+
+        function initNetwork() {
+            networkNodes = [
+                { id: 'alice', x: 100, y: 200, balance: 1000000, type: 'sender' },
+                { id: 'bob', x: 350, y: 100, balance: 800000, type: 'router' },
+                { id: 'carol', x: 600, y: 200, balance: 500000, type: 'receiver' },
+                { id: 'dave', x: 350, y: 300, balance: 600000, type: 'router' }
+            ];
+
+            networkChannels = [
+                { from: 'alice', to: 'bob', capacity: 500000, fee: 10 },
+                { from: 'bob', to: 'carol', capacity: 400000, fee: 10 },
+                { from: 'alice', to: 'dave', capacity: 300000, fee: 5 },
+                { from: 'dave', to: 'carol', capacity: 350000, fee: 5 }
+            ];
+
+            drawNetwork();
+        }
+
+        function drawNetwork() {
+            const svg = document.getElementById(currentLevel === 'advanced' ? 'network-svg-advanced' : 'network-svg');
+            if (!svg) return;
+
+            svg.innerHTML = '';
+
+            // Draw channels
+            networkChannels.forEach(channel => {
+                const fromNode = networkNodes.find(n => n.id === channel.from);
+                const toNode = networkNodes.find(n => n.id === channel.to);
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('class', 'channel');
+                line.setAttribute('x1', fromNode.x);
+                line.setAttribute('y1', fromNode.y);
+                line.setAttribute('x2', toNode.x);
+                line.setAttribute('y2', toNode.y);
+                line.setAttribute('data-from', channel.from);
+                line.setAttribute('data-to', channel.to);
+                svg.appendChild(line);
+            });
+
+            // Draw nodes
+            networkNodes.forEach(node => {
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('class', `node ${node.type}`);
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', node.x);
+                circle.setAttribute('cy', node.y);
+                circle.setAttribute('r', 30);
+                g.appendChild(circle);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', node.x);
+                text.setAttribute('y', node.y + 5);
+                text.textContent = node.id.charAt(0).toUpperCase() + node.id.slice(1);
+                g.appendChild(text);
+
+                svg.appendChild(g);
+            });
+        }
+
+        function sendRoutedPayment() {
+            const amount = parseInt(document.getElementById('route-amount').value) || 10000;
+            const route = ['alice', 'bob', 'carol'];
+            const feePerHop = 10;
+            const totalFee = (route.length - 1) * feePerHop;
+
+            addLog(`Sending ${amount} sats from Alice to Carol...`, 'info');
+            addLog(`Route: ${route.join(' → ')}`, 'info');
+            addLog(`Fee: ${totalFee} sats (${feePerHop} per hop)`, 'warning');
+
+            setTimeout(() => {
+                totalSent += amount;
+                totalFees += totalFee;
+                updateStats();
+                addLog(`✅ Payment successful! ${amount} sats delivered.`, 'success');
+            }, 1500);
+        }
+
+        function sendHTLCPayment() {
+            const amount = parseInt(document.getElementById('htlc-amount').value) || 25000;
+            const fee = parseInt(document.getElementById('htlc-fee').value) || 10;
+
+            addAdvancedLog('🔐 Carol generates preimage and sends hash to Alice', 'info');
+            setTimeout(() => addAdvancedLog('⚡ Alice creates HTLC: "Pay Bob IF preimage revealed"', 'info'), 500);
+            setTimeout(() => addAdvancedLog('⚡ Bob creates HTLC: "Pay Carol IF preimage revealed"', 'info'), 1000);
+            setTimeout(() => addAdvancedLog('✅ Carol reveals preimage and claims from Bob', 'success'), 1500);
+            setTimeout(() => addAdvancedLog('✅ Bob uses preimage to claim from Alice', 'success'), 2000);
+            setTimeout(() => addAdvancedLog(`🎉 Payment complete! ${amount} sats transferred atomically.`, 'success'), 2500);
+        }
+
+        function demonstrateFailure() {
+            addAdvancedLog('🔐 Setting up HTLC chain...', 'info');
+            setTimeout(() => addAdvancedLog('⚡ Alice → Bob HTLC created (24h timeout)', 'info'), 500);
+            setTimeout(() => addAdvancedLog('⚡ Bob → Carol HTLC created (12h timeout)', 'info'), 1000);
+            setTimeout(() => addAdvancedLog('❌ Carol offline! Cannot reveal preimage.', 'error'), 1500);
+            setTimeout(() => addAdvancedLog('⏰ HTLCs expire... funds return to sender', 'warning'), 2500);
+            setTimeout(() => addAdvancedLog('✅ Bob refunded from Carol HTLC (12h expired)', 'success'), 3500);
+            setTimeout(() => addAdvancedLog('✅ Alice refunded from Bob HTLC (24h expired)', 'success'), 4000);
+            setTimeout(() => addAdvancedLog('🔄 No funds lost! Payment failed safely.', 'info'), 4500);
+        }
+
+        function resetNetwork() {
+            totalSent = 0;
+            totalFees = 0;
+            updateStats();
+            document.getElementById('log-container').innerHTML = '';
+            addLog('Network reset', 'info');
+        }
+
+        function updateStats() {
+            document.getElementById('total-sent').textContent = totalSent.toLocaleString();
+            document.getElementById('total-fees').textContent = totalFees;
+        }
+
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            if (!logContainer) return;
+
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.insertBefore(entry, logContainer.firstChild);
+
+            if (logContainer.children.length > 20) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+        }
+
+        function addAdvancedLog(message, type = 'info') {
+            const logContainer = document.getElementById('advanced-log-container');
+            if (!logContainer) return;
+
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.insertBefore(entry, logContainer.firstChild);
+
+            if (logContainer.children.length > 15) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+        }
+
+        // ========================================
+        // Socratic Questions
+        // ========================================
+
+        function toggleAnswer(id) {
+            const answer = document.getElementById(id);
+            answer.classList.toggle('revealed');
+        }
+    </script>
+</body>
+</html>
