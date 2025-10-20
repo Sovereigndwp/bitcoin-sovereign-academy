@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computational Puzzles Demo - Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --accent-purple: #4f46e5;
+            --accent-green: #28a745;
+            --accent-red: #dc3545;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        /* Multi-Level Support */
+        body.level-beginner .advanced-only { display: none; }
+        body.level-beginner .intermediate-only { display: none; }
+        body.level-intermediate .advanced-only { display: none; }
+        body.level-intermediate .beginner-only { display: none; }
+        body.level-advanced .beginner-only { display: none; }
+        body.level-advanced .intermediate-only { display: none; }
+
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { color: var(--primary-orange); font-size: 2rem; margin-bottom: 0.5rem; }
+
+        .level-switcher { background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 12px; padding: 1rem; margin-bottom: 2rem; }
+        .level-info { text-align: center; margin-bottom: 0.75rem; }
+        .level-buttons { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+        .level-btn { padding: 0.6rem 1.2rem; background: rgba(247, 147, 26, 0.1); border: 2px solid rgba(247, 147, 26, 0.3); border-radius: 8px; color: var(--text-light); cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
+        .level-btn.active { background: var(--primary-orange); border-color: var(--primary-orange); color: white; }
+
+        .intro-box { background: rgba(79, 70, 229, 0.1); border-left: 4px solid var(--accent-purple); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem; }
+        .demo-container { background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 15px; padding: 2rem; margin: 2rem 0; }
+
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .puzzle-piece {
+            background: linear-gradient(135deg, var(--accent-purple), #7c3aed);
+            border: 3px solid rgba(79, 70, 229, 0.5);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .puzzle-piece:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+        }
+
+        .puzzle-num {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .puzzle-hash {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+        }
+
+        .btn {
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(247, 147, 26, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .puzzle-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧩 Computational Puzzles</h1>
+            <p>Understanding Proof of Work through hash puzzles</p>
+        </div>
+
+        <div class="level-switcher">
+            <div class="level-info">
+                <span style="color: var(--text-dim); font-size: 0.9rem;">Difficulty:</span>
+                <span style="color: var(--primary-orange); font-weight: bold; font-size: 1.1rem; margin-left: 0.5rem;" id="current-level-name">Beginner Mode</span>
+            </div>
+            <div class="level-buttons">
+                <button class="level-btn active" data-level="beginner">Beginner</button>
+                <button class="level-btn" data-level="intermediate">Intermediate</button>
+                <button class="level-btn" data-level="advanced">Advanced</button>
+            </div>
+        </div>
+
+        <div class="intro-box">
+            <h3 style="color: var(--accent-purple); margin-bottom: 0.75rem;">The Proof of Work Puzzle</h3>
+            <p class="beginner-only">
+                Bitcoin "miners" have to solve difficult mathematical puzzles to vote on transactions. The puzzle is: find a number that, when combined with transaction data, creates a hash starting with zeros (0000...). This takes lots of computing power!
+            </p>
+            <p class="intermediate-only">
+                Proof of Work prevents Sybil attacks by making "votes" expensive. Miners search for a nonce (number) that, when hashed with block data, produces a hash below the difficulty target. This is computationally expensive but trivial to verify.
+            </p>
+            <p class="advanced-only">
+                PoW creates unforgeable costliness through one-way hash functions (SHA-256). Finding nonce such that H(block_header || nonce) < target requires ~2^(256-difficulty_bits) attempts on average. Difficulty adjusts every 2016 blocks to maintain 10-min target, ensuring thermodynamic security model.
+            </p>
+        </div>
+
+        <div class="demo-container">
+            <h4 style="color: var(--accent-purple); margin-bottom: 1.5rem;">Try to Find the Winning Number</h4>
+            <p style="margin-bottom: 2rem;">
+                <strong class="beginner-only">Goal:</strong>
+                <strong class="intermediate-only">Challenge:</strong>
+                <strong class="advanced-only">Mining Simulation:</strong>
+                Click each number to see its hash. Find the one that starts with 0000...
+            </p>
+
+            <div class="puzzle-grid">
+                <div class="puzzle-piece" onclick="tryPuzzle(1)" id="puzzle1">
+                    <div class="puzzle-num">Try: 1</div>
+                    <div class="puzzle-hash" id="hash1">Click to hash</div>
+                </div>
+                <div class="puzzle-piece" onclick="tryPuzzle(2)" id="puzzle2">
+                    <div class="puzzle-num">Try: 2</div>
+                    <div class="puzzle-hash" id="hash2">Click to hash</div>
+                </div>
+                <div class="puzzle-piece" onclick="tryPuzzle(3)" id="puzzle3">
+                    <div class="puzzle-num">Try: 3</div>
+                    <div class="puzzle-hash" id="hash3">Click to hash</div>
+                </div>
+                <div class="puzzle-piece" onclick="tryPuzzle(4)" id="puzzle4">
+                    <div class="puzzle-num">Try: 4</div>
+                    <div class="puzzle-hash" id="hash4">Click to hash</div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn" onclick="autoSolvePuzzle()">⚡ Auto-Solve Puzzle</button>
+                <button class="btn" style="background: #6c757d;" onclick="resetPuzzle()">🔄 Reset</button>
+            </div>
+
+            <div id="puzzle-result"></div>
+        </div>
+
+        <div style="background: rgba(40, 167, 80, 0.1); border-left: 4px solid var(--accent-green); border-radius: 0.5rem; padding: 1.5rem; margin-top: 2rem;">
+            <h4 style="color: var(--accent-green); margin-bottom: 0.75rem;">Why This Works</h4>
+            <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                <li class="beginner-only"><strong>Expensive to Attack:</strong> Creating fake votes requires real electricity and hardware</li>
+                <li class="intermediate-only"><strong>Asymmetric Verification:</strong> Hard to find (billions of attempts), easy to verify (one hash)</li>
+                <li class="advanced-only"><strong>Unforgeable Costliness:</strong> Thermodynamic security - energy expenditure creates Schelling point for consensus</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLevel = urlParams.get('level') || 'beginner';
+        document.body.classList.add(`level-${currentLevel}`);
+
+        const LEVEL_CONFIG = {
+            beginner: { name: "Beginner Mode" },
+            intermediate: { name: "Intermediate Mode" },
+            advanced: { name: "Advanced Mode" }
+        };
+
+        document.getElementById('current-level-name').textContent = LEVEL_CONFIG[currentLevel].name;
+
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            if (btn.dataset.level === currentLevel) btn.classList.add('active');
+            btn.addEventListener('click', (e) => {
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('level', e.target.dataset.level);
+                window.location.href = newUrl.toString();
+            });
+        });
+
+        function tryPuzzle(attempt) {
+            const hashes = {
+                1: 'a4b2f1e8c9d3a7b2c5e1f9a3b7d2e8f4',
+                2: 'f7e1b3a9c2d5e8f1a4b7c3d9e2f8a6b1',
+                3: '0000a1b2c3d4e5f6a7b8c9d0e1f2a3b4',
+                4: 'c8d2e1f3a9b7c4d1e8f2a5b9c7d3e1f6'
+            };
+
+            const hashElement = document.getElementById(`hash${attempt}`);
+            hashElement.textContent = hashes[attempt];
+
+            const puzzlePiece = document.getElementById(`puzzle${attempt}`);
+
+            if (attempt === 3) {
+                puzzlePiece.style.background = 'linear-gradient(135deg, var(--accent-green), #20c997)';
+                hashElement.style.color = 'var(--accent-green)';
+
+                let message = '';
+                if (currentLevel === 'beginner') {
+                    message = `<strong>🎉 Puzzle Solved!</strong> Number 3 produces a hash starting with 0000...<br><small>This represents the computational work needed to "vote" in Bitcoin.</small>`;
+                } else if (currentLevel === 'intermediate') {
+                    message = `<strong>✅ Valid Proof of Work!</strong> Nonce 3 found after testing multiple candidates.<br><small>In Bitcoin, miners test billions of nonces per second to find valid blocks.</small>`;
+                } else {
+                    message = `<strong>⚡ Valid Block Header Hash!</strong> Found nonce meeting difficulty target.<br><small>Real Bitcoin: ~400 EH/s global hashrate testing 400 quintillion hashes/second. Avg block time: 10 minutes via difficulty adjustment every 2016 blocks.</small>`;
+                }
+
+                document.getElementById('puzzle-result').innerHTML = `
+                    <div style="background: rgba(40, 167, 80, 0.2); border: 2px solid var(--accent-green); border-radius: 12px; padding: 1.5rem; margin-top: 2rem; animation: fadeIn 0.5s;">
+                        ${message}
+                    </div>
+                `;
+            } else {
+                puzzlePiece.style.background = 'linear-gradient(135deg, var(--accent-red), #c82333)';
+                hashElement.style.color = 'var(--accent-red)';
+            }
+        }
+
+        function autoSolvePuzzle() {
+            let attempts = 0;
+            const interval = setInterval(() => {
+                attempts++;
+                if (attempts <= 3) tryPuzzle(attempts);
+                if (attempts >= 3) clearInterval(interval);
+            }, 1000);
+        }
+
+        function resetPuzzle() {
+            for (let i = 1; i <= 4; i++) {
+                const hashElement = document.getElementById(`hash${i}`);
+                const puzzlePiece = document.getElementById(`puzzle${i}`);
+                if (hashElement) hashElement.textContent = 'Click to hash';
+                if (hashElement) hashElement.style.color = 'var(--text-light)';
+                if (puzzlePiece) puzzlePiece.style.background = 'linear-gradient(135deg, var(--accent-purple), #7c3aed)';
+            }
+            document.getElementById('puzzle-result').innerHTML = '';
+        }
+
+        console.log(`🧩 Computational Puzzles Demo Level: ${currentLevel}`);
+    </script>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Building the Chain Demo - Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --accent-purple: #4f46e5;
+            --accent-green: #28a745;
+            --accent-red: #dc3545;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        body.level-beginner .advanced-only { display: none; }
+        body.level-beginner .intermediate-only { display: none; }
+        body.level-intermediate .advanced-only { display: none; }
+        body.level-intermediate .beginner-only { display: none; }
+        body.level-advanced .beginner-only { display: none; }
+        body.level-advanced .intermediate-only { display: none; }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { color: var(--primary-orange); font-size: 2rem; margin-bottom: 0.5rem; }
+
+        .level-switcher { background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 12px; padding: 1rem; margin-bottom: 2rem; }
+        .level-info { text-align: center; margin-bottom: 0.75rem; }
+        .level-buttons { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+        .level-btn { padding: 0.6rem 1.2rem; background: rgba(247, 147, 26, 0.1); border: 2px solid rgba(247, 147, 26, 0.3); border-radius: 8px; color: var(--text-light); cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
+        .level-btn.active { background: var(--primary-orange); border-color: var(--primary-orange); color: white; }
+
+        .intro-box { background: rgba(79, 70, 229, 0.1); border-left: 4px solid var(--accent-purple); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem; }
+        .demo-container { background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 15px; padding: 2rem; margin: 2rem 0; }
+
+        .chain-visual {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding: 2rem 0;
+            margin: 2rem 0;
+        }
+
+        .block {
+            background: linear-gradient(135deg, var(--accent-purple), #7c3aed);
+            border: 3px solid rgba(79, 70, 229, 0.5);
+            border-radius: 12px;
+            padding: 1.5rem;
+            min-width: 200px;
+            text-align: center;
+            animation: slideIn 0.5s ease;
+        }
+
+        .block.tampered {
+            background: linear-gradient(135deg, var(--accent-red), #c82333);
+            border-color: var(--accent-red);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .btn {
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(247, 147, 26, 0.4); }
+
+        input[type="text"] {
+            width: 100%;
+            max-width: 500px;
+            padding: 0.75rem;
+            border: 2px solid var(--accent-purple);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⛓️ Building the Chain</h1>
+            <p>How blocks link together to create immutable history</p>
+        </div>
+
+        <div class="level-switcher">
+            <div class="level-info">
+                <span style="color: var(--text-dim); font-size: 0.9rem;">Difficulty:</span>
+                <span style="color: var(--primary-orange); font-weight: bold; font-size: 1.1rem; margin-left: 0.5rem;" id="current-level-name">Beginner Mode</span>
+            </div>
+            <div class="level-buttons">
+                <button class="level-btn active" data-level="beginner">Beginner</button>
+                <button class="level-btn" data-level="intermediate">Intermediate</button>
+                <button class="level-btn" data-level="advanced">Advanced</button>
+            </div>
+        </div>
+
+        <div class="intro-box">
+            <h3 style="color: var(--accent-purple); margin-bottom: 0.75rem;">The Chain Structure</h3>
+            <p class="beginner-only">
+                Bitcoin groups transactions into "blocks" and chains them together. Each block contains a reference to the previous block. To change an old transaction, you'd have to redo ALL the work for that block and every block after it!
+            </p>
+            <p class="intermediate-only">
+                The blockchain is a cryptographically-linked data structure. Each block header contains the hash of the previous block, creating an immutable chain. Changing any historical data invalidates all subsequent blocks.
+            </p>
+            <p class="advanced-only">
+                Bitcoin's blockchain implements a Merkle-DAG (Directed Acyclic Graph) with cumulative PoW. Block headers contain prev_block_hash, merkle_root, timestamp, nonce. Hash chaining creates temporal ordering with O(1) verification but O(n) reorg attack cost where n = confirmations.
+            </p>
+        </div>
+
+        <div class="demo-container">
+            <h4 style="color: var(--accent-purple); margin-bottom: 1.5rem;">Interactive Blockchain</h4>
+            <p style="margin-bottom: 1.5rem;">Add transactions to see how the blockchain grows:</p>
+
+            <div style="margin-bottom: 2rem;">
+                <input type="text" id="new-tx" placeholder="Enter transaction (e.g., 'Alice sends 10 BTC to Bob')">
+                <button class="btn" onclick="addTransaction()">➕ Add Transaction</button>
+            </div>
+
+            <div class="chain-visual" id="chain-visual">
+                <div class="block">
+                    <div style="font-weight: bold; margin-bottom: 0.5rem;">Block 0</div>
+                    <div style="font-size: 0.85rem; margin-bottom: 0.5rem;">Genesis</div>
+                    <div style="font-size: 0.75rem; font-family: monospace;">Hash: 000a...</div>
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <button class="btn" onclick="attemptTamper()">⚠️ Try to Change Block 1</button>
+                <button class="btn" style="background: #6c757d;" onclick="resetChain()">🔄 Reset Chain</button>
+            </div>
+
+            <div id="tamper-result"></div>
+        </div>
+
+        <div style="background: rgba(40, 167, 80, 0.1); border-left: 4px solid var(--accent-green); border-radius: 0.5rem; padding: 1.5rem; margin-top: 2rem;">
+            <h4 style="color: var(--accent-green); margin-bottom: 0.75rem;">Why Chaining Works</h4>
+            <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                <li class="beginner-only"><strong>Immutability:</strong> Changing old data requires redoing all subsequent work</li>
+                <li class="intermediate-only"><strong>Cumulative Security:</strong> Each new block makes all previous blocks exponentially more secure</li>
+                <li class="advanced-only"><strong>Thermodynamic Finality:</strong> Cost to reorg = sum of PoW since target block ≈ (hashrate × time × electricity cost)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLevel = urlParams.get('level') || 'beginner';
+        document.body.classList.add(`level-${currentLevel}`);
+
+        const LEVEL_CONFIG = {
+            beginner: { name: "Beginner Mode" },
+            intermediate: { name: "Intermediate Mode" },
+            advanced: { name: "Advanced Mode" }
+        };
+
+        document.getElementById('current-level-name').textContent = LEVEL_CONFIG[currentLevel].name;
+
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            if (btn.dataset.level === currentLevel) btn.classList.add('active');
+            btn.addEventListener('click', (e) => {
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('level', e.target.dataset.level);
+                window.location.href = newUrl.toString();
+            });
+        });
+
+        let blockchainData = [
+            { id: 0, data: 'Genesis', hash: '000a1b2c...' }
+        ];
+
+        function generateHash(data) {
+            const chars = '0123456789abcdef';
+            let hash = '000';
+            for (let i = 0; i < 5; i++) {
+                hash += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return hash + '...';
+        }
+
+        function addTransaction() {
+            const txInput = document.getElementById('new-tx');
+            const transaction = txInput.value;
+            if (!transaction) return;
+
+            const newBlock = {
+                id: blockchainData.length,
+                data: transaction,
+                hash: generateHash(transaction)
+            };
+
+            blockchainData.push(newBlock);
+            updateChainVisual();
+            txInput.value = '';
+        }
+
+        function updateChainVisual() {
+            const container = document.getElementById('chain-visual');
+            container.innerHTML = '';
+
+            blockchainData.forEach(block => {
+                const blockEl = document.createElement('div');
+                blockEl.className = 'block';
+                blockEl.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 0.5rem;">Block ${block.id}</div>
+                    <div style="font-size: 0.85rem; margin-bottom: 0.5rem;">${block.data}</div>
+                    <div style="font-size: 0.75rem; font-family: monospace;">Hash: ${block.hash}</div>
+                `;
+                container.appendChild(blockEl);
+            });
+        }
+
+        function attemptTamper() {
+            const result = document.getElementById('tamper-result');
+
+            if (blockchainData.length < 2) {
+                result.innerHTML = `
+                    <div style="background: rgba(220, 53, 69, 0.2); border: 2px solid var(--accent-red); border-radius: 12px; padding: 1.5rem; margin-top: 2rem;">
+                        <strong>⚠️ Add some blocks first!</strong><br>
+                        You need at least 2 blocks to see why tampering breaks the chain.
+                    </div>
+                `;
+                return;
+            }
+
+            // Mark block 1 as tampered
+            const blocks = document.querySelectorAll('.block');
+            if (blocks.length > 1) {
+                blocks[1].classList.add('tampered');
+                for (let i = 2; i < blocks.length; i++) {
+                    blocks[i].classList.add('tampered');
+                }
+            }
+
+            let message = '';
+            if (currentLevel === 'beginner') {
+                message = `<strong>⛓️ Chain Broken!</strong><br><br>Changing Block 1 breaks all blocks after it! The hashes no longer match. To fix this, you'd need to redo the mining work for Block 1, Block 2, Block 3... all the way to the end.<br><br>This is why Bitcoin's history is practically unchangeable.`;
+            } else if (currentLevel === 'intermediate') {
+                message = `<strong>❌ Invalid Chain State!</strong><br><br>Tampering with Block 1 invalidates its hash. Since Block 2 references Block 1's hash, Block 2 becomes invalid. This cascades through the entire chain.<br><br>To successfully tamper, an attacker must re-mine Block 1 AND all subsequent blocks faster than the honest network continues adding new blocks.`;
+            } else {
+                message = `<strong>⚡ Reorg Attack Required!</strong><br><br>Modifying Block 1 requires:<br>1. Re-mining Block 1 with altered data (find new nonce meeting difficulty)<br>2. Re-mining Blocks 2, 3, 4... (cascade effect)<br>3. Outpacing honest chain growth<br><br>Attack cost ≈ (blocks_deep × avg_block_reward × BTC_price). For 6 confirmations: ~$250K in block rewards + computational cost of 6 blocks of PoW. Economic game theory: attack destroys value being stolen.`;
+            }
+
+            result.innerHTML = `
+                <div style="background: rgba(220, 53, 69, 0.2); border: 2px solid var(--accent-red); border-radius: 12px; padding: 1.5rem; margin-top: 2rem; animation: fadeIn 0.5s;">
+                    ${message}
+                </div>
+            `;
+        }
+
+        function resetChain() {
+            blockchainData = [{ id: 0, data: 'Genesis', hash: '000a1b2c...' }];
+            updateChainVisual();
+            document.getElementById('tamper-result').innerHTML = '';
+        }
+
+        console.log(`⛓️ Building the Chain Demo Level: ${currentLevel}`);
+    </script>
+</body>
+</html>

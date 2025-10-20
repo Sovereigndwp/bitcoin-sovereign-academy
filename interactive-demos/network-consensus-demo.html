@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Consensus Demo - Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --accent-purple: #4f46e5;
+            --accent-green: #28a745;
+            --accent-red: #dc3545;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        /* Multi-Level Support */
+        body.level-beginner .advanced-only { display: none; }
+        body.level-beginner .intermediate-only { display: none; }
+        body.level-intermediate .advanced-only { display: none; }
+        body.level-intermediate .beginner-only { display: none; }
+        body.level-advanced .beginner-only { display: none; }
+        body.level-advanced .intermediate-only { display: none; }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { color: var(--primary-orange); font-size: 2rem; margin-bottom: 0.5rem; }
+        .header p { color: var(--text-dim); font-size: 1rem; }
+
+        /* Level Switcher */
+        .level-switcher { background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 12px; padding: 1rem; margin-bottom: 2rem; }
+        .level-info { text-align: center; margin-bottom: 0.75rem; }
+        .level-label { color: var(--text-dim); font-size: 0.9rem; }
+        .level-current { color: var(--primary-orange); font-weight: bold; font-size: 1.1rem; margin-left: 0.5rem; }
+        .level-buttons { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+        .level-btn { padding: 0.6rem 1.2rem; background: rgba(247, 147, 26, 0.1); border: 2px solid rgba(247, 147, 26, 0.3); border-radius: 8px; color: var(--text-light); cursor: pointer; font-weight: 600; transition: all 0.3s ease; font-size: 0.9rem; }
+        .level-btn:hover { background: rgba(247, 147, 26, 0.2); transform: translateY(-2px); }
+        .level-btn.active { background: var(--primary-orange); border-color: var(--primary-orange); color: white; }
+
+        .intro-box { background: rgba(79, 70, 229, 0.1); border-left: 4px solid var(--accent-purple); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem; }
+        .intro-box h3 { color: var(--accent-purple); margin-bottom: 0.75rem; }
+
+        .demo-container { background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 15px; padding: 2rem; margin: 2rem 0; }
+        .demo-container h4 { color: var(--accent-purple); margin-bottom: 1.5rem; font-size: 1.2rem; }
+
+        .consensus-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .node {
+            background: linear-gradient(135deg, #333366, #2d2d5f);
+            border: 3px solid #666;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .node.honest {
+            border-color: var(--accent-green);
+            background: linear-gradient(135deg, rgba(40, 167, 80, 0.2), rgba(40, 167, 80, 0.1));
+        }
+
+        .node.dishonest {
+            border-color: var(--accent-red);
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.2), rgba(220, 53, 69, 0.1));
+        }
+
+        .node-label { font-weight: bold; margin-bottom: 0.5rem; font-size: 1rem; }
+        .node-status { font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--text-dim); }
+        .node-vote { font-size: 1.1rem; font-weight: bold; color: var(--text-light); }
+
+        .btn {
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(247, 147, 26, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #6c757d, #5a6268);
+        }
+
+        .result-box {
+            background: rgba(79, 70, 229, 0.1);
+            border: 2px solid var(--accent-purple);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .result-box.success { border-color: var(--accent-green); background: rgba(40, 167, 80, 0.1); }
+        .result-box.error { border-color: var(--accent-red); background: rgba(220, 53, 69, 0.1); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .solution-box { background: rgba(40, 167, 80, 0.1); border-left: 4px solid var(--accent-green); border-radius: 0.5rem; padding: 1.5rem; margin-top: 2rem; }
+        .solution-box h4 { color: var(--accent-green); margin-bottom: 0.75rem; }
+
+        @media (max-width: 768px) {
+            .consensus-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 Network Consensus</h1>
+            <p>How do thousands of strangers agree without a leader?</p>
+        </div>
+
+        <!-- Level Switcher -->
+        <div class="level-switcher">
+            <div class="level-info">
+                <span class="level-label">Difficulty:</span>
+                <span class="level-current" id="current-level-name">Beginner Mode</span>
+            </div>
+            <div class="level-buttons">
+                <button class="level-btn active" data-level="beginner">Beginner</button>
+                <button class="level-btn" data-level="intermediate">Intermediate</button>
+                <button class="level-btn" data-level="advanced">Advanced</button>
+            </div>
+        </div>
+
+        <!-- Introduction -->
+        <div class="intro-box">
+            <h3>The Consensus Problem</h3>
+            <p class="beginner-only">
+                Bitcoin has thousands of computers (called "nodes") around the world. When Alice wants to send Bitcoin to Bob,
+                all these computers need to agree that the transaction is valid. But what if some computers are dishonest?
+            </p>
+            <p class="intermediate-only">
+                The Byzantine Generals Problem: How do you achieve consensus in a distributed network when some participants
+                may be malicious? Bitcoin solves this with majority rule - but not just simple voting, since attackers could
+                create fake identities (Sybil attack).
+            </p>
+            <p class="advanced-only">
+                Bitcoin achieves Byzantine Fault Tolerant consensus through Nakamoto Consensus: proof-of-work voting where
+                computational cost prevents Sybil attacks. The longest valid chain represents majority hashpower, creating
+                an objective measure of network agreement without relying on identity verification or trusted coordinators.
+            </p>
+        </div>
+
+        <!-- Main Demo -->
+        <div class="demo-container">
+            <h4>Interactive Simulation: Network Voting</h4>
+            <p style="margin-bottom: 2rem;">
+                <span class="beginner-only">Alice wants to send 1 BTC to Bob. Watch how the network nodes vote on whether this transaction is valid:</span>
+                <span class="intermediate-only">Simulate consensus with honest and dishonest nodes. Majority rule prevails unless attackers control >50% of the network:</span>
+                <span class="advanced-only">Byzantine Agreement simulation: honest nodes follow protocol, Byzantine nodes attempt to disrupt consensus:</span>
+            </p>
+
+            <div class="consensus-grid" id="consensus-grid">
+                <div class="node honest" id="node1">
+                    <div class="node-label">Node 1</div>
+                    <div class="node-status">Honest</div>
+                    <div class="node-vote">Vote: <span id="vote1">?</span></div>
+                </div>
+                <div class="node honest" id="node2">
+                    <div class="node-label">Node 2</div>
+                    <div class="node-status">Honest</div>
+                    <div class="node-vote">Vote: <span id="vote2">?</span></div>
+                </div>
+                <div class="node honest" id="node3">
+                    <div class="node-label">Node 3</div>
+                    <div class="node-status">Honest</div>
+                    <div class="node-vote">Vote: <span id="vote3">?</span></div>
+                </div>
+                <div class="node dishonest" id="node4">
+                    <div class="node-label">Node 4</div>
+                    <div class="node-status">Dishonest</div>
+                    <div class="node-vote">Vote: <span id="vote4">?</span></div>
+                </div>
+                <div class="node honest" id="node5">
+                    <div class="node-label">Node 5</div>
+                    <div class="node-status">Honest</div>
+                    <div class="node-vote">Vote: <span id="vote5">?</span></div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 2rem 0;">
+                <button type="button" class="btn" onclick="simulateConsensus()">🗳️ Simulate Consensus Vote</button>
+                <button type="button" class="btn btn-secondary" onclick="addMaliciousNodes()">⚠️ Add More Malicious Nodes</button>
+                <button type="button" class="btn btn-secondary" onclick="resetConsensus()">🔄 Reset</button>
+            </div>
+
+            <div id="consensus-result"></div>
+        </div>
+
+        <!-- Solution Boxes -->
+        <div class="solution-box beginner-only">
+            <h4>💡 How Bitcoin Solves This</h4>
+            <p>
+                Bitcoin uses <strong>majority rule</strong> - but not just simple voting. If voting was free, attackers could create
+                millions of fake identities to outvote honest participants. That's why Bitcoin uses Proof of Work.
+            </p>
+            <p style="margin-top: 1rem;">
+                <strong>Proof of Work:</strong> To vote, you must solve a difficult computational puzzle. This makes votes expensive,
+                so honest participants (who invest in hardware and electricity) naturally have more voting power than attackers.
+            </p>
+        </div>
+
+        <div class="solution-box intermediate-only">
+            <h4>🔑 Nakamoto Consensus</h4>
+            <p>
+                Bitcoin prevents Sybil attacks by making votes (blocks) expensive through proof-of-work. Each "vote" requires finding
+                a valid block hash, which costs electricity and hardware. The longest chain represents the most accumulated work,
+                creating an objective measure of network consensus.
+            </p>
+            <p style="margin-top: 1rem;">
+                <strong>51% Attack:</strong> An attacker would need to control more than half of the network's total hashrate to
+                consistently create the longest chain. At current difficulty, this requires ~$20B in hardware plus $1M/hour in
+                electricity - economically irrational since it destroys the value being stolen.
+            </p>
+        </div>
+
+        <div class="solution-box advanced-only">
+            <h4>⚡ Byzantine Fault Tolerance Analysis</h4>
+            <p>
+                Bitcoin achieves BFT through economic incentives rather than traditional consensus algorithms (PBFT, Raft, etc.).
+                The Nakamoto Consensus security model:
+            </p>
+            <ul style="margin-left: 1.5rem; margin-top: 1rem;">
+                <li><strong>Sybil Resistance:</strong> One-CPU-one-vote → One-hash-one-vote (computational proof replaces identity)</li>
+                <li><strong>Incentive Compatibility:</strong> Block rewards make honest mining more profitable than attacks</li>
+                <li><strong>Chain Selection:</strong> Longest chain = most accumulated PoW = majority decision</li>
+                <li><strong>Finality Model:</strong> Probabilistic finality - 6 confirmations ≈ 2^6 difficulty to reverse ≈ $64M cost</li>
+                <li><strong>Attack Vector Analysis:</strong> 51% attack requires majority hashrate + willingness to destroy network value</li>
+            </ul>
+            <p style="margin-top: 1rem;">
+                <strong>Trade-off:</strong> Lower throughput and higher latency than traditional BFT, but uniquely enables permissionless,
+                trustless consensus in an open network with unknown participants.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Multi-level support
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLevel = urlParams.get('level') || 'beginner';
+        const currentPath = urlParams.get('path') || 'unknown';
+
+        document.body.classList.add(`level-${currentLevel}`);
+
+        const LEVEL_CONFIG = {
+            beginner: { name: "Beginner Mode" },
+            intermediate: { name: "Intermediate Mode" },
+            advanced: { name: "Advanced Mode" }
+        };
+
+        // Set initial level display
+        document.getElementById('current-level-name').textContent = LEVEL_CONFIG[currentLevel].name;
+
+        // Set initial active button
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            if (btn.dataset.level === currentLevel) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // Level switcher
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const newLevel = e.target.dataset.level;
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('level', newLevel);
+                window.location.href = newUrl.toString();
+            });
+        });
+
+        // Consensus simulation
+        let maliciousNodeCount = 1;
+
+        function simulateConsensus() {
+            const totalNodes = 5 + (maliciousNodeCount - 1);
+            const votes = [];
+            const dishonest = [];
+
+            // Original 5 nodes
+            for (let i = 1; i <= 5; i++) {
+                const voteElement = document.getElementById(`vote${i}`);
+                const node = document.getElementById(`node${i}`);
+
+                if (node.classList.contains('dishonest')) {
+                    voteElement.textContent = 'Reject';
+                    voteElement.style.color = 'var(--accent-red)';
+                    dishonest.push(i);
+                    votes.push('Reject');
+                } else {
+                    voteElement.textContent = 'Accept';
+                    voteElement.style.color = 'var(--accent-green)';
+                    votes.push('Accept');
+                }
+            }
+
+            const acceptCount = votes.filter(v => v === 'Accept').length;
+            const rejectCount = votes.filter(v => v === 'Reject').length;
+            const result = document.getElementById('consensus-result');
+
+            let message = '';
+            let cssClass = '';
+
+            if (acceptCount > rejectCount) {
+                cssClass = 'success';
+                if (currentLevel === 'beginner') {
+                    message = `
+                        <div class="result-box ${cssClass}">
+                            <strong style="color: var(--accent-green);">✅ Transaction ACCEPTED</strong><br><br>
+                            <strong>Result:</strong> ${acceptCount} nodes voted Accept, ${rejectCount} voted Reject<br>
+                            The majority wins! Even with dishonest nodes, the honest majority prevails.<br><br>
+                            💡 <em>This is why Bitcoin needs more than half the network to be honest.</em>
+                        </div>
+                    `;
+                } else if (currentLevel === 'intermediate') {
+                    message = `
+                        <div class="result-box ${cssClass}">
+                            <strong style="color: var(--accent-green);">✅ Consensus Achieved</strong><br><br>
+                            <strong>Votes:</strong> ${acceptCount} Accept / ${rejectCount} Reject<br>
+                            <strong>Honest Majority:</strong> ${((acceptCount / (acceptCount + rejectCount)) * 100).toFixed(1)}% consensus<br><br>
+                            Byzantine nodes failed to disrupt consensus. As long as honest nodes control >50% of voting power,
+                            the network remains secure.
+                        </div>
+                    `;
+                } else {
+                    message = `
+                        <div class="result-box ${cssClass}">
+                            <strong style="color: var(--accent-green);">✅ Byzantine Agreement Reached</strong><br><br>
+                            <strong>Consensus:</strong> ${acceptCount}/${acceptCount + rejectCount} nodes (${((acceptCount / (acceptCount + rejectCount)) * 100).toFixed(1)}%)<br>
+                            <strong>Byzantine Nodes:</strong> ${rejectCount} (${((rejectCount / (acceptCount + rejectCount)) * 100).toFixed(1)}%)<br><br>
+                            <strong>Security Analysis:</strong> Network tolerates up to ${Math.floor((acceptCount + rejectCount - 1) / 2)} Byzantine nodes
+                            before losing consensus. Current: ${rejectCount} malicious / ${Math.floor((acceptCount + rejectCount - 1) / 2)} maximum tolerated.<br><br>
+                            <em>In Bitcoin, this voting power is measured in hashrate, not node count. Attacking requires controlling >50% of
+                            global mining power (~200 EH/s), costing ~$20B in hardware + $1M/hour electricity.</em>
+                        </div>
+                    `;
+                }
+            } else {
+                cssClass = 'error';
+                message = `
+                    <div class="result-box ${cssClass}">
+                        <strong style="color: var(--accent-red);">⚠️ CONSENSUS FAILED - 51% Attack!</strong><br><br>
+                        Dishonest nodes control the majority (${rejectCount}/${acceptCount + rejectCount} nodes).<br>
+                        The network cannot reach consensus on valid transactions.<br><br>
+                        ${currentLevel === 'advanced' ?
+                        '<em>This is why Bitcoin\'s security relies on honest hashrate majority. At current difficulty, ' +
+                        'a 51% attack requires ~$20B in ASICs + $1M/hour ongoing cost, making it economically irrational.</em>' :
+                        '<em>This is the 51% attack - when bad actors control over half the network.</em>'}
+                    </div>
+                `;
+            }
+
+            result.innerHTML = message;
+        }
+
+        function addMaliciousNodes() {
+            maliciousNodeCount++;
+
+            if (maliciousNodeCount > 5) {
+                document.getElementById('consensus-result').innerHTML = `
+                    <div class="result-box error">
+                        <strong style="color: var(--accent-red);">⚠️ Sybil Attack Warning!</strong><br><br>
+                        An attacker could create millions of fake nodes for free!<br><br>
+                        ${currentLevel === 'beginner' ?
+                        '<strong>This is why Bitcoin uses Proof of Work:</strong> Creating new "votes" isn\'t free - ' +
+                        'each vote requires solving expensive computational puzzles. This makes Sybil attacks impractical.' :
+                        currentLevel === 'intermediate' ?
+                        '<strong>Proof of Work Solution:</strong> Instead of counting nodes, Bitcoin counts computational work. ' +
+                        'Creating fake identities is free, but doing computational work is expensive. One-hash-one-vote prevents Sybil attacks.' :
+                        '<strong>Sybil Resistance Mechanism:</strong> PoW replaces identity verification with computational proof. ' +
+                        'Cost of Sybil attack = cost of acquiring >50% hashrate ≈ $20B in hardware + ongoing electricity. ' +
+                        'Economic game theory ensures attacking is less profitable than honest mining.'}
+                    </div>
+                `;
+            } else {
+                // Make one more node dishonest
+                const nodes = document.querySelectorAll('.node.honest');
+                if (nodes.length > 0) {
+                    const nodeToFlip = nodes[nodes.length - 1];
+                    nodeToFlip.classList.remove('honest');
+                    nodeToFlip.classList.add('dishonest');
+                    nodeToFlip.querySelector('.node-status').textContent = 'Dishonest';
+                }
+            }
+        }
+
+        function resetConsensus() {
+            maliciousNodeCount = 1;
+
+            // Reset all nodes
+            for (let i = 1; i <= 5; i++) {
+                const voteElement = document.getElementById(`vote${i}`);
+                const node = document.getElementById(`node${i}`);
+
+                voteElement.textContent = '?';
+                voteElement.style.color = 'var(--text-light)';
+
+                if (i === 4) {
+                    node.classList.remove('honest');
+                    node.classList.add('dishonest');
+                    node.querySelector('.node-status').textContent = 'Dishonest';
+                } else {
+                    node.classList.remove('dishonest');
+                    node.classList.add('honest');
+                    node.querySelector('.node-status').textContent = 'Honest';
+                }
+            }
+
+            document.getElementById('consensus-result').innerHTML = '';
+        }
+
+        console.log(`🌐 Network Consensus Demo Level: ${currentLevel} (${LEVEL_CONFIG[currentLevel].name})`);
+        console.log(`📊 Path: ${currentPath}`);
+    </script>
+</body>
+</html>

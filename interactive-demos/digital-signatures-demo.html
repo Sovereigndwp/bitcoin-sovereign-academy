@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Signatures Demo - Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --accent-purple: #4f46e5;
+            --accent-green: #28a745;
+            --accent-red: #dc3545;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        body.level-beginner .advanced-only { display: none; }
+        body.level-beginner .intermediate-only { display: none; }
+        body.level-intermediate .advanced-only { display: none; }
+        body.level-intermediate .beginner-only { display: none; }
+        body.level-advanced .beginner-only { display: none; }
+        body.level-advanced .intermediate-only { display: none; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { color: var(--primary-orange); font-size: 2rem; margin-bottom: 0.5rem; }
+
+        .level-switcher { background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 12px; padding: 1rem; margin-bottom: 2rem; }
+        .level-info { text-align: center; margin-bottom: 0.75rem; }
+        .level-buttons { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+        .level-btn { padding: 0.6rem 1.2rem; background: rgba(247, 147, 26, 0.1); border: 2px solid rgba(247, 147, 26, 0.3); border-radius: 8px; color: var(--text-light); cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
+        .level-btn.active { background: var(--primary-orange); border-color: var(--primary-orange); color: white; }
+
+        .intro-box { background: rgba(79, 70, 229, 0.1); border-left: 4px solid var(--accent-purple); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem; }
+        .demo-container { background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 15px; padding: 2rem; margin: 2rem 0; }
+
+        .key-display {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(79, 70, 229, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+        }
+
+        .btn {
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(247, 147, 26, 0.4); }
+        .btn-danger { background: linear-gradient(135deg, var(--accent-red), #c82333); }
+
+        input[type="text"] {
+            width: 70%;
+            padding: 0.75rem;
+            border: 2px solid var(--accent-purple);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Digital Signatures</h1>
+            <p>Proving ownership without revealing your secret key</p>
+        </div>
+
+        <div class="level-switcher">
+            <div class="level-info">
+                <span style="color: var(--text-dim); font-size: 0.9rem;">Difficulty:</span>
+                <span style="color: var(--primary-orange); font-weight: bold; font-size: 1.1rem; margin-left: 0.5rem;" id="current-level-name">Beginner Mode</span>
+            </div>
+            <div class="level-buttons">
+                <button class="level-btn active" data-level="beginner">Beginner</button>
+                <button class="level-btn" data-level="intermediate">Intermediate</button>
+                <button class="level-btn" data-level="advanced">Advanced</button>
+            </div>
+        </div>
+
+        <div class="intro-box">
+            <h3 style="color: var(--accent-purple); margin-bottom: 0.75rem;">How Bitcoin Proves Ownership</h3>
+            <p class="beginner-only">
+                Your Bitcoin is protected by a secret "private key" that only you know. To spend Bitcoin, you create a "digital signature" that proves you own it WITHOUT revealing your private key. Anyone can verify the signature is real using your "public key."
+            </p>
+            <p class="intermediate-only">
+                Bitcoin uses elliptic curve cryptography (secp256k1) for digital signatures. Private keys sign transactions, public keys verify signatures. The mathematical relationship is one-way: easy to derive public from private, impossible to reverse.
+            </p>
+            <p class="advanced-only">
+                Bitcoin implements ECDSA (Elliptic Curve Digital Signature Algorithm) over secp256k1 curve. Private key k generates public key P = k·G where G is generator point. Signature (r,s) proves knowledge of k without revealing it. Verification: s⁻¹(H(m)·G + r·P) = R validates ownership.
+            </p>
+        </div>
+
+        <div class="demo-container">
+            <h4 style="color: var(--accent-purple); margin-bottom: 1.5rem;">Generate Your Key Pair</h4>
+
+            <button class="btn" onclick="generateKeyPair()">🔑 Generate Key Pair</button>
+
+            <div style="margin-top: 1.5rem;">
+                <p style="margin-bottom: 0.5rem;"><strong>🔒 Private Key (Keep Secret!):</strong></p>
+                <div class="key-display" id="private-key">Click "Generate Key Pair" first</div>
+            </div>
+
+            <div>
+                <p style="margin-bottom: 0.5rem;"><strong>🔓 Public Key (Share Freely):</strong></p>
+                <div class="key-display" id="public-key">Generate keys first</div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <p style="margin-bottom: 1rem;"><strong>Create Digital Signature:</strong></p>
+                <input type="text" id="message-to-sign" placeholder="Enter message to sign (e.g., 'Send 1 BTC to Alice')">
+                <button class="btn" onclick="signMessage()">✍️ Sign Message</button>
+            </div>
+
+            <div>
+                <p style="margin-bottom: 0.5rem;"><strong>Digital Signature:</strong></p>
+                <div class="key-display" id="signature">Sign a message first</div>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn" onclick="verifySignature()">🔍 Verify Signature</button>
+                <button class="btn btn-danger" onclick="simulateInvalidSignature()">⚠️ Try Invalid Signature</button>
+            </div>
+
+            <div id="signature-result"></div>
+        </div>
+
+        <div style="background: rgba(40, 167, 80, 0.1); border-left: 4px solid var(--accent-green); border-radius: 0.5rem; padding: 1.5rem; margin-top: 2rem;">
+            <h4 style="color: var(--accent-green); margin-bottom: 0.75rem;">How Bitcoin Uses This</h4>
+            <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                <li class="beginner-only"><strong>Bitcoin Addresses:</strong> Derived from public keys</li>
+                <li class="intermediate-only"><strong>Transaction Authorization:</strong> Each input requires valid signature proving ownership</li>
+                <li class="advanced-only"><strong>Script Validation:</strong> CHECKSIG opcode verifies ECDSA signature against public key hash (P2PKH) or raw pubkey (P2PK)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLevel = urlParams.get('level') || 'beginner';
+        document.body.classList.add(`level-${currentLevel}`);
+
+        const LEVEL_CONFIG = {
+            beginner: { name: "Beginner Mode" },
+            intermediate: { name: "Intermediate Mode" },
+            advanced: { name: "Advanced Mode" }
+        };
+
+        document.getElementById('current-level-name').textContent = LEVEL_CONFIG[currentLevel].name;
+
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            if (btn.dataset.level === currentLevel) btn.classList.add('active');
+            btn.addEventListener('click', (e) => {
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('level', e.target.dataset.level);
+                window.location.href = newUrl.toString();
+            });
+        });
+
+        let privateKey = '';
+        let publicKey = '';
+        let currentSignature = '';
+        let currentMessage = '';
+
+        function generateRandomHex(length) {
+            const chars = '0123456789abcdef';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return result;
+        }
+
+        function generateKeyPair() {
+            privateKey = generateRandomHex(64);
+            publicKey = '04' + generateRandomHex(128);
+
+            document.getElementById('private-key').textContent = privateKey;
+            document.getElementById('public-key').textContent = publicKey;
+        }
+
+        function signMessage() {
+            const message = document.getElementById('message-to-sign').value;
+            if (!message) {
+                alert('Please enter a message to sign');
+                return;
+            }
+            if (!privateKey) {
+                alert('Please generate a key pair first');
+                return;
+            }
+
+            currentMessage = message;
+            currentSignature = generateRandomHex(128);
+            document.getElementById('signature').textContent = currentSignature;
+        }
+
+        function verifySignature() {
+            if (!currentSignature) {
+                alert('Please sign a message first');
+                return;
+            }
+
+            const result = document.getElementById('signature-result');
+
+            let message = '';
+            if (currentLevel === 'beginner') {
+                message = `
+                    <strong style="color: var(--accent-green);">✅ Signature Valid!</strong><br><br>
+                    The signature proves you own the private key without revealing it.<br>
+                    Anyone can verify this using your public key.<br><br>
+                    This is how Bitcoin transactions are authorized!
+                `;
+            } else if (currentLevel === 'intermediate') {
+                message = `
+                    <strong style="color: var(--accent-green);">✅ ECDSA Signature Verified!</strong><br><br>
+                    Message: "${currentMessage}"<br>
+                    Signature: ${currentSignature.substring(0, 32)}...<br><br>
+                    Verification confirms the signer possesses the private key corresponding to the public key,
+                    without revealing the private key itself. This is the mathematical foundation of Bitcoin ownership.
+                `;
+            } else {
+                message = `
+                    <strong style="color: var(--accent-green);">✅ Cryptographic Proof Validated!</strong><br><br>
+                    <strong>Verification Process:</strong><br>
+                    1. Hash message: H(m) = SHA-256("${currentMessage}")<br>
+                    2. Extract signature components: (r, s) from signature<br>
+                    3. Compute: w = s⁻¹ mod n<br>
+                    4. Compute: u₁ = H(m)·w mod n, u₂ = r·w mod n<br>
+                    5. Compute point: (x, y) = u₁·G + u₂·P<br>
+                    6. Verify: x ≡ r (mod n)<br><br>
+                    If verification passes, signature is cryptographically valid. The signer must possess private key k
+                    such that P = k·G. This is Bitcoin's zero-knowledge proof of ownership.
+                `;
+            }
+
+            result.innerHTML = `
+                <div style="background: rgba(40, 167, 80, 0.2); border: 2px solid var(--accent-green); border-radius: 12px; padding: 1.5rem; margin-top: 2rem; animation: fadeIn 0.5s;">
+                    ${message}
+                </div>
+            `;
+        }
+
+        function simulateInvalidSignature() {
+            const result = document.getElementById('signature-result');
+
+            let message = '';
+            if (currentLevel === 'beginner') {
+                message = `
+                    <strong style="color: var(--accent-red);">❌ Signature Invalid!</strong><br><br>
+                    This signature doesn't match the message or public key.<br>
+                    Someone tried to fake the signature, but the math doesn't work!<br><br>
+                    This is why Bitcoin is secure - you can't forge signatures without the private key.
+                `;
+            } else if (currentLevel === 'intermediate') {
+                message = `
+                    <strong style="color: var(--accent-red);">❌ ECDSA Verification Failed!</strong><br><br>
+                    The signature is cryptographically invalid. Possible causes:<br>
+                    • Signature was modified after creation<br>
+                    • Wrong public key used for verification<br>
+                    • Message was altered after signing<br><br>
+                    Bitcoin nodes reject invalid transactions immediately. Without a valid signature proving ownership
+                    of the private key, the transaction cannot spend those UTXOs.
+                `;
+            } else {
+                message = `
+                    <strong style="color: var(--accent-red);">❌ Cryptographic Verification Rejected!</strong><br><br>
+                    <strong>Failure Analysis:</strong><br>
+                    The verification equation failed: s⁻¹(H(m)·G + r·P) ≠ R<br><br>
+                    This indicates:<br>
+                    • Signature (r,s) not generated from private key k matching public key P = k·G<br>
+                    • Message hash H(m) doesn't match signed message<br>
+                    • Signature components (r,s) were tampered with<br><br>
+                    <strong>Security Implications:</strong> ECDSA's security relies on the computational hardness
+                    of the Elliptic Curve Discrete Logarithm Problem (ECDLP). Forging a signature without the private
+                    key requires solving ECDLP, which is computationally infeasible with current technology
+                    (estimated 2^128 operations for secp256k1).
+                `;
+            }
+
+            result.innerHTML = `
+                <div style="background: rgba(220, 53, 69, 0.2); border: 2px solid var(--accent-red); border-radius: 12px; padding: 1.5rem; margin-top: 2rem; animation: fadeIn 0.5s;">
+                    ${message}
+                </div>
+            `;
+        }
+
+        console.log(`🔐 Digital Signatures Demo Level: ${currentLevel}`);
+    </script>
+</body>
+</html>
