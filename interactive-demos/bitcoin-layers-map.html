@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Layers Map | Interactive Explorer</title>
+    <meta name="description" content="Explore Bitcoin's layered architecture: Lightning, Liquid, Fedimint, and beyond. Interactive visualization of Bitcoin's evolving layer ecosystem.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --lightning-yellow: #FFC107;
+            --liquid-teal: #00ACC1;
+            --fedimint-purple: #9C27B0;
+            --drivechain-blue: #2196F3;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        /* Multi-Level Support */
+        .level-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .level-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .level-btn:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
+        }
+
+        .level-btn.active {
+            background: var(--primary-orange);
+            color: white;
+            border-color: var(--primary-orange);
+        }
+
+        body.level-beginner .intermediate-only,
+        body.level-beginner .advanced-only { display: none; }
+
+        body.level-intermediate .beginner-only,
+        body.level-intermediate .advanced-only { display: none; }
+
+        body.level-advanced .beginner-only,
+        body.level-advanced .intermediate-only { display: none; }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Layers Visualization */
+        .layers-container {
+            max-width: 1200px;
+            margin: 0 auto 3rem;
+            position: relative;
+        }
+
+        .layers-visual {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .layer {
+            width: 100%;
+            max-width: 900px;
+            background: var(--secondary-dark);
+            border: 3px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .layer:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .layer.base-layer {
+            border-color: var(--primary-orange);
+            max-width: 700px;
+        }
+
+        .layer.base-layer:hover {
+            border-color: var(--primary-orange);
+            box-shadow: 0 10px 30px rgba(247, 147, 26, 0.3);
+        }
+
+        .layer.lightning-layer {
+            border-color: var(--lightning-yellow);
+            max-width: 750px;
+        }
+
+        .layer.lightning-layer:hover {
+            border-color: var(--lightning-yellow);
+            box-shadow: 0 10px 30px rgba(255, 193, 7, 0.3);
+        }
+
+        .layer.liquid-layer {
+            border-color: var(--liquid-teal);
+            max-width: 800px;
+        }
+
+        .layer.liquid-layer:hover {
+            border-color: var(--liquid-teal);
+            box-shadow: 0 10px 30px rgba(0, 172, 193, 0.3);
+        }
+
+        .layer.fedimint-layer {
+            border-color: var(--fedimint-purple);
+            max-width: 850px;
+        }
+
+        .layer.fedimint-layer:hover {
+            border-color: var(--fedimint-purple);
+            box-shadow: 0 10px 30px rgba(156, 39, 176, 0.3);
+        }
+
+        .layer.drivechain-layer {
+            border-color: var(--drivechain-blue);
+            max-width: 900px;
+        }
+
+        .layer.drivechain-layer:hover {
+            border-color: var(--drivechain-blue);
+            box-shadow: 0 10px 30px rgba(33, 150, 243, 0.3);
+        }
+
+        .layer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .layer-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .layer.base-layer .layer-title { color: var(--primary-orange); }
+        .layer.lightning-layer .layer-title { color: var(--lightning-yellow); }
+        .layer.liquid-layer .layer-title { color: var(--liquid-teal); }
+        .layer.fedimint-layer .layer-title { color: var(--fedimint-purple); }
+        .layer.drivechain-layer .layer-title { color: var(--drivechain-blue); }
+
+        .layer-status {
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-live {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 2px solid #22c55e;
+        }
+
+        .status-experimental {
+            background: rgba(251, 146, 60, 0.2);
+            color: #fb923c;
+            border: 2px solid #fb923c;
+        }
+
+        .layer-description {
+            font-size: 1.05rem;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+        }
+
+        .layer-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat {
+            background: rgba(247, 147, 26, 0.05);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+        }
+
+        /* Layer Details Modal */
+        .layer-details {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .layer-details.active {
+            display: flex;
+        }
+
+        .details-content {
+            background: var(--secondary-dark);
+            border: 3px solid var(--primary-orange);
+            border-radius: 1rem;
+            padding: 3rem;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: var(--primary-dark);
+            border: 2px solid var(--primary-orange);
+            color: var(--primary-orange);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--primary-orange);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .details-content h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-orange);
+        }
+
+        .details-section {
+            margin-bottom: 2rem;
+        }
+
+        .details-section h3 {
+            font-size: 1.3rem;
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .details-section p {
+            margin-bottom: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .details-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .details-section li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-light);
+        }
+
+        .details-section li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--primary-orange);
+        }
+
+        .tradeoff-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .tradeoff-box {
+            background: rgba(247, 147, 26, 0.05);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .tradeoff-box h4 {
+            color: var(--primary-orange);
+            margin-bottom: 0.75rem;
+        }
+
+        .socratic-box {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.1), rgba(247, 147, 26, 0.05));
+            border-left: 4px solid var(--primary-orange);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0.5rem;
+        }
+
+        .socratic-box strong {
+            color: var(--primary-orange);
+        }
+
+        /* Emerging Protocols */
+        .emerging-protocols {
+            max-width: 1200px;
+            margin: 3rem auto;
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .emerging-protocols h2 {
+            font-size: 1.75rem;
+            color: var(--primary-orange);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .protocols-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .protocol-card {
+            background: var(--primary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .protocol-card:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-5px);
+        }
+
+        .protocol-card h3 {
+            color: var(--primary-orange);
+            margin-bottom: 0.75rem;
+        }
+
+        .protocol-card .concept {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 0.75rem;
+            font-style: italic;
+        }
+
+        .protocol-card .why {
+            color: var(--text-light);
+        }
+
+        /* Legend */
+        .legend {
+            max-width: 1200px;
+            margin: 3rem auto;
+            text-align: center;
+        }
+
+        .legend h3 {
+            font-size: 1.3rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .legend-items {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .layer {
+                padding: 1.5rem;
+            }
+
+            .layer-title {
+                font-size: 1.2rem;
+            }
+
+            .details-content {
+                padding: 2rem;
+            }
+
+            .tradeoff-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .protocols-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="level-beginner">
+    <!-- Level Switcher -->
+    <div class="level-switcher">
+        <button class="level-btn active" onclick="switchLevel('beginner')">🌱 Beginner</button>
+        <button class="level-btn" onclick="switchLevel('intermediate')">⚡ Intermediate</button>
+        <button class="level-btn" onclick="switchLevel('advanced')">🔧 Advanced</button>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>🏛️ Bitcoin Layers Map</h1>
+        <p class="beginner-only">
+            Bitcoin isn't just one thing—it's a layered system! Each layer solves different problems while keeping Bitcoin's core principles intact.
+        </p>
+        <p class="intermediate-only">
+            Explore Bitcoin's evolving layer ecosystem. Each layer makes specific tradeoffs to extend Bitcoin's capabilities for different use cases.
+        </p>
+        <p class="advanced-only">
+            Deep dive into Bitcoin's layered architecture. Analyze trust models, security tradeoffs, and technical implementations across the stack.
+        </p>
+    </div>
+
+    <!-- Layers Visualization -->
+    <div class="layers-container">
+        <div class="layers-visual">
+
+            <!-- Layer 5: Drivechains (Experimental) -->
+            <div class="layer drivechain-layer" onclick="showDetails('drivechain')">
+                <div class="layer-header">
+                    <div class="layer-title">🔬 Drivechains - Innovation Sandbox</div>
+                    <div class="layer-status status-experimental">🧪 Experimental</div>
+                </div>
+                <div class="layer-description beginner-only">
+                    A testing ground for new Bitcoin features! Like a sandbox where developers can try new ideas safely.
+                </div>
+                <div class="layer-description intermediate-only">
+                    Experimental sidechains secured by miners (BIP 300/301). Enables innovation without changing Bitcoin's base layer.
+                </div>
+                <div class="layer-description advanced-only">
+                    Miner-secured sidechains (BIP 300/301) enabling experimental features via blind merged mining and hashrate escrows.
+                </div>
+            </div>
+
+            <!-- Layer 4: Fedimint -->
+            <div class="layer fedimint-layer" onclick="showDetails('fedimint')">
+                <div class="layer-header">
+                    <div class="layer-title">🏘️ Fedimint - Community Money</div>
+                    <div class="layer-status status-live">✅ Live</div>
+                </div>
+                <div class="layer-description beginner-only">
+                    Like a local credit union for Bitcoin! Your community holds funds together, making Bitcoin easier to use.
+                </div>
+                <div class="layer-description intermediate-only">
+                    Community custody with eCash privacy. Federation-based trust model for local communities and organizations.
+                </div>
+                <div class="layer-description advanced-only">
+                    Federated Chaumian eCash mints providing private, scalable transactions within trusted community federations.
+                </div>
+            </div>
+
+            <!-- Layer 3: Liquid Network -->
+            <div class="layer liquid-layer" onclick="showDetails('liquid')">
+                <div class="layer-header">
+                    <div class="layer-title">💧 Liquid Network - Privacy Layer</div>
+                    <div class="layer-status status-live">✅ Live</div>
+                </div>
+                <div class="layer-description beginner-only">
+                    Fast, private Bitcoin for businesses! Transactions happen in 1 minute instead of 10, and amounts stay hidden.
+                </div>
+                <div class="layer-description intermediate-only">
+                    Federated sidechain with confidential transactions and 1-minute blocks. Optimized for exchanges and institutions.
+                </div>
+                <div class="layer-description advanced-only">
+                    Federated peg sidechain (15 functionaries) with Confidential Transactions (CT) obscuring amounts via Pedersen commitments.
+                </div>
+            </div>
+
+            <!-- Layer 2: Lightning Network -->
+            <div class="layer lightning-layer" onclick="showDetails('lightning')">
+                <div class="layer-header">
+                    <div class="layer-title">⚡ Lightning Network - Speed Layer</div>
+                    <div class="layer-status status-live">✅ Live</div>
+                </div>
+                <div class="layer-description beginner-only">
+                    Instant Bitcoin payments! Like opening a tab at your favorite coffee shop—pay instantly, settle on Bitcoin later.
+                </div>
+                <div class="layer-description intermediate-only">
+                    Bidirectional payment channels enabling instant, low-cost transactions via multi-hop routing with HTLCs.
+                </div>
+                <div class="layer-description advanced-only">
+                    Layer 2 payment channel network using Hash Time-Locked Contracts (HTLCs) for trustless multi-hop routing with onion privacy.
+                </div>
+                <div class="layer-stats">
+                    <div class="stat">
+                        <div class="stat-label">Network Capacity</div>
+                        <div class="stat-value">~5,000 BTC</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Public Channels</div>
+                        <div class="stat-value">~50,000</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Speed</div>
+                        <div class="stat-value">&lt;1 second</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layer 1: Bitcoin Base Layer -->
+            <div class="layer base-layer" onclick="showDetails('base')">
+                <div class="layer-header">
+                    <div class="layer-title">🏛️ Bitcoin Base Layer - Foundation</div>
+                    <div class="layer-status status-live">✅ Live since 2009</div>
+                </div>
+                <div class="layer-description beginner-only">
+                    The rock-solid foundation! Every Bitcoin layer builds on this secure base that nobody can change.
+                </div>
+                <div class="layer-description intermediate-only">
+                    The main Bitcoin blockchain. Maximum security, global verification, but slower (10-minute blocks).
+                </div>
+                <div class="layer-description advanced-only">
+                    Proof-of-Work secured blockchain with ~10-minute block times. Global consensus via longest chain rule. Final settlement layer.
+                </div>
+                <div class="layer-stats">
+                    <div class="stat">
+                        <div class="stat-label">Block Time</div>
+                        <div class="stat-value">~10 min</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Throughput</div>
+                        <div class="stat-value">~7 tx/sec</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Security</div>
+                        <div class="stat-value">Maximum</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Emerging Protocols -->
+    <div class="emerging-protocols">
+        <h2>🚀 Emerging Protocols</h2>
+        <p style="text-align: center; color: var(--text-dim); margin-bottom: 2rem;">
+            The next generation of Bitcoin layers in development
+        </p>
+        <div class="protocols-grid">
+            <div class="protocol-card">
+                <h3>Ark</h3>
+                <div class="concept">Privacy-preserving pooled payments</div>
+                <div class="why">
+                    <strong>Why it matters:</strong> Reduces Lightning's channel complexity while improving privacy through CoinJoin-style transactions.
+                </div>
+            </div>
+
+            <div class="protocol-card">
+                <h3>RGB / Taproot Assets</h3>
+                <div class="concept">Client-side validation for tokens</div>
+                <div class="why">
+                    <strong>Why it matters:</strong> Issue stablecoins, tokens, and smart contracts on Bitcoin without blockchain bloat.
+                </div>
+            </div>
+
+            <div class="protocol-card">
+                <h3>BitVM / Rollups</h3>
+                <div class="concept">Off-chain computation with fraud proofs</div>
+                <div class="why">
+                    <strong>Why it matters:</strong> Enables complex smart contracts on Bitcoin anchored by cryptographic proofs.
+                </div>
+            </div>
+
+            <div class="protocol-card intermediate-only advanced-only">
+                <h3>Mercury Layer</h3>
+                <div class="concept">Statechains for instant settlement</div>
+                <div class="why">
+                    <strong>Why it matters:</strong> Transfer UTXO ownership off-chain instantly without mining new blocks.
+                </div>
+            </div>
+
+            <div class="protocol-card intermediate-only advanced-only">
+                <h3>Cashu</h3>
+                <div class="concept">Chaumian eCash for Bitcoin</div>
+                <div class="why">
+                    <strong>Why it matters:</strong> Privacy-focused micropayments with minimal trust requirements via blind signatures.
+                </div>
+            </div>
+
+            <div class="protocol-card advanced-only">
+                <h3>Spacechains</h3>
+                <div class="concept">Blind merged mining sidechains</div>
+                <div class="why">
+                    <strong>Why it matters:</strong> Alternative to Drivechains with different security tradeoffs and governance model.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+        <h3>Layer Status Legend</h3>
+        <div class="legend-items">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #22c55e;"></div>
+                <span>Live & Production-Ready</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #fb923c;"></div>
+                <span>Experimental / In Development</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layer Details Modal -->
+    <div class="layer-details" id="layerDetails">
+        <div class="details-content" id="detailsContent">
+            <button class="close-btn" onclick="closeDetails()">×</button>
+            <!-- Content populated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        // Multi-level system
+        function switchLevel(level) {
+            document.body.className = `level-${level}`;
+            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Layer details data
+        const layerData = {
+            base: {
+                title: '🏛️ Bitcoin Base Layer',
+                beginner: {
+                    purpose: 'The foundation that everything else builds on. Like bedrock—slow to move, but totally solid.',
+                    how: 'Every 10 minutes, miners bundle transactions into blocks. Everyone can verify these blocks independently.',
+                    pros: ['Maximum security', 'Nobody can cheat', 'Globally verified by thousands of nodes'],
+                    cons: ['Only ~7 transactions per second', 'Takes 10+ minutes for confirmation', 'Fees rise when busy'],
+                    question: 'If Bitcoin can only handle 7 transactions per second, how can it serve billions of people?'
+                },
+                intermediate: {
+                    purpose: 'Final settlement layer providing global consensus and maximum security through Proof-of-Work.',
+                    how: 'Miners compete to solve computational puzzles. Longest valid chain wins. Full nodes verify all transactions.',
+                    tradeoff: 'Security vs Speed: 10-minute blocks ensure decentralization but limit throughput to ~400k tx/day.',
+                    model: 'Trustless. Anyone can verify. No central authority can change the rules or reverse transactions.',
+                    question: 'Why do we need upper layers if Bitcoin is already perfect money?'
+                },
+                advanced: {
+                    purpose: 'Nakamoto consensus via Proof-of-Work. SHA-256 mining with difficulty adjustment every 2016 blocks.',
+                    how: 'Miners hash block headers until finding nonce producing hash below target. Longest chain rule resolves forks.',
+                    technical: [
+                        'Block size: 1-4MB (SegWit)',
+                        'Target time: 10 minutes (600 seconds)',
+                        'Difficulty retarget: Every 2016 blocks (~2 weeks)',
+                        'UTXO model with Script-based transaction validation'
+                    ],
+                    tradeoff: 'Decentralization triangle: Security + Decentralization = Throughput constraint (~7 tx/s theoretical max)',
+                    question: 'What would happen if we increased block size to 100MB or reduced block time to 1 minute?'
+                }
+            },
+            lightning: {
+                title: '⚡ Lightning Network',
+                beginner: {
+                    purpose: 'Make Bitcoin payments instant and cheap! Perfect for buying coffee or sending small amounts.',
+                    how: 'Open a payment channel with someone (like a shared piggy bank). Send payments back and forth instantly. Close the channel when done.',
+                    pros: ['Instant payments (< 1 second)', 'Tiny fees (often < 1 cent)', 'Perfect for daily spending'],
+                    cons: ['Need to lock up Bitcoin in channels', 'Must be online to receive', 'Large payments might not route well'],
+                    question: 'If Lightning is so fast, why doesn't everyone just use Lightning instead of regular Bitcoin?'
+                },
+                intermediate: {
+                    purpose: 'Layer 2 payment channels enabling instant, low-fee transactions without sacrificing Bitcoin's security.',
+                    how: 'Bidirectional payment channels funded on-chain. Updates exchanged off-chain. Multi-hop routing via HTLCs.',
+                    tradeoff: 'Speed vs Liquidity: Instant payments but requires channel liquidity and online presence.',
+                    model: 'Trustless. Penalty transactions prevent cheating. Can always close channel and settle on-chain.',
+                    question: 'What happens if your payment needs to route through 10 intermediaries and one is offline?'
+                },
+                advanced: {
+                    purpose: 'Off-chain payment channels using Hash Time-Locked Contracts (HTLCs) for trustless multi-hop routing.',
+                    how: 'Commitment transactions spend 2-of-2 multisig funding output. Revocation keys prevent old state broadcast.',
+                    technical: [
+                        'BOLT specifications (BOLTs 1-11)',
+                        'Sphinx onion routing for privacy',
+                        'Source-based pathfinding algorithms',
+                        'Channel rebalancing and liquidity management'
+                    ],
+                    tradeoff: 'Online requirement: Both parties must monitor for breach attempts. Watchtowers can help but add trust.',
+                    question: 'How do HTLCs enable trustless routing when intermediaries don't know the payment source or destination?'
+                }
+            },
+            liquid: {
+                title: '💧 Liquid Network',
+                beginner: {
+                    purpose: 'Fast, private Bitcoin for businesses and traders. Like Bitcoin's VIP lane.',
+                    how: 'Move Bitcoin to Liquid (it's locked on Bitcoin). Use Liquid for fast, private trades. Move back to Bitcoin when done.',
+                    pros: ['1-minute confirmations', 'Transaction amounts are hidden', 'Great for exchanges and trading'],
+                    cons: ['Trusted federation holds the Bitcoin', 'Not as decentralized as Bitcoin', 'Smaller network'],
+                    question: 'If Liquid is faster and more private, what's the downside of using a federation?'
+                },
+                intermediate: {
+                    purpose: 'Federated sidechain optimized for exchanges and institutions. Privacy via Confidential Transactions.',
+                    how: '2-way peg: Lock BTC on mainchain, receive L-BTC on Liquid. 15 functionaries (exchanges, institutions) control peg.',
+                    tradeoff: 'Speed/Privacy vs Decentralization: 1-minute blocks and CT, but federated trust model.',
+                    model: 'Federated. 11-of-15 multisig controls Bitcoin peg. Known entities increase trust requirements.',
+                    question: 'How does Confidential Transactions hide amounts while still proving the transaction is valid?'
+                },
+                advanced: {
+                    purpose: 'Federated peg sidechain with Confidential Transactions (Pedersen commitments) and asset issuance (UDAs).',
+                    how: 'Strong federation (15 functionaries). Signed blocks every 1 minute. CT hides amounts, preserves sum verification.',
+                    technical: [
+                        'Elements codebase (Bitcoin fork)',
+                        'Pedersen commitments + range proofs',
+                        'User-Defined Assets (UDAs) / Issued Assets',
+                        '2-way peg via 11-of-15 multisig'
+                    ],
+                    tradeoff: 'Privacy gain: CT hides amounts but increases tx size ~3x. Federation required for peg security.',
+                    question: 'What attack vectors exist when 11 of 15 known entities control the peg? How does this compare to miner centralization?'
+                }
+            },
+            fedimint: {
+                title: '🏘️ Fedimint',
+                beginner: {
+                    purpose: 'Community Bitcoin banks! Your local group holds Bitcoin together, making it easy and private to use.',
+                    how: 'Join a Fedimint (maybe your family or local Bitcoin group). Deposit Bitcoin. Use eCash for private, instant payments within the community.',
+                    pros: ['Super private (eCash is anonymous)', 'Easy to use', 'Great for communities who trust each other'],
+                    cons: ['Your Fedimint could steal your money', 'Only as good as the people running it', 'Smaller networks'],
+                    question: 'If you trust your local credit union more than big banks, could Fedimint be like that—but for Bitcoin?'
+                },
+                intermediate: {
+                    purpose: 'Community custody with Chaumian eCash for privacy. Optimized for local trust networks.',
+                    how: 'Federation of guardians (3-of-5, 5-of-7, etc.). Deposit BTC, receive eCash tokens. Blind signatures enable privacy.',
+                    tradeoff: 'Privacy/UX vs Custody: Perfect privacy and easy UX, but federation holds funds. Choose guardians wisely.',
+                    model: 'Federated trust. Guardians can collude to steal, but cannot link payments (Chaumian blind signatures).',
+                    question: 'How does Fedimint balance custody risk with the benefits of community-based Bitcoin banking?'
+                },
+                advanced: {
+                    purpose: 'Federated Chaumian eCash mints leveraging social trust graphs for improved Bitcoin UX and privacy.',
+                    how: 'Multi-party computation (MPC) for key shares. Blind signatures prevent guardian tracking. Lightning integration.',
+                    technical: [
+                        'Threshold BLS signatures for guardian consensus',
+                        'Chaumian blind signatures (RSA or BLS)',
+                        'Lightning gateway for external payments',
+                        'On-chain reserves provable via audit'
+                    ],
+                    tradeoff: 'Custody vs Privacy: Guardians have full custody but blind signatures ensure perfect payment privacy.',
+                    question: 'How do threshold signatures prevent single guardian failure while maintaining eCash unlinkability?'
+                }
+            },
+            drivechain: {
+                title: '🔬 Drivechains',
+                beginner: {
+                    purpose: 'Experimental zones where developers test new Bitcoin features without risking the main network.',
+                    how: 'Create a sidechain. Lock Bitcoin on mainchain. Experiment with new features on sidechain. Miners vote on withdrawals.',
+                    pros: ['Test new features safely', 'Innovation without changing Bitcoin', 'Can experiment freely'],
+                    cons: ['Miners control withdrawals', 'Still experimental (BIP 300/301)', 'Potential for miner attacks'],
+                    question: 'If innovation can happen in experimental sidechains, does Bitcoin's main layer need to change at all?'
+                },
+                intermediate: {
+                    purpose: 'Miner-secured sidechains (BIP 300/301) enabling experimentation without base layer consensus changes.',
+                    how: 'Hashrate escrows: Bitcoin locked on mainchain. Sidechain miners use merged mining. Withdrawals require miner voting (~3 months).',
+                    tradeoff: 'Innovation vs Miner Trust: Enables any feature imaginable, but miners vote on withdrawal validity.',
+                    model: 'Miner-mediated. Blind merged mining means mainchain miners don't validate sidechain. Withdrawal voting required.',
+                    question: 'What prevents miners from colluding to steal sidechain funds during the 3-month withdrawal period?'
+                },
+                advanced: {
+                    purpose: 'BIP 300 (Hashrate Escrows) + BIP 301 (Blind Merged Mining) for miner-secured sidechains.',
+                    how: 'BMM: Mainchain miners commit to sidechain blocks. Hashrate escrows: ~13,000 block (~3 month) voting period for withdrawals.',
+                    technical: [
+                        'BIP 300: OP_WITHDRAWPROOFVERIFY (hashrate escrow)',
+                        'BIP 301: Blind merged mining (commit sidechain headers)',
+                        'Withdrawal bundle voting: Miners ACK/NACK over ~3 months',
+                        'Sidechains can implement any rules (Ethereum VM, confidential tx, etc.)'
+                    ],
+                    tradeoff: 'Flexibility vs Miner Dependency: Total innovation freedom but security depends on miner honesty during withdrawals.',
+                    question: 'How does blind merged mining incentivize mainchain miners to secure sidechains they don't validate?'
+                }
+            }
+        };
+
+        // Show layer details
+        function showDetails(layer) {
+            const modal = document.getElementById('layerDetails');
+            const content = document.getElementById('detailsContent');
+            const data = layerData[layer];
+            const currentLevel = document.body.className.replace('level-', '');
+            const levelData = data[currentLevel];
+
+            let html = `<button class="close-btn" onclick="closeDetails()">×</button>`;
+            html += `<h2>${data.title}</h2>`;
+
+            if (currentLevel === 'beginner') {
+                html += `
+                    <div class="details-section">
+                        <h3>What is it?</h3>
+                        <p>${levelData.purpose}</p>
+                    </div>
+                    <div class="details-section">
+                        <h3>How does it work?</h3>
+                        <p>${levelData.how}</p>
+                    </div>
+                    <div class="tradeoff-grid">
+                        <div class="tradeoff-box">
+                            <h4>✅ Pros</h4>
+                            <ul>
+                                ${levelData.pros.map(pro => `<li>${pro}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="tradeoff-box">
+                            <h4>⚠️ Tradeoffs</h4>
+                            <ul>
+                                ${levelData.cons.map(con => `<li>${con}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="socratic-box">
+                        <strong>💬 Think About It:</strong><br>
+                        <em>${levelData.question}</em>
+                    </div>
+                `;
+            } else if (currentLevel === 'intermediate') {
+                html += `
+                    <div class="details-section">
+                        <h3>Purpose</h3>
+                        <p>${levelData.purpose}</p>
+                    </div>
+                    <div class="details-section">
+                        <h3>How It Works</h3>
+                        <p>${levelData.how}</p>
+                    </div>
+                    <div class="details-section">
+                        <h3>Key Tradeoff</h3>
+                        <p>${levelData.tradeoff}</p>
+                    </div>
+                    <div class="details-section">
+                        <h3>Trust Model</h3>
+                        <p>${levelData.model}</p>
+                    </div>
+                    <div class="socratic-box">
+                        <strong>💬 Socratic Question:</strong><br>
+                        <em>${levelData.question}</em>
+                    </div>
+                `;
+            } else { // advanced
+                html += `
+                    <div class="details-section">
+                        <h3>Technical Purpose</h3>
+                        <p>${levelData.purpose}</p>
+                    </div>
+                    <div class="details-section">
+                        <h3>Implementation</h3>
+                        <p>${levelData.how}</p>
+                    </div>
+                    <div class="details-section">
+                        <h3>Technical Details</h3>
+                        <ul>
+                            ${levelData.technical.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="details-section">
+                        <h3>Fundamental Tradeoff</h3>
+                        <p>${levelData.tradeoff}</p>
+                    </div>
+                    <div class="socratic-box">
+                        <strong>💬 Deep Dive Question:</strong><br>
+                        <em>${levelData.question}</em>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = html;
+            modal.classList.add('active');
+        }
+
+        // Close details modal
+        function closeDetails() {
+            document.getElementById('layerDetails').classList.remove('active');
+        }
+
+        // Close modal on background click
+        document.getElementById('layerDetails').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDetails();
+            }
+        });
+
+        // Initialize from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const levelParam = urlParams.get('level');
+        if (levelParam && ['beginner', 'intermediate', 'advanced'].includes(levelParam)) {
+            switchLevel(levelParam);
+            document.querySelectorAll('.level-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(levelParam)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
