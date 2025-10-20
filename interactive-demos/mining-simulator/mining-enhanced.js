@@ -1,11 +1,34 @@
 /**
  * Mining Simulator Enhanced
  * Complete rewrite with working difficulty modes and block visualization
+ *
+ * Multi-Level Support:
+ * - Detects ?level= parameter from URL
+ * - Maps to internal difficulty modes
+ * - Integrates with learning path system
  */
 
 class MiningSimulatorEnhanced {
   constructor() {
-    this.difficulty = 'guided'; // guided, interactive, challenge, expert
+    // Multi-level support: detect level from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLevel = urlParams.get('level');
+    const pathName = urlParams.get('path') || 'unknown';
+
+    // Map URL level to internal difficulty mode
+    const levelToDifficulty = {
+      'beginner': 'guided',
+      'intermediate': 'interactive',
+      'advanced': 'expert'
+    };
+
+    this.difficulty = levelToDifficulty[urlLevel] || 'guided';
+    this.urlLevel = urlLevel;
+    this.pathName = pathName;
+
+    console.log(`⛏️ Mining Simulator Level: ${urlLevel || 'default'} (${this.difficulty} mode)`);
+    console.log(`📊 Path: ${pathName}`);
+
     this.miningMode = 'easy'; // easy, realistic
     this.easyModeDifficulty = 3; // Number of leading zeros (1-4)
     this.socraticQuestionsRevealed = [];
@@ -97,6 +120,20 @@ class MiningSimulatorEnhanced {
         this.updateForDifficulty();
       });
     });
+
+    // Set initial active button based on difficulty from URL
+    const initialBtn = document.querySelector(`[data-difficulty="${this.difficulty}"]`);
+    if (initialBtn) {
+      document.querySelectorAll('.difficulty-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.background = 'rgba(0, 0, 0, 0.3)';
+        b.style.borderColor = 'rgba(247, 147, 26, 0.3)';
+      });
+      initialBtn.classList.add('active');
+      initialBtn.style.background = 'rgba(247, 147, 26, 0.2)';
+      initialBtn.style.borderColor = 'var(--primary-orange)';
+      this.updateForDifficulty();
+    }
   }
 
   addMiningModeToggle() {
