@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning Network Route Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #FFC107;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #999;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        /* Network Visualization */
+        .network-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 193, 7, 0.3);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            min-height: 400px;
+            position: relative;
+        }
+
+        .network-svg {
+            width: 100%;
+            height: 400px;
+        }
+
+        /* Node Styles */
+        .node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .node circle {
+            fill: #2196F3;
+            stroke: #FFC107;
+            stroke-width: 2;
+        }
+
+        .node.sender circle {
+            fill: #4CAF50;
+        }
+
+        .node.receiver circle {
+            fill: #FF5722;
+        }
+
+        .node.active circle {
+            fill: #FFC107;
+            stroke-width: 3;
+        }
+
+        .node text {
+            fill: white;
+            font-size: 14px;
+            font-weight: 600;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        .node-balance {
+            fill: #999;
+            font-size: 11px;
+        }
+
+        /* Channel Styles */
+        .channel {
+            stroke: rgba(255, 193, 7, 0.4);
+            stroke-width: 3;
+            fill: none;
+        }
+
+        .channel.active {
+            stroke: #FFC107;
+            stroke-width: 4;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* HTLC Animation */
+        .htlc {
+            fill: #FFC107;
+            filter: drop-shadow(0 0 5px #FFC107);
+        }
+
+        .htlc-forward {
+            animation: moveForward 2s ease-in-out;
+        }
+
+        .htlc-backward {
+            animation: moveBackward 2s ease-in-out;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(33, 150, 243, 0.3);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        label {
+            font-weight: 600;
+            color: #FFC107;
+            min-width: 120px;
+        }
+
+        input[type="number"] {
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 1rem;
+            width: 150px;
+        }
+
+        select {
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 1rem;
+            min-width: 200px;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            background: #FFC107;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        button:hover:not(:disabled) {
+            background: #ffb300;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button.secondary {
+            background: transparent;
+            border: 2px solid #FFC107;
+            color: #FFC107;
+        }
+
+        /* Status Log */
+        .status-log {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(76, 175, 80, 0.3);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .status-log h3 {
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+
+        .log-entry {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #4CAF50;
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .log-entry.error {
+            border-left-color: #f44336;
+            color: #ff8a80;
+        }
+
+        .log-entry.success {
+            border-left-color: #4CAF50;
+            color: #81C784;
+        }
+
+        .log-entry.info {
+            border-left-color: #2196F3;
+            color: #64B5F6;
+        }
+
+        .log-entry.warning {
+            border-left-color: #FFC107;
+            color: #FFD54F;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Info Boxes */
+        .info-box {
+            background: rgba(33, 150, 243, 0.1);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-box h4 {
+            color: #64B5F6;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            color: #FFC107;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #999;
+            margin-top: 0.25rem;
+        }
+
+        /* Scenario Buttons */
+        .scenario-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .scenario-btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem;
+            background: rgba(33, 150, 243, 0.2);
+            border: 2px solid #2196F3;
+            color: #64B5F6;
+        }
+
+        .scenario-btn:hover:not(:disabled) {
+            background: rgba(33, 150, 243, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Lightning Network Route Simulator</h1>
+        <p class="subtitle">Watch HTLCs propagate through the network and see how payments succeed or fail</p>
+
+        <!-- Quick Scenarios -->
+        <div class="scenario-buttons">
+            <button class="scenario-btn" onclick="loadScenario('success')">
+                ✅ Successful Payment
+            </button>
+            <button class="scenario-btn" onclick="loadScenario('failure')">
+                ❌ Insufficient Liquidity
+            </button>
+            <button class="scenario-btn" onclick="loadScenario('timeout')">
+                ⏱️ Timeout & Refund
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalPayments">0</div>
+                <div class="stat-label">Total Payments</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="successfulPayments">0</div>
+                <div class="stat-label">Successful</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="failedPayments">0</div>
+                <div class="stat-label">Failed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalFees">0</div>
+                <div class="stat-label">Total Fees (sats)</div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="control-row">
+                <label>Payment Amount:</label>
+                <input type="number" id="paymentAmount" value="50000" min="1000" step="1000">
+                <span style="color: #999; font-size: 0.9rem;">satoshis</span>
+            </div>
+
+            <div class="control-row">
+                <label>Route:</label>
+                <select id="routeSelect">
+                    <option value="direct">Alice → Bob (Direct)</option>
+                    <option value="2hop" selected>Alice → Bob → Carol (2 hops)</option>
+                    <option value="3hop">Alice → Bob → Carol → Dave (3 hops)</option>
+                    <option value="alternate">Alice → Eve → Carol → Dave (Alternate)</option>
+                </select>
+            </div>
+
+            <div class="control-row">
+                <button onclick="sendPayment()" id="sendBtn">
+                    ⚡ Send Payment
+                </button>
+                <button onclick="resetSimulation()" class="secondary">
+                    🔄 Reset Network
+                </button>
+            </div>
+        </div>
+
+        <!-- Network Visualization -->
+        <div class="network-container">
+            <svg class="network-svg" id="networkSvg"></svg>
+        </div>
+
+        <!-- Status Log -->
+        <div class="status-log">
+            <h3>📋 Event Log</h3>
+            <div id="logContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Network state
+        let nodes = {
+            alice: { x: 100, y: 200, balance: { bob: 100000, eve: 80000 }, name: 'Alice', role: 'sender' },
+            bob: { x: 300, y: 150, balance: { alice: 50000, carol: 90000 }, name: 'Bob', role: 'intermediate' },
+            carol: { x: 500, y: 200, balance: { bob: 60000, dave: 70000, eve: 40000 }, name: 'Carol', role: 'intermediate' },
+            dave: { x: 700, y: 150, balance: { carol: 80000 }, name: 'Dave', role: 'receiver' },
+            eve: { x: 300, y: 300, balance: { alice: 70000, carol: 65000 }, name: 'Eve', role: 'intermediate' }
+        };
+
+        let channels = [
+            { from: 'alice', to: 'bob', capacity: 150000 },
+            { from: 'bob', to: 'carol', capacity: 150000 },
+            { from: 'carol', to: 'dave', capacity: 150000 },
+            { from: 'alice', to: 'eve', capacity: 150000 },
+            { from: 'eve', to: 'carol', capacity: 105000 }
+        ];
+
+        let stats = {
+            total: 0,
+            successful: 0,
+            failed: 0,
+            totalFees: 0
+        };
+
+        let isAnimating = false;
+
+        // Initialize
+        function init() {
+            drawNetwork();
+            updateStats();
+            addLog('System initialized. Network ready for payments.', 'info');
+        }
+
+        // Draw network
+        function drawNetwork() {
+            const svg = document.getElementById('networkSvg');
+            svg.innerHTML = '';
+
+            // Draw channels
+            channels.forEach(channel => {
+                const from = nodes[channel.from];
+                const to = nodes[channel.to];
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', from.x);
+                line.setAttribute('y1', from.y);
+                line.setAttribute('x2', to.x);
+                line.setAttribute('y2', to.y);
+                line.setAttribute('class', 'channel');
+                line.setAttribute('data-from', channel.from);
+                line.setAttribute('data-to', channel.to);
+                svg.appendChild(line);
+
+                // Channel capacity label
+                const midX = (from.x + to.x) / 2;
+                const midY = (from.y + to.y) / 2;
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', midX);
+                text.setAttribute('y', midY - 10);
+                text.setAttribute('class', 'node-balance');
+                text.setAttribute('text-anchor', 'middle');
+                text.textContent = `${channel.capacity / 1000}k`;
+                svg.appendChild(text);
+            });
+
+            // Draw nodes
+            Object.keys(nodes).forEach(nodeId => {
+                const node = nodes[nodeId];
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('class', `node ${node.role}`);
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', node.x);
+                circle.setAttribute('cy', node.y);
+                circle.setAttribute('r', 30);
+                g.appendChild(circle);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', node.x);
+                text.setAttribute('y', node.y + 5);
+                text.textContent = node.name;
+                g.appendChild(text);
+
+                svg.appendChild(g);
+            });
+        }
+
+        // Send payment
+        async function sendPayment() {
+            if (isAnimating) {
+                addLog('Please wait for current payment to complete.', 'warning');
+                return;
+            }
+
+            isAnimating = true;
+            document.getElementById('sendBtn').disabled = true;
+
+            const amount = parseInt(document.getElementById('paymentAmount').value);
+            const routeType = document.getElementById('routeSelect').value;
+
+            let route = [];
+            switch(routeType) {
+                case 'direct':
+                    route = ['alice', 'bob'];
+                    break;
+                case '2hop':
+                    route = ['alice', 'bob', 'carol'];
+                    break;
+                case '3hop':
+                    route = ['alice', 'bob', 'carol', 'dave'];
+                    break;
+                case 'alternate':
+                    route = ['alice', 'eve', 'carol', 'dave'];
+                    break;
+            }
+
+            stats.total++;
+            updateStats();
+
+            addLog(`🚀 Initiating payment of ${amount} sats from ${route[0]} to ${route[route.length - 1]}`, 'info');
+            addLog(`📍 Route: ${route.map(n => nodes[n].name).join(' → ')}`, 'info');
+
+            // Check route validity
+            const canRoute = await checkRouteCapacity(route, amount);
+
+            if (!canRoute.success) {
+                addLog(`❌ Payment failed: ${canRoute.reason}`, 'error');
+                stats.failed++;
+                updateStats();
+                isAnimating = false;
+                document.getElementById('sendBtn').disabled = false;
+                return;
+            }
+
+            // Generate payment hash
+            const preimage = generateRandomHash();
+            const paymentHash = hashPreimage(preimage);
+            addLog(`🔐 Payment hash generated: ${paymentHash.substring(0, 16)}...`, 'info');
+
+            // Phase 1: Forward HTLCs
+            await forwardHTLCs(route, amount, paymentHash);
+
+            // Phase 2: Reveal preimage and settle backwards
+            await settleHTLCs(route, amount, preimage);
+
+            stats.successful++;
+            const totalFee = (route.length - 1) * 500; // 500 sats per hop
+            stats.totalFees += totalFee;
+            updateStats();
+
+            addLog(`✅ Payment successful! Total fees: ${totalFee} sats`, 'success');
+
+            isAnimating = false;
+            document.getElementById('sendBtn').disabled = false;
+        }
+
+        // Check route capacity
+        async function checkRouteCapacity(route, amount) {
+            let totalFee = 0;
+
+            for (let i = 0; i < route.length - 1; i++) {
+                const from = route[i];
+                const to = route[i + 1];
+                const fee = 500; // 500 sats per hop
+                totalFee += fee;
+
+                const amountNeeded = amount + (route.length - 1 - i) * fee;
+
+                if (!nodes[from].balance[to] || nodes[from].balance[to] < amountNeeded) {
+                    return {
+                        success: false,
+                        reason: `Insufficient liquidity at ${nodes[from].name} → ${nodes[to].name}. Need ${amountNeeded} sats, have ${nodes[from].balance[to] || 0} sats.`
+                    };
+                }
+            }
+
+            return { success: true, totalFee };
+        }
+
+        // Forward HTLCs
+        async function forwardHTLCs(route, amount, paymentHash) {
+            addLog('📤 Phase 1: Setting up HTLCs...', 'info');
+
+            for (let i = 0; i < route.length - 1; i++) {
+                const from = route[i];
+                const to = route[i + 1];
+                const timeout = 100 - (i * 10); // Decreasing timeouts
+                const fee = 500;
+                const htlcAmount = amount + ((route.length - 1 - i) * fee);
+
+                // Highlight channel
+                highlightChannel(from, to, true);
+
+                // Animate HTLC
+                await animateHTLC(from, to, 'forward');
+
+                addLog(
+                    `⚡ ${nodes[from].name} → ${nodes[to].name}: HTLC for ${htlcAmount} sats, timeout ${timeout} blocks`,
+                    'info'
+                );
+
+                await sleep(800);
+                highlightChannel(from, to, false);
+            }
+
+            addLog(`🎯 ${nodes[route[route.length - 1]].name} received HTLC`, 'success');
+        }
+
+        // Settle HTLCs backwards
+        async function settleHTLCs(route, amount, preimage) {
+            await sleep(500);
+            addLog('📥 Phase 2: Revealing secret and settling...', 'success');
+            addLog(`🔓 ${nodes[route[route.length - 1]].name} reveals preimage: ${preimage.substring(0, 16)}...`, 'success');
+
+            for (let i = route.length - 1; i > 0; i--) {
+                const from = route[i - 1];
+                const to = route[i];
+                const fee = 500;
+                const settleAmount = amount + ((route.length - i - 1) * fee);
+
+                await sleep(500);
+
+                // Highlight channel
+                highlightChannel(from, to, true);
+
+                // Animate settlement (backward)
+                await animateHTLC(to, from, 'backward');
+
+                // Update balances
+                nodes[from].balance[to] -= settleAmount;
+                nodes[to].balance[from] = (nodes[to].balance[from] || 0) + settleAmount;
+
+                if (i === route.length - 1) {
+                    addLog(`💰 ${nodes[to].name} claimed ${amount} sats`, 'success');
+                } else {
+                    addLog(`💰 ${nodes[to].name} claimed ${settleAmount} sats (${fee} sats routing fee)`, 'success');
+                }
+
+                await sleep(800);
+                highlightChannel(from, to, false);
+            }
+
+            drawNetwork(); // Refresh to show updated balances
+        }
+
+        // Animate HTLC
+        function animateHTLC(from, to, direction) {
+            return new Promise(resolve => {
+                const svg = document.getElementById('networkSvg');
+                const fromNode = nodes[from];
+                const toNode = nodes[to];
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('class', `htlc htlc-${direction}`);
+                circle.setAttribute('r', 8);
+
+                // Animate using CSS
+                const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+                animate.setAttribute('dur', '1.5s');
+                animate.setAttribute('fill', 'freeze');
+
+                const path = `M ${fromNode.x} ${fromNode.y} L ${toNode.x} ${toNode.y}`;
+                animate.setAttribute('path', path);
+
+                circle.appendChild(animate);
+                svg.appendChild(circle);
+
+                setTimeout(() => {
+                    svg.removeChild(circle);
+                    resolve();
+                }, 1500);
+            });
+        }
+
+        // Highlight channel
+        function highlightChannel(from, to, active) {
+            const lines = document.querySelectorAll('.channel');
+            lines.forEach(line => {
+                if ((line.getAttribute('data-from') === from && line.getAttribute('data-to') === to) ||
+                    (line.getAttribute('data-from') === to && line.getAttribute('data-to') === from)) {
+                    if (active) {
+                        line.classList.add('active');
+                    } else {
+                        line.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        // Load scenario
+        function loadScenario(type) {
+            resetSimulation();
+
+            switch(type) {
+                case 'success':
+                    document.getElementById('paymentAmount').value = 50000;
+                    document.getElementById('routeSelect').value = '3hop';
+                    addLog('📖 Scenario loaded: Successful 3-hop payment with sufficient liquidity', 'info');
+                    break;
+
+                case 'failure':
+                    document.getElementById('paymentAmount').value = 95000;
+                    document.getElementById('routeSelect').value = 'alternate';
+                    addLog('📖 Scenario loaded: Payment will fail due to insufficient liquidity on Eve→Carol channel', 'warning');
+                    break;
+
+                case 'timeout':
+                    document.getElementById('paymentAmount').value = 40000;
+                    document.getElementById('routeSelect').value = '2hop';
+                    addLog('📖 Scenario loaded: Standard payment (timeout scenarios are automatic fallbacks)', 'info');
+                    break;
+            }
+        }
+
+        // Reset simulation
+        function resetSimulation() {
+            // Reset balances
+            nodes = {
+                alice: { x: 100, y: 200, balance: { bob: 100000, eve: 80000 }, name: 'Alice', role: 'sender' },
+                bob: { x: 300, y: 150, balance: { alice: 50000, carol: 90000 }, name: 'Bob', role: 'intermediate' },
+                carol: { x: 500, y: 200, balance: { bob: 60000, dave: 70000, eve: 40000 }, name: 'Carol', role: 'intermediate' },
+                dave: { x: 700, y: 150, balance: { carol: 80000 }, name: 'Dave', role: 'receiver' },
+                eve: { x: 300, y: 300, balance: { alice: 70000, carol: 65000 }, name: 'Eve', role: 'intermediate' }
+            };
+
+            drawNetwork();
+            document.getElementById('logContainer').innerHTML = '';
+            addLog('🔄 Network reset to initial state', 'info');
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalPayments').textContent = stats.total;
+            document.getElementById('successfulPayments').textContent = stats.successful;
+            document.getElementById('failedPayments').textContent = stats.failed;
+            document.getElementById('totalFees').textContent = stats.totalFees;
+        }
+
+        // Add log entry
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.insertBefore(entry, logContainer.firstChild);
+
+            // Keep only last 20 entries
+            while (logContainer.children.length > 20) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+        }
+
+        // Utility functions
+        function generateRandomHash() {
+            return Array.from({length: 32}, () =>
+                Math.floor(Math.random() * 16).toString(16)
+            ).join('');
+        }
+
+        function hashPreimage(preimage) {
+            // Simplified hash (in reality this would be SHA256)
+            return 'hash_' + preimage.substring(0, 28);
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
