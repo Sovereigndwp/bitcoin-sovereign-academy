@@ -82,7 +82,7 @@
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid rgba(255, 193, 7, 0.3);
             border-radius: 1rem;
-            padding: 2rem;
+            padding: 1.5rem;
             margin-bottom: 1.5rem;
         }
 
@@ -96,8 +96,31 @@
         .channel-demo {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 12px;
-            padding: 2rem;
+            padding: 1.5rem;
             margin: 1.5rem 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .channel-demo h4 {
+            grid-column: 1 / -1;
+        }
+
+        .channel-visualization {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .channel-controls {
+            position: sticky;
+            top: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid rgba(255, 193, 7, 0.2);
         }
 
         .channel-bar {
@@ -132,15 +155,39 @@
         /* Network Visualization */
         .network-container {
             position: relative;
-            min-height: 450px;
+            min-height: 350px;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 1rem;
         }
 
         .network-svg {
             width: 100%;
-            height: 450px;
+            height: 350px;
+        }
+
+        .network-demo-wrapper {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .network-demo-wrapper .network-container {
+            grid-column: 1;
+        }
+
+        .network-demo-wrapper .network-controls {
+            grid-column: 2;
+            position: sticky;
+            top: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid rgba(255, 193, 7, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
         .node {
@@ -435,12 +482,39 @@
             display: none;
         }
 
+        @media (max-width: 968px) {
+            .channel-demo, .network-demo-wrapper {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .channel-controls, .network-demo-wrapper .network-controls {
+                position: static;
+            }
+
+            .network-container {
+                min-height: 300px;
+            }
+
+            .network-svg {
+                height: 300px;
+            }
+        }
+
         @media (max-width: 768px) {
             h1 { font-size: 2rem; }
             .section { padding: 1.25rem; }
+            .channel-demo { padding: 1rem; }
             .payment-controls { flex-direction: column; }
             .payment-controls input { min-width: 100%; }
             .stats-grid { grid-template-columns: 1fr; }
+            .network-container {
+                min-height: 250px;
+                padding: 0.75rem;
+            }
+            .network-svg {
+                height: 250px;
+            }
         }
     </style>
 </head>
@@ -485,34 +559,39 @@
                         Alice ⚡ Bob Payment Channel
                     </h4>
 
-                    <div class="channel-bar" id="channel-bar-beginner"></div>
+                    <div class="channel-visualization">
+                        <div class="channel-bar" id="channel-bar-beginner"></div>
 
-                    <div class="channel-labels">
-                        <div class="channel-label">
-                            <div class="amount" id="alice-balance-beginner">500,000</div>
-                            <div class="name">Alice (sats)</div>
+                        <div class="channel-labels">
+                            <div class="channel-label">
+                                <div class="amount" id="alice-balance-beginner">500,000</div>
+                                <div class="name">Alice (sats)</div>
+                            </div>
+                            <div class="channel-label">
+                                <div class="amount" id="bob-balance-beginner">500,000</div>
+                                <div class="name">Bob (sats)</div>
+                            </div>
                         </div>
-                        <div class="channel-label">
-                            <div class="amount" id="bob-balance-beginner">500,000</div>
-                            <div class="name">Bob (sats)</div>
+
+                        <div class="info-box">
+                            <h4>💡 How It Works:</h4>
+                            <p>
+                                <strong>1.</strong> Open channel with 1M sats total<br>
+                                <strong>2.</strong> Each starts with 500K sats<br>
+                                <strong>3.</strong> Send payments instantly<br>
+                                <strong>4.</strong> Close channel to settle on-chain
+                            </p>
                         </div>
                     </div>
 
-                    <div class="payment-controls">
-                        <input type="number" id="payment-amount-beginner" placeholder="Amount (sats)" value="50000">
-                        <button class="btn" onclick="sendPayment('alice')">Alice → Bob</button>
-                        <button class="btn" onclick="sendPayment('bob')">Bob → Alice</button>
-                        <button class="btn btn-danger" onclick="resetChannel()">Reset</button>
-                    </div>
-
-                    <div class="info-box">
-                        <h4>💡 How It Works:</h4>
-                        <p>
-                            <strong>1.</strong> Alice and Bob open a channel with 1,000,000 sats (0.01 BTC) total<br>
-                            <strong>2.</strong> Each starts with 500,000 sats<br>
-                            <strong>3.</strong> They can send payments back and forth instantly<br>
-                            <strong>4.</strong> When done, they close the channel and settle on Bitcoin's blockchain
-                        </p>
+                    <div class="channel-controls">
+                        <h4 style="color: var(--lightning-yellow); margin-bottom: 1rem;">⚡ Controls</h4>
+                        <div class="payment-controls">
+                            <input type="number" id="payment-amount-beginner" placeholder="Amount (sats)" value="50000" style="width: 100%; margin-bottom: 0.75rem;">
+                            <button class="btn" onclick="sendPayment('alice')" style="width: 100%; margin-bottom: 0.5rem;">Alice → Bob</button>
+                            <button class="btn" onclick="sendPayment('bob')" style="width: 100%; margin-bottom: 0.5rem;">Bob → Alice</button>
+                            <button class="btn btn-danger" onclick="resetChannel()" style="width: 100%;">Reset Channel</button>
+                        </div>
                     </div>
                 </div>
 
@@ -552,34 +631,37 @@
                     </p>
                 </div>
 
-                <div class="network-container">
-                    <svg class="network-svg" id="network-svg">
-                        <!-- Network visualization will be drawn here -->
-                    </svg>
+                <div class="network-demo-wrapper">
+                    <div class="network-container">
+                        <svg class="network-svg" id="network-svg">
+                            <!-- Network visualization will be drawn here -->
+                        </svg>
+                    </div>
+
+                    <div class="network-controls">
+                        <h4 style="color: var(--lightning-yellow); margin-bottom: 0.5rem;">⚡ Payment</h4>
+                        <input type="number" id="route-amount" placeholder="Amount (sats)" value="10000" style="width: 100%;">
+                        <button class="btn" onclick="sendRoutedPayment()" style="width: 100%;">Send (Alice → Carol)</button>
+                        <button class="btn btn-secondary" onclick="resetNetwork()" style="width: 100%;">Reset</button>
+
+                        <div class="stats-grid" style="grid-template-columns: 1fr; gap: 0.5rem; margin-top: 1rem;">
+                            <div class="stat-card" style="padding: 0.75rem;">
+                                <div class="stat-value" id="total-sent" style="font-size: 1.5rem;">0</div>
+                                <div class="stat-label" style="font-size: 0.75rem;">Sent (sats)</div>
+                            </div>
+                            <div class="stat-card" style="padding: 0.75rem;">
+                                <div class="stat-value" id="total-fees" style="font-size: 1.5rem;">0</div>
+                                <div class="stat-label" style="font-size: 0.75rem;">Fees (sats)</div>
+                            </div>
+                            <div class="stat-card" style="padding: 0.75rem;">
+                                <div class="stat-value" id="hop-count" style="font-size: 1.5rem;">2</div>
+                                <div class="stat-label" style="font-size: 0.75rem;">Hops</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="payment-controls">
-                    <input type="number" id="route-amount" placeholder="Amount (sats)" value="10000">
-                    <button class="btn" onclick="sendRouted Payment()">Send Payment (Alice → Carol)</button>
-                    <button class="btn btn-secondary" onclick="resetNetwork()">Reset Network</button>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="total-sent">0</div>
-                        <div class="stat-label">Total Sent (sats)</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="total-fees">0</div>
-                        <div class="stat-label">Total Fees (sats)</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="hop-count">2</div>
-                        <div class="stat-label">Hops in Route</div>
-                    </div>
-                </div>
-
-                <div class="status-log">
+                <div class="status-log" style="margin-top: 1rem;">
                     <h3>📋 Transaction Log</h3>
                     <div id="log-container"></div>
                 </div>
