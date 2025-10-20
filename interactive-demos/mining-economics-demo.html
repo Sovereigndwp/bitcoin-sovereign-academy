@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mining Economics Demo - Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --accent-purple: #4f46e5;
+            --accent-green: #28a745;
+            --accent-red: #dc3545;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        body.level-beginner .advanced-only { display: none; }
+        body.level-beginner .intermediate-only { display: none; }
+        body.level-intermediate .advanced-only { display: none; }
+        body.level-intermediate .beginner-only { display: none; }
+        body.level-advanced .beginner-only { display: none; }
+        body.level-advanced .intermediate-only { display: none; }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { color: var(--primary-orange); font-size: 2rem; margin-bottom: 0.5rem; }
+
+        .level-switcher { background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 12px; padding: 1rem; margin-bottom: 2rem; }
+        .level-info { text-align: center; margin-bottom: 0.75rem; }
+        .level-buttons { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+        .level-btn { padding: 0.6rem 1.2rem; background: rgba(247, 147, 26, 0.1); border: 2px solid rgba(247, 147, 26, 0.3); border-radius: 8px; color: var(--text-light); cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
+        .level-btn.active { background: var(--primary-orange); border-color: var(--primary-orange); color: white; }
+
+        .intro-box { background: rgba(79, 70, 229, 0.1); border-left: 4px solid var(--accent-purple); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem; }
+        .demo-container { background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 15px; padding: 2rem; margin: 2rem 0; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(79, 70, 229, 0.1));
+            border: 2px solid rgba(79, 70, 229, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .calculator {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .calculator h4 {
+            color: var(--primary-orange);
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--accent-purple);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        .btn {
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(247, 147, 26, 0.4); }
+
+        .result-box {
+            background: rgba(79, 70, 229, 0.1);
+            border: 2px solid var(--accent-purple);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .result-box.profitable {
+            border-color: var(--accent-green);
+            background: rgba(40, 167, 80, 0.1);
+        }
+
+        .result-box.unprofitable {
+            border-color: var(--accent-red);
+            background: rgba(220, 53, 69, 0.1);
+        }
+
+        .halving-timeline {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .halving-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: rgba(79, 70, 229, 0.1);
+            border-left: 4px solid var(--accent-purple);
+            border-radius: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Mining Economics</h1>
+            <p>Understanding the incentives that secure Bitcoin</p>
+        </div>
+
+        <div class="level-switcher">
+            <div class="level-info">
+                <span style="color: var(--text-dim); font-size: 0.9rem;">Difficulty:</span>
+                <span style="color: var(--primary-orange); font-weight: bold; font-size: 1.1rem; margin-left: 0.5rem;" id="current-level-name">Beginner Mode</span>
+            </div>
+            <div class="level-buttons">
+                <button class="level-btn active" data-level="beginner">Beginner</button>
+                <button class="level-btn" data-level="intermediate">Intermediate</button>
+                <button class="level-btn" data-level="advanced">Advanced</button>
+            </div>
+        </div>
+
+        <div class="intro-box">
+            <h3 style="color: var(--accent-purple); margin-bottom: 0.75rem;">Why Mine Bitcoin?</h3>
+            <p class="beginner-only">
+                Bitcoin miners spend electricity and buy expensive computers to secure the network. Why? Because they earn rewards! Every time a miner successfully adds a block to the blockchain, they receive newly created Bitcoin plus transaction fees.
+            </p>
+            <p class="intermediate-only">
+                Bitcoin's security model relies on economic incentives. Miners invest in hardware and electricity because block rewards + transaction fees make honest mining more profitable than attacking the network. The halving schedule creates programmatic scarcity.
+            </p>
+            <p class="advanced-only">
+                Bitcoin implements a self-regulating economic system where security is purchased with inflation (block subsidy) that decreases over time. Game theory ensures attacking (double-spend, censorship) is less profitable than honest mining due to opportunity cost + network value destruction. Post-subsidy era (2140+) transitions to pure fee market.
+            </p>
+        </div>
+
+        <div class="demo-container">
+            <h4 style="color: var(--accent-purple); margin-bottom: 1.5rem;">Current Mining Rewards</h4>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="block-reward">3.125</div>
+                    <div class="stat-label">Block Subsidy (BTC)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="tx-fees">0.15</div>
+                    <div class="stat-label">Avg Transaction Fees (BTC)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-reward">3.275</div>
+                    <div class="stat-label">Total Block Reward (BTC)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="btc-price">$65,000</div>
+                    <div class="stat-label">BTC Price (USD)</div>
+                </div>
+            </div>
+
+            <p style="text-align: center; color: var(--text-dim); margin-top: 1rem;">
+                <span class="beginner-only">Every ~10 minutes, one miner wins approximately <strong id="block-value">$212,875</strong>!</span>
+                <span class="intermediate-only">Block value = (Block Subsidy + Fees) × BTC Price = <strong id="block-value-int">$212,875</strong></span>
+                <span class="advanced-only">Expected block value = 3.275 BTC × $65,000 = <strong id="block-value-adv">$212,875</strong> | Daily network issuance ≈ 450 BTC ($29.25M)</span>
+            </p>
+        </div>
+
+        <div class="calculator">
+            <h4>⚡ Mining Profitability Calculator</h4>
+            <p style="margin-bottom: 2rem; color: var(--text-dim);">
+                <span class="beginner-only">Enter your details to see if mining would be profitable:</span>
+                <span class="intermediate-only">Calculate expected returns based on hashrate and electricity costs:</span>
+                <span class="advanced-only">Model mining profitability accounting for difficulty, hashrate competition, and operational costs:</span>
+            </p>
+
+            <div class="input-group">
+                <label>Hashrate (TH/s):</label>
+                <input type="number" id="hashrate" value="100" min="1" step="1">
+            </div>
+
+            <div class="input-group">
+                <label>Electricity Cost ($/kWh):</label>
+                <input type="number" id="electricity-cost" value="0.10" min="0" step="0.01">
+            </div>
+
+            <div class="input-group">
+                <label>Power Consumption (Watts):</label>
+                <input type="number" id="power-consumption" value="3250" min="100" step="50">
+            </div>
+
+            <div class="input-group advanced-only">
+                <label>Pool Fee (%):</label>
+                <input type="number" id="pool-fee" value="2" min="0" max="10" step="0.5">
+            </div>
+
+            <button class="btn" onclick="calculateProfitability()">📊 Calculate Profitability</button>
+
+            <div id="profitability-result"></div>
+        </div>
+
+        <div class="halving-timeline">
+            <h4 style="color: var(--primary-orange); margin-bottom: 1.5rem;">📅 Bitcoin Halving Schedule</h4>
+            <p style="margin-bottom: 1.5rem; color: var(--text-dim);">
+                <span class="beginner-only">Every 4 years, the block reward gets cut in half. This makes Bitcoin scarcer over time.</span>
+                <span class="intermediate-only">Block subsidy halves every 210,000 blocks (~4 years), creating programmatic scarcity:</span>
+                <span class="advanced-only">Halving enforces asymptotic supply cap of 21M BTC via geometric series: Σ(50/2^n × 210000) = 21M</span>
+            </p>
+
+            <div class="halving-item">
+                <div>
+                    <strong style="color: var(--primary-orange);">2009-2012</strong>
+                    <div style="font-size: 0.85rem; color: var(--text-dim);">Genesis → 1st Halving</div>
+                </div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: var(--accent-green);">50 BTC</div>
+            </div>
+
+            <div class="halving-item">
+                <div>
+                    <strong style="color: var(--primary-orange);">2012-2016</strong>
+                    <div style="font-size: 0.85rem; color: var(--text-dim);">1st Halving → 2nd Halving</div>
+                </div>
+                <div style="font-size: 1.5rem; font-weight: bold;">25 BTC</div>
+            </div>
+
+            <div class="halving-item">
+                <div>
+                    <strong style="color: var(--primary-orange);">2016-2020</strong>
+                    <div style="font-size: 0.85rem; color: var(--text-dim);">2nd Halving → 3rd Halving</div>
+                </div>
+                <div style="font-size: 1.5rem; font-weight: bold;">12.5 BTC</div>
+            </div>
+
+            <div class="halving-item">
+                <div>
+                    <strong style="color: var(--primary-orange);">2020-2024</strong>
+                    <div style="font-size: 0.85rem; color: var(--text-dim);">3rd Halving → 4th Halving</div>
+                </div>
+                <div style="font-size: 1.5rem; font-weight: bold;">6.25 BTC</div>
+            </div>
+
+            <div class="halving-item" style="border-left-color: var(--accent-green);">
+                <div>
+                    <strong style="color: var(--accent-green);">2024-2028</strong>
+                    <div style="font-size: 0.85rem; color: var(--text-dim);">4th Halving → 5th Halving (Current)</div>
+                </div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: var(--accent-green);">3.125 BTC ✨</div>
+            </div>
+
+            <div class="halving-item advanced-only" style="opacity: 0.6;">
+                <div>
+                    <strong>2140+</strong>
+                    <div style="font-size: 0.85rem; color: var(--text-dim);">Final Bitcoin Mined (~33rd halving)</div>
+                </div>
+                <div style="font-size: 1.2rem; font-weight: bold;">0 BTC (fees only)</div>
+            </div>
+        </div>
+
+        <div style="background: rgba(40, 167, 80, 0.1); border-left: 4px solid var(--accent-green); border-radius: 0.5rem; padding: 1.5rem; margin-top: 2rem;">
+            <h4 style="color: var(--accent-green); margin-bottom: 0.75rem;">💡 The Incentive Structure</h4>
+            <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                <li class="beginner-only"><strong>Block Rewards:</strong> New Bitcoin created for miners who find blocks</li>
+                <li class="intermediate-only"><strong>Security Budget:</strong> Block rewards fund network security (~$30M/day at current prices)</li>
+                <li class="advanced-only"><strong>Game Theory:</strong> Attacking costs >50% hashrate (~$20B hardware + $1M/hr electricity) but destroys stolen value</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLevel = urlParams.get('level') || 'beginner';
+        document.body.classList.add(`level-${currentLevel}`);
+
+        const LEVEL_CONFIG = {
+            beginner: { name: "Beginner Mode" },
+            intermediate: { name: "Intermediate Mode" },
+            advanced: { name: "Advanced Mode" }
+        };
+
+        document.getElementById('current-level-name').textContent = LEVEL_CONFIG[currentLevel].name;
+
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            if (btn.dataset.level === currentLevel) btn.classList.add('active');
+            btn.addEventListener('click', (e) => {
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('level', e.target.dataset.level);
+                window.location.href = newUrl.toString();
+            });
+        });
+
+        // Update block values
+        function updateBlockValues() {
+            const blockReward = 3.125;
+            const fees = 0.15;
+            const btcPrice = 65000;
+            const total = blockReward + fees;
+            const value = total * btcPrice;
+
+            document.getElementById('block-value').textContent = '$' + value.toLocaleString();
+            document.getElementById('block-value-int').textContent = '$' + value.toLocaleString();
+            document.getElementById('block-value-adv').textContent = '$' + value.toLocaleString();
+        }
+
+        updateBlockValues();
+
+        function calculateProfitability() {
+            const hashrate = parseFloat(document.getElementById('hashrate').value) || 100;
+            const electricityCost = parseFloat(document.getElementById('electricity-cost').value) || 0.10;
+            const powerConsumption = parseFloat(document.getElementById('power-consumption').value) || 3250;
+            const poolFee = currentLevel === 'advanced' ? (parseFloat(document.getElementById('pool-fee').value) || 2) : 2;
+
+            // Network stats (approximate)
+            const networkHashrate = 400000000; // 400 EH/s = 400,000,000 TH/s
+            const blockReward = 3.125;
+            const fees = 0.15;
+            const btcPrice = 65000;
+            const blocksPerDay = 144;
+
+            // Calculate expected BTC per day
+            const hashProportion = hashrate / networkHashrate;
+            const expectedBlocksPerDay = blocksPerDay * hashProportion;
+            const expectedBTCPerDay = expectedBlocksPerDay * (blockReward + fees);
+            const expectedBTCAfterFees = expectedBTCPerDay * (1 - poolFee / 100);
+
+            // Calculate revenue
+            const dailyRevenue = expectedBTCAfterFees * btcPrice;
+            const monthlyRevenue = dailyRevenue * 30;
+            const yearlyRevenue = dailyRevenue * 365;
+
+            // Calculate costs
+            const dailyPowerKWh = (powerConsumption / 1000) * 24;
+            const dailyCost = dailyPowerKWh * electricityCost;
+            const monthlyCost = dailyCost * 30;
+            const yearlyCost = dailyCost * 365;
+
+            // Calculate profit
+            const dailyProfit = dailyRevenue - dailyCost;
+            const monthlyProfit = dailyProfit * 30;
+            const yearlyProfit = dailyProfit * 365;
+
+            const isProfitable = dailyProfit > 0;
+            const result = document.getElementById('profitability-result');
+
+            let message = '';
+            if (currentLevel === 'beginner') {
+                message = `
+                    <div class="result-box ${isProfitable ? 'profitable' : 'unprofitable'}">
+                        <h4 style="color: ${isProfitable ? 'var(--accent-green)' : 'var(--accent-red)'}; margin-bottom: 1rem;">
+                            ${isProfitable ? '✅ Profitable!' : '❌ Not Profitable'}
+                        </h4>
+                        <p style="margin-bottom: 1rem;"><strong>Daily Earnings:</strong> $${dailyRevenue.toFixed(2)}</p>
+                        <p style="margin-bottom: 1rem;"><strong>Daily Electricity:</strong> $${dailyCost.toFixed(2)}</p>
+                        <p style="font-size: 1.2rem; font-weight: bold; color: ${isProfitable ? 'var(--accent-green)' : 'var(--accent-red)'};">
+                            <strong>Daily Profit:</strong> $${dailyProfit.toFixed(2)}
+                        </p>
+                        <p style="margin-top: 1rem; color: var(--text-dim); font-size: 0.9rem;">
+                            ${isProfitable ?
+                                'Mining is profitable with these settings! But remember: difficulty increases over time.' :
+                                'Mining would lose money with these settings. You need cheaper electricity or better hardware.'}
+                        </p>
+                    </div>
+                `;
+            } else if (currentLevel === 'intermediate') {
+                const roi = isProfitable ? (20000 / dailyProfit).toFixed(0) : 'N/A'; // Assume $20k hardware cost
+                message = `
+                    <div class="result-box ${isProfitable ? 'profitable' : 'unprofitable'}">
+                        <h4 style="color: ${isProfitable ? 'var(--accent-green)' : 'var(--accent-red)'}; margin-bottom: 1rem;">
+                            ${isProfitable ? '✅ Mining Economics: Profitable' : '❌ Mining Economics: Unprofitable'}
+                        </h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div><strong>Expected BTC/day:</strong> ${expectedBTCAfterFees.toFixed(8)}</div>
+                            <div><strong>Hash proportion:</strong> ${(hashProportion * 100).toFixed(6)}%</div>
+                            <div><strong>Daily revenue:</strong> $${dailyRevenue.toFixed(2)}</div>
+                            <div><strong>Daily costs:</strong> $${dailyCost.toFixed(2)}</div>
+                        </div>
+                        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; margin-top: 1rem;">
+                            <div><strong>Daily profit:</strong> <span style="color: ${isProfitable ? 'var(--accent-green)' : 'var(--accent-red)'}; font-size: 1.2rem;">$${dailyProfit.toFixed(2)}</span></div>
+                            <div><strong>Monthly profit:</strong> $${monthlyProfit.toFixed(2)}</div>
+                            <div><strong>Yearly profit:</strong> $${yearlyProfit.toFixed(2)}</div>
+                            ${isProfitable ? `<div style="margin-top: 0.5rem;"><strong>ROI (hardware ~$20k):</strong> ~${roi} days</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            } else {
+                const breakEvenPrice = dailyCost / expectedBTCAfterFees;
+                message = `
+                    <div class="result-box ${isProfitable ? 'profitable' : 'unprofitable'}">
+                        <h4 style="color: ${isProfitable ? 'var(--accent-green)' : 'var(--accent-red)'}; margin-bottom: 1rem;">
+                            ${isProfitable ? '✅ Economic Analysis: Positive Expected Value' : '❌ Economic Analysis: Negative Expected Value'}
+                        </h4>
+                        <div style="margin-bottom: 1rem;">
+                            <strong>Hash Rate Economics:</strong><br>
+                            Network hashrate: ${networkHashrate.toLocaleString()} TH/s (${(networkHashrate/1000000).toFixed(0)} EH/s)<br>
+                            Your proportion: ${(hashProportion * 100).toFixed(8)}%<br>
+                            Expected blocks/day: ${expectedBlocksPerDay.toFixed(4)}<br>
+                            Expected blocks/year: ${(expectedBlocksPerDay * 365).toFixed(2)}
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <strong>Revenue Model:</strong><br>
+                            Block subsidy: ${blockReward} BTC<br>
+                            Avg fees: ${fees} BTC<br>
+                            Pool fee: ${poolFee}%<br>
+                            Net BTC/day: ${expectedBTCAfterFees.toFixed(8)} (~${(expectedBTCAfterFees * 365).toFixed(4)} BTC/year)
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <strong>Cost Structure:</strong><br>
+                            Power: ${powerConsumption}W × 24h = ${dailyPowerKWh.toFixed(2)} kWh/day<br>
+                            Electricity: ${dailyPowerKWh.toFixed(2)} kWh × $${electricityCost}/kWh = $${dailyCost.toFixed(2)}/day<br>
+                            Annual electricity: $${yearlyCost.toFixed(2)}
+                        </div>
+                        <div style="border-top: 2px solid rgba(247,147,26,0.3); padding-top: 1rem; margin-top: 1rem;">
+                            <div style="font-size: 1.1rem;"><strong>Net Profitability:</strong></div>
+                            <div style="margin-top: 0.5rem;">Daily: <span style="color: ${isProfitable ? 'var(--accent-green)' : 'var(--accent-red)'}; font-size: 1.3rem; font-weight: bold;">$${dailyProfit.toFixed(2)}</span></div>
+                            <div>Monthly: $${monthlyProfit.toFixed(2)}</div>
+                            <div>Yearly: $${yearlyProfit.toFixed(2)}</div>
+                        </div>
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <strong>Break-even Analysis:</strong><br>
+                            BTC price for break-even: $${breakEvenPrice.toFixed(2)}<br>
+                            Current price: $${btcPrice.toLocaleString()}<br>
+                            ${isProfitable ?
+                                `Profit margin: ${(((btcPrice - breakEvenPrice) / btcPrice) * 100).toFixed(2)}%` :
+                                `Loss: ${(((breakEvenPrice - btcPrice) / btcPrice) * 100).toFixed(2)}% above break-even`}
+                        </div>
+                    </div>
+                `;
+            }
+
+            result.innerHTML = message;
+        }
+
+        console.log(`💰 Mining Economics Demo Level: ${currentLevel}`);
+    </script>
+</body>
+</html>

@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Network Growth - Interactive Demo</title>
+    <link rel="stylesheet" href="../css/brand.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --bitcoin-grey: #4d4d4d;
+            --accent-green: #50AF95;
+            --accent-blue: #00A8E8;
+            --accent-red: #FF6B6B;
+            --light-grey: #f5f5f5;
+            --border-grey: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--bitcoin-grey);
+            background: white;
+            padding: 1rem;
+        }
+
+        .demo-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--primary-orange);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--bitcoin-grey);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .level-switcher {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--light-grey);
+            border-radius: 0.5rem;
+        }
+
+        .level-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border-grey);
+            background: white;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .level-btn.active {
+            background: var(--primary-orange);
+            color: white;
+            border-color: var(--primary-orange);
+        }
+
+        .section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-grey);
+            margin-bottom: 1.5rem;
+        }
+
+        .section h2 {
+            color: var(--bitcoin-grey);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .simulation-area {
+            background: var(--light-grey);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .timeline {
+            position: relative;
+            height: 400px;
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: var(--accent-blue);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 2px solid var(--border-grey);
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-orange);
+        }
+
+        .feedback-loop {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8f4f8 100%);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .feedback-loop h3 {
+            color: var(--accent-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .arrow-chain {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .arrow-item {
+            background: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            border: 1px solid var(--border-grey);
+        }
+
+        .arrow {
+            color: var(--primary-orange);
+            font-size: 1.5rem;
+        }
+
+        .lindy-explanation {
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe6cc 100%);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--primary-orange);
+            margin: 1rem 0;
+        }
+
+        .advanced-only, .intermediate-only, .beginner-only {
+            display: block;
+        }
+
+        body.level-beginner .intermediate-only,
+        body.level-beginner .advanced-only {
+            display: none;
+        }
+
+        body.level-intermediate .beginner-only,
+        body.level-intermediate .advanced-only {
+            display: none;
+        }
+
+        body.level-advanced .beginner-only,
+        body.level-advanced .intermediate-only {
+            display: none;
+        }
+
+        .formula {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-grey);
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .security-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 0.25rem;
+        }
+
+        .indicator-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .status-weak { background: var(--accent-red); }
+        .status-growing { background: #FFA500; }
+        .status-strong { background: var(--accent-green); }
+        .status-dominant { background: #00D4AA; }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.5rem; }
+            .timeline { height: 300px; }
+            .metrics-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>🌐 Bitcoin Network Growth</h1>
+        <p class="subtitle">Understanding how Bitcoin becomes stronger over time</p>
+
+        <div class="level-switcher">
+            <button class="level-btn" onclick="switchLevel('beginner')">Beginner</button>
+            <button class="level-btn" onclick="switchLevel('intermediate')">Intermediate</button>
+            <button class="level-btn" onclick="switchLevel('advanced')">Advanced</button>
+        </div>
+
+        <!-- Beginner Content -->
+        <div class="beginner-only">
+            <div class="section">
+                <h2>How Networks Grow Stronger</h2>
+                <p>Imagine a phone network with only 2 people. Not very useful! But with millions of people, it becomes essential. Bitcoin works the same way:</p>
+                <ul style="margin-left: 1.5rem; margin-top: 1rem;">
+                    <li><strong>More users</strong> = More merchants accepting it</li>
+                    <li><strong>More merchants</strong> = More useful for payments</li>
+                    <li><strong>More value</strong> = More miners securing it</li>
+                    <li><strong>More security</strong> = More trust from new users</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Intermediate Content -->
+        <div class="intermediate-only">
+            <div class="section">
+                <h2>The Lindy Effect</h2>
+                <div class="lindy-explanation">
+                    <h3>📅 The Longer It Survives, The Longer It Will Survive</h3>
+                    <p>Bitcoin has been running continuously since January 3, 2009. Every day it survives increases confidence in its future longevity.</p>
+                    <p style="margin-top: 0.5rem;"><strong>Examples of the Lindy Effect:</strong></p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Books that have lasted 100 years will likely last another 100</li>
+                        <li>Technologies that survive 10 years are proven resilient</li>
+                        <li>Bitcoin at 16+ years has proven itself more than most cryptocurrencies</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Content -->
+        <div class="advanced-only">
+            <div class="section">
+                <h2>Metcalfe's Law & Network Value</h2>
+                <div class="formula">
+                    Network Value ≈ n² (where n = number of users)
+                </div>
+                <p>The value of a network grows exponentially with the number of users. A network with 10,000 users is not 10x more valuable than one with 1,000 users—it's approximately 100x more valuable.</p>
+
+                <p style="margin-top: 1rem;"><strong>Applied to Bitcoin:</strong></p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>More users → Higher price → More mining revenue</li>
+                    <li>More mining revenue → Higher hashrate → Greater security</li>
+                    <li>Greater security → Lower attack risk → Increased institutional adoption</li>
+                    <li>This creates a virtuous cycle of growth and security</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Interactive Simulation (All Levels) -->
+        <div class="section">
+            <h2>🚀 Network Growth Simulation</h2>
+            <div class="simulation-area">
+                <div class="controls">
+                    <button class="btn" onclick="startSimulation()">Start Simulation</button>
+                    <button class="btn btn-secondary" onclick="resetSimulation()">Reset</button>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="fast-mode" onchange="toggleSpeed()">
+                        <span>Fast Mode</span>
+                    </label>
+                </div>
+
+                <div class="timeline">
+                    <canvas id="growth-chart"></canvas>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Year</div>
+                        <div class="metric-value" id="year-display">2009</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Users</div>
+                        <div class="metric-value" id="users-display">1,000</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Hashrate (EH/s)</div>
+                        <div class="metric-value" id="hashrate-display">0.0001</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Network Value</div>
+                        <div class="metric-value" id="value-display">$0.1M</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <div class="security-indicator">
+                        <div class="indicator-dot status-weak" id="security-indicator"></div>
+                        <span id="security-status">Network Security: Weak</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Loops (Intermediate/Advanced) -->
+        <div class="intermediate-only">
+            <div class="section">
+                <h2>🔄 Positive Feedback Loops</h2>
+                <div class="feedback-loop">
+                    <h3>The Adoption Cycle</h3>
+                    <div class="arrow-chain">
+                        <div class="arrow-item">More Users</div>
+                        <span class="arrow">→</span>
+                        <div class="arrow-item">Higher Price</div>
+                        <span class="arrow">→</span>
+                        <div class="arrow-item">More Miners</div>
+                        <span class="arrow">→</span>
+                        <div class="arrow-item">Stronger Security</div>
+                        <span class="arrow">→</span>
+                        <div class="arrow-item">More Trust</div>
+                        <span class="arrow">→</span>
+                        <div class="arrow-item">More Users</div>
+                    </div>
+                </div>
+
+                <div class="feedback-loop" style="border-left-color: var(--accent-blue);">
+                    <h3 style="color: var(--accent-blue);">The Developer Ecosystem</h3>
+                    <div class="arrow-chain">
+                        <div class="arrow-item">More Developers</div>
+                        <span class="arrow">→</span>
+                        <div class="arrow-item">Better Tools</div>
+                        <span class="arrow">→</span>
+                        <div class="arrow-item">Easier to Build</div>
+                        <span class="arrow">→</span>
+                        <div class="arrow-item">More Apps</div>
+                        <span class="arrow">→</span>
+                        <div class="arrow-item">More Users</div>
+                        <span class="arrow">→</span>
+                        <div class="arrow-item">More Developers</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Economic Analysis -->
+        <div class="advanced-only">
+            <div class="section">
+                <h2>📊 Economic Security Model</h2>
+                <p>Bitcoin's security budget (block rewards + fees) must exceed the cost of attacking the network to maintain Byzantine Fault Tolerance.</p>
+
+                <div class="formula">
+                    Security Budget = (Block Subsidy + Fees) × Blocks per Year × BTC Price
+                </div>
+
+                <p style="margin-top: 1rem;"><strong>Historical Growth:</strong></p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li><strong>2009</strong>: ~5,256,000 BTC × $0.01 = $52,560/year security budget</li>
+                    <li><strong>2015</strong>: ~1,314,000 BTC × $250 = $328M/year security budget</li>
+                    <li><strong>2020</strong>: ~328,500 BTC × $10,000 = $3.3B/year security budget</li>
+                    <li><strong>2025</strong>: ~164,250 BTC × $65,000 = $10.7B/year security budget</li>
+                </ul>
+
+                <p style="margin-top: 1rem;">As the network grows, the cost to attack (51% attack) grows faster than linearly due to:</p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>Hardware scarcity (can't instantly acquire 51% of mining hardware)</li>
+                    <li>Energy infrastructure requirements</li>
+                    <li>Economic damage from attack (miners would destroy their own investment)</li>
+                    <li>Social consensus to change PoW algorithm if attacked</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Multi-level support: detect level from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLevel = urlParams.get('level') || 'beginner';
+        const currentPath = urlParams.get('path') || 'curious';
+
+        // Apply level class to body
+        document.body.classList.add(`level-${currentLevel}`);
+
+        // Highlight active level button
+        document.addEventListener('DOMContentLoaded', () => {
+            const buttons = document.querySelectorAll('.level-btn');
+            buttons.forEach(btn => {
+                if (btn.textContent.toLowerCase() === currentLevel) {
+                    btn.classList.add('active');
+                }
+            });
+        });
+
+        function switchLevel(level) {
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('level', level);
+            window.location.href = newUrl.toString();
+        }
+
+        // Simulation State
+        let simulationRunning = false;
+        let simulationInterval = null;
+        let currentYear = 2009;
+        let fastMode = false;
+        let dataPoints = [];
+
+        // Canvas setup
+        const canvas = document.getElementById('growth-chart');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth - 32;
+            canvas.height = container.clientHeight - 32;
+            drawChart();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Network growth model (simplified exponential with adoption curve)
+        function getNetworkMetrics(year) {
+            const yearsSince2009 = year - 2009;
+
+            // Exponential growth with saturation curve
+            const adoptionRate = 1.8; // Annual growth multiplier
+            const saturationPoint = 1000000000; // 1 billion users
+
+            const rawUsers = 1000 * Math.pow(adoptionRate, yearsSince2009);
+            const users = Math.min(rawUsers, saturationPoint);
+
+            // Hashrate grows with users and price
+            const hashrate = users / 50000; // Simplified model
+
+            // Network value (Metcalfe's Law approximation)
+            const networkValue = (users * users) / 1000000; // in millions
+
+            return { users, hashrate, networkValue };
+        }
+
+        function updateMetrics(year) {
+            const metrics = getNetworkMetrics(year);
+
+            document.getElementById('year-display').textContent = year;
+            document.getElementById('users-display').textContent = formatNumber(Math.round(metrics.users));
+            document.getElementById('hashrate-display').textContent = formatHashrate(metrics.hashrate);
+            document.getElementById('value-display').textContent = '$' + formatNumber(Math.round(metrics.networkValue)) + 'M';
+
+            // Update security indicator
+            updateSecurityIndicator(metrics.hashrate);
+
+            // Store data point
+            dataPoints.push({ year, ...metrics });
+            if (dataPoints.length > 50) {
+                dataPoints.shift();
+            }
+        }
+
+        function updateSecurityIndicator(hashrate) {
+            const indicator = document.getElementById('security-indicator');
+            const status = document.getElementById('security-status');
+
+            if (hashrate < 1) {
+                indicator.className = 'indicator-dot status-weak';
+                status.textContent = 'Network Security: Weak (Vulnerable to attacks)';
+            } else if (hashrate < 100) {
+                indicator.className = 'indicator-dot status-growing';
+                status.textContent = 'Network Security: Growing (Becoming more costly to attack)';
+            } else if (hashrate < 100000) {
+                indicator.className = 'indicator-dot status-strong';
+                status.textContent = 'Network Security: Strong (Attack very expensive)';
+            } else {
+                indicator.className = 'indicator-dot status-dominant';
+                status.textContent = 'Network Security: Dominant (Practically impossible to attack)';
+            }
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B';
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        function formatHashrate(hashrate) {
+            if (hashrate >= 1000000) return (hashrate / 1000000).toFixed(1);
+            if (hashrate >= 1000) return (hashrate / 1000).toFixed(2);
+            if (hashrate >= 1) return hashrate.toFixed(3);
+            return hashrate.toFixed(6);
+        }
+
+        function drawChart() {
+            if (!ctx || dataPoints.length === 0) return;
+
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw grid
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = (height / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+
+            // Find max values for scaling
+            const maxUsers = Math.max(...dataPoints.map(d => d.users));
+            const maxHashrate = Math.max(...dataPoints.map(d => d.hashrate));
+
+            // Draw users line
+            ctx.strokeStyle = '#f7931a';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            dataPoints.forEach((point, i) => {
+                const x = (width / (dataPoints.length - 1)) * i;
+                const y = height - (point.users / maxUsers) * height * 0.9;
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+
+            // Draw hashrate line (if advanced mode)
+            if (currentLevel === 'advanced' || currentLevel === 'intermediate') {
+                ctx.strokeStyle = '#50AF95';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                dataPoints.forEach((point, i) => {
+                    const x = (width / (dataPoints.length - 1)) * i;
+                    const y = height - (point.hashrate / maxHashrate) * height * 0.9;
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.stroke();
+            }
+
+            // Draw legend
+            ctx.fillStyle = '#f7931a';
+            ctx.font = '14px sans-serif';
+            ctx.fillText('Users', 10, 20);
+
+            if (currentLevel === 'advanced' || currentLevel === 'intermediate') {
+                ctx.fillStyle = '#50AF95';
+                ctx.fillText('Hashrate', 80, 20);
+            }
+        }
+
+        function startSimulation() {
+            if (simulationRunning) return;
+
+            simulationRunning = true;
+            const speed = fastMode ? 100 : 500;
+
+            simulationInterval = setInterval(() => {
+                if (currentYear >= 2025) {
+                    stopSimulation();
+                    return;
+                }
+
+                currentYear++;
+                updateMetrics(currentYear);
+                drawChart();
+            }, speed);
+        }
+
+        function stopSimulation() {
+            simulationRunning = false;
+            if (simulationInterval) {
+                clearInterval(simulationInterval);
+                simulationInterval = null;
+            }
+        }
+
+        function resetSimulation() {
+            stopSimulation();
+            currentYear = 2009;
+            dataPoints = [];
+            updateMetrics(currentYear);
+            drawChart();
+        }
+
+        function toggleSpeed() {
+            fastMode = document.getElementById('fast-mode').checked;
+            if (simulationRunning) {
+                stopSimulation();
+                startSimulation();
+            }
+        }
+
+        // Initialize
+        updateMetrics(currentYear);
+        drawChart();
+    </script>
+</body>
+</html>
