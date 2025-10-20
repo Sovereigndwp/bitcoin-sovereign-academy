@@ -611,132 +611,6 @@
             margin-bottom: 0.5rem;
         }
 
-        /* ===== LEVEL SWITCHER ===== */
-        .level-switcher {
-            background: rgba(33, 150, 243, 0.1);
-            border: 2px solid rgba(33, 150, 243, 0.3);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .level-info {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .level-label {
-            color: var(--color-muted);
-            font-weight: 600;
-        }
-
-        .level-current {
-            color: #2196F3;
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-
-        .level-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .level-btn {
-            background: rgba(33, 150, 243, 0.1);
-            border: 2px solid rgba(33, 150, 243, 0.3);
-            color: #2196F3;
-            padding: 0.5rem 1.5rem;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .level-btn:hover {
-            background: rgba(33, 150, 243, 0.2);
-            border-color: #2196F3;
-        }
-
-        .level-btn.active {
-            background: #2196F3;
-            color: white;
-            border-color: #2196F3;
-        }
-
-        /* ===== LEVEL-SPECIFIC VISIBILITY ===== */
-        /* Beginner-only elements */
-        .beginner-only { display: block; }
-        .intermediate-only { display: none; }
-        .advanced-only { display: none; }
-
-        /* Intermediate mode */
-        body.level-intermediate .beginner-only { display: none; }
-        body.level-intermediate .intermediate-only { display: block; }
-        body.level-intermediate .advanced-only { display: none; }
-
-        /* Advanced mode */
-        body.level-advanced .beginner-only { display: none; }
-        body.level-advanced .intermediate-only { display: none; }
-        body.level-advanced .advanced-only { display: block; }
-
-        /* Technical details panel (advanced only) */
-        .technical-panel {
-            background: rgba(156, 39, 176, 0.1);
-            border: 2px solid rgba(156, 39, 176, 0.3);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            display: none; /* Hidden by default */
-        }
-
-        body.level-advanced .technical-panel {
-            display: block;
-        }
-
-        .technical-panel h3 {
-            color: #9C27B0;
-            margin-bottom: 1rem;
-        }
-
-        .technical-details {
-            font-family: monospace;
-            font-size: 0.9rem;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 1rem;
-            border-radius: 8px;
-            overflow-x: auto;
-        }
-
-        .technical-section {
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(156, 39, 176, 0.2);
-        }
-
-        .technical-section:last-child {
-            border-bottom: none;
-        }
-
-        .technical-section h4 {
-            color: #9C27B0;
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .technical-section .description {
-            color: var(--color-muted);
-            font-size: 0.85rem;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin-bottom: 0.75rem;
-            font-style: italic;
-        }
-
         /* Responsive */
         @media (max-width: 1200px) {
             .utxo-workspace {
@@ -757,16 +631,6 @@
             .controls {
                 flex-direction: column;
             }
-            .level-switcher {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .level-info {
-                justify-content: center;
-            }
-            .level-buttons {
-                justify-content: center;
-            }
         }
     </style>
 </head>
@@ -777,19 +641,6 @@
         <div class="header">
             <h1>🪙 Enhanced UTXO Visualizer</h1>
             <p>Master Bitcoin UTXO management through interactive scenarios and real-world simulations</p>
-        </div>
-
-        <!-- Level Switcher -->
-        <div class="level-switcher">
-            <div class="level-info">
-                <span class="level-label">Difficulty:</span>
-                <span class="level-current" id="current-level-name">Beginner Mode</span>
-            </div>
-            <div class="level-buttons">
-                <button class="level-btn" data-level="beginner" id="btn-beginner">Beginner</button>
-                <button class="level-btn" data-level="intermediate" id="btn-intermediate">Intermediate</button>
-                <button class="level-btn" data-level="advanced" id="btn-advanced">Advanced</button>
-            </div>
         </div>
 
         <!-- Scenario Selector -->
@@ -984,75 +835,15 @@
     </div>
 
     <script>
-        // ===== MULTI-LEVEL SUPPORT =====
-        // Detect level from URL parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentLevel = urlParams.get('level') || 'beginner'; // Default to beginner
-        const currentPath = urlParams.get('path') || 'unknown';
-
-        // Apply body class for CSS targeting
-        document.body.classList.add(`level-${currentLevel}`);
-
-        // Level configuration
-        const LEVEL_CONFIG = {
-            beginner: {
-                name: "Beginner Mode",
-                description: "Guided exploration with pre-selected scenarios and helpful tooltips",
-                defaultScenario: 'intro',
-                scenariosAvailable: ['intro', 'consolidation', 'fee-optimization'],
-                instructionsVisible: true,
-                hintsAutoShow: true,
-                validationStrict: true,
-                showTechnicalDetails: false,
-                preloadScenario: true
-            },
-            intermediate: {
-                name: "Intermediate Mode",
-                description: "All scenarios available with optional hints and guidance",
-                defaultScenario: null, // User chooses
-                scenariosAvailable: ['intro', 'consolidation', 'fee-optimization', 'privacy', 'dust'],
-                instructionsVisible: true,
-                hintsAutoShow: false, // User must click for hints
-                validationStrict: true,
-                showTechnicalDetails: false,
-                preloadScenario: false
-            },
-            advanced: {
-                name: "Advanced Mode",
-                description: "All scenarios plus expert challenges with technical details exposed",
-                defaultScenario: null,
-                scenariosAvailable: ['intro', 'consolidation', 'fee-optimization', 'privacy', 'dust', 'challenge'],
-                instructionsVisible: false, // Hidden by default
-                hintsAutoShow: false,
-                validationStrict: false, // Allow experimentation
-                showTechnicalDetails: true, // Show raw data, scripts, etc.
-                preloadScenario: false
-            }
-        };
-
-        const levelConfig = LEVEL_CONFIG[currentLevel];
-
-        console.log(`🎯 UTXO Visualizer Level: ${levelConfig.name}`);
-        console.log(`📊 Path: ${currentPath}`);
-
         // Enhanced UTXO Visualizer Logic
         class EnhancedUTXOVisualizer {
             constructor() {
-                // Apply level configuration
-                this.level = currentLevel;
-                this.levelConfig = levelConfig;
-
-                // Set default scenario based on level
-                this.currentScenario = this.levelConfig.defaultScenario || 'intro';
-
+                this.currentScenario = 'intro';
                 this.selectedUTXOs = [];
                 this.availableUTXOs = [];
                 this.scenarioData = this.defineScenarios();
                 this.currentStep = 0;
                 this.hints = [];
-
-                // Level-specific initialization
-                this.applyLevelSettings();
                 this.init();
             }
 
@@ -1108,7 +899,7 @@
                         ],
                         objective: "Consolidate small UTXOs during low fee periods. Send 0.2 BTC using multiple small inputs."
                     },
-                    'fee-optimization': {
+                    feeOptimization: {
                         name: "Fee Optimization",
                         utxos: [
                             { id: 1, amount: 1.5, address: 'addr1', age: 300, source: 'Savings' },
@@ -1213,88 +1004,6 @@
                 };
             }
 
-            applyLevelSettings() {
-                console.log(`Applying ${this.levelConfig.name} settings...`);
-
-                // Update level display
-                document.getElementById('current-level-name').textContent = this.levelConfig.name;
-
-                // Set active level button
-                document.querySelectorAll('.level-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                    if (btn.dataset.level === this.level) {
-                        btn.classList.add('active');
-                    }
-                });
-
-                // Attach level switcher listeners
-                document.querySelectorAll('.level-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const newLevel = btn.dataset.level;
-                        const url = new URL(window.location);
-                        url.searchParams.set('level', newLevel);
-                        window.location.href = url.toString();
-                    });
-                });
-
-                // Filter available scenarios based on level
-                this.filterScenariosByLevel();
-
-                // Show/hide technical details
-                if (this.levelConfig.showTechnicalDetails) {
-                    this.enableTechnicalMode();
-                }
-            }
-
-            filterScenariosByLevel() {
-                // Hide scenario cards not available at current level
-                const scenarioCards = document.querySelectorAll('.scenario-card');
-                scenarioCards.forEach(card => {
-                    const scenarioId = card.dataset.scenario;
-                    if (!this.levelConfig.scenariosAvailable.includes(scenarioId)) {
-                        card.style.display = 'none';
-                    } else {
-                        card.style.display = 'block';
-                    }
-                });
-            }
-
-            enableTechnicalMode() {
-                // Create technical details panel if it doesn't exist
-                if (!document.getElementById('technical-panel')) {
-                    const panel = document.createElement('div');
-                    panel.id = 'technical-panel';
-                    panel.className = 'technical-panel';
-                    panel.innerHTML = `
-                        <h3>⚙️ Technical Details (Builder Mode)</h3>
-                        <div class="technical-section">
-                            <h4>📊 Transaction Analysis</h4>
-                            <p class="description">This panel shows you the underlying Bitcoin transaction data - useful for understanding how transactions work at a technical level.</p>
-                            <div class="technical-details" id="technical-details-content">
-                                <p><strong>Raw Transaction Data:</strong></p>
-                                <pre id="raw-tx-data">Select UTXOs to see transaction details...</pre>
-                            </div>
-                        </div>
-                        <div class="technical-section">
-                            <h4>💰 Fee Calculation Breakdown</h4>
-                            <p class="description">See exactly how transaction fees are calculated based on transaction size (in vBytes) and fee rate (sats/vByte).</p>
-                            <div class="technical-details">
-                                <pre id="fee-calc-data">No transaction built yet</pre>
-                            </div>
-                        </div>
-                    `;
-
-                    // Insert after instructions panel
-                    const instructionsPanel = document.querySelector('.instructions-panel');
-                    if (instructionsPanel) {
-                        instructionsPanel.after(panel);
-                    } else {
-                        const container = document.querySelector('.container');
-                        container.insertBefore(panel, container.firstChild);
-                    }
-                }
-            }
-
             init() {
                 this.loadScenario('intro');
                 this.attachEventListeners();
@@ -1331,13 +1040,7 @@
                 const panel = document.getElementById('instructions-panel');
                 const content = document.getElementById('instructions-content');
 
-                // Only show instructions if level config allows
-                if (this.levelConfig.instructionsVisible) {
-                    panel.classList.add('visible');
-                } else {
-                    // Advanced mode: keep instructions hidden unless user manually shows them
-                    panel.classList.remove('visible');
-                }
+                panel.classList.add('visible');
 
                 content.innerHTML = scenario.instructions.map((instruction, index) => `
                     <div class="instruction-step ${index < this.currentStep ? 'completed' : ''} ${index === this.currentStep ? 'active' : ''}">
@@ -1578,18 +1281,6 @@
                 const scenario = this.scenarioData[this.currentScenario];
                 const hints = scenario.hints;
 
-                // Beginner: Hints auto-show in instructions (this just provides another nudge)
-                if (this.levelConfig.hintsAutoShow) {
-                    alert(`💡 Beginner Hint: The instructions panel above already contains step-by-step guidance! Follow those steps carefully.`);
-                    return;
-                }
-
-                // Intermediate/Advanced: Show hints on demand
-                if (!hints || hints.length === 0) {
-                    alert('No hints available for this scenario.');
-                    return;
-                }
-
                 if (!this.hintIndex) this.hintIndex = 0;
 
                 const hint = hints[this.hintIndex % hints.length];
@@ -1616,12 +1307,7 @@
                 const feeRate = parseInt(document.getElementById('fee-rate').value) || 15;
 
                 if (this.selectedUTXOs.length === 0) {
-                    // Level-specific error messages
-                    if (this.level === 'beginner') {
-                        alert('❌ No UTXOs selected!\n\n💡 Tip: Click on the orange coins above to select them.');
-                    } else {
-                        alert('❌ No UTXOs selected! Please select at least one UTXO to build your transaction.');
-                    }
+                    alert('❌ No UTXOs selected! Please select at least one UTXO to build your transaction.');
                     return;
                 }
 
@@ -1633,23 +1319,9 @@
                 const txSize = (this.selectedUTXOs.length * 148) + (2 * 34) + 10;
                 const feeInBTC = (txSize * feeRate) / 100000000;
 
-                // Advanced mode: Show raw technical details
-                if (this.levelConfig.showTechnicalDetails) {
-                    this.updateTechnicalPanel(totalInput, txSize, feeRate, feeInBTC);
-                }
-
-                // Validation strictness based on level
-                if (this.levelConfig.validationStrict) {
-                    if (totalInput < sendAmount + feeInBTC) {
-                        alert(`❌ Insufficient funds!\n\nSelected: ${totalInput.toFixed(8)} BTC\nNeeded: ${(sendAmount + feeInBTC).toFixed(8)} BTC\n\nPlease select more UTXOs.`);
-                        return;
-                    }
-                } else {
-                    // Advanced mode: Allow mistakes, just warn
-                    if (totalInput < sendAmount + feeInBTC) {
-                        const proceed = confirm(`⚠️ Insufficient funds!\n\nSelected: ${totalInput.toFixed(8)} BTC\nNeeded: ${(sendAmount + feeInBTC).toFixed(8)} BTC\n\nContinue anyway to see what happens?`);
-                        if (!proceed) return;
-                    }
+                if (totalInput < sendAmount + feeInBTC) {
+                    alert(`❌ Insufficient funds!\n\nSelected: ${totalInput.toFixed(8)} BTC\nNeeded: ${(sendAmount + feeInBTC).toFixed(8)} BTC\n\nPlease select more UTXOs.`);
+                    return;
                 }
 
                 // Calculate score for challenge mode
@@ -1729,73 +1401,6 @@
                 document.getElementById('challenge-score').textContent = score;
                 document.getElementById('fee-efficiency').textContent = feeEfficiency + '%';
                 document.getElementById('privacy-rating').textContent = privacyRating + '%';
-            }
-
-            updateTechnicalPanel(totalInput, txSize, feeRate, feeInBTC) {
-                const rawTxData = document.getElementById('raw-tx-data');
-                const feeCalcData = document.getElementById('fee-calc-data');
-
-                if (rawTxData) {
-                    // Generate guided transaction data with explanations
-                    const inputs = this.selectedUTXOs.map((id, index) => {
-                        const utxo = this.availableUTXOs.find(u => u.id === id);
-                        return `Input ${index + 1}:
-  TXID: ${this.generateMockTxId()}
-  vout: ${index}
-  Amount: ${utxo.amount} BTC (${(utxo.amount * 100000000).toFixed(0)} sats)
-  ScriptPubKey: OP_DUP OP_HASH160 ${this.generateMockHash()} OP_EQUALVERIFY OP_CHECKSIG
-  (This is a P2PKH script requiring a signature to spend)`;
-                    }).join('\n\n');
-
-                    const outputs = `
-Output 1 (Recipient):
-  Amount: ${parseFloat(document.getElementById('send-amount').value)} BTC
-  ScriptPubKey: OP_DUP OP_HASH160 <recipient_hash> OP_EQUALVERIFY OP_CHECKSIG
-
-Output 2 (Change to you):
-  Amount: ${(totalInput - parseFloat(document.getElementById('send-amount').value) - feeInBTC).toFixed(8)} BTC
-  ScriptPubKey: OP_DUP OP_HASH160 <your_hash> OP_EQUALVERIFY OP_CHECKSIG`;
-
-                    rawTxData.textContent = `INPUTS:\n${inputs}\n\nOUTPUTS:${outputs}`;
-                }
-
-                if (feeCalcData) {
-                    const calc = `
-Transaction Size Breakdown:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• Inputs: ${this.selectedUTXOs.length} × 148 vBytes = ${this.selectedUTXOs.length * 148} vBytes
-  (Each input includes: previous TXID, vout index, signature, public key)
-
-• Outputs: 2 × 34 vBytes = 68 vBytes
-  (Each output: amount + locking script)
-
-• Overhead: 10 vBytes
-  (Version, locktime, and other metadata)
-
-• TOTAL SIZE: ${txSize} vBytes
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Fee Calculation:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• Fee Rate: ${feeRate} sats/vByte (current network rate)
-• Transaction Size: ${txSize} vBytes
-• Formula: ${txSize} vBytes × ${feeRate} sats/vByte = ${txSize * feeRate} sats
-• In BTC: ${feeInBTC.toFixed(8)} BTC
-
-💡 The more inputs you use, the larger (and more expensive) your transaction becomes!
-                    `;
-                    feeCalcData.textContent = calc;
-                }
-            }
-
-            generateMockTxId() {
-                // Generate realistic-looking transaction ID (64 hex characters)
-                return Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
-            }
-
-            generateMockHash() {
-                // Generate realistic-looking hash (40 hex characters for P2PKH)
-                return Array.from({length: 40}, () => Math.floor(Math.random() * 16).toString(16)).join('');
             }
 
             updateBalance() {
