@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Double-Spending Attack Demo - Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --accent-purple: #4f46e5;
+            --accent-green: #28a745;
+            --accent-red: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        /* Multi-Level Support */
+        body.level-beginner .advanced-only { display: none; }
+        body.level-beginner .intermediate-only { display: none; }
+        body.level-intermediate .advanced-only { display: none; }
+        body.level-intermediate .beginner-only { display: none; }
+        body.level-advanced .beginner-only { display: none; }
+        body.level-advanced .intermediate-only { display: none; }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: var(--primary-orange);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-dim);
+            font-size: 1rem;
+        }
+
+        /* Level Switcher */
+        .level-switcher {
+            background: var(--secondary-dark);
+            border: 2px solid var(--primary-orange);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .level-info {
+            text-align: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .level-label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .level-current {
+            color: var(--primary-orange);
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-left: 0.5rem;
+        }
+
+        .level-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .level-btn {
+            padding: 0.6rem 1.2rem;
+            background: rgba(247, 147, 26, 0.1);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 8px;
+            color: var(--text-light);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .level-btn:hover {
+            background: rgba(247, 147, 26, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .level-btn.active {
+            background: var(--primary-orange);
+            border-color: var(--primary-orange);
+            color: white;
+        }
+
+        .intro-box {
+            background: rgba(79, 70, 229, 0.1);
+            border-left: 4px solid var(--accent-purple);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .intro-box h3 {
+            color: var(--accent-purple);
+            margin-bottom: 0.75rem;
+        }
+
+        .problem-box {
+            background: rgba(220, 53, 69, 0.1);
+            border-left: 4px solid var(--accent-red);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .problem-box h4 {
+            color: var(--accent-red);
+            margin-bottom: 0.75rem;
+        }
+
+        .solution-box {
+            background: rgba(40, 167, 80, 0.1);
+            border-left: 4px solid var(--accent-green);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .solution-box h4 {
+            color: var(--accent-green);
+            margin-bottom: 0.75rem;
+        }
+
+        .demo-container {
+            background: var(--secondary-dark);
+            border: 2px solid var(--primary-orange);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-container h4 {
+            color: var(--accent-purple);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .transaction-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+        }
+
+        .person {
+            background: var(--accent-purple);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .coin {
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 1rem;
+            min-width: 80px;
+            text-align: center;
+            transition: all 0.5s ease;
+        }
+
+        .coin.invalid {
+            background: var(--accent-red);
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .arrow {
+            font-size: 2rem;
+            color: var(--text-dim);
+        }
+
+        .btn {
+            background: var(--primary-orange);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 2rem auto;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(247, 147, 26, 0.4);
+        }
+
+        .result-box {
+            background: rgba(220, 53, 69, 0.1);
+            border: 2px solid var(--accent-red);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ledger-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .ledger-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--text-dim);
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+
+        .ledger-box h5 {
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .ledger-box.valid {
+            border-color: var(--accent-green);
+        }
+
+        .ledger-box.invalid {
+            border-color: var(--accent-red);
+        }
+
+        .ledger-entry {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .transaction-flow {
+                flex-direction: column;
+            }
+
+            .arrow {
+                transform: rotate(90deg);
+            }
+
+            .ledger-comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💸 Double-Spending Attack</h1>
+            <p>Why digital money needs a shared ledger to prevent fraud</p>
+        </div>
+
+        <!-- Level Switcher -->
+        <div class="level-switcher">
+            <div class="level-info">
+                <span class="level-label">Difficulty:</span>
+                <span class="level-current" id="current-level-name">Beginner Mode</span>
+            </div>
+            <div class="level-buttons">
+                <button class="level-btn active" data-level="beginner">Beginner</button>
+                <button class="level-btn" data-level="intermediate">Intermediate</button>
+                <button class="level-btn" data-level="advanced">Advanced</button>
+            </div>
+        </div>
+
+        <!-- Introduction -->
+        <div class="intro-box">
+            <h3>The Fundamental Problem</h3>
+            <p class="beginner-only">
+                Digital files can be copied infinitely. If money is just a digital file, what stops someone
+                from copying it and spending the same money twice? This is called "double-spending."
+            </p>
+            <p class="intermediate-only">
+                The double-spending problem is unique to digital currency. Physical cash can't be in two
+                places at once, but digital data can be duplicated infinitely. Previous digital currency
+                attempts all failed to solve this without a trusted third party.
+            </p>
+            <p class="advanced-only">
+                Double-spending is a fundamental Byzantine Generals Problem in distributed systems. Without
+                a single source of truth, how do we achieve consensus on transaction ordering in an adversarial
+                environment? Bitcoin's innovation was using proof-of-work to create an unforgeable timestamping
+                service that makes transaction history immutable.
+            </p>
+        </div>
+
+        <!-- Main Demo -->
+        <div class="demo-container">
+            <h4>Interactive Simulation: Alice Attempts Double-Spending</h4>
+            <p style="margin-bottom: 2rem;">
+                <span class="beginner-only">Alice has 1 BTC. She tries to send it to both Bob AND Charlie at the same time. Watch what happens:</span>
+                <span class="intermediate-only">Without a shared ledger, Alice can broadcast conflicting transactions simultaneously:</span>
+                <span class="advanced-only">In the absence of consensus, network participants receive conflicting transaction history:</span>
+            </p>
+
+            <!-- First Transaction -->
+            <div class="transaction-flow">
+                <div class="person">Alice</div>
+                <div class="arrow">→</div>
+                <div class="coin" id="coin1">1 BTC</div>
+                <div class="arrow">→</div>
+                <div class="person">Bob</div>
+            </div>
+
+            <!-- Second Transaction (Attempted) -->
+            <div class="transaction-flow">
+                <div class="person">Alice</div>
+                <div class="arrow">→</div>
+                <div class="coin" id="coin2" style="opacity: 0.5;">1 BTC?</div>
+                <div class="arrow">→</div>
+                <div class="person">Charlie</div>
+            </div>
+
+            <button type="button" class="btn" onclick="attemptDoubleSpend()">🎯 Try Double-Spending Attack</button>
+
+            <div id="double-spend-result"></div>
+        </div>
+
+        <!-- Ledger Comparison (shown after attack) -->
+        <div class="ledger-comparison" id="ledger-comparison" style="display: none;">
+            <div class="ledger-box" id="bob-ledger">
+                <h5>Bob's View (No Shared Ledger)</h5>
+                <div class="ledger-entry">Alice → Bob: 1 BTC ✅</div>
+                <div class="ledger-entry" style="color: var(--text-dim); font-size: 0.8rem;">
+                    Bob thinks he received 1 BTC!
+                </div>
+            </div>
+
+            <div class="ledger-box" id="charlie-ledger">
+                <h5>Charlie's View (No Shared Ledger)</h5>
+                <div class="ledger-entry">Alice → Charlie: 1 BTC ✅</div>
+                <div class="ledger-entry" style="color: var(--text-dim); font-size: 0.8rem;">
+                    Charlie thinks he received 1 BTC!
+                </div>
+            </div>
+        </div>
+
+        <!-- Solution -->
+        <div class="solution-box beginner-only">
+            <h4>💡 The Solution: A Shared Ledger</h4>
+            <p>
+                The solution is to maintain a single, shared record (ledger) of who owns what.
+                Every transaction must be recorded, and everyone must agree on the current state.
+            </p>
+            <p style="margin-top: 1rem;">
+                This prevents double-spending because the ledger shows each coin can only be spent once.
+                When Alice tries to spend her 1 BTC twice, the second transaction is rejected because
+                the ledger shows her coin was already spent!
+            </p>
+        </div>
+
+        <div class="solution-box intermediate-only">
+            <h4>🔑 Bitcoin's Solution: The Blockchain</h4>
+            <p>
+                Bitcoin solves this with a shared, public ledger called the blockchain. Every transaction
+                is broadcast to all network participants who verify and record it. Because everyone has
+                the same ledger, they can all verify that Alice hasn't already spent her coin.
+            </p>
+            <p style="margin-top: 1rem;">
+                <strong>Key Innovation:</strong> The blockchain uses cryptographic hashing and proof-of-work
+                to make the ledger immutable. Once a transaction is confirmed, it becomes computationally
+                infeasible to change history.
+            </p>
+        </div>
+
+        <div class="solution-box advanced-only">
+            <h4>⚡ Consensus Through Proof-of-Work</h4>
+            <p>
+                Bitcoin achieves Byzantine Fault Tolerant consensus through Nakamoto Consensus. Proof-of-work
+                creates an unforgeable timestamping service where the longest valid chain represents the
+                canonical transaction history. Double-spends are prevented because:
+            </p>
+            <ul style="margin-left: 1.5rem; margin-top: 1rem;">
+                <li>All full nodes validate transactions against current UTXO set</li>
+                <li>Miners include only valid, non-conflicting transactions in blocks</li>
+                <li>Reorganizing blockchain history requires re-mining all subsequent blocks</li>
+                <li>Attack cost grows exponentially with confirmation depth (~6 blocks = economic finality)</li>
+            </ul>
+            <p style="margin-top: 1rem;">
+                <strong>Economic Security:</strong> A 51% attack would cost ~$20B in hardware plus $1M/hour
+                in electricity, only to destroy the value being stolen. Game theory ensures honest behavior
+                is more profitable than attacking the network.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Multi-level support
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLevel = urlParams.get('level') || 'beginner';
+        const currentPath = urlParams.get('path') || 'unknown';
+
+        document.body.classList.add(`level-${currentLevel}`);
+
+        const LEVEL_CONFIG = {
+            beginner: { name: "Beginner Mode" },
+            intermediate: { name: "Intermediate Mode" },
+            advanced: { name: "Advanced Mode" }
+        };
+
+        // Set initial level display
+        document.getElementById('current-level-name').textContent = LEVEL_CONFIG[currentLevel].name;
+
+        // Set initial active button
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            if (btn.dataset.level === currentLevel) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // Level switcher
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const newLevel = e.target.dataset.level;
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('level', newLevel);
+                window.location.href = newUrl.toString();
+            });
+        });
+
+        // Double-spending simulation
+        function attemptDoubleSpend() {
+            const result = document.getElementById('double-spend-result');
+            const coin2 = document.getElementById('coin2');
+            const ledgerComparison = document.getElementById('ledger-comparison');
+
+            // Animate the second coin
+            if (coin2) {
+                coin2.style.opacity = '1';
+                coin2.style.background = 'var(--accent-red)';
+                coin2.classList.add('invalid');
+            }
+
+            setTimeout(() => {
+                // Show ledger comparison
+                if (ledgerComparison) {
+                    ledgerComparison.style.display = 'grid';
+                }
+
+                // Show result message
+                if (result) {
+                    let message = '';
+
+                    if (currentLevel === 'beginner') {
+                        message = `
+                            <div class="result-box">
+                                <strong>⚠️ Problem Detected!</strong><br><br>
+                                Without a shared ledger, Bob and Charlie can't tell if Alice's coin is real or fake.
+                                Both think they received 1 BTC, but Alice only had 1 BTC to begin with!
+                                <br><br>
+                                <strong>Who actually got the money?</strong> Without agreement on a shared record,
+                                there's no way to know! This is why digital money needs a ledger that everyone can see.
+                            </div>
+                        `;
+                    } else if (currentLevel === 'intermediate') {
+                        message = `
+                            <div class="result-box">
+                                <strong>⚠️ Double-Spend Detected!</strong><br><br>
+                                Alice broadcast two conflicting transactions to different parts of the network.
+                                Without synchronized state, Bob and Charlie each see themselves as the recipient.
+                                <br><br>
+                                <strong>Why this fails in Bitcoin:</strong> All nodes maintain identical UTXO sets.
+                                The first transaction to be mined into a block spends Alice's UTXO. When the second
+                                transaction arrives, nodes reject it because that UTXO no longer exists in their set.
+                            </div>
+                        `;
+                    } else {
+                        message = `
+                            <div class="result-box">
+                                <strong>⚠️ Byzantine Agreement Failure</strong><br><br>
+                                Network partition creates inconsistent state across nodes. This demonstrates the
+                                core problem Bitcoin solves: achieving consensus on transaction ordering in an
+                                adversarial environment without trusted intermediaries.
+                                <br><br>
+                                <strong>Nakamoto's Solution:</strong> Proof-of-work creates objective transaction
+                                ordering via the longest chain rule. Conflicting transactions compete to be mined.
+                                The winning transaction gets 6+ confirmations (~$1M cost to reverse), achieving
+                                practical finality. The losing transaction remains in mempool until it times out
+                                or is explicitly rejected (RBF/CPFP).
+                                <br><br>
+                                <strong>Attack Analysis:</strong> Double-spending requires either (1) 51% hashrate
+                                to reorg chain, or (2) exploiting 0-conf acceptance. Modern Bitcoin: 0-conf rejected
+                                by merchants, 6-conf standard = 2^6 difficulty = ~$64M attack cost at current hashrate.
+                            </div>
+                        `;
+                    }
+
+                    result.innerHTML = message;
+                }
+            }, 1000);
+        }
+
+        console.log(`💸 Double-Spending Demo Level: ${currentLevel} (${LEVEL_CONFIG[currentLevel].name})`);
+        console.log(`📊 Path: ${currentPath}`);
+    </script>
+</body>
+</html>
