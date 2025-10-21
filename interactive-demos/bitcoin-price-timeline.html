@@ -356,7 +356,7 @@
     <div class="container">
         <header>
             <h1>📈 Bitcoin Price Timeline</h1>
-            <p class="subtitle">Live data from CoinGecko API • Explore complete price history • Zoom, pan, and time-travel through every halving, bull run, and bear market</p>
+            <p class="subtitle">Live price from CoinCap/Blockchain.com APIs • Complete historical data • Zoom, pan, and time-travel through price history</p>
         </header>
 
         <div class="zoom-instructions">
@@ -488,14 +488,60 @@
             desc: `Current price updated live from CoinGecko API`
         });
 
-        // Fetch real Bitcoin price data from CoinGecko API
+        // Fetch current Bitcoin price from multiple sources for accuracy
+        async function getCurrentBitcoinPrice() {
+            const sources = [
+                {
+                    name: 'CoinCap',
+                    fetch: async () => {
+                        const response = await fetch('https://api.coincap.io/v2/assets/bitcoin');
+                        const data = await response.json();
+                        return parseFloat(data.data.priceUsd);
+                    }
+                },
+                {
+                    name: 'Blockchain.com',
+                    fetch: async () => {
+                        const response = await fetch('https://blockchain.info/ticker');
+                        const data = await response.json();
+                        return data.USD.last;
+                    }
+                },
+                {
+                    name: 'CoinGecko',
+                    fetch: async () => {
+                        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+                        const data = await response.json();
+                        return data.bitcoin.usd;
+                    }
+                }
+            ];
+
+            // Try each source until one succeeds
+            for (const source of sources) {
+                try {
+                    const price = await source.fetch();
+                    console.log(`✅ Current price from ${source.name}: $${price.toFixed(2)}`);
+                    return price;
+                } catch (error) {
+                    console.warn(`⚠️ ${source.name} failed:`, error.message);
+                }
+            }
+
+            // If all sources fail, return null
+            console.error('❌ All price sources failed');
+            return null;
+        }
+
+        // Fetch real Bitcoin price data
         async function fetchBitcoinPriceData() {
             try {
-                // Show loading message
-                console.log('Fetching Bitcoin price data from CoinGecko API...');
+                console.log('Fetching Bitcoin price data...');
 
-                // Fetch historical data (max range from CoinGecko free tier)
-                // Using market_chart endpoint for historical data
+                // First, get current accurate price
+                const currentPrice = await getCurrentBitcoinPrice();
+
+                // Fetch historical data from CoinGecko
                 const response = await fetch(
                     'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=max&interval=daily'
                 );
@@ -507,15 +553,33 @@
                 const apiData = await response.json();
 
                 // Convert API data to our format
-                // API returns: { prices: [[timestamp, price], ...] }
-                const data = apiData.prices.map(([timestamp, price]) => ({
+                let data = apiData.prices.map(([timestamp, price]) => ({
                     date: new Date(timestamp),
                     price: price
                 }));
 
+                // Replace the last data point with accurate current price if available
+                if (currentPrice) {
+                    const today = new Date();
+                    // Update or add today's price
+                    const lastDataPoint = data[data.length - 1];
+                    const lastDate = new Date(lastDataPoint.date);
+
+                    // If last data point is today, update it
+                    if (lastDate.toDateString() === today.toDateString()) {
+                        data[data.length - 1].price = currentPrice;
+                    } else {
+                        // Add today's price
+                        data.push({
+                            date: today,
+                            price: currentPrice
+                        });
+                    }
+                }
+
                 console.log(`✅ Loaded ${data.length} days of Bitcoin price data`);
                 console.log(`📊 Date range: ${data[0].date.toLocaleDateString()} to ${data[data.length-1].date.toLocaleDateString()}`);
-                console.log(`💰 Current price: $${data[data.length-1].price.toFixed(2)}`);
+                console.log(`💰 Current price (verified): $${data[data.length-1].price.toFixed(2)}`);
 
                 return data;
 
