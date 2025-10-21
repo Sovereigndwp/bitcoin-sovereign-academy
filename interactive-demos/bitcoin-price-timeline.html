@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Price Timeline | Interactive Zoom & Time-Travel</title>
+    <meta name="description" content="Explore Bitcoin's complete price history with interactive zoom and time-travel features. See key events, halvings, and market cycles from 2009 to 2025.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --accent-green: #4caf50;
+            --accent-red: #ef4444;
+            --accent-blue: #2196f3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+        }
+
+        /* Controls Section */
+        .controls-panel {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-orange);
+            color: var(--primary-dark);
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        button:hover {
+            background: #ffb347;
+            transform: translateY(-2px);
+        }
+
+        button.secondary {
+            background: transparent;
+            border: 2px solid var(--primary-orange);
+            color: var(--primary-orange);
+        }
+
+        button.secondary:hover {
+            background: rgba(247, 147, 26, 0.1);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Timeline Container */
+        .timeline-container {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #chart-canvas {
+            width: 100%;
+            height: 600px;
+            position: relative;
+        }
+
+        /* Scale Toggle */
+        .scale-toggle {
+            display: flex;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .scale-toggle button {
+            border-radius: 0;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .scale-toggle button.active {
+            background: var(--primary-orange);
+            color: var(--primary-dark);
+        }
+
+        /* Playback Controls */
+        .playback-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        #timeline-slider {
+            flex: 1;
+            height: 6px;
+            background: rgba(247, 147, 26, 0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        #timeline-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-orange);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(247, 147, 26, 0.5);
+        }
+
+        #timeline-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-orange);
+            cursor: pointer;
+            border: none;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .speed-control select {
+            padding: 0.5rem;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            border: 2px solid var(--primary-orange);
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Info Panel */
+        .info-panel {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.1), rgba(247, 147, 26, 0.05));
+            border: 2px solid var(--primary-orange);
+            border-radius: 1rem;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-card {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Event Markers */
+        .event-marker {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary-orange);
+            border: 2px solid var(--primary-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .event-marker:hover {
+            transform: scale(1.5);
+            box-shadow: 0 0 20px var(--primary-orange);
+        }
+
+        .event-marker.halving {
+            background: #FFD700;
+        }
+
+        .event-marker.crash {
+            background: var(--accent-red);
+        }
+
+        .event-marker.adoption {
+            background: var(--accent-green);
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: var(--secondary-dark);
+            border: 2px solid var(--primary-orange);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+            max-width: 300px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .tooltip.active {
+            opacity: 1;
+        }
+
+        .tooltip h4 {
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .tooltip p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* Zoom Instructions */
+        .zoom-instructions {
+            background: rgba(33, 150, 243, 0.1);
+            border: 2px solid var(--accent-blue);
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .zoom-instructions p {
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 4rem;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(247, 147, 26, 0.1);
+            border-top: 4px solid var(--primary-orange);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .controls-panel {
+                flex-direction: column;
+            }
+
+            #chart-canvas {
+                height: 400px;
+            }
+
+            .info-panel {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📈 Bitcoin Price Timeline</h1>
+            <p class="subtitle">Interactive exploration of Bitcoin's 16-year price history • Zoom, pan, and time-travel through every halving, bull run, and bear market</p>
+        </header>
+
+        <div class="zoom-instructions">
+            <p>💡 Scroll to zoom • Drag to pan • Click events for details • Use playback to animate through time</p>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="control-group">
+                <label>Price Scale</label>
+                <div class="scale-toggle">
+                    <button class="active" id="btn-log">Logarithmic</button>
+                    <button id="btn-linear">Linear</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Time Period</label>
+                <div class="btn-group">
+                    <button class="secondary" id="btn-all-time">All Time</button>
+                    <button class="secondary" id="btn-4yr">4 Year Cycle</button>
+                    <button class="secondary" id="btn-1yr">1 Year</button>
+                    <button class="secondary" id="btn-ytd">YTD</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Overlays</label>
+                <div class="btn-group">
+                    <button class="secondary" id="btn-halvings">Halvings</button>
+                    <button class="secondary" id="btn-events">Key Events</button>
+                    <button class="secondary" id="btn-cycles">Market Cycles</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Playback Controls -->
+        <div class="controls-panel playback-controls">
+            <button id="btn-play">▶️ Play</button>
+            <button id="btn-pause" disabled>⏸️ Pause</button>
+            <button id="btn-reset">↺ Reset</button>
+            <input type="range" id="timeline-slider" min="0" max="100" value="0">
+            <div class="speed-control">
+                <label>Speed:</label>
+                <select id="speed-select">
+                    <option value="0.5">0.5x</option>
+                    <option value="1" selected>1x</option>
+                    <option value="2">2x</option>
+                    <option value="5">5x</option>
+                    <option value="10">10x</option>
+                </select>
+            </div>
+            <span id="current-date">2009-01-03</span>
+        </div>
+
+        <!-- Chart Container -->
+        <div class="timeline-container">
+            <canvas id="chart-canvas"></canvas>
+            <div class="tooltip" id="tooltip">
+                <h4 id="tooltip-title"></h4>
+                <p id="tooltip-content"></p>
+            </div>
+        </div>
+
+        <!-- Info Panel -->
+        <div class="info-panel">
+            <div class="stat-card">
+                <div class="stat-value" id="current-price">$0.00</div>
+                <div class="stat-label">Current Price</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="price-change">+0%</div>
+                <div class="stat-label">Change Since Start</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="all-time-high">$69,000</div>
+                <div class="stat-label">All-Time High</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="halving-count">4</div>
+                <div class="stat-label">Halvings Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="days-elapsed">0</div>
+                <div class="stat-label">Days Since Genesis</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="roi">∞</div>
+                <div class="stat-label">ROI from $1</div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading Bitcoin price data...</p>
+        </div>
+    </div>
+
+    <script>
+        // Bitcoin Price Timeline Visualization with Zoom & Time-Travel
+        // Data structure for key events
+        const keyEvents = [
+            { date: '2009-01-03', type: 'genesis', title: 'Genesis Block', desc: 'Bitcoin network launches with block 0' },
+            { date: '2010-05-22', type: 'adoption', title: 'Bitcoin Pizza Day', desc: '10,000 BTC for 2 pizzas ($41)' },
+            { date: '2011-06-09', type: 'crash', title: 'First Major Drop', desc: 'Price crashes from $32 to $0.01' },
+            { date: '2012-11-28', type: 'halving', title: '1st Halving', desc: 'Block reward reduced to 25 BTC' },
+            { date: '2013-11-30', type: 'adoption', title: '$1,000 Milestone', desc: 'Bitcoin reaches $1,000 for first time' },
+            { date: '2014-02-24', type: 'crash', title: 'Mt. Gox Collapse', desc: '850,000 BTC stolen, price drops 50%' },
+            { date: '2016-07-09', type: 'halving', title: '2nd Halving', desc: 'Block reward reduced to 12.5 BTC' },
+            { date: '2017-12-17', type: 'adoption', title: '$20K ATH', desc: 'Bitcoin reaches $20,000 all-time high' },
+            { date: '2018-12-15', type: 'crash', title: 'Crypto Winter', desc: 'Price drops 84% from ATH to $3,200' },
+            { date: '2020-03-12', type: 'crash', title: 'COVID-19 Crash', desc: 'Black Thursday: 50% drop in one day' },
+            { date: '2020-05-11', type: 'halving', title: '3rd Halving', desc: 'Block reward reduced to 6.25 BTC' },
+            { date: '2021-04-14', type: 'adoption', title: 'Coinbase IPO', desc: 'Coinbase goes public on NASDAQ' },
+            { date: '2021-11-10', type: 'adoption', title: '$69K ATH', desc: 'Bitcoin reaches all-time high of $69,000' },
+            { date: '2022-11-09', type: 'crash', title: 'FTX Collapse', desc: 'FTX exchange implodes, $8B missing' },
+            { date: '2024-04-20', type: 'halving', title: '4th Halving', desc: 'Block reward reduced to 3.125 BTC' },
+            { date: '2024-10-20', type: 'adoption', title: 'Today', desc: 'Bitcoin continues to grow globally' }
+        ];
+
+        // Simulated price data (in production, fetch from API)
+        function generatePriceData() {
+            const data = [];
+            const startDate = new Date('2009-01-03');
+            const endDate = new Date('2025-01-01');
+
+            // Simplified price model with halvings and cycles
+            let currentDate = new Date(startDate);
+            let dayCount = 0;
+
+            while (currentDate <= endDate) {
+                const years = dayCount / 365.25;
+
+                // Logarithmic growth with halving cycles and volatility
+                let basePrice = Math.pow(10, years * 0.8) * 0.001;
+
+                // Add halving effect (price jumps after each halving)
+                if (years > 3.5) basePrice *= 15; // After 1st halving
+                if (years > 7.5) basePrice *= 5;  // After 2nd halving
+                if (years > 11.5) basePrice *= 3; // After 3rd halving
+                if (years > 15.5) basePrice *= 2; // After 4th halving
+
+                // Add market cycles (bull/bear patterns)
+                const cyclePosition = (years % 4) / 4;
+                let cycleMultiplier = 1;
+
+                if (cyclePosition < 0.5) {
+                    // Bull market (first 2 years of cycle)
+                    cycleMultiplier = 1 + Math.sin(cyclePosition * Math.PI) * 3;
+                } else {
+                    // Bear market (last 2 years of cycle)
+                    cycleMultiplier = 0.3 + Math.cos((cyclePosition - 0.5) * Math.PI) * 0.5;
+                }
+
+                // Add daily volatility
+                const volatility = 1 + (Math.random() - 0.5) * 0.1;
+
+                const price = basePrice * cycleMultiplier * volatility;
+
+                data.push({
+                    date: new Date(currentDate),
+                    price: Math.max(0.0001, price)
+                });
+
+                currentDate.setDate(currentDate.getDate() + 1);
+                dayCount++;
+            }
+
+            return data;
+        }
+
+        // Application state
+        let state = {
+            data: [],
+            currentIndex: 0,
+            isPlaying: false,
+            speed: 1,
+            scale: 'log',
+            visibleStart: 0,
+            visibleEnd: 0,
+            overlays: {
+                halvings: true,
+                events: true,
+                cycles: false
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Generate data
+            state.data = generatePriceData();
+            state.visibleEnd = state.data.length - 1;
+
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+
+            // Setup canvas
+            setupCanvas();
+
+            // Setup event listeners
+            setupControls();
+
+            // Initial render
+            render();
+        });
+
+        function setupCanvas() {
+            const canvas = document.getElementById('chart-canvas');
+            const container = canvas.parentElement;
+
+            // Set canvas size
+            canvas.width = container.clientWidth - 64; // account for padding
+            canvas.height = 600;
+
+            // Enable mouse interactions
+            canvas.addEventListener('wheel', handleZoom);
+            canvas.addEventListener('mousedown', handlePanStart);
+            canvas.addEventListener('mousemove', handlePanMove);
+            canvas.addEventListener('mouseup', handlePanEnd);
+            canvas.addEventListener('mouseleave', handlePanEnd);
+            canvas.addEventListener('click', handleClick);
+        }
+
+        function setupControls() {
+            // Scale toggle
+            document.getElementById('btn-log').addEventListener('click', () => {
+                state.scale = 'log';
+                document.getElementById('btn-log').classList.add('active');
+                document.getElementById('btn-linear').classList.remove('active');
+                render();
+            });
+
+            document.getElementById('btn-linear').addEventListener('click', () => {
+                state.scale = 'linear';
+                document.getElementById('btn-linear').classList.add('active');
+                document.getElementById('btn-log').classList.remove('active');
+                render();
+            });
+
+            // Time period buttons
+            document.getElementById('btn-all-time').addEventListener('click', () => zoomToRange(0, state.data.length - 1));
+            document.getElementById('btn-4yr').addEventListener('click', () => zoomToRange(state.data.length - 1461, state.data.length - 1));
+            document.getElementById('btn-1yr').addEventListener('click', () => zoomToRange(state.data.length - 365, state.data.length - 1));
+            document.getElementById('btn-ytd').addEventListener('click', () => {
+                const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+                const ytdStart = state.data.findIndex(d => d.date >= startOfYear);
+                zoomToRange(ytdStart, state.data.length - 1);
+            });
+
+            // Overlay toggles
+            document.getElementById('btn-halvings').addEventListener('click', () => toggleOverlay('halvings'));
+            document.getElementById('btn-events').addEventListener('click', () => toggleOverlay('events'));
+            document.getElementById('btn-cycles').addEventListener('click', () => toggleOverlay('cycles'));
+
+            // Playback controls
+            document.getElementById('btn-play').addEventListener('click', startPlayback);
+            document.getElementById('btn-pause').addEventListener('click', pausePlayback);
+            document.getElementById('btn-reset').addEventListener('click', resetPlayback);
+            document.getElementById('timeline-slider').addEventListener('input', handleSliderChange);
+            document.getElementById('speed-select').addEventListener('change', handleSpeedChange);
+        }
+
+        function zoomToRange(start, end) {
+            state.visibleStart = Math.max(0, start);
+            state.visibleEnd = Math.min(state.data.length - 1, end);
+            render();
+        }
+
+        function toggleOverlay(overlay) {
+            state.overlays[overlay] = !state.overlays[overlay];
+            const btn = document.getElementById(`btn-${overlay}`);
+            btn.classList.toggle('active');
+            render();
+        }
+
+        function render() {
+            const canvas = document.getElementById('chart-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Get visible data
+            const visibleData = state.data.slice(state.visibleStart, state.visibleEnd + 1);
+
+            if (visibleData.length === 0) return;
+
+            // Calculate dimensions
+            const padding = { top: 40, right: 80, bottom: 60, left: 80 };
+            const chartWidth = canvas.width - padding.left - padding.right;
+            const chartHeight = canvas.height - padding.top - padding.bottom;
+
+            // Get price range
+            const prices = visibleData.map(d => d.price);
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+
+            // Draw grid
+            drawGrid(ctx, padding, chartWidth, chartHeight, minPrice, maxPrice);
+
+            // Draw price line
+            drawPriceLine(ctx, padding, chartWidth, chartHeight, visibleData, minPrice, maxPrice);
+
+            // Draw overlays
+            if (state.overlays.halvings) drawHalvings(ctx, padding, chartWidth, chartHeight, visibleData);
+            if (state.overlays.events) drawEvents(ctx, padding, chartWidth, chartHeight, visibleData);
+            if (state.overlays.cycles) drawCycles(ctx, padding, chartWidth, chartHeight, visibleData);
+
+            // Draw axes
+            drawAxes(ctx, padding, chartWidth, chartHeight, visibleData, minPrice, maxPrice);
+
+            // Update stats
+            updateStats(visibleData);
+        }
+
+        function drawGrid(ctx, padding, width, height, minPrice, maxPrice) {
+            ctx.strokeStyle = 'rgba(247, 147, 26, 0.1)';
+            ctx.lineWidth = 1;
+
+            // Horizontal grid lines (price levels)
+            const priceSteps = 6;
+            for (let i = 0; i <= priceSteps; i++) {
+                const y = padding.top + (height / priceSteps) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(padding.left + width, y);
+                ctx.stroke();
+            }
+
+            // Vertical grid lines (time)
+            const timeSteps = 8;
+            for (let i = 0; i <= timeSteps; i++) {
+                const x = padding.left + (width / timeSteps) * i;
+                ctx.beginPath();
+                ctx.moveTo(x, padding.top);
+                ctx.lineTo(x, padding.top + height);
+                ctx.stroke();
+            }
+        }
+
+        function drawPriceLine(ctx, padding, width, height, data, minPrice, maxPrice) {
+            ctx.strokeStyle = '#f7931a';
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            // Create gradient
+            const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + height);
+            gradient.addColorStop(0, 'rgba(247, 147, 26, 0.3)');
+            gradient.addColorStop(1, 'rgba(247, 147, 26, 0.05)');
+
+            ctx.beginPath();
+
+            data.forEach((point, index) => {
+                const x = padding.left + (index / (data.length - 1)) * width;
+                let y;
+
+                if (state.scale === 'log') {
+                    const logMin = Math.log10(minPrice);
+                    const logMax = Math.log10(maxPrice);
+                    const logPrice = Math.log10(point.price);
+                    y = padding.top + height - ((logPrice - logMin) / (logMax - logMin)) * height;
+                } else {
+                    y = padding.top + height - ((point.price - minPrice) / (maxPrice - minPrice)) * height;
+                }
+
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            // Draw line
+            ctx.stroke();
+
+            // Fill area under curve
+            ctx.lineTo(padding.left + width, padding.top + height);
+            ctx.lineTo(padding.left, padding.top + height);
+            ctx.closePath();
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        }
+
+        function drawHalvings(ctx, padding, width, height, data) {
+            const halvingEvents = keyEvents.filter(e => e.type === 'halving');
+
+            halvingEvents.forEach(event => {
+                const eventDate = new Date(event.date);
+                const index = data.findIndex(d => d.date >= eventDate);
+
+                if (index !== -1) {
+                    const x = padding.left + (index / (data.length - 1)) * width;
+
+                    // Draw vertical line
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.setLineDash([5, 5]);
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(x, padding.top);
+                    ctx.lineTo(x, padding.top + height);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    // Draw label
+                    ctx.fillStyle = '#FFD700';
+                    ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
+                    ctx.save();
+                    ctx.translate(x, padding.top + 10);
+                    ctx.rotate(-Math.PI / 2);
+                    ctx.fillText(event.title, 0, 0);
+                    ctx.restore();
+                }
+            });
+        }
+
+        function drawEvents(ctx, padding, width, height, data) {
+            const nonHalvingEvents = keyEvents.filter(e => e.type !== 'halving');
+
+            nonHalvingEvents.forEach(event => {
+                const eventDate = new Date(event.date);
+                const index = data.findIndex(d => d.date >= eventDate);
+
+                if (index !== -1) {
+                    const x = padding.left + (index / (data.length - 1)) * width;
+                    const y = padding.top + 30;
+
+                    // Draw marker
+                    const color = event.type === 'adoption' ? '#4caf50' : '#ef4444';
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Draw line to event
+                    ctx.strokeStyle = color;
+                    ctx.globalAlpha = 0.5;
+                    ctx.setLineDash([3, 3]);
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x, padding.top + height);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.globalAlpha = 1;
+                }
+            });
+        }
+
+        function drawCycles(ctx, padding, width, height, data) {
+            // Draw shaded regions for bull/bear markets
+            const cycleLength = 4 * 365; // 4 year cycles
+
+            for (let i = 0; i < data.length; i += cycleLength) {
+                const cycleData = data.slice(i, Math.min(i + cycleLength, data.length));
+                const x1 = padding.left + (i / (data.length - 1)) * width;
+                const x2 = padding.left + (Math.min(i + cycleLength / 2, data.length - 1) / (data.length - 1)) * width;
+
+                // Bull market (green tint)
+                ctx.fillStyle = 'rgba(76, 175, 80, 0.1)';
+                ctx.fillRect(x1, padding.top, x2 - x1, height);
+
+                // Bear market (red tint)
+                const x3 = x2;
+                const x4 = padding.left + (Math.min(i + cycleLength, data.length - 1) / (data.length - 1)) * width;
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.1)';
+                ctx.fillRect(x3, padding.top, x4 - x3, height);
+            }
+        }
+
+        function drawAxes(ctx, padding, width, height, data, minPrice, maxPrice) {
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 2;
+
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, padding.top + height);
+            ctx.stroke();
+
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top + height);
+            ctx.lineTo(padding.left + width, padding.top + height);
+            ctx.stroke();
+
+            // Y-axis labels (price)
+            ctx.fillStyle = '#e0e0e0';
+            ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'right';
+
+            const priceSteps = 6;
+            for (let i = 0; i <= priceSteps; i++) {
+                let price;
+                if (state.scale === 'log') {
+                    const logMin = Math.log10(minPrice);
+                    const logMax = Math.log10(maxPrice);
+                    price = Math.pow(10, logMin + (logMax - logMin) * (1 - i / priceSteps));
+                } else {
+                    price = minPrice + (maxPrice - minPrice) * (1 - i / priceSteps);
+                }
+
+                const y = padding.top + (height / priceSteps) * i;
+                const label = price >= 1000 ? `$${(price / 1000).toFixed(1)}K` : `$${price.toFixed(2)}`;
+                ctx.fillText(label, padding.left - 10, y + 4);
+            }
+
+            // X-axis labels (dates)
+            ctx.textAlign = 'center';
+            const timeSteps = 8;
+            for (let i = 0; i <= timeSteps; i++) {
+                const index = Math.floor((data.length - 1) * (i / timeSteps));
+                const date = data[index].date;
+                const x = padding.left + (width / timeSteps) * i;
+                const label = date.getFullYear();
+                ctx.fillText(label, x, padding.top + height + 25);
+            }
+        }
+
+        function updateStats(data) {
+            if (data.length === 0) return;
+
+            const currentPrice = data[data.length - 1].price;
+            const firstPrice = data[0].price;
+            const allTimeHigh = Math.max(...data.map(d => d.price));
+            const priceChange = ((currentPrice - firstPrice) / firstPrice) * 100;
+            const roi = currentPrice / firstPrice;
+            const daysElapsed = Math.floor((data[data.length - 1].date - data[0].date) / (1000 * 60 * 60 * 24));
+
+            document.getElementById('current-price').textContent = `$${currentPrice >= 1000 ? (currentPrice / 1000).toFixed(2) + 'K' : currentPrice.toFixed(2)}`;
+            document.getElementById('price-change').textContent = `+${priceChange.toFixed(0)}%`;
+            document.getElementById('all-time-high').textContent = `$${allTimeHigh >= 1000 ? (allTimeHigh / 1000).toFixed(0) + 'K' : allTimeHigh.toFixed(0)}`;
+            document.getElementById('days-elapsed').textContent = daysElapsed.toLocaleString();
+            document.getElementById('roi').textContent = `${roi >= 1000 ? (roi / 1000).toFixed(0) + 'K' : roi.toFixed(0)}x`;
+        }
+
+        // Zoom and pan handlers
+        let isPanning = false;
+        let panStart = 0;
+        let panStartVisible = 0;
+
+        function handleZoom(e) {
+            e.preventDefault();
+
+            const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
+            const visibleRange = state.visibleEnd - state.visibleStart;
+            const newRange = Math.floor(visibleRange * zoomFactor);
+            const center = (state.visibleStart + state.visibleEnd) / 2;
+
+            state.visibleStart = Math.max(0, Math.floor(center - newRange / 2));
+            state.visibleEnd = Math.min(state.data.length - 1, Math.floor(center + newRange / 2));
+
+            render();
+        }
+
+        function handlePanStart(e) {
+            isPanning = true;
+            panStart = e.clientX;
+            panStartVisible = state.visibleStart;
+        }
+
+        function handlePanMove(e) {
+            if (!isPanning) return;
+
+            const canvas = document.getElementById('chart-canvas');
+            const padding = 80;
+            const chartWidth = canvas.width - padding * 2;
+
+            const dx = e.clientX - panStart;
+            const visibleRange = state.visibleEnd - state.visibleStart;
+            const dataPointsPerPixel = visibleRange / chartWidth;
+            const shift = Math.floor(-dx * dataPointsPerPixel);
+
+            state.visibleStart = Math.max(0, Math.min(state.data.length - visibleRange, panStartVisible + shift));
+            state.visibleEnd = state.visibleStart + visibleRange;
+
+            render();
+        }
+
+        function handlePanEnd() {
+            isPanning = false;
+        }
+
+        function handleClick(e) {
+            // Detect if click is on an event marker - show tooltip
+            const canvas = document.getElementById('chart-canvas');
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // TODO: Implement event marker click detection and tooltip display
+        }
+
+        // Playback functionality
+        let playbackInterval;
+
+        function startPlayback() {
+            state.isPlaying = true;
+            state.currentIndex = 0;
+
+            document.getElementById('btn-play').disabled = true;
+            document.getElementById('btn-pause').disabled = false;
+
+            playbackInterval = setInterval(() => {
+                if (state.currentIndex >= state.data.length - 1) {
+                    pausePlayback();
+                    return;
+                }
+
+                state.currentIndex += Math.floor(state.speed * 5);
+                state.currentIndex = Math.min(state.currentIndex, state.data.length - 1);
+
+                // Update visible range to follow playback
+                const windowSize = 365; // Show 1 year window
+                state.visibleStart = Math.max(0, state.currentIndex - Math.floor(windowSize / 2));
+                state.visibleEnd = Math.min(state.data.length - 1, state.visibleStart + windowSize);
+
+                // Update slider
+                const progress = (state.currentIndex / (state.data.length - 1)) * 100;
+                document.getElementById('timeline-slider').value = progress;
+
+                // Update current date display
+                const currentDate = state.data[state.currentIndex].date;
+                document.getElementById('current-date').textContent = currentDate.toISOString().split('T')[0];
+
+                render();
+            }, 50);
+        }
+
+        function pausePlayback() {
+            state.isPlaying = false;
+            clearInterval(playbackInterval);
+
+            document.getElementById('btn-play').disabled = false;
+            document.getElementById('btn-pause').disabled = true;
+        }
+
+        function resetPlayback() {
+            pausePlayback();
+            state.currentIndex = 0;
+            state.visibleStart = 0;
+            state.visibleEnd = state.data.length - 1;
+            document.getElementById('timeline-slider').value = 0;
+            document.getElementById('current-date').textContent = state.data[0].date.toISOString().split('T')[0];
+            render();
+        }
+
+        function handleSliderChange(e) {
+            const progress = parseInt(e.target.value);
+            state.currentIndex = Math.floor((progress / 100) * (state.data.length - 1));
+
+            // Update visible range
+            const windowSize = 365;
+            state.visibleStart = Math.max(0, state.currentIndex - Math.floor(windowSize / 2));
+            state.visibleEnd = Math.min(state.data.length - 1, state.visibleStart + windowSize);
+
+            // Update date display
+            const currentDate = state.data[state.currentIndex].date;
+            document.getElementById('current-date').textContent = currentDate.toISOString().split('T')[0];
+
+            render();
+        }
+
+        function handleSpeedChange(e) {
+            state.speed = parseFloat(e.target.value);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            setupCanvas();
+            render();
+        });
+    </script>
+</body>
+</html>

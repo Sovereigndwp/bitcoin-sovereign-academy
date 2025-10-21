@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Supply Schedule | 21 Million Cap Visualization</title>
+    <meta name="description" content="Explore Bitcoin's complete supply schedule from 2009 to 2140. Zoom from individual blocks to centuries and watch the halvings unfold.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --accent-green: #4caf50;
+            --accent-gold: #FFD700;
+            --accent-purple: #9C27B0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+        }
+
+        /* Hero Stats */
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero-stat {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.2), rgba(247, 147, 26, 0.05));
+            border: 2px solid var(--primary-orange);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .hero-stat .number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(247, 147, 26, 0.5);
+        }
+
+        .hero-stat .label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Controls */
+        .controls {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .control-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-orange);
+            color: var(--primary-dark);
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        button:hover {
+            background: #ffb347;
+            transform: translateY(-2px);
+        }
+
+        button.secondary {
+            background: transparent;
+            border: 2px solid var(--primary-orange);
+            color: var(--primary-orange);
+        }
+
+        button.secondary:hover {
+            background: rgba(247, 147, 26, 0.1);
+        }
+
+        button.active {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        /* Visualization Container */
+        .viz-container {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        #supply-canvas {
+            width: 100%;
+            height: 600px;
+            cursor: grab;
+        }
+
+        #supply-canvas:active {
+            cursor: grabbing;
+        }
+
+        /* Timeline Playback */
+        .timeline-controls {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        #playback-slider {
+            flex: 1;
+            height: 6px;
+            background: rgba(247, 147, 26, 0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        #playback-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-orange);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(247, 147, 26, 0.5);
+        }
+
+        #playback-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-orange);
+            cursor: pointer;
+            border: none;
+        }
+
+        .playback-display {
+            font-family: monospace;
+            font-size: 1.1rem;
+            color: var(--primary-orange);
+            min-width: 150px;
+            text-align: center;
+        }
+
+        /* Info Cards */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-card {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .info-card h3 {
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .info-card p {
+            color: var(--text-dim);
+            line-height: 1.8;
+        }
+
+        .info-card .highlight {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        /* Halving Schedule */
+        .halving-schedule {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .halving-schedule h3 {
+            color: var(--accent-gold);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .halving-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .halving-table th,
+        .halving-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(247, 147, 26, 0.2);
+        }
+
+        .halving-table th {
+            color: var(--primary-orange);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .halving-table td {
+            color: var(--text-light);
+        }
+
+        .halving-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .halving-table tr.current {
+            background: rgba(247, 147, 26, 0.1);
+        }
+
+        .halving-table tr.future {
+            opacity: 0.6;
+        }
+
+        .halving-number {
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .legend-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .hero-stat .number {
+                font-size: 2rem;
+            }
+
+            .control-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            #supply-canvas {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ Bitcoin Supply Schedule</h1>
+            <p class="subtitle">Explore the complete 140-year emission schedule • Zoom from blocks to centuries • Watch halvings unfold in real-time</p>
+        </header>
+
+        <!-- Hero Stats -->
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="number">21M</div>
+                <div class="label">Maximum Supply</div>
+            </div>
+            <div class="hero-stat">
+                <div class="number" id="current-supply">19.6M</div>
+                <div class="label">Current Supply</div>
+            </div>
+            <div class="hero-stat">
+                <div class="number">4</div>
+                <div class="label">Halvings Completed</div>
+            </div>
+            <div class="hero-stat">
+                <div class="number" id="years-remaining">116</div>
+                <div class="label">Years Until Final Coin</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div class="control-row">
+                <div class="control-group">
+                    <label>View Mode</label>
+                    <div class="btn-group">
+                        <button class="secondary active" id="btn-cumulative">Cumulative Supply</button>
+                        <button class="secondary" id="btn-emission">Emission Rate</button>
+                        <button class="secondary" id="btn-both">Both</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Time Scale</label>
+                    <div class="btn-group">
+                        <button class="secondary" id="btn-blocks">Blocks</button>
+                        <button class="secondary active" id="btn-years">Years</button>
+                        <button class="secondary" id="btn-halvings">Halving Eras</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Zoom To</label>
+                    <div class="btn-group">
+                        <button class="secondary" id="btn-first-decade">First Decade</button>
+                        <button class="secondary" id="btn-all-halvings">All Halvings</button>
+                        <button class="secondary" id="btn-full">Full Timeline</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-row timeline-controls">
+                <button id="btn-play-timeline">▶️ Play</button>
+                <button id="btn-pause-timeline" disabled>⏸️ Pause</button>
+                <button id="btn-reset-timeline">↺ Reset</button>
+                <input type="range" id="playback-slider" min="0" max="100" value="0">
+                <div class="playback-display" id="current-year">2009</div>
+            </div>
+        </div>
+
+        <!-- Visualization -->
+        <div class="viz-container">
+            <canvas id="supply-canvas"></canvas>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f7931a;"></div>
+                    <div class="legend-label">Cumulative Supply</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4caf50;"></div>
+                    <div class="legend-label">Emission Rate (BTC/Day)</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: rgba(255, 215, 0, 0.3); border: 2px solid #FFD700;"></div>
+                    <div class="legend-label">Halving Events</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(90deg, rgba(76, 175, 80, 0.3), rgba(239, 68, 68, 0.3));"></div>
+                    <div class="legend-label">4-Year Cycles</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>🔥 What is Halving?</h3>
+                <p>
+                    Every <span class="highlight">210,000 blocks</span> (approximately 4 years), the block reward is cut in half. This creates a predictable supply schedule that ensures only <span class="highlight">21 million BTC</span> will ever exist.
+                </p>
+            </div>
+
+            <div class="info-card">
+                <h3>📊 Diminishing Inflation</h3>
+                <p>
+                    Bitcoin's inflation rate decreases with each halving. Currently at <span class="highlight">~1.7% per year</span>, it will eventually approach zero, making Bitcoin the hardest money ever created.
+                </p>
+            </div>
+
+            <div class="info-card">
+                <h3>⏰ Predictable Scarcity</h3>
+                <p>
+                    Unlike fiat currency, Bitcoin's supply is <span class="highlight">mathematically predetermined</span>. No central authority can print more. The final bitcoin will be mined around the year <span class="highlight">2140</span>.
+                </p>
+            </div>
+        </div>
+
+        <!-- Halving Schedule Table -->
+        <div class="halving-schedule">
+            <h3>⚡ Complete Halving Schedule</h3>
+            <table class="halving-table">
+                <thead>
+                    <tr>
+                        <th>Halving</th>
+                        <th>Year</th>
+                        <th>Block Height</th>
+                        <th>Block Reward</th>
+                        <th>Daily Emission</th>
+                        <th>Total Mined</th>
+                        <th>% of Supply</th>
+                    </tr>
+                </thead>
+                <tbody id="halving-table-body">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Bitcoin Supply Schedule Visualization
+
+        // Constants
+        const SATOSHI_PER_BTC = 100_000_000;
+        const MAX_SUPPLY = 21_000_000;
+        const BLOCKS_PER_HALVING = 210_000;
+        const INITIAL_REWARD = 50;
+        const GENESIS_YEAR = 2009;
+        const BLOCKS_PER_DAY = 144; // Approximately
+
+        // Calculate halving schedule
+        function calculateHalvingSchedule() {
+            const schedule = [];
+            let totalMined = 0;
+            let currentReward = INITIAL_REWARD;
+            let halvingNumber = 0;
+
+            while (currentReward > 0.00000001) {
+                const year = GENESIS_YEAR + (halvingNumber * 4);
+                const blockHeight = halvingNumber * BLOCKS_PER_HALVING;
+                const coinsInEra = BLOCKS_PER_HALVING * currentReward;
+                const dailyEmission = BLOCKS_PER_DAY * currentReward;
+
+                totalMined += coinsInEra;
+
+                schedule.push({
+                    halvingNumber,
+                    year,
+                    blockHeight,
+                    reward: currentReward,
+                    dailyEmission,
+                    totalMined,
+                    percentOfSupply: (totalMined / MAX_SUPPLY) * 100
+                });
+
+                currentReward /= 2;
+                halvingNumber++;
+            }
+
+            return schedule;
+        }
+
+        // Generate supply curve data
+        function generateSupplyCurve(years = 140) {
+            const data = [];
+            let totalSupply = 0;
+            let currentReward = INITIAL_REWARD;
+            let halvingsPassed = 0;
+
+            for (let year = 0; year <= years; year++) {
+                const blocksInYear = BLOCKS_PER_DAY * 365.25;
+                const blocksTotal = year * blocksInYear;
+
+                // Check if halving occurred
+                const currentHalvingEra = Math.floor(blocksTotal / BLOCKS_PER_HALVING);
+                if (currentHalvingEra !== halvingsPassed) {
+                    halvingsPassed = currentHalvingEra;
+                    currentReward = INITIAL_REWARD / Math.pow(2, halvingsPassed);
+                }
+
+                // Calculate supply for this year
+                const coinsThisYear = blocksInYear * currentReward;
+                totalSupply += coinsThisYear;
+                totalSupply = Math.min(totalSupply, MAX_SUPPLY);
+
+                data.push({
+                    year: GENESIS_YEAR + year,
+                    totalSupply,
+                    emissionRate: currentReward * BLOCKS_PER_DAY,
+                    halvingEra: halvingsPassed
+                });
+            }
+
+            return data;
+        }
+
+        // App state
+        let state = {
+            data: [],
+            halvingSchedule: [],
+            viewMode: 'cumulative',
+            timeScale: 'years',
+            visibleStart: 0,
+            visibleEnd: 140,
+            isPlaying: false,
+            playbackYear: 0,
+            playbackSpeed: 1
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            state.data = generateSupplyCurve(140);
+            state.halvingSchedule = calculateHalvingSchedule();
+
+            setupCanvas();
+            setupControls();
+            populateHalvingTable();
+            updateStats();
+            render();
+        });
+
+        function setupCanvas() {
+            const canvas = document.getElementById('supply-canvas');
+            const container = canvas.parentElement;
+
+            canvas.width = container.clientWidth - 64;
+            canvas.height = 600;
+
+            // Add mouse interactions
+            canvas.addEventListener('wheel', handleZoom);
+            canvas.addEventListener('mousedown', handlePanStart);
+            canvas.addEventListener('mousemove', handlePanMove);
+            canvas.addEventListener('mouseup', handlePanEnd);
+            canvas.addEventListener('mouseleave', handlePanEnd);
+        }
+
+        function setupControls() {
+            // View mode
+            document.getElementById('btn-cumulative').addEventListener('click', () => setViewMode('cumulative'));
+            document.getElementById('btn-emission').addEventListener('click', () => setViewMode('emission'));
+            document.getElementById('btn-both').addEventListener('click', () => setViewMode('both'));
+
+            // Time scale
+            document.getElementById('btn-blocks').addEventListener('click', () => setTimeScale('blocks'));
+            document.getElementById('btn-years').addEventListener('click', () => setTimeScale('years'));
+            document.getElementById('btn-halvings').addEventListener('click', () => setTimeScale('halvings'));
+
+            // Zoom presets
+            document.getElementById('btn-first-decade').addEventListener('click', () => zoomToRange(0, 10));
+            document.getElementById('btn-all-halvings').addEventListener('click', () => zoomToRange(0, 64));
+            document.getElementById('btn-full').addEventListener('click', () => zoomToRange(0, 140));
+
+            // Playback
+            document.getElementById('btn-play-timeline').addEventListener('click', startPlayback);
+            document.getElementById('btn-pause-timeline').addEventListener('click', pausePlayback);
+            document.getElementById('btn-reset-timeline').addEventListener('click', resetPlayback);
+            document.getElementById('playback-slider').addEventListener('input', handleSliderChange);
+        }
+
+        function setViewMode(mode) {
+            state.viewMode = mode;
+
+            // Update button states
+            document.querySelectorAll('.control-row:nth-child(1) button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${mode}`).classList.add('active');
+
+            render();
+        }
+
+        function setTimeScale(scale) {
+            state.timeScale = scale;
+
+            // Update button states
+            document.querySelectorAll('.control-row:nth-child(1) .control-group:nth-child(2) button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${scale}`).classList.add('active');
+
+            render();
+        }
+
+        function zoomToRange(startYear, endYear) {
+            state.visibleStart = startYear;
+            state.visibleEnd = endYear;
+            render();
+        }
+
+        function render() {
+            const canvas = document.getElementById('supply-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const padding = { top: 40, right: 100, bottom: 60, left: 80 };
+            const chartWidth = canvas.width - padding.left - padding.right;
+            const chartHeight = canvas.height - padding.top - padding.bottom;
+
+            // Get visible data
+            const visibleData = state.data.filter((d, i) => i >= state.visibleStart && i <= state.visibleEnd);
+
+            if (visibleData.length === 0) return;
+
+            // Draw grid
+            drawGrid(ctx, padding, chartWidth, chartHeight);
+
+            // Draw halving markers
+            drawHalvingMarkers(ctx, padding, chartWidth, chartHeight, visibleData);
+
+            // Draw supply curve based on view mode
+            if (state.viewMode === 'cumulative' || state.viewMode === 'both') {
+                drawSupplyCurve(ctx, padding, chartWidth, chartHeight, visibleData);
+            }
+
+            if (state.viewMode === 'emission' || state.viewMode === 'both') {
+                drawEmissionRate(ctx, padding, chartWidth, chartHeight, visibleData);
+            }
+
+            // Draw 21M cap line
+            if (state.viewMode === 'cumulative' || state.viewMode === 'both') {
+                drawCapLine(ctx, padding, chartWidth, chartHeight);
+            }
+
+            // Draw playback indicator
+            if (state.isPlaying) {
+                drawPlaybackIndicator(ctx, padding, chartWidth, chartHeight, visibleData);
+            }
+
+            // Draw axes
+            drawAxes(ctx, padding, chartWidth, chartHeight, visibleData);
+        }
+
+        function drawGrid(ctx, padding, width, height) {
+            ctx.strokeStyle = 'rgba(247, 147, 26, 0.1)';
+            ctx.lineWidth = 1;
+
+            // Horizontal lines
+            for (let i = 0; i <= 8; i++) {
+                const y = padding.top + (height / 8) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(padding.left + width, y);
+                ctx.stroke();
+            }
+
+            // Vertical lines
+            for (let i = 0; i <= 10; i++) {
+                const x = padding.left + (width / 10) * i;
+                ctx.beginPath();
+                ctx.moveTo(x, padding.top);
+                ctx.lineTo(x, padding.top + height);
+                ctx.stroke();
+            }
+        }
+
+        function drawHalvingMarkers(ctx, padding, width, height, data) {
+            state.halvingSchedule.forEach((halving, i) => {
+                const yearsSinceGenesis = halving.year - GENESIS_YEAR;
+
+                if (yearsSinceGenesis >= state.visibleStart && yearsSinceGenesis <= state.visibleEnd) {
+                    const dataIndex = data.findIndex(d => d.year >= halving.year);
+
+                    if (dataIndex !== -1) {
+                        const x = padding.left + (dataIndex / (data.length - 1)) * width;
+
+                        // Draw vertical line
+                        ctx.strokeStyle = '#FFD700';
+                        ctx.setLineDash([5, 5]);
+                        ctx.lineWidth = 2;
+                        ctx.globalAlpha = 0.6;
+                        ctx.beginPath();
+                        ctx.moveTo(x, padding.top);
+                        ctx.lineTo(x, padding.top + height);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        ctx.globalAlpha = 1;
+
+                        // Draw halving number
+                        ctx.fillStyle = '#FFD700';
+                        ctx.font = 'bold 14px -apple-system, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(`⚡ ${i + 1}`, x, padding.top + 20);
+                    }
+                }
+            });
+        }
+
+        function drawSupplyCurve(ctx, padding, width, height, data) {
+            // Create gradient
+            const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + height);
+            gradient.addColorStop(0, 'rgba(247, 147, 26, 0.4)');
+            gradient.addColorStop(1, 'rgba(247, 147, 26, 0.05)');
+
+            ctx.beginPath();
+
+            data.forEach((point, index) => {
+                const x = padding.left + (index / (data.length - 1)) * width;
+                const y = padding.top + height - ((point.totalSupply / MAX_SUPPLY) * height);
+
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            // Stroke line
+            ctx.strokeStyle = '#f7931a';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Fill area
+            ctx.lineTo(padding.left + width, padding.top + height);
+            ctx.lineTo(padding.left, padding.top + height);
+            ctx.closePath();
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        }
+
+        function drawEmissionRate(ctx, padding, width, height, data) {
+            const maxEmission = Math.max(...data.map(d => d.emissionRate));
+
+            ctx.beginPath();
+
+            data.forEach((point, index) => {
+                const x = padding.left + (index / (data.length - 1)) * width;
+                const y = padding.top + height - ((point.emissionRate / maxEmission) * height * 0.4);
+
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            ctx.strokeStyle = '#4caf50';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawCapLine(ctx, padding, width, height) {
+            const y = padding.top + height - ((MAX_SUPPLY / MAX_SUPPLY) * height);
+
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding.left, y);
+            ctx.lineTo(padding.left + width, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Label
+            ctx.fillStyle = '#ef4444';
+            ctx.font = 'bold 12px -apple-system, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText('21M CAP', padding.left + width - 10, y - 5);
+        }
+
+        function drawPlaybackIndicator(ctx, padding, width, height, data) {
+            const playbackIndex = Math.floor((state.playbackYear / 140) * (data.length - 1));
+
+            if (playbackIndex < data.length) {
+                const x = padding.left + (playbackIndex / (data.length - 1)) * width;
+
+                ctx.strokeStyle = '#2196f3';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(x, padding.top);
+                ctx.lineTo(x, padding.top + height);
+                ctx.stroke();
+            }
+        }
+
+        function drawAxes(ctx, padding, width, height, data) {
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 2;
+
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, padding.top + height);
+            ctx.stroke();
+
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top + height);
+            ctx.lineTo(padding.left + width, padding.top + height);
+            ctx.stroke();
+
+            // Y-axis labels
+            ctx.fillStyle = '#e0e0e0';
+            ctx.font = '12px -apple-system, sans-serif';
+            ctx.textAlign = 'right';
+
+            for (let i = 0; i <= 4; i++) {
+                const supply = MAX_SUPPLY * (i / 4);
+                const y = padding.top + height - (height * (i / 4));
+                ctx.fillText(`${(supply / 1_000_000).toFixed(1)}M`, padding.left - 10, y + 4);
+            }
+
+            // X-axis labels
+            ctx.textAlign = 'center';
+            const labelCount = 8;
+            for (let i = 0; i <= labelCount; i++) {
+                const index = Math.floor((data.length - 1) * (i / labelCount));
+                const year = data[index].year;
+                const x = padding.left + (width / labelCount) * i;
+                ctx.fillText(year, x, padding.top + height + 25);
+            }
+
+            // Axis titles
+            ctx.save();
+            ctx.translate(padding.left - 60, padding.top + height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillStyle = '#f7931a';
+            ctx.font = 'bold 14px -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Total Supply (BTC)', 0, 0);
+            ctx.restore();
+
+            ctx.fillStyle = '#f7931a';
+            ctx.font = 'bold 14px -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Year', padding.left + width / 2, padding.top + height + 50);
+        }
+
+        function populateHalvingTable() {
+            const tbody = document.getElementById('halving-table-body');
+            const currentYear = new Date().getFullYear();
+
+            state.halvingSchedule.slice(0, 10).forEach((halving, i) => {
+                const row = document.createElement('tr');
+
+                if (halving.year <= currentYear) {
+                    row.classList.add('current');
+                } else {
+                    row.classList.add('future');
+                }
+
+                row.innerHTML = `
+                    <td class="halving-number">#${i + 1}</td>
+                    <td>${halving.year}</td>
+                    <td>${halving.blockHeight.toLocaleString()}</td>
+                    <td>${halving.reward.toFixed(8)} BTC</td>
+                    <td>${halving.dailyEmission.toFixed(2)} BTC</td>
+                    <td>${(halving.totalMined / 1_000_000).toFixed(2)}M BTC</td>
+                    <td>${halving.percentOfSupply.toFixed(2)}%</td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateStats() {
+            const currentYear = new Date().getFullYear();
+            const yearsSinceGenesis = currentYear - GENESIS_YEAR;
+            const currentData = state.data[yearsSinceGenesis];
+
+            if (currentData) {
+                document.getElementById('current-supply').textContent = `${(currentData.totalSupply / 1_000_000).toFixed(2)}M`;
+            }
+
+            const yearsRemaining = 2140 - currentYear;
+            document.getElementById('years-remaining').textContent = yearsRemaining;
+        }
+
+        // Zoom and pan handlers
+        let isPanning = false;
+        let panStart = 0;
+        let panStartVisible = 0;
+
+        function handleZoom(e) {
+            e.preventDefault();
+
+            const zoomFactor = e.deltaY > 0 ? 1.2 : 0.8;
+            const visibleRange = state.visibleEnd - state.visibleStart;
+            const newRange = Math.floor(visibleRange * zoomFactor);
+            const center = (state.visibleStart + state.visibleEnd) / 2;
+
+            state.visibleStart = Math.max(0, Math.floor(center - newRange / 2));
+            state.visibleEnd = Math.min(140, Math.floor(center + newRange / 2));
+
+            render();
+        }
+
+        function handlePanStart(e) {
+            isPanning = true;
+            panStart = e.clientX;
+            panStartVisible = state.visibleStart;
+        }
+
+        function handlePanMove(e) {
+            if (!isPanning) return;
+
+            const canvas = document.getElementById('supply-canvas');
+            const chartWidth = canvas.width - 180;
+            const dx = e.clientX - panStart;
+            const visibleRange = state.visibleEnd - state.visibleStart;
+            const yearsPerPixel = visibleRange / chartWidth;
+            const shift = Math.floor(-dx * yearsPerPixel);
+
+            state.visibleStart = Math.max(0, Math.min(140 - visibleRange, panStartVisible + shift));
+            state.visibleEnd = state.visibleStart + visibleRange;
+
+            render();
+        }
+
+        function handlePanEnd() {
+            isPanning = false;
+        }
+
+        // Playback
+        let playbackInterval;
+
+        function startPlayback() {
+            state.isPlaying = true;
+            state.playbackYear = 0;
+
+            document.getElementById('btn-play-timeline').disabled = true;
+            document.getElementById('btn-pause-timeline').disabled = false;
+
+            playbackInterval = setInterval(() => {
+                state.playbackYear += state.playbackSpeed;
+
+                if (state.playbackYear >= 140) {
+                    pausePlayback();
+                    return;
+                }
+
+                const slider = document.getElementById('playback-slider');
+                slider.value = (state.playbackYear / 140) * 100;
+
+                const year = GENESIS_YEAR + Math.floor(state.playbackYear);
+                document.getElementById('current-year').textContent = year;
+
+                render();
+            }, 50);
+        }
+
+        function pausePlayback() {
+            state.isPlaying = false;
+            clearInterval(playbackInterval);
+
+            document.getElementById('btn-play-timeline').disabled = false;
+            document.getElementById('btn-pause-timeline').disabled = true;
+        }
+
+        function resetPlayback() {
+            pausePlayback();
+            state.playbackYear = 0;
+            document.getElementById('playback-slider').value = 0;
+            document.getElementById('current-year').textContent = GENESIS_YEAR;
+            render();
+        }
+
+        function handleSliderChange(e) {
+            const progress = parseInt(e.target.value);
+            state.playbackYear = (progress / 100) * 140;
+
+            const year = GENESIS_YEAR + Math.floor(state.playbackYear);
+            document.getElementById('current-year').textContent = year;
+
+            render();
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            setupCanvas();
+            render();
+        });
+    </script>
+</body>
+</html>
