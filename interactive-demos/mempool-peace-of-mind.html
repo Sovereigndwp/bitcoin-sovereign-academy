@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mempool Peace-of-Mind Viewer - Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="../css/brand.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #0a0a0a;
+            --secondary-dark: #1a1a1a;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --success-green: #4CAF50;
+            --warning-orange: #FF9800;
+            --danger-red: #F44336;
+            --accent-blue: #2196F3;
+            --accent-purple: #9C27B0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--text-light);
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-orange);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .input-section {
+            background: var(--secondary-dark);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 2px solid rgba(247, 147, 26, 0.3);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--primary-orange);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--primary-dark);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: var(--text-light);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(247, 147, 26, 0.1);
+        }
+
+        .input-hint {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-top: 0.5rem;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--primary-orange), #d97706);
+            border: none;
+            border-radius: 0.75rem;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(247, 147, 26, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(247, 147, 26, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .results-section.visible {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-card {
+            background: var(--secondary-dark);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            border: 2px solid;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-card.normal {
+            border-color: var(--success-green);
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
+        }
+
+        .status-card.slow {
+            border-color: var(--warning-orange);
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 152, 0, 0.05));
+        }
+
+        .status-card.stuck {
+            border-color: var(--danger-red);
+            background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(244, 67, 54, 0.05));
+        }
+
+        .status-icon {
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .status-title {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .status-subtitle {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .mempool-visual {
+            background: var(--primary-dark);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .fee-bar-container {
+            height: 60px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            position: relative;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .fee-bar {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            transition: all 0.5s ease;
+        }
+
+        .fee-zone {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .fee-zone.low {
+            background: linear-gradient(90deg, var(--success-green), #45a049);
+        }
+
+        .fee-zone.medium {
+            background: linear-gradient(90deg, #45a049, var(--warning-orange));
+        }
+
+        .fee-zone.high {
+            background: linear-gradient(90deg, var(--warning-orange), var(--danger-red));
+        }
+
+        .your-position {
+            position: absolute;
+            top: -10px;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 15px solid var(--primary-orange);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { top: -10px; }
+            50% { top: -5px; }
+        }
+
+        .position-label {
+            position: absolute;
+            top: -35px;
+            transform: translateX(-50%);
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .info-box {
+            background: var(--primary-dark);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-box-label {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .info-box-unit {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-left: 0.25rem;
+        }
+
+        .action-box {
+            background: rgba(33, 150, 243, 0.1);
+            border: 2px solid var(--accent-blue);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .action-box h3 {
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .action-box ul {
+            margin-left: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .action-box li {
+            margin-bottom: 0.5rem;
+        }
+
+        .reassurance-box {
+            background: linear-gradient(135deg, rgba(156, 39, 176, 0.1), rgba(156, 39, 176, 0.05));
+            border: 2px solid var(--accent-purple);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            margin: 1.5rem 0;
+        }
+
+        .reassurance-box p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--text-light);
+        }
+
+        .link-box {
+            background: var(--secondary-dark);
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .link-box:hover {
+            border-color: var(--primary-orange);
+            transform: translateX(5px);
+        }
+
+        .link-box a {
+            color: var(--primary-orange);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .reset-btn {
+            background: transparent;
+            border: 2px solid var(--text-dim);
+            color: var(--text-dim);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .reset-btn:hover {
+            border-color: var(--primary-orange);
+            color: var(--primary-orange);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>🧘 Mempool Peace-of-Mind Viewer</h1>
+        <p class="subtitle">Check your transaction status in context with current network conditions</p>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="txid">Transaction ID (TXID) - Optional</label>
+                <input type="text" id="txid" placeholder="Enter your transaction ID or leave blank for scenario simulation">
+                <p class="input-hint">Example: a1b2c3d4e5f6...  (Leave blank to simulate based on fee rate)</p>
+            </div>
+
+            <div class="input-group">
+                <label for="fee-rate">Your Transaction Fee Rate (sat/vB)</label>
+                <input type="number" id="fee-rate" placeholder="Enter your fee rate" min="1" max="500" value="10">
+                <p class="input-hint">Check your wallet or block explorer to find this</p>
+            </div>
+
+            <div class="input-group">
+                <label for="time-elapsed">Time Since Broadcast</label>
+                <select id="time-elapsed">
+                    <option value="5">5 minutes</option>
+                    <option value="15">15 minutes</option>
+                    <option value="30">30 minutes</option>
+                    <option value="60" selected>1 hour</option>
+                    <option value="120">2 hours</option>
+                    <option value="360">6 hours</option>
+                    <option value="720">12 hours</option>
+                    <option value="1440">24 hours</option>
+                </select>
+            </div>
+
+            <button class="btn-primary" onclick="analyzeMempoolStatus()">Check Transaction Status 🔍</button>
+        </div>
+
+        <div class="results-section" id="results">
+            <!-- Results will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        function analyzeMempoolStatus() {
+            const feeRate = parseInt(document.getElementById('fee-rate').value);
+            const timeElapsed = parseInt(document.getElementById('time-elapsed').value);
+            const txid = document.getElementById('txid').value.trim();
+
+            if (!feeRate || feeRate < 1) {
+                alert('Please enter a valid fee rate (minimum 1 sat/vB)');
+                return;
+            }
+
+            // Simulate current mempool conditions (in production, this would fetch from mempool.space API)
+            const mempoolState = simulateMempoolState();
+
+            // Determine status based on fee rate and time
+            const status = determineStatus(feeRate, timeElapsed, mempoolState);
+
+            // Render results
+            renderResults(status, feeRate, timeElapsed, mempoolState, txid);
+
+            // Show results section
+            document.getElementById('results').classList.add('visible');
+
+            // Smooth scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function simulateMempoolState() {
+            // Simulate realistic mempool conditions
+            // In production, fetch from: https://mempool.space/api/v1/fees/recommended
+            return {
+                fastestFee: 25,    // ~10 min
+                halfHourFee: 15,   // ~30 min
+                hourFee: 10,       // ~60 min
+                economyFee: 5,     // ~6+ hours
+                minimumFee: 1,     // Eventually
+                mempoolSize: 45.2, // MB
+                blockHeight: 867523
+            };
+        }
+
+        function determineStatus(feeRate, timeElapsed, mempool) {
+            if (feeRate >= mempool.fastestFee) {
+                if (timeElapsed < 30) return 'normal-fast';
+                if (timeElapsed < 60) return 'normal-confirming';
+                return 'normal-confirmed';
+            } else if (feeRate >= mempool.hourFee) {
+                if (timeElapsed < 120) return 'slow-normal';
+                return 'slow-overdue';
+            } else if (feeRate >= mempool.economyFee) {
+                if (timeElapsed < 360) return 'slow-economy';
+                return 'slow-very-slow';
+            } else {
+                if (timeElapsed < 1440) return 'stuck-low-fee';
+                return 'stuck-very-low-fee';
+            }
+        }
+
+        function renderResults(status, feeRate, timeElapsed, mempool, txid) {
+            const results = document.getElementById('results');
+
+            const statusConfig = getStatusConfig(status, feeRate, timeElapsed, mempool);
+
+            results.innerHTML = `
+                <div class="status-card ${statusConfig.class}">
+                    <div class="status-icon">${statusConfig.icon}</div>
+                    <h2 class="status-title" style="color: ${statusConfig.color};">${statusConfig.title}</h2>
+                    <p class="status-subtitle">${statusConfig.subtitle}</p>
+
+                    <div class="mempool-visual">
+                        <h3 style="color: var(--text-light); margin-bottom: 1rem; text-align: center;">📊 Your Position in the Mempool</h3>
+                        <div class="fee-bar-container">
+                            <div style="position: relative; width: 100%; height: 100%;">
+                                ${renderFeeBar(feeRate, mempool)}
+                                <div class="your-position" style="left: ${calculatePosition(feeRate, mempool)}%;"></div>
+                                <div class="position-label" style="left: ${calculatePosition(feeRate, mempool)}%;">YOU ARE HERE</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-dim);">
+                            <span>← Slower / Cheaper</span>
+                            <span>Faster / More Expensive →</span>
+                        </div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-box">
+                            <div class="info-box-label">Your Fee Rate</div>
+                            <div class="info-box-value">${feeRate}<span class="info-box-unit">sat/vB</span></div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-box-label">Time Waiting</div>
+                            <div class="info-box-value">${formatTime(timeElapsed)}</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-box-label">Network Fast Fee</div>
+                            <div class="info-box-value">${mempool.fastestFee}<span class="info-box-unit">sat/vB</span></div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-box-label">Mempool Size</div>
+                            <div class="info-box-value">${mempool.mempoolSize}<span class="info-box-unit">MB</span></div>
+                        </div>
+                    </div>
+
+                    ${statusConfig.action}
+
+                    <div class="reassurance-box">
+                        <p><strong>🔒 Your Bitcoin is safe.</strong><br>Unconfirmed transactions cannot be spent by anyone else. The funds exist on the blockchain, waiting for mining confirmation.</p>
+                    </div>
+
+                    <div class="link-box">
+                        <a href="https://mempool.space${txid ? '/tx/' + txid : ''}" target="_blank" rel="noopener">
+                            <span>🔗 Check Live Mempool Status on mempool.space</span>
+                            <span>→</span>
+                        </a>
+                    </div>
+
+                    ${renderLearningLinks(status)}
+
+                    <center><button class="reset-btn" onclick="resetDemo()">← Check Another Transaction</button></center>
+                </div>
+            `;
+        }
+
+        function getStatusConfig(status, feeRate, timeElapsed, mempool) {
+            const configs = {
+                'normal-fast': {
+                    class: 'normal',
+                    icon: '✅',
+                    color: 'var(--success-green)',
+                    title: 'Everything is Normal!',
+                    subtitle: 'Your transaction will likely confirm in the next 1-2 blocks (~10-20 minutes)',
+                    action: `
+                        <div class="action-box">
+                            <h3>What to Expect:</h3>
+                            <ul>
+                                <li>✅ Your fee rate (${feeRate} sat/vB) is competitive for fast confirmation</li>
+                                <li>⏱️ Expected confirmation: Next 1-2 blocks</li>
+                                <li>🎯 No action needed - just wait for miners to include your transaction</li>
+                            </ul>
+                        </div>
+                    `
+                },
+                'normal-confirming': {
+                    class: 'normal',
+                    icon: '⏳',
+                    color: 'var(--success-green)',
+                    title: 'Transaction is Processing Normally',
+                    subtitle: 'Should confirm soon - mempool is working as expected',
+                    action: `
+                        <div class="action-box">
+                            <h3>What's Happening:</h3>
+                            <ul>
+                                <li>✅ Your transaction is in the mempool (unconfirmed transaction pool)</li>
+                                <li>⏱️ Miners prioritize by fee rate - yours is ${feeRate} sat/vB</li>
+                                <li>🎯 Current wait time is normal for this fee level</li>
+                                <li>💡 Refresh mempool.space in 10-15 minutes to check status</li>
+                            </ul>
+                        </div>
+                    `
+                },
+                'slow-normal': {
+                    class: 'slow',
+                    icon: '🐌',
+                    color: 'var(--warning-orange)',
+                    title: 'Transaction is Slower Than Usual',
+                    subtitle: 'Your fee rate is below fast confirmation levels, but still processable',
+                    action: `
+                        <div class="action-box">
+                            <h3>Why is it slow?</h3>
+                            <ul>
+                                <li>⚠️ Your fee (${feeRate} sat/vB) is below priority range (${mempool.fastestFee}+ sat/vB)</li>
+                                <li>⏱️ Expected time: 2-6 hours depending on mempool congestion</li>
+                                <li>🎯 This is normal for lower fee transactions</li>
+                                <li>💡 Your transaction WILL confirm - just taking longer</li>
+                            </ul>
+                        </div>
+                    `
+                },
+                'slow-economy': {
+                    class: 'slow',
+                    icon: '💤',
+                    color: 'var(--warning-orange)',
+                    title: 'Economy-Rate Transaction',
+                    subtitle: 'You chose low fees - longer wait is expected',
+                    action: `
+                        <div class="action-box">
+                            <h3>What You Can Do:</h3>
+                            <ul>
+                                <li>⏳ Wait it out (could be 6-24 hours)</li>
+                                <li>🚀 Try RBF (Replace-By-Fee) if your wallet supports it</li>
+                                <li>📊 Check mempool.space to see if congestion is clearing</li>
+                                <li>💡 During weekends, mempools usually clear faster</li>
+                            </ul>
+                        </div>
+                    `
+                },
+                'stuck-low-fee': {
+                    class: 'stuck',
+                    icon: '🚨',
+                    color: 'var(--danger-red)',
+                    title: 'Transaction Likely Stuck',
+                    subtitle: 'Your fee is very low - may need action',
+                    action: `
+                        <div class="action-box">
+                            <h3>Immediate Actions:</h3>
+                            <ul>
+                                <li>🔄 Try RBF (Replace-By-Fee) to bump the fee</li>
+                                <li>👨‍👩‍👧 Ask receiver to use CPFP (Child-Pays-For-Parent)</li>
+                                <li>⏰ Wait for weekend (mempools often clear)</li>
+                                <li>📞 Contact support if this is exchange withdrawal</li>
+                                <li>⚠️ Don't panic - funds are NOT lost!</li>
+                            </ul>
+                        </div>
+                    `
+                }
+            };
+
+            return configs[status] || configs['normal-fast'];
+        }
+
+        function renderFeeBar(feeRate, mempool) {
+            const maxFee = Math.max(mempool.fastestFee * 1.5, feeRate * 1.2);
+            const lowWidth = (mempool.economyFee / maxFee) * 100;
+            const medWidth = ((mempool.hourFee - mempool.economyFee) / maxFee) * 100;
+            const highWidth = 100 - lowWidth - medWidth;
+
+            return `
+                <div class="fee-bar">
+                    <div class="fee-zone low" style="width: ${lowWidth}%;">Economy<br>${mempool.economyFee} sat/vB</div>
+                    <div class="fee-zone medium" style="width: ${medWidth}%;">Standard<br>${mempool.hourFee} sat/vB</div>
+                    <div class="fee-zone high" style="width: ${highWidth}%;">Fast<br>${mempool.fastestFee}+ sat/vB</div>
+                </div>
+            `;
+        }
+
+        function calculatePosition(feeRate, mempool) {
+            const maxFee = Math.max(mempool.fastestFee * 1.5, feeRate * 1.2);
+            const position = (feeRate / maxFee) * 100;
+            return Math.min(Math.max(position, 5), 95); // Clamp between 5% and 95%
+        }
+
+        function formatTime(minutes) {
+            if (minutes < 60) return `${minutes} min`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''}`;
+            const days = Math.floor(hours / 24);
+            return `${days} day${days > 1 ? 's' : ''}`;
+        }
+
+        function renderLearningLinks(status) {
+            return `
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid rgba(255,255,255,0.1);">
+                    <h3 style="color: var(--primary-orange); margin-bottom: 1rem; text-align: center;">📚 Learn More</h3>
+                    <div style="display: grid; gap: 0.75rem;">
+                        <div class="link-box">
+                            <a href="/paths/sovereign/stage-3/fees-utxo-guide.html">
+                                <span>⚡ Fees & UTXO Management Guide</span>
+                                <span>→</span>
+                            </a>
+                        </div>
+                        <div class="link-box">
+                            <a href="/paths/hurried/index.html#incident-help">
+                                <span>🆘 Incident Response Help</span>
+                                <span>→</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function resetDemo() {
+            document.getElementById('results').classList.remove('visible');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
