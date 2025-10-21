@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fees & UTXO Management Guide | Sovereign Path Stage 3</title>
+    <meta name="description" content="Master Bitcoin transaction fees and UTXO consolidation. Learn when to consolidate, how to optimize fees, and avoid UTXO bloat from daily DCA.">
+
+    <style>
+        :root {
+            --sovereign-gold: #d4af37;
+            --sovereign-amber: #FFBF00;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196F3;
+            --accent-red: #f44336;
+            --accent-orange: #ff9800;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(212, 175, 55, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header {
+            background: var(--secondary-dark);
+            border-bottom: 3px solid var(--sovereign-gold);
+            padding: 2rem 0;
+            margin-bottom: 3rem;
+        }
+
+        .breadcrumb {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb a {
+            color: var(--sovereign-gold);
+            text-decoration: none;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--sovereign-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            color: var(--sovereign-gold);
+            margin: 2.5rem 0 1rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            color: var(--sovereign-amber);
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        .highlight-box {
+            background: rgba(212, 175, 55, 0.1);
+            border-left: 4px solid var(--sovereign-gold);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .warning-box {
+            background: rgba(244, 67, 54, 0.1);
+            border-left: 4px solid var(--accent-red);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .tip-box {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid var(--accent-blue);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .fee-visualizer {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .fee-bar {
+            height: 60px;
+            background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-orange) 50%, var(--accent-red) 100%);
+            border-radius: 0.5rem;
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        .fee-marker {
+            position: absolute;
+            width: 3px;
+            height: 80px;
+            background: white;
+            top: -10px;
+            transform: translateX(-1.5px);
+        }
+
+        .fee-label {
+            position: absolute;
+            top: -40px;
+            transform: translateX(-50%);
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .scenario-card {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: var(--sovereign-gold);
+            color: var(--primary-dark);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--sovereign-amber);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/sovereign/">Sovereign Path</a> →
+                <a href="/paths/sovereign/stage-3/">Stage 3</a> →
+                <span>Fees & UTXO Management</span>
+            </div>
+            <h1>⚡ Fees, UTXOs, and Consolidation</h1>
+            <p style="color: var(--text-dim); font-size: 1.1rem;">Practical guide to managing transaction costs and avoiding UTXO bloat</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="highlight-box">
+            <strong>📚 What You'll Learn:</strong>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-dim);">
+                <li>Why daily DCA into a vault can create expensive problems</li>
+                <li>How to consolidate UTXOs during low-fee windows</li>
+                <li>Manual vs automatic fee selection trade-offs</li>
+                <li>When low fees are OK (consolidation) vs when to pay up (urgent sends)</li>
+            </ul>
+        </div>
+
+        <h2>🧱 The UTXO Bloat Problem</h2>
+
+        <div class="scenario-grid">
+            <div class="scenario-card" style="border-color: var(--accent-red);">
+                <h3 style="color: var(--accent-red); margin-top: 0;">❌ The Expensive Scenario</h3>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                    You DCA $50/day into a hardware wallet vault for 365 days.
+                </p>
+                <div style="background: var(--primary-dark); padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; font-family: monospace; font-size: 0.85rem;">
+                    Total deposited: $18,250<br>
+                    Number of UTXOs: 365<br>
+                    Future spend cost at 50 sat/vB: ~$180 in fees<br>
+                    <strong style="color: var(--accent-red);">% of holdings lost to fees: 1%</strong>
+                </div>
+                <p style="color: var(--text-dim); font-size: 0.9rem;">
+                    Each UTXO adds ~140 vBytes to your transaction. 365 UTXOs = massive fee.
+                </p>
+            </div>
+
+            <div class="scenario-card" style="border-color: var(--accent-green);">
+                <h3 style="color: var(--accent-green); margin-top: 0;">✅ The Optimized Scenario</h3>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                    You DCA $50/day into exchange, consolidate monthly into vault.
+                </p>
+                <div style="background: var(--primary-dark); padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; font-family: monospace; font-size: 0.85rem;">
+                    Total deposited: $18,250<br>
+                    Number of UTXOs: 12<br>
+                    Future spend cost at 50 sat/vB: ~$6 in fees<br>
+                    <strong style="color: var(--accent-green);">% of holdings lost to fees: 0.03%</strong>
+                </div>
+                <p style="color: var(--text-dim); font-size: 0.9rem;">
+                    30x fewer UTXOs = 30x lower fees when you eventually spend.
+                </p>
+            </div>
+        </div>
+
+        <div class="warning-box">
+            <strong style="color: var(--accent-red);">⚠️ Key Lesson:</strong> Frequent small deposits create UTXO bloat. Batch your transfers when possible—deposit weekly or monthly instead of daily.
+        </div>
+
+        <h2>📊 Fee Market Basics</h2>
+
+        <div class="fee-visualizer">
+            <h3 style="margin-top: 0;">Current Mempool Fee Ranges (Live Example)</h3>
+            <p style="color: var(--text-dim); margin-bottom: 2rem; font-size: 0.9rem;">
+                Bitcoin fees vary based on network demand. Here's how to think about priority:
+            </p>
+
+            <div class="fee-bar">
+                <div class="fee-marker" style="left: 15%;">
+                    <div class="fee-label" style="color: var(--accent-green);">
+                        <strong>Low Priority</strong><br>
+                        1-5 sat/vB<br>
+                        <span style="font-size: 0.75rem;">Hours-Days</span>
+                    </div>
+                </div>
+                <div class="fee-marker" style="left: 50%;">
+                    <div class="fee-label" style="color: var(--accent-orange);">
+                        <strong>Medium</strong><br>
+                        10-30 sat/vB<br>
+                        <span style="font-size: 0.75rem;">~30 min</span>
+                    </div>
+                </div>
+                <div class="fee-marker" style="left: 85%;">
+                    <div class="fee-label" style="color: var(--accent-red);">
+                        <strong>High Priority</strong><br>
+                        50-100+ sat/vB<br>
+                        <span style="font-size: 0.75rem;">Next block</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 3rem;">
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; color: var(--accent-green);">🐢</div>
+                    <strong style="color: var(--accent-green);">Low Fee</strong>
+                    <p style="color: var(--text-dim); font-size: 0.85rem; margin: 0.5rem 0;">
+                        Use for: Consolidation, non-urgent transfers
+                    </p>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; color: var(--accent-orange);">🏃</div>
+                    <strong style="color: var(--accent-orange);">Medium Fee</strong>
+                    <p style="color: var(--text-dim); font-size: 0.85rem; margin: 0.5rem 0;">
+                        Use for: Regular sends, most transactions
+                    </p>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; color: var(--accent-red);">🚀</div>
+                    <strong style="color: var(--accent-red);">High Fee</strong>
+                    <p style="color: var(--text-dim); font-size: 0.85rem; margin: 0.5rem 0;">
+                        Use for: Urgent payments, time-sensitive
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tip-box">
+            <strong style="color: var(--accent-blue);">💡 Check Live Fees:</strong> Before any transaction, check <a href="https://mempool.space" target="_blank" style="color: var(--accent-blue);">mempool.space</a> to see current fee rates. Don't blindly accept your wallet's default suggestion.
+        </div>
+
+        <h2>🔄 When & How to Consolidate UTXOs</h2>
+
+        <h3>🎯 Perfect Timing for Consolidation</h3>
+
+        <div style="background: var(--secondary-dark); border: 2px solid var(--border-color); border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <strong style="color: var(--accent-green);">✅ Consolidate When:</strong>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-dim);">
+                        <li>Fees are under 5 sat/vB (weekends, low demand)</li>
+                        <li>You have 10+ small UTXOs</li>
+                        <li>You're NOT in a rush</li>
+                        <li>Mempool is clearing quickly</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong style="color: var(--accent-red);">❌ Don't Consolidate When:</strong>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-dim);">
+                        <li>Fees are over 20 sat/vB</li>
+                        <li>Mempool is congested (hundreds of MB backlog)</li>
+                        <li>You only have 2-3 UTXOs (not worth it)</li>
+                        <li>You might need funds soon (consolidation takes time)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <h3>📋 Consolidation Checklist</h3>
+
+        <div style="background: rgba(212, 175, 55, 0.1); border: 2px solid var(--sovereign-gold); border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+            <strong style="color: var(--sovereign-gold);">Step-by-Step Consolidation Process:</strong>
+            <ol style="margin: 1rem 0 0 1.5rem; color: var(--text-dim); line-height: 2;">
+                <li><strong>Check mempool.space:</strong> Confirm fees are low (under 5 sat/vB recommended)</li>
+                <li><strong>Open your wallet:</strong> Review UTXO list (Sparrow: "UTXOs" tab, BlueWallet: tap balance)</li>
+                <li><strong>Create transaction to yourself:</strong> Send ALL UTXOs to a new address in same wallet</li>
+                <li><strong>Set fee manually:</strong> Use 1-3 sat/vB (you're not in a hurry)</li>
+                <li><strong>Broadcast and wait:</strong> May take hours or days—that's OK</li>
+                <li><strong>Result:</strong> Many small UTXOs → One large UTXO</li>
+            </ol>
+        </div>
+
+        <div class="warning-box">
+            <strong style="color: var(--accent-red);">⚠️ Privacy Note:</strong> Consolidation links all your UTXOs together on-chain. If privacy is critical, consolidate ONLY UTXOs that are already linked (e.g., change outputs from same source).
+        </div>
+
+        <h2>⚙️ Manual vs Automatic Fee Selection</h2>
+
+        <div class="scenario-grid">
+            <div class="scenario-card">
+                <h3 style="color: var(--accent-blue); margin-top: 0;">🤖 Automatic (Wallet Default)</h3>
+                <div style="margin: 1rem 0;">
+                    <strong style="color: var(--accent-green);">Pros:</strong>
+                    <ul style="margin: 0.5rem 0 0 1rem; color: var(--text-dim); font-size: 0.9rem;">
+                        <li>Easy, no thinking required</li>
+                        <li>Usually confirms in 1-3 blocks</li>
+                        <li>Good for beginners</li>
+                    </ul>
+                </div>
+                <div style="margin: 1rem 0;">
+                    <strong style="color: var(--accent-red);">Cons:</strong>
+                    <ul style="margin: 0.5rem 0 0 1rem; color: var(--text-dim); font-size: 0.9rem;">
+                        <li>Often overpays (wallets are conservative)</li>
+                        <li>No control over timing</li>
+                        <li>Expensive during fee spikes</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="scenario-card">
+                <h3 style="color: var(--sovereign-gold); margin-top: 0;">🎛️ Manual (You Choose)</h3>
+                <div style="margin: 1rem 0;">
+                    <strong style="color: var(--accent-green);">Pros:</strong>
+                    <ul style="margin: 0.5rem 0 0 1rem; color: var(--text-dim); font-size: 0.9rem;">
+                        <li>Save 50-90% on fees</li>
+                        <li>Full control over priority</li>
+                        <li>Can go ultra-low for consolidation</li>
+                    </ul>
+                </div>
+                <div style="margin: 1rem 0;">
+                    <strong style="color: var(--accent-orange);">Cons:</strong>
+                    <ul style="margin: 0.5rem 0 0 1rem; color: var(--text-dim); font-size: 0.9rem;">
+                        <li>Requires understanding mempool</li>
+                        <li>Set too low = stuck transaction</li>
+                        <li>Need to monitor mempool.space</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="tip-box">
+            <strong style="color: var(--accent-blue);">💡 Best Practice:</strong> Use automatic for urgent payments. Use manual for consolidation and non-urgent sends. Check mempool.space first either way.
+        </div>
+
+        <h2>🧮 Fee Estimation Examples</h2>
+
+        <div style="background: var(--secondary-dark); border: 2px solid var(--border-color); border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+            <h3 style="margin-top: 0;">Typical Transaction Sizes:</h3>
+
+            <div style="display: grid; gap: 1rem; margin: 1rem 0;">
+                <div style="background: var(--primary-dark); padding: 1rem; border-radius: 0.5rem;">
+                    <strong>Simple 1-input, 2-output transaction:</strong>
+                    <div style="margin: 0.5rem 0; color: var(--text-dim); font-family: monospace; font-size: 0.9rem;">
+                        ~220 vBytes<br>
+                        @ 5 sat/vB = 1,100 sats (~$0.75 at $60K BTC)<br>
+                        @ 50 sat/vB = 11,000 sats (~$7.50 at $60K BTC)
+                    </div>
+                </div>
+
+                <div style="background: var(--primary-dark); padding: 1rem; border-radius: 0.5rem;">
+                    <strong>Consolidation of 100 UTXOs → 1 output:</strong>
+                    <div style="margin: 0.5rem 0; color: var(--text-dim); font-family: monospace; font-size: 0.9rem;">
+                        ~14,000 vBytes<br>
+                        @ 1 sat/vB = 14,000 sats (~$10 at $60K BTC)<br>
+                        @ 50 sat/vB = 700,000 sats (~$475 at $60K BTC) ⚠️
+                    </div>
+                    <strong style="color: var(--accent-red);">👆 This is why you wait for low fees!</strong>
+                </div>
+            </div>
+        </div>
+
+        <h2>🎓 Key Takeaways</h2>
+
+        <div class="highlight-box">
+            <ol style="margin: 0 0 0 1.5rem; color: var(--text-dim); line-height: 2;">
+                <li><strong style="color: var(--text-light);">Batch your deposits:</strong> Don't DCA daily into vault. DCA on exchange, transfer weekly/monthly.</li>
+                <li><strong style="color: var(--text-light);">Consolidate during low fees:</strong> Weekends, under 5 sat/vB, when you're not in a rush.</li>
+                <li><strong style="color: var(--text-light);">Check mempool.space BEFORE every transaction:</strong> Don't blindly trust wallet defaults.</li>
+                <li><strong style="color: var(--text-light);">Manual fees for consolidation:</strong> Set 1-3 sat/vB and wait. You'll save 90%+.</li>
+                <li><strong style="color: var(--text-light);">High fees for urgent sends only:</strong> Time-sensitive? Pay up. Not urgent? Wait for low fees.</li>
+            </ol>
+        </div>
+
+        <h2>🔗 Additional Resources</h2>
+
+        <div style="background: var(--secondary-dark); border: 2px solid var(--border-color); border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                    <a href="https://mempool.space" target="_blank" style="color: var(--sovereign-gold); text-decoration: none; font-weight: 600;">
+                        📊 Mempool.space
+                    </a>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; margin: 0.25rem 0 0;">Live fee estimates and mempool visualization</p>
+                </li>
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                    <a href="/interactive-demos/utxo-visualizer-enhanced.html" target="_blank" style="color: var(--sovereign-gold); text-decoration: none; font-weight: 600;">
+                        🪙 UTXO Visualizer Demo
+                    </a>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; margin: 0.25rem 0 0;">Practice UTXO management with interactive scenarios</p>
+                </li>
+                <li style="padding: 0.75rem 0;">
+                    <a href="https://bitcoiner.guide/fee/" target="_blank" style="color: var(--sovereign-gold); text-decoration: none; font-weight: 600;">
+                        📖 Bitcoiner Guide: Fees
+                    </a>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; margin: 0.25rem 0 0;">Deep dive into fee mechanics</p>
+                </li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin: 3rem 0;">
+            <a href="/paths/sovereign/stage-3/" class="btn" style="background: var(--secondary-dark); color: var(--sovereign-gold); border: 2px solid var(--sovereign-gold);">
+                ← Back to Stage 3
+            </a>
+        </div>
+    </main>
+</body>
+</html>

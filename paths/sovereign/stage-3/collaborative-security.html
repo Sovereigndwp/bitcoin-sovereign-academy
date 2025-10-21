@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Security vs Assisted Multisig | Sovereign Path Stage 3</title>
+    <meta name="description" content="Understand the critical differences between assisted multisig and collaborative custody. Explore single points of failure, recovery scenarios, and choose the right security model for your situation.">
+
+    <style>
+        :root {
+            --sovereign-gold: #d4af37;
+            --sovereign-amber: #FFBF00;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196F3;
+            --accent-red: #f44336;
+            --accent-orange: #ff9800;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(212, 175, 55, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header {
+            background: var(--secondary-dark);
+            border-bottom: 3px solid var(--sovereign-gold);
+            padding: 2rem 0;
+            margin-bottom: 3rem;
+        }
+
+        .breadcrumb {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb a {
+            color: var(--sovereign-gold);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--sovereign-gold);
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            color: var(--sovereign-gold);
+            margin: 2rem 0 1rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            color: var(--sovereign-amber);
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        .intro {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(212, 175, 55, 0.1);
+            border-left: 4px solid var(--sovereign-gold);
+            border-radius: 0.5rem;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .model-card {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .model-card.assisted {
+            border-color: var(--accent-blue);
+        }
+
+        .model-card.collaborative {
+            border-color: var(--accent-green);
+        }
+
+        .model-card h3 {
+            margin-top: 0;
+        }
+
+        .risk-matrix {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-orange);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .risk-item {
+            display: grid;
+            grid-template-columns: 200px 1fr 1fr;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .risk-item:last-child {
+            border-bottom: none;
+        }
+
+        .quiz-container {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.05));
+            border: 3px solid var(--sovereign-gold);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 3rem 0;
+        }
+
+        .quiz-question {
+            margin: 1.5rem 0;
+        }
+
+        .quiz-options {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .quiz-option {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--sovereign-gold);
+            transform: translateX(5px);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: var(--sovereign-gold);
+            color: var(--primary-dark);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--sovereign-amber);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .risk-item {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/sovereign/">Sovereign Path</a> →
+                <a href="/paths/sovereign/stage-3/">Stage 3</a> →
+                <span>Collaborative Security</span>
+            </div>
+            <h1>🔐 Collaborative Security vs Assisted Multisig</h1>
+            <p style="color: var(--text-dim); font-size: 1.1rem;">Choosing the right security model for your Bitcoin holdings</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="intro">
+            <strong>The Critical Question:</strong> Who holds your backup keys, and what happens if you're incapacitated, coerced, or can't access your devices?
+            <br><br>
+            This guide helps you understand the trade-offs between "I hold 2 keys, vendor holds 1" (assisted multisig) versus true collaborative custody with documented recovery processes.
+        </div>
+
+        <h2>📊 Model Comparison: Side by Side</h2>
+
+        <div class="comparison-grid">
+            <!-- Assisted Multisig Card -->
+            <div class="model-card assisted">
+                <h3 style="color: var(--accent-blue);">🔵 Assisted Multisig (2-of-3)</h3>
+                <p style="margin-bottom: 1rem; color: var(--text-dim);">
+                    <strong>Setup:</strong> You hold 2 keys, vendor holds 1 backup key
+                </p>
+
+                <div style="margin: 1rem 0;">
+                    <strong style="color: var(--accent-green);">✅ Advantages:</strong>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-dim);">
+                        <li>Easy to set up</li>
+                        <li>Vendor can't steal (needs your 2 keys)</li>
+                        <li>Lose 1 key? Vendor helps recover</li>
+                        <li>Lower cost</li>
+                    </ul>
+                </div>
+
+                <div style="margin: 1rem 0;">
+                    <strong style="color: var(--accent-red);">❌ Vulnerabilities:</strong>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-dim);">
+                        <li><strong>Single point of failure: YOU</strong></li>
+                        <li>Illness/incapacity = no access</li>
+                        <li>Coercion ("sign with your 2 keys")</li>
+                        <li>Travel confiscation (if you carry both)</li>
+                        <li>No documented recovery for heirs</li>
+                        <li>Vendor key requires trusting their process</li>
+                    </ul>
+                </div>
+
+                <div style="background: rgba(33, 150, 243, 0.1); padding: 1rem; border-radius: 0.5rem; margin-top: 1rem;">
+                    <strong style="color: var(--accent-blue);">Best For:</strong>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-dim); font-size: 0.9rem;">
+                        <li>Individual holders</li>
+                        <li>Lower amounts (under $100K)</li>
+                        <li>Short-medium term (1-5 years)</li>
+                        <li>Low geopolitical risk</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Collaborative Custody Card -->
+            <div class="model-card collaborative">
+                <h3 style="color: var(--accent-green);">🟢 Collaborative Custody</h3>
+                <p style="margin-bottom: 1rem; color: var(--text-dim);">
+                    <strong>Setup:</strong> Quorum model with documented processes, third-party key holders, and recovery procedures
+                </p>
+
+                <div style="margin: 1rem 0;">
+                    <strong style="color: var(--accent-green);">✅ Advantages:</strong>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-dim);">
+                        <li>No single point of failure</li>
+                        <li>Documented recovery processes</li>
+                        <li>Geographic distribution of keys</li>
+                        <li>Estate planning integration</li>
+                        <li>Coercion resistance (needs multiple parties)</li>
+                        <li>Professional processes & procedures</li>
+                    </ul>
+                </div>
+
+                <div style="margin: 1rem 0;">
+                    <strong style="color: var(--accent-orange);">⚠️ Trade-offs:</strong>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-dim);">
+                        <li>More complex to set up</li>
+                        <li>Higher costs (professional services)</li>
+                        <li>Requires coordination with third parties</li>
+                        <li>More documentation needed</li>
+                    </ul>
+                </div>
+
+                <div style="background: rgba(76, 175, 80, 0.1); padding: 1rem; border-radius: 0.5rem; margin-top: 1rem;">
+                    <strong style="color: var(--accent-green);">Best For:</strong>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-dim); font-size: 0.9rem;">
+                        <li>Large holdings (over $100K)</li>
+                        <li>Multi-generational wealth</li>
+                        <li>Business/entity funds</li>
+                        <li>High geopolitical risk areas</li>
+                        <li>Elderly or health-compromised holders</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <h2>🎯 Single Point of Failure Analysis</h2>
+
+        <div class="risk-matrix">
+            <h3 style="color: var(--accent-orange); margin-top: 0;">Scenario-Based Risk Assessment</h3>
+            <p style="color: var(--text-dim); margin-bottom: 1.5rem;">How does each model handle real-world threats?</p>
+
+            <div class="risk-item" style="font-weight: 600; background: rgba(212, 175, 55, 0.1);">
+                <div>Scenario</div>
+                <div>Assisted Multisig</div>
+                <div>Collaborative Custody</div>
+            </div>
+
+            <div class="risk-item">
+                <div><strong>😷 Sudden Illness/Coma</strong></div>
+                <div style="color: var(--accent-red);">❌ No access (you can't sign)</div>
+                <div style="color: var(--accent-green);">✅ Documented process activates</div>
+            </div>
+
+            <div class="risk-item">
+                <div><strong>🔫 Physical Coercion</strong></div>
+                <div style="color: var(--accent-orange);">⚠️ You hold both keys (vulnerable)</div>
+                <div style="color: var(--accent-green);">✅ Multi-party approval needed</div>
+            </div>
+
+            <div class="risk-item">
+                <div><strong>✈️ Border Crossing</strong></div>
+                <div style="color: var(--accent-orange);">⚠️ Device confiscation = both keys exposed</div>
+                <div style="color: var(--accent-green);">✅ Keys geographically distributed</div>
+            </div>
+
+            <div class="risk-item">
+                <div><strong>💔 Divorce/Legal Dispute</strong></div>
+                <div style="color: var(--accent-red);">❌ Single holder can be compelled</div>
+                <div style="color: var(--accent-green);">✅ Legal firewall via third parties</div>
+            </div>
+
+            <div class="risk-item">
+                <div><strong>💀 Estate Settlement</strong></div>
+                <div style="color: var(--accent-red);">❌ Heirs must find vendor, prove identity</div>
+                <div style="color: var(--accent-green);">✅ Pre-documented inheritance process</div>
+            </div>
+
+            <div class="risk-item">
+                <div><strong>🔥 Device Compromise</strong></div>
+                <div style="color: var(--accent-orange);">⚠️ Both keys on your devices</div>
+                <div style="color: var(--accent-green);">✅ Keys held by separate entities</div>
+            </div>
+        </div>
+
+        <h2>🧭 Decision Quiz: Which Model Fits You?</h2>
+
+        <div class="quiz-container">
+            <h3 style="color: var(--sovereign-gold); margin-top: 0;">Answer 5 Quick Questions</h3>
+            <p style="color: var(--text-dim); margin-bottom: 2rem;">We'll recommend the best security model for your situation</p>
+
+            <!-- Question 1 -->
+            <div class="quiz-question">
+                <strong style="color: var(--text-light); font-size: 1.1rem;">1. How much Bitcoin are you securing?</strong>
+                <div class="quiz-options">
+                    <label class="quiz-option">
+                        <input type="radio" name="q1" value="low"> Under $50K
+                    </label>
+                    <label class="quiz-option">
+                        <input type="radio" name="q1" value="medium"> $50K - $250K
+                    </label>
+                    <label class="quiz-option">
+                        <input type="radio" name="q1" value="high"> Over $250K
+                    </label>
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="quiz-question">
+                <strong style="color: var(--text-light); font-size: 1.1rem;">2. What's your time horizon?</strong>
+                <div class="quiz-options">
+                    <label class="quiz-option">
+                        <input type="radio" name="q2" value="short"> 1-3 years
+                    </label>
+                    <label class="quiz-option">
+                        <input type="radio" name="q2" value="medium"> 5-10 years
+                    </label>
+                    <label class="quiz-option">
+                        <input type="radio" name="q2" value="long"> Multi-generational (10+ years)
+                    </label>
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="quiz-question">
+                <strong style="color: var(--text-light); font-size: 1.1rem;">3. Do you travel internationally frequently?</strong>
+                <div class="quiz-options">
+                    <label class="quiz-option">
+                        <input type="radio" name="q3" value="no"> Rarely or never
+                    </label>
+                    <label class="quiz-option">
+                        <input type="radio" name="q3" value="sometimes"> Occasionally (1-3 times/year)
+                    </label>
+                    <label class="quiz-option">
+                        <input type="radio" name="q3" value="yes"> Frequently (4+ times/year or to high-risk regions)
+                    </label>
+                </div>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="quiz-question">
+                <strong style="color: var(--text-light); font-size: 1.1rem;">4. Who should be able to access funds if you're incapacitated?</strong>
+                <div class="quiz-options">
+                    <label class="quiz-option">
+                        <input type="radio" name="q4" value="me"> Only me (I'm comfortable with that risk)
+                    </label>
+                    <label class="quiz-option">
+                        <input type="radio" name="q4" value="spouse"> My spouse/partner
+                    </label>
+                    <label class="quiz-option">
+                        <input type="radio" name="q4" value="heirs"> Multiple heirs with clear process
+                    </label>
+                </div>
+            </div>
+
+            <!-- Question 5 -->
+            <div class="quiz-question">
+                <strong style="color: var(--text-light); font-size: 1.1rem;">5. What's your technical comfort level?</strong>
+                <div class="quiz-options">
+                    <label class="quiz-option">
+                        <input type="radio" name="q5" value="low"> Beginner (I want simple)
+                    </label>
+                    <label class="quiz-option">
+                        <input type="radio" name="q5" value="medium"> Intermediate (I can learn)
+                    </label>
+                    <label class="quiz-option">
+                        <input type="radio" name="q5" value="high"> Advanced (I want maximum control)
+                    </label>
+                </div>
+            </div>
+
+            <button class="btn" onclick="calculateRecommendation()" style="margin-top: 1.5rem; width: 100%;">
+                Get My Recommendation →
+            </button>
+
+            <div id="quiz-result" style="display: none; margin-top: 2rem; padding: 2rem; background: var(--secondary-dark); border-radius: 1rem; border: 2px solid var(--sovereign-gold);">
+                <!-- Result will be inserted here -->
+            </div>
+        </div>
+
+        <h2>📚 Next Steps</h2>
+
+        <div style="background: var(--secondary-dark); border: 2px solid var(--border-color); border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+            <h3 style="margin-top: 0;">If You Choose Assisted Multisig:</h3>
+            <ul style="margin: 1rem 0 0 1.5rem; color: var(--text-dim);">
+                <li>Set up 2-of-3 with Unchained, Casa, or Nunchuk</li>
+                <li>Store keys in separate locations (never together)</li>
+                <li>Document your setup (encrypted, secure location)</li>
+                <li>Test recovery process at least once</li>
+                <li><strong>Create a "letter to heirs"</strong> explaining how to contact vendor</li>
+            </ul>
+        </div>
+
+        <div style="background: var(--secondary-dark); border: 2px solid var(--border-color); border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+            <h3 style="margin-top: 0;">If You Choose Collaborative Custody:</h3>
+            <ul style="margin: 1rem 0 0 1.5rem; color: var(--text-dim);">
+                <li>Research providers: TBA by Choice, Onramp, or attorney-based solutions</li>
+                <li>Understand quorum requirements (typically 2-of-3 or 3-of-5)</li>
+                <li>Establish relationships with key holders (attorney, trusted advisor, family office)</li>
+                <li>Document inheritance & incapacity procedures</li>
+                <li>Schedule annual reviews of the setup</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin: 3rem 0;">
+            <a href="/paths/sovereign/stage-3/" class="btn" style="background: var(--secondary-dark); color: var(--sovereign-gold); border: 2px solid var(--sovereign-gold);">
+                ← Back to Stage 3
+            </a>
+        </div>
+    </main>
+
+    <script>
+        function calculateRecommendation() {
+            const q1 = document.querySelector('input[name="q1"]:checked')?.value;
+            const q2 = document.querySelector('input[name="q2"]:checked')?.value;
+            const q3 = document.querySelector('input[name="q3"]:checked')?.value;
+            const q4 = document.querySelector('input[name="q4"]:checked')?.value;
+            const q5 = document.querySelector('input[name="q5"]:checked')?.value;
+
+            if (!q1 || !q2 || !q3 || !q4 || !q5) {
+                alert('Please answer all questions');
+                return;
+            }
+
+            let collaborativeScore = 0;
+
+            // Scoring logic
+            if (q1 === 'high') collaborativeScore += 3;
+            if (q1 === 'medium') collaborativeScore += 1;
+
+            if (q2 === 'long') collaborativeScore += 3;
+            if (q2 === 'medium') collaborativeScore += 1;
+
+            if (q3 === 'yes') collaborativeScore += 2;
+            if (q3 === 'sometimes') collaborativeScore += 1;
+
+            if (q4 === 'heirs') collaborativeScore += 3;
+            if (q4 === 'spouse') collaborativeScore += 1;
+
+            if (q5 === 'high') collaborativeScore += 1;
+
+            const resultDiv = document.getElementById('quiz-result');
+            let recommendation = '';
+
+            if (collaborativeScore >= 8) {
+                recommendation = `
+                    <h3 style="color: var(--accent-green); margin-bottom: 1rem;">✅ Collaborative Custody Recommended</h3>
+                    <p style="margin-bottom: 1rem;">
+                        Based on your answers, collaborative custody is the best fit for your situation. Your holdings, time horizon, and risk profile justify the added complexity.
+                    </p>
+                    <div style="background: rgba(76, 175, 80, 0.1); padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
+                        <strong>Key Benefits for You:</strong>
+                        <ul style="margin: 0.5rem 0 0 1.5rem;">
+                            <li>Protection against incapacity and coercion</li>
+                            <li>Clear inheritance path for heirs</li>
+                            <li>Geographic distribution reduces travel risk</li>
+                            <li>Professional processes and documentation</li>
+                        </ul>
+                    </div>
+                    <strong>Next Step:</strong> Research providers like TBA by Choice, Onramp, or attorney-based solutions.
+                `;
+            } else if (collaborativeScore >= 4) {
+                recommendation = `
+                    <h3 style="color: var(--accent-orange); margin-bottom: 1rem;">⚖️ Either Model Could Work</h3>
+                    <p style="margin-bottom: 1rem;">
+                        Your situation falls in the middle. Assisted multisig is simpler and cheaper, but collaborative custody offers better long-term protection.
+                    </p>
+                    <div style="background: rgba(255, 152, 0, 0.1); padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
+                        <strong>Consider These Questions:</strong>
+                        <ul style="margin: 0.5rem 0 0 1.5rem;">
+                            <li>Do you have a trusted attorney or advisor who could hold a key?</li>
+                            <li>Is the added cost worth the peace of mind?</li>
+                            <li>Will your holdings likely grow beyond $250K?</li>
+                        </ul>
+                    </div>
+                    <strong>Next Step:</strong> Start with assisted multisig, but plan to upgrade to collaborative custody as your holdings grow.
+                `;
+            } else {
+                recommendation = `
+                    <h3 style="color: var(--accent-blue); margin-bottom: 1rem;">🔵 Assisted Multisig Recommended</h3>
+                    <p style="margin-bottom: 1rem;">
+                        For your current situation, assisted multisig (2-of-3 with a vendor backup) is the most practical choice. It's simpler, more affordable, and provides good security.
+                    </p>
+                    <div style="background: rgba(33, 150, 243, 0.1); padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
+                        <strong>Key Actions:</strong>
+                        <ul style="margin: 0.5rem 0 0 1.5rem;">
+                            <li>Choose a reputable vendor (Unchained, Casa, Nunchuk)</li>
+                            <li>Store your 2 keys in separate secure locations</li>
+                            <li>Create a "letter to heirs" with vendor contact info</li>
+                            <li>Test your recovery process</li>
+                        </ul>
+                    </div>
+                    <strong>Future Planning:</strong> As your holdings grow or your situation changes, consider upgrading to collaborative custody.
+                `;
+            }
+
+            resultDiv.innerHTML = recommendation;
+            resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>
