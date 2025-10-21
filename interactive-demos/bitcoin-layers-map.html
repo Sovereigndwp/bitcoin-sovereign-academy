@@ -457,6 +457,86 @@
             border-radius: 50%;
         }
 
+        /* Comparison Tool */
+        .comparison-section {
+            max-width: 1200px;
+            margin: 3rem auto;
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .comparison-section h2 {
+            font-size: 1.75rem;
+            color: var(--primary-orange);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .comparison-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .comparison-metric {
+            padding: 0.5rem 1rem;
+            background: var(--primary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .comparison-metric:hover,
+        .comparison-metric.active {
+            border-color: var(--primary-orange);
+            background: rgba(247, 147, 26, 0.1);
+            color: var(--primary-orange);
+        }
+
+        .comparison-table {
+            overflow-x: auto;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(247, 147, 26, 0.1);
+        }
+
+        .comparison-table th {
+            background: rgba(247, 147, 26, 0.1);
+            color: var(--primary-orange);
+            font-weight: 700;
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(247, 147, 26, 0.05);
+        }
+
+        .metric-value {
+            font-weight: 600;
+        }
+
+        .metric-good { color: #4caf50; }
+        .metric-moderate { color: var(--primary-orange); }
+        .metric-poor { color: #f44336; }
+        .metric-neutral { color: var(--text-light); }
+
         /* Responsive */
         @media (max-width: 768px) {
             body {
@@ -685,6 +765,25 @@
                     <strong>Why it matters:</strong> Alternative to Drivechains with different security tradeoffs and governance model.
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Comparison Tool -->
+    <div class="comparison-section">
+        <h2>⚖️ Compare Layers</h2>
+        <p style="text-align: center; color: var(--text-dim); margin-bottom: 2rem;">
+            Choose a metric to compare layers across different dimensions
+        </p>
+        <div class="comparison-controls">
+            <button class="comparison-metric active" onclick="switchComparison('speed')">⚡ Speed</button>
+            <button class="comparison-metric" onclick="switchComparison('cost')">💰 Cost</button>
+            <button class="comparison-metric" onclick="switchComparison('security')">🔐 Security</button>
+            <button class="comparison-metric" onclick="switchComparison('privacy')">🕵️ Privacy</button>
+            <button class="comparison-metric" onclick="switchComparison('scalability')">📈 Scalability</button>
+            <button class="comparison-metric" onclick="switchComparison('ease-of-use')">👥 Ease of Use</button>
+        </div>
+        <div class="comparison-table" id="comparisonTable">
+            <!-- Populated by JavaScript -->
         </div>
     </div>
 
@@ -986,6 +1085,121 @@
                 }
             });
         }
+
+        // Comparison tool data
+        const comparisonData = {
+            speed: {
+                title: '⚡ Transaction Speed Comparison',
+                description: 'How fast transactions confirm',
+                metrics: {
+                    'Bitcoin Base': { value: '~10 min', class: 'metric-poor', tooltip: '10-minute block time for confirmation' },
+                    'Lightning': { value: '<1 sec', class: 'metric-good', tooltip: 'Instant routing and settlement' },
+                    'Liquid': { value: '~1 min', class: 'metric-good', tooltip: '1-minute block time' },
+                    'Fedimint': { value: '<1 sec', class: 'metric-good', tooltip: 'Instant within federation' },
+                    'Drivechains': { value: '~10 min', class: 'metric-poor', tooltip: 'Inherits Bitcoin block time' }
+                }
+            },
+            cost: {
+                title: '💰 Transaction Cost Comparison',
+                description: 'Average transaction fees',
+                metrics: {
+                    'Bitcoin Base': { value: '$0.50-$5+', class: 'metric-moderate', tooltip: 'Fee-market dependent' },
+                    'Lightning': { value: '<$0.01', class: 'metric-good', tooltip: 'Often sub-cent fees' },
+                    'Liquid': { value: '$0.10-$0.50', class: 'metric-good', tooltip: 'Low institutional fees' },
+                    'Fedimint': { value: '~$0', class: 'metric-good', tooltip: 'Negligible within federation' },
+                    'Drivechains': { value: '$0.50-$5+', class: 'metric-moderate', tooltip: 'Mainchain fees + peg fees' }
+                }
+            },
+            security: {
+                title: '🔐 Security Model Comparison',
+                description: 'Who secures the layer?',
+                metrics: {
+                    'Bitcoin Base': { value: 'PoW', class: 'metric-good', tooltip: 'Global mining consensus' },
+                    'Lightning': { value: 'Cryptography', class: 'metric-good', tooltip: 'HTLCs + penalty transactions' },
+                    'Liquid': { value: 'Federated', class: 'metric-moderate', tooltip: '11-of-15 multisig' },
+                    'Fedimint': { value: 'Federated', class: 'metric-moderate', tooltip: 'Guardian federation' },
+                    'Drivechains': { value: 'Miner-Mediated', class: 'metric-moderate', tooltip: 'BIP 300/301 consensus' }
+                }
+            },
+            privacy: {
+                title: '🕵️ Privacy Features',
+                description: 'Transaction amount and receiver privacy',
+                metrics: {
+                    'Bitcoin Base': { value: 'Public', class: 'metric-poor', tooltip: 'Amounts visible on chain' },
+                    'Lightning': { value: 'High', class: 'metric-good', tooltip: 'Onion routing + no blockchain record' },
+                    'Liquid': { value: 'Excellent', class: 'metric-good', tooltip: 'Confidential Transactions' },
+                    'Fedimint': { value: 'Perfect', class: 'metric-good', tooltip: 'Chaumian eCash unlinkability' },
+                    'Drivechains': { value: 'Configurable', class: 'metric-neutral', tooltip: 'Depends on sidechain rules' }
+                }
+            },
+            scalability: {
+                title: '📈 Transaction Throughput',
+                description: 'Transactions per second capacity',
+                metrics: {
+                    'Bitcoin Base': { value: '~7 tx/s', class: 'metric-poor', tooltip: '~400k transactions/day' },
+                    'Lightning': { value: '>>1M tx/s', class: 'metric-good', tooltip: 'Routed payments only' },
+                    'Liquid': { value: '~50-100 tx/s', class: 'metric-good', tooltip: 'Planned 1-minute blocks' },
+                    'Fedimint': { value: '>>1M tx/s', class: 'metric-good', tooltip: 'eCash instantaneous' },
+                    'Drivechains': { value: 'Sidechain-dependent', class: 'metric-neutral', tooltip: 'Can implement any consensus' }
+                }
+            },
+            'ease-of-use': {
+                title: '👥 Ease of Use',
+                description: 'How easy for ordinary users?',
+                metrics: {
+                    'Bitcoin Base': { value: 'Medium', class: 'metric-moderate', tooltip: 'Desktop/hardware wallets mature' },
+                    'Lightning': { value: 'Growing', class: 'metric-good', tooltip: 'Mobile apps improving' },
+                    'Liquid': { value: 'Technical', class: 'metric-moderate', tooltip: 'Mainly for exchanges/traders' },
+                    'Fedimint': { value: 'Excellent', class: 'metric-good', tooltip: 'Like a normal wallet app' },
+                    'Drivechains': { value: 'Technical', class: 'metric-moderate', tooltip: 'Developer-focused currently' }
+                }
+            }
+        };
+
+        // Switch comparison view
+        function switchComparison(metric) {
+            const data = comparisonData[metric];
+            const table = document.getElementById('comparisonTable');
+            
+            // Update active button
+            document.querySelectorAll('.comparison-metric').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Generate table
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="color: var(--text-light); background: transparent;">Layer</th>
+                            <th>${data.title}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            for (const [layer, info] of Object.entries(data.metrics)) {
+                html += `
+                    <tr>
+                        <td style="font-weight: 700;">${layer}</td>
+                        <td>
+                            <span class="metric-value ${info.class}" title="${info.tooltip}">
+                                ${info.value}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            table.innerHTML = html;
+        }
+
+        // Initialize comparison tool
+        switchComparison('speed');
     </script>
 </body>
 </html>

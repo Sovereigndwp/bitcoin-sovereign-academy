@@ -423,7 +423,7 @@
     </div>
 
     <script>
-        function analyzeMempoolStatus() {
+        async function analyzeMempoolStatus() {
             const feeRate = parseInt(document.getElementById('fee-rate').value);
             const timeElapsed = parseInt(document.getElementById('time-elapsed').value);
             const txid = document.getElementById('txid').value.trim();
@@ -433,25 +433,78 @@
                 return;
             }
 
-            // Simulate current mempool conditions (in production, this would fetch from mempool.space API)
-            const mempoolState = simulateMempoolState();
+            // Show loading state
+            const btn = document.querySelector('.btn-primary');
+            const originalText = btn.textContent;
+            btn.textContent = 'Fetching Live Mempool Data... ⏳';
+            btn.disabled = true;
 
-            // Determine status based on fee rate and time
-            const status = determineStatus(feeRate, timeElapsed, mempoolState);
+            try {
+                // Fetch live mempool conditions
+                const mempoolState = await fetchLiveMempoolState();
 
-            // Render results
-            renderResults(status, feeRate, timeElapsed, mempoolState, txid);
+                // Determine status based on fee rate and time
+                const status = determineStatus(feeRate, timeElapsed, mempoolState);
 
-            // Show results section
-            document.getElementById('results').classList.add('visible');
+                // Render results
+                renderResults(status, feeRate, timeElapsed, mempoolState, txid);
 
-            // Smooth scroll to results
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Show results section
+                document.getElementById('results').classList.add('visible');
+
+                // Smooth scroll to results
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (error) {
+                console.error('Error fetching mempool data:', error);
+
+                // Fallback to simulated data
+                const mempoolState = simulateMempoolState();
+                const status = determineStatus(feeRate, timeElapsed, mempoolState);
+                renderResults(status, feeRate, timeElapsed, mempoolState, txid);
+
+                document.getElementById('results').classList.add('visible');
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                // Show warning about using simulated data
+                const warningBox = document.createElement('div');
+                warningBox.style.cssText = 'background: rgba(255, 152, 0, 0.1); border: 2px solid var(--warning-orange); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; text-align: center;';
+                warningBox.innerHTML = '<strong style="color: var(--warning-orange);">⚠️ Using Simulated Data</strong><br><span style="color: var(--text-dim); font-size: 0.9rem;">Could not fetch live mempool data. Results are based on typical network conditions.</span>';
+                document.getElementById('results').prepend(warningBox);
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function fetchLiveMempoolState() {
+            // Fetch from mempool.space API
+            const [feesResponse, mempoolResponse] = await Promise.all([
+                fetch('https://mempool.space/api/v1/fees/recommended'),
+                fetch('https://mempool.space/api/mempool')
+            ]);
+
+            if (!feesResponse.ok || !mempoolResponse.ok) {
+                throw new Error('Failed to fetch mempool data');
+            }
+
+            const fees = await feesResponse.json();
+            const mempoolInfo = await mempoolResponse.json();
+
+            // Transform API response to our format
+            return {
+                fastestFee: fees.fastestFee || 25,
+                halfHourFee: fees.halfHourFee || 15,
+                hourFee: fees.hourFee || 10,
+                economyFee: fees.economyFee || 5,
+                minimumFee: fees.minimumFee || 1,
+                mempoolSize: (mempoolInfo.size / 1000000).toFixed(1), // Convert bytes to MB
+                blockHeight: mempoolInfo.block_height || 0,
+                isLive: true
+            };
         }
 
         function simulateMempoolState() {
-            // Simulate realistic mempool conditions
-            // In production, fetch from: https://mempool.space/api/v1/fees/recommended
+            // Fallback: Simulate realistic mempool conditions
             return {
                 fastestFee: 25,    // ~10 min
                 halfHourFee: 15,   // ~30 min
@@ -459,7 +512,8 @@
                 economyFee: 5,     // ~6+ hours
                 minimumFee: 1,     // Eventually
                 mempoolSize: 45.2, // MB
-                blockHeight: 867523
+                blockHeight: 867523,
+                isLive: false
             };
         }
 
@@ -492,7 +546,10 @@
                     <p class="status-subtitle">${statusConfig.subtitle}</p>
 
                     <div class="mempool-visual">
-                        <h3 style="color: var(--text-light); margin-bottom: 1rem; text-align: center;">📊 Your Position in the Mempool</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="color: var(--text-light); margin: 0;">📊 Your Position in the Mempool</h3>
+                            ${mempool.isLive ? '<span style="background: rgba(76, 175, 80, 0.2); color: var(--success-green); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 700;">🔴 LIVE DATA</span>' : '<span style="background: rgba(255, 152, 0, 0.2); color: var(--warning-orange); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 700;">📊 SIMULATED</span>'}
+                        </div>
                         <div class="fee-bar-container">
                             <div style="position: relative; width: 100%; height: 100%;">
                                 ${renderFeeBar(feeRate, mempool)}
