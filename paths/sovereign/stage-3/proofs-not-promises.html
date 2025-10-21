@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proofs, Not Promises | Sovereign Path Stage 3</title>
+    <meta name="description" content="Learn to verify Bitcoin software, check GPG signatures, and validate code. Don't trust, verify.">
+
+    <style>
+        :root {
+            --sovereign-gold: #d4af37;
+            --sovereign-amber: #FFBF00;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196F3;
+            --accent-red: #f44336;
+            --accent-orange: #ff9800;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(212, 175, 55, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header {
+            background: var(--secondary-dark);
+            border-bottom: 3px solid var(--sovereign-gold);
+            padding: 2rem 0;
+            margin-bottom: 3rem;
+        }
+
+        .breadcrumb {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb a {
+            color: var(--sovereign-gold);
+            text-decoration: none;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--sovereign-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            color: var(--sovereign-gold);
+            margin: 2.5rem 0 1rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            color: var(--sovereign-amber);
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        .highlight-box {
+            background: rgba(212, 175, 55, 0.1);
+            border-left: 4px solid var(--sovereign-gold);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .warning-box {
+            background: rgba(244, 67, 54, 0.1);
+            border-left: 4px solid var(--accent-red);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .tip-box {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid var(--accent-blue);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .code-block {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        .step-grid {
+            display: grid;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .step-card {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: var(--sovereign-gold);
+            color: var(--primary-dark);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: var(--sovereign-gold);
+            color: var(--primary-dark);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--sovereign-amber);
+            transform: translateY(-2px);
+        }
+
+        details {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            cursor: pointer;
+        }
+
+        summary {
+            font-weight: 600;
+            color: var(--sovereign-gold);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        details[open] summary {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        ul, ol {
+            margin: 1rem 0 1rem 1.5rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+            color: var(--text-dim);
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .container { padding: 0 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/sovereign/">Sovereign Path</a> →
+                <a href="/paths/sovereign/stage-3/">Stage 3</a> →
+                <span>Proofs, Not Promises</span>
+            </div>
+            <h1>🔍 Proofs, Not Promises</h1>
+            <p style="color: var(--text-dim); font-size: 1.1rem;">Verify Bitcoin software, signatures, and code — Don't trust, verify</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="highlight-box">
+            <strong>🎯 What You'll Learn:</strong>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-dim);">
+                <li>How to verify GPG signatures on Bitcoin software</li>
+                <li>How to check SHA256 checksums for file integrity</li>
+                <li>How to review open-source code (even if you don't code)</li>
+                <li>How to detect malicious wallet software</li>
+                <li>Real tools and workflows for verification</li>
+            </ul>
+        </div>
+
+        <h2>🚨 Why Verification Matters</h2>
+
+        <p>In traditional finance, you trust banks, auditors, and regulators. In Bitcoin, <strong>you are the auditor</strong>. Anyone can slip malicious code into wallets, exchanges, or tools to steal your funds.</p>
+
+        <div class="warning-box">
+            <strong style="color: var(--accent-red);">Real Attack Vectors:</strong>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-dim);">
+                <li>❌ Fake wallet apps on app stores</li>
+                <li>❌ Compromised downloads from unofficial mirrors</li>
+                <li>❌ Backdoored software from malicious GitHub clones</li>
+                <li>❌ Man-in-the-middle attacks during download</li>
+                <li>❌ Supply chain attacks on dependencies</li>
+            </ul>
+        </div>
+
+        <div class="tip-box">
+            <strong style="color: var(--accent-blue);">💡 The Golden Rule:</strong> If you can't verify it, you're trusting it. And in Bitcoin, trust is a vulnerability.
+        </div>
+
+        <h2>🔐 Verification Layer 1: GPG Signatures</h2>
+
+        <p>GPG (GNU Privacy Guard) signatures prove that software was released by the legitimate developer, not an imposter.</p>
+
+        <h3>How GPG Signatures Work</h3>
+
+        <div style="background: var(--secondary-dark); padding: 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0;">
+            <ol style="line-height: 2;">
+                <li><strong>Developer creates software</strong> and signs it with their private GPG key</li>
+                <li><strong>Signature file (.asc or .sig)</strong> is published alongside the software</li>
+                <li><strong>You download both</strong> the software and signature</li>
+                <li><strong>You verify</strong> using the developer's public key</li>
+                <li><strong>GPG confirms</strong> the signature matches → software is authentic</li>
+            </ol>
+        </div>
+
+        <h3>Step-by-Step: Verify Bitcoin Core</h3>
+
+        <div class="step-grid">
+            <div class="step-card">
+                <h4><span class="step-number">1</span> Install GPG</h4>
+                <div class="code-block">
+# macOS
+brew install gnupg
+
+# Ubuntu/Debian
+sudo apt install gnupg
+
+# Windows
+Download Gpg4win from gpg4win.org
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h4><span class="step-number">2</span> Import Developer Public Keys</h4>
+                <div class="code-block">
+# Download Bitcoin Core release signing keys
+curl https://bitcoincore.org/keys/laanwj-releases.asc | gpg --import
+
+# Verify fingerprint matches official docs
+gpg --fingerprint "01EA 5486 DE18 A882 D4C2  6845 90C8 019E 36C2 E964"
+                </div>
+                <p style="color: var(--text-dim); margin-top: 1rem;">
+                    ⚠️ <strong>Critical:</strong> Verify the fingerprint on <em>multiple sources</em> (official website, GitHub, social media) to avoid man-in-the-middle attacks.
+                </p>
+            </div>
+
+            <div class="step-card">
+                <h4><span class="step-number">3</span> Download Bitcoin Core + Signature</h4>
+                <div class="code-block">
+# Download the software
+wget https://bitcoincore.org/bin/bitcoin-core-25.0/bitcoin-25.0-x86_64-linux-gnu.tar.gz
+
+# Download the signature file
+wget https://bitcoincore.org/bin/bitcoin-core-25.0/SHA256SUMS.asc
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h4><span class="step-number">4</span> Verify the Signature</h4>
+                <div class="code-block">
+# Verify signature on checksums file
+gpg --verify SHA256SUMS.asc
+
+# Should show:
+# "Good signature from 'Wladimir J. van der Laan ...'"
+# WARNING: "This key is not certified with a trusted signature!"
+#          ↑ This is normal - you haven't manually trusted the key yet
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h4><span class="step-number">5</span> Verify File Integrity (Checksum)</h4>
+                <div class="code-block">
+# Check SHA256 hash matches
+sha256sum --check SHA256SUMS.asc --ignore-missing
+
+# Should output:
+# bitcoin-25.0-x86_64-linux-gnu.tar.gz: OK
+                </div>
+            </div>
+        </div>
+
+        <div class="tip-box">
+            <strong style="color: var(--accent-blue);">✅ If both checks pass:</strong> You have authentic Bitcoin Core software signed by the developer. You can install it safely.
+        </div>
+
+        <h2>📝 Verification Layer 2: SHA256 Checksums</h2>
+
+        <p>Checksums detect file tampering. Even a single bit changed in a file produces a completely different hash.</p>
+
+        <div style="background: var(--secondary-dark); padding: 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0;">
+            <h3 style="margin-top: 0;">Real Example: Verifying Sparrow Wallet</h3>
+
+            <div class="code-block">
+# Download Sparrow Wallet
+wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.8/sparrow-1.7.8-x86_64.AppImage
+
+# Download checksum file
+wget https://github.com/sparrowwallet/sparrow/releases/download/1.7.8/sparrow-1.7.8-manifest.txt
+
+# Verify checksum
+sha256sum sparrow-1.7.8-x86_64.AppImage
+
+# Compare output to manifest.txt - should EXACTLY match
+            </div>
+
+            <p style="color: var(--text-dim); margin-top: 1rem;">
+                <strong>Why this matters:</strong> If a hacker compromises the download server and swaps the file with a backdoored version, the checksum won't match—and you'll know immediately.
+            </p>
+        </div>
+
+        <details>
+            <summary>🤔 What if the checksum is also compromised?</summary>
+            <div style="margin-top: 1rem; color: var(--text-dim);">
+                <p>This is why you <strong>combine GPG + checksums</strong>:</p>
+                <ol style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>GPG signature proves the <em>checksum file</em> is authentic</li>
+                    <li>Checksum proves the <em>software file</em> matches the signed checksum</li>
+                    <li>Together, they create a chain of trust</li>
+                </ol>
+                <p style="margin-top: 1rem;">
+                    An attacker would need to compromise both the developer's GPG key AND the download server—much harder.
+                </p>
+            </div>
+        </details>
+
+        <h2>👀 Verification Layer 3: Code Review</h2>
+
+        <p>Even if signatures check out, you can (and should) review the code. You don't need to be a developer to do basic verification.</p>
+
+        <h3>Non-Coder Verification Tactics</h3>
+
+        <div class="step-grid">
+            <div class="step-card">
+                <h4>🔎 Check GitHub Activity</h4>
+                <ul>
+                    <li>How many contributors? (More = harder to collude)</li>
+                    <li>How many stars/forks? (Popularity = more scrutiny)</li>
+                    <li>Recent commits? (Active maintenance = security patches)</li>
+                    <li>Issue tracker? (Users reporting bugs openly = transparency)</li>
+                </ul>
+            </div>
+
+            <div class="step-card">
+                <h4>🧑‍💻 Read the Code (Yes, Really!)</h4>
+                <p>Even if you don't understand every line, look for:</p>
+                <ul>
+                    <li>❌ Obfuscated code (unusual variable names, compressed code)</li>
+                    <li>❌ External API calls (where is data being sent?)</li>
+                    <li>❌ Hardcoded addresses (is someone sneaking in their own Bitcoin address?)</li>
+                    <li>✅ Comments and documentation (legitimate projects explain their code)</li>
+                </ul>
+            </div>
+
+            <div class="step-card">
+                <h4>🗣️ Check Community Feedback</h4>
+                <ul>
+                    <li>Search "[wallet name] + scam" on Reddit, Twitter, Bitcoin Talk</li>
+                    <li>Look for security audits (reputable wallets publish them)</li>
+                    <li>Check if it's recommended by known Bitcoin educators</li>
+                    <li>Be wary of projects with <em>only</em> positive reviews (astroturfing)</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>For Coders: Deep Verification</h3>
+
+        <div class="code-block">
+# Clone the repository
+git clone https://github.com/bitcoin/bitcoin.git
+cd bitcoin
+
+# Check out the release tag
+git checkout v25.0
+
+# Review key files
+cat src/wallet/*.cpp  # Wallet logic
+cat src/net.cpp       # Network communication
+cat src/rpc/*.cpp     # RPC interface
+
+# Build from source (ultimate verification)
+./autogen.sh
+./configure
+make
+make check  # Run test suite
+        </div>
+
+        <div class="tip-box">
+            <strong style="color: var(--accent-blue);">💡 Why build from source?</strong> Pre-compiled binaries could be trojaned. Building from audited source code gives you the highest confidence.
+        </div>
+
+        <h2>🛡️ Real-World Checklist</h2>
+
+        <div style="background: var(--secondary-dark); border: 2px solid var(--sovereign-gold); border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+            <h3 style="margin-top: 0; color: var(--sovereign-gold);">Before Installing ANY Bitcoin Software:</h3>
+
+            <div style="margin: 1.5rem 0;">
+                <input type="checkbox" id="check1" style="margin-right: 0.5rem;">
+                <label for="check1">Downloaded from official source (not random mirror)</label>
+            </div>
+
+            <div style="margin: 1.5rem 0;">
+                <input type="checkbox" id="check2" style="margin-right: 0.5rem;">
+                <label for="check2">Verified GPG signature (if available)</label>
+            </div>
+
+            <div style="margin: 1.5rem 0;">
+                <input type="checkbox" id="check3" style="margin-right: 0.5rem;">
+                <label for="check3">Checked SHA256 checksum</label>
+            </div>
+
+            <div style="margin: 1.5rem 0;">
+                <input type="checkbox" id="check4" style="margin-right: 0.5rem;">
+                <label for="check4">Reviewed GitHub repo (contributors, activity, issues)</label>
+            </div>
+
+            <div style="margin: 1.5rem 0;">
+                <input type="checkbox" id="check5" style="margin-right: 0.5rem;">
+                <label for="check5">Searched for scam reports or security audits</label>
+            </div>
+
+            <div style="margin: 1.5rem 0;">
+                <input type="checkbox" id="check6" style="margin-right: 0.5rem;">
+                <label for="check6">Tested with small amount first</label>
+            </div>
+        </div>
+
+        <h2>⚠️ Red Flags to Avoid</h2>
+
+        <div class="warning-box">
+            <strong style="color: var(--accent-red);">🚩 NEVER Use Software That:</strong>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-dim);">
+                <li>Has no source code available (closed source)</li>
+                <li>Requires custodial control (they hold your keys)</li>
+                <li>Has no GPG signatures or checksums</li>
+                <li>Promises "guaranteed returns" or "staking rewards" on Bitcoin</li>
+                <li>Has sketchy download sources (random forums, Telegram groups)</li>
+                <li>Asks for seed phrase to "verify" or "recover" funds</li>
+                <li>Has zero community presence or discussion</li>
+            </ul>
+        </div>
+
+        <h2>🔗 Trusted Resources</h2>
+
+        <div style="background: var(--secondary-dark); border: 2px solid var(--border-color); border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                    <a href="https://bitcoincore.org/en/download/" target="_blank" style="color: var(--sovereign-gold); text-decoration: none; font-weight: 600;">
+                        🔗 Bitcoin Core Downloads
+                    </a>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; margin: 0.25rem 0 0;">Official Bitcoin Core releases with GPG signatures</p>
+                </li>
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                    <a href="https://github.com/bitcoin/bitcoin" target="_blank" style="color: var(--sovereign-gold); text-decoration: none; font-weight: 600;">
+                        🔗 Bitcoin Core GitHub
+                    </a>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; margin: 0.25rem 0 0;">Full source code and release verification instructions</p>
+                </li>
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                    <a href="https://walletscrutiny.com/" target="_blank" style="color: var(--sovereign-gold); text-decoration: none; font-weight: 600;">
+                        🔗 WalletScrutiny
+                    </a>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; margin: 0.25rem 0 0;">Community-driven wallet verification database</p>
+                </li>
+                <li style="padding: 0.75rem 0;">
+                    <a href="https://bitcoin.org/en/choose-your-wallet" target="_blank" style="color: var(--sovereign-gold); text-decoration: none; font-weight: 600;">
+                        🔗 Bitcoin.org Wallet Guide
+                    </a>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; margin: 0.25rem 0 0;">Curated list of vetted Bitcoin wallets</p>
+                </li>
+            </ul>
+        </div>
+
+        <h2>🎓 Key Takeaways</h2>
+
+        <div class="highlight-box">
+            <ol style="margin: 0 0 0 1.5rem; color: var(--text-dim); line-height: 2;">
+                <li><strong style="color: var(--text-light);">Don't trust, verify:</strong> Always verify software signatures and checksums before installation</li>
+                <li><strong style="color: var(--text-light);">Multiple sources:</strong> Cross-check fingerprints and hashes from different channels</li>
+                <li><strong style="color: var(--text-light);">Open source preferred:</strong> Closed-source wallets = blind trust</li>
+                <li><strong style="color: var(--text-light);">Test first:</strong> Use small amounts before trusting new software</li>
+                <li><strong style="color: var(--text-light);">Community matters:</strong> Active development and transparent discussion = safer</li>
+                <li><strong style="color: var(--text-light);">When in doubt, skip:</strong> Missing verification tools? Don't use it.</li>
+            </ol>
+        </div>
+
+        <div style="text-align: center; margin: 3rem 0;">
+            <a href="/paths/sovereign/stage-3/" class="btn" style="background: var(--secondary-dark); color: var(--sovereign-gold); border: 2px solid var(--sovereign-gold);">
+                ← Back to Stage 3
+            </a>
+        </div>
+    </main>
+</body>
+</html>
