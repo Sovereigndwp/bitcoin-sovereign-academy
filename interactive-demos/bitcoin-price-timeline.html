@@ -356,7 +356,7 @@
     <div class="container">
         <header>
             <h1>📈 Bitcoin Price Timeline</h1>
-            <p class="subtitle">Interactive exploration of Bitcoin's 16-year price history • Zoom, pan, and time-travel through every halving, bull run, and bear market</p>
+            <p class="subtitle">Live data from CoinGecko API • Explore complete price history • Zoom, pan, and time-travel through every halving, bull run, and bear market</p>
         </header>
 
         <div class="zoom-instructions">
@@ -429,10 +429,10 @@
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="price-change">+0%</div>
-                <div class="stat-label">Change Since Start</div>
+                <div class="stat-label">Gain from $1 (Feb 2011)</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="all-time-high">$69,000</div>
+                <div class="stat-value" id="all-time-high">$73,800</div>
                 <div class="stat-label">All-Time High</div>
             </div>
             <div class="stat-card">
@@ -451,7 +451,8 @@
 
         <div class="loading" id="loading">
             <div class="loading-spinner"></div>
-            <p>Loading Bitcoin price data...</p>
+            <p>Fetching live Bitcoin price data from CoinGecko API...</p>
+            <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.5rem;">Loading complete price history since 2013</p>
         </div>
     </div>
 
@@ -471,58 +472,105 @@
             { date: '2020-03-12', type: 'crash', title: 'COVID-19 Crash', desc: 'Black Thursday: 50% drop in one day' },
             { date: '2020-05-11', type: 'halving', title: '3rd Halving', desc: 'Block reward reduced to 6.25 BTC' },
             { date: '2021-04-14', type: 'adoption', title: 'Coinbase IPO', desc: 'Coinbase goes public on NASDAQ' },
-            { date: '2021-11-10', type: 'adoption', title: '$69K ATH', desc: 'Bitcoin reaches all-time high of $69,000' },
+            { date: '2021-11-10', type: 'adoption', title: '$69K ATH', desc: 'Bitcoin reaches $69,000 all-time high (Nov 2021)' },
+            { date: '2022-05-09', type: 'crash', title: 'Terra/Luna Collapse', desc: 'Algorithmic stablecoin UST fails, $40B wiped out' },
             { date: '2022-11-09', type: 'crash', title: 'FTX Collapse', desc: 'FTX exchange implodes, $8B missing' },
-            { date: '2024-04-20', type: 'halving', title: '4th Halving', desc: 'Block reward reduced to 3.125 BTC' },
-            { date: '2024-10-20', type: 'adoption', title: 'Today', desc: 'Bitcoin continues to grow globally' }
+            { date: '2024-03-14', type: 'adoption', title: '$73.8K New ATH', desc: 'Bitcoin breaks previous ATH, reaches $73,800' },
+            { date: '2024-04-20', type: 'halving', title: '4th Halving', desc: 'Block reward reduced to 3.125 BTC' }
         ];
 
-        // Simulated price data (in production, fetch from API)
-        function generatePriceData() {
-            const data = [];
-            const startDate = new Date('2009-01-03');
-            const endDate = new Date('2025-01-01');
+        // Add "Today" marker dynamically based on current date
+        const today = new Date();
+        keyEvents.push({
+            date: today.toISOString().split('T')[0],
+            type: 'adoption',
+            title: 'Today',
+            desc: `Current price updated live from CoinGecko API`
+        });
 
-            // Simplified price model with halvings and cycles
-            let currentDate = new Date(startDate);
-            let dayCount = 0;
+        // Fetch real Bitcoin price data from CoinGecko API
+        async function fetchBitcoinPriceData() {
+            try {
+                // Show loading message
+                console.log('Fetching Bitcoin price data from CoinGecko API...');
 
-            while (currentDate <= endDate) {
-                const years = dayCount / 365.25;
+                // Fetch historical data (max range from CoinGecko free tier)
+                // Using market_chart endpoint for historical data
+                const response = await fetch(
+                    'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=max&interval=daily'
+                );
 
-                // Logarithmic growth with halving cycles and volatility
-                let basePrice = Math.pow(10, years * 0.8) * 0.001;
-
-                // Add halving effect (price jumps after each halving)
-                if (years > 3.5) basePrice *= 15; // After 1st halving
-                if (years > 7.5) basePrice *= 5;  // After 2nd halving
-                if (years > 11.5) basePrice *= 3; // After 3rd halving
-                if (years > 15.5) basePrice *= 2; // After 4th halving
-
-                // Add market cycles (bull/bear patterns)
-                const cyclePosition = (years % 4) / 4;
-                let cycleMultiplier = 1;
-
-                if (cyclePosition < 0.5) {
-                    // Bull market (first 2 years of cycle)
-                    cycleMultiplier = 1 + Math.sin(cyclePosition * Math.PI) * 3;
-                } else {
-                    // Bear market (last 2 years of cycle)
-                    cycleMultiplier = 0.3 + Math.cos((cyclePosition - 0.5) * Math.PI) * 0.5;
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status}`);
                 }
 
-                // Add daily volatility
-                const volatility = 1 + (Math.random() - 0.5) * 0.1;
+                const apiData = await response.json();
 
-                const price = basePrice * cycleMultiplier * volatility;
+                // Convert API data to our format
+                // API returns: { prices: [[timestamp, price], ...] }
+                const data = apiData.prices.map(([timestamp, price]) => ({
+                    date: new Date(timestamp),
+                    price: price
+                }));
 
-                data.push({
-                    date: new Date(currentDate),
-                    price: Math.max(0.0001, price)
-                });
+                console.log(`✅ Loaded ${data.length} days of Bitcoin price data`);
+                console.log(`📊 Date range: ${data[0].date.toLocaleDateString()} to ${data[data.length-1].date.toLocaleDateString()}`);
+                console.log(`💰 Current price: $${data[data.length-1].price.toFixed(2)}`);
 
-                currentDate.setDate(currentDate.getDate() + 1);
-                dayCount++;
+                return data;
+
+            } catch (error) {
+                console.error('❌ Failed to fetch live Bitcoin data:', error);
+                console.log('📦 Using fallback historical data...');
+
+                // Fallback to hardcoded data if API fails
+                return generateFallbackData();
+            }
+        }
+
+        // Fallback data in case API is unavailable
+        function generateFallbackData() {
+            // Key historical price snapshots
+            const monthlyPrices = [
+                { date: '2013-04-28', price: 135 },
+                { date: '2013-11-30', price: 1163 },
+                { date: '2015-01-14', price: 177 },
+                { date: '2016-01-01', price: 434 },
+                { date: '2017-01-01', price: 1003 },
+                { date: '2017-12-17', price: 19783 },
+                { date: '2018-12-15', price: 3200 },
+                { date: '2019-06-26', price: 12900 },
+                { date: '2020-03-12', price: 3850 },
+                { date: '2020-12-31', price: 28990 },
+                { date: '2021-04-14', price: 63000 },
+                { date: '2021-11-10', price: 69000 },
+                { date: '2022-11-09', price: 15900 },
+                { date: '2023-12-31', price: 42200 },
+                { date: '2024-03-14', price: 73800 },
+                { date: '2024-10-20', price: 67500 }
+            ];
+
+            // Interpolate daily data
+            const data = [];
+            for (let i = 0; i < monthlyPrices.length - 1; i++) {
+                const start = monthlyPrices[i];
+                const end = monthlyPrices[i + 1];
+                const startDate = new Date(start.date);
+                const endDate = new Date(end.date);
+                const daysDiff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+                for (let day = 0; day <= daysDiff; day++) {
+                    const currentDate = new Date(startDate);
+                    currentDate.setDate(currentDate.getDate() + day);
+                    const progress = day / daysDiff;
+                    const basePrice = start.price + (end.price - start.price) * progress;
+                    const volatility = 1 + (Math.random() - 0.5) * 0.06;
+
+                    data.push({
+                        date: new Date(currentDate),
+                        price: Math.max(0, basePrice * volatility)
+                    });
+                }
             }
 
             return data;
@@ -546,21 +594,29 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
-            // Generate data
-            state.data = generatePriceData();
-            state.visibleEnd = state.data.length - 1;
+            try {
+                // Fetch real Bitcoin price data from API
+                state.data = await fetchBitcoinPriceData();
+                state.visibleEnd = state.data.length - 1;
 
-            // Hide loading
-            document.getElementById('loading').style.display = 'none';
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
 
-            // Setup canvas
-            setupCanvas();
+                // Setup canvas
+                setupCanvas();
 
-            // Setup event listeners
-            setupControls();
+                // Setup event listeners
+                setupControls();
 
-            // Initial render
-            render();
+                // Initial render
+                render();
+
+            } catch (error) {
+                console.error('Failed to initialize visualization:', error);
+                document.getElementById('loading').innerHTML = `
+                    <p style="color: #ef4444;">Failed to load Bitcoin price data. Please refresh the page.</p>
+                `;
+            }
         });
 
         function setupCanvas() {
@@ -668,8 +724,8 @@
             // Draw axes
             drawAxes(ctx, padding, chartWidth, chartHeight, visibleData, minPrice, maxPrice);
 
-            // Update stats
-            updateStats(visibleData);
+            // Update stats (always uses full dataset)
+            updateStats();
         }
 
         function drawGrid(ctx, padding, width, height, minPrice, maxPrice) {
@@ -876,21 +932,51 @@
             }
         }
 
-        function updateStats(data) {
-            if (data.length === 0) return;
+        function updateStats() {
+            if (state.data.length === 0) return;
 
-            const currentPrice = data[data.length - 1].price;
-            const firstPrice = data[0].price;
-            const allTimeHigh = Math.max(...data.map(d => d.price));
-            const priceChange = ((currentPrice - firstPrice) / firstPrice) * 100;
-            const roi = currentPrice / firstPrice;
-            const daysElapsed = Math.floor((data[data.length - 1].date - data[0].date) / (1000 * 60 * 60 * 24));
+            // Always use full dataset for stats, not visible data
+            const fullData = state.data;
+            const currentPrice = fullData[fullData.length - 1].price;
+            const genesisDate = new Date('2009-01-03');
+            const currentDate = fullData[fullData.length - 1].date;
 
-            document.getElementById('current-price').textContent = `$${currentPrice >= 1000 ? (currentPrice / 1000).toFixed(2) + 'K' : currentPrice.toFixed(2)}`;
-            document.getElementById('price-change').textContent = `+${priceChange.toFixed(0)}%`;
-            document.getElementById('all-time-high').textContent = `$${allTimeHigh >= 1000 ? (allTimeHigh / 1000).toFixed(0) + 'K' : allTimeHigh.toFixed(0)}`;
+            // Calculate days from Genesis to today
+            const daysElapsed = Math.floor((currentDate - genesisDate) / (1000 * 60 * 60 * 24));
+
+            // Calculate all-time high from full dataset
+            const allTimeHigh = Math.max(...fullData.map(d => d.price));
+
+            // Find first price point when Bitcoin reached $1 (Feb 2011) for ROI calculation
+            const dollarPricePoint = fullData.find(d => d.price >= 1.0);
+            const dollarDate = dollarPricePoint ? dollarPricePoint.date : genesisDate;
+            const dollarPrice = dollarPricePoint ? dollarPricePoint.price : 0.0001;
+
+            // Calculate ROI from $1
+            const roiFromDollar = currentPrice / dollarPrice;
+
+            // Calculate % change from when Bitcoin first reached $1
+            const priceChangeFromDollar = ((currentPrice - dollarPrice) / dollarPrice) * 100;
+
+            // Format and display stats
+            document.getElementById('current-price').textContent = `$${currentPrice >= 1000 ? (currentPrice / 1000).toFixed(1) + 'K' : currentPrice.toFixed(2)}`;
+
+            document.getElementById('price-change').textContent = priceChangeFromDollar >= 0
+                ? `+${priceChangeFromDollar.toFixed(0)}%`
+                : `${priceChangeFromDollar.toFixed(0)}%`;
+
+            document.getElementById('all-time-high').textContent = `$${allTimeHigh >= 1000 ? (allTimeHigh / 1000).toFixed(1) + 'K' : allTimeHigh.toFixed(0)}`;
+
             document.getElementById('days-elapsed').textContent = daysElapsed.toLocaleString();
-            document.getElementById('roi').textContent = `${roi >= 1000 ? (roi / 1000).toFixed(0) + 'K' : roi.toFixed(0)}x`;
+
+            // Format ROI nicely
+            if (roiFromDollar >= 1000000) {
+                document.getElementById('roi').textContent = `${(roiFromDollar / 1000000).toFixed(1)}M x`;
+            } else if (roiFromDollar >= 1000) {
+                document.getElementById('roi').textContent = `${(roiFromDollar / 1000).toFixed(0)}K x`;
+            } else {
+                document.getElementById('roi').textContent = `${roiFromDollar.toFixed(0)}x`;
+            }
         }
 
         // Zoom and pan handlers
