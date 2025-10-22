@@ -4,12 +4,13 @@
     const previewLimit = 2;
 
     // Preview mode for investors/demos
-    const previewKey = 'demo2024';  // Change this to your own secret key
+    const previewKey = 'UILpVhRGw62d0jPe9GPk';  // Secure key - share only with trusted parties
     const previewStorageKey = 'bsa_preview_mode';
 
     const alwaysOpen = new Set([
         '/paths/curious/stage-1/module-1.html',
-        '/paths/builder/stage-1/module-1.html'
+        '/paths/builder/stage-1/module-1.html',
+        '/paths/pragmatist/stage-1/module-1.html'
     ]);
 
     const pathName = normalizePath(window.location.pathname);
