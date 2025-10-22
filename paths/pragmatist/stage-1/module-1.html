@@ -8,6 +8,7 @@
 
     <!-- Theme Styles -->
     <link rel="stylesheet" href="/css/pragmatist-theme.css">
+    <link rel="stylesheet" href="/css/quiz.css">
 
     <style>
         :root {
@@ -528,58 +529,8 @@
         </section>
 
         <!-- Quiz Section -->
-        <section class="quiz-section">
-            <h3>🧠 Test Your Knowledge</h3>
-
-            <div class="quiz-question" id="question-1">
-                <p>1. What makes Bitcoin different from traditional money?</p>
-                <div class="quiz-options">
-                    <button class="quiz-option" onclick="answerQuestion(1, 'A', false)">
-                        A) It's controlled by banks
-                    </button>
-                    <button class="quiz-option" onclick="answerQuestion(1, 'B', true)">
-                        B) It's decentralized and not controlled by any single authority
-                    </button>
-                    <button class="quiz-option" onclick="answerQuestion(1, 'C', false)">
-                        C) It can only be used online
-                    </button>
-                </div>
-            </div>
-
-            <div class="quiz-question hidden" id="question-2">
-                <p>2. How many bitcoins will ever exist?</p>
-                <div class="quiz-options">
-                    <button class="quiz-option" onclick="answerQuestion(2, 'A', false)">
-                        A) Unlimited
-                    </button>
-                    <button class="quiz-option" onclick="answerQuestion(2, 'B', true)">
-                        B) 21 million
-                    </button>
-                    <button class="quiz-option" onclick="answerQuestion(2, 'C', false)">
-                        C) 100 million
-                    </button>
-                </div>
-            </div>
-
-            <div class="quiz-question hidden" id="question-3">
-                <p>3. What is the smallest unit of Bitcoin called?</p>
-                <div class="quiz-options">
-                    <button class="quiz-option" onclick="answerQuestion(3, 'A', false)">
-                        A) Bit
-                    </button>
-                    <button class="quiz-option" onclick="answerQuestion(3, 'B', true)">
-                        B) Satoshi
-                    </button>
-                    <button class="quiz-option" onclick="answerQuestion(3, 'C', false)">
-                        C) Wei
-                    </button>
-                </div>
-            </div>
-
-            <div class="quiz-result hidden" id="quiz-result">
-                <h4 id="result-title"></h4>
-                <p id="result-description"></p>
-            </div>
+        <section style="margin: 3rem 0;">
+            <div class="quiz-container" data-quiz-id="pragmatist-module-1"></div>
         </section>
 
         <!-- Complete Module -->
@@ -595,13 +546,6 @@
     <script src="/js/widgets/live-market-data.js"></script>
 
     <script>
-        // Quiz state
-        let quizState = {
-            currentQuestion: 1,
-            correctAnswers: 0,
-            totalQuestions: 3
-        };
-
         // Initialize live market widget
         document.addEventListener('DOMContentLoaded', function() {
             new LiveMarketData({
@@ -613,80 +557,6 @@
                 refreshInterval: 60000
             });
         });
-
-        // Answer question
-        function answerQuestion(questionNum, selectedAnswer, isCorrect) {
-            const questionDiv = document.getElementById(`question-${questionNum}`);
-            const options = questionDiv.querySelectorAll('.quiz-option');
-
-            // Disable all options
-            options.forEach(option => {
-                option.disabled = true;
-
-                // Highlight correct/incorrect
-                if (option.textContent.trim().startsWith(selectedAnswer)) {
-                    if (isCorrect) {
-                        option.classList.add('correct');
-                        quizState.correctAnswers++;
-                    } else {
-                        option.classList.add('incorrect');
-                    }
-                } else if (option.onclick && option.onclick.toString().includes('true')) {
-                    option.classList.add('correct');
-                }
-            });
-
-            // Show next question after delay
-            setTimeout(() => {
-                if (questionNum < quizState.totalQuestions) {
-                    questionDiv.classList.add('hidden');
-                    document.getElementById(`question-${questionNum + 1}`).classList.remove('hidden');
-                    quizState.currentQuestion++;
-                } else {
-                    showQuizResults();
-                }
-            }, 1500);
-        }
-
-        // Show quiz results
-        function showQuizResults() {
-            const resultDiv = document.getElementById('quiz-result');
-            const titleDiv = document.getElementById('result-title');
-            const descDiv = document.getElementById('result-description');
-
-            const percentage = Math.round((quizState.correctAnswers / quizState.totalQuestions) * 100);
-
-            if (percentage === 100) {
-                resultDiv.className = 'quiz-result success';
-                titleDiv.textContent = '🎉 Perfect Score!';
-                descDiv.textContent = `You got all ${quizState.totalQuestions} questions correct! You're ready to move on.`;
-                document.getElementById('complete-btn').disabled = false;
-            } else if (percentage >= 66) {
-                resultDiv.className = 'quiz-result partial';
-                titleDiv.textContent = '👍 Good Job!';
-                descDiv.textContent = `You got ${quizState.correctAnswers}/${quizState.totalQuestions} correct (${percentage}%). You can continue, but consider reviewing the material.`;
-                document.getElementById('complete-btn').disabled = false;
-            } else {
-                resultDiv.className = 'quiz-result partial';
-                titleDiv.textContent = '📚 Keep Learning!';
-                descDiv.textContent = `You got ${quizState.correctAnswers}/${quizState.totalQuestions} correct (${percentage}%). Please review the material and try again.`;
-                setTimeout(() => location.reload(), 3000);
-            }
-
-            resultDiv.classList.remove('hidden');
-
-            // Calculate knowledge points
-            const points = quizState.correctAnswers * 5; // 5 points per correct answer
-            updateProgress(points);
-        }
-
-        // Update progress
-        function updateProgress(points) {
-            if (!window.pragmatistProgress) return;
-
-            window.pragmatistProgress.data.knowledgeScore += points;
-            window.pragmatistProgress.save();
-        }
 
         // Complete module
         function completeModule() {
@@ -736,6 +606,82 @@
                 notification.classList.remove('show');
             }, 2500);
         }
+    </script>
+
+    <!-- Quiz Widget -->
+    <script src="/js/widgets/quiz.js"></script>
+    <script>
+        // Initialize quiz when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const moduleQuiz = new BitcoinQuiz('pragmatist-module-1', {
+                title: 'Bitcoin Basics Knowledge Check',
+                description: 'Test your understanding of what you just learned',
+                questions: [
+                    {
+                        type: 'multiple-choice',
+                        question: 'What makes Bitcoin different from traditional money?',
+                        options: [
+                            "It's controlled by banks",
+                            "It's decentralized and not controlled by any single authority",
+                            "It can only be used online",
+                            "It requires government approval to use"
+                        ],
+                        correctAnswer: 1,
+                        explanation: "Bitcoin is decentralized, meaning no government, bank, or single entity controls it. This is its most fundamental difference from fiat currencies like dollars or euros."
+                    },
+                    {
+                        type: 'multiple-choice',
+                        question: 'How many bitcoins will ever exist?',
+                        options: [
+                            'Unlimited supply',
+                            '21 million',
+                            '100 million',
+                            'It depends on demand'
+                        ],
+                        correctAnswer: 1,
+                        explanation: "Bitcoin has a fixed supply cap of 21 million coins. This scarcity is programmed into the protocol and cannot be changed, making Bitcoin inherently deflationary."
+                    },
+                    {
+                        type: 'multiple-choice',
+                        question: 'What is the smallest unit of Bitcoin called?',
+                        options: [
+                            'Bit',
+                            'Satoshi',
+                            'Wei',
+                            'Gwei'
+                        ],
+                        correctAnswer: 1,
+                        explanation: "The smallest unit of Bitcoin is called a satoshi (or 'sat'), named after Bitcoin's creator. 1 Bitcoin = 100,000,000 satoshis."
+                    },
+                    {
+                        type: 'true-false',
+                        question: 'Bitcoin transactions can be reversed if you make a mistake.',
+                        correctAnswer: false,
+                        explanation: "Bitcoin transactions are irreversible once confirmed. This is a critical feature that prevents fraud but requires careful attention when sending. Always double-check addresses!"
+                    }
+                ],
+                passingScore: 75,
+                allowRetry: true,
+                path: 'pragmatist',
+                module: '1-1',
+                onComplete: (results) => {
+                    // Enable complete button when quiz is passed
+                    if (results.passed) {
+                        document.getElementById('complete-btn').disabled = false;
+
+                        // Award knowledge points
+                        if (window.pragmatistProgress) {
+                            window.pragmatistProgress.data.knowledgeScore += results.score * 5;
+                            window.pragmatistProgress.save();
+                        }
+                    }
+                }
+            });
+
+            // Store reference globally
+            window.quizInstances = window.quizInstances || {};
+            window.quizInstances['pragmatist-module-1'] = moduleQuiz;
+        });
     </script>
 </body>
 </html>
