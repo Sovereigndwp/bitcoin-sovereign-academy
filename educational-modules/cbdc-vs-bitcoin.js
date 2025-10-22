@@ -48,23 +48,23 @@ class CBDCBitcoinModule {
     
     createIntroductionModule() {
         return {
-            title: "The Great Monetary Crossroads of 2024-2030",
-            subtitle: "Two paths diverge: Digital control vs Digital freedom",
+            title: "Digital Money Systems: A Comparative Overview",
+            subtitle: "Understanding different approaches to digital currency design",
             duration: "15 minutes",
             difficulty: "Beginner",
-            
+
             introduction: {
-                hook: "We are living through the most significant monetary revolution in human history. For the first time ever, we must choose between two fundamentally different visions of digital money.",
-                
+                hook: "Central Bank Digital Currencies (CBDCs) are being developed worldwide to modernize payment systems. Bitcoin, by contrast, emerged as a public alternative with no central issuer. Each model carries different trade-offs.",
+
                 context: `
-                Right now, as you read this, two parallel monetary systems are developing:
-                
-                1. **Central Bank Digital Currencies (CBDCs)** - Government-issued digital money with programmable features
-                2. **Bitcoin** - Decentralized digital money with mathematical guarantees
-                
-                This isn't just a technological upgrade. This is about the future of human freedom, privacy, and sovereignty.
-                
-                The choice you make will affect not just your financial life, but the kind of society your children inherit.
+                As money becomes increasingly digital, different systems are emerging:
+
+                1. **Central Bank Digital Currencies (CBDCs)** - Government-issued digital currencies with programmable features
+                2. **Bitcoin** - Decentralized digital currency operating on a public blockchain
+
+                Understanding these systems requires examining their design choices: who controls issuance, how transparency works, what data is collected, and how governance decisions are made.
+
+                Each approach involves trade-offs between efficiency, privacy, control, and decentralization.
                 `,
                 
                 warningDisclaimer: `
