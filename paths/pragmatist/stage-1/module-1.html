@@ -387,6 +387,83 @@
             opacity: 0.9;
         }
 
+        /* Live Ticker */
+        .live-ticker-container {
+            background: linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            border-bottom: 2px solid var(--pragmatist-cyan);
+            overflow: hidden;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .ticker-wrapper {
+            display: flex;
+            align-items: center;
+            height: 45px;
+        }
+
+        .ticker-label {
+            background: var(--pragmatist-cyan);
+            color: white;
+            padding: 0 1rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            letter-spacing: 0.05em;
+        }
+
+        .ticker-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .ticker-scroll {
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            animation: ticker-scroll 60s linear infinite;
+            padding-left: 100%;
+        }
+
+        @keyframes ticker-scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .ticker-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 0 2rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ticker-item strong {
+            color: var(--pragmatist-cyan);
+            margin-right: 0.5rem;
+        }
+
+        .ticker-item.positive {
+            color: var(--accent-green);
+        }
+
+        .ticker-item.negative {
+            color: var(--accent-red);
+        }
+
         @media (max-width: 768px) {
             .comparison {
                 grid-template-columns: 1fr;
@@ -394,6 +471,20 @@
 
             .module-title h1 {
                 font-size: 2rem;
+            }
+
+            .ticker-wrapper {
+                height: 40px;
+            }
+
+            .ticker-label {
+                font-size: 0.75rem;
+                padding: 0 0.75rem;
+            }
+
+            .ticker-item {
+                font-size: 0.85rem;
+                padding: 0 1.5rem;
             }
         }
     </style>
@@ -426,13 +517,18 @@
         </div>
     </header>
 
+    <!-- Live Ticker Feed -->
+    <div class="live-ticker-container">
+        <div class="ticker-wrapper">
+            <div class="ticker-label">🔴 LIVE</div>
+            <div class="ticker-content" id="ticker-content">
+                <div class="ticker-item">Loading live data...</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Content -->
     <main class="container">
-        <!-- Live Bitcoin Stats -->
-        <section class="live-stats">
-            <h3>🔴 Live Bitcoin Network</h3>
-            <div id="live-market-widget"></div>
-        </section>
 
         <!-- Content Section 1 -->
         <section class="content-section">
@@ -546,17 +642,128 @@
     <script src="/js/widgets/live-market-data.js"></script>
 
     <script>
-        // Initialize live market widget
+        // Initialize live ticker
         document.addEventListener('DOMContentLoaded', function() {
-            new LiveMarketData({
-                container: '#live-market-widget',
-                view: 'full',
-                showChange: true,
-                showMarketCap: true,
-                showVolume: true,
-                refreshInterval: 60000
-            });
+            initializeLiveTicker();
         });
+
+        async function initializeLiveTicker() {
+            const tickerContent = document.getElementById('ticker-content');
+
+            async function updateTicker() {
+                try {
+                    // Fetch Bitcoin data
+                    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true');
+                    const data = await response.json();
+                    const btc = data.bitcoin;
+
+                    // Fetch blockchain data (fallback to static if API fails)
+                    let blockHeight = '~870,000';
+                    let hashrate = '~550 EH/s';
+                    let difficulty = '~79.5T';
+                    let mempool = '~150 MB';
+
+                    try {
+                        const blockchainResponse = await fetch('https://blockchain.info/q/getblockcount');
+                        if (blockchainResponse.ok) {
+                            const height = await blockchainResponse.text();
+                            blockHeight = parseInt(height).toLocaleString();
+                        }
+                    } catch (e) {
+                        console.log('Using fallback blockchain data');
+                    }
+
+                    // Create ticker items
+                    const items = [
+                        {
+                            label: 'BTC Price',
+                            value: `$${btc.usd.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+                            change: btc.usd_24h_change,
+                            showChange: true
+                        },
+                        {
+                            label: '24h Change',
+                            value: `${btc.usd_24h_change > 0 ? '+' : ''}${btc.usd_24h_change.toFixed(2)}%`,
+                            isChangeValue: true,
+                            change: btc.usd_24h_change
+                        },
+                        {
+                            label: 'Market Cap',
+                            value: `$${(btc.usd_market_cap / 1e9).toFixed(1)}B`
+                        },
+                        {
+                            label: '24h Volume',
+                            value: `$${(btc.usd_24h_vol / 1e9).toFixed(1)}B`
+                        },
+                        {
+                            label: 'Block Height',
+                            value: blockHeight
+                        },
+                        {
+                            label: 'Hashrate',
+                            value: hashrate
+                        },
+                        {
+                            label: 'Difficulty',
+                            value: difficulty
+                        },
+                        {
+                            label: 'Mempool',
+                            value: mempool
+                        },
+                        {
+                            label: 'News',
+                            value: 'Bitcoin adoption continues to grow worldwide 🌍',
+                            isNews: true
+                        },
+                        {
+                            label: 'Tip',
+                            value: 'Not your keys, not your coins 🔑',
+                            isNews: true
+                        }
+                    ];
+
+                    // Build ticker HTML (duplicate for seamless loop)
+                    const tickerHTML = items.map(item => {
+                        let className = 'ticker-item';
+                        if (item.isChangeValue) {
+                            className += item.change > 0 ? ' positive' : ' negative';
+                        }
+
+                        return `
+                            <div class="${className}">
+                                <strong>${item.label}:</strong>
+                                <span>${item.value}</span>
+                                ${item.showChange && item.change !== undefined ?
+                                    `<span class="${item.change > 0 ? 'positive' : 'negative'}" style="margin-left: 0.5rem;">
+                                        ${item.change > 0 ? '▲' : '▼'} ${Math.abs(item.change).toFixed(2)}%
+                                    </span>` : ''}
+                            </div>
+                        `;
+                    }).join('');
+
+                    // Duplicate content for seamless scrolling
+                    tickerContent.innerHTML = `
+                        <div class="ticker-scroll">
+                            ${tickerHTML}${tickerHTML}
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error('Error fetching ticker data:', error);
+                    tickerContent.innerHTML = `
+                        <div class="ticker-item">
+                            <strong>BTC:</strong> <span>Loading...</span>
+                        </div>
+                    `;
+                }
+            }
+
+            // Initial update
+            await updateTicker();
+
+            // Refresh every 60 seconds
+            setInterval(updateTicker, 60000);
+        };
 
         // Complete module
         function completeModule() {
