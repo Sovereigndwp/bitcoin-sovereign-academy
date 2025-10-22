@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning Network Routing Simulator - Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        :root{--primary-orange:#f7931a;--primary-dark:#0a0a0a;--secondary-dark:#1a1a1a;--text-light:#e0e0e0;--text-dim:#999;--success-green:#4CAF50;--warning-orange:#FF9800;--accent-blue:#2196F3;--lightning-yellow:#FFC107}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#1a1a2e,#16213e);color:var(--text-light);padding:1rem;min-height:100vh}
+        .demo-container{max-width:1100px;margin:0 auto}
+        h1{text-align:center;color:var(--primary-orange);font-size:2rem;margin-bottom:0.25rem}
+        .subtitle{text-align:center;color:var(--text-dim);margin-bottom:1.5rem;font-size:1rem}
+        .network-canvas{background:var(--secondary-dark);border-radius:0.75rem;padding:2rem;margin:1.5rem 0;min-height:500px;position:relative;border:2px solid rgba(247,147,26,0.3)}
+        .node{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--accent-blue),#1976d2);border:3px solid var(--text-light);position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 12px rgba(33,150,243,0.4)}
+        .node:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(33,150,243,0.6)}
+        .node.sender{background:linear-gradient(135deg,var(--success-green),#45a049);border-color:var(--success-green)}
+        .node.receiver{background:linear-gradient(135deg,var(--warning-orange),#f57c00);border-color:var(--warning-orange)}
+        .node.active{animation:pulse 1.5s infinite}
+        @keyframes pulse{0%,100%{box-shadow:0 4px 12px rgba(33,150,243,0.4)}50%{box-shadow:0 8px 24px rgba(33,150,243,0.8)}}
+        .node-name{font-size:0.75rem;font-weight:700;color:white;text-shadow:0 1px 2px rgba(0,0,0,0.5)}
+        .node-balance{font-size:0.65rem;color:rgba(255,255,255,0.9);margin-top:0.15rem}
+        .channel{position:absolute;height:3px;background:rgba(255,255,255,0.2);transform-origin:left center;transition:all 0.3s}
+        .channel.active{background:linear-gradient(90deg,var(--lightning-yellow),#FFA000);height:4px;animation:channelFlow 1s ease-in-out}
+        @keyframes channelFlow{0%{opacity:0.5}50%{opacity:1}100%{opacity:0.5}}
+        .channel-label{position:absolute;background:var(--primary-dark);color:var(--text-dim);padding:0.2rem 0.5rem;border-radius:0.25rem;font-size:0.7rem;border:1px solid rgba(255,255,255,0.1)}
+        .payment-flow{position:absolute;width:20px;height:20px;background:var(--lightning-yellow);border-radius:50%;box-shadow:0 0 15px var(--lightning-yellow);animation:flowAnimation 2s linear;z-index:100}
+        @keyframes flowAnimation{0%{transform:scale(0.5);opacity:0}50%{transform:scale(1);opacity:1}100%{transform:scale(0.5);opacity:0}}
+        .controls{background:var(--secondary-dark);border-radius:0.75rem;padding:1.5rem;margin:1.5rem 0;border:2px solid rgba(247,147,26,0.3)}
+        .control-group{margin-bottom:1rem}
+        .control-group label{display:block;color:var(--primary-orange);font-weight:600;margin-bottom:0.5rem;font-size:0.95rem}
+        .control-row{display:grid;grid-template-columns:1fr 1fr auto;gap:1rem;align-items:end}
+        select,input[type="number"]{width:100%;padding:0.6rem;background:var(--primary-dark);border:2px solid rgba(255,255,255,0.1);border-radius:0.5rem;color:var(--text-light);font-size:0.95rem}
+        select:focus,input:focus{outline:none;border-color:var(--primary-orange);box-shadow:0 0 0 3px rgba(247,147,26,0.1)}
+        .btn{padding:0.75rem 1.5rem;background:linear-gradient(135deg,var(--primary-orange),#d97706);border:none;border-radius:0.5rem;color:white;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 12px rgba(247,147,26,0.3)}
+        .btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(247,147,26,0.4)}
+        .btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+        .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin:1.5rem 0}
+        .stat-box{background:var(--primary-dark);border-radius:0.5rem;padding:1rem;border:2px solid rgba(255,255,255,0.1)}
+        .stat-label{color:var(--text-dim);font-size:0.85rem;margin-bottom:0.25rem}
+        .stat-value{font-size:1.5rem;font-weight:700;color:var(--text-light)}
+        .info-box{background:rgba(33,150,243,0.1);border:2px solid var(--accent-blue);border-radius:0.75rem;padding:1rem;margin:1rem 0}
+        .info-box h3{color:var(--accent-blue);margin-bottom:0.5rem;font-size:1rem}
+        .log{background:var(--primary-dark);border-radius:0.5rem;padding:1rem;margin:1rem 0;max-height:200px;overflow-y:auto;font-family:monospace;font-size:0.85rem}
+        .log-entry{padding:0.25rem 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+        .log-entry:last-child{border-bottom:none}
+        .log-entry.success{color:var(--success-green)}
+        .log-entry.error{color:var(--warning-orange)}
+        .log-entry.info{color:var(--text-dim)}
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>⚡ Lightning Network Routing Simulator</h1>
+        <p class="subtitle">Watch payments route through the Lightning Network in real-time</p>
+
+        <div class="info-box">
+            <h3>💡 How This Works</h3>
+            <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.6">
+                Select a sender and receiver, then watch as the Lightning Network automatically finds the best path through payment channels.
+                Payments hop from node to node, with each channel charging a small routing fee. This is how Bitcoin can move instantly and cheaply!
+            </p>
+        </div>
+
+        <div class="controls">
+            <div class="control-row">
+                <div class="control-group">
+                    <label>From (Sender)</label>
+                    <select id="sender">
+                        <option value="">Select sender node...</option>
+                        <option value="alice">Alice</option>
+                        <option value="bob">Bob</option>
+                        <option value="carol">Carol</option>
+                        <option value="dave">Dave</option>
+                        <option value="eve">Eve</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>To (Receiver)</label>
+                    <select id="receiver">
+                        <option value="">Select receiver node...</option>
+                        <option value="alice">Alice</option>
+                        <option value="bob">Bob</option>
+                        <option value="carol">Carol</option>
+                        <option value="dave">Dave</option>
+                        <option value="eve">Eve</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Amount (sats)</label>
+                    <input type="number" id="amount" value="10000" min="100" max="100000" step="100">
+                </div>
+            </div>
+            <div style="margin-top:1rem;text-align:center">
+                <button class="btn" onclick="sendPayment()">⚡ Send Payment</button>
+            </div>
+        </div>
+
+        <div class="network-canvas" id="network">
+            <!-- Nodes will be positioned here by JavaScript -->
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Route Hops</div>
+                <div class="stat-value" id="hops">-</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Total Routing Fees</div>
+                <div class="stat-value" id="fees">-</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Success Rate</div>
+                <div class="stat-value" id="successRate">100%</div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>📊 Payment Log</h3>
+            <div class="log" id="log">
+                <div class="log-entry info">Ready to route payments...</div>
+            </div>
+        </div>
+
+        <div style="background:rgba(76,175,80,0.1);border:2px solid var(--success-green);border-radius:0.75rem;padding:1.5rem;margin:2rem 0">
+            <h3 style="color:var(--success-green);margin-bottom:1rem">🧠 Key Concepts</h3>
+            <ul style="margin-left:1.5rem;line-height:1.8;color:var(--text-dim)">
+                <li><strong style="color:var(--text-light)">Payment Channels:</strong> Direct connections between nodes funded with Bitcoin</li>
+                <li><strong style="color:var(--text-light)">Routing:</strong> Payments hop through intermediary nodes to reach destination</li>
+                <li><strong style="color:var(--text-light)">Fees:</strong> Each hop charges a small fee (typically 0.1-1%)</li>
+                <li><strong style="color:var(--text-light)">Liquidity:</strong> Channels need sufficient capacity to route large payments</li>
+                <li><strong style="color:var(--text-light)">Path Finding:</strong> Network automatically finds cheapest/fastest route</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Network topology: nodes and their channels
+        const nodes = {
+            alice: { x: 100, y: 150, balance: 250000, name: 'Alice' },
+            bob: { x: 300, y: 100, balance: 180000, name: 'Bob' },
+            carol: { x: 500, y: 150, balance: 320000, name: 'Carol' },
+            dave: { x: 300, y: 300, balance: 150000, name: 'Dave' },
+            eve: { x: 700, y: 200, balance: 200000, name: 'Eve' }
+        };
+
+        const channels = [
+            { from: 'alice', to: 'bob', capacity: 100000, fee: 10 },
+            { from: 'alice', to: 'dave', capacity: 80000, fee: 5 },
+            { from: 'bob', to: 'carol', capacity: 120000, fee: 15 },
+            { from: 'carol', to: 'eve', capacity: 150000, fee: 8 },
+            { from: 'dave', to: 'carol', capacity: 90000, fee: 12 },
+            { from: 'bob', to: 'eve', capacity: 60000, fee: 20 }
+        ];
+
+        let totalPayments = 0;
+        let successfulPayments = 0;
+
+        function initNetwork() {
+            const canvas = document.getElementById('network');
+
+            // Draw channels first (so they appear behind nodes)
+            channels.forEach(ch => {
+                const fromNode = nodes[ch.from];
+                const toNode = nodes[ch.to];
+
+                const dx = toNode.x - fromNode.x;
+                const dy = toNode.y - fromNode.y;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+                const channel = document.createElement('div');
+                channel.className = 'channel';
+                channel.id = `channel-${ch.from}-${ch.to}`;
+                channel.style.left = `${fromNode.x + 40}px`;
+                channel.style.top = `${fromNode.y + 40}px`;
+                channel.style.width = `${length}px`;
+                channel.style.transform = `rotate(${angle}deg)`;
+                canvas.appendChild(channel);
+
+                // Channel label
+                const label = document.createElement('div');
+                label.className = 'channel-label';
+                label.textContent = `${(ch.capacity / 1000).toFixed(0)}k`;
+                label.style.left = `${fromNode.x + 40 + dx / 2}px`;
+                label.style.top = `${fromNode.y + 40 + dy / 2 - 20}px`;
+                canvas.appendChild(label);
+            });
+
+            // Draw nodes
+            Object.keys(nodes).forEach(nodeId => {
+                const node = nodes[nodeId];
+                const nodeEl = document.createElement('div');
+                nodeEl.className = 'node';
+                nodeEl.id = `node-${nodeId}`;
+                nodeEl.style.left = `${node.x}px`;
+                nodeEl.style.top = `${node.y}px`;
+                nodeEl.innerHTML = `
+                    <div class="node-name">${node.name}</div>
+                    <div class="node-balance">${(node.balance / 1000).toFixed(0)}k</div>
+                `;
+                canvas.appendChild(nodeEl);
+            });
+        }
+
+        function findPath(from, to, amount) {
+            // Simple pathfinding: BFS to find route with sufficient capacity
+            const visited = new Set();
+            const queue = [[from]];
+
+            while (queue.length > 0) {
+                const path = queue.shift();
+                const current = path[path.length - 1];
+
+                if (current === to) {
+                    // Check if path has sufficient capacity
+                    if (pathHasCapacity(path, amount)) {
+                        return path;
+                    }
+                    continue;
+                }
+
+                if (visited.has(current)) continue;
+                visited.add(current);
+
+                // Find connected nodes
+                channels.forEach(ch => {
+                    if (ch.from === current && !visited.has(ch.to)) {
+                        queue.push([...path, ch.to]);
+                    }
+                    if (ch.to === current && !visited.has(ch.from)) {
+                        queue.push([...path, ch.from]);
+                    }
+                });
+            }
+
+            return null; // No path found
+        }
+
+        function pathHasCapacity(path, amount) {
+            for (let i = 0; i < path.length - 1; i++) {
+                const channel = channels.find(ch =>
+                    (ch.from === path[i] && ch.to === path[i + 1]) ||
+                    (ch.to === path[i] && ch.from === path[i + 1])
+                );
+                if (!channel || channel.capacity < amount) return false;
+            }
+            return true;
+        }
+
+        function calculateFees(path) {
+            let totalFees = 0;
+            for (let i = 0; i < path.length - 1; i++) {
+                const channel = channels.find(ch =>
+                    (ch.from === path[i] && ch.to === path[i + 1]) ||
+                    (ch.to === path[i] && ch.from === path[i + 1])
+                );
+                if (channel) totalFees += channel.fee;
+            }
+            return totalFees;
+        }
+
+        async function sendPayment() {
+            const sender = document.getElementById('sender').value;
+            const receiver = document.getElementById('receiver').value;
+            const amount = parseInt(document.getElementById('amount').value);
+
+            if (!sender || !receiver) {
+                addLog('Please select both sender and receiver', 'error');
+                return;
+            }
+
+            if (sender === receiver) {
+                addLog('Sender and receiver cannot be the same', 'error');
+                return;
+            }
+
+            totalPayments++;
+
+            addLog(`Finding route from ${nodes[sender].name} to ${nodes[receiver].name}...`, 'info');
+
+            const path = findPath(sender, receiver, amount);
+
+            if (!path) {
+                addLog(`❌ No route found with sufficient capacity`, 'error');
+                updateSuccessRate();
+                return;
+            }
+
+            const fees = calculateFees(path);
+            addLog(`✅ Route found: ${path.map(n => nodes[n].name).join(' → ')}`, 'success');
+            addLog(`Routing through ${path.length - 1} hops, total fees: ${fees} sats`, 'info');
+
+            // Update stats
+            document.getElementById('hops').textContent = path.length - 1;
+            document.getElementById('fees').textContent = `${fees} sats`;
+
+            // Animate payment flow
+            await animatePayment(path);
+
+            successfulPayments++;
+            updateSuccessRate();
+            addLog(`💰 Payment complete! ${amount} sats delivered`, 'success');
+        }
+
+        async function animatePayment(path) {
+            const canvas = document.getElementById('network');
+
+            // Highlight nodes in path
+            path.forEach(nodeId => {
+                document.getElementById(`node-${nodeId}`).classList.add('sender');
+            });
+
+            // Animate along each channel
+            for (let i = 0; i < path.length - 1; i++) {
+                const from = path[i];
+                const to = path[i + 1];
+
+                // Highlight channel
+                const channelEl = document.getElementById(`channel-${from}-${to}`) ||
+                                  document.getElementById(`channel-${to}-${from}`);
+                if (channelEl) channelEl.classList.add('active');
+
+                // Create payment flow animation
+                const fromNode = nodes[from];
+                const toNode = nodes[to];
+                const flow = document.createElement('div');
+                flow.className = 'payment-flow';
+                flow.textContent = '⚡';
+                flow.style.left = `${fromNode.x + 30}px`;
+                flow.style.top = `${fromNode.y + 30}px`;
+                canvas.appendChild(flow);
+
+                // Animate to next node
+                await new Promise(resolve => {
+                    setTimeout(() => {
+                        flow.style.left = `${toNode.x + 30}px`;
+                        flow.style.top = `${toNode.y + 30}px`;
+                        setTimeout(() => {
+                            flow.remove();
+                            if (channelEl) channelEl.classList.remove('active');
+                            resolve();
+                        }, 500);
+                    }, 100);
+                });
+
+                await new Promise(resolve => setTimeout(resolve, 400));
+            }
+
+            // Reset node highlighting
+            path.forEach(nodeId => {
+                const nodeEl = document.getElementById(`node-${nodeId}`);
+                nodeEl.classList.remove('sender');
+            });
+
+            // Highlight final receiver
+            document.getElementById(`node-${path[path.length - 1]}`).classList.add('receiver');
+            setTimeout(() => {
+                document.getElementById(`node-${path[path.length - 1]}`).classList.remove('receiver');
+            }, 2000);
+        }
+
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateSuccessRate() {
+            const rate = totalPayments > 0 ? Math.round((successfulPayments / totalPayments) * 100) : 100;
+            document.getElementById('successRate').textContent = `${rate}%`;
+        }
+
+        // Initialize network on load
+        initNetwork();
+    </script>
+</body>
+</html>
