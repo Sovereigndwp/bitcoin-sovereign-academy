@@ -602,17 +602,18 @@
             const data = [];
             const labels = [];
 
-            // Generate data points for each halving era
-            for (let block = 0; block <= 1000000; block += 10000) {
+            // Generate data points for each halving era (optimized sampling)
+            // Use larger steps to reduce data points and improve visibility
+            for (let block = 0; block <= 1000000; block += 21000) { // Every ~21k blocks (one halving era = 10 points)
                 const metrics = calculateBitcoinMetrics(block);
-                if (metrics.s2f < 1000) { // Cap at 1000 for visualization
+                if (metrics.s2f < 500) { // Cap at 500 for better visualization
                     labels.push((block / 1000).toFixed(0) + 'k');
                     data.push(metrics.s2f);
                 }
             }
 
             const currentHeight = parseInt(blockHeightSlider.value);
-            const currentIndex = Math.floor(currentHeight / 10000);
+            const currentIndex = Math.floor(currentHeight / 21000);
 
             if (chart) {
                 chart.data.labels = labels;
@@ -670,7 +671,8 @@
                                     color: '#e0e0e0'
                                 },
                                 ticks: {
-                                    color: '#999'
+                                    color: '#999',
+                                    maxTicksLimit: 12
                                 },
                                 grid: {
                                     color: 'rgba(247, 147, 26, 0.1)'
@@ -682,8 +684,15 @@
                                     text: 'Stock-to-Flow Ratio',
                                     color: '#e0e0e0'
                                 },
+                                beginAtZero: false,
+                                min: 0,
+                                max: 300,
                                 ticks: {
-                                    color: '#999'
+                                    color: '#999',
+                                    stepSize: 50,
+                                    callback: function(value) {
+                                        return value.toFixed(0);
+                                    }
                                 },
                                 grid: {
                                     color: 'rgba(247, 147, 26, 0.1)'
