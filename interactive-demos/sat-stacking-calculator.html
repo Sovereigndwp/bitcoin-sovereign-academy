@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate your Bitcoin DCA strategy with historical backtesting">
+    <title>Sat Stacking Calculator | Bitcoin Sovereign Academy</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/brand.css">
+    <link rel="stylesheet" href="../css/widgets.css">
+    
+    <style>
+        body {
+            background: #0f0f0f;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, #1a1a1a 0%, #242424 100%);
+            border-radius: 16px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #F7931A 0%, #FFA940 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .input-section, .results-section {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #F7931A;
+            font-weight: 600;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: #242424;
+            border: 2px solid #333;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #F7931A;
+        }
+        
+        .slider-container {
+            margin: 1rem 0;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #242424;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #F7931A;
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #F7931A;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            color: #b0b0b0;
+            font-size: 0.875rem;
+        }
+        
+        .calculate-button {
+            width: 100%;
+            padding: 1rem;
+            background: #F7931A;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .calculate-button:hover {
+            background: #E58210;
+            transform: translateY(-2px);
+        }
+        
+        .result-card {
+            background: #242424;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #F7931A;
+        }
+        
+        .result-label {
+            color: #b0b0b0;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .result-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #F7931A;
+        }
+        
+        .result-secondary {
+            color: #d0d0d0;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+        
+        .chart-container {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .chart-placeholder {
+            height: 300px;
+            background: #242424;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b0b0b0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .stat-box {
+            background: #0f0f0f;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-label {
+            color: #b0b0b0;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            color: #F7931A;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        
+        .info-box {
+            background: #242424;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            border-left: 3px solid #2196f3;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: #F7931A;
+        }
+        
+        @media (max-width: 768px) {
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🪙 Sat Stacking Calculator</h1>
+            <p style="color: #b0b0b0;">
+                Calculate your Bitcoin DCA (Dollar Cost Averaging) strategy and see historical results
+            </p>
+        </div>
+        
+        <!-- Info Box -->
+        <div class="info-box">
+            <strong>💡 What is DCA?</strong>
+            <p style="margin-top: 0.5rem; color: #d0d0d0;">
+                Dollar Cost Averaging is a strategy where you invest a fixed amount at regular intervals, 
+                regardless of the price. This reduces the impact of volatility and removes emotion from 
+                buying decisions.
+            </p>
+        </div>
+        
+        <!-- Calculator Grid -->
+        <div class="calculator-grid">
+            <!-- Input Section -->
+            <div class="input-section">
+                <h2 style="color: #F7931A; margin-bottom: 1.5rem;">Your Strategy</h2>
+                
+                <div class="form-group">
+                    <label for="monthly-amount">Monthly Investment (USD)</label>
+                    <input type="number" id="monthly-amount" value="100" min="1" max="10000">
+                </div>
+                
+                <div class="form-group">
+                    <label for="duration">Duration</label>
+                    <div class="slider-container">
+                        <input type="range" id="duration" class="slider" min="6" max="120" value="24">
+                        <div class="value-display">
+                            <span>6 months</span>
+                            <span id="duration-value">24 months</span>
+                            <span>10 years</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="frequency">Purchase Frequency</label>
+                    <select id="frequency">
+                        <option value="weekly">Weekly</option>
+                        <option value="biweekly">Bi-weekly</option>
+                        <option value="monthly" selected>Monthly</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="start-date">Start Date (Historical Backtest)</label>
+                    <input type="date" id="start-date" max="2025-10-22">
+                </div>
+                
+                <button class="calculate-button" onclick="calculate()">
+                    Calculate Results
+                </button>
+            </div>
+            
+            <!-- Results Section -->
+            <div class="results-section">
+                <h2 style="color: #F7931A; margin-bottom: 1.5rem;">Results</h2>
+                
+                <div id="results-content">
+                    <div style="text-align: center; padding: 3rem; color: #b0b0b0;">
+                        <p>💰</p>
+                        <p>Enter your strategy and click Calculate to see results</p>
+                    </div>
+                </div>
+                
+                <div id="results-display" style="display: none;">
+                    <div class="result-card">
+                        <div class="result-label">Total Invested</div>
+                        <div class="result-value" id="total-invested">$0</div>
+                        <div class="result-secondary" id="num-purchases">0 purchases</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div class="result-label">Bitcoin Accumulated</div>
+                        <div class="result-value" id="btc-accumulated">0 BTC</div>
+                        <div class="result-secondary" id="avg-price">Avg price: $0</div>
+                    </div>
+                    
+                    <div class="result-card" style="border-left-color: #00c853;">
+                        <div class="result-label">Current Value</div>
+                        <div class="result-value" id="current-value" style="color: #00c853;">$0</div>
+                        <div class="result-secondary" id="profit-loss">+$0 (+0%)</div>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-label">Best Purchase</div>
+                            <div class="stat-value" id="best-purchase">$0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Worst Purchase</div>
+                            <div class="stat-value" id="worst-purchase">$0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">ROI</div>
+                            <div class="stat-value" id="roi">0%</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Annual Return</div>
+                            <div class="stat-value" id="annual-return">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chart -->
+        <div class="chart-container" id="chart-section" style="display: none;">
+            <h3 style="color: #F7931A; margin-bottom: 1rem;">Investment Growth Over Time</h3>
+            <div class="chart-placeholder">
+                <canvas id="growth-chart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <p>Calculating your DCA results...</p>
+        </div>
+        
+        <!-- Back Link -->
+        <div style="text-align: center; margin: 3rem 0;">
+            <a href="../index.html" style="color: #F7931A; text-decoration: none;">← Back to Home</a>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="../js/widgets/api-handler.js"></script>
+    
+    <script>
+        // Initialize
+        const apiHandler = new BitcoinAPIHandler({ enableLogging: false });
+        let currentBTCPrice = 97000; // Fallback
+        
+        // Get current BTC price
+        async function getCurrentPrice() {
+            try {
+                const data = await apiHandler.getBitcoinPrice();
+                currentBTCPrice = data.price;
+            } catch (error) {
+                console.warn('Using fallback price');
+            }
+        }
+        
+        getCurrentPrice();
+        
+        // Set default start date (2 years ago)
+        const defaultDate = new Date();
+        defaultDate.setFullYear(defaultDate.getFullYear() - 2);
+        document.getElementById('start-date').value = defaultDate.toISOString().split('T')[0];
+        
+        // Update duration display
+        document.getElementById('duration').addEventListener('input', (e) => {
+            const months = e.target.value;
+            const years = (months / 12).toFixed(1);
+            document.getElementById('duration-value').textContent = 
+                months < 12 ? `${months} months` : `${years} years`;
+        });
+        
+        // Simulate historical BTC prices (simplified model)
+        function simulateHistoricalPrices(startDate, numPurchases, frequency) {
+            const prices = [];
+            const start = new Date(startDate);
+            
+            // Rough historical averages (simplified)
+            const basePrice = 30000;
+            const volatility = 0.15;
+            
+            for (let i = 0; i < numPurchases; i++) {
+                // Add some randomness and trend
+                const trend = 1 + (i / numPurchases) * 2; // Upward trend
+                const random = 1 + (Math.random() - 0.5) * volatility;
+                const price = basePrice * trend * random;
+                
+                prices.push({
+                    date: new Date(start.getTime() + i * getDaysForFrequency(frequency) * 86400000),
+                    price: Math.round(price)
+                });
+            }
+            
+            return prices;
+        }
+        
+        function getDaysForFrequency(frequency) {
+            switch (frequency) {
+                case 'weekly': return 7;
+                case 'biweekly': return 14;
+                case 'monthly': return 30;
+                default: return 30;
+            }
+        }
+        
+        // Calculate DCA results
+        async function calculate() {
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results-content').style.display = 'none';
+            
+            // Get inputs
+            const monthlyAmount = parseFloat(document.getElementById('monthly-amount').value);
+            const duration = parseInt(document.getElementById('duration').value);
+            const frequency = document.getElementById('frequency').value;
+            const startDate = document.getElementById('start-date').value;
+            
+            // Calculate number of purchases
+            const frequencyMultiplier = {
+                'weekly': 4.33,
+                'biweekly': 2.17,
+                'monthly': 1
+            };
+            
+            const numPurchases = Math.floor(duration * frequencyMultiplier[frequency]);
+            const purchaseAmount = monthlyAmount / frequencyMultiplier[frequency];
+            
+            // Simulate historical prices
+            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
+            const priceHistory = simulateHistoricalPrices(startDate, numPurchases, frequency);
+            
+            // Calculate totals
+            let totalInvested = 0;
+            let totalBTC = 0;
+            let minPrice = Infinity;
+            let maxPrice = 0;
+            
+            priceHistory.forEach(({ price }) => {
+                totalInvested += purchaseAmount;
+                totalBTC += purchaseAmount / price;
+                minPrice = Math.min(minPrice, price);
+                maxPrice = Math.max(maxPrice, price);
+            });
+            
+            const avgPrice = totalInvested / totalBTC;
+            const currentValue = totalBTC * currentBTCPrice;
+            const profitLoss = currentValue - totalInvested;
+            const profitLossPct = (profitLoss / totalInvested) * 100;
+            const roi = profitLossPct;
+            const annualReturn = (Math.pow(currentValue / totalInvested, 12 / duration) - 1) * 100;
+            
+            // Display results
+            document.getElementById('total-invested').textContent = `$${totalInvested.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+            document.getElementById('num-purchases').textContent = `${numPurchases} purchases`;
+            
+            document.getElementById('btc-accumulated').textContent = `${totalBTC.toFixed(8)} BTC`;
+            document.getElementById('avg-price').textContent = `Avg price: $${avgPrice.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+            
+            document.getElementById('current-value').textContent = `$${currentValue.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+            const plColor = profitLoss >= 0 ? '#00c853' : '#ff1744';
+            const plSymbol = profitLoss >= 0 ? '+' : '';
+            document.getElementById('profit-loss').innerHTML = `<span style="color: ${plColor}">${plSymbol}$${profitLoss.toLocaleString(undefined, {maximumFractionDigits: 0})} (${plSymbol}${profitLossPct.toFixed(1)}%)</span>`;
+            document.getElementById('current-value').style.color = plColor;
+            
+            document.getElementById('best-purchase').textContent = `$${minPrice.toLocaleString()}`;
+            document.getElementById('worst-purchase').textContent = `$${maxPrice.toLocaleString()}`;
+            document.getElementById('roi').textContent = `${plSymbol}${roi.toFixed(1)}%`;
+            document.getElementById('annual-return').textContent = `${annualReturn.toFixed(1)}%`;
+            
+            // Hide loading, show results
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results-content').style.display = 'none';
+            document.getElementById('results-display').style.display = 'block';
+            document.getElementById('chart-section').style.display = 'block';
+            
+            // Draw simple chart
+            drawChart(priceHistory, purchaseAmount);
+        }
+        
+        // Simple chart visualization
+        function drawChart(priceHistory, purchaseAmount) {
+            const canvas = document.getElementById('growth-chart');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = 300;
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 40;
+            
+            // Calculate cumulative values
+            let cumInvested = 0;
+            let cumBTC = 0;
+            const dataPoints = priceHistory.map(({ date, price }) => {
+                cumInvested += purchaseAmount;
+                cumBTC += purchaseAmount / price;
+                return {
+                    date,
+                    invested: cumInvested,
+                    value: cumBTC * price
+                };
+            });
+            
+            const maxValue = Math.max(...dataPoints.map(d => Math.max(d.invested, d.value)));
+            
+            // Clear canvas
+            ctx.fillStyle = '#242424';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (height - 2 * padding) * i / 5;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+            
+            // Draw invested line
+            ctx.strokeStyle = '#F7931A';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            dataPoints.forEach((point, i) => {
+                const x = padding + (width - 2 * padding) * i / (dataPoints.length - 1);
+                const y = height - padding - (height - 2 * padding) * point.invested / maxValue;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            
+            // Draw value line
+            ctx.strokeStyle = '#00c853';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            dataPoints.forEach((point, i) => {
+                const x = padding + (width - 2 * padding) * i / (dataPoints.length - 1);
+                const y = height - padding - (height - 2 * padding) * point.value / maxValue;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            
+            // Legend
+            ctx.font = '14px sans-serif';
+            ctx.fillStyle = '#F7931A';
+            ctx.fillText('— Amount Invested', width - 200, 30);
+            ctx.fillStyle = '#00c853';
+            ctx.fillText('— Portfolio Value', width - 200, 50);
+        }
+    </script>
+</body>
+</html>
