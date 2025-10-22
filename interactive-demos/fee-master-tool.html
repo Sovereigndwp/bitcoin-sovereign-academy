@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Complete Bitcoin transaction fee management: estimate, decide, and track">
+    <title>Fee Master Tool | Bitcoin Sovereign Academy</title>
+    
+    <link rel="stylesheet" href="../css/brand.css">
+    <link rel="stylesheet" href="../css/widgets.css">
+    
+    <style>
+        body {
+            background: #0f0f0f;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, #1a1a1a 0%, #242424 100%);
+            border-radius: 16px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #F7931A 0%, #FFA940 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: #1a1a1a;
+            padding: 1rem;
+            border-radius: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-button {
+            flex: 1;
+            min-width: 200px;
+            padding: 1rem 1.5rem;
+            background: #242424;
+            border: 2px solid #333;
+            border-radius: 8px;
+            color: #b0b0b0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .tab-button:hover {
+            border-color: #F7931A;
+            transform: translateY(-2px);
+        }
+        
+        .tab-button.active {
+            background: linear-gradient(135deg, #F7931A 0%, #E58210 100%);
+            border-color: #F7931A;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .tab-icon {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tab-label {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .tab-desc {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-top: 0.25rem;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Shared Styles */
+        .section {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #F7931A;
+            font-weight: 600;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: #242424;
+            border: 2px solid #333;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #F7931A;
+        }
+        
+        .help-text {
+            font-size: 0.875rem;
+            color: #b0b0b0;
+            margin-top: 0.5rem;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #F7931A, #E58210);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(247, 147, 26, 0.4);
+        }
+        
+        .fee-tiers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .fee-tier {
+            background: #242424;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .fee-tier:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(247, 147, 26, 0.2);
+        }
+        
+        .fee-tier.fast { border-top: 3px solid #00c853; }
+        .fee-tier.medium { border-top: 3px solid #F7931A; }
+        .fee-tier.economy { border-top: 3px solid #2196f3; }
+        
+        .tier-label {
+            font-size: 0.875rem;
+            color: #b0b0b0;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tier-rate {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #F7931A;
+            margin: 0.5rem 0;
+        }
+        
+        .tier-time {
+            color: #d0d0d0;
+            font-size: 0.875rem;
+        }
+        
+        .info-box {
+            background: #242424;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            border-left: 3px solid #2196f3;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        
+        .status-indicator.normal { background: #00c853; }
+        .status-indicator.busy { background: #F7931A; }
+        .status-indicator.congested { background: #ff1744; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @media (max-width: 768px) {
+            .tab-nav {
+                flex-direction: column;
+            }
+            
+            .tab-button {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>⚡ Fee Master Tool</h1>
+            <p style="color: #b0b0b0;">
+                Complete Bitcoin fee management: Estimate costs, decide timing, and track your transactions
+            </p>
+        </div>
+        
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-button active" onclick="switchTab('estimate')">
+                <span class="tab-icon">💰</span>
+                <div class="tab-label">Estimate</div>
+                <div class="tab-desc">Calculate transaction fees</div>
+            </button>
+            
+            <button class="tab-button" onclick="switchTab('decide')">
+                <span class="tab-icon">🤔</span>
+                <div class="tab-label">Decide</div>
+                <div class="tab-desc">Wait or pay more?</div>
+            </button>
+            
+            <button class="tab-button" onclick="switchTab('track')">
+                <span class="tab-icon">🧘</span>
+                <div class="tab-label">Track</div>
+                <div class="tab-desc">Check transaction status</div>
+            </button>
+        </div>
+        
+        <!-- Tab 1: Estimate -->
+        <div id="tab-estimate" class="tab-content active">
+            <!-- Current Network Fees -->
+            <div class="section">
+                <h2 style="color: #F7931A; margin-bottom: 0.5rem;">Current Network Fees</h2>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                    <span class="status-indicator" id="mempool-indicator"></span>
+                    <span id="mempool-status">Loading...</span>
+                </div>
+                
+                <div class="fee-tiers">
+                    <div class="fee-tier fast" onclick="selectTier('fast')">
+                        <div class="tier-label">⚡ Fast</div>
+                        <div class="tier-rate" id="fast-rate">--</div>
+                        <div class="tier-time">~10 minutes</div>
+                    </div>
+                    
+                    <div class="fee-tier medium" onclick="selectTier('medium')">
+                        <div class="tier-label">🚀 Medium</div>
+                        <div class="tier-rate" id="medium-rate">--</div>
+                        <div class="tier-time">~30 minutes</div>
+                    </div>
+                    
+                    <div class="fee-tier economy" onclick="selectTier('economy')">
+                        <div class="tier-label">🐢 Economy</div>
+                        <div class="tier-rate" id="economy-rate">--</div>
+                        <div class="tier-time">~1 hour+</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Calculator -->
+            <div class="section">
+                <h2 style="color: #F7931A; margin-bottom: 1.5rem;">Transaction Calculator</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label for="num-inputs">Number of Inputs</label>
+                        <input type="number" id="num-inputs" value="2" min="1" max="100" oninput="calculateFees()">
+                        <div class="help-text">UTXOs you're spending</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="num-outputs">Number of Outputs</label>
+                        <input type="number" id="num-outputs" value="2" min="1" max="20" oninput="calculateFees()">
+                        <div class="help-text">Addresses receiving funds</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address-type">Address Type</label>
+                    <select id="address-type" onchange="calculateFees()">
+                        <option value="segwit">SegWit (bc1) - Recommended ✓</option>
+                        <option value="wrapped">Wrapped SegWit (P2SH)</option>
+                        <option value="legacy">Legacy (P2PKH)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="fee-rate">Fee Rate (sat/vB)</label>
+                    <input type="number" id="fee-rate" value="10" min="1" max="1000" oninput="calculateFees()">
+                    <div class="help-text">Click a tier above to auto-fill</div>
+                </div>
+                
+                <!-- Results -->
+                <div style="background: #242424; padding: 2rem; border-radius: 12px; margin-top: 1.5rem;">
+                    <h3 style="color: #F7931A; margin-bottom: 1rem;">Estimated Costs</h3>
+                    
+                    <div style="display: grid; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #333;">
+                            <span style="color: #b0b0b0;">Transaction Size</span>
+                            <span style="color: #F7931A; font-weight: 600;" id="tx-size">-- vBytes</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #333;">
+                            <span style="color: #b0b0b0;">Fee (sats)</span>
+                            <span style="color: #F7931A; font-weight: 600;" id="fee-sats">--</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #333;">
+                            <span style="color: #b0b0b0;">Fee (BTC)</span>
+                            <span style="color: #F7931A; font-weight: 600;" id="fee-btc">--</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 1rem 0; background: #1a1a1a; margin: 0 -2rem -2rem; padding: 1.5rem 2rem; border-radius: 0 0 12px 12px;">
+                            <span style="font-size: 1.125rem; color: #ffffff;">Fee (USD)</span>
+                            <span style="color: #F7931A; font-weight: 600; font-size: 1.5rem;" id="fee-usd">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tips -->
+            <div class="info-box" style="border-left-color: #00c853;">
+                <strong>✓ Pro Tips</strong>
+                <ul style="margin-top: 0.5rem; color: #d0d0d0; padding-left: 1.5rem;">
+                    <li style="margin: 0.5rem 0;">Use SegWit addresses (bc1) to save ~40% on fees</li>
+                    <li style="margin: 0.5rem 0;">Consolidate UTXOs during low-fee periods</li>
+                    <li style="margin: 0.5rem 0;">Batch payments to save on per-transaction overhead</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Tab 2: Decide (Fee Timing Helper) -->
+        <div id="tab-decide" class="tab-content">
+            <div class="section">
+                <h2 style="color: #F7931A; margin-bottom: 1rem;">Answer 3 Questions</h2>
+                <p style="color: #b0b0b0; margin-bottom: 2rem;">Get personalized advice: Wait or Pay More?</p>
+                
+                <div id="decide-questions">
+                    <!-- Questions will be loaded by JS -->
+                </div>
+                
+                <div id="decide-results" style="display: none; margin-top: 2rem;">
+                    <!-- Results will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab 3: Track (Mempool Peace of Mind) -->
+        <div id="tab-track" class="tab-content">
+            <div class="section">
+                <h2 style="color: #F7931A; margin-bottom: 1rem;">Check Transaction Status</h2>
+                <p style="color: #b0b0b0; margin-bottom: 1.5rem;">
+                    See your transaction in context with current network conditions
+                </p>
+                
+                <div class="form-group">
+                    <label for="track-txid">Transaction ID (TXID) - Optional</label>
+                    <input type="text" id="track-txid" placeholder="Enter your transaction ID or leave blank">
+                    <div class="help-text">Leave blank to simulate based on fee rate</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="track-fee-rate">Your Transaction Fee Rate (sat/vB)</label>
+                    <input type="number" id="track-fee-rate" value="10" min="1" max="500">
+                    <div class="help-text">Check your wallet or block explorer</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="track-time">Time Since Broadcast</label>
+                    <select id="track-time">
+                        <option value="5">5 minutes</option>
+                        <option value="15">15 minutes</option>
+                        <option value="30">30 minutes</option>
+                        <option value="60" selected>1 hour</option>
+                        <option value="120">2 hours</option>
+                        <option value="360">6 hours</option>
+                        <option value="1440">24 hours</option>
+                    </select>
+                </div>
+                
+                <button class="btn-primary" onclick="trackTransaction()">Check Status 🔍</button>
+                
+                <div id="track-results" style="display: none; margin-top: 2rem;">
+                    <!-- Results will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Back Link -->
+        <div style="text-align: center; margin: 3rem 0;">
+            <a href="../index.html" style="color: #F7931A; text-decoration: none;">← Back to Home</a>
+        </div>
+    </div>
+    
+    <script src="../js/widgets/api-handler.js"></script>
+    
+    <script>
+        // Global state
+        const apiHandler = new BitcoinAPIHandler({ enableLogging: false });
+        let currentBTCPrice = 97000;
+        let currentFees = { fastest: 10, halfHour: 7, hour: 5, economy: 3 };
+        let mempoolSize = 0;
+        let mempoolData = {};
+        
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            // Initialize tab-specific content
+            if (tabName === 'decide') {
+                initializeDecideTab();
+            } else if (tabName === 'track') {
+                initializeTrackTab();
+            }
+        }
+        
+        // Tab 1: Estimate Functions
+        async function fetchCurrentFees() {
+            try {
+                const [fees, mempool, price] = await Promise.all([
+                    apiHandler.getFeeRecommendations(),
+                    apiHandler.getMempoolStats(),
+                    apiHandler.getBitcoinPrice()
+                ]);
+                
+                currentFees = {
+                    fastest: fees.fastest || fees.fastestFee || 10,
+                    halfHour: fees.halfHour || fees.hourFee || 7,
+                    hour: fees.hour || fees.hourFee || 5,
+                    economy: fees.economy || fees.economyFee || 3
+                };
+                
+                currentBTCPrice = price.price;
+                mempoolSize = mempool.count;
+                mempoolData = mempool;
+                
+                // Update display
+                document.getElementById('fast-rate').textContent = `${currentFees.fastest} sat/vB`;
+                document.getElementById('medium-rate').textContent = `${currentFees.halfHour} sat/vB`;
+                document.getElementById('economy-rate').textContent = `${currentFees.economy} sat/vB`;
+                
+                updateMempoolStatus(mempoolSize);
+                document.getElementById('fee-rate').value = currentFees.halfHour;
+                calculateFees();
+            } catch (error) {
+                console.error('Error fetching fees:', error);
+                // Use defaults
+                document.getElementById('fast-rate').textContent = '10 sat/vB';
+                document.getElementById('medium-rate').textContent = '7 sat/vB';
+                document.getElementById('economy-rate').textContent = '5 sat/vB';
+                document.getElementById('mempool-status').textContent = 'Using estimated fees';
+            }
+        }
+        
+        function updateMempoolStatus(size) {
+            const indicator = document.getElementById('mempool-indicator');
+            const status = document.getElementById('mempool-status');
+            
+            if (size < 20000) {
+                indicator.className = 'status-indicator normal';
+                status.textContent = `Mempool: ${size.toLocaleString()} txs (Normal) ✓`;
+            } else if (size < 50000) {
+                indicator.className = 'status-indicator busy';
+                status.textContent = `Mempool: ${size.toLocaleString()} txs (Busy) ⚠️`;
+            } else {
+                indicator.className = 'status-indicator congested';
+                status.textContent = `Mempool: ${size.toLocaleString()} txs (Congested) 🔴`;
+            }
+        }
+        
+        function selectTier(tier) {
+            const feeRate = tier === 'fast' ? currentFees.fastest :
+                           tier === 'medium' ? currentFees.halfHour :
+                           currentFees.economy;
+            
+            document.getElementById('fee-rate').value = feeRate;
+            calculateFees();
+        }
+        
+        function calculateTransactionSize(inputs, outputs, addressType) {
+            const overhead = 10;
+            let inputSize, outputSize;
+            
+            switch (addressType) {
+                case 'segwit':
+                    inputSize = 68;
+                    outputSize = 31;
+                    break;
+                case 'wrapped':
+                    inputSize = 91;
+                    outputSize = 32;
+                    break;
+                case 'legacy':
+                default:
+                    inputSize = 148;
+                    outputSize = 34;
+                    break;
+            }
+            
+            return overhead + (inputs * inputSize) + (outputs * outputSize);
+        }
+        
+        function calculateFees() {
+            const inputs = parseInt(document.getElementById('num-inputs').value) || 1;
+            const outputs = parseInt(document.getElementById('num-outputs').value) || 1;
+            const addressType = document.getElementById('address-type').value;
+            const feeRate = parseFloat(document.getElementById('fee-rate').value) || 1;
+            
+            const size = calculateTransactionSize(inputs, outputs, addressType);
+            const feeSats = Math.ceil(size * feeRate);
+            const feeBTC = feeSats / 100000000;
+            const feeUSD = feeBTC * currentBTCPrice;
+            
+            document.getElementById('tx-size').textContent = `${size} vBytes`;
+            document.getElementById('fee-sats').textContent = `${feeSats.toLocaleString()} sats`;
+            document.getElementById('fee-btc').textContent = `${feeBTC.toFixed(8)} BTC`;
+            document.getElementById('fee-usd').textContent = `$${feeUSD.toFixed(2)}`;
+        }
+        
+        // Tab 2: Decide Functions
+        function initializeDecideTab() {
+            const questionsContainer = document.getElementById('decide-questions');
+            if (questionsContainer.children.length > 0) return; // Already initialized
+            
+            questionsContainer.innerHTML = `
+                <div style="background: #242424; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <label style="color: #F7931A; font-weight: 700; font-size: 1.1rem; margin-bottom: 1rem; display: block;">
+                        1. How urgent is this transaction?
+                    </label>
+                    <div style="display: grid; gap: 0.75rem;">
+                        <div class="option-btn" onclick="selectOption(1, 'urgent')" style="background: #1a1a1a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">🔥 Urgent - Need it ASAP</div>
+                            <div style="font-size: 0.875rem; color: #b0b0b0;">Time-sensitive payment</div>
+                        </div>
+                        <div class="option-btn" onclick="selectOption(1, 'moderate')" style="background: #1a1a1a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">⏰ Moderate - Few hours is fine</div>
+                            <div style="font-size: 0.875rem; color: #b0b0b0;">General transfers</div>
+                        </div>
+                        <div class="option-btn" onclick="selectOption(1, 'flexible')" style="background: #1a1a1a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">🧘 Flexible - Can wait days</div>
+                            <div style="font-size: 0.875rem; color: #b0b0b0;">No rush at all</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #242424; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <label style="color: #F7931A; font-weight: 700; font-size: 1.1rem; margin-bottom: 1rem; display: block;">
+                        2. How much are you sending?
+                    </label>
+                    <div style="display: grid; gap: 0.75rem;">
+                        <div class="option-btn" onclick="selectOption(2, 'small')" style="background: #1a1a1a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">💵 Small - Under $100</div>
+                            <div style="font-size: 0.875rem; color: #b0b0b0;">Fees matter proportionally more</div>
+                        </div>
+                        <div class="option-btn" onclick="selectOption(2, 'medium')" style="background: #1a1a1a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">💰 Medium - $100 to $1,000</div>
+                            <div style="font-size: 0.875rem; color: #b0b0b0;">Balance speed and cost</div>
+                        </div>
+                        <div class="option-btn" onclick="selectOption(2, 'large')" style="background: #1a1a1a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">💎 Large - Over $1,000</div>
+                            <div style="font-size: 0.875rem; color: #b0b0b0;">Security matters most</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #242424; border-radius: 12px; padding: 1.5rem;">
+                    <label style="color: #F7931A; font-weight: 700; font-size: 1.1rem; margin-bottom: 1rem; display: block;">
+                        3. Current network fees?
+                    </label>
+                    <div style="display: grid; gap: 0.75rem;">
+                        <div class="option-btn" onclick="selectOption(3, 'low')" style="background: #1a1a1a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">🟢 Low - Under 10 sat/vB</div>
+                            <div style="font-size: 0.875rem; color: #b0b0b0;">Mempool is clear</div>
+                        </div>
+                        <div class="option-btn" onclick="selectOption(3, 'medium')" style="background: #1a1a1a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">🟡 Medium - 10-50 sat/vB</div>
+                            <div style="font-size: 0.875rem; color: #b0b0b0;">Normal activity</div>
+                        </div>
+                        <div class="option-btn" onclick="selectOption(3, 'high')" style="background: #1a1a1a; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">🔴 High - Over 50 sat/vB</div>
+                            <div style="font-size: 0.875rem; color: #b0b0b0;">Network congestion</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        const decideAnswers = { 1: null, 2: null, 3: null };
+        
+        function selectOption(questionNum, value) {
+            decideAnswers[questionNum] = value;
+            
+            // Visual feedback
+            const buttons = document.querySelectorAll(`#decide-questions > div:nth-child(${questionNum}) .option-btn`);
+            buttons.forEach(btn => {
+                btn.style.borderColor = 'rgba(255,255,255,0.1)';
+                btn.style.background = '#1a1a1a';
+            });
+            event.currentTarget.style.borderColor = '#F7931A';
+            event.currentTarget.style.background = 'rgba(247, 147, 26, 0.1)';
+            
+            // Check if all answered
+            if (decideAnswers[1] && decideAnswers[2] && decideAnswers[3]) {
+                setTimeout(() => showDecideRecommendation(), 300);
+            }
+        }
+        
+        function showDecideRecommendation() {
+            const urgency = decideAnswers[1];
+            const amount = decideAnswers[2];
+            const feeEnv = decideAnswers[3];
+            
+            let score = 0;
+            if (urgency === 'urgent') score += 3;
+            else if (urgency === 'moderate') score += 1;
+            if (amount === 'large') score += 2;
+            else if (amount === 'medium') score += 1;
+            if (feeEnv === 'low') score += 1;
+            else if (feeEnv === 'high') score -= 2;
+            
+            let recommendation;
+            if (score >= 4) recommendation = 'pay';
+            else if (score >= 2) recommendation = 'consider';
+            else recommendation = 'wait';
+            
+            const results = document.getElementById('decide-results');
+            const configs = {
+                pay: {
+                    icon: '🚀',
+                    title: 'Pay the Premium Fee',
+                    subtitle: 'Speed matters more than cost',
+                    color: '#ff1744'
+                },
+                consider: {
+                    icon: '⚖️',
+                    title: 'Consider Waiting',
+                    subtitle: 'Balance speed and cost',
+                    color: '#F7931A'
+                },
+                wait: {
+                    icon: '🧘',
+                    title: 'Wait for Lower Fees',
+                    subtitle: 'Patience will save you money',
+                    color: '#00c853'
+                }
+            };
+            
+            const config = configs[recommendation];
+            results.innerHTML = `
+                <div style="background: #242424; border: 3px solid ${config.color}; border-radius: 12px; padding: 2rem; text-align: center;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">${config.icon}</div>
+                    <h2 style="color: ${config.color}; font-size: 2rem; margin-bottom: 0.5rem;">${config.title}</h2>
+                    <p style="color: #b0b0b0; font-size: 1.1rem;">${config.subtitle}</p>
+                    
+                    <div style="text-align: left; margin: 2rem 0; padding: 1.5rem; background: #1a1a1a; border-radius: 8px;">
+                        <h3 style="color: #F7931A; margin-bottom: 1rem;">💡 Based on your answers:</h3>
+                        <ul style="color: #d0d0d0; line-height: 2;">
+                            <li>Urgency: ${urgency}</li>
+                            <li>Amount: ${amount}</li>
+                            <li>Network: ${feeEnv} fees</li>
+                        </ul>
+                    </div>
+                    
+                    <button class="btn-primary" onclick="resetDecide()" style="margin-top: 1rem;">Try Different Scenario</button>
+                </div>
+            `;
+            results.style.display = 'block';
+            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        function resetDecide() {
+            decideAnswers[1] = decideAnswers[2] = decideAnswers[3] = null;
+            document.querySelectorAll('#decide-questions .option-btn').forEach(btn => {
+                btn.style.borderColor = 'rgba(255,255,255,0.1)';
+                btn.style.background = '#1a1a1a';
+            });
+            document.getElementById('decide-results').style.display = 'none';
+        }
+        
+        // Tab 3: Track Functions
+        function initializeTrackTab() {
+            // Use current fee rate from estimate tab if available
+            if (document.getElementById('fee-rate').value) {
+                document.getElementById('track-fee-rate').value = document.getElementById('fee-rate').value;
+            }
+        }
+        
+        async function trackTransaction() {
+            const feeRate = parseInt(document.getElementById('track-fee-rate').value);
+            const timeElapsed = parseInt(document.getElementById('track-time').value);
+            const txid = document.getElementById('track-txid').value.trim();
+            
+            if (!feeRate || feeRate < 1) {
+                alert('Please enter a valid fee rate (minimum 1 sat/vB)');
+                return;
+            }
+            
+            const results = document.getElementById('track-results');
+            results.innerHTML = `
+                <div style="background: #242424; border: 2px solid #00c853; border-radius: 12px; padding: 2rem; text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
+                    <h2 style="color: #00c853; margin-bottom: 1rem;">Transaction Status</h2>
+                    <p style="color: #b0b0b0; margin-bottom: 2rem;">
+                        Based on your fee rate of ${feeRate} sat/vB and ${formatTime(timeElapsed)} elapsed...
+                    </p>
+                    
+                    <div style="background: #1a1a1a; padding: 1.5rem; border-radius: 8px; text-align: left;">
+                        <h3 style="color: #F7931A; margin-bottom: 1rem;">📊 Status:</h3>
+                        <p style="color: #d0d0d0; line-height: 1.8;">
+                            ${getStatusMessage(feeRate, timeElapsed)}
+                        </p>
+                    </div>
+                    
+                    <div style="margin-top: 2rem; padding: 1rem; background: rgba(156, 39, 176, 0.1); border: 2px solid #9C27B0; border-radius: 8px;">
+                        <strong style="color: #9C27B0;">🔒 Your Bitcoin is safe</strong><br>
+                        <span style="color: #d0d0d0; font-size: 0.9rem;">Unconfirmed transactions cannot be spent by anyone else</span>
+                    </div>
+                </div>
+            `;
+            results.style.display = 'block';
+            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        function getStatusMessage(feeRate, timeElapsed) {
+            if (feeRate >= currentFees.fastest) {
+                return `Your fee rate is excellent! Expected confirmation in next 1-2 blocks (~10-20 minutes).`;
+            } else if (feeRate >= currentFees.hour) {
+                return `Your fee rate is standard. Expected confirmation within 30-60 minutes.`;
+            } else if (feeRate >= currentFees.economy) {
+                return `You're using economy rates. This may take 1-6 hours depending on network activity.`;
+            } else {
+                return `Your fee is quite low. Transaction may take several hours or even days. Consider using RBF to bump the fee if urgent.`;
+            }
+        }
+        
+        function formatTime(minutes) {
+            if (minutes < 60) return `${minutes} minutes`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''}`;
+            const days = Math.floor(hours / 24);
+            return `${days} day${days > 1 ? 's' : ''}`;
+        }
+        
+        // Initialize
+        fetchCurrentFees();
+        setInterval(fetchCurrentFees, 30000); // Refresh every 30 seconds
+    </script>
+</body>
+</html>

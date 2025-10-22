@@ -19,6 +19,14 @@
             padding: 2rem;
         }
         
+        /* Multi-Level Support */
+        body.level-beginner .intermediate-only { display: none; }
+        body.level-beginner .advanced-only { display: none; }
+        body.level-intermediate .beginner-only { display: none; }
+        body.level-intermediate .advanced-only { display: none; }
+        body.level-advanced .beginner-only { display: none; }
+        body.level-advanced .intermediate-only { display: none; }
+        
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -245,6 +253,44 @@
             font-size: 1.25rem;
         }
         
+        .level-switcher {
+            background: #1a1a1a;
+            border: 2px solid #F7931A;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .level-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 0.75rem;
+        }
+        
+        .level-btn {
+            padding: 0.6rem 1.2rem;
+            background: rgba(247, 147, 26, 0.1);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 8px;
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .level-btn.active {
+            background: #F7931A;
+            border-color: #F7931A;
+            color: #0f0f0f;
+        }
+        
+        .level-btn:hover {
+            transform: translateY(-2px);
+        }
+        
         @media (max-width: 968px) {
             .comparison-grid, .pros-cons {
                 grid-template-columns: 1fr;
@@ -266,11 +312,31 @@
             </p>
         </div>
         
+        <!-- Level Switcher -->
+        <div class="level-switcher">
+            <div style="color: #b0b0b0; font-size: 0.9rem;">Complexity Level:</div>
+            <div style="color: #F7931A; font-weight: bold; font-size: 1.1rem; margin: 0.5rem 0;" id="current-level-name">Beginner Mode</div>
+            <div class="level-buttons">
+                <button class="level-btn active" data-level="beginner">🌱 Beginner</button>
+                <button class="level-btn" data-level="intermediate">⚡ Intermediate</button>
+                <button class="level-btn" data-level="advanced">🔧 Advanced</button>
+            </div>
+            <div style="color: #b0b0b0; font-size: 0.85rem; margin-top: 0.75rem;" id="level-description">
+                Simplified comparison for newcomers
+            </div>
+        </div>
+        
         <!-- Transaction Cost Calculator -->
         <div class="calculator">
-            <h2 style="color: #F7931A; margin-bottom: 1.5rem;">Transaction Cost Calculator</h2>
-            <p style="color: #b0b0b0; margin-bottom: 1.5rem;">
-                Compare the real costs of sending money internationally
+            <h2 style="color: #F7931A; margin-bottom: 1.5rem;">💸 Transaction Cost Calculator</h2>
+            <p style="color: #b0b0b0; margin-bottom: 1.5rem;" class="beginner-only">
+                See how much you save with Bitcoin when sending money internationally
+            </p>
+            <p style="color: #b0b0b0; margin-bottom: 1.5rem;" class="intermediate-only">
+                Compare real costs including fees, exchange rate markups, and time value
+            </p>
+            <p style="color: #b0b0b0; margin-bottom: 1.5rem;" class="advanced-only">
+                Full cost analysis including opportunity cost, capital efficiency, and settlement finality
             </p>
             
             <div class="form-group">
@@ -541,6 +607,41 @@
     </div>
     
     <script>
+        // Multi-level system
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLevel = urlParams.get('level') || 'beginner';
+        document.body.classList.add(`level-${currentLevel}`);
+        
+        const LEVEL_CONFIG = {
+            beginner: { 
+                name: "Beginner Mode",
+                description: "Simplified comparison for newcomers"
+            },
+            intermediate: { 
+                name: "Intermediate Mode",
+                description: "Detailed analysis with technical context"
+            },
+            advanced: { 
+                name: "Advanced Mode",
+                description: "Complete economic analysis with trade-offs"
+            }
+        };
+        
+        document.getElementById('current-level-name').textContent = LEVEL_CONFIG[currentLevel].name;
+        document.getElementById('level-description').textContent = LEVEL_CONFIG[currentLevel].description;
+        
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            if (btn.dataset.level === currentLevel) {
+                btn.classList.add('active');
+            }
+            btn.addEventListener('click', () => {
+                const level = btn.dataset.level;
+                const url = new URL(window.location);
+                url.searchParams.set('level', level);
+                window.location.href = url.toString();
+            });
+        });
+        
         function calculateCosts() {
             const amount = parseFloat(document.getElementById('amount').value) || 1000;
             
