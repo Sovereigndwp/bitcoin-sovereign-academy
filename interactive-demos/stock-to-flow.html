@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Stock-to-Flow Model | Interactive Demo</title>
+    <meta name="description" content="Interactive visualization of Bitcoin's Stock-to-Flow model. Understand scarcity, halving cycles, and why Bitcoin becomes harder money over time.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --secondary-dark: #2d2d2d;
+            --primary-dark: #1a1a1a;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --accent-gold: #d4af37;
+            --status-green: #4caf50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+        }
+
+        .intro-section {
+            background: var(--secondary-dark);
+            padding: 2rem;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-orange);
+            margin-bottom: 3rem;
+        }
+
+        .intro-section h2 {
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .concept-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .concept-card {
+            background: var(--secondary-dark);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .concept-card:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-4px);
+        }
+
+        .concept-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .concept-card h3 {
+            color: var(--primary-orange);
+            margin-bottom: 0.75rem;
+        }
+
+        .interactive-section {
+            background: var(--secondary-dark);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .slider-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .slider-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary-orange);
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: rgba(247, 147, 26, 0.2);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-orange);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--primary-orange);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .current-value {
+            color: var(--primary-orange);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        #s2f-chart {
+            width: 100%;
+            height: 400px;
+            background: var(--primary-dark);
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+        }
+
+        .comparison-table th {
+            background: rgba(247, 147, 26, 0.1);
+            color: var(--primary-orange);
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .comparison-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(247, 147, 26, 0.1);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(247, 147, 26, 0.05);
+        }
+
+        .highlight-box {
+            background: rgba(247, 147, 26, 0.1);
+            border-left: 4px solid var(--primary-orange);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 4px;
+        }
+
+        .highlight-box strong {
+            color: var(--primary-orange);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: var(--primary-dark);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid rgba(247, 147, 26, 0.2);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .halving-timeline {
+            position: relative;
+            padding: 2rem 0;
+            margin: 2rem 0;
+        }
+
+        .timeline-event {
+            position: relative;
+            padding-left: 2.5rem;
+            margin-bottom: 2rem;
+            border-left: 2px solid var(--primary-orange);
+        }
+
+        .timeline-event::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 0;
+            width: 10px;
+            height: 10px;
+            background: var(--primary-orange);
+            border-radius: 50%;
+        }
+
+        .timeline-date {
+            color: var(--primary-orange);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .formula-box {
+            background: var(--primary-dark);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            text-align: center;
+            margin: 2rem 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .formula {
+            font-size: 1.5rem;
+            color: var(--primary-orange);
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            #s2f-chart {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Bitcoin Stock-to-Flow Model</h1>
+            <p class="subtitle">Understanding Bitcoin's scarcity and its relationship to value over time</p>
+        </header>
+
+        <div class="intro-section">
+            <h2>What is Stock-to-Flow?</h2>
+            <p>
+                Stock-to-Flow (S2F) is a model that measures the <strong>scarcity</strong> of an asset by comparing
+                the existing supply (stock) to the new production (flow).
+            </p>
+            <br>
+            <p>
+                <strong>Higher S2F ratio = More scarce = Harder money</strong>
+            </p>
+            <br>
+            <p>
+                Bitcoin's S2F ratio increases approximately every 4 years during "halving" events,
+                when the block reward (new Bitcoin production) is cut in half. This makes Bitcoin
+                progressively scarcer over time.
+            </p>
+        </div>
+
+        <div class="concept-grid">
+            <div class="concept-card">
+                <span class="concept-icon">📦</span>
+                <h3>Stock</h3>
+                <p>
+                    The total existing supply of an asset. For Bitcoin, this is all BTC that have been mined so far
+                    (currently ~19.7 million BTC).
+                </p>
+            </div>
+
+            <div class="concept-card">
+                <span class="concept-icon">⛏️</span>
+                <h3>Flow</h3>
+                <p>
+                    The new production added annually. For Bitcoin, this is the amount of new BTC mined each year
+                    through block rewards.
+                </p>
+            </div>
+
+            <div class="concept-card">
+                <span class="concept-icon">⚖️</span>
+                <h3>S2F Ratio</h3>
+                <p>
+                    Stock divided by Flow. Shows how many years of current production would be needed to match
+                    the existing stock. Higher = More scarce.
+                </p>
+            </div>
+        </div>
+
+        <div class="formula-box">
+            <h3 style="color: var(--text-dim); margin-bottom: 1rem;">The Formula</h3>
+            <div class="formula">
+                S2F = Stock / Annual Flow
+            </div>
+            <p style="color: var(--text-dim); margin-top: 1rem;">
+                For Bitcoin: S2F = Total Mined BTC / BTC Mined Per Year
+            </p>
+        </div>
+
+        <div class="interactive-section">
+            <h2 style="color: var(--primary-orange); margin-bottom: 1.5rem;">⚙️ Interactive S2F Calculator</h2>
+
+            <div class="controls">
+                <div class="slider-group">
+                    <label for="block-height">Bitcoin Block Height</label>
+                    <input type="range" id="block-height" min="0" max="1000000" step="10000" value="840000">
+                    <div class="value-display">
+                        <span>Current: <span class="current-value" id="block-value">840,000</span></span>
+                        <span style="color: var(--text-dim);">Max: 1,000,000</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <span class="stat-value" id="total-supply">19,688,125</span>
+                    <span class="stat-label">Total BTC Mined (Stock)</span>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-value" id="annual-production">164,250</span>
+                    <span class="stat-label">Annual Production (Flow)</span>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-value" id="s2f-ratio">119.9</span>
+                    <span class="stat-label">Stock-to-Flow Ratio</span>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-value" id="halving-number">5</span>
+                    <span class="stat-label">Halving Era</span>
+                </div>
+            </div>
+
+            <canvas id="s2f-chart"></canvas>
+        </div>
+
+        <div class="intro-section">
+            <h2>📈 Comparing to Other Assets</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Asset</th>
+                        <th>Stock (Total Supply)</th>
+                        <th>Flow (Annual Production)</th>
+                        <th>S2F Ratio</th>
+                        <th>Hardness</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>🪙 Gold</strong></td>
+                        <td>~208,000 tonnes</td>
+                        <td>~3,500 tonnes/year</td>
+                        <td><strong>~59</strong></td>
+                        <td>Hard Money (historically)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>🥈 Silver</strong></td>
+                        <td>~1,740,000 tonnes</td>
+                        <td>~25,000 tonnes/year</td>
+                        <td><strong>~22</strong></td>
+                        <td>Moderate</td>
+                    </tr>
+                    <tr style="background: rgba(247, 147, 26, 0.1);">
+                        <td><strong>₿ Bitcoin (2024)</strong></td>
+                        <td>~19.7 million BTC</td>
+                        <td>~164,000 BTC/year</td>
+                        <td><strong>~120</strong></td>
+                        <td>Hardest Money Ever</td>
+                    </tr>
+                    <tr style="background: rgba(247, 147, 26, 0.15);">
+                        <td><strong>₿ Bitcoin (2140)</strong></td>
+                        <td>21 million BTC</td>
+                        <td>0 BTC/year</td>
+                        <td><strong>∞</strong></td>
+                        <td>Perfectly Scarce</td>
+                    </tr>
+                    <tr>
+                        <td><strong>💵 Fiat Currency</strong></td>
+                        <td>Variable</td>
+                        <td>Unlimited (can be printed)</td>
+                        <td><strong>&lt; 1</strong></td>
+                        <td>Soft Money</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="intro-section">
+            <h2>⏰ Bitcoin Halving Timeline</h2>
+            <div class="halving-timeline">
+                <div class="timeline-event">
+                    <div class="timeline-date">2009-2012 | Era 1</div>
+                    <p><strong>Block Reward:</strong> 50 BTC</p>
+                    <p><strong>S2F:</strong> ~1.5 (Similar to copper)</p>
+                    <p>Bitcoin's genesis. High inflation, low scarcity.</p>
+                </div>
+
+                <div class="timeline-event">
+                    <div class="timeline-date">2012-2016 | Era 2</div>
+                    <p><strong>Block Reward:</strong> 25 BTC (1st Halving)</p>
+                    <p><strong>S2F:</strong> ~8 (Similar to collectibles)</p>
+                    <p>First halving event. Price rallied from $12 to $1,000.</p>
+                </div>
+
+                <div class="timeline-event">
+                    <div class="timeline-date">2016-2020 | Era 3</div>
+                    <p><strong>Block Reward:</strong> 12.5 BTC (2nd Halving)</p>
+                    <p><strong>S2F:</strong> ~22 (Similar to silver)</p>
+                    <p>Bitcoin reaches silver-level scarcity. Price: $650 → $20,000.</p>
+                </div>
+
+                <div class="timeline-event">
+                    <div class="timeline-date">2020-2024 | Era 4</div>
+                    <p><strong>Block Reward:</strong> 6.25 BTC (3rd Halving)</p>
+                    <p><strong>S2F:</strong> ~56 (Approaching gold)</p>
+                    <p>Near gold-level scarcity. Price: $9,000 → $69,000.</p>
+                </div>
+
+                <div class="timeline-event">
+                    <div class="timeline-date">2024-2028 | Era 5</div>
+                    <p><strong>Block Reward:</strong> 3.125 BTC (4th Halving)</p>
+                    <p><strong>S2F:</strong> ~120 (Surpasses gold)</p>
+                    <p>Bitcoin becomes scarcer than gold. Current era.</p>
+                </div>
+
+                <div class="timeline-event">
+                    <div class="timeline-date">2028+ | Future Eras</div>
+                    <p><strong>Block Reward:</strong> Continues halving every 4 years</p>
+                    <p><strong>S2F:</strong> Approaches infinity</p>
+                    <p>By 2140, all 21 million BTC will be mined. No more inflation.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <h3 style="margin-bottom: 1rem;">🎯 Key Takeaways</h3>
+            <ul style="margin-left: 1.5rem; line-height: 2;">
+                <li><strong>Bitcoin's S2F increases over time</strong> due to programmed halvings every 4 years</li>
+                <li><strong>Higher S2F = More scarce = Harder money</strong> that's resistant to inflation</li>
+                <li><strong>Bitcoin already surpasses gold</strong> in scarcity (S2F ~120 vs Gold's ~59)</li>
+                <li><strong>By 2140, Bitcoin will have infinite S2F</strong> when the last BTC is mined</li>
+                <li><strong>The model suggests</strong> that as S2F increases, so does Bitcoin's market value</li>
+                <li><strong>No other asset</strong> has a predictable, programmatic scarcity schedule like Bitcoin</li>
+            </ul>
+        </div>
+
+        <div class="highlight-box" style="background: rgba(239, 68, 68, 0.1); border-left-color: #ef4444;">
+            <h3 style="margin-bottom: 1rem; color: #ef4444;">⚠️ Important Notes</h3>
+            <p>
+                <strong>The S2F model is not a price prediction tool.</strong> While historical data shows correlation
+                between S2F and price, past performance doesn't guarantee future results. Many factors affect Bitcoin's
+                price beyond scarcity alone.
+            </p>
+            <br>
+            <p>
+                S2F is best used as a framework for understanding Bitcoin's <strong>monetary properties</strong> and
+                <strong>programmatic scarcity</strong>, not as investment advice.
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Stock-to-Flow Calculator
+        const blockHeightSlider = document.getElementById('block-height');
+        const blockValue = document.getElementById('block-value');
+        const totalSupply = document.getElementById('total-supply');
+        const annualProduction = document.getElementById('annual-production');
+        const s2fRatio = document.getElementById('s2f-ratio');
+        const halvingNumber = document.getElementById('halving-number');
+
+        // Constants
+        const BLOCKS_PER_YEAR = 52560; // 365.25 days * 144 blocks/day
+        const INITIAL_REWARD = 50;
+        const HALVING_INTERVAL = 210000;
+
+        function calculateBitcoinMetrics(blockHeight) {
+            // Calculate which halving era we're in
+            const halvingEra = Math.floor(blockHeight / HALVING_INTERVAL);
+            const blockReward = INITIAL_REWARD / Math.pow(2, halvingEra);
+
+            // Calculate total supply (sum of all rewards)
+            let totalBTC = 0;
+            for (let i = 0; i <= halvingEra; i++) {
+                const rewardInEra = INITIAL_REWARD / Math.pow(2, i);
+                const blocksInEra = i === halvingEra
+                    ? blockHeight % HALVING_INTERVAL
+                    : HALVING_INTERVAL;
+                totalBTC += rewardInEra * blocksInEra;
+            }
+
+            // Annual production (flow)
+            const annualFlow = blockReward * BLOCKS_PER_YEAR;
+
+            // Stock-to-Flow ratio
+            const s2f = annualFlow > 0 ? totalBTC / annualFlow : Infinity;
+
+            return {
+                totalBTC,
+                blockReward,
+                annualFlow,
+                s2f,
+                halvingEra: halvingEra + 1
+            };
+        }
+
+        function updateDisplay() {
+            const height = parseInt(blockHeightSlider.value);
+            blockValue.textContent = height.toLocaleString();
+
+            const metrics = calculateBitcoinMetrics(height);
+
+            totalSupply.textContent = metrics.totalBTC.toLocaleString(undefined, {
+                maximumFractionDigits: 0
+            });
+
+            annualProduction.textContent = metrics.annualFlow.toLocaleString(undefined, {
+                maximumFractionDigits: 0
+            });
+
+            s2fRatio.textContent = metrics.s2f === Infinity
+                ? '∞'
+                : metrics.s2f.toLocaleString(undefined, {
+                    maximumFractionDigits: 1
+                });
+
+            halvingNumber.textContent = metrics.halvingEra;
+
+            updateChart();
+        }
+
+        // Chart
+        const ctx = document.getElementById('s2f-chart').getContext('2d');
+        let chart;
+
+        function updateChart() {
+            const data = [];
+            const labels = [];
+
+            // Generate data points for each halving era
+            for (let block = 0; block <= 1000000; block += 10000) {
+                const metrics = calculateBitcoinMetrics(block);
+                if (metrics.s2f < 1000) { // Cap at 1000 for visualization
+                    labels.push((block / 1000).toFixed(0) + 'k');
+                    data.push(metrics.s2f);
+                }
+            }
+
+            const currentHeight = parseInt(blockHeightSlider.value);
+            const currentIndex = Math.floor(currentHeight / 10000);
+
+            if (chart) {
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = data;
+                chart.data.datasets[1].data = Array(labels.length).fill(null);
+                chart.data.datasets[1].data[currentIndex] = data[currentIndex];
+                chart.update();
+            } else {
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Stock-to-Flow Ratio',
+                                data: data,
+                                borderColor: '#f7931a',
+                                backgroundColor: 'rgba(247, 147, 26, 0.1)',
+                                fill: true,
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Current Position',
+                                data: Array(labels.length).fill(null),
+                                pointBackgroundColor: '#4caf50',
+                                pointBorderColor: '#4caf50',
+                                pointRadius: 8,
+                                pointHoverRadius: 10,
+                                showLine: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#e0e0e0'
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return 'S2F: ' + context.parsed.y.toFixed(1);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Block Height (thousands)',
+                                    color: '#e0e0e0'
+                                },
+                                ticks: {
+                                    color: '#999'
+                                },
+                                grid: {
+                                    color: 'rgba(247, 147, 26, 0.1)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Stock-to-Flow Ratio',
+                                    color: '#e0e0e0'
+                                },
+                                ticks: {
+                                    color: '#999'
+                                },
+                                grid: {
+                                    color: 'rgba(247, 147, 26, 0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        blockHeightSlider.addEventListener('input', updateDisplay);
+
+        // Initialize
+        updateDisplay();
+    </script>
+</body>
+</html>
