@@ -14,7 +14,16 @@
     ]);
 
     const pathName = normalizePath(window.location.pathname);
-    if (!/\/module-\d+\.html$/.test(pathName)) {
+
+    // Advanced modules that should be gated
+    const advancedModules = [
+        '/modules/cbdc-vs-bitcoin.html'
+    ];
+
+    const isAdvancedModule = advancedModules.some(path => pathName.endsWith(path));
+    const isPathModule = /\/module-\d+\.html$/.test(pathName);
+
+    if (!isPathModule && !isAdvancedModule) {
         return;
     }
 
