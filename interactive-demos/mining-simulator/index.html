@@ -30,6 +30,14 @@
             padding: 0.75rem;
         }
 
+        /* Level-based visibility */
+        body.level-beginner .advanced-only { display: none; }
+        body.level-beginner .intermediate-only { display: none; }
+        body.level-intermediate .advanced-only { display: none; }
+        body.level-intermediate .beginner-only { display: none; }
+        body.level-advanced .beginner-only { display: none; }
+        body.level-advanced .intermediate-only { display: none; }
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -49,6 +57,44 @@
         .header p {
             color: var(--text-dim);
             font-size: 0.95rem;
+        }
+
+        .level-switcher {
+            background: var(--secondary-dark);
+            border: 2px solid var(--primary-orange);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .level-info {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .level-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .level-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(247, 147, 26, 0.1);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 6px;
+            color: var(--text-light);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .level-btn.active {
+            background: var(--primary-orange);
+            border-color: var(--primary-orange);
+            color: white;
         }
 
         .back-btn {
@@ -350,12 +396,37 @@
             <p>Watch real proof-of-work in action with actual SHA-256 hashing and nonce discovery</p>
         </div>
 
+        <div class="level-switcher">
+            <div class="level-info">
+                <span style="color: var(--text-dim); font-size: 0.9rem;">Difficulty:</span>
+                <span style="color: var(--primary-orange); font-weight: bold; font-size: 1.1rem; margin-left: 0.5rem;" id="current-level-name">Beginner Mode</span>
+            </div>
+            <div class="level-buttons">
+                <button class="level-btn active" data-level="beginner">Beginner</button>
+                <button class="level-btn" data-level="intermediate">Intermediate</button>
+                <button class="level-btn" data-level="advanced">Advanced</button>
+            </div>
+        </div>
+
+        <div class="educational-tip" style="background: rgba(33, 150, 243, 0.1); border-left: 3px solid #2196f3; padding: 0.75rem; border-radius: 0 8px 8px 0; font-size: 0.85rem; margin-bottom: 1rem;">
+            <strong style="color: #2196f3;">💡 What is Mining?</strong>
+            <p class="beginner-only" style="margin-top: 0.5rem;">
+                Bitcoin mining is like a lottery where miners try billions of random numbers (nonces) until they find one that creates a hash starting with enough zeros. The first miner to find a valid hash wins the block reward!
+            </p>
+            <p class="intermediate-only" style="margin-top: 0.5rem;">
+                Proof-of-work mining uses SHA-256 hashing with difficulty targets (leading zeros). Miners increment nonces to find valid hashes. Network difficulty adjusts every 2016 blocks to maintain ~10 minute block times regardless of total hashrate.
+            </p>
+            <p class="advanced-only" style="margin-top: 0.5rem;">
+                Bitcoin implements Hashcash-style proof-of-work where miners search for SHA-256(SHA-256(block_header)) < target. Difficulty adjusts via target = previous_target × (2016 blocks ÷ actual_time). ASICs compute ~100 TH/s; network total ~400 EH/s. This simulator shows the same algorithm but at browser speeds.
+            </p>
+        </div>
+
         <div class="mining-layout">
             <!-- Left Panel: Controls -->
             <div class="controls-panel">
                 <h3>⚙️ Mining Controls</h3>
 
-                <div class="control-group">
+                <div class="control-group beginner-only">
                     <label>Select Difficulty (Leading Zeros)</label>
                     <div class="difficulty-buttons">
                         <button class="diff-btn active" data-difficulty="2" onclick="setDifficulty(2)">
@@ -364,15 +435,48 @@
                         <button class="diff-btn" data-difficulty="3" onclick="setDifficulty(3)">
                             Medium (3)
                         </button>
+                    </div>
+                    <p style="color: var(--text-dim); font-size: 0.8rem; margin-top: 0.5rem;">
+                        Higher difficulty requires more attempts to find valid hash
+                    </p>
+                </div>
+
+                <div class="control-group intermediate-only">
+                    <label>Select Difficulty (Leading Zeros)</label>
+                    <div class="difficulty-buttons">
+                        <button class="diff-btn" data-difficulty="2" onclick="setDifficulty(2)">
+                            Easy (2)
+                        </button>
+                        <button class="diff-btn active" data-difficulty="3" onclick="setDifficulty(3)">
+                            Medium (3)
+                        </button>
                         <button class="diff-btn" data-difficulty="4" onclick="setDifficulty(4)">
+                            Hard (4)
+                        </button>
+                    </div>
+                    <p style="color: var(--text-dim); font-size: 0.8rem; margin-top: 0.5rem;">
+                        Each additional zero makes finding a valid hash ~16x harder
+                    </p>
+                </div>
+
+                <div class="control-group advanced-only">
+                    <label>Select Difficulty (Leading Zeros)</label>
+                    <div class="difficulty-buttons">
+                        <button class="diff-btn" data-difficulty="3" onclick="setDifficulty(3)">
+                            Medium (3)
+                        </button>
+                        <button class="diff-btn active" data-difficulty="4" onclick="setDifficulty(4)">
                             Hard (4)
                         </button>
                         <button class="diff-btn" data-difficulty="5" onclick="setDifficulty(5)">
                             Extreme (5)
                         </button>
+                        <button class="diff-btn" data-difficulty="6" onclick="setDifficulty(6)">
+                            Insane (6)
+                        </button>
                     </div>
                     <p style="color: var(--text-dim); font-size: 0.8rem; margin-top: 0.5rem;">
-                        Higher difficulty requires more attempts to find valid hash
+                        Real Bitcoin: ~19 leading zeros (~2^76 attempts). Network adjusts every 2016 blocks.
                     </p>
                 </div>
 
@@ -394,6 +498,14 @@
                         <span class="label">Blocks Found:</span>
                         <span class="value" id="blocksFound">0</span>
                     </div>
+                    <div class="stat-compact intermediate-only advanced-only">
+                        <span class="label">Success Rate:</span>
+                        <span class="value" id="successRate">0%</span>
+                    </div>
+                    <div class="stat-compact advanced-only">
+                        <span class="label">Avg Attempts/Block:</span>
+                        <span class="value" id="avgAttempts">N/A</span>
+                    </div>
                 </div>
 
                 <button class="start-mining-btn" id="startBtn" onclick="startMining()">
@@ -403,8 +515,14 @@
                     ⏹️ Stop Mining
                 </button>
 
-                <div class="educational-tip">
+                <div class="educational-tip beginner-only">
                     💡 <strong>How it works:</strong> The miner increments the nonce and hashes the data until finding a hash that starts with the required number of zeros (proof-of-work).
+                </div>
+                <div class="educational-tip intermediate-only">
+                    💡 <strong>Difficulty Adjustment:</strong> Each leading zero requires ~16x more attempts. Bitcoin adjusts difficulty every 2016 blocks to maintain 10-minute block times.
+                </div>
+                <div class="educational-tip advanced-only">
+                    💡 <strong>Real Mining:</strong> Modern ASICs achieve ~100 TH/s (100 trillion hashes/sec). At network difficulty ~400 EH/s total, probability of finding a block = your_hashrate ÷ 400,000,000 TH/s per attempt.
                 </div>
             </div>
 
@@ -437,20 +555,50 @@
             </div>
         </div>
 
-        <div class="educational-tip">
+        <div class="educational-tip beginner-only">
             💡 <strong>Educational Note:</strong> This simulator uses real SHA-256 hashing. Each nonce is tried sequentially until a hash with the required leading zeros is found. In Bitcoin, miners use ASICs to try billions of nonces per second!
+        </div>
+        <div class="educational-tip intermediate-only">
+            💡 <strong>Understanding Probability:</strong> With 3 leading zeros, average attempts ≈ 16^3 = 4,096. With 4 zeros ≈ 65,536. Real Bitcoin mining requires finding hashes below a specific target (equivalent to ~19 leading zeros = ~2^76 attempts).
+        </div>
+        <div class="educational-tip advanced-only">
+            💡 <strong>Mining Mathematics:</strong> Expected attempts = 256^(leading_zeros). At 3 zeros: 256^3 = 16,777,216 attempts. Bitcoin's current difficulty requires target < 0x0000000000000000000704cb000000000000000000000000000000000000000000. This simulator demonstrates the identical SHA-256(SHA-256(data)) algorithm used in real Bitcoin mining.
         </div>
     </div>
 
     <script>
+        // ===== LEVEL MANAGEMENT =====
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLevel = urlParams.get('level') || 'beginner';
+        document.body.classList.add(`level-${currentLevel}`);
+
+        const LEVEL_CONFIG = {
+            beginner: { name: "Beginner Mode", defaultDifficulty: 2 },
+            intermediate: { name: "Intermediate Mode", defaultDifficulty: 3 },
+            advanced: { name: "Advanced Mode", defaultDifficulty: 4 }
+        };
+
+        document.getElementById('current-level-name').textContent = LEVEL_CONFIG[currentLevel].name;
+
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            if (btn.dataset.level === currentLevel) btn.classList.add('active');
+            btn.addEventListener('click', (e) => {
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('level', e.target.dataset.level);
+                window.location.href = newUrl.toString();
+            });
+        });
+
         // ===== REAL SHA-256 MINING SIMULATOR =====
         let isMining = false;
         let miningWorker = null;
-        let difficulty = 2; // Number of leading zeros required
+        let difficulty = LEVEL_CONFIG[currentLevel].defaultDifficulty; // Number of leading zeros required
         let currentNonce = 0;
         let totalAttempts = 0;
         let blocksFound = 0;
         let blockData = 'Bitcoin Block Data - Timestamp: ' + Date.now();
+        let totalAttemptsAllBlocks = 0;
+        let blockAttemptsHistory = [];
 
         // SHA-256 hashing function using Web Crypto API
         async function sha256(message) {
@@ -465,6 +613,21 @@
         function isValidHash(hash, difficulty) {
             const prefix = '0'.repeat(difficulty);
             return hash.startsWith(prefix);
+        }
+
+        // Update stats display
+        function updateStatsDisplay() {
+            if (currentLevel === 'intermediate' || currentLevel === 'advanced') {
+                const successRate = totalAttemptsAllBlocks > 0 ?
+                    ((blocksFound / totalAttemptsAllBlocks) * 100).toFixed(6) : 0;
+                document.getElementById('successRate').textContent = successRate + '%';
+            }
+
+            if (currentLevel === 'advanced') {
+                const avgAttempts = blocksFound > 0 ?
+                    Math.round(blockAttemptsHistory.reduce((a, b) => a + b, 0) / blockAttemptsHistory.length) : 'N/A';
+                document.getElementById('avgAttempts').textContent = avgAttempts;
+            }
         }
 
         // Set difficulty level
@@ -488,8 +651,11 @@
             // Reset stats
             currentNonce = 0;
             totalAttempts = 0;
+            totalAttemptsAllBlocks = 0;
+            blockAttemptsHistory = [];
             document.getElementById('currentNonce').textContent = '0';
             document.getElementById('totalAttempts').textContent = '0';
+            updateStatsDisplay();
         }
 
         // Add hash attempt to display
@@ -577,6 +743,10 @@
                     blocksFound++;
                     document.getElementById('blocksFound').textContent = blocksFound;
 
+                    // Track statistics
+                    blockAttemptsHistory.push(totalAttempts);
+                    totalAttemptsAllBlocks += totalAttempts;
+
                     // Update status
                     document.getElementById('miningStatus').textContent = '🎉 Block Found!';
                     document.getElementById('miningSubstatus').textContent =
@@ -584,6 +754,9 @@
 
                     // Add to history
                     addBlockToHistory(currentNonce, hash);
+
+                    // Update advanced stats
+                    updateStatsDisplay();
 
                     // Reset for next block
                     currentNonce = 0;
@@ -642,7 +815,17 @@
         }
 
         // Initialize
-        console.log('Real SHA-256 Mining Simulator initialized');
+        console.log(`Real SHA-256 Mining Simulator initialized - Level: ${currentLevel}`);
+        document.getElementById('difficultyDisplay').textContent = difficulty + ' zeros';
+
+        // Set initial difficulty button state
+        document.querySelectorAll('.diff-btn').forEach(btn => {
+            if (parseInt(btn.dataset.difficulty) === difficulty) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
     </script>
 
     <!-- Enhanced Mining Simulator with difficulty modes and URL parameter support -->
