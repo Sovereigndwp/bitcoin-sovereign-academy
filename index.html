@@ -3169,119 +3169,8 @@
             });
         });
 
-        // Live Bitcoin Data Updates (real endpoints with graceful fallbacks)
-        async function updateBitcoinData() {
-            const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
-            const setBoth = (barId, mainId, text) => { setText(barId, text); setText(mainId, text); };
-
-            try {
-                // Fetch price (Coinbase)
-                let priceUSD = null;
-                try {
-                    const r = await fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot', { cache: 'no-store' });
-                    if (r.ok) {
-                        const j = await r.json();
-                        priceUSD = parseFloat(j?.data?.amount || '');
-                    }
-                } catch(e) {}
-                if (priceUSD) {
-                    const priceStr = `$${priceUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
-                    setBoth('bar-btc-price', 'btc-price', priceStr);
-                }
-
-                // Fetch block height (mempool.space)
-                try {
-                    const r = await fetch('https://mempool.space/api/blocks/tip/height', { cache: 'no-store' });
-                    if (r.ok) {
-                        const txt = await r.text();
-                        const height = parseInt(txt, 10);
-                        if (!isNaN(height)) {
-                            const hStr = height.toLocaleString();
-                            setBoth('bar-block-height', 'block-height', hStr);
-                        }
-                    }
-                } catch(e) {}
-
-                // Fetch mempool size (mempool.space)
-                try {
-                    const r = await fetch('https://mempool.space/api/mempool', { cache: 'no-store' });
-                    if (r.ok) {
-                        const j = await r.json();
-                        const count = j?.count;
-                        const vsize = j?.vsize;
-                        if (typeof count === 'number') {
-                            setBoth('bar-mempool-count', 'mempool-size', `${count.toLocaleString()} tx`);
-                        }
-                        if (typeof vsize === 'number') {
-                            // If there is a separate label, append vsize info
-                            const el = document.getElementById('mempool-size');
-                            if (el && !el.textContent.includes('vMB')) {
-                                el.textContent += ` · ${(vsize/1e6).toFixed(1)} vMB`;
-                            }
-                        }
-                    }
-                } catch(e) {}
-
-                // Fetch fee estimates (mempool.space)
-                try {
-                    const r = await fetch('https://mempool.space/api/v1/fees/recommended', { cache: 'no-store' });
-                    if (r.ok) {
-                        const j = await r.json();
-                        const fastestFee = j?.fastestFee;
-                        if (typeof fastestFee === 'number') {
-                            setText('bar-fee-estimate', `${fastestFee} sat/vB`);
-                        }
-                    }
-                } catch(e) {}
-
-                // Fetch difficulty (mempool.space)
-                try {
-                    const r = await fetch('https://mempool.space/api/v1/difficulty-adjustment', { cache: 'no-store' });
-                    if (r.ok) {
-                        const j = await r.json();
-                        const difficulty = j?.difficulty;
-                        if (typeof difficulty === 'number') {
-                            const diffStr = (difficulty / 1e12).toFixed(2) + 'T';
-                            setText('bar-difficulty', diffStr);
-                        }
-                    }
-                } catch(e) {}
-
-                // Optional/fallbacks for items without reliable public CORS
-                if (!document.getElementById('market-cap').textContent || document.getElementById('market-cap').textContent === 'Loading...') {
-                    if (priceUSD) {
-                        // Approximate circulating supply; avoid exact claims
-                        const approxSupply = 19_700_000; // rough estimate
-                        const cap = priceUSD * approxSupply;
-                        setText('market-cap', `$${cap.toLocaleString(undefined, { maximumFractionDigits: 0 })}`);
-                    } else {
-                        setText('market-cap', '—');
-                    }
-                }
-                if (!document.getElementById('hashrate').textContent || document.getElementById('hashrate').textContent === 'Loading...') {
-                    setText('hashrate', '—');
-                }
-                if (!document.getElementById('ln-capacity').textContent || document.getElementById('ln-capacity').textContent === 'Loading...') {
-                    setText('ln-capacity', '—');
-                }
-
-                // Price change indicator (placeholder movement around 0)
-                const changeEl = document.getElementById('btc-change');
-                if (changeEl) {
-                    const change = (Math.random() - 0.5) * 2; // +/-1%
-                    const isPositive = change >= 0;
-                    changeEl.textContent = `${isPositive ? '+' : ''}${change.toFixed(2)}% (24h est.)`;
-                    changeEl.className = `data-change ${isPositive ? 'positive' : 'negative'}`;
-                }
-
-            } catch (error) {
-                console.log('Bitcoin data update failed:', error);
-            }
-        }
-
-        // Update data every 30 seconds
-        updateBitcoinData();
-        setInterval(updateBitcoinData, 30000);
+        // Bitcoin data updates are now handled by bitcoin-data-reliable.js
+        // The service auto-initializes and updates every 60 seconds
 
         // Track feature clicks
         document.querySelectorAll('.feature-card').forEach(card => {
@@ -3795,7 +3684,7 @@
     
     <!-- MCP Service and Dynamic Content Integration -->
     <script src="js/mcp-service.js"></script>
-    <script src="js/bitcoin-data-fallback.js"></script>
+    <script src="js/bitcoin-data-reliable.js"></script>
     <script src="js/dynamic-content.js"></script>
     <script src="js/learning-path.js"></script>
     <script src="js/onboarding-flow.js"></script>
