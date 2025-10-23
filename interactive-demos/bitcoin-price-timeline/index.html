@@ -488,8 +488,65 @@
             desc: `Current price updated live from CoinGecko API`
         });
 
+        // Cache management utilities
+        const CACHE_KEYS = {
+            CURRENT_PRICE: 'btc_current_price_cache',
+            HISTORICAL_DATA: 'btc_historical_data_cache'
+        };
+
+        const CACHE_DURATION = {
+            CURRENT_PRICE: 5 * 60 * 1000,      // 5 minutes for current price
+            HISTORICAL_DATA: 24 * 60 * 60 * 1000  // 24 hours for historical data
+        };
+
+        function getCachedData(key) {
+            try {
+                const cached = localStorage.getItem(key);
+                if (!cached) return null;
+
+                const { data, timestamp } = JSON.parse(cached);
+                const age = Date.now() - timestamp;
+
+                // Determine cache duration based on key
+                const maxAge = key === CACHE_KEYS.CURRENT_PRICE ?
+                    CACHE_DURATION.CURRENT_PRICE :
+                    CACHE_DURATION.HISTORICAL_DATA;
+
+                if (age < maxAge) {
+                    const minutesOld = Math.floor(age / 60000);
+                    console.log(`📦 Using cached ${key} (${minutesOld} min old)`);
+                    return data;
+                }
+
+                // Cache expired
+                localStorage.removeItem(key);
+                return null;
+            } catch (error) {
+                console.warn('Cache read error:', error);
+                return null;
+            }
+        }
+
+        function setCachedData(key, data) {
+            try {
+                const cacheEntry = {
+                    data: data,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(key, JSON.stringify(cacheEntry));
+            } catch (error) {
+                console.warn('Cache write error:', error);
+            }
+        }
+
         // Fetch current Bitcoin price from multiple sources for accuracy
         async function getCurrentBitcoinPrice() {
+            // Check cache first
+            const cached = getCachedData(CACHE_KEYS.CURRENT_PRICE);
+            if (cached !== null) {
+                return cached;
+            }
+
             const sources = [
                 {
                     name: 'CoinCap',
@@ -522,6 +579,10 @@
                 try {
                     const price = await source.fetch();
                     console.log(`✅ Current price from ${source.name}: $${price.toFixed(2)}`);
+
+                    // Cache the successful result
+                    setCachedData(CACHE_KEYS.CURRENT_PRICE, price);
+
                     return price;
                 } catch (error) {
                     console.warn(`⚠️ ${source.name} failed:`, error.message);
@@ -538,8 +599,33 @@
             try {
                 console.log('Fetching Bitcoin price data...');
 
-                // First, get current accurate price
+                // Check cache for historical data first
+                const cachedHistorical = getCachedData(CACHE_KEYS.HISTORICAL_DATA);
+
+                // First, get current accurate price (already uses cache internally)
                 const currentPrice = await getCurrentBitcoinPrice();
+
+                // If we have cached historical data, just update the current price
+                if (cachedHistorical && currentPrice) {
+                    let data = cachedHistorical.map(item => ({
+                        date: new Date(item.date),
+                        price: item.price
+                    }));
+
+                    // Update today's price
+                    const today = new Date();
+                    const lastDataPoint = data[data.length - 1];
+                    const lastDate = new Date(lastDataPoint.date);
+
+                    if (lastDate.toDateString() === today.toDateString()) {
+                        data[data.length - 1].price = currentPrice;
+                    } else {
+                        data.push({ date: today, price: currentPrice });
+                    }
+
+                    console.log(`✅ Using cached historical data with updated current price`);
+                    return data;
+                }
 
                 // Fetch historical data from CoinGecko
                 const response = await fetch(
@@ -576,6 +662,9 @@
                         });
                     }
                 }
+
+                // Cache the historical data
+                setCachedData(CACHE_KEYS.HISTORICAL_DATA, data);
 
                 console.log(`✅ Loaded ${data.length} days of Bitcoin price data`);
                 console.log(`📊 Date range: ${data[0].date.toLocaleDateString()} to ${data[data.length-1].date.toLocaleDateString()}`);
