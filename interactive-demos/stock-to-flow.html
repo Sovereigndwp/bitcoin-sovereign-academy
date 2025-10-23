@@ -594,36 +594,51 @@
         function updateChart() {
             const data = [];
             const labels = [];
-            const halvingMarkers = [];
+            const halvingPoints = [];
 
-            // Generate data points with better sampling for logarithmic visualization
-            // Use smaller steps to capture the curve properly
-            for (let block = 0; block <= 1000000; block += 10000) {
+            // Generate data points: sample every 5000 blocks for smoothness
+            // Go up to block 1,050,000 (halving 5, year ~2028)
+            for (let block = BLOCKS_PER_YEAR; block <= 1050000; block += 5000) {
                 const metrics = calculateBitcoinMetrics(block);
-                // Only include points with positive S2F (avoid infinity issues)
-                if (metrics.s2f > 0 && metrics.s2f < 10000) {
+                // Filter out very high S2F values that skew the chart
+                if (metrics.s2f > 0 && metrics.s2f < 5000 && metrics.annualFlow > 0.01) {
                     labels.push(block);
                     data.push(metrics.s2f);
-                    
-                    // Mark halving events
-                    if (block % HALVING_INTERVAL === 0 && block > 0) {
-                        halvingMarkers.push({
-                            block: block,
-                            s2f: metrics.s2f
-                        });
-                    }
+                }
+            }
+
+            // Mark halving boundaries with vertical annotation points
+            for (let era = 1; era <= 5; era++) {
+                const halvingBlock = era * HALVING_INTERVAL;
+                if (halvingBlock <= 1050000) {
+                    const metrics = calculateBitcoinMetrics(halvingBlock);
+                    halvingPoints.push({
+                        x: halvingBlock,
+                        y: metrics.s2f,
+                        era: era
+                    });
                 }
             }
 
             const currentHeight = parseInt(blockHeightSlider.value);
-            const currentIndex = Math.floor(currentHeight / 10000);
+            // Find the closest data point index to current height
+            const currentIndex = labels.findIndex(block => block >= currentHeight);
 
             if (chart) {
                 chart.data.labels = labels;
                 chart.data.datasets[0].data = data;
-                chart.data.datasets[1].data = Array(labels.length).fill(null);
-                chart.data.datasets[1].data[currentIndex] = data[currentIndex];
-                chart.update();
+                
+                // Update current position marker
+                const currentMarker = Array(labels.length).fill(null);
+                if (currentIndex >= 0 && currentIndex < data.length) {
+                    currentMarker[currentIndex] = data[currentIndex];
+                }
+                chart.data.datasets[1].data = currentMarker;
+                
+                // Update halving markers
+                chart.data.datasets[2].data = halvingPoints;
+                
+                chart.update('none'); // Skip animation for smooth slider interaction
             } else {
                 chart = new Chart(ctx, {
                     type: 'line',
@@ -634,38 +649,92 @@
                                 label: 'Stock-to-Flow Ratio',
                                 data: data,
                                 borderColor: '#f7931a',
-                                backgroundColor: 'rgba(247, 147, 26, 0.1)',
+                                backgroundColor: 'rgba(247, 147, 26, 0.15)',
                                 fill: true,
-                                tension: 0.4,
-                                borderWidth: 3,
+                                tension: 0.3,
+                                borderWidth: 2,
                                 pointRadius: 0,
-                                pointHoverRadius: 5
+                                pointHoverRadius: 6,
+                                pointHoverBorderWidth: 2
                             },
                             {
                                 label: 'Current Position',
                                 data: Array(labels.length).fill(null),
                                 pointBackgroundColor: '#4caf50',
                                 pointBorderColor: '#fff',
+                                pointBorderWidth: 3,
+                                pointRadius: 10,
+                                pointHoverRadius: 12,
+                                showLine: false,
+                                pointStyle: 'circle'
+                            },
+                            {
+                                label: 'Halving Events',
+                                data: halvingPoints,
+                                pointBackgroundColor: '#9C27B0',
+                                pointBorderColor: '#fff',
                                 pointBorderWidth: 2,
-                                pointRadius: 8,
-                                pointHoverRadius: 10,
-                                showLine: false
+                                pointRadius: 7,
+                                pointHoverRadius: 9,
+                                showLine: false,
+                                pointStyle: 'triangle'
                             }
                         ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        },
                         plugins: {
                             legend: {
+                                display: true,
+                                position: 'top',
                                 labels: {
-                                    color: '#e0e0e0'
+                                    color: '#e0e0e0',
+                                    padding: 12,
+                                    font: {
+                                        size: 11
+                                    },
+                                    usePointStyle: true
                                 }
                             },
                             tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                                padding: 12,
+                                titleColor: '#f7931a',
+                                bodyColor: '#e0e0e0',
+                                borderColor: '#f7931a',
+                                borderWidth: 1,
                                 callbacks: {
+                                    title: function(context) {
+                                        const block = context[0].label;
+                                        return 'Block ' + parseInt(block).toLocaleString();
+                                    },
                                     label: function(context) {
-                                        return 'S2F: ' + context.parsed.y.toFixed(1);
+                                        const s2f = context.parsed.y;
+                                        if (context.dataset.label === 'Stock-to-Flow Ratio') {
+                                            return 'S2F Ratio: ' + s2f.toFixed(1) + ' years';
+                                        } else if (context.dataset.label === 'Halving Events') {
+                                            const eraData = context.raw;
+                                            return 'Halving ' + eraData.era + ' (S2F: ' + s2f.toFixed(1) + ')';
+                                        } else {
+                                            return 'Current: S2F ' + s2f.toFixed(1);
+                                        }
+                                    },
+                                    afterLabel: function(context) {
+                                        if (context.dataset.label === 'Stock-to-Flow Ratio') {
+                                            const block = parseInt(context.label);
+                                            const metrics = calculateBitcoinMetrics(block);
+                                            return [
+                                                'Supply: ' + metrics.totalBTC.toFixed(0) + ' BTC',
+                                                'Annual Flow: ' + metrics.annualFlow.toFixed(0) + ' BTC/year'
+                                            ];
+                                        }
+                                        return null;
                                     }
                                 }
                             }
@@ -678,51 +747,75 @@
                                     text: 'Block Height',
                                     color: '#e0e0e0',
                                     font: {
-                                        size: 13,
-                                        weight: 'bold'
+                                        size: 12,
+                                        weight: '600'
                                     }
                                 },
+                                min: 0,
+                                max: 1050000,
                                 ticks: {
                                     color: '#999',
-                                    maxTicksLimit: 10,
+                                    maxTicksLimit: 8,
                                     callback: function(value) {
+                                        // Show halving boundaries
+                                        if (value % 210000 === 0) {
+                                            return (value / 1000).toFixed(0) + 'k';
+                                        }
                                         return (value / 1000).toFixed(0) + 'k';
+                                    },
+                                    font: {
+                                        size: 10
                                     }
                                 },
                                 grid: {
-                                    color: 'rgba(247, 147, 26, 0.1)',
+                                    color: function(context) {
+                                        // Highlight halving boundaries
+                                        if (context.tick.value % 210000 === 0 && context.tick.value > 0) {
+                                            return 'rgba(156, 39, 176, 0.3)';
+                                        }
+                                        return 'rgba(247, 147, 26, 0.08)';
+                                    },
+                                    lineWidth: function(context) {
+                                        if (context.tick.value % 210000 === 0 && context.tick.value > 0) {
+                                            return 2;
+                                        }
+                                        return 1;
+                                    },
                                     drawBorder: true,
-                                    borderColor: 'rgba(247, 147, 26, 0.3)'
+                                    borderColor: 'rgba(247, 147, 26, 0.4)'
                                 }
                             },
                             y: {
                                 type: 'logarithmic',
                                 title: {
                                     display: true,
-                                    text: 'Stock-to-Flow Ratio (log scale)',
+                                    text: 'Stock-to-Flow Ratio (years)',
                                     color: '#e0e0e0',
                                     font: {
-                                        size: 13,
-                                        weight: 'bold'
+                                        size: 12,
+                                        weight: '600'
                                     }
                                 },
                                 min: 1,
-                                max: 1000,
+                                max: 300,
                                 ticks: {
                                     color: '#999',
                                     callback: function(value) {
-                                        // Show clean ticks: 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000
-                                        const label = value.toFixed(0);
-                                        if ([1, 2, 5, 10, 20, 50, 100, 200, 500, 1000].includes(parseInt(label))) {
-                                            return label;
+                                        // Show: 1, 2, 5, 10, 20, 50, 100, 200
+                                        const tickValues = [1, 2, 5, 10, 20, 50, 100, 200];
+                                        if (tickValues.includes(Math.round(value))) {
+                                            return Math.round(value);
                                         }
                                         return null;
+                                    },
+                                    font: {
+                                        size: 10
                                     }
                                 },
                                 grid: {
-                                    color: 'rgba(247, 147, 26, 0.1)',
+                                    color: 'rgba(247, 147, 26, 0.08)',
                                     drawBorder: true,
-                                    borderColor: 'rgba(247, 147, 26, 0.3)'
+                                    borderColor: 'rgba(247, 147, 26, 0.4)'
                                 }
                             }
                         }
