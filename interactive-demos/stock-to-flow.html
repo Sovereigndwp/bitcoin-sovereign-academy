@@ -28,7 +28,7 @@
             background: var(--primary-dark);
             color: var(--text-light);
             line-height: 1.6;
-            padding: 2rem 1rem;
+            padding: 1rem;
         }
 
         .container {
@@ -38,43 +38,41 @@
 
         header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 1rem;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 1.5rem;
             color: var(--primary-orange);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
         }
 
         .subtitle {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             color: var(--text-dim);
         }
 
         .intro-section {
             background: var(--secondary-dark);
-            padding: 2rem;
-            border-radius: 12px;
+            padding: 1rem;
+            border-radius: 8px;
             border-left: 4px solid var(--primary-orange);
-            margin-bottom: 3rem;
+            margin-bottom: 1rem;
         }
 
         .intro-section h2 {
             color: var(--primary-orange);
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
         }
 
         .concept-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
+            display: none;
         }
 
         .concept-card {
             background: var(--secondary-dark);
-            padding: 1.5rem;
+            padding: 1rem;
             border-radius: 12px;
             border: 2px solid rgba(247, 147, 26, 0.2);
             transition: all 0.3s ease;
@@ -86,8 +84,8 @@
         }
 
         .concept-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
             display: block;
         }
 
@@ -98,15 +96,15 @@
 
         .interactive-section {
             background: var(--secondary-dark);
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
         }
 
         .controls {
             display: flex;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            gap: 1rem;
+            margin-bottom: 1rem;
             flex-wrap: wrap;
         }
 
@@ -164,16 +162,15 @@
 
         #s2f-chart {
             width: 100%;
-            height: 400px;
+            height: 350px;
             background: var(--primary-dark);
             border-radius: 8px;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
+            border: 2px solid rgba(247, 147, 26, 0.2);
         }
 
         .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 2rem 0;
+            display: none;
         }
 
         .comparison-table th {
@@ -207,36 +204,34 @@
 
         .stat-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
         }
 
         .stat-card {
             background: var(--primary-dark);
-            padding: 1.5rem;
-            border-radius: 8px;
+            padding: 0.75rem;
+            border-radius: 6px;
             text-align: center;
             border: 2px solid rgba(247, 147, 26, 0.2);
         }
 
         .stat-value {
-            font-size: 2rem;
+            font-size: 1.5rem;
             font-weight: 700;
             color: var(--primary-orange);
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
         }
 
         .stat-label {
             color: var(--text-dim);
-            font-size: 0.9rem;
+            font-size: 0.75rem;
         }
 
         .halving-timeline {
-            position: relative;
-            padding: 2rem 0;
-            margin: 2rem 0;
+            display: none;
         }
 
         .timeline-event {
@@ -264,13 +259,7 @@
         }
 
         .formula-box {
-            background: var(--primary-dark);
-            padding: 2rem;
-            border-radius: 8px;
-            border: 2px solid rgba(247, 147, 26, 0.3);
-            text-align: center;
-            margin: 2rem 0;
-            font-family: 'Courier New', monospace;
+            display: none;
         }
 
         .formula {
@@ -282,7 +271,7 @@
 
         @media (max-width: 768px) {
             h1 {
-                font-size: 2rem;
+                font-size: 1.25rem;
             }
 
             .controls {
@@ -290,7 +279,11 @@
             }
 
             #s2f-chart {
-                height: 300px;
+                height: 250px;
+            }
+            
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -601,19 +594,29 @@
         function updateChart() {
             const data = [];
             const labels = [];
+            const halvingMarkers = [];
 
-            // Generate data points for each halving era (optimized sampling)
-            // Use larger steps to reduce data points and improve visibility
-            for (let block = 0; block <= 1000000; block += 21000) { // Every ~21k blocks (one halving era = 10 points)
+            // Generate data points with better sampling for logarithmic visualization
+            // Use smaller steps to capture the curve properly
+            for (let block = 0; block <= 1000000; block += 10000) {
                 const metrics = calculateBitcoinMetrics(block);
-                if (metrics.s2f < 500) { // Cap at 500 for better visualization
-                    labels.push((block / 1000).toFixed(0) + 'k');
+                // Only include points with positive S2F (avoid infinity issues)
+                if (metrics.s2f > 0 && metrics.s2f < 10000) {
+                    labels.push(block);
                     data.push(metrics.s2f);
+                    
+                    // Mark halving events
+                    if (block % HALVING_INTERVAL === 0 && block > 0) {
+                        halvingMarkers.push({
+                            block: block,
+                            s2f: metrics.s2f
+                        });
+                    }
                 }
             }
 
             const currentHeight = parseInt(blockHeightSlider.value);
-            const currentIndex = Math.floor(currentHeight / 21000);
+            const currentIndex = Math.floor(currentHeight / 10000);
 
             if (chart) {
                 chart.data.labels = labels;
@@ -633,13 +636,17 @@
                                 borderColor: '#f7931a',
                                 backgroundColor: 'rgba(247, 147, 26, 0.1)',
                                 fill: true,
-                                tension: 0.1
+                                tension: 0.4,
+                                borderWidth: 3,
+                                pointRadius: 0,
+                                pointHoverRadius: 5
                             },
                             {
                                 label: 'Current Position',
                                 data: Array(labels.length).fill(null),
                                 pointBackgroundColor: '#4caf50',
-                                pointBorderColor: '#4caf50',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
                                 pointRadius: 8,
                                 pointHoverRadius: 10,
                                 showLine: false
@@ -665,37 +672,57 @@
                         },
                         scales: {
                             x: {
+                                type: 'linear',
                                 title: {
                                     display: true,
-                                    text: 'Block Height (thousands)',
-                                    color: '#e0e0e0'
+                                    text: 'Block Height',
+                                    color: '#e0e0e0',
+                                    font: {
+                                        size: 13,
+                                        weight: 'bold'
+                                    }
                                 },
                                 ticks: {
                                     color: '#999',
-                                    maxTicksLimit: 12
-                                },
-                                grid: {
-                                    color: 'rgba(247, 147, 26, 0.1)'
-                                }
-                            },
-                            y: {
-                                title: {
-                                    display: true,
-                                    text: 'Stock-to-Flow Ratio',
-                                    color: '#e0e0e0'
-                                },
-                                beginAtZero: false,
-                                min: 0,
-                                max: 300,
-                                ticks: {
-                                    color: '#999',
-                                    stepSize: 50,
+                                    maxTicksLimit: 10,
                                     callback: function(value) {
-                                        return value.toFixed(0);
+                                        return (value / 1000).toFixed(0) + 'k';
                                     }
                                 },
                                 grid: {
-                                    color: 'rgba(247, 147, 26, 0.1)'
+                                    color: 'rgba(247, 147, 26, 0.1)',
+                                    drawBorder: true,
+                                    borderColor: 'rgba(247, 147, 26, 0.3)'
+                                }
+                            },
+                            y: {
+                                type: 'logarithmic',
+                                title: {
+                                    display: true,
+                                    text: 'Stock-to-Flow Ratio (log scale)',
+                                    color: '#e0e0e0',
+                                    font: {
+                                        size: 13,
+                                        weight: 'bold'
+                                    }
+                                },
+                                min: 1,
+                                max: 1000,
+                                ticks: {
+                                    color: '#999',
+                                    callback: function(value) {
+                                        // Show clean ticks: 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000
+                                        const label = value.toFixed(0);
+                                        if ([1, 2, 5, 10, 20, 50, 100, 200, 500, 1000].includes(parseInt(label))) {
+                                            return label;
+                                        }
+                                        return null;
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(247, 147, 26, 0.1)',
+                                    drawBorder: true,
+                                    borderColor: 'rgba(247, 147, 26, 0.3)'
                                 }
                             }
                         }
