@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The $50 Emergency - Branching Scenario | Bitcoin Sovereign Academy</title>
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #0f0f0f;
+            --secondary-dark: #1a1a1a;
+            --text-light: #e0e0e0;
+            --text-dim: #888888;
+            --success-green: #4CAF50;
+            --warning-yellow: #FFC107;
+            --error-red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05));
+            border: 3px solid var(--error-red);
+            border-radius: 1rem;
+            animation: urgentPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes urgentPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(239, 68, 68, 0.6); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: var(--error-red);
+            margin-bottom: 1rem;
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+        }
+
+        /* Timer */
+        .timer-box {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(239, 68, 68, 0.5);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .timer {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--error-red);
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer-label {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 0.5rem;
+        }
+
+        /* Story Card */
+        .story-card {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .story-text {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .story-text strong {
+            color: var(--primary-orange);
+        }
+
+        .dialogue {
+            background: rgba(247, 147, 26, 0.1);
+            border-left: 4px solid var(--primary-orange);
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            border-radius: 0.5rem;
+            font-style: italic;
+        }
+
+        .dialogue .speaker {
+            color: var(--primary-orange);
+            font-weight: 700;
+            font-style: normal;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        /* Choice Buttons */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .choice-btn {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        .choice-btn:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(247, 147, 26, 0.3);
+        }
+
+        .choice-btn .choice-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-orange);
+        }
+
+        .choice-btn .choice-desc {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+        }
+
+        /* Outcome Cards */
+        .outcome {
+            background: var(--secondary-dark);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .outcome.success {
+            border: 2px solid var(--success-green);
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.05));
+        }
+
+        .outcome.failure {
+            border: 2px solid var(--error-red);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05));
+        }
+
+        .outcome.partial {
+            border: 2px solid var(--warning-yellow);
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 193, 7, 0.05));
+        }
+
+        .outcome-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .outcome.success .outcome-title {
+            color: var(--success-green);
+        }
+
+        .outcome.failure .outcome-title {
+            color: var(--error-red);
+        }
+
+        .outcome.partial .outcome-title {
+            color: var(--warning-yellow);
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .stat-item {
+            background: var(--primary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+        }
+
+        /* Learning Box */
+        .learning-box {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.15), rgba(247, 147, 26, 0.05));
+            border: 2px solid var(--primary-orange);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .learning-box h3 {
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .learning-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .learning-box li {
+            padding: 0.75rem 0;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .learning-box li:before {
+            content: "💡";
+            position: absolute;
+            left: 0;
+        }
+
+        /* Restart Button */
+        .restart-btn {
+            background: var(--primary-orange);
+            color: var(--primary-dark);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: block;
+            margin: 2rem auto;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(247, 147, 26, 0.4);
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .timer {
+                font-size: 2rem;
+            }
+
+            .story-text {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🚨 The $50 Emergency</h1>
+            <p class="subtitle">A branching narrative about financial access and time</p>
+        </div>
+
+        <!-- Timer -->
+        <div class="timer-box">
+            <div class="timer" id="timer">04:00:00</div>
+            <div class="timer-label">Time Until Pharmacy Closes</div>
+        </div>
+
+        <!-- Story Container -->
+        <div id="story-container"></div>
+
+        <!-- Restart Button (initially hidden) -->
+        <button class="restart-btn hidden" id="restart-btn" onclick="restartStory()">
+            🔄 Try Different Choices
+        </button>
+    </div>
+
+    <script>
+        // Story state
+        let currentScene = 'intro';
+        let timerInterval;
+        let timeRemaining = 4 * 60 * 60; // 4 hours
+        let choices = [];
+
+        // Story data structure
+        const story = {
+            intro: {
+                text: `
+                    <p class="story-text">
+                        It's <strong>3:47 PM on a Friday</strong>. Your sister Maria calls from across the country,
+                        her voice shaking with panic.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">Maria:</span>
+                        "I need your help. Emma has a fever of 104°F and the doctor prescribed emergency antibiotics.
+                        The pharmacy closes at 8 PM and I'm $50 short. My card was declined — I think the bank
+                        flagged it for 'suspicious activity' because I bought gas in a different state yesterday.
+                        Can you send me $50? Please?"
+                    </div>
+                    <p class="story-text">
+                        You have <strong>$200 in your checking account</strong>, $850 in Bitcoin, and 4 hours to help Emma.
+                    </p>
+                    <p class="story-text">
+                        What do you do?
+                    </p>
+                `,
+                choices: [
+                    {
+                        title: "🏦 Send via Bank Wire/ACH",
+                        desc: "The traditional way. Should be reliable, right?",
+                        next: 'bank_path'
+                    },
+                    {
+                        title: "💳 Try PayPal/Venmo",
+                        desc: "Fast digital payment. You've used it before.",
+                        next: 'paypal_path'
+                    },
+                    {
+                        title: "₿ Send Bitcoin",
+                        desc: "You've been learning about it. Now might be the time.",
+                        next: 'bitcoin_path'
+                    }
+                ]
+            },
+
+            bank_path: {
+                text: `
+                    <p class="story-text">
+                        You log into your bank's website and navigate to "Send Money."
+                    </p>
+                    <p class="story-text">
+                        <strong>Bank System Message:</strong> "Wire transfers: $25 fee, processes next business day.
+                        ACH transfers: Free, processes in 3-5 business days."
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">You (thinking):</span>
+                        "Wait... it's Friday at 4 PM. 'Next business day' means Monday. And ACH takes even longer..."
+                    </div>
+                    <p class="story-text">
+                        Your phone rings. It's Maria again, crying.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">Maria:</span>
+                        "The pharmacist said they can hold the medication until closing, but not overnight.
+                        If I don't get it by 8 PM, I'll have to go to the ER. That's $300 copay I don't have..."
+                    </div>
+                `,
+                choices: [
+                    {
+                        title: "Pay $25 Wire Fee, Hope It Goes Through",
+                        desc: "Maybe 'next business day' is just a warning, not a guarantee?",
+                        next: 'bank_wire_outcome'
+                    },
+                    {
+                        title: "Call Bank to Expedite",
+                        desc: "There must be someone who can help in an emergency.",
+                        next: 'bank_call_outcome'
+                    },
+                    {
+                        title: "Switch to Different Method",
+                        desc: "The bank won't work. Try something else.",
+                        next: 'switch_from_bank'
+                    }
+                ]
+            },
+
+            paypal_path: {
+                text: `
+                    <p class="story-text">
+                        You open PayPal/Venmo. Maria's account shows up immediately.
+                    </p>
+                    <p class="story-text">
+                        You send $50. <strong>"Payment Sent!"</strong> the app confirms.
+                    </p>
+                    <p class="story-text">
+                        15 minutes later, Maria calls back, frustrated.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">Maria:</span>
+                        "It says 'Payment Under Review.' It won't let me withdraw to my bank or debit card.
+                        There's a message saying it could take 24-72 hours to clear because I haven't used
+                        this account in 6 months..."
+                    </div>
+                    <p class="story-text">
+                        You call PayPal support. <strong>Estimated wait time: 45 minutes.</strong>
+                    </p>
+                `,
+                choices: [
+                    {
+                        title: "Wait on Hold with PayPal Support",
+                        desc: "They should be able to release the funds, right?",
+                        next: 'paypal_support_outcome'
+                    },
+                    {
+                        title: "Send More Money to Override the Hold",
+                        desc: "Maybe if you send another $100, one will go through?",
+                        next: 'paypal_double_send'
+                    },
+                    {
+                        title: "Try Bitcoin Instead",
+                        desc: "You're running out of time. Try the Bitcoin option.",
+                        next: 'bitcoin_path_late'
+                    }
+                ]
+            },
+
+            bitcoin_path: {
+                text: `
+                    <p class="story-text">
+                        You open your Bitcoin wallet. Maria doesn't have Bitcoin, but you remember hearing about
+                        services that let people receive Bitcoin and instantly convert to cash.
+                    </p>
+                    <p class="story-text">
+                        You quickly text her: "Download Strike/CashApp. I'll send you $50 in Bitcoin,
+                        you can cash out immediately."
+                    </p>
+                    <p class="story-text">
+                        5 minutes later, she's set up. You send 0.0005 BTC (≈$50). <strong>Network fee: $2.</strong>
+                    </p>
+                    <p class="story-text">
+                        <strong>First confirmation: 8 minutes.</strong><br>
+                        Maria's app shows: "Bitcoin received! You can cash out now or wait for more confirmations."
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">Maria:</span>
+                        "It's here! I'm cashing out to my debit card... okay, it says '$48 available in
+                        60 seconds.' Oh my god, thank you!"
+                    </div>
+                `,
+                choices: [
+                    {
+                        title: "See the Outcome",
+                        desc: "How did this approach work out?",
+                        next: 'bitcoin_success'
+                    }
+                ]
+            },
+
+            bitcoin_path_late: {
+                text: `
+                    <p class="story-text">
+                        It's now <strong>6:20 PM</strong>. You've already wasted 90 minutes on the bank and PayPal.
+                    </p>
+                    <p class="story-text">
+                        You rush through setting up Bitcoin with Maria. The transaction goes through in 12 minutes.
+                        She cashes out and drives to the pharmacy.
+                    </p>
+                    <p class="story-text">
+                        <strong>She arrives at 7:08 PM.</strong> The medication is ready. Emma gets her antibiotics.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">Maria (texting):</span>
+                        "Made it with 52 minutes to spare. Why didn't we try this first??"
+                    </div>
+                `,
+                choices: [
+                    {
+                        title: "See the Outcome",
+                        desc: "You succeeded, but barely.",
+                        next: 'bitcoin_late_success'
+                    }
+                ]
+            },
+
+            bank_wire_outcome: {
+                text: `
+                    <p class="story-text">
+                        You pay the $25 wire fee ($75 total sent) and submit the transfer.
+                    </p>
+                    <p class="story-text">
+                        <strong>Confirmation:</strong> "Wire transfer initiated. Estimated completion: Next business day (Monday)."
+                    </p>
+                    <p class="story-text">
+                        It's 4:30 PM Friday. The pharmacy closes in 3.5 hours. Monday is 62 hours away.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">Maria:</span>
+                        "I... I don't have the money. I'll have to take Emma to the ER. I can't afford this..."
+                    </div>
+                    <p class="story-text">
+                        <strong>Final cost: ER visit $300 copay + $125 overnight stay.</strong>
+                        Your $75 arrives Monday morning, too late.
+                    </p>
+                `,
+                choices: [
+                    {
+                        title: "See Final Outcome",
+                        desc: "",
+                        next: 'bank_failure'
+                    }
+                ]
+            },
+
+            bank_call_outcome: {
+                text: `
+                    <p class="story-text">
+                        You call the bank. <strong>Automated system: "Estimated wait time: 38 minutes."</strong>
+                    </p>
+                    <p class="story-text">
+                        After 45 minutes, you reach a representative.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">Bank Rep:</span>
+                        "I understand your emergency, but we cannot process same-day wire transfers after 2 PM.
+                        The cutoff has passed. I apologize, but there's no override for this."
+                    </div>
+                    <p class="story-text">
+                        It's now 5:30 PM. 2.5 hours left. You've lost 90 minutes.
+                    </p>
+                `,
+                choices: [
+                    {
+                        title: "Try PayPal as Last Resort",
+                        desc: "Still have time, maybe?",
+                        next: 'paypal_path'
+                    },
+                    {
+                        title: "Try Bitcoin",
+                        desc: "Running out of options.",
+                        next: 'bitcoin_path_late'
+                    }
+                ]
+            },
+
+            paypal_support_outcome: {
+                text: `
+                    <p class="story-text">
+                        After 52 minutes on hold, you reach PayPal support.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">PayPal Support:</span>
+                        "For security reasons, we cannot expedite payment reviews. The system has flagged
+                        this as suspicious due to account inactivity. Your payment will clear in 24-72 hours."
+                    </div>
+                    <p class="story-text">
+                        It's 7:15 PM. 45 minutes until the pharmacy closes. Not enough time to try Bitcoin.
+                    </p>
+                `,
+                choices: [
+                    {
+                        title: "See the Outcome",
+                        desc: "",
+                        next: 'paypal_failure'
+                    }
+                ]
+            },
+
+            switch_from_bank: {
+                text: `
+                    <p class="story-text">
+                        You abandon the bank transfer and reconsider your options.
+                    </p>
+                `,
+                choices: [
+                    {
+                        title: "Try PayPal/Venmo",
+                        desc: "Should be faster than bank wire.",
+                        next: 'paypal_path'
+                    },
+                    {
+                        title: "Try Bitcoin",
+                        desc: "Might as well learn how it works now.",
+                        next: 'bitcoin_path'
+                    }
+                ]
+            },
+
+            // OUTCOMES
+            bitcoin_success: {
+                outcome: 'success',
+                title: "✅ Mission Accomplished",
+                text: `
+                    <p class="story-text">
+                        <strong>Total time elapsed:</strong> 28 minutes<br>
+                        <strong>Total cost:</strong> $52 ($50 sent + $2 network fee)<br>
+                        <strong>Pharmacy arrival:</strong> 5:02 PM (2 hours 58 minutes to spare)
+                    </p>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-value">28 min</div>
+                            <div class="stat-label">Total Time</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">$52</div>
+                            <div class="stat-label">Total Cost</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">100%</div>
+                            <div class="stat-label">Success Rate</div>
+                        </div>
+                    </div>
+                    <p class="story-text">
+                        Emma gets her antibiotics. Her fever breaks overnight. Maria texts you the next morning:
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">Maria:</span>
+                        "Emma's fever is down to 99°F. She's asking for pancakes. You saved us.
+                        Also... I think I get Bitcoin now. That was incredible."
+                    </div>
+                `,
+                learning: [
+                    "Bitcoin transactions settle in minutes, not days",
+                    "No business hours, weekends, or bank holidays",
+                    "Minimal fees ($2) vs bank wires ($25+)",
+                    "No permission needed — no account holds or flags",
+                    "Instant conversion to local currency via modern apps",
+                    "True 24/7/365 financial access anywhere in the world"
+                ]
+            },
+
+            bitcoin_late_success: {
+                outcome: 'partial',
+                title: "⚠️ Success, But Barely",
+                text: `
+                    <p class="story-text">
+                        <strong>Total time elapsed:</strong> 2 hours 48 minutes<br>
+                        <strong>Total cost:</strong> $52 (Bitcoin) + time wasted on failed methods<br>
+                        <strong>Pharmacy arrival:</strong> 7:08 PM (52 minutes to spare)
+                    </p>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-value">168 min</div>
+                            <div class="stat-label">Total Time</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">$52</div>
+                            <div class="stat-label">Final Cost</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">52 min</div>
+                            <div class="stat-label">Time to Spare</div>
+                        </div>
+                    </div>
+                    <p class="story-text">
+                        You succeeded, but wasted 90 minutes on systems that failed you.
+                        Emma gets her medication, but the stress was unnecessary.
+                    </p>
+                `,
+                learning: [
+                    "Traditional systems have gatekeepers that can arbitrarily deny access",
+                    "When seconds matter, waiting on hold or for business hours isn't an option",
+                    "Bitcoin works when other systems fail — but works even better when used first",
+                    "Financial emergencies don't wait for bank approvals"
+                ]
+            },
+
+            bank_failure: {
+                outcome: 'failure',
+                title: "❌ Too Late",
+                text: `
+                    <p class="story-text">
+                        <strong>Total cost:</strong> $75 (wire transfer) + $300 (ER copay) + $125 (overnight stay) = <strong>$500</strong><br>
+                        <strong>Emotional cost:</strong> Immeasurable stress, fear, and preventable suffering
+                    </p>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-value">$500</div>
+                            <div class="stat-label">Total Cost</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">62 hrs</div>
+                            <div class="stat-label">Wire Transfer Time</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">0%</div>
+                            <div class="stat-label">Success Rate</div>
+                        </div>
+                    </div>
+                    <p class="story-text">
+                        Emma spent Friday night in the ER. She's fine now, but Maria is now $425 deeper in debt.
+                        The $75 you sent arrives Monday — three days too late.
+                    </p>
+                `,
+                learning: [
+                    "Banks operate on their schedule, not yours",
+                    "'Next business day' means Monday if it's Friday afternoon",
+                    "Wire transfer fees are just the beginning of hidden costs",
+                    "In emergencies, traditional finance can fail catastrophically",
+                    "The cost of 'waiting for the bank' can be 10x the original need"
+                ]
+            },
+
+            paypal_failure: {
+                outcome: 'failure',
+                title: "❌ Held Hostage by Algorithms",
+                text: `
+                    <p class="story-text">
+                        <strong>Time wasted:</strong> 135 minutes (2 hours 15 minutes)<br>
+                        <strong>Money locked:</strong> $50 held for 24-72 hours<br>
+                        <strong>Final cost:</strong> ER visit ($300) + overnight ($125) = <strong>$425</strong>
+                    </p>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-value">$425</div>
+                            <div class="stat-label">Total Cost</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">72 hrs</div>
+                            <div class="stat-label">Funds Held</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">0%</div>
+                            <div class="stat-label">Success Rate</div>
+                        </div>
+                    </div>
+                    <p class="story-text">
+                        Your payment clears 36 hours later — Sunday morning. Far too late.
+                        Maria had to take Emma to the ER Friday night.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">Maria (text message Sunday):</span>
+                        "Your PayPal payment just cleared. Emma's fine now, but we're broke until next payday.
+                        I can't believe they held the money 'for my protection.'"
+                    </div>
+                `,
+                learning: [
+                    "Digital payment platforms can freeze funds arbitrarily",
+                    "Algorithms decide who gets access and when",
+                    "Customer support cannot override automated systems",
+                    "Your money isn't really yours if someone else controls access",
+                    "In a real emergency, 'pending review' means failure"
+                ]
+            }
+        };
+
+        // Start timer
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                const hours = Math.floor(timeRemaining / 3600);
+                const minutes = Math.floor((timeRemaining % 3600) / 60);
+                const seconds = timeRemaining % 60;
+
+                const timerEl = document.getElementById('timer');
+                if (timerEl) {
+                    timerEl.textContent =
+                        `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                }
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    timerEl.textContent = 'TOO LATE';
+                    timerEl.style.color = 'var(--error-red)';
+                }
+            }, 1000);
+        }
+
+        // Render scene
+        function renderScene(sceneKey) {
+            const scene = story[sceneKey];
+            const container = document.getElementById('story-container');
+
+            // Build HTML
+            let html = '';
+
+            // Story content
+            if (scene.outcome) {
+                // This is an ending
+                html += `
+                    <div class="outcome ${scene.outcome}">
+                        <h2 class="outcome-title">${scene.title}</h2>
+                        ${scene.text}
+                    </div>
+                `;
+
+                if (scene.learning) {
+                    html += `
+                        <div class="learning-box">
+                            <h3>💡 What You Just Experienced</h3>
+                            <ul>
+                                ${scene.learning.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                // Show restart button
+                document.getElementById('restart-btn').classList.remove('hidden');
+                clearInterval(timerInterval);
+            } else {
+                // Regular scene
+                html += `<div class="story-card">${scene.text}</div>`;
+
+                // Choices
+                if (scene.choices && scene.choices.length > 0) {
+                    html += '<div class="choices">';
+                    scene.choices.forEach((choice, index) => {
+                        html += `
+                            <button class="choice-btn" onclick="makeChoice('${choice.next}')">
+                                <div class="choice-title">${choice.title}</div>
+                                <div class="choice-desc">${choice.desc}</div>
+                            </button>
+                        `;
+                    });
+                    html += '</div>';
+                }
+            }
+
+            container.innerHTML = html;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Make choice
+        function makeChoice(nextScene) {
+            choices.push(nextScene);
+            currentScene = nextScene;
+            renderScene(nextScene);
+        }
+
+        // Restart story
+        function restartStory() {
+            currentScene = 'intro';
+            choices = [];
+            timeRemaining = 4 * 60 * 60;
+            clearInterval(timerInterval);
+            startTimer();
+            document.getElementById('restart-btn').classList.add('hidden');
+            renderScene('intro');
+        }
+
+        // Initialize
+        startTimer();
+        renderScene('intro');
+    </script>
+</body>
+</html>
