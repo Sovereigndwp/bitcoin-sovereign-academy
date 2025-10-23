@@ -950,11 +950,26 @@
                 circle.setAttribute('r', 30);
                 g.appendChild(circle);
 
+                // Node name
                 const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                 text.setAttribute('x', node.x);
-                text.setAttribute('y', node.y + 5);
+                text.setAttribute('y', node.y);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('font-size', '12');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('fill', '#fff');
                 text.textContent = node.id.charAt(0).toUpperCase() + node.id.slice(1);
                 g.appendChild(text);
+
+                // Node balance (below name)
+                const balanceText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                balanceText.setAttribute('x', node.x);
+                balanceText.setAttribute('y', node.y + 45);
+                balanceText.setAttribute('text-anchor', 'middle');
+                balanceText.setAttribute('font-size', '10');
+                balanceText.setAttribute('fill', '#FFC107');
+                balanceText.textContent = `${(node.balance / 1000).toFixed(0)}k sats`;
+                g.appendChild(balanceText);
 
                 svg.appendChild(g);
             });
@@ -966,15 +981,40 @@
             const feePerHop = 10;
             const totalFee = (route.length - 1) * feePerHop;
 
+            // Check if sender has enough balance
+            const senderNode = networkNodes.find(n => n.id === route[0]);
+            if (senderNode.balance < amount + totalFee) {
+                addLog(`❌ ${route[0]} doesn't have enough balance! (Has: ${senderNode.balance} sats, needs: ${amount + totalFee} sats)`, 'error');
+                return;
+            }
+
             addLog(`Sending ${amount} sats from Alice to Carol...`, 'info');
             addLog(`Route: ${route.join(' → ')}`, 'info');
             addLog(`Fee: ${totalFee} sats (${feePerHop} per hop)`, 'warning');
 
+            // Update balances along the route
             setTimeout(() => {
+                // Sender pays amount + fees
+                const sender = networkNodes.find(n => n.id === route[0]);
+                sender.balance -= (amount + totalFee);
+
+                // Intermediary routers collect fees
+                for (let i = 1; i < route.length - 1; i++) {
+                    const router = networkNodes.find(n => n.id === route[i]);
+                    router.balance += feePerHop;
+                }
+
+                // Receiver gets the amount
+                const receiver = networkNodes.find(n => n.id === route[route.length - 1]);
+                receiver.balance += amount;
+
+                // Update stats and UI
                 totalSent += amount;
                 totalFees += totalFee;
                 updateStats();
+                drawNetwork(); // Redraw to show updated balances
                 addLog(`✅ Payment successful! ${amount} sats delivered.`, 'success');
+                addLog(`💰 Balances updated: Alice: ${sender.balance.toLocaleString()}, Bob: ${networkNodes.find(n => n.id === 'bob').balance.toLocaleString()}, Carol: ${receiver.balance.toLocaleString()}`, 'info');
             }, 1500);
         }
 
