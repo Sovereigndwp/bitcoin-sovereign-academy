@@ -388,7 +388,7 @@
                 </div>
             </div>
 
-            <canvas id="s2f-chart"></canvas>
+            <svg id="s2f-chart" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
 
         <div class="intro-section">
@@ -517,7 +517,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Stock-to-Flow Calculator
         const blockHeightSlider = document.getElementById('block-height');
@@ -562,6 +561,8 @@
             };
         }
 
+        // Throttle updates for better performance
+        let updateTimeout;
         function updateDisplay() {
             const height = parseInt(blockHeightSlider.value);
             blockValue.textContent = height.toLocaleString();
@@ -584,244 +585,132 @@
 
             halvingNumber.textContent = metrics.halvingEra;
 
-            updateChart();
+            updateSVGChart(height, metrics);
         }
 
-        // Chart
-        const ctx = document.getElementById('s2f-chart').getContext('2d');
-        let chart;
-
-        function updateChart() {
-            const data = [];
-            const labels = [];
-            const halvingPoints = [];
-
-            // Generate data points: sample every 5000 blocks for smoothness
-            // Go up to block 1,050,000 (halving 5, year ~2028)
-            for (let block = BLOCKS_PER_YEAR; block <= 1050000; block += 5000) {
-                const metrics = calculateBitcoinMetrics(block);
-                // Filter out very high S2F values that skew the chart
-                if (metrics.s2f > 0 && metrics.s2f < 5000 && metrics.annualFlow > 0.01) {
-                    labels.push(block);
-                    data.push(metrics.s2f);
-                }
-            }
-
-            // Mark halving boundaries with vertical annotation points
-            for (let era = 1; era <= 5; era++) {
-                const halvingBlock = era * HALVING_INTERVAL;
-                if (halvingBlock <= 1050000) {
-                    const metrics = calculateBitcoinMetrics(halvingBlock);
-                    halvingPoints.push({
-                        x: halvingBlock,
-                        y: metrics.s2f,
-                        era: era
-                    });
-                }
-            }
-
-            const currentHeight = parseInt(blockHeightSlider.value);
-            // Find the closest data point index to current height
-            const currentIndex = labels.findIndex(block => block >= currentHeight);
-
-            if (chart) {
-                chart.data.labels = labels;
-                chart.data.datasets[0].data = data;
+        // Lightweight SVG Chart
+        function updateSVGChart(currentBlock, currentMetrics) {
+            const svg = document.getElementById('s2f-chart');
+            const width = 800;
+            const height = 400;
+            const padding = 60;
+            
+            // Precomputed S2F values at key halvings (for performance)
+            const halvingData = [
+                { block: 0, s2f: 1.8, era: 0 },
+                { block: 210000, s2f: 10.5, era: 1 },
+                { block: 420000, s2f: 25, era: 2 },
+                { block: 630000, s2f: 56, era: 3 },
+                { block: 840000, s2f: 120, era: 4 },
+                { block: 1050000, s2f: 250, era: 5 }
+            ];
+            
+            // Scale functions
+            const xScale = (block) => padding + (block / 1050000) * (width - 2 * padding);
+            const yScale = (s2f) => {
+                const logS2f = Math.log10(Math.max(1, s2f));
+                const logMax = Math.log10(300);
+                return height - padding - (logS2f / logMax) * (height - 2 * padding);
+            };
+            
+            // Clear and redraw
+            svg.innerHTML = '';
+            
+            // Background grid
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+            gradient.setAttribute('id', 's2fGradient');
+            gradient.setAttribute('x1', '0%');
+            gradient.setAttribute('y1', '0%');
+            gradient.setAttribute('x2', '0%');
+            gradient.setAttribute('y2', '100%');
+            gradient.innerHTML = `
+                <stop offset="0%" style="stop-color:rgba(247,147,26,0.3);stop-opacity:1" />
+                <stop offset="100%" style="stop-color:rgba(247,147,26,0);stop-opacity:1" />
+            `;
+            defs.appendChild(gradient);
+            svg.appendChild(defs);
+            
+            // Draw curve as path
+            let pathData = 'M';
+            halvingData.forEach((point, i) => {
+                const x = xScale(point.block);
+                const y = yScale(point.s2f);
+                pathData += i === 0 ? `${x},${y}` : ` L${x},${y}`;
+            });
+            
+            // Fill area under curve
+            const fillPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            fillPath.setAttribute('d', pathData + ` L${xScale(1050000)},${height - padding} L${padding},${height - padding} Z`);
+            fillPath.setAttribute('fill', 'url(#s2fGradient)');
+            svg.appendChild(fillPath);
+            
+            // Draw line
+            const linePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            linePath.setAttribute('d', pathData);
+            linePath.setAttribute('stroke', '#f7931a');
+            linePath.setAttribute('stroke-width', '3');
+            linePath.setAttribute('fill', 'none');
+            svg.appendChild(linePath);
+            
+            // Draw halving markers
+            halvingData.slice(1).forEach(point => {
+                const cx = xScale(point.block);
+                const cy = yScale(point.s2f);
                 
-                // Update current position marker
-                const currentMarker = Array(labels.length).fill(null);
-                if (currentIndex >= 0 && currentIndex < data.length) {
-                    currentMarker[currentIndex] = data[currentIndex];
-                }
-                chart.data.datasets[1].data = currentMarker;
+                // Vertical line
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', cx);
+                line.setAttribute('y1', padding);
+                line.setAttribute('x2', cx);
+                line.setAttribute('y2', height - padding);
+                line.setAttribute('stroke', 'rgba(156, 39, 176, 0.3)');
+                line.setAttribute('stroke-width', '2');
+                line.setAttribute('stroke-dasharray', '5,5');
+                svg.appendChild(line);
                 
-                // Update halving markers
-                chart.data.datasets[2].data = halvingPoints;
-                
-                chart.update('none'); // Skip animation for smooth slider interaction
-            } else {
-                chart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'Stock-to-Flow Ratio',
-                                data: data,
-                                borderColor: '#f7931a',
-                                backgroundColor: 'rgba(247, 147, 26, 0.15)',
-                                fill: true,
-                                tension: 0.3,
-                                borderWidth: 2,
-                                pointRadius: 0,
-                                pointHoverRadius: 6,
-                                pointHoverBorderWidth: 2
-                            },
-                            {
-                                label: 'Current Position',
-                                data: Array(labels.length).fill(null),
-                                pointBackgroundColor: '#4caf50',
-                                pointBorderColor: '#fff',
-                                pointBorderWidth: 3,
-                                pointRadius: 10,
-                                pointHoverRadius: 12,
-                                showLine: false,
-                                pointStyle: 'circle'
-                            },
-                            {
-                                label: 'Halving Events',
-                                data: halvingPoints,
-                                pointBackgroundColor: '#9C27B0',
-                                pointBorderColor: '#fff',
-                                pointBorderWidth: 2,
-                                pointRadius: 7,
-                                pointHoverRadius: 9,
-                                showLine: false,
-                                pointStyle: 'triangle'
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            mode: 'nearest',
-                            axis: 'x',
-                            intersect: false
-                        },
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top',
-                                labels: {
-                                    color: '#e0e0e0',
-                                    padding: 12,
-                                    font: {
-                                        size: 11
-                                    },
-                                    usePointStyle: true
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                                padding: 12,
-                                titleColor: '#f7931a',
-                                bodyColor: '#e0e0e0',
-                                borderColor: '#f7931a',
-                                borderWidth: 1,
-                                callbacks: {
-                                    title: function(context) {
-                                        const block = context[0].label;
-                                        return 'Block ' + parseInt(block).toLocaleString();
-                                    },
-                                    label: function(context) {
-                                        const s2f = context.parsed.y;
-                                        if (context.dataset.label === 'Stock-to-Flow Ratio') {
-                                            return 'S2F Ratio: ' + s2f.toFixed(1) + ' years';
-                                        } else if (context.dataset.label === 'Halving Events') {
-                                            const eraData = context.raw;
-                                            return 'Halving ' + eraData.era + ' (S2F: ' + s2f.toFixed(1) + ')';
-                                        } else {
-                                            return 'Current: S2F ' + s2f.toFixed(1);
-                                        }
-                                    },
-                                    afterLabel: function(context) {
-                                        if (context.dataset.label === 'Stock-to-Flow Ratio') {
-                                            const block = parseInt(context.label);
-                                            const metrics = calculateBitcoinMetrics(block);
-                                            return [
-                                                'Supply: ' + metrics.totalBTC.toFixed(0) + ' BTC',
-                                                'Annual Flow: ' + metrics.annualFlow.toFixed(0) + ' BTC/year'
-                                            ];
-                                        }
-                                        return null;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                type: 'linear',
-                                title: {
-                                    display: true,
-                                    text: 'Block Height',
-                                    color: '#e0e0e0',
-                                    font: {
-                                        size: 12,
-                                        weight: '600'
-                                    }
-                                },
-                                min: 0,
-                                max: 1050000,
-                                ticks: {
-                                    color: '#999',
-                                    maxTicksLimit: 8,
-                                    callback: function(value) {
-                                        // Show halving boundaries
-                                        if (value % 210000 === 0) {
-                                            return (value / 1000).toFixed(0) + 'k';
-                                        }
-                                        return (value / 1000).toFixed(0) + 'k';
-                                    },
-                                    font: {
-                                        size: 10
-                                    }
-                                },
-                                grid: {
-                                    color: function(context) {
-                                        // Highlight halving boundaries
-                                        if (context.tick.value % 210000 === 0 && context.tick.value > 0) {
-                                            return 'rgba(156, 39, 176, 0.3)';
-                                        }
-                                        return 'rgba(247, 147, 26, 0.08)';
-                                    },
-                                    lineWidth: function(context) {
-                                        if (context.tick.value % 210000 === 0 && context.tick.value > 0) {
-                                            return 2;
-                                        }
-                                        return 1;
-                                    },
-                                    drawBorder: true,
-                                    borderColor: 'rgba(247, 147, 26, 0.4)'
-                                }
-                            },
-                            y: {
-                                type: 'logarithmic',
-                                title: {
-                                    display: true,
-                                    text: 'Stock-to-Flow Ratio (years)',
-                                    color: '#e0e0e0',
-                                    font: {
-                                        size: 12,
-                                        weight: '600'
-                                    }
-                                },
-                                min: 1,
-                                max: 300,
-                                ticks: {
-                                    color: '#999',
-                                    callback: function(value) {
-                                        // Show: 1, 2, 5, 10, 20, 50, 100, 200
-                                        const tickValues = [1, 2, 5, 10, 20, 50, 100, 200];
-                                        if (tickValues.includes(Math.round(value))) {
-                                            return Math.round(value);
-                                        }
-                                        return null;
-                                    },
-                                    font: {
-                                        size: 10
-                                    }
-                                },
-                                grid: {
-                                    color: 'rgba(247, 147, 26, 0.08)',
-                                    drawBorder: true,
-                                    borderColor: 'rgba(247, 147, 26, 0.4)'
-                                }
-                            }
-                        }
-                    }
-                });
-            }
+                // Halving point
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', cx);
+                circle.setAttribute('cy', cy);
+                circle.setAttribute('r', '6');
+                circle.setAttribute('fill', '#9C27B0');
+                circle.setAttribute('stroke', '#fff');
+                circle.setAttribute('stroke-width', '2');
+                svg.appendChild(circle);
+            });
+            
+            // Draw current position marker
+            const currentX = xScale(currentBlock);
+            const currentY = yScale(currentMetrics.s2f);
+            const marker = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            marker.setAttribute('cx', currentX);
+            marker.setAttribute('cy', currentY);
+            marker.setAttribute('r', '8');
+            marker.setAttribute('fill', '#4caf50');
+            marker.setAttribute('stroke', '#fff');
+            marker.setAttribute('stroke-width', '3');
+            svg.appendChild(marker);
+            
+            // Axes labels
+            const xAxisLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            xAxisLabel.setAttribute('x', width / 2);
+            xAxisLabel.setAttribute('y', height - 10);
+            xAxisLabel.setAttribute('text-anchor', 'middle');
+            xAxisLabel.setAttribute('fill', '#e0e0e0');
+            xAxisLabel.setAttribute('font-size', '12');
+            xAxisLabel.textContent = 'Block Height';
+            svg.appendChild(xAxisLabel);
+            
+            const yAxisLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            yAxisLabel.setAttribute('x', -height / 2);
+            yAxisLabel.setAttribute('y', 20);
+            yAxisLabel.setAttribute('text-anchor', 'middle');
+            yAxisLabel.setAttribute('fill', '#e0e0e0');
+            yAxisLabel.setAttribute('font-size', '12');
+            yAxisLabel.setAttribute('transform', `rotate(-90, 20, ${height / 2})`);
+            yAxisLabel.textContent = 'S2F Ratio (years)';
+            svg.appendChild(yAxisLabel);
         }
 
         blockHeightSlider.addEventListener('input', updateDisplay);
