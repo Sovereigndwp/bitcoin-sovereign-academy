@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Chain Explorer | Bitcoin Sovereign Academy</title>
+    <meta name="description" content="Visualize Bitcoin's timechain with block time analysis, variance demonstration, and real-time block countdown">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #0f0f0f;
+            --secondary-dark: #1a1a1a;
+            --text-light: #e0e0e0;
+            --text-dim: #888888;
+            --success-green: #4CAF50;
+            --warning-yellow: #FFC107;
+            --error-red: #ef4444;
+            --accent-cyan: #00BCD4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-orange), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        /* Next Block Countdown */
+        .countdown-card {
+            background: linear-gradient(135deg, var(--secondary-dark), #252525);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0, 188, 212, 0.2);
+        }
+
+        .countdown-title {
+            font-size: 1.2rem;
+            color: var(--accent-cyan);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .countdown-value {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            margin-bottom: 1rem;
+        }
+
+        .countdown-subtitle {
+            color: var(--text-dim);
+            font-size: 1rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-light);
+        }
+
+        .stat-value.highlight {
+            color: var(--primary-orange);
+        }
+
+        /* Block Time Visualization */
+        .visualization-card {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            margin-bottom: 1.5rem;
+        }
+
+        #blockTimeChart {
+            width: 100%;
+            height: 400px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Block Stream */
+        .block-stream {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            height: 400px;
+            overflow-y: auto;
+        }
+
+        .block-item {
+            background: rgba(247, 147, 26, 0.1);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .block-height {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+        }
+
+        .block-time {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .block-time-value {
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+        }
+
+        .fast {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--success-green);
+        }
+
+        .normal {
+            background: rgba(0, 188, 212, 0.2);
+            color: var(--accent-cyan);
+        }
+
+        .slow {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error-red);
+        }
+
+        /* Educational Section */
+        .education-card {
+            background: linear-gradient(135deg, rgba(0, 188, 212, 0.1), rgba(0, 188, 212, 0.05));
+            border: 2px solid var(--accent-cyan);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .education-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            margin-bottom: 1rem;
+        }
+
+        .education-content {
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+
+        .education-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .education-content li {
+            padding-left: 1.5rem;
+            margin-bottom: 0.75rem;
+            position: relative;
+        }
+
+        .education-content li::before {
+            content: '⏰';
+            position: absolute;
+            left: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .countdown-value {
+                font-size: 3rem;
+            }
+
+            #blockTimeChart {
+                height: 300px;
+            }
+
+            .block-stream {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⏰ Time Chain Explorer</h1>
+            <p>Visualize Bitcoin's timechain with block time analysis and variance demonstration</p>
+        </div>
+
+        <!-- Next Block Countdown -->
+        <div class="countdown-card">
+            <div class="countdown-title">Estimated Next Block In:</div>
+            <div class="countdown-value" id="nextBlockCountdown">10:00</div>
+            <div class="countdown-subtitle">Average block time: ~10 minutes</div>
+        </div>
+
+        <!-- Network Stats -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-label">Current Block</div>
+                <div class="stat-value highlight" id="currentBlock">820,000</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Avg Time (Last 10)</div>
+                <div class="stat-value" id="avgTime10">9:45</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Avg Time (Last 100)</div>
+                <div class="stat-value" id="avgTime100">10:12</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Fastest (Last 100)</div>
+                <div class="stat-value" id="fastestBlock">0:32</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Slowest (Last 100)</div>
+                <div class="stat-value" id="slowestBlock">45:18</div>
+            </div>
+        </div>
+
+        <!-- Block Time Visualization -->
+        <div class="visualization-card">
+            <h2 class="card-title">📊 Block Time Distribution (Last 100 Blocks)</h2>
+            <div id="blockTimeChart"></div>
+        </div>
+
+        <!-- Recent Blocks Stream -->
+        <div class="visualization-card">
+            <h2 class="card-title">📦 Recent Blocks (Live Simulation)</h2>
+            <div class="block-stream" id="blockStream"></div>
+        </div>
+
+        <!-- Educational Content -->
+        <div class="education-card">
+            <h3 class="education-title">💡 Understanding Bitcoin's Timechain</h3>
+            <div class="education-content">
+                <ul>
+                    <li><strong>Probabilistic Mining</strong>: Block times are random - some are 1 minute, others 30+ minutes. Average: ~10 minutes</li>
+                    <li><strong>Poisson Distribution</strong>: Block discovery follows a Poisson process, meaning variance is expected and normal</li>
+                    <li><strong>Difficulty Adjustment</strong>: Every 2,016 blocks (~2 weeks), difficulty adjusts to maintain 10-minute average</li>
+                    <li><strong>Not a "Blockchain"</strong>: Bitcoin is better described as a "timechain" - blocks ordered by time/proof-of-work</li>
+                    <li><strong>Security Through Time</strong>: Older blocks have more accumulated proof-of-work, making them practically immutable</li>
+                    <li><strong>Timestamp Rules</strong>: Block timestamps must be greater than median of last 11 blocks and less than network time + 2 hours</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulated block data
+        let blocks = [];
+        let currentBlockHeight = 820000;
+        let lastBlockTime = Date.now();
+
+        // Generate initial blocks
+        function generateInitialBlocks() {
+            for (let i = 0; i < 100; i++) {
+                const blockTime = generateBlockTime();
+                blocks.unshift({
+                    height: currentBlockHeight - i,
+                    time: blockTime,
+                    timestamp: lastBlockTime - (i * blockTime * 1000)
+                });
+            }
+        }
+
+        // Generate realistic block time (Poisson distribution approximation)
+        function generateBlockTime() {
+            // Exponential distribution with mean = 600 seconds (10 minutes)
+            const mean = 600;
+            const u = Math.random();
+            const time = -mean * Math.log(u);
+            return Math.max(30, Math.min(3600, time)); // Clamp between 30s and 1 hour
+        }
+
+        // Format time in mm:ss
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${String(secs).padStart(2, '0')}`;
+        }
+
+        // Get block time class
+        function getBlockTimeClass(seconds) {
+            if (seconds < 300) return 'fast'; // < 5 minutes
+            if (seconds < 900) return 'normal'; // 5-15 minutes
+            return 'slow'; // > 15 minutes
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('currentBlock').textContent = currentBlockHeight.toLocaleString();
+
+            // Average last 10
+            const last10 = blocks.slice(0, 10);
+            const avg10 = last10.reduce((sum, b) => sum + b.time, 0) / last10.length;
+            document.getElementById('avgTime10').textContent = formatTime(avg10);
+
+            // Average last 100
+            const avg100 = blocks.reduce((sum, b) => sum + b.time, 0) / blocks.length;
+            document.getElementById('avgTime100').textContent = formatTime(avg100);
+
+            // Fastest and slowest
+            const times = blocks.map(b => b.time);
+            const fastest = Math.min(...times);
+            const slowest = Math.max(...times);
+            document.getElementById('fastestBlock').textContent = formatTime(fastest);
+            document.getElementById('slowestBlock').textContent = formatTime(slowest);
+        }
+
+        // Update next block countdown
+        let countdownSeconds = 600;
+        function updateCountdown() {
+            countdownSeconds--;
+
+            if (countdownSeconds <= 0) {
+                // New block found!
+                mineNewBlock();
+                countdownSeconds = generateBlockTime();
+            }
+
+            document.getElementById('nextBlockCountdown').textContent = formatTime(countdownSeconds);
+        }
+
+        // Mine new block
+        function mineNewBlock() {
+            currentBlockHeight++;
+            const blockTime = countdownSeconds || generateBlockTime();
+            const newBlock = {
+                height: currentBlockHeight,
+                time: blockTime,
+                timestamp: Date.now()
+            };
+
+            blocks.unshift(newBlock);
+            if (blocks.length > 100) blocks.pop();
+
+            addBlockToStream(newBlock);
+            updateStats();
+            renderBlockTimeChart();
+        }
+
+        // Add block to stream
+        function addBlockToStream(block) {
+            const stream = document.getElementById('blockStream');
+            const timeClass = getBlockTimeClass(block.time);
+
+            const blockEl = document.createElement('div');
+            blockEl.className = 'block-item';
+            blockEl.innerHTML = `
+                <div>
+                    <div class="block-height">Block ${block.height.toLocaleString()}</div>
+                    <div class="block-time">${new Date(block.timestamp).toLocaleTimeString()}</div>
+                </div>
+                <div class="block-time-value ${timeClass}">
+                    ${formatTime(block.time)}
+                </div>
+            `;
+
+            stream.insertBefore(blockEl, stream.firstChild);
+
+            // Remove old blocks from display
+            while (stream.children.length > 20) {
+                stream.removeChild(stream.lastChild);
+            }
+        }
+
+        // Render block time distribution chart
+        function renderBlockTimeChart() {
+            const chart = document.getElementById('blockTimeChart');
+
+            // Create histogram buckets
+            const buckets = [0, 300, 600, 900, 1200, 1800, 3600]; // 0-5, 5-10, 10-15, 15-20, 20-30, 30-60 mins
+            const bucketLabels = ['0-5m', '5-10m', '10-15m', '15-20m', '20-30m', '30-60m'];
+            const counts = new Array(buckets.length - 1).fill(0);
+
+            blocks.forEach(block => {
+                for (let i = 0; i < buckets.length - 1; i++) {
+                    if (block.time >= buckets[i] && block.time < buckets[i + 1]) {
+                        counts[i]++;
+                        break;
+                    }
+                }
+            });
+
+            const maxCount = Math.max(...counts);
+
+            let html = '<svg width="100%" height="400" viewBox="0 0 1000 400">';
+
+            // Draw bars
+            const barWidth = 140;
+            const gap = 10;
+            const startX = 50;
+
+            counts.forEach((count, i) => {
+                const barHeight = (count / maxCount) * 300;
+                const x = startX + i * (barWidth + gap);
+                const y = 350 - barHeight;
+
+                // Determine color based on bucket
+                let color = '#00BCD4'; // normal
+                if (i === 0) color = '#4CAF50'; // fast
+                if (i >= 4) color = '#ef4444'; // slow
+
+                // Bar
+                html += `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" fill="${color}" opacity="0.7" rx="5"/>`;
+
+                // Count label
+                html += `<text x="${x + barWidth / 2}" y="${y - 10}" fill="#e0e0e0" font-size="14" text-anchor="middle" font-weight="bold">${count}</text>`;
+
+                // Bucket label
+                html += `<text x="${x + barWidth / 2}" y="380" fill="#888" font-size="13" text-anchor="middle">${bucketLabels[i]}</text>`;
+            });
+
+            // Average line
+            const avgX = startX + 1.5 * (barWidth + gap); // Around 10 minute mark
+            html += `<line x1="${avgX}" y1="50" x2="${avgX}" y2="350" stroke="#f7931a" stroke-width="3" stroke-dasharray="10,5"/>`;
+            html += `<text x="${avgX + 5}" y="40" fill="#f7931a" font-size="13" font-weight="bold">10 min avg</text>`;
+
+            // Labels
+            html += `<text x="500" y="395" fill="#e0e0e0" font-size="14" text-anchor="middle" font-weight="bold">Block Time Range</text>`;
+            html += `<text x="25" y="200" fill="#e0e0e0" font-size="14" text-anchor="middle" transform="rotate(-90 25 200)" font-weight="bold">Blocks</text>`;
+
+            html += '</svg>';
+            chart.innerHTML = html;
+        }
+
+        // Initialize block stream display
+        function initializeBlockStream() {
+            blocks.slice(0, 20).forEach(block => {
+                addBlockToStream(block);
+            });
+        }
+
+        // Initialize
+        function init() {
+            generateInitialBlocks();
+            updateStats();
+            renderBlockTimeChart();
+            initializeBlockStream();
+
+            // Update countdown every second
+            setInterval(updateCountdown, 1000);
+        }
+
+        init();
+    </script>
+</body>
+</html>

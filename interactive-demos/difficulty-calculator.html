@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Difficulty Calculator | Bitcoin Sovereign Academy</title>
+    <meta name="description" content="Calculate mining difficulty, hashrate, and predict difficulty adjustments for Bitcoin mining">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #0f0f0f;
+            --secondary-dark: #1a1a1a;
+            --text-light: #e0e0e0;
+            --text-dim: #888888;
+            --success-green: #4CAF50;
+            --warning-yellow: #FFC107;
+            --error-red: #ef4444;
+            --accent-blue: #2196F3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-orange), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        /* Calculator Section */
+        .calculator-card {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--text-light);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: var(--text-light);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+        }
+
+        .input-hint {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-top: 0.25rem;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .result-card {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 2px solid rgba(247, 147, 26, 0.2);
+        }
+
+        .result-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+        }
+
+        .result-subtext {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-top: 0.25rem;
+        }
+
+        /* Stats Display */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.1), rgba(247, 147, 26, 0.05));
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-light);
+        }
+
+        /* Chart */
+        #difficultyChart {
+            width: 100%;
+            height: 350px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        /* Educational Section */
+        .education-card {
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(33, 150, 243, 0.05));
+            border: 2px solid var(--accent-blue);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .education-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+
+        .education-content {
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+
+        .education-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .education-content li {
+            padding-left: 1.5rem;
+            margin-bottom: 0.75rem;
+            position: relative;
+        }
+
+        .education-content li::before {
+            content: '⛏️';
+            position: absolute;
+            left: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            #difficultyChart {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⛏️ Bitcoin Difficulty Calculator</h1>
+            <p>Calculate mining difficulty, hashrate requirements, and profitability metrics</p>
+        </div>
+
+        <!-- Current Network Stats -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-label">Current Difficulty</div>
+                <div class="stat-value" id="currentDifficulty">Loading...</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Network Hashrate</div>
+                <div class="stat-value" id="networkHashrate">Loading...</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Next Adjustment</div>
+                <div class="stat-value" id="nextAdjustment">Loading...</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Blocks Until</div>
+                <div class="stat-value" id="blocksUntil">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Hashrate Calculator -->
+        <div class="calculator-card">
+            <h2 class="card-title">🔢 Hashrate Calculator</h2>
+            <div class="input-group">
+                <label for="hashrateInput">Your Hashrate</label>
+                <input type="number" id="hashrateInput" value="100" min="0" step="1">
+                <div class="input-hint">Enter your mining hashrate</div>
+            </div>
+
+            <div class="input-group">
+                <label for="hashrateUnit">Hashrate Unit</label>
+                <select id="hashrateUnit">
+                    <option value="1">H/s (Hashes per second)</option>
+                    <option value="1000">KH/s (Kilohashes)</option>
+                    <option value="1000000">MH/s (Megahashes)</option>
+                    <option value="1000000000">GH/s (Gigahashes)</option>
+                    <option value="1000000000000" selected>TH/s (Terahashes)</option>
+                    <option value="1000000000000000">PH/s (Petahashes)</option>
+                    <option value="1000000000000000000">EH/s (Exahashes)</option>
+                </select>
+            </div>
+
+            <div class="result-grid">
+                <div class="result-card">
+                    <div class="result-label">Blocks Per Day (Expected)</div>
+                    <div class="result-value" id="blocksPerDay">0.0000</div>
+                    <div class="result-subtext">Based on current difficulty</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">BTC Per Day (Expected)</div>
+                    <div class="result-value" id="btcPerDay">0.0000</div>
+                    <div class="result-subtext">At current block reward (6.25 BTC)</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">Network Share</div>
+                    <div class="result-value" id="networkShare">0.000%</div>
+                    <div class="result-subtext">Of total network hashrate</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">Time to Mine 1 Block</div>
+                    <div class="result-value" id="timeToBlock">∞</div>
+                    <div class="result-subtext">Expected average time</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Difficulty Chart -->
+        <div class="calculator-card">
+            <h2 class="card-title">📈 Difficulty Trend (Last 30 Adjustments)</h2>
+            <div id="difficultyChart"></div>
+        </div>
+
+        <!-- Educational Content -->
+        <div class="education-card">
+            <h3 class="education-title">💡 Understanding Mining Difficulty</h3>
+            <div class="education-content">
+                <ul>
+                    <li><strong>Self-Adjusting System</strong>: Bitcoin difficulty adjusts every 2,016 blocks (~2 weeks) to maintain 10-minute block times</li>
+                    <li><strong>Hashrate Relationship</strong>: Higher network hashrate → Higher difficulty to keep blocks at 10 minutes</li>
+                    <li><strong>Security Metric</strong>: Higher difficulty means more computational work required to attack the network</li>
+                    <li><strong>Mining Economics</strong>: Difficulty directly affects mining profitability alongside electricity costs and hardware efficiency</li>
+                    <li><strong>Target Formula</strong>: New Difficulty = Old Difficulty × (20160 minutes / Actual Time for 2016 blocks)</li>
+                    <li><strong>Historical Growth</strong>: Difficulty has increased exponentially since 2009, reflecting Bitcoin's growing security</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulated current network data (in production, fetch from API)
+        let networkData = {
+            difficulty: 62463471666000, // Current difficulty (approximate)
+            blockHeight: 820000,
+            networkHashrate: 446000000000000000000, // ~446 EH/s
+            blockReward: 6.25,
+            blocksUntilAdjustment: 150
+        };
+
+        // Calculate network stats
+        function updateNetworkStats() {
+            document.getElementById('currentDifficulty').textContent = formatDifficulty(networkData.difficulty);
+            document.getElementById('networkHashrate').textContent = formatHashrate(networkData.networkHashrate);
+
+            const adjustmentPercent = calculateExpectedAdjustment();
+            const sign = adjustmentPercent >= 0 ? '+' : '';
+            document.getElementById('nextAdjustment').textContent = `${sign}${adjustmentPercent.toFixed(2)}%`;
+
+            document.getElementById('blocksUntil').textContent = networkData.blocksUntilAdjustment.toLocaleString();
+        }
+
+        // Calculate expected difficulty adjustment
+        function calculateExpectedAdjustment() {
+            // Simulated - in production would calculate from actual block times
+            return (Math.random() * 10 - 2); // Random between -2% and +8%
+        }
+
+        // Format difficulty
+        function formatDifficulty(diff) {
+            if (diff >= 1e12) {
+                return (diff / 1e12).toFixed(2) + 'T';
+            }
+            return diff.toLocaleString();
+        }
+
+        // Format hashrate
+        function formatHashrate(hashrate) {
+            if (hashrate >= 1e18) {
+                return (hashrate / 1e18).toFixed(0) + ' EH/s';
+            } else if (hashrate >= 1e15) {
+                return (hashrate / 1e15).toFixed(0) + ' PH/s';
+            } else if (hashrate >= 1e12) {
+                return (hashrate / 1e12).toFixed(0) + ' TH/s';
+            }
+            return hashrate.toLocaleString() + ' H/s';
+        }
+
+        // Calculate mining results
+        function calculateMiningResults() {
+            const hashrateInput = parseFloat(document.getElementById('hashrateInput').value) || 0;
+            const hashrateUnit = parseFloat(document.getElementById('hashrateUnit').value);
+            const totalHashrate = hashrateInput * hashrateUnit;
+
+            // Network share
+            const networkShare = (totalHashrate / networkData.networkHashrate) * 100;
+            document.getElementById('networkShare').textContent = networkShare.toFixed(6) + '%';
+
+            // Blocks per day
+            const blocksPerDay = (totalHashrate / networkData.networkHashrate) * 144; // 144 blocks per day
+            document.getElementById('blocksPerDay').textContent = blocksPerDay.toFixed(6);
+
+            // BTC per day
+            const btcPerDay = blocksPerDay * networkData.blockReward;
+            document.getElementById('btcPerDay').textContent = btcPerDay.toFixed(8);
+
+            // Time to mine one block
+            if (blocksPerDay > 0) {
+                const daysToBlock = 1 / blocksPerDay;
+                const timeToBlock = formatTimeToBlock(daysToBlock);
+                document.getElementById('timeToBlock').textContent = timeToBlock;
+            } else {
+                document.getElementById('timeToBlock').textContent = '∞';
+            }
+        }
+
+        // Format time to block
+        function formatTimeToBlock(days) {
+            if (days > 365) {
+                return (days / 365).toFixed(1) + ' years';
+            } else if (days > 30) {
+                return (days / 30).toFixed(1) + ' months';
+            } else if (days >= 1) {
+                return days.toFixed(1) + ' days';
+            } else {
+                const hours = days * 24;
+                if (hours >= 1) {
+                    return hours.toFixed(1) + ' hours';
+                } else {
+                    const minutes = hours * 60;
+                    return minutes.toFixed(0) + ' minutes';
+                }
+            }
+        }
+
+        // Render difficulty chart
+        function renderDifficultyChart() {
+            const chart = document.getElementById('difficultyChart');
+
+            // Generate sample difficulty data (last 30 adjustments)
+            const adjustments = [];
+            let currentDiff = networkData.difficulty;
+
+            for (let i = 29; i >= 0; i--) {
+                const variance = (Math.random() * 0.1 - 0.02); // -2% to +8% random
+                currentDiff = currentDiff / (1 + variance);
+                adjustments.push({
+                    epoch: 30 - i,
+                    difficulty: currentDiff
+                });
+            }
+
+            adjustments.reverse();
+
+            let html = '<svg width="100%" height="350" viewBox="0 0 1000 350">';
+
+            // Grid lines
+            for (let i = 0; i <= 5; i++) {
+                const y = 30 + (i * 60);
+                html += `<line x1="80" y1="${y}" x2="970" y2="${y}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+            }
+
+            // Find min/max for scaling
+            const diffValues = adjustments.map(a => a.difficulty);
+            const minDiff = Math.min(...diffValues);
+            const maxDiff = Math.max(...diffValues);
+            const diffRange = maxDiff - minDiff;
+
+            // Draw line
+            let path = '';
+            adjustments.forEach((adj, i) => {
+                const x = 80 + (i / 29) * 890;
+                const y = 310 - ((adj.difficulty - minDiff) / diffRange) * 280;
+
+                if (i === 0) {
+                    path = `M ${x} ${y}`;
+                } else {
+                    path += ` L ${x} ${y}`;
+                }
+            });
+
+            html += `<path d="${path}" fill="none" stroke="#f7931a" stroke-width="3"/>`;
+
+            // Y-axis labels
+            for (let i = 0; i <= 5; i++) {
+                const value = maxDiff - (i / 5) * diffRange;
+                const y = 30 + (i * 60);
+                html += `<text x="70" y="${y + 5}" fill="#888" font-size="11" text-anchor="end">${formatDifficulty(value)}</text>`;
+            }
+
+            // X-axis labels
+            for (let i = 0; i <= 5; i++) {
+                const epoch = Math.floor((i / 5) * 29);
+                const x = 80 + (epoch / 29) * 890;
+                html += `<text x="${x}" y="330" fill="#888" font-size="11" text-anchor="middle">-${30 - epoch}</text>`;
+            }
+
+            // Labels
+            html += `<text x="525" y="345" fill="#e0e0e0" font-size="13" text-anchor="middle" font-weight="bold">Adjustments Ago</text>`;
+            html += `<text x="40" y="175" fill="#e0e0e0" font-size="13" text-anchor="middle" transform="rotate(-90 40 175)" font-weight="bold">Difficulty</text>`;
+
+            html += '</svg>';
+            chart.innerHTML = html;
+        }
+
+        // Event listeners
+        document.getElementById('hashrateInput').addEventListener('input', calculateMiningResults);
+        document.getElementById('hashrateUnit').addEventListener('change', calculateMiningResults);
+
+        // Initialize
+        function init() {
+            updateNetworkStats();
+            calculateMiningResults();
+            renderDifficultyChart();
+        }
+
+        init();
+    </script>
+</body>
+</html>
