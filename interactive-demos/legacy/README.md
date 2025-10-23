@@ -64,4 +64,23 @@ If old links exist to these demos, add 301 redirects:
 
 ---
 
-**Last Updated**: 2025-10-22
+### Security Dojo (Original - Deprecated)
+
+**Superseded by**: `/interactive-demos/security-dojo-enhanced`
+
+| File | Reason for Deprecation | Date Archived |
+|------|------------------------|---------------|
+| `security-dojo/` | Enhanced version has better UX, scoring, progressive challenges | 2025-10-23 |
+
+**What to use instead**:
+- For all security training, use `/interactive-demos/security-dojo-enhanced`
+- Enhanced version includes: improved UI, challenge progression, achievement system
+
+**Redirect needed**:
+```
+/interactive-demos/security-dojo → /interactive-demos/security-dojo-enhanced
+```
+
+---
+
+**Last Updated**: 2025-10-23
