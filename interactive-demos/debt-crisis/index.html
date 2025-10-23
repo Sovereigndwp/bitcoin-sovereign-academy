@@ -4,36 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>US National Debt Crisis - Real-Time Visualization</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #0f0f0f;
+            --secondary-dark: #1a1a1a;
+            --text-light: #e0e0e0;
+            --text-dim: #888888;
+            --success-green: #4CAF50;
+            --warning-yellow: #FFC107;
+            --error-red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
 
-        @keyframes countUp {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        @keyframes pulse-brand {
-            0%, 100% { background: linear-gradient(135deg, #ff6b35, #ffcd3c); }
-            50% { background: linear-gradient(135deg, #ffcd3c, #ff6b35); }
-        }
-        @keyframes spiral-grow {
-            0% { transform: rotate(0deg) scale(1); }
-            100% { transform: rotate(360deg) scale(1.05); }
-        }
-        .count-up { animation: countUp 0.5s ease-out; }
-        .pulse-brand { animation: pulse-brand 2s ease-in-out infinite; }
-        .spiral-grow { animation: spiral-grow 4s linear infinite; }
-
-        .debt-meter {
-            background: conic-gradient(from 0deg, #ff6b35 0deg, #ffcd3c 120deg, #ff6b35 240deg, #ffcd3c 360deg);
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* Alert Banner */
         .crisis-alert {
-            background: linear-gradient(45deg, #ff6b35, #ffcd3c, #ff6b35);
+            background: linear-gradient(45deg, var(--error-red), var(--primary-orange), var(--error-red));
             background-size: 200% 200%;
             animation: gradient-shift 3s ease infinite;
+            text-align: center;
+            padding: 1rem;
+            font-weight: 700;
+            font-size: 1.25rem;
         }
 
         @keyframes gradient-shift {
@@ -42,207 +53,595 @@
             100% { background-position: 0% 50%; }
         }
 
-        .glass-panel {
-            background: rgba(31, 41, 55, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 107, 53, 0.2);
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
         }
 
-        .brand-gradient {
-            background: linear-gradient(135deg, #ff6b35, #ffcd3c);
-        }
-
-        .brand-gradient-text {
-            background: linear-gradient(135deg, #ff6b35, #ffcd3c);
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-orange), var(--warning-yellow));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
+
+        .header p {
+            font-size: 1.25rem;
+            color: var(--text-dim);
+            max-width: 900px;
+            margin: 0 auto 1rem;
+            line-height: 1.6;
+        }
+
+        .header .highlight {
+            background: linear-gradient(135deg, var(--primary-orange), var(--warning-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .header .data-source {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            margin-top: 1rem;
+        }
+
+        .header .data-source a {
+            color: var(--primary-orange);
+            text-decoration: underline;
+        }
+
+        /* Glass Panel */
+        .glass-panel {
+            background: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Debt Meter */
+        .debt-counter {
+            text-align: center;
+        }
+
+        .debt-counter h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--primary-orange), var(--warning-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .debt-meter {
+            background: conic-gradient(from 0deg, var(--primary-orange) 0deg, var(--warning-yellow) 120deg, var(--primary-orange) 240deg, var(--warning-yellow) 360deg);
+            border-radius: 50%;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .debt-meter-inner {
+            background: var(--secondary-dark);
+            border-radius: 50%;
+            width: 260px;
+            height: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .live-debt-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .live-debt-label {
+            font-size: 1rem;
+            color: var(--text-dim);
+        }
+
+        .spiral-ring {
+            position: absolute;
+            inset: 0;
+            animation: spiral-grow 4s linear infinite;
+        }
+
+        .spiral-ring-border {
+            width: 100%;
+            height: 100%;
+            border: 4px solid rgba(239, 68, 68, 0.3);
+            border-radius: 50%;
+        }
+
+        @keyframes spiral-grow {
+            0% { transform: rotate(0deg) scale(1); }
+            100% { transform: rotate(360deg) scale(1.05); }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-orange), var(--warning-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+        }
+
+        /* Two Column Grid */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .grid-2 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 320px;
+            margin-bottom: 1rem;
+        }
+
+        #historicalChart {
+            width: 100%;
+            height: 100%;
+        }
+
+        .chart-legend {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            line-height: 1.8;
+        }
+
+        .chart-legend p {
+            margin-bottom: 0.25rem;
+        }
+
+        .chart-legend .current {
+            color: var(--primary-orange);
+            font-weight: 700;
+        }
+
+        /* Timeline Cards */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .timeline-item {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+        }
+
+        .timeline-item.critical {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.2), rgba(255, 193, 7, 0.2));
+            border-color: var(--primary-orange);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(247, 147, 26, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(247, 147, 26, 0.6); }
+        }
+
+        .timeline-year {
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-desc {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+        }
+
+        .timeline-item.critical .timeline-year,
+        .timeline-item.critical .timeline-desc {
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+
+        /* Section Headings */
+        .section-heading {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--primary-orange), var(--warning-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Consequences Grid */
+        .consequences-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .consequence-card {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .consequence-card.highlight {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.2), rgba(255, 193, 7, 0.2));
+            border-color: var(--primary-orange);
+        }
+
+        .consequence-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .consequence-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .consequence-card.highlight .consequence-value {
+            color: var(--primary-dark);
+        }
+
+        .consequence-card:not(.highlight) .consequence-value {
+            background: linear-gradient(135deg, var(--primary-orange), var(--warning-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .consequence-label {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .consequence-card.highlight .consequence-label,
+        .consequence-card.highlight .consequence-note {
+            color: var(--primary-dark);
+        }
+
+        .consequence-note {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 0.5rem;
+            opacity: 0.8;
+        }
+
+        /* Scenarios Grid */
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .scenario-card {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+
+        .scenario-card.optimistic {
+            border-color: var(--success-green);
+        }
+
+        .scenario-card.realistic {
+            border-color: var(--warning-yellow);
+        }
+
+        .scenario-card.crisis {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.2), rgba(255, 193, 7, 0.2));
+            border-color: var(--primary-orange);
+        }
+
+        .scenario-title {
+            font-weight: 700;
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+        }
+
+        .scenario-card.optimistic .scenario-title {
+            color: var(--success-green);
+        }
+
+        .scenario-card.realistic .scenario-title {
+            color: var(--warning-yellow);
+        }
+
+        .scenario-card.crisis .scenario-title {
+            color: var(--primary-dark);
+        }
+
+        .scenario-list {
+            list-style: none;
+            font-size: 0.875rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .scenario-list li {
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+        }
+
+        .scenario-card.crisis .scenario-list li {
+            color: var(--primary-dark);
+        }
+
+        .scenario-probability {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 1rem;
+        }
+
+        .scenario-card.crisis .scenario-probability {
+            color: var(--primary-dark);
+            opacity: 0.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .debt-meter {
+                width: 280px;
+                height: 280px;
+            }
+
+            .debt-meter-inner {
+                width: 220px;
+                height: 220px;
+            }
+
+            .live-debt-amount {
+                font-size: 1.75rem;
+            }
+
+            .glass-panel {
+                padding: 1.5rem;
+            }
+        }
     </style>
 </head>
-<body class="bg-black min-h-screen text-white overflow-x-hidden">
+<body>
     <!-- Crisis Alert Banner -->
-    <div class="crisis-alert text-center py-4 font-bold text-xl">
+    <div class="crisis-alert">
         🚨 NATIONAL DEBT CRISIS: $35+ TRILLION AND RISING 🚨
     </div>
 
-    <div class="container mx-auto px-4 py-8">
+    <div class="container">
         <!-- Header -->
-        <div class="text-center mb-12">
-            <h1 class="text-6xl font-bold mb-4 brand-gradient-text">
-                US DEBT SPIRAL
-            </h1>
-            <p class="text-xl text-gray-300 max-w-4xl mx-auto">
+        <div class="header">
+            <h1>US DEBT SPIRAL</h1>
+            <p>
                 Real-time visualization of America's debt crisis using official US Treasury data.
-                Watch how we're adding <span class="brand-gradient-text font-bold">$1 trillion every 100 days</span>.
+                Watch how we're adding <span class="highlight">$1 trillion every 100 days</span>.
             </p>
-            <p class="text-sm text-gray-400 mt-4">
-                Data Source: <a href="https://fiscaldata.treasury.gov/" target="_blank" rel="noopener noreferrer" class="brand-gradient-text underline">US Treasury Fiscal Data API</a> | Updated Daily
+            <p class="data-source">
+                Data Source: <a href="https://fiscaldata.treasury.gov/" target="_blank" rel="noopener noreferrer">US Treasury Fiscal Data API</a> | Updated Daily
             </p>
         </div>
 
         <!-- Real-Time Debt Counter -->
-        <div class="glass-panel rounded-2xl p-8 mb-8 shadow-2xl">
-            <div class="text-center">
-                <h2 class="text-3xl font-bold mb-6 brand-gradient-text">🇺🇸 LIVE US NATIONAL DEBT</h2>
-                <div class="debt-meter rounded-full w-80 h-80 mx-auto flex items-center justify-center mb-6 relative">
-                    <div class="bg-slate-900 rounded-full w-64 h-64 flex items-center justify-center">
-                        <div class="text-center">
-                            <div class="text-5xl font-bold text-white mb-2" id="liveDebt">$35,000,000,000,000</div>
-                            <div class="text-lg text-gray-300">and counting...</div>
-                        </div>
+        <div class="glass-panel">
+            <div class="debt-counter">
+                <h2>🇺🇸 LIVE US NATIONAL DEBT</h2>
+                <div class="debt-meter">
+                    <div class="debt-meter-inner">
+                        <div class="live-debt-amount" id="liveDebt">$35,000,000,000,000</div>
+                        <div class="live-debt-label">and counting...</div>
                     </div>
-                    <div class="absolute inset-0 spiral-grow">
-                        <div class="w-full h-full border-4 border-red-400 rounded-full opacity-30"></div>
+                    <div class="spiral-ring">
+                        <div class="spiral-ring-border"></div>
                     </div>
                 </div>
 
-                <div class="grid md:grid-cols-3 gap-6 mt-8">
-                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
-                        <div class="text-2xl font-bold brand-gradient-text" id="perSecond">+$95,000</div>
-                        <div class="text-sm text-gray-400">Added per second</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="perSecond">+$95,000</div>
+                        <div class="stat-label">Added per second</div>
                     </div>
-                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
-                        <div class="text-2xl font-bold brand-gradient-text" id="perCitizen">$104,000</div>
-                        <div class="text-sm text-gray-400">Debt per citizen</div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="perCitizen">$104,000</div>
+                        <div class="stat-label">Debt per citizen</div>
                     </div>
-                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
-                        <div class="text-2xl font-bold brand-gradient-text" id="interestDaily">$2.4B</div>
-                        <div class="text-sm text-gray-400">Interest per day</div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="interestDaily">$2.4B</div>
+                        <div class="stat-label">Interest per day</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Historical Growth Chart -->
-        <div class="grid lg:grid-cols-2 gap-8 mb-8">
-            <div class="glass-panel rounded-xl p-6 shadow-2xl">
-                <h3 class="text-2xl font-bold mb-6 brand-gradient-text">📈 Exponential Growth (2000-2025)</h3>
-                <div class="relative h-80">
-                    <canvas id="historicalChart" class="w-full h-full"></canvas>
+        <div class="grid-2">
+            <div class="glass-panel">
+                <h3 class="section-heading">📈 Exponential Growth (2000-2025)</h3>
+                <div class="chart-container">
+                    <canvas id="historicalChart"></canvas>
                 </div>
-                <div class="mt-4 text-sm text-gray-400">
+                <div class="chart-legend">
                     <p>• 2000: $5.6 trillion</p>
                     <p>• 2008: $10.0 trillion (Financial Crisis)</p>
                     <p>• 2020: $26.9 trillion (COVID Response)</p>
-                    <p class="brand-gradient-text font-bold">• 2025: $35.0+ trillion (Current)</p>
+                    <p class="current">• 2025: $35.0+ trillion (Current)</p>
                 </div>
             </div>
 
-            <div class="glass-panel rounded-xl p-6 shadow-2xl">
-                <h3 class="text-2xl font-bold mb-6 brand-gradient-text">🔮 Projected Crisis Timeline</h3>
-                <div class="space-y-4">
-                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
-                        <div class="font-bold text-white">2026: $38 Trillion</div>
-                        <div class="text-sm text-gray-400">Interest payments exceed defense spending</div>
+            <div class="glass-panel">
+                <h3 class="section-heading">🔮 Projected Crisis Timeline</h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-year">2026: $38 Trillion</div>
+                        <div class="timeline-desc">Interest payments exceed defense spending</div>
                     </div>
-                    <div class="bg-gray-700 rounded-lg p-4 border border-gray-500">
-                        <div class="font-bold text-white">2028: $45 Trillion</div>
-                        <div class="text-sm text-gray-400">Debt-to-GDP ratio hits 140%</div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2028: $45 Trillion</div>
+                        <div class="timeline-desc">Debt-to-GDP ratio hits 140%</div>
                     </div>
-                    <div class="bg-gray-600 rounded-lg p-4 border border-gray-400">
-                        <div class="font-bold text-white">2030: $55 Trillion</div>
-                        <div class="text-sm text-gray-400">Interest becomes largest budget item</div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2030: $55 Trillion</div>
+                        <div class="timeline-desc">Interest becomes largest budget item</div>
                     </div>
-                    <div class="brand-gradient rounded-lg p-4 pulse-brand">
-                        <div class="font-bold text-black">2035: $80+ Trillion</div>
-                        <div class="text-sm text-black">Potential fiscal crisis point</div>
+                    <div class="timeline-item critical">
+                        <div class="timeline-year">2035: $80+ Trillion</div>
+                        <div class="timeline-desc">Potential fiscal crisis point</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Consequences Dashboard -->
-        <div class="glass-panel rounded-xl p-6 mb-8 shadow-2xl">
-            <h3 class="text-3xl font-bold mb-8 text-center brand-gradient-text">💥 REAL CONSEQUENCES HAPPENING NOW</h3>
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="brand-gradient rounded-lg p-6 text-center">
-                    <div class="text-4xl mb-3">💸</div>
-                    <div class="text-xl font-bold mb-2 text-black">$870 Billion</div>
-                    <div class="text-sm text-black">Annual interest payments (2025)</div>
-                    <div class="text-xs mt-2 text-black opacity-80">More than defense budget</div>
+        <div class="glass-panel">
+            <h3 class="section-heading">💥 REAL CONSEQUENCES HAPPENING NOW</h3>
+            <div class="consequences-grid">
+                <div class="consequence-card highlight">
+                    <div class="consequence-icon">💸</div>
+                    <div class="consequence-value">$870 Billion</div>
+                    <div class="consequence-label">Annual interest payments (2025)</div>
+                    <div class="consequence-note">More than defense budget</div>
                 </div>
 
-                <div class="bg-gray-800 rounded-lg p-6 text-center border border-gray-600">
-                    <div class="text-4xl mb-3">📊</div>
-                    <div class="text-xl font-bold mb-2 brand-gradient-text">130%</div>
-                    <div class="text-sm text-white">Debt-to-GDP ratio</div>
-                    <div class="text-xs mt-2 text-gray-400">Highest since WWII</div>
+                <div class="consequence-card">
+                    <div class="consequence-icon">📊</div>
+                    <div class="consequence-value">130%</div>
+                    <div class="consequence-label">Debt-to-GDP ratio</div>
+                    <div class="consequence-note">Highest since WWII</div>
                 </div>
 
-                <div class="bg-gray-700 rounded-lg p-6 text-center border border-gray-500">
-                    <div class="text-4xl mb-3">⚡</div>
-                    <div class="text-xl font-bold mb-2 brand-gradient-text">5.4%</div>
-                    <div class="text-sm text-white">Average interest rate</div>
-                    <div class="text-xs mt-2 text-gray-400">Rising with Fed rates</div>
+                <div class="consequence-card">
+                    <div class="consequence-icon">⚡</div>
+                    <div class="consequence-value">5.4%</div>
+                    <div class="consequence-label">Average interest rate</div>
+                    <div class="consequence-note">Rising with Fed rates</div>
                 </div>
 
-                <div class="bg-gray-600 rounded-lg p-6 text-center border border-gray-400">
-                    <div class="text-4xl mb-3">🏦</div>
-                    <div class="text-xl font-bold mb-2 brand-gradient-text">$7.6T</div>
-                    <div class="text-sm text-white">Foreign-owned debt</div>
-                    <div class="text-xs mt-2 text-gray-400">22% of total debt</div>
+                <div class="consequence-card">
+                    <div class="consequence-icon">🏦</div>
+                    <div class="consequence-value">$7.6T</div>
+                    <div class="consequence-label">Foreign-owned debt</div>
+                    <div class="consequence-note">22% of total debt</div>
                 </div>
             </div>
         </div>
 
         <!-- Impact Comparison -->
-        <div class="glass-panel rounded-xl p-6 mb-8 shadow-2xl">
-            <h3 class="text-2xl font-bold mb-6 text-center brand-gradient-text">🎯 What $35 Trillion Could Buy Instead</h3>
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
-                    <div class="text-3xl mb-2">🏠</div>
-                    <div class="font-bold text-lg brand-gradient-text">175 Million Homes</div>
-                    <div class="text-sm text-gray-400">At $200k average price</div>
+        <div class="glass-panel">
+            <h3 class="section-heading">🎯 What $35 Trillion Could Buy Instead</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="consequence-icon">🏠</div>
+                    <div class="stat-value">175 Million Homes</div>
+                    <div class="stat-label">At $200k average price</div>
                 </div>
-                <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
-                    <div class="text-3xl mb-2">🎓</div>
-                    <div class="font-bold text-lg brand-gradient-text">700 Million College Degrees</div>
-                    <div class="text-sm text-gray-400">At $50k per degree</div>
+                <div class="stat-card">
+                    <div class="consequence-icon">🎓</div>
+                    <div class="stat-value">700 Million College Degrees</div>
+                    <div class="stat-label">At $50k per degree</div>
                 </div>
-                <div class="bg-gray-800 rounded-lg p-4 border border-gray-600">
-                    <div class="text-3xl mb-2">🚀</div>
-                    <div class="font-bold text-lg brand-gradient-text">350 Mars Missions</div>
-                    <div class="text-sm text-gray-400">At $100B per mission</div>
+                <div class="stat-card">
+                    <div class="consequence-icon">🚀</div>
+                    <div class="stat-value">350 Mars Missions</div>
+                    <div class="stat-label">At $100B per mission</div>
                 </div>
             </div>
         </div>
 
         <!-- Future Scenarios -->
-        <div class="glass-panel rounded-xl p-6 shadow-2xl">
-            <h3 class="text-2xl font-bold mb-6 text-center brand-gradient-text">🔮 Three Possible Futures</h3>
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="bg-gray-800 rounded-lg p-6 border border-gray-600">
-                    <h4 class="font-bold text-lg mb-3 text-green-400">🟢 Optimistic</h4>
-                    <ul class="text-sm space-y-2 text-white">
+        <div class="glass-panel">
+            <h3 class="section-heading">🔮 Three Possible Futures</h3>
+            <div class="scenarios-grid">
+                <div class="scenario-card optimistic">
+                    <h4 class="scenario-title">🟢 Optimistic</h4>
+                    <ul class="scenario-list">
                         <li>• Economic growth outpaces debt</li>
                         <li>• Gradual fiscal reforms</li>
                         <li>• Technology boosts productivity</li>
                         <li>• Manageable by 2040</li>
                     </ul>
-                    <div class="mt-4 text-xs text-gray-400">Probability: 25%</div>
+                    <div class="scenario-probability">Probability: 25%</div>
                 </div>
 
-                <div class="bg-gray-700 rounded-lg p-6 border border-gray-500">
-                    <h4 class="font-bold text-lg mb-3 brand-gradient-text">🟡 Realistic</h4>
-                    <ul class="text-sm space-y-2 text-white">
+                <div class="scenario-card realistic">
+                    <h4 class="scenario-title">🟡 Realistic</h4>
+                    <ul class="scenario-list">
                         <li>• Continued slow growth</li>
                         <li>• Periodic debt ceiling crises</li>
                         <li>• Gradual service cuts</li>
                         <li>• Chronic high debt levels</li>
                     </ul>
-                    <div class="mt-4 text-xs text-gray-400">Probability: 50%</div>
+                    <div class="scenario-probability">Probability: 50%</div>
                 </div>
 
-                <div class="brand-gradient rounded-lg p-6">
-                    <h4 class="font-bold text-lg mb-3 text-black">🔴 Crisis</h4>
-                    <ul class="text-sm space-y-2 text-black">
+                <div class="scenario-card crisis">
+                    <h4 class="scenario-title">🔴 Crisis</h4>
+                    <ul class="scenario-list">
                         <li>• Interest rates spike suddenly</li>
                         <li>• Debt spiral accelerates</li>
                         <li>• Currency/bond crisis</li>
                         <li>• Forced austerity measures</li>
                     </ul>
-                    <div class="mt-4 text-xs text-black opacity-80">Probability: 25%</div>
+                    <div class="scenario-probability">Probability: 25%</div>
                 </div>
             </div>
         </div>
@@ -304,14 +703,17 @@
             showDataDisclaimer() {
                 // Add disclaimer about data source
                 const disclaimer = document.createElement('div');
-                disclaimer.className = 'bg-yellow-900 border border-yellow-600 rounded-lg p-3 mb-4 text-sm';
+                disclaimer.className = 'glass-panel';
+                disclaimer.style.background = 'rgba(255, 193, 7, 0.2)';
+                disclaimer.style.borderColor = 'var(--warning-yellow)';
                 disclaimer.innerHTML = `
-                    <div class="flex items-center">
-                        <span class="text-yellow-400 mr-2">⚠️</span>
-                        <span class="text-yellow-200">Using estimated data. Real-time Treasury data unavailable.</span>
+                    <div style="display: flex; align-items: center;">
+                        <span style="color: var(--warning-yellow); margin-right: 0.5rem; font-size: 1.5rem;">⚠️</span>
+                        <span style="color: var(--warning-yellow);">Using estimated data. Real-time Treasury data unavailable.</span>
                     </div>
                 `;
-                document.querySelector('.container').insertBefore(disclaimer, document.querySelector('.container').firstChild.nextSibling);
+                const container = document.querySelector('.container');
+                container.insertBefore(disclaimer, container.querySelector('.glass-panel'));
             }
 
             updateDisplay() {
@@ -369,8 +771,9 @@
                 const chartWidth = canvas.width - 2 * padding;
                 const chartHeight = canvas.height - 2 * padding;
 
-                // Clear canvas
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // Clear canvas with dark background
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 // Set up scales
                 const minYear = 2000;
@@ -378,7 +781,7 @@
                 const maxDebt = 40; // Max for scale
 
                 // Draw grid
-                ctx.strokeStyle = '#374151';
+                ctx.strokeStyle = 'rgba(247, 147, 26, 0.1)';
                 ctx.lineWidth = 1;
 
                 // Horizontal grid lines
@@ -390,7 +793,7 @@
                     ctx.stroke();
 
                     // Y-axis labels
-                    ctx.fillStyle = '#9ca3af';
+                    ctx.fillStyle = '#888888';
                     ctx.font = '12px sans-serif';
                     ctx.textAlign = 'right';
                     ctx.fillText(`${(maxDebt - (maxDebt * i) / 8).toFixed(0)}T`, padding - 10, y + 4);
@@ -406,19 +809,16 @@
 
                     // X-axis labels
                     const year = minYear + ((maxYear - minYear) * i) / 5;
-                    ctx.fillStyle = '#9ca3af';
+                    ctx.fillStyle = '#888888';
                     ctx.textAlign = 'center';
                     ctx.fillText(year.toString(), x, canvas.height - padding + 20);
                 }
 
-                // Create gradient for debt line
-                const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-                gradient.addColorStop(0, '#ff6b35');
-                gradient.addColorStop(1, '#ffcd3c');
-
-                // Draw debt line
-                ctx.strokeStyle = gradient;
+                // Draw debt line with glow
+                ctx.strokeStyle = '#f7931a';
                 ctx.lineWidth = 4;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#f7931a';
                 ctx.beginPath();
 
                 data.forEach((point, index) => {
@@ -433,6 +833,7 @@
                 });
 
                 ctx.stroke();
+                ctx.shadowBlur = 0;
 
                 // Highlight crisis points
                 const crisisPoints = [
@@ -446,13 +847,13 @@
                     const y = canvas.height - padding - (chartHeight * point.debt) / maxDebt;
 
                     // Draw crisis point
-                    ctx.fillStyle = '#ff6b35';
+                    ctx.fillStyle = '#f7931a';
                     ctx.beginPath();
                     ctx.arc(x, y, 6, 0, 2 * Math.PI);
                     ctx.fill();
 
                     // Label
-                    ctx.fillStyle = '#ffcd3c';
+                    ctx.fillStyle = '#FFC107';
                     ctx.font = 'bold 11px sans-serif';
                     ctx.textAlign = 'center';
                     ctx.fillText(point.label, x, y - 15);
