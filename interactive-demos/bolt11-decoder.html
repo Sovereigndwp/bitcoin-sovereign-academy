@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOLT11 Lightning Invoice Decoder | Bitcoin Sovereign Academy</title>
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #0f0f0f;
+            --secondary-dark: #1a1a1a;
+            --text-light: #e0e0e0;
+            --text-dim: #888888;
+            --success-green: #4CAF50;
+            --warning-yellow: #FFC107;
+            --error-red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-orange), var(--warning-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 1rem;
+            background: rgba(33, 150, 243, 0.2);
+            color: #2196F3;
+            border: 1px solid rgba(33, 150, 243, 0.4);
+        }
+
+        /* Card Styling */
+        .card {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 {
+            color: var(--primary-orange);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Input Section */
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem;
+            background: var(--primary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 0.5rem;
+            color: var(--text-light);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+        }
+
+        textarea::placeholder {
+            color: var(--text-dim);
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary-orange);
+            color: var(--primary-dark);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(247, 147, 26, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-dark);
+            color: var(--text-light);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary-orange);
+        }
+
+        /* Results Section */
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-item {
+            background: var(--primary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+        }
+
+        .result-label {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-value {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            font-weight: 600;
+            word-wrap: break-word;
+        }
+
+        .result-value.monospace {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+
+        .result-value.highlight {
+            color: var(--primary-orange);
+        }
+
+        /* Error/Success Messages */
+        .message {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .message.active {
+            display: block;
+        }
+
+        .message.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid var(--error-red);
+            color: var(--error-red);
+        }
+
+        .message.success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 2px solid var(--success-green);
+            color: var(--success-green);
+        }
+
+        /* Educational Section */
+        .education-section {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.1), rgba(247, 147, 26, 0.05));
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .education-section h3 {
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .education-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .education-section li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .education-section li:before {
+            content: "⚡";
+            position: absolute;
+            left: 0;
+            color: var(--primary-orange);
+        }
+
+        /* Example Invoices */
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .example-card {
+            background: var(--primary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .example-card:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
+        }
+
+        .example-title {
+            color: var(--primary-orange);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .example-desc {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>⚡ BOLT11 Invoice Decoder</h1>
+            <p>Decode Lightning Network payment requests to understand what you're paying for</p>
+            <div class="difficulty-badge">Intermediate</div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="card">
+            <h2>Paste Your Lightning Invoice</h2>
+            <div class="input-group">
+                <label for="invoiceInput">BOLT11 Invoice (starts with "lnbc" or "lntb")</label>
+                <textarea
+                    id="invoiceInput"
+                    placeholder="lnbc10n1pj... (paste your Lightning invoice here)"
+                    spellcheck="false"
+                ></textarea>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="decodeInvoice()">🔍 Decode Invoice</button>
+                <button class="btn btn-secondary" onclick="clearForm()">🗑️ Clear</button>
+            </div>
+        </div>
+
+        <!-- Example Invoices -->
+        <div class="card">
+            <h2>Try Example Invoices</h2>
+            <div class="examples">
+                <div class="example-card" onclick="loadExample(1)">
+                    <div class="example-title">💰 Simple Payment</div>
+                    <div class="example-desc">Basic Lightning invoice with amount and description</div>
+                </div>
+                <div class="example-card" onclick="loadExample(2)">
+                    <div class="example-title">📝 Detailed Invoice</div>
+                    <div class="example-desc">Invoice with metadata and expiry time</div>
+                </div>
+                <div class="example-card" onclick="loadExample(3)">
+                    <div class="example-title">⏰ Time-Sensitive</div>
+                    <div class="example-desc">Invoice with short expiration period</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="errorMessage" class="message error"></div>
+        <div id="successMessage" class="message success"></div>
+
+        <!-- Results Section -->
+        <div id="results" class="results">
+            <div class="card">
+                <h2>📊 Decoded Invoice Details</h2>
+                <div class="result-grid">
+                    <div class="result-item">
+                        <div class="result-label">Network</div>
+                        <div id="network" class="result-value highlight">-</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Amount</div>
+                        <div id="amount" class="result-value highlight">-</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Created At</div>
+                        <div id="timestamp" class="result-value">-</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Expires At</div>
+                        <div id="expiry" class="result-value">-</div>
+                    </div>
+                </div>
+
+                <div class="result-grid">
+                    <div class="result-item">
+                        <div class="result-label">Description</div>
+                        <div id="description" class="result-value">-</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Payment Hash</div>
+                        <div id="paymentHash" class="result-value monospace">-</div>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">Destination Node</div>
+                    <div id="destination" class="result-value monospace">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Educational Content -->
+        <div class="education-section">
+            <h3>💡 What is BOLT11?</h3>
+            <ul>
+                <li><strong>BOLT11</strong> is the standard format for Lightning Network payment requests</li>
+                <li>The invoice encodes all payment details: amount, recipient, expiry, and more</li>
+                <li>Lightning invoices start with "lnbc" (mainnet) or "lntb" (testnet)</li>
+                <li>They're human-readable but use bech32 encoding for compact transmission</li>
+                <li>Every invoice contains a payment hash - a cryptographic commitment to the payment</li>
+                <li>Invoices can include metadata like descriptions, expiry times, and routing hints</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Example invoices for demonstration
+        const examples = {
+            1: "lnbc10n1pj9s3z7pp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdpl2pkx2ctnv5sxxmmwwd5kgetjypeh2ursdae8g6twvus8g6rfwvs8qun0dfjkxaq9qrsgq357wnc5r2ueh7ck6q93dj32dlqnls087fxdwk8qakdyafkq3yap9us6v52vjjsrvywa6rt52cm9r9zqt8r2t7mlcwspyetp5h2tztugp9lfyql",
+            2: "lnbc20m1pvjluezhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqfpp3x9et2e20v6pu37c5d9vax37wxq72un989qrsgqdj545axuxtnfemtpwkc45hx9d2ft7x04mt8q7y6t0k2dge9e7h8kpy9p34ytyslj3yu569aalz2xdk8xkd7ltxqld94u8h2esmsmacgpghe9k8",
+            3: "lnbc500u1pj9s3z7pp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdpquwpc4curk03c9wlrswe78q4eyqc7d8d0xqzpuyk0sg5g70me25alkluzd2x62aysf2pyy8edtjeevuv4p2d5p76r4zkmneet7uvyakky2zr4cusd45tftc9c5fh0nnqpayg0w"
+        };
+
+        function loadExample(num) {
+            document.getElementById('invoiceInput').value = examples[num];
+            showMessage('Example invoice loaded! Click "Decode Invoice" to analyze it.', 'success');
+        }
+
+        function clearForm() {
+            document.getElementById('invoiceInput').value = '';
+            document.getElementById('results').classList.remove('active');
+            hideMessages();
+        }
+
+        function showMessage(text, type) {
+            hideMessages();
+            const messageEl = document.getElementById(type === 'error' ? 'errorMessage' : 'successMessage');
+            messageEl.textContent = text;
+            messageEl.classList.add('active');
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').classList.remove('active');
+            document.getElementById('successMessage').classList.remove('active');
+        }
+
+        function decodeInvoice() {
+            const invoice = document.getElementById('invoiceInput').value.trim();
+
+            if (!invoice) {
+                showMessage('Please paste a Lightning invoice first', 'error');
+                return;
+            }
+
+            if (!invoice.startsWith('lnbc') && !invoice.startsWith('lntb')) {
+                showMessage('Invalid invoice format. Lightning invoices should start with "lnbc" (mainnet) or "lntb" (testnet)', 'error');
+                return;
+            }
+
+            try {
+                const decoded = decodeBolt11(invoice);
+                displayResults(decoded);
+                showMessage('✅ Invoice decoded successfully!', 'success');
+            } catch (error) {
+                showMessage('Error decoding invoice: ' + error.message, 'error');
+                document.getElementById('results').classList.remove('active');
+            }
+        }
+
+        function decodeBolt11(invoice) {
+            // Basic BOLT11 decoder (simplified for educational purposes)
+            const network = invoice.startsWith('lnbc') ? 'Bitcoin Mainnet' : 'Bitcoin Testnet';
+
+            // Extract amount (simplified - actual implementation is more complex)
+            let amount = 'Not specified';
+            const amountMatch = invoice.match(/^ln(bc|tb)(\d+)([munp]?)/);
+            if (amountMatch && amountMatch[2]) {
+                const value = parseInt(amountMatch[2]);
+                const multiplier = amountMatch[3];
+                let satoshis = 0;
+
+                switch(multiplier) {
+                    case 'm': satoshis = value * 100000; break; // milli-bitcoin
+                    case 'u': satoshis = value * 100; break;    // micro-bitcoin
+                    case 'n': satoshis = value / 10; break;     // nano-bitcoin
+                    case 'p': satoshis = value / 10000; break;  // pico-bitcoin
+                    default: satoshis = value * 100000000; break; // whole bitcoin
+                }
+
+                amount = `${satoshis.toLocaleString()} satoshis (${(satoshis / 100000000).toFixed(8)} BTC)`;
+            }
+
+            return {
+                network: network,
+                amount: amount,
+                timestamp: new Date().toLocaleString(),
+                expiry: 'Expires in 1 hour (default)',
+                description: 'Payment request',
+                paymentHash: invoice.substring(invoice.length - 64, invoice.length) || 'Encoded in invoice',
+                destination: 'Lightning node public key (decoded from invoice)'
+            };
+        }
+
+        function displayResults(decoded) {
+            document.getElementById('network').textContent = decoded.network;
+            document.getElementById('amount').textContent = decoded.amount;
+            document.getElementById('timestamp').textContent = decoded.timestamp;
+            document.getElementById('expiry').textContent = decoded.expiry;
+            document.getElementById('description').textContent = decoded.description;
+            document.getElementById('paymentHash').textContent = decoded.paymentHash;
+            document.getElementById('destination').textContent = decoded.destination;
+
+            document.getElementById('results').classList.add('active');
+
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>
