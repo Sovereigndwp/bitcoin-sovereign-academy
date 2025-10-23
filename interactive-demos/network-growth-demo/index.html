@@ -4,16 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bitcoin Network Growth - Interactive Demo</title>
-    <link rel="stylesheet" href="/css/brand.css">
     <style>
         :root {
             --primary-orange: #f7931a;
-            --bitcoin-grey: #4d4d4d;
-            --accent-green: #50AF95;
-            --accent-blue: #00A8E8;
-            --accent-red: #FF6B6B;
-            --light-grey: #f5f5f5;
-            --border-grey: #e0e0e0;
+            --primary-dark: #0f0f0f;
+            --secondary-dark: #1a1a1a;
+            --text-light: #e0e0e0;
+            --text-dim: #888888;
+            --accent-green: #4CAF50;
+            --accent-blue: #2196F3;
+            --accent-red: #ef4444;
+            --card-dark: #222222;
+            --border-dark: rgba(247, 147, 26, 0.2);
         }
 
         * {
@@ -25,81 +27,111 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             line-height: 1.6;
-            color: var(--bitcoin-grey);
-            background: white;
-            padding: 1rem;
+            color: var(--text-light);
+            background: var(--primary-dark);
+            padding: 2rem 1rem;
         }
 
         .demo-container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
         h1 {
             color: var(--primary-orange);
-            font-size: 2rem;
+            font-size: 2.5rem;
             margin-bottom: 0.5rem;
+            font-weight: 700;
         }
 
         .subtitle {
-            color: var(--bitcoin-grey);
-            font-size: 1.1rem;
+            color: var(--text-dim);
+            font-size: 1.2rem;
             margin-bottom: 2rem;
         }
 
         .level-switcher {
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            padding: 1rem;
-            background: var(--light-grey);
-            border-radius: 0.5rem;
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
+            padding: 1.25rem;
+            background: var(--secondary-dark);
+            border-radius: 0.75rem;
+            border: 2px solid var(--border-dark);
         }
 
         .level-btn {
-            padding: 0.5rem 1rem;
-            border: 2px solid var(--border-grey);
-            background: white;
-            border-radius: 0.25rem;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--border-dark);
+            background: var(--card-dark);
+            color: var(--text-light);
+            border-radius: 0.5rem;
             cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .level-btn:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
         }
 
         .level-btn.active {
             background: var(--primary-orange);
-            color: white;
+            color: var(--primary-dark);
             border-color: var(--primary-orange);
+            box-shadow: 0 4px 15px rgba(247, 147, 26, 0.3);
         }
 
         .section {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            border: 1px solid var(--border-grey);
-            margin-bottom: 1.5rem;
+            background: var(--secondary-dark);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 2px solid var(--border-dark);
+            margin-bottom: 2rem;
         }
 
         .section h2 {
-            color: var(--bitcoin-grey);
-            font-size: 1.3rem;
+            color: var(--primary-orange);
+            font-size: 1.6rem;
+            margin-bottom: 1.25rem;
+            font-weight: 700;
+        }
+
+        .section p {
+            color: var(--text-light);
+            line-height: 1.8;
             margin-bottom: 1rem;
         }
 
+        .section ul {
+            margin-left: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .section li {
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            line-height: 1.7;
+        }
+
         .simulation-area {
-            background: var(--light-grey);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            margin: 1rem 0;
+            background: var(--card-dark);
+            padding: 2rem;
+            border-radius: 0.75rem;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border-dark);
         }
 
         .timeline {
             position: relative;
-            height: 400px;
-            background: white;
-            border-radius: 0.5rem;
-            padding: 1rem;
+            height: 450px;
+            background: var(--secondary-dark);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
             overflow: hidden;
+            border: 2px solid var(--border-dark);
         }
 
         canvas {
@@ -111,93 +143,120 @@
             display: flex;
             gap: 1rem;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
         }
 
         .btn {
-            padding: 0.75rem 1.5rem;
+            padding: 0.875rem 1.75rem;
             background: var(--primary-orange);
-            color: white;
+            color: var(--primary-dark);
             border: none;
-            border-radius: 0.25rem;
+            border-radius: 0.5rem;
             cursor: pointer;
             font-size: 1rem;
-            transition: opacity 0.2s;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
         .btn:hover {
-            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(247, 147, 26, 0.4);
         }
 
         .btn-secondary {
             background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
         }
 
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-top: 1.5rem;
         }
 
         .metric-card {
-            background: white;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            border: 2px solid var(--border-grey);
+            background: var(--secondary-dark);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 2px solid var(--border-dark);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
         }
 
         .metric-label {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         .metric-value {
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: bold;
             color: var(--primary-orange);
         }
 
         .feedback-loop {
-            background: linear-gradient(135deg, #f5f5f5 0%, #e8f4f8 100%);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            margin: 1rem 0;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
+            padding: 2rem;
+            border-radius: 0.75rem;
+            margin: 1.5rem 0;
             border-left: 4px solid var(--accent-green);
         }
 
         .feedback-loop h3 {
             color: var(--accent-green);
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
         }
 
         .arrow-chain {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin: 0.5rem 0;
+            gap: 0.75rem;
+            margin: 1rem 0;
             flex-wrap: wrap;
         }
 
         .arrow-item {
-            background: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.25rem;
-            border: 1px solid var(--border-grey);
+            background: var(--card-dark);
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            border: 2px solid var(--border-dark);
+            color: var(--text-light);
+            font-weight: 500;
         }
 
         .arrow {
             color: var(--primary-orange);
             font-size: 1.5rem;
+            font-weight: bold;
         }
 
         .lindy-explanation {
-            background: linear-gradient(135deg, #fff5e6 0%, #ffe6cc 100%);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.15), rgba(247, 147, 26, 0.05));
+            padding: 2rem;
+            border-radius: 0.75rem;
             border-left: 4px solid var(--primary-orange);
-            margin: 1rem 0;
+            margin: 1.5rem 0;
+        }
+
+        .lindy-explanation h3 {
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
         }
 
         .advanced-only, .intermediate-only, .beginner-only {
@@ -220,29 +279,34 @@
         }
 
         .formula {
-            background: white;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            border: 1px solid var(--border-grey);
+            background: var(--card-dark);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 2px solid var(--primary-orange);
             font-family: 'Courier New', monospace;
-            margin: 1rem 0;
+            margin: 1.5rem 0;
             text-align: center;
+            font-size: 1.1rem;
+            color: var(--primary-orange);
+            font-weight: 600;
         }
 
         .security-indicator {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin: 0.5rem 0;
-            padding: 0.75rem;
-            background: white;
-            border-radius: 0.25rem;
+            gap: 0.75rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--secondary-dark);
+            border-radius: 0.5rem;
+            border: 2px solid var(--border-dark);
         }
 
         .indicator-dot {
-            width: 12px;
-            height: 12px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
+            box-shadow: 0 0 10px currentColor;
         }
 
         .status-weak { background: var(--accent-red); }
@@ -250,22 +314,54 @@
         .status-strong { background: var(--accent-green); }
         .status-dominant { background: #00D4AA; }
 
+        label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-light);
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
         @media (max-width: 768px) {
-            h1 { font-size: 1.5rem; }
+            body {
+                padding: 1rem 0.5rem;
+            }
+            h1 { font-size: 1.8rem; }
+            .subtitle { font-size: 1rem; }
             .timeline { height: 300px; }
             .metrics-grid { grid-template-columns: 1fr; }
+            .level-switcher {
+                flex-direction: column;
+            }
+            .level-btn {
+                width: 100%;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
     <div class="demo-container">
         <h1>🌐 Bitcoin Network Growth</h1>
-        <p class="subtitle">Understanding how Bitcoin becomes stronger over time</p>
+        <p class="subtitle">Understanding how Bitcoin becomes stronger over time through network effects</p>
 
         <div class="level-switcher">
-            <button class="level-btn" onclick="switchLevel('beginner')">Beginner</button>
-            <button class="level-btn" onclick="switchLevel('intermediate')">Intermediate</button>
-            <button class="level-btn" onclick="switchLevel('advanced')">Advanced</button>
+            <button class="level-btn" onclick="switchLevel('beginner')">🌱 Beginner</button>
+            <button class="level-btn" onclick="switchLevel('intermediate')">⚡ Intermediate</button>
+            <button class="level-btn" onclick="switchLevel('advanced')">🎯 Advanced</button>
         </div>
 
         <!-- Beginner Content -->
@@ -273,12 +369,13 @@
             <div class="section">
                 <h2>How Networks Grow Stronger</h2>
                 <p>Imagine a phone network with only 2 people. Not very useful! But with millions of people, it becomes essential. Bitcoin works the same way:</p>
-                <ul style="margin-left: 1.5rem; margin-top: 1rem;">
+                <ul>
                     <li><strong>More users</strong> = More merchants accepting it</li>
                     <li><strong>More merchants</strong> = More useful for payments</li>
                     <li><strong>More value</strong> = More miners securing it</li>
                     <li><strong>More security</strong> = More trust from new users</li>
                 </ul>
+                <p style="margin-top: 1.5rem;">This creates a <strong style="color: var(--primary-orange);">virtuous cycle</strong> where each improvement reinforces the others, making Bitcoin stronger every day.</p>
             </div>
         </div>
 
@@ -289,8 +386,8 @@
                 <div class="lindy-explanation">
                     <h3>📅 The Longer It Survives, The Longer It Will Survive</h3>
                     <p>Bitcoin has been running continuously since January 3, 2009. Every day it survives increases confidence in its future longevity.</p>
-                    <p style="margin-top: 0.5rem;"><strong>Examples of the Lindy Effect:</strong></p>
-                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <p style="margin-top: 1rem;"><strong>Examples of the Lindy Effect:</strong></p>
+                    <ul>
                         <li>Books that have lasted 100 years will likely last another 100</li>
                         <li>Technologies that survive 10 years are proven resilient</li>
                         <li>Bitcoin at 16+ years has proven itself more than most cryptocurrencies</li>
@@ -308,8 +405,8 @@
                 </div>
                 <p>The value of a network grows exponentially with the number of users. A network with 10,000 users is not 10x more valuable than one with 1,000 users—it's approximately 100x more valuable.</p>
 
-                <p style="margin-top: 1rem;"><strong>Applied to Bitcoin:</strong></p>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                <p style="margin-top: 1.5rem;"><strong>Applied to Bitcoin:</strong></p>
+                <ul>
                     <li>More users → Higher price → More mining revenue</li>
                     <li>More mining revenue → Higher hashrate → Greater security</li>
                     <li>Greater security → Lower attack risk → Increased institutional adoption</li>
@@ -323,11 +420,11 @@
             <h2>🚀 Network Growth Simulation</h2>
             <div class="simulation-area">
                 <div class="controls">
-                    <button class="btn" onclick="startSimulation()">Start Simulation</button>
-                    <button class="btn btn-secondary" onclick="resetSimulation()">Reset</button>
-                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button class="btn" onclick="startSimulation()">▶ Start Simulation</button>
+                    <button class="btn btn-secondary" onclick="resetSimulation()">⟲ Reset</button>
+                    <label>
                         <input type="checkbox" id="fast-mode" onchange="toggleSpeed()">
-                        <span>Fast Mode</span>
+                        <span>Fast Mode (10x Speed)</span>
                     </label>
                 </div>
 
@@ -354,11 +451,9 @@
                     </div>
                 </div>
 
-                <div style="margin-top: 1rem;">
-                    <div class="security-indicator">
-                        <div class="indicator-dot status-weak" id="security-indicator"></div>
-                        <span id="security-status">Network Security: Weak</span>
-                    </div>
+                <div class="security-indicator">
+                    <div class="indicator-dot status-weak" id="security-indicator"></div>
+                    <span id="security-status">Network Security: Weak</span>
                 </div>
             </div>
         </div>
@@ -384,7 +479,7 @@
                     </div>
                 </div>
 
-                <div class="feedback-loop" style="border-left-color: var(--accent-blue);">
+                <div class="feedback-loop" style="border-left-color: var(--accent-blue); background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(33, 150, 243, 0.05));">
                     <h3 style="color: var(--accent-blue);">The Developer Ecosystem</h3>
                     <div class="arrow-chain">
                         <div class="arrow-item">More Developers</div>
@@ -413,16 +508,16 @@
                     Security Budget = (Block Subsidy + Fees) × Blocks per Year × BTC Price
                 </div>
 
-                <p style="margin-top: 1rem;"><strong>Historical Growth:</strong></p>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                <p style="margin-top: 1.5rem;"><strong>Historical Growth:</strong></p>
+                <ul>
                     <li><strong>2009</strong>: ~5,256,000 BTC × $0.01 = $52,560/year security budget</li>
                     <li><strong>2015</strong>: ~1,314,000 BTC × $250 = $328M/year security budget</li>
                     <li><strong>2020</strong>: ~328,500 BTC × $10,000 = $3.3B/year security budget</li>
                     <li><strong>2025</strong>: ~164,250 BTC × $65,000 = $10.7B/year security budget</li>
                 </ul>
 
-                <p style="margin-top: 1rem;">As the network grows, the cost to attack (51% attack) grows faster than linearly due to:</p>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                <p style="margin-top: 1.5rem;">As the network grows, the cost to attack (51% attack) grows faster than linearly due to:</p>
+                <ul>
                     <li>Hardware scarcity (can't instantly acquire 51% of mining hardware)</li>
                     <li>Energy infrastructure requirements</li>
                     <li>Economic damage from attack (miners would destroy their own investment)</li>
@@ -446,7 +541,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             const buttons = document.querySelectorAll('.level-btn');
             buttons.forEach(btn => {
-                if (btn.textContent.toLowerCase() === currentLevel) {
+                const level = btn.textContent.toLowerCase().split(' ')[1];
+                if (level === currentLevel) {
                     btn.classList.add('active');
                 }
             });
@@ -471,8 +567,8 @@
 
         function resizeCanvas() {
             const container = canvas.parentElement;
-            canvas.width = container.clientWidth - 32;
-            canvas.height = container.clientHeight - 32;
+            canvas.width = container.clientWidth - 48;
+            canvas.height = container.clientHeight - 48;
             drawChart();
         }
 
@@ -556,11 +652,12 @@
             const width = canvas.width;
             const height = canvas.height;
 
-            // Clear canvas
-            ctx.clearRect(0, 0, width, height);
+            // Clear canvas with dark background
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, width, height);
 
-            // Draw grid
-            ctx.strokeStyle = '#e0e0e0';
+            // Draw grid (darker for dark theme)
+            ctx.strokeStyle = 'rgba(247, 147, 26, 0.1)';
             ctx.lineWidth = 1;
             for (let i = 0; i <= 5; i++) {
                 const y = (height / 5) * i;
@@ -574,13 +671,15 @@
             const maxUsers = Math.max(...dataPoints.map(d => d.users));
             const maxHashrate = Math.max(...dataPoints.map(d => d.hashrate));
 
-            // Draw users line
+            // Draw users line (orange)
             ctx.strokeStyle = '#f7931a';
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#f7931a';
             ctx.beginPath();
             dataPoints.forEach((point, i) => {
                 const x = (width / (dataPoints.length - 1)) * i;
-                const y = height - (point.users / maxUsers) * height * 0.9;
+                const y = height - (point.users / maxUsers) * height * 0.85;
                 if (i === 0) {
                     ctx.moveTo(x, y);
                 } else {
@@ -588,15 +687,18 @@
                 }
             });
             ctx.stroke();
+            ctx.shadowBlur = 0;
 
-            // Draw hashrate line (if advanced mode)
+            // Draw hashrate line (green - if intermediate/advanced)
             if (currentLevel === 'advanced' || currentLevel === 'intermediate') {
-                ctx.strokeStyle = '#50AF95';
-                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#4CAF50';
+                ctx.lineWidth = 3;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = '#4CAF50';
                 ctx.beginPath();
                 dataPoints.forEach((point, i) => {
                     const x = (width / (dataPoints.length - 1)) * i;
-                    const y = height - (point.hashrate / maxHashrate) * height * 0.9;
+                    const y = height - (point.hashrate / maxHashrate) * height * 0.85;
                     if (i === 0) {
                         ctx.moveTo(x, y);
                     } else {
@@ -604,16 +706,17 @@
                     }
                 });
                 ctx.stroke();
+                ctx.shadowBlur = 0;
             }
 
             // Draw legend
+            ctx.font = 'bold 16px sans-serif';
             ctx.fillStyle = '#f7931a';
-            ctx.font = '14px sans-serif';
-            ctx.fillText('Users', 10, 20);
+            ctx.fillText('— Users', 20, 30);
 
             if (currentLevel === 'advanced' || currentLevel === 'intermediate') {
-                ctx.fillStyle = '#50AF95';
-                ctx.fillText('Hashrate', 80, 20);
+                ctx.fillStyle = '#4CAF50';
+                ctx.fillText('— Hashrate', 120, 30);
             }
         }
 
@@ -621,7 +724,7 @@
             if (simulationRunning) return;
 
             simulationRunning = true;
-            const speed = fastMode ? 100 : 500;
+            const speed = fastMode ? 50 : 500;
 
             simulationInterval = setInterval(() => {
                 if (currentYear >= 2025) {
