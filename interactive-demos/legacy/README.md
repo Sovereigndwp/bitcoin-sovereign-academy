@@ -83,4 +83,34 @@ If old links exist to these demos, add 301 redirects:
 
 ---
 
+### Emotional Scenarios (Original - Deprecated)
+
+**Superseded by**: Branching narrative versions with multiple decision paths
+
+| File | Reason for Deprecation | Date Archived |
+|------|------------------------|---------------|
+| `account-freeze-locked-out/` | Superseded by branching scenario with 7 endings | 2025-10-23 |
+| `bitcoin-vs-banking-emergency/` | Superseded by emergency-fifty-scenario with 6 endings | 2025-10-23 |
+| `inflation-savings-disappear/` | Superseded by savings-disappear-scenario 10-year journey | 2025-10-23 |
+
+**Why upgrade?**
+- **Linear demos → Branching narratives**: Original demos had fixed outcomes
+- **Emotional engagement**: New versions have player choices that shape the story
+- **Multiple endings**: Each scenario has 6-7 different outcomes based on decisions
+- **Educational depth**: Learning insights tailored to each path taken
+
+**What to use instead**:
+- Account freeze: `/interactive-demos/account-freeze-scenario.html`
+- $50 Emergency: `/interactive-demos/emergency-fifty-scenario.html`
+- Savings erosion: `/interactive-demos/savings-disappear-scenario.html`
+
+**Redirects needed**:
+```
+/interactive-demos/account-freeze-locked-out → /interactive-demos/account-freeze-scenario.html
+/interactive-demos/bitcoin-vs-banking-emergency → /interactive-demos/emergency-fifty-scenario.html
+/interactive-demos/inflation-savings-disappear → /interactive-demos/savings-disappear-scenario.html
+```
+
+---
+
 **Last Updated**: 2025-10-23
