@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Savings Disappear - Inflation Demo | Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --accent-green: #28a745;
+            --accent-red: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: var(--primary-orange);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Savings Dashboard */
+        .savings-dashboard {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            border: 2px solid var(--accent-green);
+        }
+
+        .account-balance {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .balance-label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .balance-amount {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 20px rgba(40, 167, 80, 0.3);
+        }
+
+        .balance-amount.losing-value {
+            color: var(--accent-red);
+            animation: valueDecline 1s ease-in-out infinite;
+        }
+
+        @keyframes valueDecline {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.98); opacity: 0.8; }
+        }
+
+        .years-saved {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            margin-top: 1rem;
+        }
+
+        /* News Feed */
+        .news-feed {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--accent-red);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .news-feed h3 {
+            color: var(--accent-red);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .news-item {
+            background: rgba(220, 53, 69, 0.1);
+            border-left: 3px solid var(--accent-red);
+            padding: 1rem;
+            margin: 0.75rem 0;
+            border-radius: 6px;
+            animation: newsFlash 0.5s ease;
+        }
+
+        @keyframes newsFlash {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .news-date {
+            font-size: 0.85rem;
+            color: var(--accent-red);
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .news-headline {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .news-impact {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Purchasing Power */
+        .purchasing-power {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .power-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+            border-radius: 15px;
+            padding: 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .power-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .power-label {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--text-dim);
+        }
+
+        .power-value {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            transition: all 0.5s ease;
+        }
+
+        .power-value.declining {
+            color: var(--accent-red);
+        }
+
+        .power-change {
+            text-align: center;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--accent-red);
+        }
+
+        /* Control Button */
+        .control-btn {
+            background: var(--primary-orange);
+            color: white;
+            padding: 1.2rem 3rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 2rem auto;
+            box-shadow: 0 4px 15px rgba(247, 147, 26, 0.3);
+        }
+
+        .control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(247, 147, 26, 0.5);
+        }
+
+        /* Bitcoin Comparison */
+        .bitcoin-comparison {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.15), rgba(247, 147, 26, 0.05));
+            border: 3px solid var(--primary-orange);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin: 3rem 0;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .comparison-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            border-radius: 12px;
+        }
+
+        .comparison-card h4 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .stat {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💸 Your Savings Disappear</h1>
+            <p>Watch 10 years of hard work evaporate in real-time</p>
+        </div>
+
+        <!-- Story Setup -->
+        <div style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(79, 70, 229, 0.05)); border-left: 5px solid #4f46e5; border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+            <h3 style="color: #4f46e5; margin-bottom: 1rem;">📖 Your Story</h3>
+            <p style="line-height: 1.8; font-size: 1.05rem;">
+                You've been saving diligently for 10 years. You've put away $10,000 - your emergency fund,
+                your security, your future. It's sitting safely in your bank account earning 0.5% interest.
+                You feel responsible and smart.
+                <br><br>
+                Then the government starts "printing money" to solve economic problems. Let's watch what happens
+                to YOUR savings...
+            </p>
+        </div>
+
+        <!-- Savings Dashboard -->
+        <div class="savings-dashboard" id="dashboard">
+            <div class="account-balance">
+                <div class="balance-label">💰 YOUR SAVINGS ACCOUNT</div>
+                <div class="balance-amount" id="balance">$10,000</div>
+                <div class="years-saved">10 years of hard work</div>
+            </div>
+
+            <div style="text-align: center; margin: 2rem 0;">
+                <button type="button" class="control-btn" id="start-btn" onclick="startInflation()">
+                    ▶️ Start Money Printing
+                </button>
+            </div>
+
+            <!-- Purchasing Power Grid -->
+            <div class="purchasing-power">
+                <div class="power-card">
+                    <div class="power-icon">🍔</div>
+                    <div class="power-label">Grocery Bags You Can Buy</div>
+                    <div class="power-value" id="groceries">200</div>
+                    <div class="power-change" id="groceries-change"></div>
+                </div>
+
+                <div class="power-card">
+                    <div class="power-icon">🏠</div>
+                    <div class="power-label">% of House Down Payment</div>
+                    <div class="power-value" id="house">10%</div>
+                    <div class="power-change" id="house-change"></div>
+                </div>
+
+                <div class="power-card">
+                    <div class="power-icon">⛽</div>
+                    <div class="power-label">Months of Gas You Can Buy</div>
+                    <div class="power-value" id="gas">50</div>
+                    <div class="power-change" id="gas-change"></div>
+                </div>
+
+                <div class="power-card">
+                    <div class="power-icon">🎓</div>
+                    <div class="power-label">Months of College Tuition</div>
+                    <div class="power-value" id="tuition">12</div>
+                    <div class="power-change" id="tuition-change"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- News Feed -->
+        <div class="news-feed" id="news-feed" style="display: none;">
+            <h3><span style="animation: blink 1s infinite;">🔴</span> Breaking Economic News</h3>
+            <div id="news-items"></div>
+        </div>
+
+        <!-- Bitcoin Comparison -->
+        <div class="bitcoin-comparison" id="comparison" style="display: none;">
+            <h2 style="color: var(--primary-orange); text-align: center; margin-bottom: 1rem;">
+                💡 What If You Had Chosen Bitcoin?
+            </h2>
+            <p style="text-align: center; margin-bottom: 2rem; font-size: 1.1rem; line-height: 1.8;">
+                Let's compare what happened to your $10,000 over the same time period...
+            </p>
+
+            <div class="comparison-grid">
+                <div class="comparison-card" style="border: 2px solid var(--accent-red);">
+                    <h4 style="color: var(--accent-red);">💵 Kept in USD</h4>
+                    <div class="stat">
+                        <div class="stat-label">Nominal Value (what bank shows)</div>
+                        <div class="stat-value" style="color: var(--accent-green);" id="final-nominal">$10,500</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Real Value (purchasing power)</div>
+                        <div class="stat-value" style="color: var(--accent-red);" id="final-real">$5,250</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Loss</div>
+                        <div class="stat-value" style="color: var(--accent-red);">-47%</div>
+                    </div>
+                </div>
+
+                <div class="comparison-card" style="border: 2px solid var(--primary-orange);">
+                    <h4 style="color: var(--primary-orange);">₿ Saved in Bitcoin</h4>
+                    <div class="stat">
+                        <div class="stat-label">Initial Bitcoin (2020 price)</div>
+                        <div class="stat-value" style="color: var(--primary-orange);">1.05 BTC</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Value Today (2025)</div>
+                        <div class="stat-value" style="color: var(--accent-green);">~$105,000</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Gain</div>
+                        <div class="stat-value" style="color: var(--accent-green);">+950%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: rgba(40, 167, 80, 0.2); border-left: 6px solid var(--accent-green); padding: 2rem; border-radius: 12px; margin-top: 2rem;">
+                <h4 style="color: var(--accent-green); margin-bottom: 1rem;">🔑 The Key Difference</h4>
+                <p style="line-height: 1.8;">
+                    <strong>USD:</strong> The Federal Reserve can print unlimited new dollars, diluting your savings.
+                    In 2020-2025, they created $4+ trillion, causing your purchasing power to collapse.
+                    <br><br>
+                    <strong>Bitcoin:</strong> Maximum supply is 21 million BTC. No central authority can create more.
+                    While USD inflated by 47%, Bitcoin remained scarce, protecting and growing your wealth.
+                    <br><br>
+                    💡 <strong>Key Insight:</strong> You can't save money in a currency that can be printed infinitely.
+                    Scarcity isn't just a feature—it's the foundation of saving.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const newsEvents = [
+            { year: 2020, headline: 'Federal Reserve Announces $2 Trillion Stimulus', impact: 'Money supply increases 20%', inflationHit: 0.20 },
+            { year: 2021, headline: 'Another $1.9 Trillion Relief Package Approved', impact: 'Total money supply up 35%', inflationHit: 0.15 },
+            { year: 2022, headline: 'Inflation Reaches 9.1% - Highest in 40 Years', impact: 'Grocery prices surge', inflationHit: 0.091 },
+            { year: 2023, headline: 'Interest Rates Rise But Inflation Persists', impact: 'Housing costs up 25%', inflationHit: 0.06 },
+            { year: 2024, headline: 'Cumulative Inflation Exceeds 40% Since 2020', impact: 'Average family needs $11,400 more per year', inflationHit: 0.05 },
+        ];
+
+        let inflationRunning = false;
+        let totalInflation = 0;
+        let eventIndex = 0;
+
+        const startingValues = {
+            balance: 10000,
+            groceries: 200,
+            house: 10,
+            gas: 50,
+            tuition: 12
+        };
+
+        function startInflation() {
+            if (inflationRunning) return;
+
+            inflationRunning = true;
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('start-btn').textContent = '⏸️ Inflation in Progress...';
+            document.getElementById('news-feed').style.display = 'block';
+            document.getElementById('balance').classList.add('losing-value');
+            document.getElementById('dashboard').style.borderColor = 'var(--accent-red)';
+
+            runInflationCycle();
+        }
+
+        function runInflationCycle() {
+            if (eventIndex >= newsEvents.length) {
+                finishSimulation();
+                return;
+            }
+
+            const event = newsEvents[eventIndex];
+
+            // Add news item
+            const newsItems = document.getElementById('news-items');
+            const newsItem = document.createElement('div');
+            newsItem.className = 'news-item';
+            newsItem.innerHTML = `
+                <div class="news-date">${event.year}</div>
+                <div class="news-headline">${event.headline}</div>
+                <div class="news-impact">${event.impact}</div>
+            `;
+            newsItems.insertBefore(newsItem, newsItems.firstChild);
+
+            // Apply inflation
+            totalInflation += event.inflationHit;
+            const purchasingPower = 1 / (1 + totalInflation);
+
+            updateValues(purchasingPower);
+
+            eventIndex++;
+            setTimeout(runInflationCycle, 3000);
+        }
+
+        function updateValues(purchasingPower) {
+            // Update groceries
+            const groceries = Math.round(startingValues.groceries * purchasingPower);
+            document.getElementById('groceries').textContent = groceries;
+            document.getElementById('groceries').classList.add('declining');
+            document.getElementById('groceries-change').textContent = `↓ Lost ${startingValues.groceries - groceries} bags`;
+
+            // Update house
+            const house = Math.round(startingValues.house * purchasingPower * 10) / 10;
+            document.getElementById('house').textContent = `${house}%`;
+            document.getElementById('house').classList.add('declining');
+            document.getElementById('house-change').textContent = `↓ Lost ${(startingValues.house - house).toFixed(1)}%`;
+
+            // Update gas
+            const gas = Math.round(startingValues.gas * purchasingPower);
+            document.getElementById('gas').textContent = gas;
+            document.getElementById('gas').classList.add('declining');
+            document.getElementById('gas-change').textContent = `↓ Lost ${startingValues.gas - gas} months`;
+
+            // Update tuition
+            const tuition = Math.round(startingValues.tuition * purchasingPower);
+            document.getElementById('tuition').textContent = tuition;
+            document.getElementById('tuition').classList.add('declining');
+            document.getElementById('tuition-change').textContent = `↓ Lost ${startingValues.tuition - tuition} months`;
+
+            // Update balance display (still shows $10,000 but now in red)
+            const realValue = Math.round(startingValues.balance * purchasingPower);
+            document.getElementById('balance').textContent = `$${realValue.toLocaleString()}`;
+        }
+
+        function finishSimulation() {
+            document.getElementById('start-btn').textContent = '✅ Simulation Complete';
+            document.getElementById('comparison').style.display = 'block';
+            document.getElementById('comparison').scrollIntoView({ behavior: 'smooth' });
+
+            // Update final values
+            const purchasingPower = 1 / (1 + totalInflation);
+            const finalReal = Math.round(startingValues.balance * purchasingPower);
+            const finalNominal = Math.round(startingValues.balance * 1.05); // 0.5% interest for 10 years
+
+            document.getElementById('final-nominal').textContent = `$${finalNominal.toLocaleString()}`;
+            document.getElementById('final-real').textContent = `$${finalReal.toLocaleString()}`;
+        }
+
+        console.log('💸 Inflation Demo: Your Savings Disappear');
+    </script>
+</body>
+</html>
