@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Locked Out - Account Freeze Scenario | Bitcoin Sovereign Academy</title>
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #0f0f0f;
+            --secondary-dark: #1a1a1a;
+            --text-light: #e0e0e0;
+            --text-dim: #888888;
+            --success-green: #4CAF50;
+            --warning-yellow: #FFC107;
+            --error-red: #ef4444;
+            --crimson: #be123c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(190, 18, 60, 0.2), rgba(190, 18, 60, 0.05));
+            border: 3px solid var(--crimson);
+            border-radius: 1rem;
+            animation: urgentPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes urgentPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(190, 18, 60, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(190, 18, 60, 0.6); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: var(--crimson);
+            margin-bottom: 1rem;
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+        }
+
+        /* Balance Display */
+        .balance-bar {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(190, 18, 60, 0.5);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 2rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .balance-item {
+            text-align: center;
+        }
+
+        .balance-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .balance-amount {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-orange);
+            font-family: 'Courier New', monospace;
+        }
+
+        .balance-amount.locked {
+            color: var(--error-red);
+            text-decoration: line-through;
+        }
+
+        /* Story Card */
+        .story-card {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .story-text {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .story-text strong {
+            color: var(--primary-orange);
+        }
+
+        .highlight-danger {
+            color: var(--error-red);
+            font-weight: 700;
+        }
+
+        .highlight-success {
+            color: var(--success-green);
+            font-weight: 700;
+        }
+
+        .dialogue {
+            background: rgba(247, 147, 26, 0.1);
+            border-left: 4px solid var(--primary-orange);
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            border-radius: 0.5rem;
+            font-style: italic;
+        }
+
+        .dialogue .speaker {
+            color: var(--primary-orange);
+            font-weight: 700;
+            font-style: normal;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .system-message {
+            background: rgba(190, 18, 60, 0.2);
+            border: 2px solid var(--crimson);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+
+        .system-message .title {
+            color: var(--crimson);
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Choice Buttons */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .choice-btn {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        .choice-btn:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(247, 147, 26, 0.3);
+        }
+
+        .choice-btn .choice-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-orange);
+        }
+
+        .choice-btn .choice-desc {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+        }
+
+        /* Outcome Cards */
+        .outcome {
+            background: var(--secondary-dark);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .outcome.success {
+            border: 2px solid var(--success-green);
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.05));
+        }
+
+        .outcome.failure {
+            border: 2px solid var(--error-red);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05));
+        }
+
+        .outcome.partial {
+            border: 2px solid var(--warning-yellow);
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 193, 7, 0.05));
+        }
+
+        .outcome-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .outcome.success .outcome-title {
+            color: var(--success-green);
+        }
+
+        .outcome.failure .outcome-title {
+            color: var(--error-red);
+        }
+
+        .outcome.partial .outcome-title {
+            color: var(--warning-yellow);
+        }
+
+        /* Timeline */
+        .timeline {
+            margin: 2rem 0;
+        }
+
+        .timeline-item {
+            padding: 1rem 0;
+            border-left: 3px solid rgba(247, 147, 26, 0.3);
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .timeline-item:before {
+            content: "●";
+            position: absolute;
+            left: -8px;
+            color: var(--primary-orange);
+            font-size: 1rem;
+        }
+
+        .timeline-time {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        .timeline-event {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        /* Learning Box */
+        .learning-box {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.15), rgba(247, 147, 26, 0.05));
+            border: 2px solid var(--primary-orange);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .learning-box h3 {
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .learning-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .learning-box li {
+            padding: 0.75rem 0;
+            padding-left: 2rem;
+            position: relative;
+            line-height: 1.7;
+        }
+
+        .learning-box li:before {
+            content: "💡";
+            position: absolute;
+            left: 0;
+        }
+
+        /* Restart Button */
+        .restart-btn {
+            background: var(--primary-orange);
+            color: var(--primary-dark);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: block;
+            margin: 2rem auto;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(247, 147, 26, 0.4);
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .balance-bar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .story-text {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔒 Locked Out of YOUR Money</h1>
+            <p class="subtitle">A branching story about financial freedom and censorship</p>
+        </div>
+
+        <!-- Balance Bar -->
+        <div class="balance-bar" id="balance-bar">
+            <div class="balance-item">
+                <div class="balance-label">Checking Account</div>
+                <div class="balance-amount" id="checking">$4,250</div>
+            </div>
+            <div class="balance-item">
+                <div class="balance-label">Savings Account</div>
+                <div class="balance-amount" id="savings">$18,000</div>
+            </div>
+            <div class="balance-item">
+                <div class="balance-label">Bitcoin</div>
+                <div class="balance-amount" id="bitcoin">$0</div>
+            </div>
+        </div>
+
+        <!-- Story Container -->
+        <div id="story-container"></div>
+
+        <!-- Restart Button (initially hidden) -->
+        <button class="restart-btn hidden" id="restart-btn" onclick="restartStory()">
+            🔄 Try Different Choices
+        </button>
+    </div>
+
+    <script>
+        // Story state
+        let currentScene = 'intro';
+
+        // Story data structure
+        const story = {
+            intro: {
+                text: `
+                    <p class="story-text">
+                        <strong>Monday, 7:45 AM.</strong> Your alarm goes off. Rent is due today ($1,800), and you need to transfer it before work.
+                    </p>
+                    <p class="story-text">
+                        You've been a responsible adult: steady job, bills paid on time, $22,250 in the bank ($4,250 checking + $18,000 savings).
+                        Life is stable. Predictable. Safe.
+                    </p>
+                    <p class="story-text">
+                        You open your banking app to send rent.
+                    </p>
+                    <div class="system-message">
+                        <div class="title">⚠️ Account Alert</div>
+                        <p>Your account has been temporarily restricted pending review. Estimated resolution: 5-7 business days.</p>
+                        <p>For assistance, please call 1-800-XXX-XXXX (Mon-Fri, 9am-5pm EST)</p>
+                    </div>
+                    <p class="story-text">
+                        Your hands go cold. <strong>It's 7:47 AM</strong>. The support line doesn't open for another 73 minutes.
+                        Your landlord's late fee kicks in at 5 PM.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">You (panicking):</span>
+                        "What review? I haven't done anything wrong. This is MY money!"
+                    </div>
+                `,
+                choices: [
+                    {
+                        title: "Wait for Bank to Open, Call Support",
+                        desc: "It's probably a mistake. The bank will fix it.",
+                        next: 'call_bank'
+                    },
+                    {
+                        title: "Try to Withdraw Cash at ATM",
+                        desc: "If the app is frozen, maybe the ATM still works?",
+                        next: 'try_atm'
+                    },
+                    {
+                        title: "Check if You Have Bitcoin (You Don't)",
+                        desc: "Your friend kept saying 'be your own bank.' Wish you'd listened...",
+                        next: 'no_bitcoin_regret'
+                    }
+                ]
+            },
+
+            call_bank: {
+                text: `
+                    <p class="story-text">
+                        You wait until 9:00 AM. Call the number. Automated system. Press 1, press 4, press 3...
+                    </p>
+                    <div class="system-message">
+                        <div class="title">Automated Voice</div>
+                        <p>"Your estimated wait time is... 47 minutes. Please stay on the line."</p>
+                    </div>
+                    <p class="story-text">
+                        <strong>9:52 AM:</strong> You reach a human.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">Bank Rep:</span>
+                        "I see your account was flagged by our automated fraud detection system. You made three
+                        Venmo payments over $500 in the past week, which triggered a manual review."
+                    </div>
+                    <div class="dialogue">
+                        <span class="speaker">You:</span>
+                        "Those were my car repair bills! I paid my mechanic! That's not fraud, that's MY MONEY!"
+                    </div>
+                    <div class="dialogue">
+                        <span class="speaker">Bank Rep:</span>
+                        "I understand your frustration, but I cannot override the review process. Our compliance
+                        department will contact you within 5-7 business days. Is there anything else I can help you with today?"
+                    </div>
+                    <p class="story-text">
+                        It's 10:15 AM. Rent is due in 7 hours.
+                    </p>
+                `,
+                choices: [
+                    {
+                        title: "Beg Your Landlord for Extension",
+                        desc: "Explain the situation. Hope for mercy.",
+                        next: 'beg_landlord_fail'
+                    },
+                    {
+                        title: "Borrow Money from Friend/Family",
+                        desc: "Swallow your pride. Ask for help.",
+                        next: 'borrow_fiat_temp'
+                    },
+                    {
+                        title: "Open New Bank Account Elsewhere",
+                        desc: "If this bank won't help, find one that will.",
+                        next: 'try_new_bank'
+                    }
+                ]
+            },
+
+            try_atm: {
+                text: `
+                    <p class="story-text">
+                        You drive to the nearest ATM. Insert card. Enter PIN.
+                    </p>
+                    <div class="system-message">
+                        <div class="title">ATM Error</div>
+                        <p>TRANSACTION DECLINED</p>
+                        <p>Please contact your financial institution.</p>
+                    </div>
+                    <p class="story-text">
+                        You try a different ATM. Same message. You drive across town to a branch ATM. Same result.
+                    </p>
+                    <p class="story-text">
+                        <strong>$22,250 in your account. $0 accessible.</strong>
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">You (realizing):</span>
+                        "I don't have money in the bank. I have an IOU from the bank. And they just decided
+                        I can't redeem it."
+                    </div>
+                `,
+                choices: [
+                    {
+                        title: "Go to Physical Bank Branch",
+                        desc: "They can't deny you if you're standing in front of them.",
+                        next: 'physical_branch'
+                    },
+                    {
+                        title: "Call Bank Support Immediately",
+                        desc: "Wait on hold. There has to be someone who can help.",
+                        next: 'call_bank'
+                    }
+                ]
+            },
+
+            no_bitcoin_regret: {
+                text: `
+                    <p class="story-text">
+                        You remember your friend Alex, six months ago at dinner:
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">Alex:</span>
+                        "Just keep $1,000 in Bitcoin. Not as an investment. As insurance. The day your bank
+                        freezes your account — and it will happen to someone you know — you'll understand why
+                        'not your keys, not your coins' isn't paranoia. It's reality."
+                    </div>
+                    <p class="story-text">
+                        You'd laughed it off. "That'll never happen to me. I'm not a criminal."
+                    </p>
+                    <p class="story-text">
+                        <strong>Now it's 8:15 AM.</strong> Your rent is due in 9 hours. Your bank account: frozen.
+                        Your Bitcoin wallet: empty.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">You (calling Alex):</span>
+                        "Hey... remember when you told me to buy Bitcoin? Can you... can you lend me some?
+                        My bank locked my account and I need to pay rent today..."
+                    </div>
+                `,
+                choices: [
+                    {
+                        title: "Alex Sends You Bitcoin",
+                        desc: "They walk you through setting up a wallet and send $2,000.",
+                        next: 'bitcoin_rescue'
+                    },
+                    {
+                        title: "Alex Can't Help (Away on Travel)",
+                        desc: "They're in a different timezone, can't help immediately.",
+                        next: 'no_rescue_available'
+                    }
+                ]
+            },
+
+            // OUTCOMES
+            bitcoin_rescue: {
+                outcome: 'success',
+                title: "✅ Saved by Self-Custody",
+                text: `
+                    <p class="story-text">
+                        <strong>8:45 AM:</strong> Alex walks you through setting up a Bitcoin wallet over video call.
+                    </p>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-time">9:00 AM</div>
+                            <div class="timeline-event">Download Strike/CashApp. Set up account. Generate Bitcoin address.</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-time">9:12 AM</div>
+                            <div class="timeline-event">Alex sends 0.02 BTC (~$2,000). First confirmation in 8 minutes.</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-time">9:35 AM</div>
+                            <div class="timeline-event">You convert Bitcoin to USD. Money hits your debit card in 60 seconds.</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-time">10:00 AM</div>
+                            <div class="timeline-event">You send rent payment. Landlord confirms receipt. Crisis averted.</div>
+                        </div>
+                    </div>
+                    <p class="story-text">
+                        Your bank account stays frozen for 11 days. But you keep working, paying bills, living life —
+                        because you now have a financial system that doesn't need permission.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">You (one month later):</span>
+                        "I keep $5,000 in Bitcoin now. Not because I think it'll make me rich. Because I never
+                        want to feel that powerless again. When my bank said 'no,' Bitcoin said 'yes.'"
+                    </div>
+                `,
+                learning: [
+                    "Banks can freeze your account for any reason, without notice or appeal",
+                    "Automated fraud detection algorithms make mistakes with no human oversight",
+                    "Your deposits are technically bank liabilities, not your property",
+                    "Bitcoin transactions cannot be frozen, blocked, or reversed by third parties",
+                    "Self-custody means true ownership — no one can deny you access",
+                    "Financial sovereignty isn't paranoia; it's protection against systemic failure",
+                    "The question isn't IF your bank will fail you, but WHEN"
+                ]
+            },
+
+            beg_landlord_fail: {
+                outcome: 'failure',
+                title: "❌ Late Fees, Eviction Notice, Destroyed Credit",
+                text: `
+                    <p class="story-text">
+                        You explain the situation to your landlord. They're sympathetic but firm.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">Landlord:</span>
+                        "I have a mortgage to pay. The lease clearly states rent is due on the 1st.
+                        Late fees start at 5 PM: $75 per day. If you're 10 days late, that's eviction proceedings."
+                    </div>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-time">Day 1 (Monday)</div>
+                            <div class="timeline-event">Account frozen. Rent unpaid. $75 late fee.</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-time">Day 5 (Friday)</div>
+                            <div class="timeline-event">Bank says "review in progress." Total late fees: $375.</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-time">Day 11 (Following Thursday)</div>
+                            <div class="timeline-event">Account finally unfrozen. But it's too late: $825 in late fees + eviction notice served.</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-time">Day 30</div>
+                            <div class="timeline-event">Eviction on credit report. Good luck finding housing now.</div>
+                        </div>
+                    </div>
+                    <p class="story-text">
+                        <strong>Total damage:</strong> $825 late fees + $2,000 moving costs + eviction on record for 7 years.
+                    </p>
+                    <p class="story-text">
+                        The bank eventually sent a letter: "Upon review, your account activity was normal.
+                        The restriction has been lifted. We apologize for any inconvenience."
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">You (broken):</span>
+                        "'Inconvenience?' You destroyed my housing, my credit, my life. And I had done nothing wrong."
+                    </div>
+                `,
+                learning: [
+                    "Banks face zero consequences for wrongly freezing accounts",
+                    "'Upon review' means nothing if the damage is already done",
+                    "Automated systems ruin lives with no accountability",
+                    "You're guilty until proven innocent in the banking system",
+                    "Late fees and evictions don't care about your bank's mistakes",
+                    "One frozen account can cascade into months/years of damage",
+                    "Financial dependence on permission-based systems is extreme risk"
+                ]
+            },
+
+            borrow_fiat_temp: {
+                outcome: 'partial',
+                title: "⚠️ You Survived, But Learned the Hard Way",
+                text: `
+                    <p class="story-text">
+                        You swallow your pride and call your parents. They wire $2,000 immediately (with a $30 fee).
+                    </p>
+                    <p class="story-text">
+                        Rent gets paid on time. You avoid late fees. Crisis averted... this time.
+                    </p>
+                    <p class="story-text">
+                        <strong>11 days later:</strong> Your bank account unfreezes. They offer no explanation, no apology.
+                        Your $22,250 is back, like nothing happened.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">You:</span>
+                        "What if I didn't have parents to bail me out? What if this happens again?
+                        I need a backup that doesn't require asking permission."
+                    </div>
+                    <p class="story-text">
+                        You buy $3,000 in Bitcoin that week. Not as speculation. As insurance.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">You (to yourself):</span>
+                        "Next time my bank says 'no,' I want to be able to say 'I don't need you.'"
+                    </div>
+                `,
+                learning: [
+                    "Being 'saved' by borrowing is just kicking the can down the road",
+                    "Dependency on family/friends isn't financial independence",
+                    "Your bank doesn't work FOR you; you're allowed to use THEIR system",
+                    "Emergency access to your own money shouldn't require luck",
+                    "Bitcoin as 'insurance' makes sense once you've felt powerlessness",
+                    "Self-custody is the only way to guarantee 24/7 access"
+                ]
+            },
+
+            physical_branch: {
+                outcome: 'failure',
+                title: "❌ The Illusion of In-Person Service",
+                text: `
+                    <p class="story-text">
+                        <strong>10:30 AM:</strong> You arrive at the bank branch. There are 8 people in line ahead of you.
+                    </p>
+                    <p class="story-text">
+                        <strong>11:15 AM:</strong> You finally reach a teller.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">You:</span>
+                        "My account is frozen and I need to pay rent today. Can you help me withdraw cash?"
+                    </div>
+                    <div class="dialogue">
+                        <span class="speaker">Teller:</span>
+                        "I see the hold on your account. Unfortunately, I don't have authorization to override
+                        compliance flags. You'll need to speak with a branch manager."
+                    </div>
+                    <p class="story-text">
+                        <strong>11:45 AM:</strong> Manager reviews your account.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">Manager:</span>
+                        "Our fraud prevention system flagged unusual activity. I can't lift this restriction —
+                        only the compliance department can. They're backlogged 5-7 business days. I'm sorry,
+                        but there's nothing I can do."
+                    </div>
+                    <p class="story-text">
+                        You're standing <strong>inside the bank, looking at employees, surrounded by infrastructure</strong> —
+                        and your money is still locked behind an algorithm no human can override.
+                    </p>
+                `,
+                learning: [
+                    "Physical branches are theater — real control is algorithmic",
+                    "Employees are powerless against automated compliance systems",
+                    "The friendly teller can't help you; they don't control your access",
+                    "Modern banking is centralized software with branch-shaped decorations",
+                    "Bitcoin has no customer service because it needs none — code is the only gatekeeper"
+                ]
+            },
+
+            try_new_bank: {
+                outcome: 'failure',
+                title: "❌ Blacklisted by the System",
+                text: `
+                    <p class="story-text">
+                        You try to open accounts at three different banks online.
+                    </p>
+                    <div class="system-message">
+                        <div class="title">Application Denied</div>
+                        <p>We're unable to open an account for you at this time based on information
+                        from ChexSystems, a consumer reporting agency.</p>
+                    </div>
+                    <p class="story-text">
+                        You check ChexSystems. Your frozen account was reported as "suspicious activity under review."
+                    </p>
+                    <p class="story-text">
+                        <strong>You're now flagged across the entire banking system</strong> — not because you did anything wrong,
+                        but because one bank's algorithm said so.
+                    </p>
+                    <div class="dialogue">
+                        <span class="speaker">You (desperate):</span>
+                        "How do I clear my name?"
+                    </div>
+                    <div class="system-message">
+                        <div class="title">ChexSystems:</div>
+                        <p>Disputed items remain on file for 5 years. You may submit a written dispute
+                        within 60 days. Resolution time: 30-45 business days.</p>
+                    </div>
+                    <p class="story-text">
+                        One algorithmic mistake. Five years of consequences.
+                    </p>
+                `,
+                learning: [
+                    "Banks share blacklists through ChexSystems and similar databases",
+                    "One bank's false positive can lock you out of the entire system",
+                    "There is no 'presumption of innocence' in financial surveillance",
+                    "Clearing your name takes months; damage happens in days",
+                    "Bitcoin doesn't have credit checks, accounts, or blacklists",
+                    "True financial freedom means opting out of permission-based systems entirely"
+                ]
+            },
+
+            no_rescue_available: {
+                outcome: 'failure',
+                title: "❌ No Bitcoin, No Backup, No Access",
+                text: `
+                    <p class="story-text">
+                        Alex is traveling in Southeast Asia. 12-hour time difference. Can't help until tomorrow.
+                    </p>
+                    <p class="story-text">
+                        You try calling other friends. Most don't have Bitcoin. Those who do don't have wallets set up
+                        or don't feel comfortable sending money.
+                    </p>
+                    <p class="story-text">
+                        <strong>5:00 PM:</strong> Rent is officially late. $75 late fee applies immediately.
+                    </p>
+                    <p class="story-text">
+                        Your bank account stays frozen for 9 days. By the time it unlocks:
+                    </p>
+                    <ul style="margin: 1.5rem 0 1.5rem 2rem; line-height: 1.8;">
+                        <li>$675 in late fees accumulated</li>
+                        <li>Eviction warning letter received</li>
+                        <li>Landlord reports you to credit bureaus</li>
+                        <li>You had to borrow from payday lenders at 400% APR to survive</li>
+                    </ul>
+                    <div class="dialogue">
+                        <span class="speaker">You (six months later, now with Bitcoin):</span>
+                        "I keep hearing 'Bitcoin is for criminals.' But I learned the hard way: Bitcoin is
+                        for anyone who's ever been treated like a criminal by their own bank."
+                    </div>
+                `,
+                learning: [
+                    "Relying on others' Bitcoin is not the same as having your own",
+                    "In emergencies, dependency on anyone (banks OR friends) is risk",
+                    "Bitcoin's value isn't price appreciation — it's 24/7 uncensorable access",
+                    "Self-custody means never being locked out",
+                    "The best time to set up Bitcoin was before the emergency; second best is now",
+                    "Financial sovereignty requires preparation, not panic"
+                ]
+            }
+        };
+
+        // Render scene
+        function renderScene(sceneKey) {
+            const scene = story[sceneKey];
+            const container = document.getElementById('story-container');
+
+            // Build HTML
+            let html = '';
+
+            // Story content
+            if (scene.outcome) {
+                // This is an ending
+                html += `
+                    <div class="outcome ${scene.outcome}">
+                        <h2 class="outcome-title">${scene.title}</h2>
+                        ${scene.text}
+                    </div>
+                `;
+
+                if (scene.learning) {
+                    html += `
+                        <div class="learning-box">
+                            <h3>💡 What This Scenario Teaches</h3>
+                            <ul>
+                                ${scene.learning.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                // Show restart button
+                document.getElementById('restart-btn').classList.remove('hidden');
+            } else {
+                // Regular scene
+                html += `<div class="story-card">${scene.text}</div>`;
+
+                // Choices
+                if (scene.choices && scene.choices.length > 0) {
+                    html += '<div class="choices">';
+                    scene.choices.forEach((choice, index) => {
+                        html += `
+                            <button class="choice-btn" onclick="makeChoice('${choice.next}')">
+                                <div class="choice-title">${choice.title}</div>
+                                <div class="choice-desc">${choice.desc}</div>
+                            </button>
+                        `;
+                    });
+                    html += '</div>';
+                }
+            }
+
+            container.innerHTML = html;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Make choice
+        function makeChoice(nextScene) {
+            currentScene = nextScene;
+            renderScene(nextScene);
+        }
+
+        // Restart story
+        function restartStory() {
+            currentScene = 'intro';
+            document.getElementById('restart-btn').classList.add('hidden');
+            renderScene('intro');
+        }
+
+        // Initialize
+        renderScene('intro');
+    </script>
+</body>
+</html>
