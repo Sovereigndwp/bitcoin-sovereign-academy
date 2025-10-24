@@ -36,6 +36,23 @@
             margin: 0 auto;
         }
 
+        .back-btn {
+            display: inline-block;
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 147, 26, 0.4);
+        }
+
         header {
             text-align: center;
             margin-bottom: 1rem;
@@ -67,7 +84,10 @@
         }
 
         .concept-grid {
-            display: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
 
         .concept-card {
@@ -170,7 +190,9 @@
         }
 
         .comparison-table {
-            display: none;
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
         }
 
         .comparison-table th {
@@ -231,7 +253,7 @@
         }
 
         .halving-timeline {
-            display: none;
+            margin-top: 1.5rem;
         }
 
         .timeline-event {
@@ -259,7 +281,12 @@
         }
 
         .formula-box {
-            display: none;
+            background: var(--secondary-dark);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-gold);
+            margin-bottom: 1.5rem;
+            text-align: center;
         }
 
         .formula {
@@ -267,6 +294,98 @@
             color: var(--primary-orange);
             font-weight: 700;
             margin: 1rem 0;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .concept-card {
+            animation: fadeIn 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .concept-card:nth-child(1) { animation-delay: 0.1s; }
+        .concept-card:nth-child(2) { animation-delay: 0.2s; }
+        .concept-card:nth-child(3) { animation-delay: 0.3s; }
+
+        .stat-card {
+            animation: fadeIn 0.5s ease-out;
+            animation-fill-mode: both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(247, 147, 26, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .stat-card:hover::before {
+            left: 100%;
+        }
+
+        .stat-value {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .timeline-event {
+            animation: fadeIn 0.8s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .timeline-event:nth-child(1) { animation-delay: 0.1s; }
+        .timeline-event:nth-child(2) { animation-delay: 0.2s; }
+        .timeline-event:nth-child(3) { animation-delay: 0.3s; }
+        .timeline-event:nth-child(4) { animation-delay: 0.4s; }
+        .timeline-event:nth-child(5) { animation-delay: 0.5s; }
+        .timeline-event:nth-child(6) { animation-delay: 0.6s; }
+
+        /* Enhanced hover effects */
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 4px 12px rgba(247, 147, 26, 0.3);
+        }
+
+        .timeline-event:hover {
+            background: rgba(247, 147, 26, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-left: -1rem;
+            padding-left: 3.5rem;
         }
 
         @media (max-width: 768px) {
@@ -281,15 +400,30 @@
             #s2f-chart {
                 height: 250px;
             }
-            
+
             .stat-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+
+            .concept-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-table {
+                font-size: 0.85rem;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 0.5rem;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <a href="/" class="back-btn">← Back to Home</a>
+
         <header>
             <h1>📊 Bitcoin Stock-to-Flow Model</h1>
             <p class="subtitle">Understanding Bitcoin's scarcity and its relationship to value over time</p>
@@ -588,12 +722,15 @@
             updateSVGChart(height, metrics);
         }
 
-        // Lightweight SVG Chart
+        // Enhanced SVG Chart with animations and tooltips
         function updateSVGChart(currentBlock, currentMetrics) {
             const svg = document.getElementById('s2f-chart');
             const width = 800;
             const height = 400;
             const padding = 60;
+
+            // Enable smooth transitions
+            svg.style.transition = 'all 0.3s ease';
             
             // Precomputed S2F values at key halvings (for performance)
             const halvingData = [
@@ -615,8 +752,21 @@
             
             // Clear and redraw
             svg.innerHTML = '';
-            
-            // Background grid
+
+            // Draw grid lines for better readability
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (i / 5) * (height - 2 * padding);
+                const gridLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                gridLine.setAttribute('x1', padding);
+                gridLine.setAttribute('y1', y);
+                gridLine.setAttribute('x2', width - padding);
+                gridLine.setAttribute('y2', y);
+                gridLine.setAttribute('stroke', 'rgba(255, 255, 255, 0.05)');
+                gridLine.setAttribute('stroke-width', '1');
+                svg.appendChild(gridLine);
+            }
+
+            // Background gradient
             const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
             const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
             gradient.setAttribute('id', 's2fGradient');
@@ -653,11 +803,12 @@
             linePath.setAttribute('fill', 'none');
             svg.appendChild(linePath);
             
-            // Draw halving markers
-            halvingData.slice(1).forEach(point => {
+            // Draw halving markers with labels
+            const halvingLabels = ['', 'Halving 1', 'Halving 2', 'Halving 3', 'Halving 4', 'Halving 5'];
+            halvingData.slice(1).forEach((point, idx) => {
                 const cx = xScale(point.block);
                 const cy = yScale(point.s2f);
-                
+
                 // Vertical line
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                 line.setAttribute('x1', cx);
@@ -668,8 +819,15 @@
                 line.setAttribute('stroke-width', '2');
                 line.setAttribute('stroke-dasharray', '5,5');
                 svg.appendChild(line);
-                
-                // Halving point
+
+                // Halving point with glow effect
+                const glowCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                glowCircle.setAttribute('cx', cx);
+                glowCircle.setAttribute('cy', cy);
+                glowCircle.setAttribute('r', '12');
+                glowCircle.setAttribute('fill', 'rgba(156, 39, 176, 0.2)');
+                svg.appendChild(glowCircle);
+
                 const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                 circle.setAttribute('cx', cx);
                 circle.setAttribute('cy', cy);
@@ -677,12 +835,55 @@
                 circle.setAttribute('fill', '#9C27B0');
                 circle.setAttribute('stroke', '#fff');
                 circle.setAttribute('stroke-width', '2');
+                circle.style.cursor = 'pointer';
                 svg.appendChild(circle);
+
+                // Label for halving
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', cx);
+                label.setAttribute('y', cy - 20);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('fill', '#9C27B0');
+                label.setAttribute('font-size', '10');
+                label.setAttribute('font-weight', '600');
+                label.textContent = halvingLabels[idx + 1];
+                svg.appendChild(label);
+
+                // S2F value label
+                const valueLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                valueLabel.setAttribute('x', cx);
+                valueLabel.setAttribute('y', cy + 20);
+                valueLabel.setAttribute('text-anchor', 'middle');
+                valueLabel.setAttribute('fill', '#999');
+                valueLabel.setAttribute('font-size', '10');
+                valueLabel.textContent = `S2F: ${point.s2f.toFixed(0)}`;
+                svg.appendChild(valueLabel);
             });
             
-            // Draw current position marker
+            // Draw current position marker with pulsing animation
             const currentX = xScale(currentBlock);
             const currentY = yScale(currentMetrics.s2f);
+
+            // Animated pulse ring
+            const pulseRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            pulseRing.setAttribute('cx', currentX);
+            pulseRing.setAttribute('cy', currentY);
+            pulseRing.setAttribute('r', '16');
+            pulseRing.setAttribute('fill', 'none');
+            pulseRing.setAttribute('stroke', '#4caf50');
+            pulseRing.setAttribute('stroke-width', '2');
+            pulseRing.setAttribute('opacity', '0.5');
+            svg.appendChild(pulseRing);
+
+            // Glow effect
+            const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            glow.setAttribute('cx', currentX);
+            glow.setAttribute('cy', currentY);
+            glow.setAttribute('r', '12');
+            glow.setAttribute('fill', 'rgba(76, 175, 80, 0.3)');
+            svg.appendChild(glow);
+
+            // Main marker
             const marker = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             marker.setAttribute('cx', currentX);
             marker.setAttribute('cy', currentY);
@@ -691,6 +892,17 @@
             marker.setAttribute('stroke', '#fff');
             marker.setAttribute('stroke-width', '3');
             svg.appendChild(marker);
+
+            // Current position label
+            const currentLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            currentLabel.setAttribute('x', currentX);
+            currentLabel.setAttribute('y', currentY - 25);
+            currentLabel.setAttribute('text-anchor', 'middle');
+            currentLabel.setAttribute('fill', '#4caf50');
+            currentLabel.setAttribute('font-size', '12');
+            currentLabel.setAttribute('font-weight', '700');
+            currentLabel.textContent = 'You are here';
+            svg.appendChild(currentLabel);
             
             // Axes labels
             const xAxisLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
