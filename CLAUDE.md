@@ -119,3 +119,71 @@ Code Creator:
 ⸻
 
 Would you like me to output this in Markdown format (ready to paste into your GitHub /docs/ folder or Notion page), or as a beautiful branded PDF (with your colors, logo, and headings)?
+- remember that The vercel.json configuration had X-Frame-Options: DENY for all pages, which prevented the demos from being embedded in iframes - even on the same
+  domain!
+
+  The Solution:
+  1. ✅ Added specific header rules for /paths/ (module pages)
+  2. ✅ Set X-Frame-Options: SAMEORIGIN (allows same-domain iframe embedding)
+  3. ✅ Added frame-src 'self' to Content-Security-Policy
+  4. ✅ Kept absolute paths (/interactive-demos/...) which work correctly on Vercel
+  5. ✅ Maintained security: only same-origin iframes allowed, external sites still blocked
+- Improved Card Structure & Spacing
+
+  - Container: Increased max-width to 1200px, padding to
+  3rem 2rem
+  - Assessment Form: Increased padding from 2rem to 3rem
+  - Station Cards: Increased padding to 2.5rem, added
+  box-shadow
+  - Score Card: Increased padding to 3rem, added larger
+  box-shadow
+  - Scenario Boxes: Increased padding to 2.5rem, added
+  box-shadow
+  - Simulator Boxes: Increased padding to 2.5rem, added
+  box-shadow
+  - Resource Cards: Increased padding to 1.75rem
+
+  3. Enhanced Form Elements
+
+  - Radio Options:
+    - Increased padding to 1.25rem
+    - Enhanced hover state with lift effect and glow
+    - Better visual feedback on interaction
+  - Checkbox Options:
+    - Increased padding to 1rem 1.25rem
+    - Added hover lift and glow effects
+  - Scenario Options:
+    - Added explicit text color for readability
+    - Improved hover state with slide animation
+
+  4. Improved Interactivity
+
+  - Added subtle transform effects on hover for all
+  interactive elements
+  - Consistent box-shadow usage across cards (0 4px 12px
+  rgba(0, 0, 0, 0.2))
+  - Enhanced hover states with brand-colored glows
+
+  5. Mobile Responsiveness
+
+  - Optimized padding for mobile screens (< 768px)
+  - Container: 2rem 1.5rem
+  - Hero section: 2rem 1.5rem
+  - Forms and cards: Reduced padding for smaller screens
+  - All grids properly collapse to single column
+
+  6. Platform Consistency
+
+  - Uses brand CSS variables throughout
+  - Consistent border-radius (12px-20px depending on
+  element size)
+  - Proper use of var(--color-brand), var(--color-text),
+  var(--color-surface)
+  - Orange accent color (#f7931a) consistently applied
+
+  7. Visual Hierarchy
+
+  - Clear distinction between background levels
+  - Proper elevation through box-shadows
+  - Consistent spacing rhythm (1rem, 1.5rem, 2rem, 3rem)
+  - Better breathing room between sections
