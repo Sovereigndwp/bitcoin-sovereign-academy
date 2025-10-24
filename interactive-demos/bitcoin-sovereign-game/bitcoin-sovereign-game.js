@@ -35,15 +35,25 @@ class BitcoinSovereignGame {
         
         // Historical accuracy from CheckOnChain
         this.historicalMetrics = {};
-        
-        // Initialize game components
-        this.timeline = new TimelineEvents();
-        this.socraticTutor = new SocraticTutor();
-        this.simulator = new EconomicSimulator();
-        this.assessor = new ProgressAssessor();
-        
+
+        // Initialize game components (lazy loaded to avoid class definition order issues)
+        this.timeline = null;
+        this.socraticTutor = null;
+        this.simulator = null;
+        this.assessor = null;
+
         // Connect to CheckOnChain for real metrics
         this.checkOnChain = window.CheckOnChainMetrics ? new window.CheckOnChainMetrics() : null;
+    }
+
+    // Lazy initialize helper classes
+    initializeHelpers() {
+        if (!this.timeline) {
+            this.timeline = new TimelineEvents();
+            this.socraticTutor = new SocraticTutor();
+            this.simulator = new EconomicSimulator();
+            this.assessor = new ProgressAssessor();
+        }
     }
 
     // ============================================================================
@@ -51,16 +61,19 @@ class BitcoinSovereignGame {
     // ============================================================================
 
     async initializeGame(playerName) {
+        // Initialize helper classes first
+        this.initializeHelpers();
+
         this.player.name = playerName;
-        
+
         // Load historical data if available
         if (this.checkOnChain) {
             await this.loadHistoricalMetrics();
         }
-        
+
         // Set initial economic conditions
         this.setInitialConditions();
-        
+
         // Start first year
         return this.startYear(2005);
     }
