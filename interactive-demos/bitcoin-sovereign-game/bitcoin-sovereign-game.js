@@ -49,10 +49,21 @@ class BitcoinSovereignGame {
     // Lazy initialize helper classes
     initializeHelpers() {
         if (!this.timeline) {
-            this.timeline = new TimelineEvents();
-            this.socraticTutor = new SocraticTutor();
-            this.simulator = new EconomicSimulator();
-            this.assessor = new ProgressAssessor();
+            try {
+                console.log('Initializing helper classes...');
+                this.timeline = new TimelineEvents();
+                console.log('TimelineEvents initialized');
+                this.socraticTutor = new SocraticTutor();
+                console.log('SocraticTutor initialized');
+                this.simulator = new EconomicSimulator();
+                console.log('EconomicSimulator initialized');
+                this.assessor = new ProgressAssessor();
+                console.log('ProgressAssessor initialized');
+                console.log('All helper classes initialized successfully');
+            } catch (error) {
+                console.error('Error initializing helper classes:', error);
+                throw new Error('Failed to initialize game components: ' + error.message);
+            }
         }
     }
 
@@ -61,21 +72,29 @@ class BitcoinSovereignGame {
     // ============================================================================
 
     async initializeGame(playerName) {
-        // Initialize helper classes first
-        this.initializeHelpers();
+        try {
+            console.log('Starting game initialization for player:', playerName);
 
-        this.player.name = playerName;
+            // Initialize helper classes first
+            this.initializeHelpers();
 
-        // Load historical data if available
-        if (this.checkOnChain) {
-            await this.loadHistoricalMetrics();
+            this.player.name = playerName;
+
+            // Load historical data if available
+            if (this.checkOnChain) {
+                await this.loadHistoricalMetrics();
+            }
+
+            // Set initial economic conditions
+            this.setInitialConditions();
+
+            console.log('Game initialization complete, starting year 2005');
+            // Start first year
+            return this.startYear(2005);
+        } catch (error) {
+            console.error('Game initialization failed:', error);
+            throw error;
         }
-
-        // Set initial economic conditions
-        this.setInitialConditions();
-
-        // Start first year
-        return this.startYear(2005);
     }
 
     async loadHistoricalMetrics() {

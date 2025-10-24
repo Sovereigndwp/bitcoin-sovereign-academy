@@ -1199,20 +1199,34 @@
             const playerName = document.getElementById('playerNameInput').value.trim();
             if (!playerName) return;
 
-            // Initialize game (using new class name, with fallback)
-            const GameClass = window.BitcoinSovereignGame || window.BitcoinSTAXGame;
-            game = new GameClass();
-            gameData = await game.initializeGame(playerName);
+            try {
+                console.log('Starting game for player:', playerName);
 
-            // Update player display
-            document.getElementById('playerNameDisplay').textContent = playerName;
+                // Initialize game (using new class name, with fallback)
+                const GameClass = window.BitcoinSovereignGame || window.BitcoinSTAXGame;
+                if (!GameClass) {
+                    throw new Error('Game class not found');
+                }
 
-            // Transition to game screen
-            document.getElementById('welcome-screen').style.display = 'none';
-            document.getElementById('game-screen').style.display = 'block';
+                game = new GameClass();
+                console.log('Game instance created');
 
-            // Load first year
-            updateGameDisplay(gameData);
+                gameData = await game.initializeGame(playerName);
+                console.log('Game initialized with data:', gameData);
+
+                // Update player display
+                document.getElementById('playerNameDisplay').textContent = playerName;
+
+                // Transition to game screen
+                document.getElementById('welcome-screen').style.display = 'none';
+                document.getElementById('game-screen').style.display = 'block';
+
+                // Load first year
+                updateGameDisplay(gameData);
+            } catch (error) {
+                console.error('Error starting game:', error);
+                alert('Game initialization failed: ' + error.message + '\n\nPlease check the console for details and refresh the page.');
+            }
         }
 
         function updateGameDisplay(data) {
