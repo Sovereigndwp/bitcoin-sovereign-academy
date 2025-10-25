@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Security Risk Simulator | Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-brand: #f7931a;
+            --color-bg: #1a1a1a;
+            --color-surface: #2d2d2d;
+            --color-text: #ffffff;
+            --color-text-secondary: #a0a0a0;
+            --color-success: #00d084;
+            --color-warning: #ffc107;
+            --color-danger: #ff4444;
+            --color-info: #3498db;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: var(--color-text);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--color-brand) 0%, #ffd700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: var(--color-text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .dashboard.visible {
+            opacity: 1;
+        }
+
+        .metric-card {
+            background: var(--color-surface);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--metric-color) 0%, transparent 100%);
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--color-text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--metric-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .metric-bar-fill {
+            height: 100%;
+            background: var(--metric-color);
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+
+        /* Scenario Section */
+        .scenario-section {
+            background: var(--color-surface);
+            padding: 3rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .scenario-intro {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .scenario-intro h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--color-brand);
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .step.active {
+            background: var(--color-brand);
+            box-shadow: 0 0 20px rgba(247, 147, 26, 0.5);
+            transform: scale(1.2);
+        }
+
+        .step.completed {
+            background: var(--color-success);
+        }
+
+        .step-line {
+            width: 60px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Question Card */
+        .question-card {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.1) 0%, rgba(45, 45, 45, 0.5) 100%);
+            padding: 2.5rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--color-brand);
+        }
+
+        .question-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--color-brand);
+        }
+
+        .question-card p {
+            color: var(--color-text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .choices {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .choice {
+            background: var(--color-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .choice:hover {
+            border-color: var(--color-brand);
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(247, 147, 26, 0.3);
+        }
+
+        .choice.selected {
+            border-color: var(--color-brand);
+            background: rgba(247, 147, 26, 0.1);
+        }
+
+        .choice-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .choice-desc {
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .choice-impact {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+
+        .choice.selected .choice-impact {
+            display: block;
+        }
+
+        .impact-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .impact-tag.positive {
+            background: rgba(0, 208, 132, 0.2);
+            color: var(--color-success);
+        }
+
+        .impact-tag.negative {
+            background: rgba(255, 68, 68, 0.2);
+            color: var(--color-danger);
+        }
+
+        .impact-tag.neutral {
+            background: rgba(52, 152, 219, 0.2);
+            color: var(--color-info);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--color-brand);
+            color: var(--color-bg);
+        }
+
+        .btn-primary:hover {
+            background: #ffa940;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(247, 147, 26, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--color-surface);
+            color: var(--color-text);
+            border: 2px solid var(--color-brand);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-brand);
+            color: var(--color-bg);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        /* Simulation Result */
+        .simulation-result {
+            background: var(--color-bg);
+            padding: 3rem;
+            border-radius: 16px;
+            margin-top: 2rem;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .simulation-result.visible {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .result-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-title {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-subtitle {
+            color: var(--color-text-secondary);
+        }
+
+        .scenario-outcome {
+            background: var(--color-surface);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--outcome-color);
+        }
+
+        .outcome-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--outcome-color);
+        }
+
+        .outcome-description {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .consequence-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .consequence-list li {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .consequence-list li.good {
+            background: rgba(0, 208, 132, 0.1);
+        }
+
+        .consequence-list li.bad {
+            background: rgba(255, 68, 68, 0.1);
+        }
+
+        .consequence-list li.warning {
+            background: rgba(255, 193, 7, 0.1);
+        }
+
+        .recommendations {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.1) 0%, rgba(45, 45, 45, 0.5) 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        .recommendations h3 {
+            color: var(--color-brand);
+            margin-bottom: 1rem;
+        }
+
+        .recommendation-item {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: var(--color-bg);
+            border-radius: 8px;
+        }
+
+        .recommendation-item strong {
+            color: var(--color-brand);
+        }
+
+        /* Loading Animation */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(247, 147, 26, 0.2);
+            border-top-color: var(--color-brand);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .scenario-section {
+                padding: 2rem 1.5rem;
+            }
+
+            .question-card {
+                padding: 1.5rem;
+            }
+
+            .metric-value {
+                font-size: 2rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .step-line {
+                width: 30px;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Bitcoin Security Risk Simulator</h1>
+            <p>Make real security decisions and experience the consequences. Every choice matters when protecting your bitcoin.</p>
+            <p style="color: var(--color-brand); margin-top: 0.5rem; font-weight: 600;">8 scenarios • Real Bitcoin risks • Personalized outcomes</p>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="dashboard" id="dashboard">
+            <div class="metric-card" style="--metric-color: var(--color-success)">
+                <div class="metric-label">Security Score</div>
+                <div class="metric-value" id="securityScore">0</div>
+                <div class="metric-bar">
+                    <div class="metric-bar-fill" id="securityBar" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="metric-card" style="--metric-color: var(--color-info)">
+                <div class="metric-label">Recovery Ability</div>
+                <div class="metric-value" id="recoveryScore">0</div>
+                <div class="metric-bar">
+                    <div class="metric-bar-fill" id="recoveryBar" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="metric-card" style="--metric-color: var(--color-warning)">
+                <div class="metric-label">Privacy Level</div>
+                <div class="metric-value" id="privacyScore">0</div>
+                <div class="metric-bar">
+                    <div class="metric-bar-fill" id="privacyBar" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="metric-card" style="--metric-color: var(--color-brand)">
+                <div class="metric-label">Risk Exposure</div>
+                <div class="metric-value" id="riskScore">0</div>
+                <div class="metric-bar">
+                    <div class="metric-bar-fill" id="riskBar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Scenario Section -->
+        <div class="scenario-section">
+            <div class="scenario-intro">
+                <h2>Build Your Bitcoin Security Setup</h2>
+                <p>You've just bought your first bitcoin. Now you need to secure it. Make your choices carefully...</p>
+            </div>
+
+            <!-- Step Indicator -->
+            <div class="step-indicator" id="stepIndicator"></div>
+
+            <!-- Question Container -->
+            <div id="questionContainer"></div>
+
+            <!-- Button Group -->
+            <div class="button-group">
+                <button class="btn btn-secondary hidden" id="prevBtn" onclick="previousQuestion()">← Previous</button>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>Next →</button>
+            </div>
+        </div>
+
+        <!-- Simulation Results -->
+        <div class="simulation-result" id="simulationResult"></div>
+    </div>
+
+    <script>
+        // Security scenarios and questions
+        const questions = [
+            {
+                id: 1,
+                question: "Where will you store your bitcoin?",
+                context: "You just bought 0.1 BTC ($6,500). Where do you keep it?",
+                choices: [
+                    {
+                        id: 'exchange',
+                        title: '🏦 Leave it on the Exchange',
+                        description: 'Keep it where you bought it - convenient and easy to trade',
+                        impacts: {
+                            security: -30,
+                            recovery: -20,
+                            privacy: -40,
+                            risk: 50
+                        },
+                        tags: ['negative:High counterparty risk', 'negative:No private keys', 'neutral:Easy to trade']
+                    },
+                    {
+                        id: 'hot-wallet',
+                        title: '📱 Hot Wallet (Mobile App)',
+                        description: 'Use a mobile wallet like BlueWallet or Phoenix',
+                        impacts: {
+                            security: 20,
+                            recovery: 30,
+                            privacy: 20,
+                            risk: 20
+                        },
+                        tags: ['positive:You control keys', 'negative:Connected to internet', 'positive:Good for daily use']
+                    },
+                    {
+                        id: 'hardware',
+                        title: '🔐 Hardware Wallet',
+                        description: 'Store on a dedicated hardware device (Coldcard, Ledger, etc.)',
+                        impacts: {
+                            security: 40,
+                            recovery: 35,
+                            privacy: 30,
+                            risk: -20
+                        },
+                        tags: ['positive:Maximum security', 'positive:Offline storage', 'neutral:Higher initial cost']
+                    },
+                    {
+                        id: 'multisig',
+                        title: '🗝️ Multisig Setup',
+                        description: 'Use a 2-of-3 multisig with hardware wallets',
+                        impacts: {
+                            security: 50,
+                            recovery: 40,
+                            privacy: 35,
+                            risk: -30
+                        },
+                        tags: ['positive:Highest security', 'positive:No single point of failure', 'negative:Complex setup']
+                    }
+                ]
+            },
+            {
+                id: 2,
+                question: "How will you back up your seed phrase?",
+                context: "Your seed phrase is the master key to your bitcoin. How do you protect it?",
+                choices: [
+                    {
+                        id: 'photo',
+                        title: '📸 Take a Photo',
+                        description: 'Take a photo and store it in iCloud/Google Photos',
+                        impacts: {
+                            security: -40,
+                            recovery: 10,
+                            privacy: -50,
+                            risk: 60
+                        },
+                        tags: ['negative:Cloud providers can access', 'negative:Hackers target cloud storage', 'negative:No encryption']
+                    },
+                    {
+                        id: 'paper',
+                        title: '📝 Write on Paper',
+                        description: 'Write it down and keep the paper in a safe place',
+                        impacts: {
+                            security: 20,
+                            recovery: 20,
+                            privacy: 30,
+                            risk: 15
+                        },
+                        tags: ['positive:Offline', 'negative:Can be destroyed by fire/water', 'neutral:Easy to implement']
+                    },
+                    {
+                        id: 'metal',
+                        title: '⚙️ Metal Backup',
+                        description: 'Stamp or etch into metal plates (fireproof, waterproof)',
+                        impacts: {
+                            security: 40,
+                            recovery: 45,
+                            privacy: 40,
+                            risk: -20
+                        },
+                        tags: ['positive:Disaster resistant', 'positive:Long-lasting', 'positive:Physical security']
+                    },
+                    {
+                        id: 'distributed',
+                        title: '🌍 Distributed Backup',
+                        description: 'Multiple metal backups in different geographic locations',
+                        impacts: {
+                            security: 45,
+                            recovery: 50,
+                            privacy: 40,
+                            risk: -30
+                        },
+                        tags: ['positive:Geographic redundancy', 'positive:Maximum resilience', 'neutral:Requires planning']
+                    }
+                ]
+            },
+            {
+                id: 3,
+                question: "Who knows about your bitcoin?",
+                context: "Privacy is security. Who have you told about your holdings?",
+                choices: [
+                    {
+                        id: 'social-media',
+                        title: '📱 Posted on Social Media',
+                        description: 'Shared your crypto wins with friends and followers',
+                        impacts: {
+                            security: -50,
+                            recovery: 0,
+                            privacy: -60,
+                            risk: 70
+                        },
+                        tags: ['negative:You become a target', 'negative:Physical security risk', 'negative:Scammers will find you']
+                    },
+                    {
+                        id: 'friends-family',
+                        title: '👥 Told Friends & Family',
+                        description: 'Shared with close trusted people',
+                        impacts: {
+                            security: -10,
+                            recovery: 20,
+                            privacy: -20,
+                            risk: 20
+                        },
+                        tags: ['neutral:Trusted circle', 'negative:Word can spread', 'positive:Succession planning']
+                    },
+                    {
+                        id: 'partner-only',
+                        title: '💑 Partner/Spouse Only',
+                        description: 'Only your life partner knows',
+                        impacts: {
+                            security: 10,
+                            recovery: 30,
+                            privacy: 20,
+                            risk: 5
+                        },
+                        tags: ['positive:Limited exposure', 'positive:Backup access', 'neutral:One trusted person']
+                    },
+                    {
+                        id: 'nobody',
+                        title: '🤐 Complete Privacy',
+                        description: 'Nobody knows you own bitcoin',
+                        impacts: {
+                            security: 30,
+                            recovery: -20,
+                            privacy: 50,
+                            risk: -20
+                        },
+                        tags: ['positive:Maximum privacy', 'negative:Inheritance challenges', 'positive:No target on your back']
+                    }
+                ]
+            },
+            {
+                id: 4,
+                question: "How do you handle transactions?",
+                context: "You need to spend some bitcoin. What's your approach?",
+                choices: [
+                    {
+                        id: 'reuse-address',
+                        title: '♻️ Reuse the Same Address',
+                        description: 'Use one address for all transactions',
+                        impacts: {
+                            security: -20,
+                            recovery: 5,
+                            privacy: -50,
+                            risk: 30
+                        },
+                        tags: ['negative:Easy to track', 'negative:Links all transactions', 'neutral:Simple']
+                    },
+                    {
+                        id: 'new-address',
+                        title: '🆕 New Address Each Time',
+                        description: 'Generate a fresh address for every transaction',
+                        impacts: {
+                            security: 20,
+                            recovery: 10,
+                            privacy: 30,
+                            risk: -10
+                        },
+                        tags: ['positive:Better privacy', 'positive:Standard practice', 'positive:Wallet handles it']
+                    },
+                    {
+                        id: 'coinjoin',
+                        title: '🌀 Use CoinJoin',
+                        description: 'Mix transactions with others for privacy',
+                        impacts: {
+                            security: 15,
+                            recovery: 5,
+                            privacy: 45,
+                            risk: -15
+                        },
+                        tags: ['positive:Strong privacy', 'neutral:Extra fees', 'positive:Break transaction history']
+                    },
+                    {
+                        id: 'lightning',
+                        title: '⚡ Lightning Network',
+                        description: 'Use Lightning for smaller transactions',
+                        impacts: {
+                            security: 25,
+                            recovery: 15,
+                            privacy: 40,
+                            risk: -10
+                        },
+                        tags: ['positive:Private by default', 'positive:Fast & cheap', 'positive:Off-chain']
+                    }
+                ]
+            },
+            {
+                id: 5,
+                question: "What's your inheritance plan?",
+                context: "If something happens to you, can your family access your bitcoin?",
+                choices: [
+                    {
+                        id: 'no-plan',
+                        title: '❌ No Plan',
+                        description: 'Haven\'t thought about it yet',
+                        impacts: {
+                            security: 0,
+                            recovery: -50,
+                            privacy: 20,
+                            risk: 40
+                        },
+                        tags: ['negative:Funds could be lost forever', 'negative:No family access', 'negative:Common mistake']
+                    },
+                    {
+                        id: 'shared-seed',
+                        title: '📋 Shared Seed Phrase',
+                        description: 'Gave seed phrase to trusted family member',
+                        impacts: {
+                            security: -30,
+                            recovery: 40,
+                            privacy: -10,
+                            risk: 25
+                        },
+                        tags: ['negative:Security risk', 'positive:Family can access', 'negative:Requires total trust']
+                    },
+                    {
+                        id: 'multisig-heir',
+                        title: '🔑 Multisig with Heir',
+                        description: 'Family member has one key of multisig',
+                        impacts: {
+                            security: 30,
+                            recovery: 45,
+                            privacy: 10,
+                            risk: -15
+                        },
+                        tags: ['positive:Balanced security', 'positive:Structured access', 'positive:No single point']
+                    },
+                    {
+                        id: 'timelock',
+                        title: '⏰ Timelock + Dead Man Switch',
+                        description: 'Automated inheritance with time-based conditions',
+                        impacts: {
+                            security: 35,
+                            recovery: 50,
+                            privacy: 15,
+                            risk: -25
+                        },
+                        tags: ['positive:Automated', 'positive:Secure', 'positive:No manual sharing']
+                    }
+                ]
+            },
+            {
+                id: 6,
+                question: "How do you manage your Lightning Network channels?",
+                context: "You want to use Lightning for fast, cheap transactions. How do you set it up?",
+                choices: [
+                    {
+                        id: 'custodial-ln',
+                        title: '📱 Custodial Lightning Wallet',
+                        description: 'Use Wallet of Satoshi or similar - they manage channels',
+                        impacts: {
+                            security: -25,
+                            recovery: 15,
+                            privacy: -30,
+                            risk: 35
+                        },
+                        tags: ['negative:Third party controls funds', 'positive:Easy to use', 'negative:Privacy concerns']
+                    },
+                    {
+                        id: 'phoenix',
+                        title: '⚡ Phoenix Wallet',
+                        description: 'Self-custodial with automated channel management',
+                        impacts: {
+                            security: 25,
+                            recovery: 20,
+                            privacy: 25,
+                            risk: 10
+                        },
+                        tags: ['positive:You control keys', 'positive:Automated channels', 'neutral:Small fees']
+                    },
+                    {
+                        id: 'own-node',
+                        title: '🖥️ Run Your Own Lightning Node',
+                        description: 'Full control with RaspiBlitz, Umbrel, or similar',
+                        impacts: {
+                            security: 40,
+                            recovery: 35,
+                            privacy: 45,
+                            risk: -15
+                        },
+                        tags: ['positive:Maximum control', 'positive:Best privacy', 'neutral:Technical knowledge required']
+                    },
+                    {
+                        id: 'no-lightning',
+                        title: '🚫 Skip Lightning',
+                        description: 'Only use on-chain transactions for everything',
+                        impacts: {
+                            security: 10,
+                            recovery: 5,
+                            privacy: -10,
+                            risk: 15
+                        },
+                        tags: ['neutral:Simple approach', 'negative:High fees for small transactions', 'negative:Less privacy']
+                    }
+                ]
+            },
+            {
+                id: 7,
+                question: "How do you verify software authenticity?",
+                context: "You need to download a wallet app. How do you ensure it's legitimate?",
+                choices: [
+                    {
+                        id: 'app-store',
+                        title: '📱 Download from App Store',
+                        description: 'Just search and download the first result',
+                        impacts: {
+                            security: -35,
+                            recovery: 0,
+                            privacy: -20,
+                            risk: 50
+                        },
+                        tags: ['negative:Fake apps exist', 'negative:No verification', 'negative:Scam risk']
+                    },
+                    {
+                        id: 'official-website',
+                        title: '🌐 Official Website Link',
+                        description: 'Download from the wallet\'s official website',
+                        impacts: {
+                            security: 15,
+                            recovery: 10,
+                            privacy: 10,
+                            risk: 10
+                        },
+                        tags: ['positive:Better than app store', 'neutral:Still need to verify URL', 'positive:Direct source']
+                    },
+                    {
+                        id: 'verify-signatures',
+                        title: '✍️ Verify PGP Signatures',
+                        description: 'Check cryptographic signatures before installing',
+                        impacts: {
+                            security: 45,
+                            recovery: 20,
+                            privacy: 25,
+                            risk: -25
+                        },
+                        tags: ['positive:Cryptographic proof', 'positive:Can\'t be faked', 'neutral:Requires learning']
+                    },
+                    {
+                        id: 'reproducible',
+                        title: '🔬 Verify Reproducible Builds',
+                        description: 'Check that binary matches published source code',
+                        impacts: {
+                            security: 50,
+                            recovery: 25,
+                            privacy: 30,
+                            risk: -30
+                        },
+                        tags: ['positive:Maximum assurance', 'positive:No hidden backdoors', 'neutral:Advanced technique']
+                    }
+                ]
+            },
+            {
+                id: 8,
+                question: "Someone DMs you offering help with your wallet issue. What do you do?",
+                context: "You posted on Reddit about a problem. A 'support agent' DMs you.",
+                choices: [
+                    {
+                        id: 'trust-dm',
+                        title: '✅ Trust Them',
+                        description: 'They seem helpful, share your seed phrase to get help',
+                        impacts: {
+                            security: -60,
+                            recovery: -50,
+                            privacy: -50,
+                            risk: 80
+                        },
+                        tags: ['negative:NEVER share seed phrases', 'negative:100% a scam', 'negative:You will lose everything']
+                    },
+                    {
+                        id: 'click-link',
+                        title: '🔗 Click Their Link',
+                        description: 'They sent a "verification" link to fix your wallet',
+                        impacts: {
+                            security: -50,
+                            recovery: -30,
+                            privacy: -40,
+                            risk: 70
+                        },
+                        tags: ['negative:Phishing link', 'negative:Could steal credentials', 'negative:Malware risk']
+                    },
+                    {
+                        id: 'ignore-dm',
+                        title: '🚫 Ignore and Block',
+                        description: 'Delete the DM, block the user, report as spam',
+                        impacts: {
+                            security: 30,
+                            recovery: 0,
+                            privacy: 20,
+                            risk: -30
+                        },
+                        tags: ['positive:Correct response', 'positive:Avoid scams', 'positive:Protect yourself']
+                    },
+                    {
+                        id: 'verify-support',
+                        title: '🔍 Verify Through Official Channels',
+                        description: 'Go to official website, contact support directly',
+                        impacts: {
+                            security: 40,
+                            recovery: 25,
+                            privacy: 25,
+                            risk: -35
+                        },
+                        tags: ['positive:Best practice', 'positive:Legitimate help', 'positive:Safe approach']
+                    }
+                ]
+            }
+        ];
+
+        // State
+        let currentQuestion = 0;
+        let userChoices = [];
+        let scores = {
+            security: 50,
+            recovery: 50,
+            privacy: 50,
+            risk: 50
+        };
+
+        // Initialize
+        window.onload = function() {
+            initializeStepIndicator();
+            showQuestion(0);
+            setTimeout(() => {
+                document.getElementById('dashboard').classList.add('visible');
+            }, 300);
+        };
+
+        function initializeStepIndicator() {
+            const indicator = document.getElementById('stepIndicator');
+            questions.forEach((q, index) => {
+                if (index > 0) {
+                    indicator.innerHTML += '<div class="step-line"></div>';
+                }
+                const step = document.createElement('div');
+                step.className = 'step';
+                step.id = `step-${index}`;
+                step.textContent = index + 1;
+                indicator.appendChild(step);
+            });
+            document.getElementById('step-0').classList.add('active');
+        }
+
+        function showQuestion(index) {
+            const question = questions[index];
+            const container = document.getElementById('questionContainer');
+
+            let choicesHTML = '';
+            question.choices.forEach(choice => {
+                const tagsHTML = choice.tags.map(tag => {
+                    const [type, text] = tag.split(':');
+                    return `<span class="impact-tag ${type}">${text}</span>`;
+                }).join('');
+
+                choicesHTML += `
+                    <div class="choice" onclick="selectChoice(${index}, '${choice.id}')">
+                        <div class="choice-title">${choice.title}</div>
+                        <div class="choice-desc">${choice.description}</div>
+                        <div class="choice-impact">${tagsHTML}</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = `
+                <div class="question-card">
+                    <h3>Question ${index + 1} of ${questions.length}</h3>
+                    <h2>${question.question}</h2>
+                    <p>${question.context}</p>
+                    <div class="choices">${choicesHTML}</div>
+                </div>
+            `;
+
+            // Update prev button visibility
+            document.getElementById('prevBtn').classList.toggle('hidden', index === 0);
+
+            // Restore previous selection if exists
+            if (userChoices[index]) {
+                selectChoice(index, userChoices[index], true);
+            }
+        }
+
+        function selectChoice(questionIndex, choiceId, silent = false) {
+            // Remove previous selections
+            document.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
+
+            // Add selection
+            event.currentTarget?.classList.add('selected');
+
+            // Store choice
+            userChoices[questionIndex] = choiceId;
+
+            // Enable next button
+            document.getElementById('nextBtn').disabled = false;
+
+            // Update scores if not restoring
+            if (!silent) {
+                const choice = questions[questionIndex].choices.find(c => c.id === choiceId);
+                updateScores(choice.impacts);
+            }
+        }
+
+        function updateScores(impacts) {
+            Object.keys(impacts).forEach(key => {
+                scores[key] = Math.max(0, Math.min(100, scores[key] + impacts[key]));
+            });
+
+            // Update display
+            document.getElementById('securityScore').textContent = Math.round(scores.security);
+            document.getElementById('recoveryScore').textContent = Math.round(scores.recovery);
+            document.getElementById('privacyScore').textContent = Math.round(scores.privacy);
+            document.getElementById('riskScore').textContent = Math.round(scores.risk);
+
+            document.getElementById('securityBar').style.width = scores.security + '%';
+            document.getElementById('recoveryBar').style.width = scores.recovery + '%';
+            document.getElementById('privacyBar').style.width = scores.privacy + '%';
+            document.getElementById('riskBar').style.width = scores.risk + '%';
+        }
+
+        function nextQuestion() {
+            if (!userChoices[currentQuestion]) return;
+
+            // Mark current step as completed
+            document.getElementById(`step-${currentQuestion}`).classList.remove('active');
+            document.getElementById(`step-${currentQuestion}`).classList.add('completed');
+
+            currentQuestion++;
+
+            if (currentQuestion < questions.length) {
+                document.getElementById(`step-${currentQuestion}`).classList.add('active');
+                showQuestion(currentQuestion);
+                document.getElementById('nextBtn').disabled = true;
+            } else {
+                // Show results
+                document.getElementById('nextBtn').textContent = '🎯 See Results';
+                document.getElementById('nextBtn').onclick = runSimulation;
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion === 0) return;
+
+            document.getElementById(`step-${currentQuestion}`).classList.remove('active');
+            currentQuestion--;
+            document.getElementById(`step-${currentQuestion}`).classList.remove('completed');
+            document.getElementById(`step-${currentQuestion}`).classList.add('active');
+
+            showQuestion(currentQuestion);
+            document.getElementById('nextBtn').disabled = false;
+            document.getElementById('nextBtn').textContent = 'Next →';
+            document.getElementById('nextBtn').onclick = nextQuestion;
+        }
+
+        function runSimulation() {
+            // Hide question section
+            document.querySelector('.scenario-section').style.display = 'none';
+
+            // Show loading
+            const resultDiv = document.getElementById('simulationResult');
+            resultDiv.classList.add('visible');
+            resultDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Running security simulations based on your choices...</p>
+                </div>
+            `;
+
+            // Generate results after delay
+            setTimeout(generateResults, 2000);
+        }
+
+        function generateResults() {
+            const scenarios = generateScenarios();
+            const recommendations = generateRecommendations();
+
+            const resultDiv = document.getElementById('simulationResult');
+            resultDiv.innerHTML = `
+                <div class="result-header">
+                    <div class="result-icon">${getOverallIcon()}</div>
+                    <h2 class="result-title">${getOverallTitle()}</h2>
+                    <p class="result-subtitle">${getOverallSubtitle()}</p>
+                </div>
+
+                <h3 style="margin-bottom: 1.5rem; color: var(--color-brand);">What Could Happen?</h3>
+                ${scenarios}
+
+                ${recommendations}
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="location.reload()">🔄 Try Different Choices</button>
+                    <button class="btn btn-primary" onclick="window.parent.postMessage({type: 'navigate', path: '/paths/sovereign/'}, '*')">🎓 Learn More Security</button>
+                </div>
+            `;
+        }
+
+        function generateScenarios() {
+            const storageChoice = userChoices[0];
+            const backupChoice = userChoices[1];
+            const privacyChoice = userChoices[2];
+
+            let scenarios = '';
+
+            // Scenario 1: Phone theft
+            scenarios += generateScenario(
+                'phone-theft',
+                '📱 Your Phone Gets Stolen',
+                getPhoneTheftOutcome(storageChoice, backupChoice),
+                scores.security > 60 ? 'var(--color-success)' : scores.security > 30 ? 'var(--color-warning)' : 'var(--color-danger)'
+            );
+
+            // Scenario 2: Exchange hack
+            if (storageChoice === 'exchange') {
+                scenarios += generateScenario(
+                    'exchange-hack',
+                    '🚨 Exchange Gets Hacked',
+                    getExchangeHackOutcome(),
+                    'var(--color-danger)'
+                );
+            }
+
+            // Scenario 3: House fire
+            scenarios += generateScenario(
+                'fire',
+                '🔥 House Fire Destroys Your Backup',
+                getFireOutcome(backupChoice),
+                backupChoice === 'metal' || backupChoice === 'distributed' ? 'var(--color-success)' : 'var(--color-danger)'
+            );
+
+            // Scenario 4: $5 wrench attack
+            if (privacyChoice === 'social-media') {
+                scenarios += generateScenario(
+                    'wrench',
+                    '🔧 Physical Threat ($5 Wrench Attack)',
+                    getWrenchAttackOutcome(),
+                    'var(--color-danger)'
+                );
+            }
+
+            // Scenario 5: Inheritance
+            scenarios += generateScenario(
+                'inheritance',
+                '⏰ You Pass Away Unexpectedly',
+                getInheritanceOutcome(userChoices[4]),
+                userChoices[4] === 'no-plan' ? 'var(--color-danger)' : 'var(--color-success)'
+            );
+
+            // Scenario 6: Lightning channel force close
+            const lightningChoice = userChoices[5];
+            if (lightningChoice && lightningChoice !== 'no-lightning') {
+                scenarios += generateScenario(
+                    'lightning-close',
+                    '⚡ Your Lightning Node Goes Offline',
+                    getLightningOutcome(lightningChoice),
+                    lightningChoice === 'own-node' ? 'var(--color-success)' : lightningChoice === 'phoenix' ? 'var(--color-warning)' : 'var(--color-danger)'
+                );
+            }
+
+            // Scenario 7: Fake wallet app
+            const verificationChoice = userChoices[6];
+            if (verificationChoice === 'app-store' || verificationChoice === 'official-website') {
+                scenarios += generateScenario(
+                    'fake-app',
+                    '🎭 You Downloaded a Fake Wallet App',
+                    getFakeAppOutcome(verificationChoice),
+                    'var(--color-danger)'
+                );
+            }
+
+            // Scenario 8: Phishing/scam attempt
+            const scamChoice = userChoices[7];
+            scenarios += generateScenario(
+                'scam-attempt',
+                '🎣 Scammer Targets You',
+                getScamOutcome(scamChoice),
+                (scamChoice === 'trust-dm' || scamChoice === 'click-link') ? 'var(--color-danger)' : 'var(--color-success)'
+            );
+
+            return scenarios;
+        }
+
+        function generateScenario(id, title, outcome, color) {
+            return `
+                <div class="scenario-outcome" style="--outcome-color: ${color}">
+                    <h3 class="outcome-title">${title}</h3>
+                    <div class="outcome-description">${outcome.description}</div>
+                    <ul class="consequence-list">
+                        ${outcome.consequences.map(c => `<li class="${c.type}">${c.icon} ${c.text}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        function getPhoneTheftOutcome(storage, backup) {
+            if (storage === 'exchange') {
+                return {
+                    description: 'Thief has your phone. If they can crack your password or have access to your 2FA, they could drain your exchange account.',
+                    consequences: [
+                        { type: 'bad', icon: '❌', text: 'Exchange app on phone - high risk' },
+                        { type: 'warning', icon: '⚠️', text: 'Depends on exchange security settings' },
+                        { type: 'good', icon: '✅', text: 'Can contact exchange to freeze account (if fast enough)' }
+                    ]
+                };
+            } else if (storage === 'hot-wallet') {
+                return {
+                    description: 'Your hot wallet is on the phone. If it\'s not password protected or they crack it, they could access your bitcoin.',
+                    consequences: [
+                        { type: backup === 'photo' ? 'bad' : 'good', icon: backup === 'photo' ? '❌' : '✅', text: backup === 'photo' ? 'Backup photo might also be compromised' : 'Can restore from secure backup' },
+                        { type: 'warning', icon: '⚠️', text: 'Need to act fast to transfer to new wallet' },
+                        { type: 'good', icon: '✅', text: 'Phone encryption provides some protection' }
+                    ]
+                };
+            } else {
+                return {
+                    description: 'Your bitcoin is on a hardware wallet or multisig. The phone theft is inconvenient but your funds are safe.',
+                    consequences: [
+                        { type: 'good', icon: '✅', text: 'Bitcoin is completely safe' },
+                        { type: 'good', icon: '✅', text: 'No urgent action needed' },
+                        { type: 'good', icon: '✅', text: 'Thief has no access to your keys' }
+                    ]
+                };
+            }
+        }
+
+        function getExchangeHackOutcome() {
+            return {
+                description: 'The exchange you use gets hacked. All funds stored there are at risk. This has happened to dozens of exchanges throughout Bitcoin\'s history.',
+                consequences: [
+                    { type: 'bad', icon: '❌', text: 'You lose access to all funds on the exchange' },
+                    { type: 'bad', icon: '❌', text: 'Bankruptcy proceedings could take years' },
+                    { type: 'bad', icon: '❌', text: 'You might recover 0-60% of funds (if lucky)' },
+                    { type: 'bad', icon: '💡', text: 'Mt. Gox, QuadrigaCX, FTX - all real examples' }
+                ]
+            };
+        }
+
+        function getFireOutcome(backup) {
+            if (backup === 'photo') {
+                return {
+                    description: 'Your house burns down. The good news: your photo backup is in the cloud. The bad news: so is everyone else\'s when cloud providers get hacked.',
+                    consequences: [
+                        { type: 'good', icon: '✅', text: 'Backup survives the fire' },
+                        { type: 'warning', icon: '⚠️', text: 'Cloud security is your weakest link' },
+                        { type: 'bad', icon: '❌', text: 'Vulnerable to cloud provider breaches' }
+                    ]
+                };
+            } else if (backup === 'paper') {
+                return {
+                    description: 'Your house burns down. Your paper backup is destroyed. All your bitcoin is lost forever unless you had a second backup elsewhere.',
+                    consequences: [
+                        { type: 'bad', icon: '❌', text: 'Paper backup is destroyed' },
+                        { type: 'bad', icon: '❌', text: 'No way to recover your bitcoin' },
+                        { type: 'bad', icon: '💡', text: 'Total permanent loss of funds' }
+                    ]
+                };
+            } else if (backup === 'metal') {
+                return {
+                    description: 'Your house burns down. Your metal backup survives the fire. You can recover your bitcoin once you have a new computer.',
+                    consequences: [
+                        { type: 'good', icon: '✅', text: 'Metal backup survives fire and heat' },
+                        { type: 'good', icon: '✅', text: 'Full recovery possible' },
+                        { type: 'warning', icon: '⚠️', text: 'All backups in one location though' }
+                    ]
+                };
+            } else {
+                return {
+                    description: 'Your house burns down. You have metal backups in multiple locations. You drive to your second backup location and recover your bitcoin.',
+                    consequences: [
+                        { type: 'good', icon: '✅', text: 'Multiple backups in different locations' },
+                        { type: 'good', icon: '✅', text: 'No single point of failure' },
+                        { type: 'good', icon: '✅', text: 'Quick and complete recovery' }
+                    ]
+                };
+            }
+        }
+
+        function getWrenchAttackOutcome() {
+            return {
+                description: 'Because you posted about your bitcoin on social media, someone knows where you live and threatens you with physical violence to access your funds.',
+                consequences: [
+                    { type: 'bad', icon: '❌', text: 'Your privacy is compromised - they know you have bitcoin' },
+                    { type: 'bad', icon: '❌', text: 'Physical safety risk for you and family' },
+                    { type: 'bad', icon: '❌', text: 'May be forced to transfer funds under duress' },
+                    { type: 'warning', icon: '💡', text: 'Privacy is security - never broadcast your holdings' }
+                ]
+            };
+        }
+
+        function getInheritanceOutcome(plan) {
+            if (plan === 'no-plan') {
+                return {
+                    description: 'You pass away unexpectedly. Your family knows you had bitcoin but has no way to access it. Your funds are lost forever.',
+                    consequences: [
+                        { type: 'bad', icon: '❌', text: 'Family cannot access funds' },
+                        { type: 'bad', icon: '❌', text: 'Bitcoin is permanently lost' },
+                        { type: 'bad', icon: '💡', text: 'Approximately 20% of all bitcoin may be lost this way' }
+                    ]
+                };
+            } else if (plan === 'shared-seed') {
+                return {
+                    description: 'You pass away. Your family member has your seed phrase and can access the funds, though they may not know how to use it properly.',
+                    consequences: [
+                        { type: 'good', icon: '✅', text: 'Family can access the funds' },
+                        { type: 'warning', icon: '⚠️', text: 'They need technical knowledge to recover' },
+                        { type: 'warning', icon: '⚠️', text: 'Security was compromised while you were alive' }
+                    ]
+                };
+            } else if (plan === 'multisig-heir') {
+                return {
+                    description: 'Your multisig setup allows your family to access the funds using their key combined with instructions you left. Secure and accessible.',
+                    consequences: [
+                        { type: 'good', icon: '✅', text: 'Structured inheritance process' },
+                        { type: 'good', icon: '✅', text: 'Security maintained during lifetime' },
+                        { type: 'good', icon: '✅', text: 'Clear access for heirs' }
+                    ]
+                };
+            } else {
+                return {
+                    description: 'Your timelock system automatically transfers access to your family after a specified period of inactivity. They receive full access without you ever compromising security.',
+                    consequences: [
+                        { type: 'good', icon: '✅', text: 'Fully automated inheritance' },
+                        { type: 'good', icon: '✅', text: 'No security compromise during lifetime' },
+                        { type: 'good', icon: '✅', text: 'No manual intervention needed' }
+                    ]
+                };
+            }
+        }
+
+        function getLightningOutcome(choice) {
+            if (choice === 'custodial-ln') {
+                return {
+                    description: 'Your custodial Lightning wallet (Wallet of Satoshi) shuts down or gets hacked. All your Lightning funds are gone with no recovery possible.',
+                    consequences: [
+                        { type: 'bad', icon: '❌', text: 'No control over your funds' },
+                        { type: 'bad', icon: '❌', text: 'Company controls all Lightning channels' },
+                        { type: 'bad', icon: '💡', text: 'Real example: Multiple custodial services have shut down suddenly' }
+                    ]
+                };
+            } else if (choice === 'phoenix') {
+                return {
+                    description: 'Your Phoenix wallet handles the channel management automatically. Even if you go offline for a week, your funds are safe and channels remain open.',
+                    consequences: [
+                        { type: 'good', icon: '✅', text: 'You control the keys' },
+                        { type: 'good', icon: '✅', text: 'Automated channel management protects you' },
+                        { type: 'warning', icon: '⚠️', text: 'Small fees for automated management' }
+                    ]
+                };
+            } else {
+                return {
+                    description: 'Your node has proper watchtower setup and backup. Even though you went offline for 3 days, the watchtower kept your channels safe from malicious closes.',
+                    consequences: [
+                        { type: 'good', icon: '✅', text: 'Complete control and sovereignty' },
+                        { type: 'good', icon: '✅', text: 'Watchtowers protect you while offline' },
+                        { type: 'good', icon: '✅', text: 'Maximum privacy and security' }
+                    ]
+                };
+            }
+        }
+
+        function getFakeAppOutcome(verification) {
+            if (verification === 'app-store') {
+                return {
+                    description: 'You downloaded "BitcoinWallet Pro" from the app store. It looked legitimate with good reviews (fake). You sent your bitcoin to it. Days later, all funds are gone and the app disappears from the store.',
+                    consequences: [
+                        { type: 'bad', icon: '❌', text: 'App store has many fake wallet apps' },
+                        { type: 'bad', icon: '❌', text: 'Reviews can be faked' },
+                        { type: 'bad', icon: '❌', text: 'Your bitcoin is permanently stolen' },
+                        { type: 'bad', icon: '💡', text: 'Real scam: "Trezor Mobile Wallet" stole millions' }
+                    ]
+                };
+            } else {
+                return {
+                    description: 'You found the official website (or so you thought). The URL was coinbase-wallet.com instead of wallet.coinbase.com. You downloaded malware that steals your seed phrase.',
+                    consequences: [
+                        { type: 'bad', icon: '❌', text: 'Typosquatting domains trick users' },
+                        { type: 'bad', icon: '❌', text: 'Malware keylogger captured your seed phrase' },
+                        { type: 'warning', icon: '⚠️', text: 'Should have verified signatures or used reproducible builds' }
+                    ]
+                };
+            }
+        }
+
+        function getScamOutcome(choice) {
+            if (choice === 'trust-dm') {
+                return {
+                    description: 'You shared your seed phrase with the "support agent." Within minutes, all your bitcoin is transferred out. You just lost everything to the most common Bitcoin scam.',
+                    consequences: [
+                        { type: 'bad', icon: '❌', text: 'Complete loss of all funds' },
+                        { type: 'bad', icon: '❌', text: 'No recovery possible' },
+                        { type: 'bad', icon: '❌', text: 'No legitimate support ever asks for seed phrases' },
+                        { type: 'bad', icon: '💡', text: 'This scam costs victims millions every month' }
+                    ]
+                };
+            } else if (choice === 'click-link') {
+                return {
+                    description: 'You clicked the link and entered your credentials on a fake site. The scammer now has access to your account and 2FA backup codes. Your funds are being drained.',
+                    consequences: [
+                        { type: 'bad', icon: '❌', text: 'Phishing site captured your credentials' },
+                        { type: 'bad', icon: '❌', text: 'Scammer has full account access' },
+                        { type: 'warning', icon: '⚠️', text: 'Need to immediately change all passwords' }
+                    ]
+                };
+            } else if (choice === 'ignore-dm') {
+                return {
+                    description: 'You ignored the scammer\'s DM and blocked them. They tried 50 other people that day. You protected yourself by following the golden rule: no legitimate support contacts you via DM.',
+                    consequences: [
+                        { type: 'good', icon: '✅', text: 'Avoided a common scam' },
+                        { type: 'good', icon: '✅', text: 'Protected your funds' },
+                        { type: 'good', icon: '💡', text: 'Reported the scammer to help others' }
+                    ]
+                };
+            } else {
+                return {
+                    description: 'You verified through the official website that the DM was a scam. You got real support through legitimate channels and solved your issue safely.',
+                    consequences: [
+                        { type: 'good', icon: '✅', text: 'Found legitimate help' },
+                        { type: 'good', icon: '✅', text: 'Avoided giving access to scammers' },
+                        { type: 'good', icon: '✅', text: 'Demonstrated excellent security practices' }
+                    ]
+                };
+            }
+        }
+
+        function generateRecommendations() {
+            const recs = [];
+
+            if (scores.security < 50) {
+                recs.push({
+                    title: 'Upgrade Your Storage',
+                    text: 'Consider moving to a hardware wallet or multisig setup. Self-custody is essential for true bitcoin ownership.'
+                });
+            }
+
+            if (scores.recovery < 50) {
+                recs.push({
+                    title: 'Improve Backup Strategy',
+                    text: 'Use metal backups in multiple geographic locations. Paper can be destroyed, and cloud storage is a security risk.'
+                });
+            }
+
+            if (scores.privacy < 50) {
+                recs.push({
+                    title: 'Enhance Privacy Practices',
+                    text: 'Never broadcast your holdings publicly. Use new addresses for each transaction and consider Lightning or CoinJoin.'
+                });
+            }
+
+            if (userChoices[4] === 'no-plan') {
+                recs.push({
+                    title: 'Create Inheritance Plan',
+                    text: 'Set up a proper inheritance mechanism. Consider multisig with heirs or time-locked access. Don\'t let your bitcoin be lost forever.'
+                });
+            }
+
+            if (recs.length === 0) {
+                recs.push({
+                    title: 'Excellent Setup!',
+                    text: 'Your security model is solid. Keep learning and stay vigilant. Security is an ongoing practice, not a one-time setup.'
+                });
+            }
+
+            return `
+                <div class="recommendations">
+                    <h3>🎯 Your Personalized Recommendations</h3>
+                    ${recs.map(rec => `
+                        <div class="recommendation-item">
+                            <strong>${rec.title}:</strong> ${rec.text}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function getOverallIcon() {
+            const avg = (scores.security + scores.recovery + scores.privacy) / 3;
+            if (avg >= 70) return '🏆';
+            if (avg >= 50) return '✅';
+            if (avg >= 30) return '⚠️';
+            return '❌';
+        }
+
+        function getOverallTitle() {
+            const avg = (scores.security + scores.recovery + scores.privacy) / 3;
+            if (avg >= 70) return 'Excellent Security Model';
+            if (avg >= 50) return 'Decent Security Setup';
+            if (avg >= 30) return 'Risky Security Model';
+            return 'High Risk Setup';
+        }
+
+        function getOverallSubtitle() {
+            const avg = (scores.security + scores.recovery + scores.privacy) / 3;
+            if (avg >= 70) return 'Your bitcoin is well protected. Keep up these practices.';
+            if (avg >= 50) return 'You have some protection, but there\'s room for improvement.';
+            if (avg >= 30) return 'Your setup has significant vulnerabilities.';
+            return 'Your bitcoin is at serious risk. Immediate changes needed.';
+        }
+    </script>
+</body>
+</html>
