@@ -3,37 +3,807 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Principle 4: Proof of Work | The Principled Path</title>
-    <meta name="description" content="Learn how Bitcoin makes attacks expensive through computational puzzles">
-    <link rel="stylesheet" href="/curriculum/first-principles/inline-styles.css">
+    <title>Module 2.2: The Corruption Curve | The Principled Path</title>
+    <meta name="description" content="How monetary systems degrade as trust layers increase.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-gold: #DAA520;
+            --accent-bronze: #8B6F47;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(218, 165, 32, 0.2);
+            --accent-green: #4caf50;
+            --accent-red: #ef4444;
+            --accent-purple: #9c27b0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: rgba(218, 165, 32, 0.1);
+            border: 2px solid var(--accent-gold);
+            border-radius: 0.5rem;
+            color: var(--accent-gold);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(218, 165, 32, 0.2);
+            transform: translateX(-3px);
+        }
+
+        /* Module Header */
+        .module-header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: radial-gradient(circle at center, rgba(218, 165, 32, 0.15) 0%, transparent 70%);
+            border-radius: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .module-number {
+            font-size: 1.2rem;
+            color: var(--accent-gold);
+            opacity: 0.7;
+            margin-bottom: 0.5rem;
+        }
+
+        .module-header h1 {
+            font-size: 2.5rem;
+            color: var(--accent-gold);
+            margin-bottom: 1rem;
+        }
+
+        .module-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin: 2rem 0;
+        }
+
+        .content-section h2 {
+            color: var(--accent-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .content-section p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .key-insight {
+            background: rgba(218, 165, 32, 0.1);
+            border-left: 4px solid var(--accent-gold);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0.5rem;
+        }
+
+        .key-insight-title {
+            color: var(--accent-gold);
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        /* Interactive Demo */
+        .demo-section {
+            background: var(--secondary-dark);
+            border: 3px solid var(--accent-gold);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin: 3rem 0;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .demo-header h3 {
+            color: var(--accent-gold);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-description {
+            color: var(--text-dim);
+            font-size: 1.05rem;
+        }
+
+        .demo-canvas {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .economy-layers {
+            display: grid;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .layer-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 1.5rem;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .layer-card.first-receivers {
+            border-color: var(--accent-green);
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .layer-card.middle-class {
+            border-color: #ffaa00;
+            background: rgba(255, 170, 0, 0.1);
+        }
+
+        .layer-card.last-receivers {
+            border-color: var(--accent-red);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .layer-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            width: 3rem;
+            text-align: center;
+        }
+
+        .layer-info h4 {
+            color: var(--accent-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .layer-description {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+        }
+
+        .purchasing-power {
+            text-align: center;
+        }
+
+        .pp-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .pp-value.gain {
+            color: var(--accent-green);
+        }
+
+        .pp-value.neutral {
+            color: #ffaa00;
+        }
+
+        .pp-value.loss {
+            color: var(--accent-red);
+        }
+
+        .pp-label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .money-flow {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+        }
+
+        .flow-arrow {
+            font-size: 2rem;
+            color: var(--accent-gold);
+        }
+
+        .flow-text {
+            flex: 1;
+        }
+
+        .demo-controls {
+            display: grid;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .demo-button {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze));
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(218, 165, 32, 0.4);
+        }
+
+        .demo-button.danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .demo-button.secondary {
+            background: rgba(218, 165, 32, 0.2);
+            border: 2px solid var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        .demo-output {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            min-height: 80px;
+        }
+
+        .output-message {
+            color: var(--text-light);
+            font-size: 1.05rem;
+            margin: 0.5rem 0;
+        }
+
+        /* Socratic Questions */
+        .socratic-section {
+            background: linear-gradient(135deg, rgba(218, 165, 32, 0.1), rgba(139, 111, 71, 0.1));
+            border: 2px solid var(--accent-gold);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin: 3rem 0;
+        }
+
+        .socratic-section h3 {
+            color: var(--accent-gold);
+            font-size: 1.6rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .question-card {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .question-number {
+            color: var(--accent-gold);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            line-height: 1.7;
+        }
+
+        .reflection-area {
+            width: 100%;
+            min-height: 100px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+        }
+
+        .reflection-area:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+
+        /* Navigation Footer */
+        .module-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 3rem 0;
+            padding: 2rem;
+            background: var(--secondary-dark);
+            border-radius: 1rem;
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze));
+            color: white;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(218, 165, 32, 0.4);
+        }
+
+        .progress-indicator {
+            text-align: center;
+            color: var(--text-dim);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .layer-card {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .module-header h1 {
+                font-size: 2rem;
+            }
+
+            .module-nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
+        <!-- Navigation -->
+        <div class="nav-buttons">
+            <a href="/paths/principled/stage-2/" class="back-button">
+                ← Back to Stage 2
+            </a>
+        </div>
+
+        <!-- Module Header -->
         <header class="module-header">
-            <div class="breadcrumb">
-                <a href="/">Home</a> →
-                <a href="/paths/principled/">The Principled Path</a> →
-                <a href="/paths/principled/stage-2/">Stage 2</a> →
-                <span>Module 2</span>
-            </div>
-            <h1>Principle 4: Proof of Work</h1>
+            <div class="module-number">Stage 2 • Module 2</div>
+            <h1>The Corruption Curve</h1>
+            <p class="module-subtitle">Monetary systems degrade as trust layers increase</p>
         </header>
 
-        <main>
-            <div class="principle-content">
-                <div class="insight-box">
-                    <p>Content for Principle 4 will be extracted from the first-principles curriculum.</p>
-                    <p><em>This is a placeholder file. Full content extraction pending.</em></p>
+        <!-- Introduction -->
+        <section class="content-section">
+            <h2>The Cantillon Effect</h2>
+            <p>
+                In 1730, economist Richard Cantillon observed something critical: <strong>when new money enters the economy,
+                it doesn't affect everyone equally</strong>. Those who receive it first can spend it before prices rise.
+                Those who receive it last — or never — pay higher prices without increased income.
+            </p>
+            <p>
+                This isn't a side effect of money printing. It's <strong>wealth transfer disguised as monetary policy</strong>.
+                The closer you are to the money printer, the more you benefit. The farther away, the more you lose.
+            </p>
+
+            <div class="key-insight">
+                <div class="key-insight-title">💰 Core Principle</div>
+                <p>
+                    Inflation isn't just rising prices — it's systematic theft from the poor and middle class to benefit
+                    those with first access to new money. Banks, governments, and financial elites spend newly created
+                    currency before prices adjust. By the time it reaches workers and savers, purchasing power has already eroded.
+                </p>
+            </div>
+        </section>
+
+        <!-- The Problem -->
+        <section class="content-section">
+            <h2>Who Wins, Who Loses</h2>
+            <p>
+                Imagine the central bank prints $1 trillion. This money flows through the economy in layers:
+            </p>
+            <p>
+                <strong>Layer 1 - Banks & Governments:</strong> Receive the money first at 0% interest. Prices haven't risen yet.
+                They buy assets (stocks, real estate) at pre-inflation prices. Massive gain.<br><br>
+
+                <strong>Layer 2 - Corporations & Wealthy:</strong> Borrow cheaply from banks. Buy appreciating assets before
+                prices fully adjust. Moderate gain.<br><br>
+
+                <strong>Layer 3 - Workers & Savers:</strong> Receive salary increases last, if at all. By now, prices have risen.
+                Their wages buy less. Savings lose value. <strong>Net loss.</strong>
+            </p>
+
+            <div class="key-insight">
+                <div class="key-insight-title">📉 The Hidden Tax</div>
+                <p>
+                    Inflation is sold as "economic stimulus" or "quantitative easing." In reality, it's a transfer of wealth
+                    from those who hold currency (workers, retirees, savers) to those who receive new money first (banks, governments,
+                    asset holders). The corruption curve ensures the wealthy get wealthier while the middle class erodes.
+                </p>
+            </div>
+        </section>
+
+        <!-- Interactive Demo -->
+        <section class="demo-section">
+            <div class="demo-header">
+                <h3>🎮 Interactive Lab: Cantillon Effect Visualizer</h3>
+                <p class="demo-description">
+                    Print new money and watch how it flows through the economy. See who benefits and who loses
+                    based on their distance from the money printer.
+                </p>
+            </div>
+
+            <div class="demo-canvas">
+                <div class="economy-layers">
+                    <!-- Layer 1: First Receivers -->
+                    <div class="layer-card first-receivers">
+                        <div class="layer-number">1</div>
+                        <div class="layer-info">
+                            <h4>Banks & Governments</h4>
+                            <p class="layer-description">Receive new money first, spend before prices rise</p>
+                        </div>
+                        <div class="purchasing-power">
+                            <div class="pp-value gain" id="layer1PP">+15%</div>
+                            <div class="pp-label">Purchasing Power</div>
+                        </div>
+                    </div>
+
+                    <!-- Layer 2: Middle Receivers -->
+                    <div class="layer-card middle-class">
+                        <div class="layer-number">2</div>
+                        <div class="layer-info">
+                            <h4>Corporations & Wealthy</h4>
+                            <p class="layer-description">Borrow cheap money, buy assets before full price adjustment</p>
+                        </div>
+                        <div class="purchasing-power">
+                            <div class="pp-value neutral" id="layer2PP">+3%</div>
+                            <div class="pp-label">Purchasing Power</div>
+                        </div>
+                    </div>
+
+                    <!-- Layer 3: Last Receivers -->
+                    <div class="layer-card last-receivers">
+                        <div class="layer-number">3</div>
+                        <div class="layer-info">
+                            <h4>Workers & Savers</h4>
+                            <p class="layer-description">Wages rise slowly, prices already inflated, savings eroded</p>
+                        </div>
+                        <div class="purchasing-power">
+                            <div class="pp-value loss" id="layer3PP">-12%</div>
+                            <div class="pp-label">Purchasing Power</div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="module-navigation">
-                    <a href="../stage-2/" class="nav-btn nav-btn-secondary">← Back to Stage 2</a>
-                    <a href="module-3.html" class="nav-btn">Continue →</a>
+                <div class="money-flow">
+                    <h4 style="color: var(--accent-gold); margin-bottom: 1rem;">Money Flow Timeline</h4>
+                    <div class="flow-step">
+                        <div class="flow-arrow">➊</div>
+                        <div class="flow-text" id="flow1">
+                            <strong>Month 0:</strong> Central bank prints $1 trillion, lends to banks at 0%
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-arrow">➋</div>
+                        <div class="flow-text" id="flow2">
+                            <strong>Month 3:</strong> Banks lend to corporations and wealthy at 2%
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-arrow">➌</div>
+                        <div class="flow-text" id="flow3">
+                            <strong>Month 12:</strong> Workers get 3% raise, but prices already up 10%
+                        </div>
+                    </div>
+                </div>
+
+                <div class="demo-controls">
+                    <button class="demo-button danger" onclick="printMoney()">
+                        🖨️ Print $1 Trillion
+                    </button>
+                    <button class="demo-button secondary" onclick="resetDemo()">
+                        🔄 Reset Economy
+                    </button>
+                </div>
+
+                <div class="demo-output" id="demoOutput">
+                    <div class="output-message">Click "Print $1 Trillion" to see the Cantillon Effect in action...</div>
                 </div>
             </div>
-        </main>
+
+            <div class="key-insight">
+                <div class="key-insight-title">💡 What You're Seeing</div>
+                <p>
+                    The wealthy gain purchasing power because they receive new money before prices adjust.
+                    Workers and savers lose purchasing power because prices rise before their wages.
+                    This isn't accidental — it's how fiat monetary systems extract wealth from the many to benefit the few.
+                </p>
+            </div>
+        </section>
+
+        <!-- Bitcoin's Solution -->
+        <section class="content-section">
+            <h2>Bitcoin: No Cantillon Effect</h2>
+            <p>
+                Bitcoin's fixed supply of 21 million coins eliminates the Cantillon Effect entirely. <strong>No one can print new bitcoin.</strong>
+                No central bank can inflate supply. No government can debase the currency to benefit insiders.
+            </p>
+            <p>
+                New bitcoin enters circulation through mining — a competitive, permissionless process. Anyone can mine.
+                The schedule is predictable and decreasing (halving every 4 years). By 2140, no new bitcoin will ever be created.
+            </p>
+            <p>
+                This means <strong>purchasing power isn't systematically stolen</strong> from late receivers. If you hold bitcoin,
+                your share of the total supply never decreases. Contrast this with fiat, where your share shrinks every time
+                the money printer runs.
+            </p>
+
+            <div class="key-insight">
+                <div class="key-insight-title">₿ Bitcoin's Elegant Solution</div>
+                <p>
+                    Bitcoin replaces discretionary money printing with algorithmic scarcity. There is no "first receiver"
+                    because supply increases predictably for everyone. Miners earn new bitcoin by securing the network,
+                    not by political privilege. The corruption curve is flattened to zero — no one can game the system
+                    through proximity to power.
+                </p>
+            </div>
+        </section>
+
+        <!-- Socratic Questions -->
+        <section class="socratic-section">
+            <h3>💬 Reflect on What You've Learned</h3>
+            <p style="text-align: center; color: var(--text-dim); margin-bottom: 2rem;">
+                Take a moment to think deeply about these questions. Your answers will be saved locally.
+            </p>
+
+            <div class="question-card">
+                <div class="question-number">Question 1</div>
+                <div class="question-text">
+                    If inflation systematically transfers wealth from workers to those near the money printer,
+                    why is it presented as beneficial economic policy? Who benefits from this narrative?
+                </div>
+                <textarea class="reflection-area" id="question1" placeholder="Type your thoughts here..."></textarea>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 2</div>
+                <div class="question-text">
+                    Can you identify real-world examples of the Cantillon Effect? Who in your society receives
+                    new money first, and who receives it last?
+                </div>
+                <textarea class="reflection-area" id="question2" placeholder="Type your thoughts here..."></textarea>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 3</div>
+                <div class="question-text">
+                    How does Bitcoin's fixed supply eliminate the possibility of a Cantillon Effect?
+                    What are the implications for wealth distribution over time?
+                </div>
+                <textarea class="reflection-area" id="question3" placeholder="Type your thoughts here..."></textarea>
+            </div>
+
+            <button class="demo-button" onclick="saveReflections()" style="margin-top: 1.5rem; width: 100%;">
+                💾 Save My Reflections
+            </button>
+        </section>
+
+        <!-- Module Navigation -->
+        <nav class="module-nav">
+            <a href="/paths/principled/stage-2/module-1.html" class="nav-link">
+                ← Previous: Coordination Problem
+            </a>
+            <div class="progress-indicator">
+                Module 2 of 3 • Stage 2 of 5
+            </div>
+            <a href="/paths/principled/stage-2/module-3.html" class="nav-link">
+                Next: Trust & Accountability →
+            </a>
+        </nav>
     </div>
-    
-    <script src="/curriculum/first-principles/interactions.js"></script>
+
+    <script>
+        // Demo State
+        let demoState = {
+            printCount: 0,
+            layer1PP: 0,
+            layer2PP: 0,
+            layer3PP: 0
+        };
+
+        function printMoney() {
+            demoState.printCount++;
+
+            // Calculate cumulative purchasing power changes
+            demoState.layer1PP += 15;
+            demoState.layer2PP += 3;
+            demoState.layer3PP -= 12;
+
+            updateDisplay();
+            analyzeImpact();
+        }
+
+        function updateDisplay() {
+            // Update purchasing power displays
+            document.getElementById('layer1PP').textContent = (demoState.layer1PP > 0 ? '+' : '') + demoState.layer1PP + '%';
+            document.getElementById('layer2PP').textContent = (demoState.layer2PP > 0 ? '+' : '') + demoState.layer2PP + '%';
+            document.getElementById('layer3PP').textContent = (demoState.layer3PP > 0 ? '+' : '') + demoState.layer3PP + '%';
+
+            // Update flow descriptions
+            const months = demoState.printCount * 12;
+            document.getElementById('flow1').innerHTML = `
+                <strong>Month 0:</strong> Central bank prints $${demoState.printCount} trillion, lends to banks at 0%
+            `;
+            document.getElementById('flow2').innerHTML = `
+                <strong>Month ${Math.min(3 * demoState.printCount, months)}:</strong> Banks lend to corporations and wealthy at 2%
+            `;
+            document.getElementById('flow3').innerHTML = `
+                <strong>Month ${Math.min(12 * demoState.printCount, months)}:</strong> Workers get ${3 * demoState.printCount}% raise, but prices already up ${10 * demoState.printCount}%
+            `;
+        }
+
+        function analyzeImpact() {
+            const output = document.getElementById('demoOutput');
+
+            const wealthTransfer = Math.abs(demoState.layer3PP);
+            const eliteGain = demoState.layer1PP;
+
+            let message = `
+                <div class="output-message" style="color: var(--accent-red); font-weight: 700;">
+                    🚨 Wealth Transfer in Progress
+                </div>
+                <div class="output-message">
+                    <strong>Round ${demoState.printCount}:</strong> Printed $${demoState.printCount} trillion total
+                </div>
+                <div class="output-message">
+                    <strong>Banks & Governments:</strong> Gained ${eliteGain}% purchasing power
+                </div>
+                <div class="output-message">
+                    <strong>Workers & Savers:</strong> Lost ${wealthTransfer}% purchasing power
+                </div>
+                <div class="output-message" style="margin-top: 1rem; color: var(--text-dim);">
+                    This is the Cantillon Effect: those closest to the money printer extract wealth
+                    from those farthest away. It's not a bug — it's the system working as designed.
+                </div>
+            `;
+
+            if (demoState.printCount >= 3) {
+                message += `
+                    <div class="output-message" style="margin-top: 1rem; color: #ffaa00; font-weight: 600;">
+                        ⚠️ After ${demoState.printCount} rounds of printing, the middle class purchasing power has collapsed by ${Math.abs(demoState.layer3PP)}%.
+                        Meanwhile, the financial elite have gained ${demoState.layer1PP}%. This is systematic wealth extraction.
+                    </div>
+                `;
+            }
+
+            output.innerHTML = message;
+        }
+
+        function resetDemo() {
+            demoState = {
+                printCount: 0,
+                layer1PP: 0,
+                layer2PP: 0,
+                layer3PP: 0
+            };
+
+            document.getElementById('layer1PP').textContent = '+0%';
+            document.getElementById('layer2PP').textContent = '+0%';
+            document.getElementById('layer3PP').textContent = '-0%';
+
+            document.getElementById('flow1').innerHTML = `
+                <strong>Month 0:</strong> Central bank prints $1 trillion, lends to banks at 0%
+            `;
+            document.getElementById('flow2').innerHTML = `
+                <strong>Month 3:</strong> Banks lend to corporations and wealthy at 2%
+            `;
+            document.getElementById('flow3').innerHTML = `
+                <strong>Month 12:</strong> Workers get 3% raise, but prices already up 10%
+            `;
+
+            document.getElementById('demoOutput').innerHTML = `
+                <div class="output-message">Click "Print $1 Trillion" to see the Cantillon Effect in action...</div>
+            `;
+        }
+
+        // Save reflections
+        function saveReflections() {
+            const reflections = {
+                module: 'stage2-module2',
+                timestamp: new Date().toISOString(),
+                q1: document.getElementById('question1').value,
+                q2: document.getElementById('question2').value,
+                q3: document.getElementById('question3').value
+            };
+
+            localStorage.setItem('principled_stage2_module2_reflections', JSON.stringify(reflections));
+
+            // Mark module as completed
+            let progress = JSON.parse(localStorage.getItem('principled_stage2_progress') || '[]');
+            if (!progress.includes('module-2')) {
+                progress.push('module-2');
+                localStorage.setItem('principled_stage2_progress', JSON.stringify(progress));
+            }
+
+            alert('✅ Your reflections have been saved!\n\nModule 2 marked as complete. Continue to Module 3.');
+        }
+
+        // Load saved reflections
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('principled_stage2_module2_reflections');
+            if (saved) {
+                const reflections = JSON.parse(saved);
+                document.getElementById('question1').value = reflections.q1 || '';
+                document.getElementById('question2').value = reflections.q2 || '';
+                document.getElementById('question3').value = reflections.q3 || '';
+            }
+        });
+    </script>
 </body>
 </html>
