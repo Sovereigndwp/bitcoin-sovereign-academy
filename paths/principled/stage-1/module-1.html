@@ -399,6 +399,25 @@
             color: var(--text-dim);
         }
 
+        /* Interactive Reflection System */
+        .reflection-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid rgba(218, 165, 32, 0.2); padding-bottom: 0.5rem; }
+        .reflection-tab { background: transparent; color: var(--text-dim); border: 2px solid rgba(218, 165, 32, 0.3); padding: 0.5rem 1.25rem; border-radius: 8px 8px 0 0; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; }
+        .reflection-tab.active { background: linear-gradient(135deg, rgba(218, 165, 32, 0.2), rgba(139, 111, 71, 0.1)); color: var(--accent-gold); border-color: var(--accent-gold); }
+        .reflection-panel { display: none; padding: 1.5rem; background: rgba(26, 26, 26, 0.8); border-radius: 0 8px 8px 8px; border: 2px solid rgba(218, 165, 32, 0.2); }
+        .reflection-panel.active { display: block; }
+        .choice-select { width: 100%; padding: 1rem; background: rgba(0, 0, 0, 0.3); border: 2px solid var(--border-color); border-radius: 0.5rem; color: var(--text-light); font-size: 1rem; cursor: pointer; }
+        .choice-select:focus { outline: none; border-color: var(--accent-gold); }
+        .feedback-btn { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; margin-top: 1rem; transition: all 0.3s ease; }
+        .feedback-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(218, 165, 32, 0.4); }
+        .feedback-box { margin-top: 1.5rem; padding: 1.5rem; border-radius: 0.5rem; border: 2px solid; display: none; }
+        .feedback-box.positive { background: rgba(76, 175, 80, 0.1); border-color: #4caf50; color: var(--text-light); }
+        .feedback-box.hint { background: rgba(255, 152, 0, 0.1); border-color: #ff9800; color: var(--text-light); }
+        .feedback-box h5 { margin-top: 0; margin-bottom: 0.5rem; color: inherit; }
+        .checklist-reflection { display: flex; flex-direction: column; gap: 0.75rem; }
+        .checkbox-label { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(0, 0, 0, 0.3); border-radius: 0.5rem; cursor: pointer; transition: background 0.2s ease; }
+        .checkbox-label:hover { background: rgba(0, 0, 0, 0.5); }
+        .checkbox-label input[type="checkbox"] { width: 1.25rem; height: 1.25rem; cursor: pointer; }
+
         /* Responsive */
         @media (max-width: 768px) {
             .demo-grid {
@@ -590,37 +609,113 @@
         <section class="socratic-section">
             <h3>💬 Reflect on What You've Learned</h3>
             <p style="text-align: center; color: var(--text-dim); margin-bottom: 2rem;">
-                Take a moment to think deeply about these questions. Your answers will be saved locally.
+                Test your understanding with interactive reflections. Get immediate feedback on your thinking.
             </p>
 
+            <!-- Question 1: Winners & Losers (Checklist) -->
             <div class="question-card">
                 <div class="question-number">Question 1</div>
                 <div class="question-text">
-                    If money represents energy and productive capacity, what happens when new money is created without new work being done?
-                    Who benefits and who loses?
+                    When new money is created without new production, who benefits and who loses?
                 </div>
-                <textarea class="reflection-area" id="question1" placeholder="Type your thoughts here..."></textarea>
+                <p style="font-size: 0.95rem; color: var(--text-dim); margin: 1rem 0;">
+                    Select all the groups that are affected by inflation (new money without new work):
+                </p>
+
+                <div class="checklist-reflection">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="winner-govt" onchange="updateInflationFeedback()">
+                        <span><strong>Government</strong> - Can spend new money before prices rise</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="winner-banks" onchange="updateInflationFeedback()">
+                        <span><strong>Banks</strong> - Receive newly created money first (Cantillon Effect)</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="winner-debtors" onchange="updateInflationFeedback()">
+                        <span><strong>Debtors</strong> - Repay loans with devalued currency</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="loser-savers" onchange="updateInflationFeedback()">
+                        <span><strong>Savers</strong> - Purchasing power of savings erodes</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="loser-workers" onchange="updateInflationFeedback()">
+                        <span><strong>Workers</strong> - Wages lag behind rising prices</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="loser-retired" onchange="updateInflationFeedback()">
+                        <span><strong>Retirees</strong> - Fixed incomes lose value over time</span>
+                    </label>
+                </div>
+                <div id="inflation-feedback" class="feedback-box"></div>
             </div>
 
+            <!-- Question 2: Wealth vs Currency (Quick/Deep) -->
             <div class="question-card">
                 <div class="question-number">Question 2</div>
                 <div class="question-text">
-                    Can true wealth ever be printed? Why or why not? What's the difference between wealth and currency?
+                    Can true wealth ever be printed? What's the difference between wealth and currency?
                 </div>
-                <textarea class="reflection-area" id="question2" placeholder="Type your thoughts here..."></textarea>
+
+                <div class="reflection-tabs" role="tablist" aria-label="Reflection depth options">
+                    <button class="reflection-tab active" role="tab" aria-selected="true" aria-controls="q2-quick" onclick="switchReflectionTab(2, 'quick', event)">Quick (1 min)</button>
+                    <button class="reflection-tab" role="tab" aria-selected="false" aria-controls="q2-deep" onclick="switchReflectionTab(2, 'deep', event)">Deep Dive (5 min)</button>
+                </div>
+
+                <div id="q2-quick" class="reflection-panel active" role="tabpanel" aria-hidden="false">
+                    <p style="margin-bottom: 1rem;">What is wealth?</p>
+                    <select class="choice-select" id="wealth-choice" onchange="checkWealth()">
+                        <option value="">— Select One —</option>
+                        <option value="currency">Currency (money itself)</option>
+                        <option value="goods">Real goods and services (food, energy, skills)</option>
+                        <option value="both">Both currency and goods equally</option>
+                        <option value="perceived">Whatever people believe has value</option>
+                    </select>
+                    <div id="wealth-feedback" class="feedback-box"></div>
+                </div>
+
+                <div id="q2-deep" class="reflection-panel" role="tabpanel" aria-hidden="true">
+                    <p style="margin-bottom: 1rem;">Reflect deeply: If you could print unlimited currency, would you be wealthy? Why or why not?</p>
+                    <textarea class="reflection-area" id="wealth-deep" placeholder="Consider: Zimbabwe printed trillions of dollars and became poorer. Venezuela printed bolivars and faced starvation. The Weimar Republic printed marks and got hyperinflation. What does this tell you about the relationship between currency and wealth?" style="min-height: 120px;" oninput="saveDeepReflection(2, this.value)"></textarea>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.5rem; font-style: italic;">
+                        💡 Hint: Wealth is <strong>productive capacity</strong> (factories, farms, skills, energy). Currency is just a <strong>claim</strong> on that capacity. Printing claims doesn't create capacity.
+                    </p>
+                </div>
             </div>
 
+            <!-- Question 3: Bitcoin's Energy Cost (Quick/Deep) -->
             <div class="question-card">
                 <div class="question-number">Question 3</div>
                 <div class="question-text">
                     Why does Bitcoin require energy to create new units? Is this a bug or a feature?
                 </div>
-                <textarea class="reflection-area" id="question3" placeholder="Type your thoughts here..."></textarea>
-            </div>
 
-            <button class="demo-button" onclick="saveReflections()" style="margin-top: 1.5rem; width: 100%;">
-                💾 Save My Reflections
-            </button>
+                <div class="reflection-tabs" role="tablist" aria-label="Reflection depth options">
+                    <button class="reflection-tab active" role="tab" aria-selected="true" aria-controls="q3-quick" onclick="switchReflectionTab(3, 'quick', event)">Quick (1 min)</button>
+                    <button class="reflection-tab" role="tab" aria-selected="false" aria-controls="q3-deep" onclick="switchReflectionTab(3, 'deep', event)">Deep Dive (5 min)</button>
+                </div>
+
+                <div id="q3-quick" class="reflection-panel active" role="tabpanel" aria-hidden="false">
+                    <p style="margin-bottom: 1rem;">Bitcoin's energy requirement is a:</p>
+                    <select class="choice-select" id="energy-choice" onchange="checkEnergy()">
+                        <option value="">— Select One —</option>
+                        <option value="bug">Bug - Wasteful and should be eliminated</option>
+                        <option value="feature">Feature - Anchors digital scarcity to physical reality</option>
+                        <option value="necessary-evil">Necessary evil - We're stuck with it</option>
+                        <option value="temporary">Temporary - Will be replaced by better tech</option>
+                    </select>
+                    <div id="energy-feedback" class="feedback-box"></div>
+                </div>
+
+                <div id="q3-deep" class="reflection-panel" role="tabpanel" aria-hidden="true">
+                    <p style="margin-bottom: 1rem;">Explain why energy cost prevents the same inflation problem that fiat currency has:</p>
+                    <textarea class="reflection-area" id="energy-deep" placeholder="Think about: What prevents someone from creating infinite bitcoins? How is this different from a central bank creating fiat? What role does thermodynamics play?" style="min-height: 120px;" oninput="saveDeepReflection(3, this.value)"></textarea>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.5rem; font-style: italic;">
+                        💡 Hint: Energy cannot be faked or counterfeited. Proof-of-work means every bitcoin costs <strong>real electricity</strong> to create. This reintroduces the conservation law that fiat abandoned.
+                    </p>
+                </div>
+            </div>
         </section>
 
         <!-- Module Navigation -->
