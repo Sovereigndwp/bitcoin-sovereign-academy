@@ -452,6 +452,23 @@
             color: var(--text-dim);
         }
 
+        /* Interactive Reflection System */
+        .reflection-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid rgba(139, 111, 71, 0.2); padding-bottom: 0.5rem; }
+        .reflection-tab { background: transparent; color: var(--text-dim); border: 2px solid rgba(139, 111, 71, 0.3); padding: 0.5rem 1.25rem; border-radius: 8px 8px 0 0; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; }
+        .reflection-tab.active { background: linear-gradient(135deg, rgba(139, 111, 71, 0.2), rgba(139, 111, 71, 0.1)); color: var(--accent-bronze); border-color: var(--accent-bronze); }
+        .reflection-panel { display: none; padding: 1.5rem; background: rgba(26, 26, 26, 0.8); border-radius: 0 8px 8px 8px; border: 2px solid rgba(139, 111, 71, 0.2); }
+        .reflection-panel.active { display: block; }
+        .choice-select { width: 100%; padding: 1rem; background: rgba(0, 0, 0, 0.3); border: 2px solid var(--border-color); border-radius: 0.5rem; color: var(--text-light); font-size: 1rem; cursor: pointer; }
+        .choice-select:focus { outline: none; border-color: var(--accent-bronze); }
+        .feedback-box { margin-top: 1.5rem; padding: 1.5rem; border-radius: 0.5rem; border: 2px solid; display: none; }
+        .feedback-box.positive { background: rgba(76, 175, 80, 0.1); border-color: #4caf50; color: var(--text-light); }
+        .feedback-box.hint { background: rgba(255, 152, 0, 0.1); border-color: #ff9800; color: var(--text-light); }
+        .feedback-box h5 { margin-top: 0; margin-bottom: 0.5rem; color: inherit; }
+        .checklist-reflection { display: flex; flex-direction: column; gap: 0.75rem; }
+        .checkbox-label { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(0, 0, 0, 0.3); border-radius: 0.5rem; cursor: pointer; transition: background 0.2s ease; }
+        .checkbox-label:hover { background: rgba(0, 0, 0, 0.5); }
+        .checkbox-label input[type="checkbox"] { width: 1.25rem; height: 1.25rem; cursor: pointer; }
+
         /* Responsive */
         @media (max-width: 768px) {
             .players-display {
@@ -677,39 +694,71 @@
         <section class="socratic-section">
             <h3>💬 Reflect on What You've Learned</h3>
             <p style="text-align: center; color: var(--text-dim); margin-bottom: 2rem;">
-                Take a moment to think deeply about these questions. Your answers will be saved locally.
+                Test your understanding with interactive reflections.
             </p>
 
+            <!-- Q1: Cooperation Conditions (Checklist) -->
             <div class="question-card">
                 <div class="question-number">Question 1</div>
                 <div class="question-text">
-                    If rational individuals always betray in the Prisoner's Dilemma, how can any group cooperation exist?
-                    What conditions make cooperation possible despite perverse incentives?
+                    What conditions make cooperation possible despite the Prisoner's Dilemma?
                 </div>
-                <textarea class="reflection-area" id="question1" placeholder="Type your thoughts here..."></textarea>
+                <p style="font-size: 0.95rem; color: var(--text-dim); margin: 1rem 0;">Select conditions that enable cooperation:</p>
+
+                <div class="checklist-reflection">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="coop-repeat" onchange="updateCoopFeedback()">
+                        <span><strong>Repeated interactions</strong> - Future consequences matter</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="coop-enforce" onchange="updateCoopFeedback()">
+                        <span><strong>Automatic enforcement</strong> - Cheating is punished immediately</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="coop-reputation" onchange="updateCoopFeedback()">
+                        <span><strong>Reputation systems</strong> - Defectors are identified and avoided</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="coop-payoff" onchange="updateCoopFeedback()">
+                        <span><strong>Changed payoffs</strong> - Make cooperation more profitable than betrayal</span>
+                    </label>
+                </div>
+                <div id="coop-feedback" class="feedback-box"></div>
             </div>
 
+            <!-- Q2: Real-World Examples (Multiple Choice) -->
             <div class="question-card">
                 <div class="question-number">Question 2</div>
                 <div class="question-text">
-                    Can you think of real-world examples where individual incentives conflict with collective benefit?
-                    Why do these systems fail, and what would it take to fix them?
+                    Which real-world system suffers from misaligned incentives (individual vs collective benefit)?
                 </div>
-                <textarea class="reflection-area" id="question2" placeholder="Type your thoughts here..."></textarea>
+
+                <select class="choice-select" id="example-choice" onchange="checkExample()" style="margin-top: 1rem;">
+                    <option value="">— Select One —</option>
+                    <option value="tragedy">Tragedy of the commons (overfishing, pollution)</option>
+                    <option value="fiat">Fiat currency (inflation benefits govt, hurts savers)</option>
+                    <option value="corp">Corporate short-termism (quarterly profits vs long-term health)</option>
+                    <option value="all">All of the above</option>
+                </select>
+                <div id="example-feedback" class="feedback-box"></div>
             </div>
 
+            <!-- Q3: Bitcoin's Payoff Matrix (Multiple Choice) -->
             <div class="question-card">
                 <div class="question-number">Question 3</div>
                 <div class="question-text">
-                    How does Bitcoin change the payoff matrix so that cooperation becomes the rational choice?
-                    What role does automatic enforcement play in solving coordination problems?
+                    How does Bitcoin make cooperation the rational strategy?
                 </div>
-                <textarea class="reflection-area" id="question3" placeholder="Type your thoughts here..."></textarea>
-            </div>
 
-            <button class="demo-button" onclick="saveReflections()" style="margin-top: 1.5rem; width: 100%;">
-                💾 Save My Reflections
-            </button>
+                <select class="choice-select" id="bitcoin-choice" onchange="checkBitcoin()" style="margin-top: 1rem;">
+                    <option value="">— Select One —</option>
+                    <option value="reward">Rewards honest miners, ignores cheaters</option>
+                    <option value="punish">Automatically rejects invalid blocks (cheating wastes energy)</option>
+                    <option value="both">Both - cooperation profitable, cheating costly</option>
+                    <option value="trust">Requires miners to be honest and trustworthy</option>
+                </select>
+                <div id="bitcoin-feedback" class="feedback-box"></div>
+            </div>
         </section>
 
         <!-- Module Navigation -->
@@ -913,36 +962,112 @@
             `;
         }
 
-        // Save reflections
-        function saveReflections() {
-            const reflections = {
-                module: 'stage2-module1',
-                timestamp: new Date().toISOString(),
-                q1: document.getElementById('question1').value,
-                q2: document.getElementById('question2').value,
-                q3: document.getElementById('question3').value
-            };
+        // Interactive Reflection System
+        const STORAGE_KEY = 'principled_stage2_module1_reflections';
 
-            localStorage.setItem('principled_stage2_module1_reflections', JSON.stringify(reflections));
+        // Q1 - Cooperation Conditions Checklist
+        function updateCoopFeedback() {
+            const repeat = document.getElementById('coop-repeat').checked;
+            const enforce = document.getElementById('coop-enforce').checked;
+            const reputation = document.getElementById('coop-reputation').checked;
+            const payoff = document.getElementById('coop-payoff').checked;
+            const count = [repeat, enforce, reputation, payoff].filter(Boolean).length;
+            const feedbackDiv = document.getElementById('coop-feedback');
 
-            // Mark module as completed
+            if (count === 0) { feedbackDiv.style.display = 'none'; return; }
+
+            let feedback = '';
+            if (count === 4) {
+                feedback = `<h5>✓ Perfect!</h5><p>All four enable cooperation:<br><strong>1. Repeated interactions</strong> - Future matters (tit-for-tat)<br><strong>2. Automatic enforcement</strong> - Cheating punished immediately<br><strong>3. Reputation</strong> - Defectors identified/avoided<br><strong>4. Changed payoffs</strong> - Cooperation more profitable<br><br>Bitcoin uses #2 and #4: automatic enforcement + mining rewards make cooperation rational.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else {
+                feedback = `<h5>💡 Partial (${count}/4)</h5><p>All four conditions help. Bitcoin primarily uses <strong>automatic enforcement</strong> and <strong>changed payoffs</strong> to solve the dilemma.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+            feedbackDiv.innerHTML = feedback;
+            feedbackDiv.style.display = 'block';
+            saveCheckboxes();
+        }
+
+        // Q2 - Real-World Examples
+        function checkExample() {
+            const choice = document.getElementById('example-choice').value;
+            const feedbackDiv = document.getElementById('example-feedback');
+            if (!choice) { feedbackDiv.style.display = 'none'; return; }
+
+            let feedback = '';
+            if (choice === 'all') {
+                feedback = `<h5>✓ Correct - All Three!</h5><p><strong>Tragedy of commons:</strong> Individual profit (overfish) vs collective (sustainable oceans)<br><strong>Fiat currency:</strong> Govt/banks benefit from inflation, savers lose<br><strong>Corporate short-termism:</strong> CEOs maximize quarterly profits, harm long-term<br><br>Bitcoin fixes the fiat problem: No one can inflate supply. Fixed 21M limit aligns individual and collective interests.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else {
+                feedback = `<h5>💡 True, but all three apply</h5><p>Misaligned incentives appear everywhere: commons, fiat, corporations. Bitcoin solves the fiat problem by making inflation impossible.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+            feedbackDiv.innerHTML = feedback;
+            feedbackDiv.style.display = 'block';
+            saveReflection('q2', choice);
+        }
+
+        // Q3 - Bitcoin's Strategy
+        function checkBitcoin() {
+            const choice = document.getElementById('bitcoin-choice').value;
+            const feedbackDiv = document.getElementById('bitcoin-feedback');
+            if (!choice) { feedbackDiv.style.display = 'none'; return; }
+
+            let feedback = '';
+            if (choice === 'both') {
+                feedback = `<h5>✓ Exactly Right!</h5><p><strong>Carrot + Stick:</strong><br>• <strong>Cooperation profitable:</strong> Honest miners earn block rewards<br>• <strong>Cheating costly:</strong> Invalid blocks rejected, energy wasted<br><br>This changes the Nash Equilibrium: Cooperation becomes the rational strategy. Bitcoin doesn't require altruism—it makes honesty profitable.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else if (choice === 'trust') {
+                feedback = `<h5>⚠️ Opposite of Bitcoin's Design</h5><p>Bitcoin <em>doesn't</em> require trust. The protocol <strong>automatically rejects invalid blocks</strong>. Miners can try to cheat, but the network won't accept their work. Trust is replaced by cryptographic verification.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else {
+                feedback = `<h5>💡 Partially Correct</h5><p>Bitcoin uses <em>both</em>: rewards for honesty + automatic rejection of cheating. This combination makes cooperation the only profitable strategy.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+            feedbackDiv.innerHTML = feedback;
+            feedbackDiv.style.display = 'block';
+            saveReflection('q3', choice);
+        }
+
+        // Persistence functions
+        function saveCheckboxes() {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            reflections['coop-repeat'] = document.getElementById('coop-repeat').checked;
+            reflections['coop-enforce'] = document.getElementById('coop-enforce').checked;
+            reflections['coop-reputation'] = document.getElementById('coop-reputation').checked;
+            reflections['coop-payoff'] = document.getElementById('coop-payoff').checked;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
+        }
+
+        function saveReflection(key, value) {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            reflections[key] = value;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
+        }
+
+        function loadReflections() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const reflections = JSON.parse(saved);
+                if (reflections['coop-repeat']) document.getElementById('coop-repeat').checked = true;
+                if (reflections['coop-enforce']) document.getElementById('coop-enforce').checked = true;
+                if (reflections['coop-reputation']) document.getElementById('coop-reputation').checked = true;
+                if (reflections['coop-payoff']) document.getElementById('coop-payoff').checked = true;
+                if (reflections['q2']) document.getElementById('example-choice').value = reflections['q2'];
+                if (reflections['q3']) document.getElementById('bitcoin-choice').value = reflections['q3'];
+                updateCoopFeedback();
+                if (reflections['q2']) checkExample();
+                if (reflections['q3']) checkBitcoin();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadReflections();
             let progress = JSON.parse(localStorage.getItem('principled_stage2_progress') || '[]');
             if (!progress.includes('module-1')) {
                 progress.push('module-1');
                 localStorage.setItem('principled_stage2_progress', JSON.stringify(progress));
-            }
-
-            alert('✅ Your reflections have been saved!\n\nModule 1 marked as complete. Continue to Module 2.');
-        }
-
-        // Load saved reflections
-        window.addEventListener('DOMContentLoaded', () => {
-            const saved = localStorage.getItem('principled_stage2_module1_reflections');
-            if (saved) {
-                const reflections = JSON.parse(saved);
-                document.getElementById('question1').value = reflections.q1 || '';
-                document.getElementById('question2').value = reflections.q2 || '';
-                document.getElementById('question3').value = reflections.q3 || '';
             }
         });
     </script>
