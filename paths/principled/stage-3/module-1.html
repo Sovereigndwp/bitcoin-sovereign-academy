@@ -3,37 +3,862 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Principle 6: Digital Signatures | The Principled Path</title>
-    <meta name="description" content="Proving ownership without revealing secrets">
-    <link rel="stylesheet" href="/curriculum/first-principles/inline-styles.css">
+    <title>Module 3.1: The Building Blocks of Digital Trust | Principled Path</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-bronze: #8B6F47;
+            --accent-bronze-light: #A0826D;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --danger-red: #e74c3c;
+            --success-green: #2ecc71;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Navigation */
+        .breadcrumb {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        /* Module Header */
+        .module-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--secondary-dark);
+            border-radius: 12px;
+            border: 2px solid var(--accent-bronze);
+        }
+
+        .stage-indicator {
+            font-size: 0.9rem;
+            color: var(--accent-bronze);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #8B6F47, #A0826D);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .module-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--secondary-dark);
+            border-radius: 12px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            border: 2px solid rgba(139, 111, 71, 0.2);
+        }
+
+        .content-section h2 {
+            color: var(--accent-bronze);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--accent-bronze-light);
+            font-size: 1.3rem;
+            margin: 2rem 0 1rem;
+        }
+
+        .content-section p {
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .key-insight {
+            background: rgba(247, 147, 26, 0.1);
+            border-left: 4px solid var(--primary-orange);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+        }
+
+        .key-insight p {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        /* Building Blocks Grid */
+        .blocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .block-card {
+            background: var(--primary-dark);
+            border: 2px solid rgba(139, 111, 71, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .block-card:hover {
+            border-color: var(--accent-bronze);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(139, 111, 71, 0.3);
+        }
+
+        .block-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .block-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--accent-bronze);
+            margin-bottom: 1rem;
+        }
+
+        .block-description {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Interactive Demo */
+        .demo-container {
+            background: var(--primary-dark);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .demo-header h3 {
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid rgba(139, 111, 71, 0.2);
+        }
+
+        .demo-tab {
+            padding: 1rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .demo-tab.active {
+            color: var(--accent-bronze);
+            border-bottom-color: var(--accent-bronze);
+        }
+
+        .demo-tab:hover {
+            color: var(--accent-bronze-light);
+        }
+
+        .demo-panel {
+            display: none;
+        }
+
+        .demo-panel.active {
+            display: block;
+        }
+
+        .demo-input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-input-group label {
+            display: block;
+            color: var(--accent-bronze);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .demo-input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--secondary-dark);
+            border: 2px solid rgba(139, 111, 71, 0.3);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+
+        .demo-input:focus {
+            outline: none;
+            border-color: var(--accent-bronze);
+        }
+
+        .demo-button {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--accent-bronze), var(--accent-bronze-light));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 111, 71, 0.4);
+        }
+
+        .demo-output {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(139, 111, 71, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            word-break: break-all;
+        }
+
+        .output-label {
+            color: var(--accent-bronze);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Key Properties Box */
+        .properties-box {
+            background: rgba(139, 111, 71, 0.1);
+            border: 2px solid rgba(139, 111, 71, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .properties-box h4 {
+            color: var(--accent-bronze);
+            margin-bottom: 1rem;
+        }
+
+        .properties-box ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .properties-box li {
+            padding: 0.5rem 0 0.5rem 2rem;
+            position: relative;
+            color: var(--text-dim);
+        }
+
+        .properties-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success-green);
+            font-weight: bold;
+        }
+
+        /* Socratic Questions */
+        .question-section {
+            background: var(--secondary-dark);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            border: 2px solid rgba(139, 111, 71, 0.2);
+        }
+
+        .question-section h4 {
+            color: var(--accent-bronze);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .question-section textarea {
+            width: 100%;
+            min-height: 100px;
+            background: var(--primary-dark);
+            border: 2px solid rgba(139, 111, 71, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+        }
+
+        .question-section textarea:focus {
+            outline: none;
+            border-color: var(--accent-bronze);
+        }
+
+        .save-indicator {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        /* Navigation Buttons */
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .nav-btn-primary {
+            background: linear-gradient(45deg, #8B6F47, #A0826D);
+            color: var(--primary-dark);
+        }
+
+        .nav-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(139, 111, 71, 0.4);
+        }
+
+        .nav-btn-secondary {
+            background: var(--secondary-dark);
+            color: var(--accent-bronze);
+            border: 2px solid var(--accent-bronze);
+        }
+
+        .nav-btn-secondary:hover {
+            background: var(--accent-bronze);
+            color: var(--primary-dark);
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            h1 { font-size: 2rem; }
+            .blocks-grid { grid-template-columns: 1fr; }
+            .demo-tabs { flex-direction: column; gap: 0.5rem; }
+            .module-navigation { flex-direction: column; }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
+        <!-- Breadcrumb Navigation -->
+        <nav class="breadcrumb">
+            <a href="/">Home</a> →
+            <a href="/paths/principled/">Principled Path</a> →
+            <a href="/paths/principled/stage-3/">Stage 3</a> →
+            <span>Module 1</span>
+        </nav>
+
+        <!-- Module Header -->
         <header class="module-header">
-            <div class="breadcrumb">
-                <a href="/">Home</a> →
-                <a href="/paths/principled/">The Principled Path</a> →
-                <a href="/paths/principled/stage-3/">Stage 3</a> →
-                <span>Module 1</span>
-            </div>
-            <h1>Principle 6: Digital Signatures</h1>
+            <div class="stage-indicator">STAGE 3 · MODULE 1</div>
+            <h1>The Building Blocks of Digital Trust</h1>
+            <p class="module-subtitle">The three inventions that made Bitcoin possible</p>
         </header>
 
-        <main>
-            <div class="principle-content">
-                <div class="insight-box">
-                    <p>Content for Principle 6 will be extracted from the first-principles curriculum.</p>
-                    <p><em>This is a placeholder file. Full content extraction pending.</em></p>
+        <!-- Introduction Section -->
+        <section class="content-section">
+            <h2>The Problem of Digital Trust</h2>
+            <p>
+                For decades, the internet had a fundamental limitation: you couldn't trust digital information
+                without trusting an institution. Emails could be forged. Files could be copied infinitely.
+                Digital "ownership" required a trusted third party to verify who owned what.
+            </p>
+
+            <div class="key-insight">
+                <p>
+                    <strong>Core Challenge:</strong> How do you create trust between strangers without relying
+                    on a central authority? Bitcoin solved this with three mathematical breakthroughs.
+                </p>
+            </div>
+
+            <p>
+                These three inventions—public-key cryptography, hash functions, and proof-of-work—were created
+                separately over decades. Bitcoin was the first system to combine them into a trustless monetary network.
+            </p>
+        </section>
+
+        <!-- The Three Building Blocks -->
+        <section class="content-section">
+            <h2>The Three Building Blocks</h2>
+
+            <div class="blocks-grid">
+                <div class="block-card">
+                    <div class="block-icon">🔐</div>
+                    <div class="block-title">1. Public-Key Cryptography</div>
+                    <div class="block-description">
+                        Prove you own something without revealing your secret. Like a lock that anyone can verify,
+                        but only you can open. Invented in the 1970s, it powers digital signatures.
+                    </div>
                 </div>
 
-                <div class="module-navigation">
-                    <a href="../stage-3/" class="nav-btn nav-btn-secondary">← Back to Stage 3</a>
-                    <a href="module-2.html" class="nav-btn">Continue →</a>
+                <div class="block-card">
+                    <div class="block-icon">🔢</div>
+                    <div class="block-title">2. Hash Functions</div>
+                    <div class="block-description">
+                        Turn any data into a unique fingerprint. Change even one letter, and the entire fingerprint
+                        changes. Impossible to reverse. The foundation of data integrity.
+                    </div>
+                </div>
+
+                <div class="block-card">
+                    <div class="block-icon">⚡</div>
+                    <div class="block-title">3. Proof-of-Work</div>
+                    <div class="block-description">
+                        Prove you spent real energy without trusting you. Makes lying expensive and truth cheap.
+                        Anchors digital records in physical reality through computational work.
+                    </div>
                 </div>
             </div>
-        </main>
+        </section>
+
+        <!-- Deep Dive: Public-Key Cryptography -->
+        <section class="content-section">
+            <h2>Building Block 1: Public-Key Cryptography</h2>
+
+            <h3>The Magic of Asymmetric Keys</h3>
+            <p>
+                Traditional encryption requires sharing a secret key. But how do you share that key securely?
+                Public-key cryptography solved this with a mathematical miracle: two keys that work together,
+                but one can be shared publicly.
+            </p>
+
+            <div class="properties-box">
+                <h4>Key Properties:</h4>
+                <ul>
+                    <li><strong>Private Key:</strong> A secret number only you know. Like your password, but impossible to guess.</li>
+                    <li><strong>Public Key:</strong> Derived from your private key. Can be shared with anyone safely.</li>
+                    <li><strong>One-Way Function:</strong> Easy to create public key from private, impossible to reverse.</li>
+                    <li><strong>Digital Signatures:</strong> Prove you approved a message without revealing your private key.</li>
+                </ul>
+            </div>
+
+            <p>
+                In Bitcoin, your private key controls your bitcoin. Your public key (hashed into an address)
+                is where others send you bitcoin. Anyone can verify your signature, but only you can create it.
+            </p>
+
+            <div class="key-insight">
+                <p>
+                    <strong>Bitcoin's Use:</strong> Every bitcoin transaction is signed with a private key.
+                    The network verifies the signature using the public key. No trust required—math proves ownership.
+                </p>
+            </div>
+        </section>
+
+        <!-- Deep Dive: Hash Functions -->
+        <section class="content-section">
+            <h2>Building Block 2: Hash Functions</h2>
+
+            <h3>Digital Fingerprints</h3>
+            <p>
+                A hash function takes any input—a word, a book, an entire database—and produces a fixed-length
+                "fingerprint" (hash). Change even one bit of the input, and the hash becomes completely different.
+            </p>
+
+            <div class="properties-box">
+                <h4>Key Properties:</h4>
+                <ul>
+                    <li><strong>Deterministic:</strong> Same input always produces same hash</li>
+                    <li><strong>One-Way:</strong> Can't reverse a hash to find the original data</li>
+                    <li><strong>Avalanche Effect:</strong> Tiny change in input completely changes output</li>
+                    <li><strong>Collision Resistant:</strong> Practically impossible to find two inputs with same hash</li>
+                    <li><strong>Fixed Output:</strong> Always produces same-length result (e.g., SHA-256 = 256 bits)</li>
+                </ul>
+            </div>
+
+            <p>
+                Bitcoin uses SHA-256 (Secure Hash Algorithm, 256-bit). Every block references the previous block's
+                hash, creating an unbreakable chain. Change any past transaction, and all subsequent hashes break.
+            </p>
+
+            <div class="key-insight">
+                <p>
+                    <strong>Bitcoin's Use:</strong> Blocks are chained together by hash. Each block's hash depends
+                    on all previous blocks, making history immutable. The "blockchain" is literally a chain of hashes.
+                </p>
+            </div>
+        </section>
+
+        <!-- Deep Dive: Proof-of-Work -->
+        <section class="content-section">
+            <h2>Building Block 3: Proof-of-Work</h2>
+
+            <h3>Making Lies Expensive</h3>
+            <p>
+                Proof-of-work anchors digital information in physical reality. To add a block to Bitcoin's ledger,
+                miners must find a hash below a target value—which requires trillions of guesses. This consumes
+                real energy, making attacks prohibitively expensive.
+            </p>
+
+            <div class="properties-box">
+                <h4>Key Properties:</h4>
+                <ul>
+                    <li><strong>Difficult to Produce:</strong> Requires massive computational work (energy)</li>
+                    <li><strong>Easy to Verify:</strong> Anyone can instantly check if work was done</li>
+                    <li><strong>Probability-Based:</strong> Can't cheat—only way is to do the work</li>
+                    <li><strong>Objective Cost:</strong> Ties digital security to real-world energy expenditure</li>
+                    <li><strong>Difficulty Adjustment:</strong> Network adjusts difficulty to maintain 10-minute blocks</li>
+                </ul>
+            </div>
+
+            <p>
+                Imagine finding a combination lock by trying every possibility. Easy for others to verify the
+                correct combination, but you had to try billions of wrong answers first. Proof-of-work is similar:
+                miners search for a "nonce" that produces a hash below the target.
+            </p>
+
+            <div class="key-insight">
+                <p>
+                    <strong>Bitcoin's Use:</strong> To rewrite Bitcoin's history, an attacker would need to redo
+                    all the proof-of-work for every block since the change. This gets exponentially more expensive
+                    with each new block—making Bitcoin's past practically immutable.
+                </p>
+            </div>
+        </section>
+
+        <!-- Interactive Demo -->
+        <section class="content-section">
+            <h2>Interactive Demo: See the Building Blocks in Action</h2>
+
+            <div class="demo-container">
+                <div class="demo-header">
+                    <h3>Experiment with Cryptographic Primitives</h3>
+                    <p style="color: var(--text-dim);">See how these building blocks work in real-time</p>
+                </div>
+
+                <div class="demo-tabs">
+                    <button class="demo-tab active" onclick="switchTab('hash')">Hash Function</button>
+                    <button class="demo-tab" onclick="switchTab('pow')">Proof-of-Work</button>
+                    <button class="demo-tab" onclick="switchTab('chain')">Blockchain</button>
+                </div>
+
+                <!-- Hash Function Demo -->
+                <div id="hash-panel" class="demo-panel active">
+                    <div class="demo-input-group">
+                        <label>Enter any message:</label>
+                        <input type="text" id="hashInput" class="demo-input"
+                               placeholder="Type something..."
+                               value="Hello, Bitcoin!"
+                               oninput="updateHash()">
+                    </div>
+                    <div class="demo-output">
+                        <div class="output-label">SHA-256 Hash:</div>
+                        <div id="hashOutput"></div>
+                    </div>
+                    <p style="color: var(--text-dim); margin-top: 1rem; font-size: 0.9rem;">
+                        <strong>Try it:</strong> Change even one character and watch the entire hash change completely.
+                        This is the "avalanche effect"—a fundamental property that makes blockchains tamper-proof.
+                    </p>
+                </div>
+
+                <!-- Proof-of-Work Demo -->
+                <div id="pow-panel" class="demo-panel">
+                    <div class="demo-input-group">
+                        <label>Message to mine:</label>
+                        <input type="text" id="powInput" class="demo-input"
+                               placeholder="Enter message"
+                               value="Bitcoin Block">
+                    </div>
+                    <div class="demo-input-group">
+                        <label>Difficulty (leading zeros required):</label>
+                        <input type="number" id="powDifficulty" class="demo-input"
+                               min="1" max="6" value="4">
+                    </div>
+                    <button class="demo-button" onclick="mineBlock()">⛏️ Mine Block</button>
+                    <div class="demo-output" id="powOutput" style="display: none;">
+                        <div class="output-label">Mining Result:</div>
+                        <div id="powResult"></div>
+                    </div>
+                </div>
+
+                <!-- Blockchain Demo -->
+                <div id="chain-panel" class="demo-panel">
+                    <div id="blockchainDisplay"></div>
+                    <button class="demo-button" onclick="addBlockToChain()" style="margin-top: 1rem;">
+                        + Add New Block
+                    </button>
+                    <p style="color: var(--text-dim); margin-top: 1rem; font-size: 0.9rem;">
+                        <strong>Notice:</strong> Each block's hash includes the previous block's hash,
+                        creating an unbreakable chain. Change any block, and all future blocks become invalid.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bitcoin's Innovation -->
+        <section class="content-section">
+            <h2>Bitcoin's Innovation: Combining the Blocks</h2>
+            <p>
+                These three building blocks existed independently for decades. Bitcoin's genius was combining them
+                into a single system:
+            </p>
+
+            <ul style="color: var(--text-dim); margin-left: 2rem; line-height: 2;">
+                <li><strong>Public-key crypto</strong> lets you own bitcoin without trusting anyone</li>
+                <li><strong>Hash functions</strong> chain blocks together into immutable history</li>
+                <li><strong>Proof-of-work</strong> makes rewriting history prohibitively expensive</li>
+            </ul>
+
+            <div class="key-insight" style="margin-top: 2rem;">
+                <p>
+                    <strong>The Result:</strong> A monetary system with no central authority, no trusted third parties,
+                    and no way to change the past. Mathematical trust replaces institutional trust. This is why Bitcoin
+                    works—and why it's revolutionary.
+                </p>
+            </div>
+        </section>
+
+        <!-- Socratic Questions -->
+        <section class="content-section">
+            <h2>Reflection Questions</h2>
+            <p style="color: var(--text-dim); margin-bottom: 2rem;">
+                Consider these questions. Your responses are saved locally and never shared.
+            </p>
+
+            <div class="question-section">
+                <h4>Question 1: Trust Without Authority</h4>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                    Before Bitcoin, digital trust always required a trusted third party (banks, payment processors, etc.).
+                    How do these three building blocks eliminate that requirement? What makes mathematical trust stronger
+                    than institutional trust?
+                </p>
+                <textarea id="question1" placeholder="Your reflection..."></textarea>
+                <div class="save-indicator">Auto-saved locally</div>
+            </div>
+
+            <div class="question-section">
+                <h4>Question 2: The Energy Connection</h4>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                    Proof-of-work ties digital security to physical energy. Why is this important? What would happen
+                    if Bitcoin's ledger could be updated without energy expenditure?
+                </p>
+                <textarea id="question2" placeholder="Your reflection..."></textarea>
+                <div class="save-indicator">Auto-saved locally</div>
+            </div>
+
+            <div class="question-section">
+                <h4>Question 3: Immutability Through Design</h4>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                    Hash functions chain blocks together, and proof-of-work makes changing them expensive.
+                    Why is an immutable ledger necessary for money? What problems does mutability create in
+                    traditional financial systems?
+                </p>
+                <textarea id="question3" placeholder="Your reflection..."></textarea>
+                <div class="save-indicator">Auto-saved locally</div>
+            </div>
+        </section>
+
+        <!-- Module Navigation -->
+        <nav class="module-navigation">
+            <a href="/paths/principled/stage-3/" class="nav-btn nav-btn-secondary">
+                ← Back to Stage 3
+            </a>
+            <a href="/paths/principled/stage-3/?completed=true&module=1" class="nav-btn nav-btn-primary">
+                Complete Module 1 →
+            </a>
+        </nav>
     </div>
-    
-    <script src="/curriculum/first-principles/interactions.js"></script>
+
+    <script>
+        // Simple hash function for demo (not cryptographically secure)
+        async function simpleHash(str) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Update hash output
+        async function updateHash() {
+            const input = document.getElementById('hashInput').value;
+            const hash = await simpleHash(input);
+            document.getElementById('hashOutput').textContent = hash;
+        }
+
+        // Mine a block
+        let mining = false;
+        async function mineBlock() {
+            if (mining) return;
+            mining = true;
+
+            const message = document.getElementById('powInput').value;
+            const difficulty = parseInt(document.getElementById('powDifficulty').value);
+            const target = '0'.repeat(difficulty);
+
+            const outputDiv = document.getElementById('powOutput');
+            const resultDiv = document.getElementById('powResult');
+            outputDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div style="color: var(--primary-orange);">⛏️ Mining... (trying different nonces)</div>';
+
+            let nonce = 0;
+            const startTime = Date.now();
+
+            // Use setTimeout to avoid blocking UI
+            const mine = async () => {
+                for (let i = 0; i < 10000; i++) {
+                    const data = message + nonce;
+                    const hash = await simpleHash(data);
+
+                    if (hash.startsWith(target)) {
+                        const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+                        resultDiv.innerHTML = `
+                            <div style="color: var(--success-green); margin-bottom: 0.5rem;">✓ Block mined!</div>
+                            <div><strong>Nonce:</strong> ${nonce}</div>
+                            <div><strong>Hash:</strong> ${hash}</div>
+                            <div><strong>Attempts:</strong> ${nonce + 1}</div>
+                            <div><strong>Time:</strong> ${elapsed}s</div>
+                            <div style="margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                                The hash starts with ${difficulty} zeros, meeting the difficulty requirement!
+                            </div>
+                        `;
+                        mining = false;
+                        return;
+                    }
+                    nonce++;
+                }
+
+                // Continue mining
+                setTimeout(mine, 0);
+            };
+
+            mine();
+        }
+
+        // Blockchain demo
+        let blockchain = [];
+        let blockCounter = 0;
+
+        async function addBlockToChain() {
+            const prevHash = blockchain.length > 0 ? blockchain[blockchain.length - 1].hash : '0'.repeat(64);
+            const data = `Block ${blockCounter} Data`;
+            const timestamp = Date.now();
+            const blockData = `${prevHash}${data}${timestamp}`;
+            const hash = await simpleHash(blockData);
+
+            blockchain.push({ number: blockCounter, data, prevHash, hash, timestamp });
+            blockCounter++;
+
+            displayBlockchain();
+        }
+
+        function displayBlockchain() {
+            const display = document.getElementById('blockchainDisplay');
+            display.innerHTML = blockchain.map((block, index) => `
+                <div style="background: var(--secondary-dark); border: 2px solid rgba(139, 111, 71, 0.3);
+                            border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <div style="color: var(--accent-bronze); font-weight: 600; margin-bottom: 0.5rem;">
+                        Block #${block.number}
+                    </div>
+                    <div style="font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--text-dim);">
+                        <div><strong>Data:</strong> ${block.data}</div>
+                        <div><strong>Prev Hash:</strong> ${block.prevHash.substring(0, 16)}...</div>
+                        <div><strong>This Hash:</strong> ${block.hash.substring(0, 16)}...</div>
+                    </div>
+                    ${index === blockchain.length - 1 ?
+                        '<div style="color: var(--success-green); margin-top: 0.5rem; font-size: 0.85rem;">← Latest Block</div>' :
+                        ''}
+                </div>
+            `).join('');
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.demo-panel').forEach(p => p.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(`${tab}-panel`).classList.add('active');
+        }
+
+        // Socratic Questions - LocalStorage
+        const STORAGE_KEY = 'principled-stage3-module1-reflections';
+
+        function saveReflection(questionNum, value) {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            reflections[`question${questionNum}`] = value;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
+        }
+
+        function loadReflections() {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            for (let i = 1; i <= 3; i++) {
+                const textarea = document.getElementById(`question${i}`);
+                if (textarea && reflections[`question${i}`]) {
+                    textarea.value = reflections[`question${i}`];
+                }
+            }
+        }
+
+        // Auto-save reflections
+        ['question1', 'question2', 'question3'].forEach((id, index) => {
+            const textarea = document.getElementById(id);
+            if (textarea) {
+                textarea.addEventListener('input', (e) => {
+                    saveReflection(index + 1, e.target.value);
+                });
+            }
+        });
+
+        // Initialize
+        loadReflections();
+        updateHash();
+        addBlockToChain(); // Add genesis block
+    </script>
 </body>
 </html>
