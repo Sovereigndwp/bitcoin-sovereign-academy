@@ -425,6 +425,25 @@
             color: var(--text-dim);
         }
 
+        /* Interactive Reflection System */
+        .reflection-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid rgba(218, 165, 32, 0.2); padding-bottom: 0.5rem; }
+        .reflection-tab { background: transparent; color: var(--text-dim); border: 2px solid rgba(218, 165, 32, 0.3); padding: 0.5rem 1.25rem; border-radius: 8px 8px 0 0; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; }
+        .reflection-tab.active { background: linear-gradient(135deg, rgba(218, 165, 32, 0.2), rgba(139, 111, 71, 0.1)); color: var(--accent-gold); border-color: var(--accent-gold); }
+        .reflection-panel { display: none; padding: 1.5rem; background: rgba(26, 26, 26, 0.8); border-radius: 0 8px 8px 8px; border: 2px solid rgba(218, 165, 32, 0.2); }
+        .reflection-panel.active { display: block; }
+        .choice-select { width: 100%; padding: 1rem; background: rgba(0, 0, 0, 0.3); border: 2px solid var(--border-color); border-radius: 0.5rem; color: var(--text-light); font-size: 1rem; cursor: pointer; }
+        .choice-select:focus { outline: none; border-color: var(--accent-gold); }
+        .feedback-btn { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; margin-top: 1rem; transition: all 0.3s ease; }
+        .feedback-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(218, 165, 32, 0.4); }
+        .feedback-box { margin-top: 1.5rem; padding: 1.5rem; border-radius: 0.5rem; border: 2px solid; display: none; }
+        .feedback-box.positive { background: rgba(76, 175, 80, 0.1); border-color: #4caf50; color: var(--text-light); }
+        .feedback-box.hint { background: rgba(255, 152, 0, 0.1); border-color: #ff9800; color: var(--text-light); }
+        .feedback-box h5 { margin-top: 0; margin-bottom: 0.5rem; color: inherit; }
+        .checklist-reflection { display: flex; flex-direction: column; gap: 0.75rem; }
+        .checkbox-label { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(0, 0, 0, 0.3); border-radius: 0.5rem; cursor: pointer; transition: background 0.2s ease; }
+        .checkbox-label:hover { background: rgba(0, 0, 0, 0.5); }
+        .checkbox-label input[type="checkbox"] { width: 1.25rem; height: 1.25rem; cursor: pointer; }
+
         /* Responsive */
         @media (max-width: 768px) {
             .system-comparison {
@@ -626,39 +645,113 @@
         <section class="socratic-section">
             <h3>💬 Reflect on What You've Learned</h3>
             <p style="text-align: center; color: var(--text-dim); margin-bottom: 2rem;">
-                Take a moment to think deeply about these questions. Your answers will be saved locally.
+                Test your understanding with interactive reflections. Get immediate feedback on your thinking.
             </p>
 
+            <!-- Question 1: Constitutional Violations (Quick/Deep) -->
             <div class="question-card">
                 <div class="question-number">Question 1</div>
                 <div class="question-text">
                     Why do governments write constitutions with strict limits on power, but then routinely violate those limits?
-                    What does this reveal about the relationship between written rules and actual enforcement?
                 </div>
-                <textarea class="reflection-area" id="question1" placeholder="Type your thoughts here..."></textarea>
+
+                <div class="reflection-tabs" role="tablist" aria-label="Reflection depth options">
+                    <button class="reflection-tab active" role="tab" aria-selected="true" aria-controls="q1-quick" onclick="switchReflectionTab(1, 'quick', event)">Quick (1 min)</button>
+                    <button class="reflection-tab" role="tab" aria-selected="false" aria-controls="q1-deep" onclick="switchReflectionTab(1, 'deep', event)">Deep Dive (5 min)</button>
+                </div>
+
+                <div id="q1-quick" class="reflection-panel active" role="tabpanel" aria-hidden="false">
+                    <p style="margin-bottom: 1rem;">What's the main reason constitutional limits fail?</p>
+                    <select class="choice-select" id="constitution-choice" onchange="checkConstitution()">
+                        <option value="">— Select One —</option>
+                        <option value="paper">Written rules are just paper - enforcement requires power</option>
+                        <option value="emergency">Emergencies create exceptions that become permanent</option>
+                        <option value="interpretation">Discretionary interpretation allows rule-bending</option>
+                        <option value="all">All of the above</option>
+                    </select>
+                    <div id="constitution-feedback" class="feedback-box"></div>
+                </div>
+
+                <div id="q1-deep" class="reflection-panel" role="tabpanel" aria-hidden="true">
+                    <p style="margin-bottom: 1rem;">Explain the difference between written rules and enforced rules:</p>
+                    <textarea class="reflection-area" id="constitution-deep" placeholder="Consider: The US Constitution forbids warrantless searches, yet they happen. It requires Congressional war declarations, yet wars are fought without them. What's the gap between text and reality? How does Bitcoin close this gap?" style="min-height: 120px;" oninput="saveDeepReflection(1, this.value)"></textarea>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.5rem; font-style: italic;">
+                        💡 Hint: <strong>Rules without enforcement = suggestions.</strong> Bitcoin enforces rules through code, not judges. You can't violate the 21M limit because the network will reject your transaction—no interpretation needed.
+                    </p>
+                </div>
             </div>
 
+            <!-- Question 2: Discretionary Enforcement (Quick/Deep) -->
             <div class="question-card">
                 <div class="question-number">Question 2</div>
                 <div class="question-text">
-                    Can a rule that includes discretionary enforcement ever truly constrain power? Why or why not?
-                    What happens when "emergency" becomes permanent?
+                    Can a rule that includes discretionary enforcement ever truly constrain power?
                 </div>
-                <textarea class="reflection-area" id="question2" placeholder="Type your thoughts here..."></textarea>
+
+                <div class="reflection-tabs" role="tablist" aria-label="Reflection depth options">
+                    <button class="reflection-tab active" role="tab" aria-selected="true" aria-controls="q2-quick" onclick="switchReflectionTab(2, 'quick', event)">Quick (1 min)</button>
+                    <button class="reflection-tab" role="tab" aria-selected="false" aria-controls="q2-deep" onclick="switchReflectionTab(2, 'deep', event)">Deep Dive (5 min)</button>
+                </div>
+
+                <div id="q2-quick" class="reflection-panel active" role="tabpanel" aria-hidden="false">
+                    <p style="margin-bottom: 1rem;">Does discretionary enforcement constrain power?</p>
+                    <select class="choice-select" id="discretion-choice" onchange="checkDiscretion()">
+                        <option value="">— Select One —</option>
+                        <option value="yes">Yes - Rules still matter even with interpretation</option>
+                        <option value="no">No - Whoever has discretion has the real power</option>
+                        <option value="depends">Depends on accountability mechanisms</option>
+                        <option value="temporary">Yes temporarily, but emergencies erode limits</option>
+                    </select>
+                    <div id="discretion-feedback" class="feedback-box"></div>
+                </div>
+
+                <div id="q2-deep" class="reflection-panel" role="tabpanel" aria-hidden="true">
+                    <p style="margin-bottom: 1rem;">What happens when "emergency" becomes the permanent state?</p>
+                    <textarea class="reflection-area" id="discretion-deep" placeholder="Think about: The USA PATRIOT Act (2001) was 'temporary' but still active. COVID restrictions became precedent. War on Terror has no end date. How do temporary exceptions become permanent expansion of power?" style="min-height: 120px;" oninput="saveDeepReflection(2, this.value)"></textarea>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.5rem; font-style: italic;">
+                        💡 Hint: <strong>Emergency discretion never expires.</strong> Bitcoin has no emergency override. No "special circumstances." The 21M limit applies in prosperity and crisis alike.
+                    </p>
+                </div>
             </div>
 
+            <!-- Question 3: Changing Bitcoin's Rules (Checklist) -->
             <div class="question-card">
                 <div class="question-number">Question 3</div>
                 <div class="question-text">
-                    Bitcoin's rules are enforced by thousands of independent nodes running identical code.
-                    How does this design make discretion impossible? What would it take to change Bitcoin's rules?
+                    What would it take to change Bitcoin's rules (like the 21M limit)?
                 </div>
-                <textarea class="reflection-area" id="question3" placeholder="Type your thoughts here..."></textarea>
-            </div>
+                <p style="font-size: 0.95rem; color: var(--text-dim); margin: 1rem 0;">
+                    Select all the requirements for changing Bitcoin's consensus rules:
+                </p>
 
-            <button class="demo-button" onclick="saveReflections()" style="margin-top: 1.5rem; width: 100%;">
-                💾 Save My Reflections
-            </button>
+                <div class="checklist-reflection">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="change-majority" onchange="updateChangeRules()">
+                        <span><strong>Overwhelming consensus</strong> - Thousands of independent node operators must agree</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="change-code" onchange="updateChangeRules()">
+                        <span><strong>Code change</strong> - Software update must be written and reviewed</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="change-miners" onchange="updateChangeRules()">
+                        <span><strong>Miner adoption</strong> - Miners must run the new software</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="change-users" onchange="updateChangeRules()">
+                        <span><strong>Economic majority</strong> - Exchanges, businesses, users must accept the change</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="change-voluntary" onchange="updateChangeRules()">
+                        <span><strong>Voluntary upgrade</strong> - No one can be forced; dissenters can fork</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="change-ceo" onchange="updateChangeRules()">
+                        <span><strong>CEO approval</strong> - Bitcoin's CEO must sign off</span>
+                    </label>
+                </div>
+                <div id="change-rules-feedback" class="feedback-box"></div>
+            </div>
         </section>
 
         <!-- Module Navigation -->
@@ -782,36 +875,193 @@
             `;
         }
 
-        // Save reflections
-        function saveReflections() {
-            const reflections = {
-                module: 'stage1-module3',
-                timestamp: new Date().toISOString(),
-                q1: document.getElementById('question1').value,
-                q2: document.getElementById('question2').value,
-                q3: document.getElementById('question3').value
-            };
+        // Interactive Reflection System
+        const STORAGE_KEY = 'principled_stage1_module3_reflections';
 
-            localStorage.setItem('principled_stage1_module3_reflections', JSON.stringify(reflections));
+        // Tab switching
+        function switchReflectionTab(questionNum, level, event) {
+            document.querySelectorAll(`#q${questionNum}-quick, #q${questionNum}-deep`).forEach(panel => {
+                panel.classList.remove('active');
+                panel.setAttribute('aria-hidden', 'true');
+            });
+            event.target.parentElement.querySelectorAll('.reflection-tab').forEach(tab => {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+            const panel = document.getElementById(`#q${questionNum}-${level}`);
+            panel.classList.add('active');
+            panel.setAttribute('aria-hidden', 'false');
+            event.target.classList.add('active');
+            event.target.setAttribute('aria-selected', 'true');
+        }
 
-            // Mark module as completed
+        // Q1 - Constitutional Violations
+        function checkConstitution() {
+            const choice = document.getElementById('constitution-choice').value;
+            const feedbackDiv = document.getElementById('constitution-feedback');
+
+            if (!choice) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
+
+            let feedback = '';
+            if (choice === 'all') {
+                feedback = `<h5>✓ Correct - All Three Reasons!</h5><p>Constitutional limits fail because:<br><br><strong>1. Paper vs. power:</strong> Written rules need enforcement. Who enforces the enforcers?<br><strong>2. Emergency exceptions:</strong> Crises justify "temporary" violations that never expire<br><strong>3. Discretionary interpretation:</strong> Judges decide what rules "really mean"<br><br><em>Bitcoin solves this:</em> Code enforcement (no interpreters), no emergency override, mathematically absolute limits.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else if (choice === 'interpretation') {
+                feedback = `<h5>💡 Partially Correct</h5><p>Discretionary interpretation is a major problem. But it's not the only one. <strong>Emergency powers</strong> and <strong>enforcement gaps</strong> also undermine constitutional limits.<br><br>Bitcoin eliminates all three: No interpretation (code is unambiguous), no emergencies (rules apply always), no enforcement gap (network validates automatically).</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (choice === 'paper') {
+                feedback = `<h5>💡 True, But Incomplete</h5><p>Yes, written rules need enforcement. But <em>who enforces the limits on enforcers?</em> That's the fundamental problem.<br><br>Bitcoin's solution: <strong>Self-enforcing rules.</strong> The protocol validates itself. Thousands of independent nodes enforce the same rules. No central enforcer to corrupt.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (choice === 'emergency') {
+                feedback = `<h5>💡 True, But Not the Full Story</h5><p>Emergencies do create exceptions that become permanent. But even without emergencies, <strong>discretion allows rule-bending</strong> and <strong>enforcement depends on power</strong>.<br><br>Bitcoin has no emergency mode. The 21M limit applies in war, pandemic, financial crisis—always.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+
+            feedbackDiv.innerHTML = feedback;
+            feedbackDiv.style.display = 'block';
+            saveReflection('q1-quick', choice);
+        }
+
+        // Q2 - Discretionary Enforcement
+        function checkDiscretion() {
+            const choice = document.getElementById('discretion-choice').value;
+            const feedbackDiv = document.getElementById('discretion-feedback');
+
+            if (!choice) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
+
+            let feedback = '';
+            if (choice === 'no') {
+                feedback = `<h5>✓ Exactly Right!</h5><p><strong>Whoever has discretion has the real power.</strong> Rules are meaningless if someone can decide when they apply. The "rule of law" becomes the "rule of whoever interprets the law."<br><br>Bitcoin eliminates discretion entirely. The 21M limit isn't <em>enforced</em> by anyone—it's <strong>automatic</strong>. No one can make exceptions, declare emergencies, or reinterpret the code. Math doesn't negotiate.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else if (choice === 'temporary') {
+                feedback = `<h5>💡 Close - You See the Pattern</h5><p>You're right that emergencies erode limits over time. But even <em>before</em> emergencies, discretion creates loopholes. The power to interpret is the power to subvert.<br><br>Bitcoin's insight: <strong>Remove discretion completely.</strong> No interpretation. No exceptions. No emergency powers. The protocol is absolute.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (choice === 'yes') {
+                feedback = `<h5>⚠️ Too Optimistic</h5><p>Rules <em>written on paper</em> don't constrain power. <strong>Enforcement does.</strong> If the enforcer has discretion, they control the outcome. That's why constitutions fail despite good intentions.<br><br>Bitcoin: No discretion = No loopholes. Code executes identically for everyone.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (choice === 'depends') {
+                feedback = `<h5>💡 Pragmatic, But Misses the Core Issue</h5><p>Accountability mechanisms <em>also require enforcement</em>. You're just adding layers of discretion. Who watches the watchers?<br><br>Bitcoin cuts through this: <strong>No watchers needed.</strong> The network self-validates through cryptographic consensus. Trust is replaced by math.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+
+            feedbackDiv.innerHTML = feedback;
+            feedbackDiv.style.display = 'block';
+            saveReflection('q2-quick', choice);
+        }
+
+        // Q3 - Changing Bitcoin's Rules Checklist
+        function updateChangeRules() {
+            const majority = document.getElementById('change-majority').checked;
+            const code = document.getElementById('change-code').checked;
+            const miners = document.getElementById('change-miners').checked;
+            const users = document.getElementById('change-users').checked;
+            const voluntary = document.getElementById('change-voluntary').checked;
+            const ceo = document.getElementById('change-ceo').checked;
+
+            const feedbackDiv = document.getElementById('change-rules-feedback');
+
+            // CEO is a trick question - Bitcoin has no CEO
+            if (ceo) {
+                feedbackDiv.innerHTML = `<h5>⚠️ Bitcoin Has No CEO!</h5><p>This was a trick question. <strong>Bitcoin has no CEO, no board, no company.</strong> It's decentralized—thousands of independent node operators enforce the rules. No single person or entity can change the protocol.<br><br>This is the point: <em>No rulers, only rules.</em> Try again without selecting the CEO option.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+                feedbackDiv.style.display = 'block';
+                return;
+            }
+
+            const correct = [majority, code, miners, users, voluntary].filter(Boolean).length;
+
+            if (correct === 0) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
+
+            let feedback = '';
+            if (correct === 5) {
+                feedback = `<h5>✓ Perfect Understanding!</h5><p>You identified all 5 requirements for changing Bitcoin's consensus rules:<br><br><strong>1. Overwhelming consensus:</strong> Thousands of independent nodes must agree<br><strong>2. Code change:</strong> Open-source software must be written and reviewed<br><strong>3. Miner adoption:</strong> Miners must run the new software<br><strong>4. Economic majority:</strong> Exchanges/businesses/users must accept the change<br><strong>5. Voluntary upgrade:</strong> No one can be forced; dissenters can fork<br><br><em>This is why Bitcoin's 21M limit has never changed—it's practically impossible to get unanimous agreement to inflate the supply.</em></p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else if (correct >= 3) {
+                feedback = `<h5>💡 Good Start</h5><p>You identified <strong>${correct} of 5</strong> requirements. Changing Bitcoin requires <em>all five</em>:<br><br>1. Overwhelming consensus (nodes)<br>2. Code change (open source)<br>3. Miner adoption<br>4. Economic majority (users/exchanges)<br>5. Voluntary upgrade (no coercion)<br><br>This extreme difficulty is a <strong>feature, not a bug</strong>. It makes Bitcoin's rules essentially unchangeable.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else {
+                feedback = `<h5>💡 Partial Understanding</h5><p>You identified <strong>${correct}</strong>, but changing Bitcoin requires <em>five simultaneous agreements</em>. This makes the 21M limit essentially permanent—exactly as designed.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+
+            feedbackDiv.innerHTML = feedback;
+            feedbackDiv.style.display = 'block';
+            saveCheckboxes();
+        }
+
+        // Deep Reflection Auto-save
+        function saveDeepReflection(questionNum, value) {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            reflections[`q${questionNum}-deep`] = value;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
+        }
+
+        // Save checkbox states
+        function saveCheckboxes() {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            reflections['change-majority'] = document.getElementById('change-majority').checked;
+            reflections['change-code'] = document.getElementById('change-code').checked;
+            reflections['change-miners'] = document.getElementById('change-miners').checked;
+            reflections['change-users'] = document.getElementById('change-users').checked;
+            reflections['change-voluntary'] = document.getElementById('change-voluntary').checked;
+            reflections['change-ceo'] = document.getElementById('change-ceo').checked;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
+        }
+
+        // Save dropdown choices
+        function saveReflection(key, value) {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            reflections[key] = value;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
+        }
+
+        // Load saved reflections
+        function loadReflections() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const reflections = JSON.parse(saved);
+
+                // Q1
+                if (reflections['q1-quick']) document.getElementById('constitution-choice').value = reflections['q1-quick'];
+                if (reflections['q1-deep']) document.getElementById('constitution-deep').value = reflections['q1-deep'];
+
+                // Q2
+                if (reflections['q2-quick']) document.getElementById('discretion-choice').value = reflections['q2-quick'];
+                if (reflections['q2-deep']) document.getElementById('discretion-deep').value = reflections['q2-deep'];
+
+                // Q3 checkboxes
+                if (reflections['change-majority']) document.getElementById('change-majority').checked = true;
+                if (reflections['change-code']) document.getElementById('change-code').checked = true;
+                if (reflections['change-miners']) document.getElementById('change-miners').checked = true;
+                if (reflections['change-users']) document.getElementById('change-users').checked = true;
+                if (reflections['change-voluntary']) document.getElementById('change-voluntary').checked = true;
+                if (reflections['change-ceo']) document.getElementById('change-ceo').checked = true;
+
+                // Trigger feedback display if selections exist
+                if (reflections['q1-quick']) checkConstitution();
+                if (reflections['q2-quick']) checkDiscretion();
+                updateChangeRules();
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadReflections();
+
+            // Mark module as visited
             let progress = JSON.parse(localStorage.getItem('principled_stage1_progress') || '[]');
             if (!progress.includes('module-3')) {
                 progress.push('module-3');
                 localStorage.setItem('principled_stage1_progress', JSON.stringify(progress));
-            }
-
-            alert('✅ Your reflections have been saved!\n\n🎉 Stage 1 Complete! You can now continue to Stage 2.');
-        }
-
-        // Load saved reflections
-        window.addEventListener('DOMContentLoaded', () => {
-            const saved = localStorage.getItem('principled_stage1_module3_reflections');
-            if (saved) {
-                const reflections = JSON.parse(saved);
-                document.getElementById('question1').value = reflections.q1 || '';
-                document.getElementById('question2').value = reflections.q2 || '';
-                document.getElementById('question3').value = reflections.q3 || '';
             }
         });
     </script>
