@@ -335,6 +335,34 @@
             border-color: var(--path-color);
         }
 
+        /* Interactive Reflection Styles */
+        .reflection-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid rgba(139, 111, 71, 0.2); padding-bottom: 0.5rem; }
+        .reflection-tab { background: transparent; color: var(--text-dim); border: 2px solid rgba(139, 111, 71, 0.3); padding: 0.5rem 1.25rem; border-radius: 8px 8px 0 0; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; }
+        .reflection-tab:hover { color: var(--path-color); border-color: var(--path-color); transform: translateY(-2px); }
+        .reflection-tab.active { background: linear-gradient(135deg, rgba(139, 111, 71, 0.2), rgba(139, 111, 71, 0.1)); color: var(--path-color); border-color: var(--path-color); border-bottom-color: transparent; }
+        .reflection-panel { display: none; padding: 1.5rem; background: var(--bg-dark); border-radius: 0 8px 8px 8px; border: 2px solid rgba(139, 111, 71, 0.2); }
+        .reflection-panel.active { display: block; }
+        .choice-select { width: 100%; background: var(--bg-medium); border: 2px solid rgba(139, 111, 71, 0.3); color: var(--text-primary); padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; margin-bottom: 1rem; cursor: pointer; }
+        .choice-select:focus { outline: none; border-color: var(--path-color); }
+        .feedback-btn { background: linear-gradient(45deg, #8B6F47, #A0826D); color: white; padding: 0.75rem 1.5rem; border-radius: 2rem; border: none; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 0.5rem; }
+        .feedback-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(139, 111, 71, 0.4); }
+        .feedback-box { margin-top: 1.5rem; padding: 1.5rem; border-radius: 8px; border-left: 4px solid; }
+        .feedback-box.positive { background: rgba(76, 175, 80, 0.1); border-color: #4caf50; }
+        .feedback-box.positive h5 { color: #4caf50; margin-bottom: 0.5rem; }
+        .feedback-box.hint { background: rgba(255, 152, 0, 0.1); border-color: #ff9800; }
+        .feedback-box.hint h5 { color: #ff9800; margin-bottom: 0.5rem; }
+        .feedback-box.neutral { background: rgba(139, 111, 71, 0.1); border-color: var(--path-color); }
+        .feedback-box.neutral h5 { color: var(--path-color); margin-bottom: 0.5rem; }
+        .checklist-reflection { display: flex; flex-direction: column; gap: 1rem; }
+        .checkbox-label { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg-dark); border: 2px solid rgba(139, 111, 71, 0.2); border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .checkbox-label:hover { border-color: var(--path-color); }
+        .checkbox-label input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+        .save-indicator { color: var(--text-dim); font-size: 0.85rem; text-align: right; margin-top: 0.5rem; opacity: 0.7; }
+        @media (max-width: 480px) {
+            .reflection-tabs { flex-direction: column; gap: 0.25rem; }
+            .reflection-tab { width: 100%; text-align: center; border-radius: 6px; }
+        }
+
         .nav-buttons {
             display: flex;
             justify-content: space-between;
@@ -681,24 +709,75 @@
         </div>
 
         <div class="reflection-section">
-            <h3>🤔 Reflection Questions</h3>
+            <h3>🤔 Test Your Understanding</h3>
 
             <div class="reflection-question">
                 <h4>1. What do you currently trust that you could verify instead?</h4>
-                <p style="font-size: 0.9rem; color: #999; margin-bottom: 1rem;">Think about financial statements, news sources, health advice, or government claims. What's one thing you accept on trust that you could investigate?</p>
-                <textarea class="reflection-textarea" id="reflection1" placeholder="Your reflection..."></textarea>
+                <div class="checklist-reflection">
+                    <p style="font-size: 0.95rem; color: #999; margin-bottom: 1rem;">Which of these do you typically accept on trust rather than verify?</p>
+                    <label class="checkbox-label"><input type="checkbox" id="trust-news" onchange="updateTrustFeedback()">News headlines and articles</label>
+                    <label class="checkbox-label"><input type="checkbox" id="trust-bank" onchange="updateTrustFeedback()">Bank statements and financial services</label>
+                    <label class="checkbox-label"><input type="checkbox" id="trust-govt" onchange="updateTrustFeedback()">Government statistics and claims</label>
+                    <label class="checkbox-label"><input type="checkbox" id="trust-health" onchange="updateTrustFeedback()">Medical advice and health studies</label>
+                </div>
+                <div id="feedback1" class="feedback-box" style="display: none; margin-top: 1rem;"></div>
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid rgba(139, 111, 71, 0.2);">
+                    <h4 style="color: var(--path-color); margin-bottom: 1rem;">🎯 Deep Reflection (Optional)</h4>
+                    <textarea class="reflection-textarea" id="reflection1-deep" placeholder="Describe one thing you could start verifying. What would you need? How would you begin?"></textarea>
+                </div>
+                <div class="save-indicator">✓ Auto-saved locally</div>
             </div>
 
             <div class="reflection-question">
                 <h4>2. What stops people from verifying more often?</h4>
-                <p style="font-size: 0.9rem; color: #999; margin-bottom: 1rem;">Is it time? Effort? Social norms? Lack of access to data? What barriers prevent verification culture from spreading?</p>
-                <textarea class="reflection-textarea" id="reflection2" placeholder="Your reflection..."></textarea>
+                <div class="reflection-tabs">
+                    <button class="reflection-tab active" onclick="switchReflectionTab(2, 'quick', event)" role="tab" aria-selected="true">⚡ Quick</button>
+                    <button class="reflection-tab" onclick="switchReflectionTab(2, 'deep', event)" role="tab" aria-selected="false">🎯 Deep</button>
+                </div>
+                <div id="q2-quick" class="reflection-panel active">
+                    <label style="display: block; margin-bottom: 0.5rem; color: #999;">What's the biggest barrier to verification?</label>
+                    <select id="question2-choice" class="choice-select" onchange="saveReflection('q2-choice', this.value)">
+                        <option value="">Select...</option>
+                        <option value="time">Time and effort required</option>
+                        <option value="access">Lack of access to data/sources</option>
+                        <option value="social">Social norms (questioning = rude/conspiracy)</option>
+                        <option value="all">All of the above</option>
+                    </select>
+                    <button class="feedback-btn" onclick="checkReflection(2, 'quick')">Check Answer</button>
+                    <div id="feedback2-quick" class="feedback-box" style="display: none;"></div>
+                </div>
+                <div id="q2-deep" class="reflection-panel">
+                    <textarea class="reflection-textarea" id="reflection2-deep" placeholder="Explore: Why don't more people verify claims? Consider: time costs, data access, social pressure, education, institutional design." style="min-height: 150px;"></textarea>
+                    <button class="feedback-btn" onclick="checkReflection(2, 'deep')">Get Feedback</button>
+                    <div id="feedback2-deep" class="feedback-box" style="display: none;"></div>
+                </div>
+                <div class="save-indicator">✓ Auto-saved locally</div>
             </div>
 
             <div class="reflection-question">
                 <h4>3. How would society change if verification became the default?</h4>
-                <p style="font-size: 0.9rem; color: #999; margin-bottom: 1rem;">Imagine a world where institutions expect to be audited, where opacity is seen as suspicious, and where citizens routinely verify claims. What would be different?</p>
-                <textarea class="reflection-textarea" id="reflection3" placeholder="Your reflection..."></textarea>
+                <div class="reflection-tabs">
+                    <button class="reflection-tab active" onclick="switchReflectionTab(3, 'quick', event)" role="tab" aria-selected="true">⚡ Quick</button>
+                    <button class="reflection-tab" onclick="switchReflectionTab(3, 'deep', event)" role="tab" aria-selected="false">🎯 Deep</button>
+                </div>
+                <div id="q3-quick" class="reflection-panel active">
+                    <label style="display: block; margin-bottom: 0.5rem; color: #999;">What would change most?</label>
+                    <select id="question3-choice" class="choice-select" onchange="saveReflection('q3-choice', this.value)">
+                        <option value="">Select...</option>
+                        <option value="trust">Trust in institutions would collapse</option>
+                        <option value="accountability">Institutions would become more accountable</option>
+                        <option value="transparency">Everything would become transparent by default</option>
+                        <option value="slow">Society would slow down (verification takes time)</option>
+                    </select>
+                    <button class="feedback-btn" onclick="checkReflection(3, 'quick')">Check Answer</button>
+                    <div id="feedback3-quick" class="feedback-box" style="display: none;"></div>
+                </div>
+                <div id="q3-deep" class="reflection-panel">
+                    <textarea class="reflection-textarea" id="reflection3-deep" placeholder="Imagine: Opacity is suspicious. Institutions expect audits. Citizens verify routinely. What improves? What gets harder? Trade-offs?" style="min-height: 150px;"></textarea>
+                    <button class="feedback-btn" onclick="checkReflection(3, 'deep')">Get Feedback</button>
+                    <div id="feedback3-deep" class="feedback-box" style="display: none;"></div>
+                </div>
+                <div class="save-indicator">✓ Auto-saved locally</div>
             </div>
         </div>
 

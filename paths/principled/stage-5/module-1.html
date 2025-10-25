@@ -227,9 +227,36 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 24px rgba(139, 111, 71, 0.5);
         }
+        /* Interactive Reflection Styles */
+        .reflection-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid rgba(139, 111, 71, 0.2); padding-bottom: 0.5rem; }
+        .reflection-tab { background: transparent; color: var(--text-dim); border: 2px solid rgba(139, 111, 71, 0.3); padding: 0.5rem 1.25rem; border-radius: 8px 8px 0 0; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; }
+        .reflection-tab:hover { color: var(--accent-bronze); border-color: var(--accent-bronze); transform: translateY(-2px); }
+        .reflection-tab.active { background: linear-gradient(135deg, rgba(139, 111, 71, 0.2), rgba(139, 111, 71, 0.1)); color: var(--accent-bronze); border-color: var(--accent-bronze); border-bottom-color: transparent; }
+        .reflection-panel { display: none; padding: 1.5rem; background: var(--primary-dark); border-radius: 0 8px 8px 8px; border: 2px solid rgba(139, 111, 71, 0.2); }
+        .reflection-panel.active { display: block; }
+        .choice-select { width: 100%; background: var(--secondary-dark); border: 2px solid rgba(139, 111, 71, 0.3); color: var(--text-light); padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; margin-bottom: 1rem; cursor: pointer; }
+        .choice-select:focus { outline: none; border-color: var(--accent-bronze); }
+        .feedback-btn { background: linear-gradient(45deg, #8B6F47, #A0826D); color: white; padding: 0.75rem 1.5rem; border-radius: 2rem; border: none; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 0.5rem; }
+        .feedback-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(139, 111, 71, 0.4); }
+        .feedback-box { margin-top: 1.5rem; padding: 1.5rem; border-radius: 8px; border-left: 4px solid; }
+        .feedback-box.positive { background: rgba(76, 175, 80, 0.1); border-color: #4caf50; }
+        .feedback-box.positive h5 { color: #4caf50; margin-bottom: 0.5rem; }
+        .feedback-box.hint { background: rgba(255, 152, 0, 0.1); border-color: #ff9800; }
+        .feedback-box.hint h5 { color: #ff9800; margin-bottom: 0.5rem; }
+        .feedback-box.neutral { background: rgba(139, 111, 71, 0.1); border-color: var(--accent-bronze); }
+        .feedback-box.neutral h5 { color: var(--accent-bronze); margin-bottom: 0.5rem; }
+        .checklist-reflection { display: flex; flex-direction: column; gap: 1rem; }
+        .checkbox-label { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--primary-dark); border: 2px solid rgba(139, 111, 71, 0.2); border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .checkbox-label:hover { border-color: var(--accent-bronze); }
+        .checkbox-label input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+        .save-indicator { color: var(--text-dim); font-size: 0.85rem; text-align: right; margin-top: 0.5rem; opacity: 0.7; }
         @media (max-width: 768px) {
             .module-header h1 { font-size: 2rem; }
             .energy-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .reflection-tabs { flex-direction: column; gap: 0.25rem; }
+            .reflection-tab { width: 100%; text-align: center; border-radius: 6px; }
         }
     </style>
 </head>
@@ -508,45 +535,104 @@
             </p>
         </div>
 
-        <!-- Socratic Reflection -->
+        <!-- Interactive Reflection -->
         <div class="reflection-section">
-            <h2>💭 Reflect on What You've Learned</h2>
+            <h2>🤔 Test Your Understanding</h2>
             <p style="text-align: center; color: var(--text-dim); margin-bottom: 2rem;">
-                Think deeply about energy, civilization, and incentives.
-                Your reflections are saved automatically.
+                Answer at your own depth—quick thoughts or deep analysis. Get instant feedback.
             </p>
 
+            <!-- Q1: Waste or Investment -->
             <div class="question-box">
                 <h3>Question 1: Waste or Investment?</h3>
                 <p style="color: var(--text-dim); margin-bottom: 1rem;">
-                    Traditional banking requires bank buildings, ATMs, armored trucks, and security infrastructure.
-                    Bitcoin requires electricity. Both secure monetary systems, but one is criticized as "wasteful"
-                    while the other isn't. Why do you think this perception gap exists? Is energy inherently more
-                    valuable than physical infrastructure?
+                    Why is Bitcoin's energy use criticized as "waste" while banking infrastructure isn't?
                 </p>
-                <textarea id="question1" placeholder="Type your reflection here..."></textarea>
+                <div class="reflection-tabs">
+                    <button class="reflection-tab active" onclick="switchReflectionTab(1, 'quick', event)" role="tab" aria-selected="true">⚡ Quick</button>
+                    <button class="reflection-tab" onclick="switchReflectionTab(1, 'deep', event)" role="tab" aria-selected="false">🎯 Deep</button>
+                </div>
+                <div id="q1-quick" class="reflection-panel active" aria-hidden="false">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim);">What causes the perception gap?</label>
+                    <select id="question1-choice" class="choice-select" onchange="saveReflection('q1-choice', this.value)">
+                        <option value="">Select...</option>
+                        <option value="visible">Physical infrastructure is visible, energy isn't</option>
+                        <option value="bias">Status quo bias—we accept what we're familiar with</option>
+                        <option value="both">Both visibility and status quo bias</option>
+                        <option value="actually">Bitcoin energy IS actually wasteful</option>
+                    </select>
+                    <button class="feedback-btn" onclick="checkReflection(1, 'quick')">Check Answer</button>
+                    <div id="feedback1-quick" class="feedback-box" style="display: none;"></div>
+                </div>
+                <div id="q1-deep" class="reflection-panel" aria-hidden="true">
+                    <textarea id="question1-deep" placeholder="Explore: Why do we call Bitcoin 'wasteful' but not banks' physical infrastructure? Consider: visibility bias, status quo acceptance, actual energy comparison." style="min-height: 150px;"></textarea>
+                    <button class="feedback-btn" onclick="checkReflection(1, 'deep')">Get Feedback</button>
+                    <div id="feedback1-deep" class="feedback-box" style="display: none;"></div>
+                </div>
+                <div class="save-indicator">✓ Auto-saved locally</div>
             </div>
 
+            <!-- Q2: Renewable Incentives -->
             <div class="question-box">
                 <h3>Question 2: Renewable Incentives</h3>
                 <p style="color: var(--text-dim); margin-bottom: 1rem;">
-                    Governments use subsidies, mandates, and carbon taxes to promote renewable energy. Bitcoin
-                    achieves similar results through profit incentives alone—no government involvement needed.
-                    Which approach do you think is more sustainable long-term? Can market incentives solve
-                    environmental problems better than regulations?
+                    Which approach better promotes renewable energy long-term?
                 </p>
-                <textarea id="question2" placeholder="Type your reflection here..."></textarea>
+                <div class="checklist-reflection">
+                    <p style="color: var(--text-dim); font-size: 0.95rem; margin-bottom: 1rem;">Which statements are TRUE about Bitcoin's renewable energy incentives?</p>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="renew-profit" onchange="updateRenewableFeedback()">
+                        Bitcoin miners profit most from cheapest energy (often renewable/stranded)
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="renew-24-7" onchange="updateRenewableFeedback()">
+                        24/7 mining creates demand that matches renewable generation patterns
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="renew-subsidy" onchange="updateRenewableFeedback()">
+                        Government subsidies are more sustainable than profit incentives
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="renew-mobile" onchange="updateRenewableFeedback()">
+                        Mining can move to wherever energy is cheapest (stranded hydro, flared gas)
+                    </label>
+                </div>
+                <div id="feedback2" class="feedback-box" style="display: none; margin-top: 1rem;"></div>
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid rgba(139, 111, 71, 0.2);">
+                    <h4 style="color: var(--accent-bronze); margin-bottom: 1rem;">🎯 Deep Analysis (Optional)</h4>
+                    <textarea id="question2-deep" placeholder="Compare: Government mandates/subsidies vs. profit-driven renewable adoption. Which is more sustainable? Consider: subsidy expiration, political changes, market forces." style="min-height: 120px;"></textarea>
+                </div>
+                <div class="save-indicator">✓ Auto-saved locally</div>
             </div>
 
+            <!-- Q3: Energy as Money -->
             <div class="question-box">
                 <h3>Question 3: Energy as Money</h3>
                 <p style="color: var(--text-dim); margin-bottom: 1rem;">
-                    Bitcoin converts electricity into digital security—essentially transforming energy into money.
-                    Throughout history, valuable things (gold, salt, shells) became money because they required
-                    effort to produce. Does Bitcoin represent a return to "energy-backed" money? What are the
-                    implications if money is directly tied to energy production?
+                    Does Bitcoin represent a return to "energy-backed" money?
                 </p>
-                <textarea id="question3" placeholder="Type your reflection here..."></textarea>
+                <div class="reflection-tabs">
+                    <button class="reflection-tab active" onclick="switchReflectionTab(3, 'quick', event)" role="tab" aria-selected="true">⚡ Quick</button>
+                    <button class="reflection-tab" onclick="switchReflectionTab(3, 'deep', event)" role="tab" aria-selected="false">🎯 Deep</button>
+                </div>
+                <div id="q3-quick" class="reflection-panel active" aria-hidden="false">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim);">Is Bitcoin "energy-backed"?</label>
+                    <select id="question3-choice" class="choice-select" onchange="saveReflection('q3-choice', this.value)">
+                        <option value="">Select...</option>
+                        <option value="yes-backed">Yes—energy expenditure backs each bitcoin like gold backs gold-standard money</option>
+                        <option value="secured">No—energy secures the network, but doesn't back bitcoin's value</option>
+                        <option value="both">Energy creates scarcity (proof-of-work), which gives value</option>
+                        <option value="fiat">Bitcoin is just digital fiat with extra steps</option>
+                    </select>
+                    <button class="feedback-btn" onclick="checkReflection(3, 'quick')">Check Answer</button>
+                    <div id="feedback3-quick" class="feedback-box" style="display: none;"></div>
+                </div>
+                <div id="q3-deep" class="reflection-panel" aria-hidden="true">
+                    <textarea id="question3-deep" placeholder="Explore: Throughout history, money required effort to produce (gold mining, salt extraction). Does Bitcoin's proof-of-work create similar 'unforgeable costliness'? What are implications if money is tied to energy production?" style="min-height: 150px;"></textarea>
+                    <button class="feedback-btn" onclick="checkReflection(3, 'deep')">Get Feedback</button>
+                    <div id="feedback3-deep" class="feedback-box" style="display: none;"></div>
+                </div>
+                <div class="save-indicator">✓ Auto-saved locally</div>
             </div>
         </div>
 
@@ -564,38 +650,210 @@
     </div>
 
     <script>
-        // ===== Reflection Questions with localStorage =====
+        // ===== Interactive Reflection System =====
         const STORAGE_KEY = 'principled-stage5-module1-reflections';
 
-        function saveReflection(questionNum, value) {
+        function saveReflection(key, value) {
             const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-            reflections[`question${questionNum}`] = value;
+            reflections[key] = value;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
         }
 
         function loadReflections() {
             const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-            for (let i = 1; i <= 3; i++) {
-                const textarea = document.getElementById(`question${i}`);
-                if (textarea && reflections[`question${i}`]) {
-                    textarea.value = reflections[`question${i}`];
+            const q1Choice = document.getElementById('question1-choice');
+            const q1Deep = document.getElementById('question1-deep');
+            const q3Choice = document.getElementById('question3-choice');
+            const q3Deep = document.getElementById('question3-deep');
+            const q2Deep = document.getElementById('question2-deep');
+
+            if (q1Choice && reflections['q1-choice']) q1Choice.value = reflections['q1-choice'];
+            if (q1Deep && reflections['q1-deep']) q1Deep.value = reflections['q1-deep'];
+            if (q3Choice && reflections['q3-choice']) q3Choice.value = reflections['q3-choice'];
+            if (q3Deep && reflections['q3-deep']) q3Deep.value = reflections['q3-deep'];
+            if (q2Deep && reflections['q2-deep']) q2Deep.value = reflections['q2-deep'];
+
+            if (reflections['renew-profit']) document.getElementById('renew-profit').checked = true;
+            if (reflections['renew-24-7']) document.getElementById('renew-24-7').checked = true;
+            if (reflections['renew-subsidy']) document.getElementById('renew-subsidy').checked = true;
+            if (reflections['renew-mobile']) document.getElementById('renew-mobile').checked = true;
+
+            updateRenewableFeedback();
+        }
+
+        function switchReflectionTab(questionNum, level, event) {
+            document.querySelectorAll(`#q${questionNum}-quick, #q${questionNum}-deep`).forEach(panel => {
+                panel.classList.remove('active');
+                panel.setAttribute('aria-hidden', 'true');
+            });
+            event.target.parentElement.querySelectorAll('.reflection-tab').forEach(tab => {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+            const panel = document.getElementById(`q${questionNum}-${level}`);
+            panel.classList.add('active');
+            panel.setAttribute('aria-hidden', 'false');
+            event.target.classList.add('active');
+            event.target.setAttribute('aria-selected', 'true');
+        }
+
+        function checkReflection(questionNum, level) {
+            if (questionNum === 1 && level === 'quick') {
+                const choice = document.getElementById('question1-choice').value;
+                const feedbackDiv = document.getElementById('feedback1-quick');
+                let feedback = '';
+
+                if (!choice) {
+                    feedback = `<h5>💡 Hint</h5><p>Please select an answer.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else if (choice === 'both') {
+                    feedback = `<h5>✓ Correct!</h5><p>Both factors create the perception gap:<br><strong>1. Visibility</strong>: Bank buildings are tangible—you see them daily. Energy expenditure is invisible.<br><strong>2. Status quo bias</strong>: We accept familiar systems (banking) and question new ones (Bitcoin).<br><br>Reality: Bitcoin uses less total energy than global banking infrastructure (buildings, ATMs, data centers, transportation, etc.).</p>`;
+                    feedbackDiv.className = 'feedback-box positive';
+                } else if (choice === 'visible' || choice === 'bias') {
+                    feedback = `<h5>⚠️ Partially Correct</h5><p>You identified one factor. But the full answer is <strong>both</strong>: (1) Energy is invisible vs. physical infrastructure you can see, and (2) Status quo bias makes us accept familiar systems while questioning new ones.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else if (choice === 'actually') {
+                    feedback = `<h5>⚠️ Reconsider</h5><p>Bitcoin uses <em>less</em> energy than the global banking system (buildings, trucks, data centers, employees commuting, etc.). The "wasteful" perception comes from visibility bias (energy is invisible) and status quo bias (we accept what's familiar).</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
                 }
+
+                feedbackDiv.innerHTML = feedback;
+                feedbackDiv.style.display = 'block';
+                saveReflection('q1-choice', choice);
+            } else if (questionNum === 1 && level === 'deep') {
+                const text = document.getElementById('question1-deep').value.trim().toLowerCase();
+                const feedbackDiv = document.getElementById('feedback1-deep');
+                let feedback = '';
+
+                if (text.length < 50) {
+                    feedback = `<h5>💡 Hint</h5><p>Try 3-4 sentences. Consider visibility, status quo bias, and actual energy comparisons.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else {
+                    const hasVisibility = text.match(/\b(visibl|see|tangible|invisible|physical|building|infrastructure)\b/);
+                    const hasBias = text.match(/\b(bias|status quo|familiar|accept|new|question|tradition)\b/);
+                    const hasComparison = text.match(/\b(banking|less|more|total|system|comparison|atm|truck|data center)\b/);
+
+                    const score = [hasVisibility, hasBias, hasComparison].filter(Boolean).length;
+
+                    if (score === 3) {
+                        feedback = `<h5>✓ Excellent Analysis!</h5><p>You've identified all factors: (1) Visibility (banks are physical, energy is invisible), (2) Status quo bias (familiar = accepted), (3) Reality (Bitcoin uses less total energy). This reveals how perception often diverges from facts.</p>`;
+                        feedbackDiv.className = 'feedback-box positive';
+                    } else if (score === 2) {
+                        feedback = `<h5>Good Understanding!</h5><p>You're on track. To complete: ${!hasVisibility ? 'Explain visibility (physical infrastructure vs. invisible energy).' : ''} ${!hasBias ? 'Discuss status quo bias.' : ''} ${!hasComparison ? 'Compare total energy: Bitcoin vs. banking system.' : ''}</p>`;
+                        feedbackDiv.className = 'feedback-box neutral';
+                    } else {
+                        feedback = `<h5>💡 Keep Going</h5><p>Address: (1) Why energy seems "wasteful" (visibility), (2) Status quo bias, (3) Actual energy comparison.</p>`;
+                        feedbackDiv.className = 'feedback-box hint';
+                    }
+                }
+
+                feedbackDiv.innerHTML = feedback;
+                feedbackDiv.style.display = 'block';
+                saveReflection('q1-deep', document.getElementById('question1-deep').value);
+            } else if (questionNum === 3 && level === 'quick') {
+                const choice = document.getElementById('question3-choice').value;
+                const feedbackDiv = document.getElementById('feedback3-quick');
+                let feedback = '';
+
+                if (!choice) {
+                    feedback = `<h5>💡 Hint</h5><p>Please select an answer.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else if (choice === 'both') {
+                    feedback = `<h5>✓ Nuanced Answer!</h5><p>Energy creates <strong>unforgeable costliness</strong> (like gold mining), which enforces scarcity. But Bitcoin isn't "backed" by energy like gold-standard money—you can't redeem bitcoin for electricity. Better description: Energy <em>secures</em> the network and <em>creates</em> scarcity through proof-of-work.</p>`;
+                    feedbackDiv.className = 'feedback-box positive';
+                } else if (choice === 'secured') {
+                    feedback = `<h5>✓ Correct Distinction!</h5><p>Energy <em>secures</em> the network, but doesn't <em>back</em> bitcoin's value (you can't redeem for energy). However, energy expenditure does <em>create scarcity</em>—you can't produce unlimited bitcoin without unlimited energy. This "unforgeable costliness" parallels historical money (gold, salt).</p>`;
+                    feedbackDiv.className = 'feedback-box positive';
+                } else if (choice === 'yes-backed') {
+                    feedback = `<h5>⚠️ Close, but not quite</h5><p>Energy <em>secures</em> Bitcoin and <em>creates scarcity</em>, but doesn't "back" it like gold-standard money. You can't redeem bitcoin for energy. Better framing: energy creates "unforgeable costliness" (Szabo) that makes production expensive, enforcing the 21M cap.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else if (choice === 'fiat') {
+                    feedback = `<h5>⚠️ Reconsider</h5><p>Fiat has no production cost—central banks print at will. Bitcoin requires <em>energy expenditure</em> for each block, creating unforgeable scarcity. This parallels historical money (gold mining = effort). Bitcoin is the opposite of fiat—it's scarce by design, not decree.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                }
+
+                feedbackDiv.innerHTML = feedback;
+                feedbackDiv.style.display = 'block';
+                saveReflection('q3-choice', choice);
+            } else if (questionNum === 3 && level === 'deep') {
+                const text = document.getElementById('question3-deep').value.trim().toLowerCase();
+                const feedbackDiv = document.getElementById('feedback3-deep');
+                let feedback = '';
+
+                if (text.length < 50) {
+                    feedback = `<h5>💡 Hint</h5><p>Try 3-4 sentences. Consider: historical money (gold, salt), unforgeable costliness, implications.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else {
+                    const hasHistory = text.match(/\b(gold|salt|shell|history|effort|produc|mine|extract)\b/);
+                    const hasCostliness = text.match(/\b(unforge|costly|scarcity|expensive|proof.?of.?work|energy|difficult)\b/);
+                    const hasImplications = text.match(/\b(implication|future|consequence|tied|energy.?backed|civilization)\b/);
+
+                    const score = [hasHistory, hasCostliness, hasImplications].filter(Boolean).length;
+
+                    if (score === 3) {
+                        feedback = `<h5>✓ Excellent Analysis!</h5><p>You've connected: (1) Historical money required effort (gold, salt), (2) Bitcoin's proof-of-work creates unforgeable costliness, (3) Implications if money is tied to energy production (incentivizes energy innovation, ties economics to physics). This is profound—money as crystallized energy.</p>`;
+                        feedbackDiv.className = 'feedback-box positive';
+                    } else if (score === 2) {
+                        feedback = `<h5>Good Exploration!</h5><p>You're thinking deeply. To complete: ${!hasHistory ? 'Reference historical money (gold, salt required effort).' : ''} ${!hasCostliness ? 'Explain unforgeable costliness via proof-of-work.' : ''} ${!hasImplications ? 'What are implications if money = energy?' : ''}</p>`;
+                        feedbackDiv.className = 'feedback-box neutral';
+                    } else {
+                        feedback = `<h5>💡 Keep Going</h5><p>Address: (1) Historical money (gold mining = effort), (2) Bitcoin's unforgeable costliness, (3) Implications of energy-tied money.</p>`;
+                        feedbackDiv.className = 'feedback-box hint';
+                    }
+                }
+
+                feedbackDiv.innerHTML = feedback;
+                feedbackDiv.style.display = 'block';
+                saveReflection('q3-deep', document.getElementById('question3-deep').value);
             }
+        }
+
+        function updateRenewableFeedback() {
+            const profit = document.getElementById('renew-profit').checked;
+            const all24 = document.getElementById('renew-24-7').checked;
+            const subsidy = document.getElementById('renew-subsidy').checked;
+            const mobile = document.getElementById('renew-mobile').checked;
+
+            const feedbackDiv = document.getElementById('feedback2');
+            let feedback = '';
+
+            saveReflection('renew-profit', profit);
+            saveReflection('renew-24-7', all24);
+            saveReflection('renew-subsidy', subsidy);
+            saveReflection('renew-mobile', mobile);
+
+            const correctCount = [profit, all24, mobile].filter(Boolean).length;
+
+            if (profit && all24 && mobile && !subsidy) {
+                feedback = `<h5>✓ Perfect Understanding!</h5><p>Correct! Bitcoin incentivizes renewables through:<br><strong>1. Profit motive</strong>: Cheapest energy = highest profit (often renewables/stranded)<br><strong>2. 24/7 demand</strong>: Matches renewable generation patterns<br><strong>3. Mobility</strong>: Mining moves to cheapest energy anywhere<br><br>Subsidies are <em>less</em> sustainable—they expire, change with politics, and distort markets. Profit incentives are permanent.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else if (subsidy && correctCount === 3) {
+                feedback = `<h5>⚠️ Reconsider "Subsidies"</h5><p>You identified the three correct mechanisms, but subsidies are <em>less</em> sustainable than profit incentives. Subsidies expire, change with elections, and require taxation. Profit-driven adoption is permanent—as long as renewables are cheap, miners will use them.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (correctCount === 3) {
+                feedback = `<h5>✓ Almost Perfect!</h5><p>You've identified the market-driven renewable incentives! Profit motive + 24/7 demand + mobility create permanent incentives for cheap (often renewable) energy. This doesn't require subsidies or mandates.</p>`;
+                feedbackDiv.className = 'feedback-box neutral';
+            } else if (correctCount >= 1) {
+                feedback = `<h5>Good Start!</h5><p>You've identified ${correctCount} mechanism${correctCount > 1 ? 's' : ''}. Consider: ${!profit ? 'Why cheapest energy = highest profit (often renewables). ' : ''}${!all24 ? 'How 24/7 mining demand matches renewable generation. ' : ''}${!mobile ? 'Why mining can move to stranded/cheap energy anywhere.' : ''}</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else {
+                feedback = `<h5>💡 Hint</h5><p>Think about Bitcoin miners' profit motive: they want the cheapest energy. Where is energy cheapest? What type of energy is often wasted/stranded?</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+
+            feedbackDiv.innerHTML = feedback;
+            feedbackDiv.style.display = 'block';
         }
 
         // Initialize on load
         window.addEventListener('DOMContentLoaded', () => {
             loadReflections();
-
-            // Auto-save reflections
-            ['question1', 'question2', 'question3'].forEach((id, index) => {
-                const textarea = document.getElementById(id);
-                if (textarea) {
-                    textarea.addEventListener('input', (e) => {
-                        saveReflection(index + 1, e.target.value);
-                    });
-                }
-            });
+            const q1Deep = document.getElementById('question1-deep');
+            const q2Deep = document.getElementById('question2-deep');
+            const q3Deep = document.getElementById('question3-deep');
+            if (q1Deep) q1Deep.addEventListener('input', (e) => saveReflection('q1-deep', e.target.value));
+            if (q2Deep) q2Deep.addEventListener('input', (e) => saveReflection('q2-deep', e.target.value));
+            if (q3Deep) q3Deep.addEventListener('input', (e) => saveReflection('q3-deep', e.target.value));
         });
     </script>
 </body>
