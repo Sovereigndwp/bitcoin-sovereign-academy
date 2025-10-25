@@ -812,29 +812,183 @@
         // Reflection persistence
         const STORAGE_KEY = 'principled-stage5-module2-reflections';
 
-        function loadReflections() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                const reflections = JSON.parse(saved);
-                if (reflections.question1) document.getElementById('reflection1').value = reflections.question1;
-                if (reflections.question2) document.getElementById('reflection2').value = reflections.question2;
-                if (reflections.question3) document.getElementById('reflection3').value = reflections.question3;
-            }
-        }
-
-        function saveReflection(questionNum, value) {
+        function saveReflection(key, value) {
             const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-            reflections[`question${questionNum}`] = value;
+            reflections[key] = value;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
         }
 
-        // Add event listeners to textareas
-        document.getElementById('reflection1').addEventListener('input', (e) => saveReflection(1, e.target.value));
-        document.getElementById('reflection2').addEventListener('input', (e) => saveReflection(2, e.target.value));
-        document.getElementById('reflection3').addEventListener('input', (e) => saveReflection(3, e.target.value));
+        function loadReflections() {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            if (reflections['trust-news']) document.getElementById('trust-news').checked = true;
+            if (reflections['trust-bank']) document.getElementById('trust-bank').checked = true;
+            if (reflections['trust-govt']) document.getElementById('trust-govt').checked = true;
+            if (reflections['trust-health']) document.getElementById('trust-health').checked = true;
+            if (reflections['reflection1-deep']) document.getElementById('reflection1-deep').value = reflections['reflection1-deep'];
+            if (reflections['q2-choice']) document.getElementById('question2-choice').value = reflections['q2-choice'];
+            if (reflections['reflection2-deep']) document.getElementById('reflection2-deep').value = reflections['reflection2-deep'];
+            if (reflections['q3-choice']) document.getElementById('question3-choice').value = reflections['q3-choice'];
+            if (reflections['reflection3-deep']) document.getElementById('reflection3-deep').value = reflections['reflection3-deep'];
+            updateTrustFeedback();
+        }
 
-        // Load saved reflections on page load
-        window.addEventListener('DOMContentLoaded', loadReflections);
+        function switchReflectionTab(questionNum, level, event) {
+            document.querySelectorAll(`#q${questionNum}-quick, #q${questionNum}-deep`).forEach(panel => {
+                panel.classList.remove('active');
+            });
+            event.target.parentElement.querySelectorAll('.reflection-tab').forEach(tab => {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+            document.getElementById(`q${questionNum}-${level}`).classList.add('active');
+            event.target.classList.add('active');
+            event.target.setAttribute('aria-selected', 'true');
+        }
+
+        function updateTrustFeedback() {
+            const news = document.getElementById('trust-news').checked;
+            const bank = document.getElementById('trust-bank').checked;
+            const govt = document.getElementById('trust-govt').checked;
+            const health = document.getElementById('trust-health').checked;
+            const feedbackDiv = document.getElementById('feedback1');
+            let feedback = '';
+
+            saveReflection('trust-news', news);
+            saveReflection('trust-bank', bank);
+            saveReflection('trust-govt', govt);
+            saveReflection('trust-health', health);
+
+            const count = [news, bank, govt, health].filter(Boolean).length;
+
+            if (count === 0) {
+                feedback = `<h5>🤔 Interesting</h5><p>If you verify everything already, that's impressive! Most people accept most claims on trust most of the time. The question is: <em>could</em> you verify more if you chose to?</p>`;
+                feedbackDiv.className = 'feedback-box neutral';
+            } else if (count >= 3) {
+                feedback = `<h5>✓ Honest Reflection!</h5><p>You checked ${count} areas where trust dominates verification. This is normal—verification is costly in time and effort. The key insight: Bitcoin shows that <strong>technology can make verification easier</strong>. What if other domains had the same tools?</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else {
+                feedback = `<h5>Good Awareness</h5><p>You identified ${count} area${count > 1 ? 's' : ''} where you trust by default. Consider: How could you start verifying one of these? What barriers exist (time, access, social norms)?</p>`;
+                feedbackDiv.className = 'feedback-box neutral';
+            }
+
+            feedbackDiv.innerHTML = feedback;
+            feedbackDiv.style.display = 'block';
+        }
+
+        function checkReflection(questionNum, level) {
+            if (questionNum === 2 && level === 'quick') {
+                const choice = document.getElementById('question2-choice').value;
+                const feedbackDiv = document.getElementById('feedback2-quick');
+                let feedback = '';
+
+                if (!choice) {
+                    feedback = `<h5>💡 Hint</h5><p>Please select an answer.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else if (choice === 'all') {
+                    feedback = `<h5>✓ Comprehensive Understanding!</h5><p>All three barriers exist:<br><strong>1. Time/Effort</strong>: Verification is costly—reading studies, checking sources<br><strong>2. Access</strong>: Data is often hidden, paywalled, or classified<br><strong>3. Social Norms</strong>: Questioning authority is seen as rude, conspiratorial, or disruptive<br><br>Bitcoin's contribution: <em>making verification cheap and permissionless removes barriers 1 & 2. Barrier 3 requires cultural change.</em></p>`;
+                    feedbackDiv.className = 'feedback-box positive';
+                } else if (choice === 'time' || choice === 'access' || choice === 'social') {
+                    feedback = `<h5>⚠️ Partially Correct</h5><p>You identified one barrier, but the full answer is <strong>all of the above</strong>: time/effort, lack of access, AND social norms all prevent verification. Bitcoin addresses the first two (low-cost, permissionless verification). Cultural change must address the third.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                }
+
+                feedbackDiv.innerHTML = feedback;
+                feedbackDiv.style.display = 'block';
+            } else if (questionNum === 2 && level === 'deep') {
+                const text = document.getElementById('reflection2-deep').value.trim().toLowerCase();
+                const feedbackDiv = document.getElementById('feedback2-deep');
+                let feedback = '';
+
+                if (text.length < 50) {
+                    feedback = `<h5>💡 Hint</h5><p>Try 3-4 sentences addressing multiple barriers.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else {
+                    const hasTime = text.match(/\b(time|effort|cost|expensive|work|busy)\b/);
+                    const hasAccess = text.match(/\b(access|data|paywall|secret|classified|hidden|transparency)\b/);
+                    const hasSocial = text.match(/\b(social|norm|culture|rude|conspiracy|trust|question|authority)\b/);
+
+                    const score = [hasTime, hasAccess, hasSocial].filter(Boolean).length;
+
+                    if (score === 3) {
+                        feedback = `<h5>✓ Excellent Analysis!</h5><p>You've identified all barriers: time/effort costs, lack of data access, and social/cultural norms. Bitcoin's insight: technology can reduce the first two. But culture must evolve to normalize skepticism and verification.</p>`;
+                        feedbackDiv.className = 'feedback-box positive';
+                    } else if (score === 2) {
+                        feedback = `<h5>Good Exploration!</h5><p>You've covered ${score} barriers. Consider also: ${!hasTime ? 'Time and effort required.' : ''} ${!hasAccess ? 'Lack of data access.' : ''} ${!hasSocial ? 'Social norms (questioning = rude).' : ''}</p>`;
+                        feedbackDiv.className = 'feedback-box neutral';
+                    } else {
+                        feedback = `<h5>💡 Keep Going</h5><p>Address: time costs, data access barriers, and social/cultural norms.</p>`;
+                        feedbackDiv.className = 'feedback-box hint';
+                    }
+                }
+
+                feedbackDiv.innerHTML = feedback;
+                feedbackDiv.style.display = 'block';
+            } else if (questionNum === 3 && level === 'quick') {
+                const choice = document.getElementById('question3-choice').value;
+                const feedbackDiv = document.getElementById('feedback3-quick');
+                let feedback = '';
+
+                if (!choice) {
+                    feedback = `<h5>💡 Hint</h5><p>Please select an answer.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else if (choice === 'accountability') {
+                    feedback = `<h5>✓ Correct!</h5><p>Institutions would become <strong>more accountable</strong>. When opacity is suspicious and verification is expected, institutions must prove their claims. This doesn't collapse trust—it <em>rebuilds</em> it on verification rather than authority. Example: Bitcoin doesn't eliminate trust in money; it makes money <em>trustworthy</em> via verification.</p>`;
+                    feedbackDiv.className = 'feedback-box positive';
+                } else if (choice === 'trust') {
+                    feedback = `<h5>⚠️ Reconsider</h5><p>"Collapse trust" is too pessimistic. Verification culture <em>rebuilds</em> trust on a better foundation. Instead of "trust because I said so," it becomes "trust because you can verify." Bitcoin proves this works—people trust it <em>more</em> because they can verify everything.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else if (choice === 'transparency') {
+                    feedback = `<h5>⚠️ Too Simplistic</h5><p>Not <em>everything</em> would be transparent (privacy matters). But institutions claiming public authority would need to justify opacity. The shift: opacity becomes the exception requiring justification, not the default.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else if (choice === 'slow') {
+                    feedback = `<h5>⚠️ Partial Truth</h5><p>Verification <em>can</em> slow things down initially. But technology (like Bitcoin) makes verification fast and cheap. The real benefit: fewer catastrophic errors from blind trust. Better to slow down and verify than move fast and break things.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                }
+
+                feedbackDiv.innerHTML = feedback;
+                feedbackDiv.style.display = 'block';
+            } else if (questionNum === 3 && level === 'deep') {
+                const text = document.getElementById('reflection3-deep').value.trim().toLowerCase();
+                const feedbackDiv = document.getElementById('feedback3-deep');
+                let feedback = '';
+
+                if (text.length < 50) {
+                    feedback = `<h5>💡 Hint</h5><p>Try 3-4 sentences. What improves? What gets harder? Trade-offs?</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else {
+                    const hasAccountability = text.match(/\b(accountab|transparen|audit|proof|verif|evidence)\b/);
+                    const hasTrust = text.match(/\b(trust|confidence|legitima|authority|institution)\b/);
+                    const hasTradeoff = text.match(/\b(trade.?off|slow|cost|privacy|balance|downside)\b/);
+
+                    const score = [hasAccountability, hasTrust, hasTradeoff].filter(Boolean).length;
+
+                    if (score === 3) {
+                        feedback = `<h5>✓ Excellent Analysis!</h5><p>You've explored: increased accountability, rebuilt trust via verification, and trade-offs (time, privacy). This is the vision: not eliminating trust, but anchoring it in verifiable evidence rather than authority.</p>`;
+                        feedbackDiv.className = 'feedback-box positive';
+                    } else if (score === 2) {
+                        feedback = `<h5>Good Exploration!</h5><p>You've covered ${score} aspects. Consider also: ${!hasAccountability ? 'How accountability changes when verification is expected.' : ''} ${!hasTrust ? 'How trust rebuilds on verification rather than authority.' : ''} ${!hasTradeoff ? 'Trade-offs (time, privacy, complexity).' : ''}</p>`;
+                        feedbackDiv.className = 'feedback-box neutral';
+                    } else {
+                        feedback = `<h5>💡 Keep Going</h5><p>Address: accountability shifts, trust rebuilding, and trade-offs.</p>`;
+                        feedbackDiv.className = 'feedback-box hint';
+                    }
+                }
+
+                feedbackDiv.innerHTML = feedback;
+                feedbackDiv.style.display = 'block';
+            }
+        }
+
+        // Add event listeners
+        window.addEventListener('DOMContentLoaded', () => {
+            loadReflections();
+            const r1Deep = document.getElementById('reflection1-deep');
+            const r2Deep = document.getElementById('reflection2-deep');
+            const r3Deep = document.getElementById('reflection3-deep');
+            if (r1Deep) r1Deep.addEventListener('input', (e) => saveReflection('reflection1-deep', e.target.value));
+            if (r2Deep) r2Deep.addEventListener('input', (e) => saveReflection('reflection2-deep', e.target.value));
+            if (r3Deep) r3Deep.addEventListener('input', (e) => saveReflection('reflection3-deep', e.target.value));
+        });
 
         // Track module completion
         const urlParams = new URLSearchParams(window.location.search);
