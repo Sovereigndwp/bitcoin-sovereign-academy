@@ -816,38 +816,191 @@
         document.getElementById('energySlider').addEventListener('input', updateDemo);
         document.getElementById('currencySlider').addEventListener('input', updateDemo);
 
-        // Save reflections
-        function saveReflections() {
-            const reflections = {
-                module: 'stage1-module1',
-                timestamp: new Date().toISOString(),
-                q1: document.getElementById('question1').value,
-                q2: document.getElementById('question2').value,
-                q3: document.getElementById('question3').value
-            };
+        // Interactive Reflection System
+        const STORAGE_KEY = 'principled_stage1_module1_reflections';
 
-            localStorage.setItem('principled_stage1_module1_reflections', JSON.stringify(reflections));
+        // Tab switching
+        function switchReflectionTab(questionNum, level, event) {
+            document.querySelectorAll(`#q${questionNum}-quick, #q${questionNum}-deep`).forEach(panel => {
+                panel.classList.remove('active');
+                panel.setAttribute('aria-hidden', 'true');
+            });
+            event.target.parentElement.querySelectorAll('.reflection-tab').forEach(tab => {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+            const panel = document.getElementById(`q${questionNum}-${level}`);
+            panel.classList.add('active');
+            panel.setAttribute('aria-hidden', 'false');
+            event.target.classList.add('active');
+            event.target.setAttribute('aria-selected', 'true');
+        }
 
-            // Mark module as completed
+        // Q1 - Inflation Winners & Losers Checklist
+        function updateInflationFeedback() {
+            const govt = document.getElementById('winner-govt').checked;
+            const banks = document.getElementById('winner-banks').checked;
+            const debtors = document.getElementById('winner-debtors').checked;
+            const savers = document.getElementById('loser-savers').checked;
+            const workers = document.getElementById('loser-workers').checked;
+            const retired = document.getElementById('loser-retired').checked;
+
+            const winners = [govt, banks, debtors].filter(Boolean).length;
+            const losers = [savers, workers, retired].filter(Boolean).length;
+            const feedbackDiv = document.getElementById('inflation-feedback');
+
+            if (winners === 0 && losers === 0) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
+
+            let feedback = '';
+            if (winners >= 2 && losers >= 2) {
+                feedback = `<h5>✓ Comprehensive Understanding!</h5><p>You identified <strong>${winners} winners</strong> and <strong>${losers} losers</strong>. This is the hidden transfer of wealth through inflation:<br><br>`;
+                if (govt) feedback += `<strong>Government:</strong> Spends new money first, before prices rise (seigniorage)<br>`;
+                if (banks) feedback += `<strong>Banks:</strong> Cantillon Effect - receive newly created money first, lend it at current prices<br>`;
+                if (debtors) feedback += `<strong>Debtors:</strong> Repay fixed loans with devalued currency (incentivizes borrowing)<br>`;
+                if (savers) feedback += `<strong>Savers:</strong> Lose purchasing power as savings are diluted<br>`;
+                if (workers) feedback += `<strong>Workers:</strong> Wages adjust slowly; real income falls during inflation<br>`;
+                if (retired) feedback += `<strong>Retirees:</strong> Fixed pensions buy less each year<br>`;
+                feedback += `<br><em>Inflation is a hidden tax that redistributes wealth from the late receivers to the early receivers of new money.</em></p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else if (winners > 0 || losers > 0) {
+                feedback = `<h5>💡 Partial Understanding</h5><p>You identified some effects, but inflation creates both <strong>winners</strong> (govt, banks, debtors) and <strong>losers</strong> (savers, workers, retirees). This is the <em>Cantillon Effect</em>: those closest to the money printer benefit at the expense of everyone else.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+
+            feedbackDiv.innerHTML = feedback;
+            feedbackDiv.style.display = 'block';
+            saveCheckboxes();
+        }
+
+        // Q2 - Wealth vs Currency
+        function checkWealth() {
+            const choice = document.getElementById('wealth-choice').value;
+            const feedbackDiv = document.getElementById('wealth-feedback');
+
+            if (!choice) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
+
+            let feedback = '';
+            if (choice === 'goods') {
+                feedback = `<h5>✓ Correct!</h5><p><strong>Wealth is real productive capacity</strong> — food, energy, factories, skills, infrastructure, knowledge. Currency is just a <em>claim</em> on that capacity.<br><br>You can print infinite currency, but you can't print wheat, gasoline, or labor. Zimbabwe had trillions of dollars but no food. Venezuela has mountains of bolivars but no medicine. <strong>Currency ≠ Wealth.</strong><br><br>Bitcoin forces this distinction: you can't print bitcoins without expending real energy (wealth).</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else if (choice === 'currency') {
+                feedback = `<h5>⚠️ Common Misconception</h5><p>Currency <em>represents</em> wealth, but it's not wealth itself. Imagine being stranded on an island with $1 million in cash but no food, water, or tools. Are you wealthy?<br><br>Wealth is <strong>productive capacity</strong>. Currency is just a <strong>claim ticket</strong> for that capacity. When you print more tickets without creating more capacity, each ticket is worth less. That's inflation.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (choice === 'both') {
+                feedback = `<h5>💡 Partially Correct</h5><p>Currency <em>can</em> be wealth if it's scarce and tradable (like gold or Bitcoin). But fiat currency that can be printed infinitely is <strong>not wealth</strong> — it's just claims on wealth.<br><br>True wealth is <strong>productive capacity</strong>: energy, food, skills, infrastructure. Currency is a tool to transfer wealth, not wealth itself.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (choice === 'perceived') {
+                feedback = `<h5>⚠️ Too Subjective</h5><p>While perception matters for <em>price</em>, it doesn't create <em>wealth</em>. If everyone believed sand was valuable, the price of sand would rise — but you still can't eat it, power a factory with it, or use it as energy.<br><br>Wealth is <strong>objective productive capacity</strong>. Currency is a subjective social agreement. When currency is printed, perception lags reality — that's how inflation robs people.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+
+            feedbackDiv.innerHTML = feedback;
+            feedbackDiv.style.display = 'block';
+            saveReflection('q2-quick', choice);
+        }
+
+        // Q3 - Bitcoin's Energy Cost
+        function checkEnergy() {
+            const choice = document.getElementById('energy-choice').value;
+            const feedbackDiv = document.getElementById('energy-feedback');
+
+            if (!choice) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
+
+            let feedback = '';
+            if (choice === 'feature') {
+                feedback = `<h5>✓ Correct — This Is the Key Insight!</h5><p><strong>Energy cost is Bitcoin's genius.</strong> By requiring proof-of-work, Bitcoin anchors digital scarcity to <em>physical</em> scarcity. You can't fake energy. You can't counterfeit thermodynamics.<br><br>Fiat currency fails because it <strong>decoupled money from energy</strong>. Bitcoin restores the link. Every bitcoin mined costs real electricity. This reintroduces the <strong>conservation of value</strong>.<br><br>Without energy cost, Bitcoin would be as inflatable as fiat. Energy isn't a bug — it's the entire point.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else if (choice === 'bug') {
+                feedback = `<h5>⚠️ Common Misunderstanding</h5><p>This is the most common critique of Bitcoin, but it misses the point entirely. Energy cost is <strong>not waste</strong> — it's the mechanism that prevents inflation.<br><br>Without energy cost, anyone could create infinite bitcoins. The energy requirement makes Bitcoin <em>unforgeable</em>. You can print fiat money, but you can't print electricity.<br><br>Compare: Fiat uses guns and laws to enforce scarcity (and fails). Bitcoin uses thermodynamics. Which is more robust?</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (choice === 'necessary-evil') {
+                feedback = `<h5>💡 Closer, But Not Quite</h5><p>Energy cost isn't a compromise — it's a <strong>deliberate design choice</strong>. Bitcoin could have used other consensus mechanisms (proof-of-stake), but those don't anchor digital scarcity to physical reality.<br><br>Proof-of-work means: to create bitcoins, you must <em>expend energy that cannot be recovered</em>. This is <strong>unforgeable costliness</strong> — the same property that made gold valuable for 5,000 years.<br><br>It's not a necessary evil. It's the core innovation.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (choice === 'temporary') {
+                feedback = `<h5>⚠️ Misses the Point</h5><p>Proof-of-work isn't outdated technology waiting to be replaced. It's a <strong>fundamental design choice</strong>. Alternatives like proof-of-stake don't require energy, but they also don't anchor scarcity to physics — they rely on circular logic (stake to validate, validate to stake).<br><br>Bitcoin's energy cost is <em>permanent by design</em>. Removing it would make Bitcoin as inflatable as fiat. The energy isn't a bug to fix — it's the feature that prevents inflation.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+
+            feedbackDiv.innerHTML = feedback;
+            feedbackDiv.style.display = 'block';
+            saveReflection('q3-quick', choice);
+        }
+
+        // Deep Reflection Auto-save
+        function saveDeepReflection(questionNum, value) {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            reflections[`q${questionNum}-deep`] = value;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
+        }
+
+        // Save checkbox states
+        function saveCheckboxes() {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            reflections['winner-govt'] = document.getElementById('winner-govt').checked;
+            reflections['winner-banks'] = document.getElementById('winner-banks').checked;
+            reflections['winner-debtors'] = document.getElementById('winner-debtors').checked;
+            reflections['loser-savers'] = document.getElementById('loser-savers').checked;
+            reflections['loser-workers'] = document.getElementById('loser-workers').checked;
+            reflections['loser-retired'] = document.getElementById('loser-retired').checked;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
+        }
+
+        // Save dropdown choices
+        function saveReflection(key, value) {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            reflections[key] = value;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
+        }
+
+        // Load saved reflections
+        function loadReflections() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const reflections = JSON.parse(saved);
+
+                // Q1 checkboxes
+                if (reflections['winner-govt']) document.getElementById('winner-govt').checked = true;
+                if (reflections['winner-banks']) document.getElementById('winner-banks').checked = true;
+                if (reflections['winner-debtors']) document.getElementById('winner-debtors').checked = true;
+                if (reflections['loser-savers']) document.getElementById('loser-savers').checked = true;
+                if (reflections['loser-workers']) document.getElementById('loser-workers').checked = true;
+                if (reflections['loser-retired']) document.getElementById('loser-retired').checked = true;
+
+                // Q2
+                if (reflections['q2-quick']) document.getElementById('wealth-choice').value = reflections['q2-quick'];
+                if (reflections['q2-deep']) document.getElementById('wealth-deep').value = reflections['q2-deep'];
+
+                // Q3
+                if (reflections['q3-quick']) document.getElementById('energy-choice').value = reflections['q3-quick'];
+                if (reflections['q3-deep']) document.getElementById('energy-deep').value = reflections['q3-deep'];
+
+                // Trigger feedback display if selections exist
+                updateInflationFeedback();
+                if (reflections['q2-quick']) checkWealth();
+                if (reflections['q3-quick']) checkEnergy();
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadReflections();
+            updateDemo();
+
+            // Mark module as visited
             let progress = JSON.parse(localStorage.getItem('principled_stage1_progress') || '[]');
             if (!progress.includes('module-1')) {
                 progress.push('module-1');
                 localStorage.setItem('principled_stage1_progress', JSON.stringify(progress));
             }
-
-            alert('✅ Your reflections have been saved!\n\nModule 1 marked as complete. Continue to Module 2.');
-        }
-
-        // Load saved reflections
-        window.addEventListener('DOMContentLoaded', () => {
-            const saved = localStorage.getItem('principled_stage1_module1_reflections');
-            if (saved) {
-                const reflections = JSON.parse(saved);
-                document.getElementById('question1').value = reflections.q1 || '';
-                document.getElementById('question2').value = reflections.q2 || '';
-                document.getElementById('question3').value = reflections.q3 || '';
-            }
-            updateDemo();
         });
     </script>
 </body>

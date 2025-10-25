@@ -400,6 +400,25 @@
             color: var(--text-dim);
         }
 
+        /* Interactive Reflection System */
+        .reflection-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid rgba(218, 165, 32, 0.2); padding-bottom: 0.5rem; }
+        .reflection-tab { background: transparent; color: var(--text-dim); border: 2px solid rgba(218, 165, 32, 0.3); padding: 0.5rem 1.25rem; border-radius: 8px 8px 0 0; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; }
+        .reflection-tab.active { background: linear-gradient(135deg, rgba(218, 165, 32, 0.2), rgba(139, 111, 71, 0.1)); color: var(--accent-gold); border-color: var(--accent-gold); }
+        .reflection-panel { display: none; padding: 1.5rem; background: rgba(26, 26, 26, 0.8); border-radius: 0 8px 8px 8px; border: 2px solid rgba(218, 165, 32, 0.2); }
+        .reflection-panel.active { display: block; }
+        .choice-select { width: 100%; padding: 1rem; background: rgba(0, 0, 0, 0.3); border: 2px solid var(--border-color); border-radius: 0.5rem; color: var(--text-light); font-size: 1rem; cursor: pointer; }
+        .choice-select:focus { outline: none; border-color: var(--accent-gold); }
+        .feedback-btn { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; margin-top: 1rem; transition: all 0.3s ease; }
+        .feedback-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(218, 165, 32, 0.4); }
+        .feedback-box { margin-top: 1.5rem; padding: 1.5rem; border-radius: 0.5rem; border: 2px solid; display: none; }
+        .feedback-box.positive { background: rgba(76, 175, 80, 0.1); border-color: #4caf50; color: var(--text-light); }
+        .feedback-box.hint { background: rgba(255, 152, 0, 0.1); border-color: #ff9800; color: var(--text-light); }
+        .feedback-box h5 { margin-top: 0; margin-bottom: 0.5rem; color: inherit; }
+        .checklist-reflection { display: flex; flex-direction: column; gap: 0.75rem; }
+        .checkbox-label { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: rgba(0, 0, 0, 0.3); border-radius: 0.5rem; cursor: pointer; transition: background 0.2s ease; }
+        .checkbox-label:hover { background: rgba(0, 0, 0, 0.5); }
+        .checkbox-label input[type="checkbox"] { width: 1.25rem; height: 1.25rem; cursor: pointer; }
+
         /* Responsive */
         @media (max-width: 768px) {
             .institution-display {
@@ -595,39 +614,113 @@
         <section class="socratic-section">
             <h3>💬 Reflect on What You've Learned</h3>
             <p style="text-align: center; color: var(--text-dim); margin-bottom: 2rem;">
-                Take a moment to think deeply about these questions. Your answers will be saved locally.
+                Test your understanding with interactive reflections. Get immediate feedback on your thinking.
             </p>
 
+            <!-- Question 1: Why Trust Institutions (Quick/Deep) -->
             <div class="question-card">
                 <div class="question-number">Question 1</div>
                 <div class="question-text">
                     If entropy guarantees that institutions decay over time, why do we keep trusting human-run institutions with our money?
-                    What would a truly entropy-resistant system look like?
                 </div>
-                <textarea class="reflection-area" id="question1" placeholder="Type your thoughts here..."></textarea>
+
+                <div class="reflection-tabs" role="tablist" aria-label="Reflection depth options">
+                    <button class="reflection-tab active" role="tab" aria-selected="true" aria-controls="q1-quick" onclick="switchReflectionTab(1, 'quick', event)">Quick (1 min)</button>
+                    <button class="reflection-tab" role="tab" aria-selected="false" aria-controls="q1-deep" onclick="switchReflectionTab(1, 'deep', event)">Deep Dive (5 min)</button>
+                </div>
+
+                <div id="q1-quick" class="reflection-panel active" role="tabpanel" aria-hidden="false">
+                    <p style="margin-bottom: 1rem;">What's the main reason we continue using corruptible institutions?</p>
+                    <select class="choice-select" id="trust-choice" onchange="checkTrust()">
+                        <option value="">— Select One —</option>
+                        <option value="inertia">Inertia and path dependence - We're stuck with legacy systems</option>
+                        <option value="no-alternative">No credible alternatives existed until Bitcoin</option>
+                        <option value="hope">Hope that we can fix institutions through regulation</option>
+                        <option value="unaware">Most people don't understand entropy's inevitability</option>
+                    </select>
+                    <div id="trust-feedback" class="feedback-box"></div>
+                </div>
+
+                <div id="q1-deep" class="reflection-panel" role="tabpanel" aria-hidden="true">
+                    <p style="margin-bottom: 1rem;">Design a truly entropy-resistant monetary system. What properties must it have?</p>
+                    <textarea class="reflection-area" id="trust-deep" placeholder="Think about: How can you prevent human discretion? What makes rules unchangeable? How do you eliminate single points of failure? Consider the role of cryptography, decentralization, and algorithmic enforcement..." style="min-height: 120px;" oninput="saveDeepReflection(1, this.value)"></textarea>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.5rem; font-style: italic;">
+                        💡 Hint: Bitcoin's design: <strong>No human discretion</strong> (algorithmic rules), <strong>Decentralized verification</strong> (thousands of nodes), <strong>Transparent code</strong> (anyone can audit), <strong>Costly to change</strong> (consensus required).
+                    </p>
+                </div>
             </div>
 
+            <!-- Question 2: Eliminating Corruption (Quick/Deep) -->
             <div class="question-card">
                 <div class="question-number">Question 2</div>
                 <div class="question-text">
-                    Can corruption ever be permanently eliminated from human institutions? Why or why not?
-                    What role does discretion play in enabling decay?
+                    Can corruption ever be permanently eliminated from human institutions? What role does discretion play?
                 </div>
-                <textarea class="reflection-area" id="question2" placeholder="Type your thoughts here..."></textarea>
+
+                <div class="reflection-tabs" role="tablist" aria-label="Reflection depth options">
+                    <button class="reflection-tab active" role="tab" aria-selected="true" aria-controls="q2-quick" onclick="switchReflectionTab(2, 'quick', event)">Quick (1 min)</button>
+                    <button class="reflection-tab" role="tab" aria-selected="false" aria-controls="q2-deep" onclick="switchReflectionTab(2, 'deep', event)">Deep Dive (5 min)</button>
+                </div>
+
+                <div id="q2-quick" class="reflection-panel active" role="tabpanel" aria-hidden="false">
+                    <p style="margin-bottom: 1rem;">Can human institutions eliminate corruption permanently?</p>
+                    <select class="choice-select" id="corruption-choice" onchange="checkCorruption()">
+                        <option value="">— Select One —</option>
+                        <option value="yes">Yes - With strong laws and oversight</option>
+                        <option value="no">No - Human discretion always creates corruption risk</option>
+                        <option value="code-only">Only by replacing discretion with algorithmic rules (code)</option>
+                        <option value="minimize">No, but we can minimize it through transparency</option>
+                    </select>
+                    <div id="corruption-feedback" class="feedback-box"></div>
+                </div>
+
+                <div id="q2-deep" class="reflection-panel" role="tabpanel" aria-hidden="true">
+                    <p style="margin-bottom: 1rem;">Explain why discretion (human judgment) is the source of corruption:</p>
+                    <textarea class="reflection-area" id="corruption-deep" placeholder="Consider: Every instance of corruption requires someone with power to make an exception. Judges, politicians, central bankers all have discretion. What happens when rules are algorithmic and unchangeable?" style="min-height: 120px;" oninput="saveDeepReflection(2, this.value)"></textarea>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.5rem; font-style: italic;">
+                        💡 Hint: <strong>Discretion = Corruption surface area.</strong> Bitcoin eliminates discretion: No one can print extra bitcoins, freeze accounts, or change the rules. Code executes identically for everyone.
+                    </p>
+                </div>
             </div>
 
+            <!-- Question 3: Bitcoin's Entropy Resistance (Checklist) -->
             <div class="question-card">
                 <div class="question-number">Question 3</div>
                 <div class="question-text">
-                    Bitcoin's protocol is maintained by thousands of independent nodes enforcing identical rules.
-                    How does this design resist entropy better than a central authority with discretionary power?
+                    How does Bitcoin's decentralized design resist entropy better than centralized institutions?
                 </div>
-                <textarea class="reflection-area" id="question3" placeholder="Type your thoughts here..."></textarea>
-            </div>
+                <p style="font-size: 0.95rem; color: var(--text-dim); margin: 1rem 0;">
+                    Select all the features that help Bitcoin resist institutional decay:
+                </p>
 
-            <button class="demo-button" onclick="saveReflections()" style="margin-top: 1.5rem; width: 100%;">
-                💾 Save My Reflections
-            </button>
+                <div class="checklist-reflection">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="entropy-nodes" onchange="updateEntropyFeedback()">
+                        <span><strong>Thousands of independent nodes</strong> - No single point of failure</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="entropy-consensus" onchange="updateEntropyFeedback()">
+                        <span><strong>Consensus rules</strong> - Changes require overwhelming agreement</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="entropy-transparent" onchange="updateEntropyFeedback()">
+                        <span><strong>Transparent code</strong> - Anyone can audit and verify behavior</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="entropy-no-discretion" onchange="updateEntropyFeedback()">
+                        <span><strong>No human discretion</strong> - Algorithms execute identically for everyone</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="entropy-pow" onchange="updateEntropyFeedback()">
+                        <span><strong>Proof-of-work</strong> - Makes attacks thermodynamically expensive</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="entropy-immutable" onchange="updateEntropyFeedback()">
+                        <span><strong>Immutable ledger</strong> - History cannot be rewritten</span>
+                    </label>
+                </div>
+                <div id="entropy-feedback" class="feedback-box"></div>
+            </div>
         </section>
 
         <!-- Module Navigation -->
@@ -830,36 +923,191 @@
             output.innerHTML = message;
         }
 
-        // Save reflections
-        function saveReflections() {
-            const reflections = {
-                module: 'stage1-module2',
-                timestamp: new Date().toISOString(),
-                q1: document.getElementById('question1').value,
-                q2: document.getElementById('question2').value,
-                q3: document.getElementById('question3').value
-            };
+        // Interactive Reflection System
+        const STORAGE_KEY = 'principled_stage1_module2_reflections';
 
-            localStorage.setItem('principled_stage1_module2_reflections', JSON.stringify(reflections));
+        // Tab switching
+        function switchReflectionTab(questionNum, level, event) {
+            document.querySelectorAll(`#q${questionNum}-quick, #q${questionNum}-deep`).forEach(panel => {
+                panel.classList.remove('active');
+                panel.setAttribute('aria-hidden', 'true');
+            });
+            event.target.parentElement.querySelectorAll('.reflection-tab').forEach(tab => {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+            const panel = document.getElementById(`q${questionNum}-${level}`);
+            panel.classList.add('active');
+            panel.setAttribute('aria-hidden', 'false');
+            event.target.classList.add('active');
+            event.target.setAttribute('aria-selected', 'true');
+        }
 
-            // Mark module as completed
+        // Q1 - Why Trust Institutions
+        function checkTrust() {
+            const choice = document.getElementById('trust-choice').value;
+            const feedbackDiv = document.getElementById('trust-feedback');
+
+            if (!choice) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
+
+            let feedback = '';
+            if (choice === 'no-alternative') {
+                feedback = `<h5>✓ Correct!</h5><p><strong>Before Bitcoin, there was no credible alternative</strong> to centralized institutions. Gold was too cumbersome for digital payments. Barter doesn't scale. Fiat was the only option despite its inevitable decay.<br><br>Bitcoin is the first <em>trustless</em> alternative: No central authority, no human discretion, no single point of failure. It's not perfect, but it's the first entropy-resistant money humanity has ever had.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else if (choice === 'inertia') {
+                feedback = `<h5>💡 Partially Correct</h5><p>Inertia plays a role, but it's not the full story. <strong>There genuinely were no alternatives</strong> until Bitcoin. Gold doesn't work digitally. Barter doesn't scale. Private currencies get shut down (e.g., Liberty Reserve, e-gold).<br><br>We weren't just "stuck" with institutions — we had <em>no other choice</em>. Bitcoin changed that by creating trustless, decentralized money for the first time.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (choice === 'hope') {
+                feedback = `<h5>⚠️ Optimistic But Naive</h5><p>Regulation cannot fix entropy. <strong>Discretion = Corruption.</strong> Regulators are human. They capture, decay, and serve special interests over time. Adding more oversight just adds more layers to corrupt.<br><br>Bitcoin's insight: Don't try to fix human institutions. <em>Replace discretion with code.</em> Algorithmic rules can't be bribed, lobbied, or corrupted.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (choice === 'unaware') {
+                feedback = `<h5>💡 True, But Not the Full Answer</h5><p>Most people <em>don't</em> understand entropy's inevitability. But even those who do had no alternative until Bitcoin. Awareness without options changes nothing.<br><br>Bitcoin is the first system that offers a real choice: <strong>Algorithmic enforcement</strong> vs. <strong>Human discretion</strong>. Code vs. corruption. Now we have an option.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+
+            feedbackDiv.innerHTML = feedback;
+            feedbackDiv.style.display = 'block';
+            saveReflection('q1-quick', choice);
+        }
+
+        // Q2 - Eliminating Corruption
+        function checkCorruption() {
+            const choice = document.getElementById('corruption-choice').value;
+            const feedbackDiv = document.getElementById('corruption-feedback');
+
+            if (!choice) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
+
+            let feedback = '';
+            if (choice === 'code-only') {
+                feedback = `<h5>✓ Exactly Right!</h5><p><strong>Corruption requires discretion.</strong> If no one has the power to make exceptions, corruption is impossible. Bitcoin's genius: <em>Replace human judgment with algorithmic rules.</em><br><br>No one can print extra bitcoins. No one can freeze your account. No one can change the rules mid-game. The code executes identically for everyone, forever. <strong>No discretion = No corruption.</strong></p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else if (choice === 'no') {
+                feedback = `<h5>💡 Correct Diagnosis, But Incomplete</h5><p>You're right that human discretion creates corruption risk. But there <em>is</em> a solution: <strong>Remove the humans from the loop.</strong><br><br>Bitcoin doesn't rely on "better people" or "better laws." It uses <strong>cryptography and algorithms</strong> to eliminate discretion entirely. Code can't be bribed. Math can't be lobbied. Thermodynamics can't be corrupted.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (choice === 'yes') {
+                feedback = `<h5>⚠️ Too Optimistic</h5><p>Laws and oversight are <em>run by humans</em>. Humans with discretion. And <strong>discretion = corruption surface area.</strong> No matter how strong the laws, they require interpretation, enforcement, and exceptions.<br><br>Bitcoin's approach: Don't trust humans to be incorruptible. <em>Eliminate discretion with code.</em> Algorithmic rules execute identically for everyone, with zero exceptions.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (choice === 'minimize') {
+                feedback = `<h5>💡 Pragmatic, But Not Radical Enough</h5><p>Transparency helps, but it's not enough. <strong>Discretion is the problem.</strong> Even transparent discretion creates corruption (e.g., lobbying is legal bribery in full view).<br><br>Bitcoin eliminates discretion <em>entirely</em>: No one can print money, freeze accounts, or change rules. The system is transparent <em>and</em> unchangeable. That's the breakthrough.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+
+            feedbackDiv.innerHTML = feedback;
+            feedbackDiv.style.display = 'block';
+            saveReflection('q2-quick', choice);
+        }
+
+        // Q3 - Entropy Resistance Checklist
+        function updateEntropyFeedback() {
+            const nodes = document.getElementById('entropy-nodes').checked;
+            const consensus = document.getElementById('entropy-consensus').checked;
+            const transparent = document.getElementById('entropy-transparent').checked;
+            const noDiscretion = document.getElementById('entropy-no-discretion').checked;
+            const pow = document.getElementById('entropy-pow').checked;
+            const immutable = document.getElementById('entropy-immutable').checked;
+
+            const count = [nodes, consensus, transparent, noDiscretion, pow, immutable].filter(Boolean).length;
+            const feedbackDiv = document.getElementById('entropy-feedback');
+
+            if (count === 0) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
+
+            let feedback = '';
+            if (count >= 5) {
+                feedback = `<h5>✓ Comprehensive Understanding!</h5><p>You identified <strong>${count} of 6</strong> entropy-resistance features. Bitcoin's design systematically eliminates single points of failure:<br><br>`;
+                if (nodes) feedback += `<strong>Thousands of nodes:</strong> No CEO, no board, no single server to corrupt<br>`;
+                if (consensus) feedback += `<strong>Consensus rules:</strong> Changes require overwhelming agreement (prevents capture)<br>`;
+                if (transparent) feedback += `<strong>Transparent code:</strong> Anyone can audit; no hidden mechanisms<br>`;
+                if (noDiscretion) feedback += `<strong>No discretion:</strong> Code executes identically for everyone (no exceptions)<br>`;
+                if (pow) feedback += `<strong>Proof-of-work:</strong> Attacks cost real energy (thermodynamic security)<br>`;
+                if (immutable) feedback += `<strong>Immutable ledger:</strong> History can't be rewritten (prevents revisionism)<br>`;
+                feedback += `<br><em>Together, these features make Bitcoin resistant to the institutional decay that corrupts centralized systems.</em></p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else if (count >= 3) {
+                feedback = `<h5>💡 Good Start</h5><p>You identified <strong>${count}</strong> features. Bitcoin combines <em>all six</em> to create entropy resistance:<br><br>1. Decentralization (nodes)<br>2. Consensus (hard to change)<br>3. Transparency (open source)<br>4. No discretion (algorithmic)<br>5. Energy cost (proof-of-work)<br>6. Immutability (permanent history)<br><br>Each one addresses a different failure mode of centralized institutions.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else {
+                feedback = `<h5>💡 Partial Understanding</h5><p>You identified <strong>${count}</strong>, but Bitcoin's entropy resistance comes from <em>all six features working together</em>. Try selecting more to see how they complement each other.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+
+            feedbackDiv.innerHTML = feedback;
+            feedbackDiv.style.display = 'block';
+            saveCheckboxes();
+        }
+
+        // Deep Reflection Auto-save
+        function saveDeepReflection(questionNum, value) {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            reflections[`q${questionNum}-deep`] = value;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
+        }
+
+        // Save checkbox states
+        function saveCheckboxes() {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            reflections['entropy-nodes'] = document.getElementById('entropy-nodes').checked;
+            reflections['entropy-consensus'] = document.getElementById('entropy-consensus').checked;
+            reflections['entropy-transparent'] = document.getElementById('entropy-transparent').checked;
+            reflections['entropy-no-discretion'] = document.getElementById('entropy-no-discretion').checked;
+            reflections['entropy-pow'] = document.getElementById('entropy-pow').checked;
+            reflections['entropy-immutable'] = document.getElementById('entropy-immutable').checked;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
+        }
+
+        // Save dropdown choices
+        function saveReflection(key, value) {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            reflections[key] = value;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
+        }
+
+        // Load saved reflections
+        function loadReflections() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const reflections = JSON.parse(saved);
+
+                // Q1
+                if (reflections['q1-quick']) document.getElementById('trust-choice').value = reflections['q1-quick'];
+                if (reflections['q1-deep']) document.getElementById('trust-deep').value = reflections['q1-deep'];
+
+                // Q2
+                if (reflections['q2-quick']) document.getElementById('corruption-choice').value = reflections['q2-quick'];
+                if (reflections['q2-deep']) document.getElementById('corruption-deep').value = reflections['q2-deep'];
+
+                // Q3 checkboxes
+                if (reflections['entropy-nodes']) document.getElementById('entropy-nodes').checked = true;
+                if (reflections['entropy-consensus']) document.getElementById('entropy-consensus').checked = true;
+                if (reflections['entropy-transparent']) document.getElementById('entropy-transparent').checked = true;
+                if (reflections['entropy-no-discretion']) document.getElementById('entropy-no-discretion').checked = true;
+                if (reflections['entropy-pow']) document.getElementById('entropy-pow').checked = true;
+                if (reflections['entropy-immutable']) document.getElementById('entropy-immutable').checked = true;
+
+                // Trigger feedback display if selections exist
+                if (reflections['q1-quick']) checkTrust();
+                if (reflections['q2-quick']) checkCorruption();
+                updateEntropyFeedback();
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadReflections();
+
+            // Mark module as visited
             let progress = JSON.parse(localStorage.getItem('principled_stage1_progress') || '[]');
             if (!progress.includes('module-2')) {
                 progress.push('module-2');
                 localStorage.setItem('principled_stage1_progress', JSON.stringify(progress));
-            }
-
-            alert('✅ Your reflections have been saved!\n\nModule 2 marked as complete. Continue to Module 3.');
-        }
-
-        // Load saved reflections
-        window.addEventListener('DOMContentLoaded', () => {
-            const saved = localStorage.getItem('principled_stage1_module2_reflections');
-            if (saved) {
-                const reflections = JSON.parse(saved);
-                document.getElementById('question1').value = reflections.q1 || '';
-                document.getElementById('question2').value = reflections.q2 || '';
-                document.getElementById('question3').value = reflections.q3 || '';
             }
         });
     </script>
