@@ -3,37 +3,948 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review: Trust and Consensus | The Principled Path</title>
-    <meta name="description" content="Deeper dive into the trust and consensus problems">
-    <link rel="stylesheet" href="/curriculum/first-principles/inline-styles.css">
+    <title>Module 2.1: The Coordination Problem | The Principled Path</title>
+    <meta name="description" content="Why groups fail to cooperate when incentives reward betrayal.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-gold: #DAA520;
+            --accent-bronze: #8B6F47;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(218, 165, 32, 0.2);
+            --accent-green: #4caf50;
+            --accent-red: #ef4444;
+            --accent-blue: #2196f3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: rgba(218, 165, 32, 0.1);
+            border: 2px solid var(--accent-gold);
+            border-radius: 0.5rem;
+            color: var(--accent-gold);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(218, 165, 32, 0.2);
+            transform: translateX(-3px);
+        }
+
+        /* Module Header */
+        .module-header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: radial-gradient(circle at center, rgba(218, 165, 32, 0.15) 0%, transparent 70%);
+            border-radius: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .module-number {
+            font-size: 1.2rem;
+            color: var(--accent-gold);
+            opacity: 0.7;
+            margin-bottom: 0.5rem;
+        }
+
+        .module-header h1 {
+            font-size: 2.5rem;
+            color: var(--accent-gold);
+            margin-bottom: 1rem;
+        }
+
+        .module-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin: 2rem 0;
+        }
+
+        .content-section h2 {
+            color: var(--accent-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .content-section p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .key-insight {
+            background: rgba(218, 165, 32, 0.1);
+            border-left: 4px solid var(--accent-gold);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0.5rem;
+        }
+
+        .key-insight-title {
+            color: var(--accent-gold);
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        /* Interactive Demo */
+        .demo-section {
+            background: var(--secondary-dark);
+            border: 3px solid var(--accent-gold);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin: 3rem 0;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .demo-header h3 {
+            color: var(--accent-gold);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-description {
+            color: var(--text-dim);
+            font-size: 1.05rem;
+        }
+
+        .demo-canvas {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .players-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .player-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .player-card.you {
+            border-color: var(--accent-blue);
+        }
+
+        .player-card.opponent {
+            border-color: var(--accent-red);
+        }
+
+        .player-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            margin-bottom: 1rem;
+        }
+
+        .player-score {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        .player-score.you {
+            color: var(--accent-blue);
+        }
+
+        .player-score.opponent {
+            color: var(--accent-red);
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .choice-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .choice-button {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--accent-green), #8bc34a);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .choice-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .choice-button.betray {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .choice-button.betray:hover {
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .choice-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .payoff-matrix {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .payoff-matrix h4 {
+            color: var(--accent-gold);
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .matrix-table th,
+        .matrix-table td {
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .matrix-table th {
+            background: rgba(218, 165, 32, 0.2);
+            color: var(--accent-gold);
+            font-weight: 700;
+        }
+
+        .matrix-table td {
+            font-size: 1.1rem;
+        }
+
+        .payoff {
+            display: block;
+            margin: 0.25rem 0;
+        }
+
+        .payoff.you {
+            color: var(--accent-blue);
+        }
+
+        .payoff.opponent {
+            color: var(--accent-red);
+        }
+
+        .round-history {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .round-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+        }
+
+        .demo-controls {
+            display: grid;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .demo-button {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze));
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(218, 165, 32, 0.4);
+        }
+
+        .demo-button.secondary {
+            background: rgba(218, 165, 32, 0.2);
+            border: 2px solid var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        .demo-output {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            min-height: 80px;
+        }
+
+        .output-message {
+            color: var(--text-light);
+            font-size: 1.05rem;
+            margin: 0.5rem 0;
+        }
+
+        /* Socratic Questions */
+        .socratic-section {
+            background: linear-gradient(135deg, rgba(218, 165, 32, 0.1), rgba(139, 111, 71, 0.1));
+            border: 2px solid var(--accent-gold);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin: 3rem 0;
+        }
+
+        .socratic-section h3 {
+            color: var(--accent-gold);
+            font-size: 1.6rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .question-card {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .question-number {
+            color: var(--accent-gold);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            line-height: 1.7;
+        }
+
+        .reflection-area {
+            width: 100%;
+            min-height: 100px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+        }
+
+        .reflection-area:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+
+        /* Navigation Footer */
+        .module-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 3rem 0;
+            padding: 2rem;
+            background: var(--secondary-dark);
+            border-radius: 1rem;
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze));
+            color: white;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(218, 165, 32, 0.4);
+        }
+
+        .progress-indicator {
+            text-align: center;
+            color: var(--text-dim);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .players-display {
+                grid-template-columns: 1fr;
+            }
+
+            .choice-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .module-header h1 {
+                font-size: 2rem;
+            }
+
+            .module-nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
+        <!-- Navigation -->
+        <div class="nav-buttons">
+            <a href="/paths/principled/stage-2/" class="back-button">
+                ← Back to Stage 2
+            </a>
+        </div>
+
+        <!-- Module Header -->
         <header class="module-header">
-            <div class="breadcrumb">
-                <a href="/">Home</a> →
-                <a href="/paths/principled/">The Principled Path</a> →
-                <a href="/paths/principled/stage-2/">Stage 2</a> →
-                <span>Module 1</span>
-            </div>
-            <h1>Review: Trust and Consensus</h1>
+            <div class="module-number">Stage 2 • Module 1</div>
+            <h1>The Coordination Problem</h1>
+            <p class="module-subtitle">When incentives reward betrayal, cooperation fails</p>
         </header>
 
-        <main>
-            <div class="principle-content">
-                <div class="insight-box">
-                    <p>Content for Principle 2-3 will be extracted from the first-principles curriculum.</p>
-                    <p><em>This is a placeholder file. Full content extraction pending.</em></p>
+        <!-- Introduction -->
+        <section class="content-section">
+            <h2>The Prisoner's Dilemma</h2>
+            <p>
+                Two criminals are arrested. The police lack evidence to convict either one on the main charge,
+                but they can convict both on a lesser charge. The police offer each prisoner a deal:
+            </p>
+            <p>
+                <strong>If you betray your partner (testify against them) and they stay silent:</strong> You go free, they get 10 years.<br>
+                <strong>If you both betray each other:</strong> You each get 5 years.<br>
+                <strong>If you both stay silent:</strong> You each get 1 year (on the lesser charge).
+            </p>
+            <p>
+                The rational choice for <em>each individual</em> is to betray — no matter what the other does.
+                But if both follow this logic, they both get 5 years. If they could trust each other to cooperate,
+                they'd each only get 1 year.
+            </p>
+
+            <div class="key-insight">
+                <div class="key-insight-title">🤝 Core Principle</div>
+                <p>
+                    When individual incentives conflict with collective benefit, cooperation breaks down.
+                    This isn't a moral failing — it's rational behavior under perverse incentives.
+                    Systems that rely on trust collapse when betrayal is rewarded.
+                </p>
+            </div>
+        </section>
+
+        <!-- The Problem -->
+        <section class="content-section">
+            <h2>Why Groups Fail to Cooperate</h2>
+            <p>
+                The Prisoner's Dilemma isn't just a thought experiment. It describes countless real-world failures:
+            </p>
+            <p>
+                <strong>Banking crises:</strong> Every bank knows that if all banks lend conservatively, the system is stable.
+                But any single bank can profit by taking more risk — until everyone does, causing collapse.<br><br>
+
+                <strong>Environmental degradation:</strong> Factories know pollution hurts everyone. But the factory that pollutes
+                less loses competitive advantage. So everyone pollutes.<br><br>
+
+                <strong>Currency debasement:</strong> Governments know inflation hurts citizens. But the government that
+                prints money first gets the benefit. So all governments print, and all currencies degrade.
+            </p>
+
+            <div class="key-insight">
+                <div class="key-insight-title">💔 The Trust Trap</div>
+                <p>
+                    "Just trust everyone to do the right thing" isn't a solution — it's wishful thinking.
+                    When betrayal is profitable and unpunished, betrayal becomes inevitable. You can't build
+                    durable systems on voluntary cooperation when incentives reward defection.
+                </p>
+            </div>
+        </section>
+
+        <!-- Interactive Demo -->
+        <section class="demo-section">
+            <div class="demo-header">
+                <h3>🎮 Interactive Lab: Play the Prisoner's Dilemma</h3>
+                <p class="demo-description">
+                    You're playing against a rational opponent. Each round, you choose: cooperate or betray.
+                    See what happens when both players pursue their own self-interest.
+                </p>
+            </div>
+
+            <div class="demo-canvas">
+                <!-- Payoff Matrix -->
+                <div class="payoff-matrix">
+                    <h4>Payoff Matrix (Points Per Round)</h4>
+                    <table class="matrix-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Opponent Cooperates</th>
+                                <th>Opponent Betrays</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>You Cooperate</th>
+                                <td>
+                                    <span class="payoff you">You: +3</span>
+                                    <span class="payoff opponent">Opponent: +3</span>
+                                </td>
+                                <td>
+                                    <span class="payoff you">You: 0</span>
+                                    <span class="payoff opponent">Opponent: +5</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>You Betray</th>
+                                <td>
+                                    <span class="payoff you">You: +5</span>
+                                    <span class="payoff opponent">Opponent: 0</span>
+                                </td>
+                                <td>
+                                    <span class="payoff you">You: +1</span>
+                                    <span class="payoff opponent">Opponent: +1</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
-                <div class="module-navigation">
-                    <a href="../stage-2/" class="nav-btn nav-btn-secondary">← Back to Stage 2</a>
-                    <a href="module-2.html" class="nav-btn">Continue →</a>
+                <!-- Players Display -->
+                <div class="players-display">
+                    <div class="player-card you">
+                        <div class="player-name">You</div>
+                        <div class="player-score you" id="yourScore">0</div>
+                        <div class="score-label">Total Points</div>
+                    </div>
+
+                    <div class="player-card opponent">
+                        <div class="player-name">Opponent</div>
+                        <div class="player-score opponent" id="opponentScore">0</div>
+                        <div class="score-label">Total Points</div>
+                    </div>
+                </div>
+
+                <!-- Choice Buttons -->
+                <div class="choice-buttons">
+                    <button class="choice-button" onclick="makeChoice('cooperate')">
+                        🤝 Cooperate
+                    </button>
+                    <button class="choice-button betray" onclick="makeChoice('betray')">
+                        💔 Betray
+                    </button>
+                </div>
+
+                <!-- Round History -->
+                <div class="round-history" id="roundHistory">
+                    <div style="text-align: center; color: var(--text-dim);">
+                        Make your first choice to begin...
+                    </div>
+                </div>
+
+                <div class="demo-controls">
+                    <button class="demo-button secondary" onclick="resetGame()">
+                        🔄 Reset Game
+                    </button>
+                </div>
+
+                <div class="demo-output" id="demoOutput">
+                    <div class="output-message">Choose cooperate or betray to start playing...</div>
                 </div>
             </div>
-        </main>
+
+            <div class="key-insight">
+                <div class="key-insight-title">💡 What You're Seeing</div>
+                <p>
+                    The rational strategy is to always betray — it gives you a better outcome regardless of what
+                    your opponent does. But when both players follow this logic, both end up worse off than if they'd
+                    cooperated. Bitcoin solves this by removing the need for trust: rules are enforced automatically,
+                    making cooperation the only viable strategy.
+                </p>
+            </div>
+        </section>
+
+        <!-- Bitcoin's Solution -->
+        <section class="content-section">
+            <h2>Bitcoin: Making Cooperation Nash Equilibrium</h2>
+            <p>
+                Bitcoin doesn't ask miners to "be good." It doesn't rely on trust or voluntary cooperation.
+                Instead, it changes the incentives so that <strong>following the rules is the most profitable strategy</strong>.
+            </p>
+            <p>
+                If you try to cheat (create invalid blocks, double-spend), the network rejects your work automatically.
+                You waste electricity and earn nothing. But if you play by the rules, you earn block rewards.
+            </p>
+            <p>
+                This transforms the coordination problem into a solved game: <strong>cooperation is now the Nash equilibrium</strong>.
+                You can't do better by defecting, so everyone cooperates — not out of altruism, but rational self-interest.
+            </p>
+
+            <div class="key-insight">
+                <div class="key-insight-title">₿ Bitcoin's Elegant Solution</div>
+                <p>
+                    Bitcoin doesn't eliminate selfish behavior — it harnesses it. By aligning individual profit with
+                    network security, Bitcoin turns the Prisoner's Dilemma on its head. The rational choice is now
+                    to cooperate, because cheating is automatically punished and honesty is automatically rewarded.
+                </p>
+            </div>
+        </section>
+
+        <!-- Socratic Questions -->
+        <section class="socratic-section">
+            <h3>💬 Reflect on What You've Learned</h3>
+            <p style="text-align: center; color: var(--text-dim); margin-bottom: 2rem;">
+                Take a moment to think deeply about these questions. Your answers will be saved locally.
+            </p>
+
+            <div class="question-card">
+                <div class="question-number">Question 1</div>
+                <div class="question-text">
+                    If rational individuals always betray in the Prisoner's Dilemma, how can any group cooperation exist?
+                    What conditions make cooperation possible despite perverse incentives?
+                </div>
+                <textarea class="reflection-area" id="question1" placeholder="Type your thoughts here..."></textarea>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 2</div>
+                <div class="question-text">
+                    Can you think of real-world examples where individual incentives conflict with collective benefit?
+                    Why do these systems fail, and what would it take to fix them?
+                </div>
+                <textarea class="reflection-area" id="question2" placeholder="Type your thoughts here..."></textarea>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 3</div>
+                <div class="question-text">
+                    How does Bitcoin change the payoff matrix so that cooperation becomes the rational choice?
+                    What role does automatic enforcement play in solving coordination problems?
+                </div>
+                <textarea class="reflection-area" id="question3" placeholder="Type your thoughts here..."></textarea>
+            </div>
+
+            <button class="demo-button" onclick="saveReflections()" style="margin-top: 1.5rem; width: 100%;">
+                💾 Save My Reflections
+            </button>
+        </section>
+
+        <!-- Module Navigation -->
+        <nav class="module-nav">
+            <a href="/paths/principled/stage-2/" class="nav-link">
+                ← Back to Stage 2
+            </a>
+            <div class="progress-indicator">
+                Module 1 of 3 • Stage 2 of 5
+            </div>
+            <a href="/paths/principled/stage-2/module-2.html" class="nav-link">
+                Next: The Corruption Curve →
+            </a>
+        </nav>
     </div>
-    
-    <script src="/curriculum/first-principles/interactions.js"></script>
+
+    <script>
+        // Game State
+        let gameState = {
+            yourScore: 0,
+            opponentScore: 0,
+            round: 0,
+            history: []
+        };
+
+        // Opponent strategies (mix of tit-for-tat and occasional betrayal)
+        const opponentStrategies = ['cooperate', 'betray', 'tit-for-tat'];
+        let currentStrategy = 'tit-for-tat';
+        let lastYourChoice = null;
+
+        function getOpponentChoice() {
+            if (currentStrategy === 'cooperate') {
+                return 'cooperate';
+            } else if (currentStrategy === 'betray') {
+                return Math.random() > 0.3 ? 'betray' : 'cooperate';
+            } else { // tit-for-tat
+                if (lastYourChoice === null) {
+                    return 'cooperate';
+                }
+                // Copy your last move
+                return lastYourChoice;
+            }
+        }
+
+        function makeChoice(yourChoice) {
+            gameState.round++;
+            const opponentChoice = getOpponentChoice();
+
+            // Calculate payoffs
+            let yourPoints = 0;
+            let opponentPoints = 0;
+
+            if (yourChoice === 'cooperate' && opponentChoice === 'cooperate') {
+                yourPoints = 3;
+                opponentPoints = 3;
+            } else if (yourChoice === 'cooperate' && opponentChoice === 'betray') {
+                yourPoints = 0;
+                opponentPoints = 5;
+            } else if (yourChoice === 'betray' && opponentChoice === 'cooperate') {
+                yourPoints = 5;
+                opponentPoints = 0;
+            } else { // both betray
+                yourPoints = 1;
+                opponentPoints = 1;
+            }
+
+            gameState.yourScore += yourPoints;
+            gameState.opponentScore += opponentPoints;
+
+            // Update displays
+            document.getElementById('yourScore').textContent = gameState.yourScore;
+            document.getElementById('opponentScore').textContent = gameState.opponentScore;
+
+            // Add to history
+            gameState.history.push({
+                round: gameState.round,
+                yourChoice,
+                opponentChoice,
+                yourPoints,
+                opponentPoints
+            });
+
+            updateHistory();
+            analyzeRound(yourChoice, opponentChoice, yourPoints, opponentPoints);
+
+            // Store last choice for opponent strategy
+            lastYourChoice = yourChoice;
+
+            // Occasionally switch opponent strategy
+            if (gameState.round % 5 === 0 && Math.random() > 0.6) {
+                currentStrategy = opponentStrategies[Math.floor(Math.random() * opponentStrategies.length)];
+            }
+        }
+
+        function updateHistory() {
+            const historyDiv = document.getElementById('roundHistory');
+
+            if (gameState.history.length === 0) {
+                historyDiv.innerHTML = '<div style="text-align: center; color: var(--text-dim);">Make your first choice to begin...</div>';
+                return;
+            }
+
+            let html = '';
+            // Show last 5 rounds
+            const recentHistory = gameState.history.slice(-5).reverse();
+
+            recentHistory.forEach(round => {
+                const yourChoiceIcon = round.yourChoice === 'cooperate' ? '🤝' : '💔';
+                const opponentChoiceIcon = round.opponentChoice === 'cooperate' ? '🤝' : '💔';
+
+                html += `
+                    <div class="round-item">
+                        <span>Round ${round.round}</span>
+                        <span>You: ${yourChoiceIcon} (+${round.yourPoints})</span>
+                        <span>Opponent: ${opponentChoiceIcon} (+${round.opponentPoints})</span>
+                    </div>
+                `;
+            });
+
+            historyDiv.innerHTML = html;
+        }
+
+        function analyzeRound(yourChoice, opponentChoice, yourPoints, opponentPoints) {
+            const output = document.getElementById('demoOutput');
+            let message = '';
+
+            if (yourChoice === 'cooperate' && opponentChoice === 'cooperate') {
+                message = `
+                    <div class="output-message" style="color: var(--accent-green);">
+                        ✅ Mutual Cooperation
+                    </div>
+                    <div class="output-message">
+                        Round ${gameState.round}: Both cooperated. You each earned +3 points.
+                        This is the best collective outcome, but individually risky.
+                    </div>
+                `;
+            } else if (yourChoice === 'cooperate' && opponentChoice === 'betray') {
+                message = `
+                    <div class="output-message" style="color: var(--accent-red);">
+                        🚨 You Were Betrayed!
+                    </div>
+                    <div class="output-message">
+                        Round ${gameState.round}: You cooperated, opponent betrayed. You earned 0, they earned +5.
+                        This is why cooperation fails without enforcement — betrayal is rewarded.
+                    </div>
+                `;
+            } else if (yourChoice === 'betray' && opponentChoice === 'cooperate') {
+                message = `
+                    <div class="output-message" style="color: #ffaa00;">
+                        💰 You Exploited Cooperation
+                    </div>
+                    <div class="output-message">
+                        Round ${gameState.round}: You betrayed, opponent cooperated. You earned +5, they earned 0.
+                        Short-term gain, but destroys future cooperation.
+                    </div>
+                `;
+            } else { // both betray
+                message = `
+                    <div class="output-message" style="color: var(--accent-red);">
+                        💔 Mutual Betrayal
+                    </div>
+                    <div class="output-message">
+                        Round ${gameState.round}: Both betrayed. You each earned +1.
+                        Worse than mutual cooperation, but rational given the incentives.
+                    </div>
+                `;
+            }
+
+            // Add overall analysis
+            if (gameState.round >= 5) {
+                const avgYour = (gameState.yourScore / gameState.round).toFixed(1);
+                const avgOpp = (gameState.opponentScore / gameState.round).toFixed(1);
+                message += `
+                    <div class="output-message" style="margin-top: 1rem; color: var(--text-dim);">
+                        Average per round: You: ${avgYour} pts, Opponent: ${avgOpp} pts.
+                        ${avgYour < 2.5 ? 'Too much betrayal is hurting both of you.' : 'Good cooperation balance!'}
+                    </div>
+                `;
+            }
+
+            output.innerHTML = message;
+        }
+
+        function resetGame() {
+            gameState = {
+                yourScore: 0,
+                opponentScore: 0,
+                round: 0,
+                history: []
+            };
+
+            lastYourChoice = null;
+            currentStrategy = 'tit-for-tat';
+
+            document.getElementById('yourScore').textContent = '0';
+            document.getElementById('opponentScore').textContent = '0';
+            updateHistory();
+
+            document.getElementById('demoOutput').innerHTML = `
+                <div class="output-message">Game reset. Choose cooperate or betray to start playing...</div>
+            `;
+        }
+
+        // Save reflections
+        function saveReflections() {
+            const reflections = {
+                module: 'stage2-module1',
+                timestamp: new Date().toISOString(),
+                q1: document.getElementById('question1').value,
+                q2: document.getElementById('question2').value,
+                q3: document.getElementById('question3').value
+            };
+
+            localStorage.setItem('principled_stage2_module1_reflections', JSON.stringify(reflections));
+
+            // Mark module as completed
+            let progress = JSON.parse(localStorage.getItem('principled_stage2_progress') || '[]');
+            if (!progress.includes('module-1')) {
+                progress.push('module-1');
+                localStorage.setItem('principled_stage2_progress', JSON.stringify(progress));
+            }
+
+            alert('✅ Your reflections have been saved!\n\nModule 1 marked as complete. Continue to Module 2.');
+        }
+
+        // Load saved reflections
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('principled_stage2_module1_reflections');
+            if (saved) {
+                const reflections = JSON.parse(saved);
+                document.getElementById('question1').value = reflections.q1 || '';
+                document.getElementById('question2').value = reflections.q2 || '';
+                document.getElementById('question3').value = reflections.q3 || '';
+            }
+        });
+    </script>
 </body>
 </html>
