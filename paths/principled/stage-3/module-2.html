@@ -318,6 +318,138 @@
             outline: none;
             border-color: var(--accent-bronze);
         }
+
+        /* Interactive Reflection System */
+        .reflection-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid rgba(139, 111, 71, 0.2);
+            padding-bottom: 0.5rem;
+        }
+        .reflection-tab {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            padding: 0.5rem 1rem;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .reflection-tab:hover {
+            color: var(--accent-bronze-light);
+            background: rgba(139, 111, 71, 0.1);
+        }
+        .reflection-tab.active {
+            color: var(--accent-bronze);
+            background: rgba(139, 111, 71, 0.15);
+        }
+        .reflection-panel {
+            display: none;
+        }
+        .reflection-panel.active {
+            display: block;
+        }
+        .choice-select {
+            width: 100%;
+            background: var(--primary-dark);
+            border: 2px solid rgba(139, 111, 71, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--text-light);
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        .choice-select:focus {
+            outline: none;
+            border-color: var(--accent-bronze);
+        }
+        .feedback-btn {
+            background: linear-gradient(135deg, var(--accent-bronze), var(--accent-bronze-light));
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .feedback-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 111, 71, 0.4);
+        }
+        .feedback-box {
+            background: rgba(45, 45, 45, 0.8);
+            border-left: 4px solid var(--accent-bronze);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        .feedback-box.positive {
+            border-left-color: var(--success-green);
+        }
+        .feedback-box.hint {
+            border-left-color: #f39c12;
+        }
+        .feedback-box h5 {
+            color: var(--accent-bronze);
+            margin: 0 0 0.75rem 0;
+            font-size: 1.05rem;
+        }
+        .feedback-box.positive h5 {
+            color: var(--success-green);
+        }
+        .feedback-box.hint h5 {
+            color: #f39c12;
+        }
+        .checklist-reflection {
+            background: rgba(26, 26, 26, 0.6);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px solid rgba(139, 111, 71, 0.2);
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+        }
+        .checkbox-label:hover {
+            background: rgba(139, 111, 71, 0.1);
+        }
+        .checkbox-label input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            margin-top: 0.15rem;
+        }
+        .save-indicator {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+        @media (max-width: 480px) {
+            .reflection-tabs {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+            .reflection-tab {
+                width: 100%;
+                text-align: center;
+                border-radius: 6px;
+            }
+            .question-box {
+                padding: 1.5rem;
+            }
+        }
         .next-module {
             text-align: center;
             margin-top: 3rem;
@@ -648,37 +780,131 @@
 
         <!-- Socratic Reflection -->
         <div class="reflection-section">
-            <h2>💭 Reflect on What You've Learned</h2>
+            <h2>🤔 Test Your Understanding</h2>
             <p style="text-align: center; color: var(--text-dim); margin-bottom: 2rem;">
-                Take a moment to think deeply about ledgers, trust, and civilization.
-                Your reflections are saved automatically.
+                Answer at your own depth—quick thoughts or deep analysis. Get instant feedback on your grasp of the concepts.
             </p>
 
+            <!-- Question 1: Historical Pattern -->
             <div class="question-box">
                 <h3>Question 1: Historical Pattern</h3>
                 <p style="color: var(--text-dim); margin-bottom: 1rem;">
                     Throughout history, ledger upgrades increased speed and scale but decreased decentralization.
-                    Why do you think centralization happened? What incentives drove it?
+                    Why did centralization happen?
                 </p>
-                <textarea id="question1" placeholder="Type your reflection here..."></textarea>
+
+                <div class="reflection-tabs">
+                    <button class="reflection-tab active" onclick="switchReflectionTab(1, 'quick', event)" role="tab">⚡ Quick (1-2 min)</button>
+                    <button class="reflection-tab" onclick="switchReflectionTab(1, 'deep', event)" role="tab">🎯 Deep (5 min)</button>
+                </div>
+
+                <div id="q1-quick" class="reflection-panel active">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim);">
+                        Which incentive drove centralization the most?
+                    </label>
+                    <select id="question1-choice" class="choice-select">
+                        <option value="">Select your answer...</option>
+                        <option value="efficiency">Efficiency: Faster transactions with one authority</option>
+                        <option value="control">Control: Governments/banks wanted power over money</option>
+                        <option value="technology">Technology: Couldn't build decentralized systems yet</option>
+                        <option value="all">All of the above worked together</option>
+                    </select>
+                    <button class="feedback-btn" onclick="checkReflection(1, 'quick')">Check Answer</button>
+                    <div id="feedback1-quick" class="feedback-box" style="display: none;"></div>
+                </div>
+
+                <div id="q1-deep" class="reflection-panel">
+                    <textarea id="question1-deep" placeholder="Deeper analysis: Explain the trade-off between efficiency and trust. Why did societies accept centralization despite the risks?" style="min-height: 150px;"></textarea>
+                    <button class="feedback-btn" onclick="checkReflection(1, 'deep')">Get Feedback</button>
+                    <div id="feedback1-deep" class="feedback-box" style="display: none;"></div>
+                </div>
+                <div class="save-indicator">✓ Auto-saved locally</div>
             </div>
 
+            <!-- Question 2: Trust Layers -->
             <div class="question-box">
                 <h3>Question 2: Trust Layers</h3>
                 <p style="color: var(--text-dim); margin-bottom: 1rem;">
-                    In a centralized database, you must trust the database administrator, the company, the government,
-                    and the laws protecting your rights. How many layers of trust do you need with Bitcoin? Why is this significant?
+                    Count the trust layers: How many do you need with centralized systems vs. Bitcoin?
                 </p>
-                <textarea id="question2" placeholder="Type your reflection here..."></textarea>
+
+                <div class="reflection-tabs">
+                    <button class="reflection-tab active" onclick="switchReflectionTab(2, 'quick', event)" role="tab">⚡ Quick (1-2 min)</button>
+                    <button class="reflection-tab" onclick="switchReflectionTab(2, 'deep', event)" role="tab">🎯 Deep (5 min)</button>
+                </div>
+
+                <div id="q2-quick" class="reflection-panel active">
+                    <div style="background: rgba(26, 26, 26, 0.6); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h4 style="color: var(--accent-bronze); margin-top: 0;">Centralized Database:</h4>
+                        <div class="checklist-reflection" style="background: transparent; padding: 0; border: none;">
+                            <label class="checkbox-label"><input type="checkbox" disabled checked> Database administrator</label>
+                            <label class="checkbox-label"><input type="checkbox" disabled checked> Company/organization</label>
+                            <label class="checkbox-label"><input type="checkbox" disabled checked> Government regulations</label>
+                            <label class="checkbox-label"><input type="checkbox" disabled checked> Legal system</label>
+                            <label class="checkbox-label"><input type="checkbox" disabled checked> Infrastructure providers</label>
+                        </div>
+                        <p style="margin: 1rem 0 0 0; color: var(--primary-orange); font-weight: 600;">= 5+ layers of trust</p>
+                    </div>
+
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim); font-weight: 600;">
+                        How many trust layers does Bitcoin require?
+                    </label>
+                    <select id="question2-choice" class="choice-select">
+                        <option value="">Select your answer...</option>
+                        <option value="0">0 - Completely trustless</option>
+                        <option value="1">1 - Trust Bitcoin's code/network</option>
+                        <option value="2-3">2-3 - Code + some infrastructure</option>
+                        <option value="same">Same as centralized systems</option>
+                    </select>
+                    <button class="feedback-btn" onclick="checkReflection(2, 'quick')">Check Answer</button>
+                    <div id="feedback2-quick" class="feedback-box" style="display: none;"></div>
+                </div>
+
+                <div id="q2-deep" class="reflection-panel">
+                    <textarea id="question2-deep" placeholder="Explain: What specific trust assumptions does Bitcoin eliminate? What trust assumptions remain (if any)? Why is minimizing trust important?" style="min-height: 150px;"></textarea>
+                    <button class="feedback-btn" onclick="checkReflection(2, 'deep')">Get Feedback</button>
+                    <div id="feedback2-deep" class="feedback-box" style="display: none;"></div>
+                </div>
+                <div class="save-indicator">✓ Auto-saved locally</div>
             </div>
 
+            <!-- Question 3: Civilization's Memory -->
             <div class="question-box">
                 <h3>Question 3: Civilization's Memory</h3>
                 <p style="color: var(--text-dim); margin-bottom: 1rem;">
-                    If a civilization's ledger can be altered or erased, what happens to property rights, contracts,
-                    and history itself? Why is immutability valuable even if it means mistakes can't be undone?
+                    If a civilization's ledger can be altered or erased, what happens?
                 </p>
-                <textarea id="question3" placeholder="Type your reflection here..."></textarea>
+
+                <div class="checklist-reflection">
+                    <p style="color: var(--text-dim); font-size: 0.95rem; margin-bottom: 1rem;">Select the consequences of mutable ledgers:</p>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="consequence-property" onchange="updateConsequenceFeedback()">
+                        Property rights become uncertain (who owns what?)
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="consequence-contracts" onchange="updateConsequenceFeedback()">
+                        Contracts can be retroactively changed
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="consequence-history" onchange="updateConsequenceFeedback()">
+                        Historical truth can be rewritten
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="consequence-power" onchange="updateConsequenceFeedback()">
+                        Power concentrates in whoever controls the ledger
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="consequence-innovation" onchange="updateConsequenceFeedback()">
+                        Innovation improves—mistakes can be fixed easily
+                    </label>
+                </div>
+                <div id="feedback3" class="feedback-box" style="display: none; margin-top: 1rem;"></div>
+
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid rgba(139, 111, 71, 0.2);">
+                    <h4 style="color: var(--accent-bronze); margin-bottom: 1rem;">🎯 Deep Reflection (Optional)</h4>
+                    <textarea id="question3-deep" placeholder="Why is immutability valuable even if it means mistakes can't be undone? When is the trade-off worth it?" style="min-height: 120px;"></textarea>
+                </div>
+                <div class="save-indicator">✓ Auto-saved locally</div>
             </div>
         </div>
 
@@ -882,40 +1108,215 @@
             document.getElementById(`${tab}-panel`).classList.add('active');
         }
 
-        // ===== Reflection Questions with localStorage =====
+        // ===== Interactive Reflection System =====
         const STORAGE_KEY = 'principled-stage3-module2-reflections';
 
-        function saveReflection(questionNum, value) {
+        function switchReflectionTab(questionNum, level, event) {
+            document.querySelectorAll(`#q${questionNum}-quick, #q${questionNum}-deep`).forEach(panel => {
+                panel.classList.remove('active');
+                panel.setAttribute('aria-hidden', 'true');
+            });
+            event.target.parentElement.querySelectorAll('.reflection-tab').forEach(tab => {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+            const panel = document.getElementById(`q${questionNum}-${level}`);
+            panel.classList.add('active');
+            panel.setAttribute('aria-hidden', 'false');
+            event.target.classList.add('active');
+            event.target.setAttribute('aria-selected', 'true');
+        }
+
+        function checkReflection(questionNum, level) {
+            const feedbackDiv = document.getElementById(`feedback${questionNum}-${level}`);
+
+            if (questionNum === 1 && level === 'quick') {
+                const choice = document.getElementById('question1-choice').value;
+                let feedback = '';
+
+                if (!choice) {
+                    feedback = `<h5>Select an Answer</h5><p>Choose what you think drove centralization in ledger systems.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else if (choice === 'all') {
+                    feedback = `<h5>✓ Excellent!</h5><p>You identified the full picture. All three factors worked together: (1) <strong>Efficiency</strong> was the obvious benefit, (2) <strong>Control</strong> was the political motivation, and (3) <strong>Technology</strong> limited alternatives until cryptography + internet made decentralization possible.</p><p style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(139, 111, 71, 0.3);"><strong>Key Insight:</strong> Bitcoin didn't just choose decentralization—it became <em>possible</em> for the first time in history.</p>`;
+                    feedbackDiv.className = 'feedback-box positive';
+                } else if (choice === 'technology') {
+                    feedback = `<h5>✓ Good Insight!</h5><p>Technology limitations were huge! Pre-internet and pre-cryptography, decentralized ledgers were impossible. But don't underestimate <em>incentives</em>—even with the tech, centralized parties had reasons to maintain control.</p><p style="color: var(--text-dim); margin-top: 0.5rem;">Hint: The complete answer involves efficiency, control, AND technology working together.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else {
+                    feedback = `<h5>Partially Correct</h5><p>You're right that ${choice} played a role. But it's not the full story. All three factors—efficiency, control, and technology—combined to drive centralization. Try selecting "All of the above".</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                }
+
+                feedbackDiv.innerHTML = feedback;
+                feedbackDiv.style.display = 'block';
+                saveReflection('q1-choice', choice);
+            }
+
+            if (questionNum === 1 && level === 'deep') {
+                const text = document.getElementById('question1-deep').value.toLowerCase();
+                let feedback = '';
+
+                if (text.length < 100) {
+                    feedback = `<h5>💡 Expand Your Thinking</h5><p>Try exploring: (1) What efficiency gains did centralization provide? (2) What control did institutions want? (3) Why couldn't decentralized systems exist before Bitcoin?</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else {
+                    const hasEfficiency = text.match(/\b(fast|speed|efficient|scale|throughput|convenience)\b/);
+                    const hasControl = text.match(/\b(control|power|authority|government|bank|regulate|monopoly)\b/);
+                    const hasTechnology = text.match(/\b(technolog|internet|crypto|compute|possible|feasible)\b/);
+                    const score = [hasEfficiency, hasControl, hasTechnology].filter(Boolean).length;
+
+                    if (score === 3) {
+                        feedback = `<h5>✓ Comprehensive Analysis!</h5><p>You've identified all three dimensions! Centralization happened because: (1) it was <em>faster</em>, (2) institutions <em>wanted</em> control, and (3) the technology for decentralized alternatives <em>didn't exist yet</em>. Bitcoin represents a historical breakthrough—the first time all three can be overcome simultaneously.</p>`;
+                        feedbackDiv.className = 'feedback-box positive';
+                    } else if (score === 2) {
+                        feedback = `<h5>✓ Good Analysis</h5><p>You covered ${score} of 3 key factors. ${!hasEfficiency ? 'Add: Why centralization was <em>efficient</em> (one database = faster than consensus). ' : ''}${!hasControl ? 'Add: Why institutions <em>wanted</em> control over money. ' : ''}${!hasTechnology ? 'Add: Why decentralization was <em>technically impossible</em> before cryptography + internet.' : ''}</p>`;
+                        feedbackDiv.className = 'feedback-box hint';
+                    } else {
+                        feedback = `<h5>Keep Developing</h5><p>Think about the trade-off: centralized ledgers were fast and convenient, but required trusting powerful intermediaries. Before Bitcoin, there was no alternative.</p>`;
+                        feedbackDiv.className = 'feedback-box hint';
+                    }
+                }
+
+                feedbackDiv.innerHTML = feedback;
+                feedbackDiv.style.display = 'block';
+                saveReflection('q1-deep', text);
+            }
+
+            if (questionNum === 2 && level === 'quick') {
+                const choice = document.getElementById('question2-choice').value;
+                let feedback = '';
+
+                if (!choice) {
+                    feedback = `<h5>Select an Answer</h5><p>Count carefully—how many entities do you need to trust with Bitcoin?</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else if (choice === '1') {
+                    feedback = `<h5>✓ Nuanced Understanding!</h5><p>You recognize that Bitcoin isn't <em>completely</em> trustless—you do need to trust that: (1) The cryptographic algorithms work, (2) The network stays decentralized, (3) The majority of hashpower remains honest. But this is <strong>1 trust layer</strong> (the protocol itself) versus <strong>5+ layers</strong> with centralized systems. Huge reduction!</p><p style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(139, 111, 71, 0.3);"><strong>Key:</strong> Bitcoin minimizes trust, not eliminates it. The trust you need is in <em>math and incentives</em>, not <em>people and institutions</em>.</p>`;
+                    feedbackDiv.className = 'feedback-box positive';
+                } else if (choice === '0') {
+                    feedback = `<h5>Almost!</h5><p>While Bitcoin is often called "trustless," you technically do trust: (1) the cryptographic algorithms (SHA-256, ECDSA), (2) that the network stays decentralized, (3) that miners follow incentives. But these are <em>systemic</em> truths, not <em>institutional</em> truths. The better answer is <strong>1 trust layer</strong>—the protocol itself.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else if (choice === '2-3') {
+                    feedback = `<h5>Rethink It</h5><p>What specific entities do you think you need to trust with Bitcoin? If you're thinking of wallet software, nodes, or internet—those are <em>tools</em>, not <em>trust requirements</em>. You can verify everything yourself. The answer is closer to <strong>1</strong>—just the protocol/network.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else {
+                    feedback = `<h5>❌ Not Quite</h5><p>Bitcoin dramatically reduces trust! With centralized systems, you trust: admin, company, government, laws, infrastructure (5+ layers). With Bitcoin, you only trust the protocol itself—that the math works and incentives hold. That's <strong>1 layer</strong>.</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                }
+
+                feedbackDiv.innerHTML = feedback;
+                feedbackDiv.style.display = 'block';
+                saveReflection('q2-choice', choice);
+            }
+
+            if (questionNum === 2 && level === 'deep') {
+                const text = document.getElementById('question2-deep').value;
+                let feedback = '';
+
+                if (text.length < 100) {
+                    feedback = `<h5>💡 Go Deeper</h5><p>Consider: What specific trust assumptions does Bitcoin eliminate? (Hint: administrators, companies, governments). What trust remains? (Hint: math, incentives, decentralization). Why does this matter?</p>`;
+                    feedbackDiv.className = 'feedback-box hint';
+                } else {
+                    const eliminates = text.toLowerCase().match(/\b(eliminat|remov|no need|don't need|without|trustless)\b/);
+                    const minimal = text.toLowerCase().match(/\b(minim|reduc|less|fewer)\b/);
+                    const math = text.toLowerCase().match(/\b(math|crypto|algorithm|code|protocol|incentive)\b/);
+
+                    if ((eliminates || minimal) && math) {
+                        feedback = `<h5>✓ Excellent Analysis!</h5><p>You understand the key distinction: Bitcoin doesn't eliminate <em>all</em> trust, but it replaces <em>institutional trust</em> (people/organizations) with <em>systematic trust</em> (math/incentives). This is revolutionary because institutions can be corrupted, but math cannot.</p>`;
+                        feedbackDiv.className = 'feedback-box positive';
+                    } else if (eliminates || minimal) {
+                        feedback = `<h5>✓ On the Right Track</h5><p>You're right that Bitcoin reduces trust requirements. To strengthen your answer: explain <em>what kind</em> of trust remains (cryptographic assumptions, network decentralization) and why trusting math is different from trusting people.</p>`;
+                        feedbackDiv.className = 'feedback-box hint';
+                    } else {
+                        feedback = `<h5>Develop This Further</h5><p>Think about the shift: from trusting <em>people</em> (administrators, CEOs, politicians) to trusting <em>systems</em> (cryptography, game theory, decentralized consensus). Why is this shift significant?</p>`;
+                        feedbackDiv.className = 'feedback-box hint';
+                    }
+                }
+
+                feedbackDiv.innerHTML = feedback;
+                feedbackDiv.style.display = 'block';
+                saveReflection('q2-deep', text);
+            }
+        }
+
+        function updateConsequenceFeedback() {
+            const property = document.getElementById('consequence-property').checked;
+            const contracts = document.getElementById('consequence-contracts').checked;
+            const history = document.getElementById('consequence-history').checked;
+            const power = document.getElementById('consequence-power').checked;
+            const innovation = document.getElementById('consequence-innovation').checked;
+
+            const feedbackDiv = document.getElementById('feedback3');
+            let feedback = '';
+            let correctCount = [property, contracts, history, power].filter(Boolean).length;
+
+            if (innovation) {
+                feedback = `<h5>⚠️ Reconsider</h5><p>"Innovation improves" is a common misconception. While it's true mistakes could be fixed, <strong>mutable ledgers enable fraud</strong>. If the ledger can be changed, who decides what's a "mistake" vs. legitimate history? The powerful will always claim their alterations are "fixes." Immutability prevents this abuse.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (correctCount === 4) {
+                feedback = `<h5>✓ Perfect Understanding!</h5><p>You identified all four consequences! Mutable ledgers undermine: (1) <strong>Property rights</strong> (ownership becomes uncertain), (2) <strong>Contracts</strong> (agreements can be retroactively changed), (3) <strong>Historical truth</strong> (facts become fluid), and (4) <strong>Power concentration</strong> (whoever controls the ledger controls reality).</p><p style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(139, 111, 71, 0.3);"><strong>Insight:</strong> Immutability isn't just a technical feature—it's a prerequisite for trust, property, and truth itself.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+            } else if (correctCount >= 2) {
+                feedback = `<h5>✓ Good Start</h5><p>You've identified ${correctCount} correct consequences. ${!property ? 'Also consider: If records can change, who really owns what? ' : ''}${!contracts ? 'Also consider: Can contracts be trusted if they can be altered retroactively? ' : ''}${!history ? 'Also consider: If the past can be rewritten, what does "truth" even mean? ' : ''}${!power ? 'Also consider: Who has the power to change the ledger?' : ''}</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else if (correctCount > 0) {
+                feedback = `<h5>Keep Thinking</h5><p>You're on the right track. Think about what happens when the <em>record of reality</em> can be changed. Who has power? What can't be trusted?</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+
+            if (correctCount > 0 || innovation) {
+                feedbackDiv.innerHTML = feedback;
+                feedbackDiv.style.display = 'block';
+            }
+
+            saveReflection('q3-consequences', JSON.stringify({property, contracts, history, power, innovation}));
+        }
+
+        function saveReflection(key, value) {
             const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-            reflections[`question${questionNum}`] = value;
+            reflections[key] = value;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
         }
 
         function loadReflections() {
             const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-            for (let i = 1; i <= 3; i++) {
-                const textarea = document.getElementById(`question${i}`);
-                if (textarea && reflections[`question${i}`]) {
-                    textarea.value = reflections[`question${i}`];
-                }
+
+            // Load choices
+            if (reflections['q1-choice']) document.getElementById('question1-choice').value = reflections['q1-choice'];
+            if (reflections['q2-choice']) document.getElementById('question2-choice').value = reflections['q2-choice'];
+
+            // Load textareas
+            if (reflections['q1-deep']) document.getElementById('question1-deep').value = reflections['q1-deep'];
+            if (reflections['q2-deep']) document.getElementById('question2-deep').value = reflections['q2-deep'];
+            if (reflections['q3-deep']) document.getElementById('question3-deep').value = reflections['q3-deep'];
+
+            // Load checkboxes
+            if (reflections['q3-consequences']) {
+                const consequences = JSON.parse(reflections['q3-consequences']);
+                document.getElementById('consequence-property').checked = consequences.property || false;
+                document.getElementById('consequence-contracts').checked = consequences.contracts || false;
+                document.getElementById('consequence-history').checked = consequences.history || false;
+                document.getElementById('consequence-power').checked = consequences.power || false;
+                document.getElementById('consequence-innovation').checked = consequences.innovation || false;
             }
         }
+
+        // Auto-save textareas
+        ['question1-deep', 'question2-deep', 'question3-deep'].forEach(id => {
+            const elem = document.getElementById(id);
+            if (elem) {
+                elem.addEventListener('input', (e) => {
+                    saveReflection(id, e.target.value);
+                });
+            }
+        });
 
         // Initialize on load
         window.addEventListener('DOMContentLoaded', () => {
             loadReflections();
+            updateConsequenceFeedback();
             updateCentralizedDisplay();
             updateDistributedDisplay();
-
-            // Auto-save reflections
-            ['question1', 'question2', 'question3'].forEach((id, index) => {
-                const textarea = document.getElementById(id);
-                if (textarea) {
-                    textarea.addEventListener('input', (e) => {
-                        saveReflection(index + 1, e.target.value);
-                    });
-                }
-            });
         });
     </script>
 </body>
