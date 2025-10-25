@@ -361,6 +361,7 @@
         </div>
     </div>
 
+    <!-- Interactive Reflection JavaScript -->
     <script>
         window.pragmatistProgress = {
             data: JSON.parse(localStorage.getItem('pragmatist-progress')) || {
@@ -375,86 +376,234 @@
             }
         };
 
-        let quizState = {
-            currentQuestion: 1,
-            correctAnswers: 0,
-            totalQuestions: 3
-        };
-
-        function answerQuestion(questionNum, selectedAnswer, isCorrect) {
-            const questionDiv = document.getElementById(`question-${questionNum}`);
-            const options = questionDiv.querySelectorAll('.quiz-option');
-
-            options.forEach(option => {
-                option.disabled = true;
-                if (option.textContent.trim().startsWith(`${selectedAnswer})`)) {
-                    if (isCorrect) {
-                        option.classList.add('correct');
-                        quizState.correctAnswers++;
-                    } else {
-                        option.classList.add('incorrect');
-                    }
-                }
+        // Tab switching
+        function switchReflectionTab(questionNum, level, event) {
+            document.querySelectorAll(`#q${questionNum}-quick, #q${questionNum}-deep`).forEach(panel => {
+                panel.classList.remove('active');
+                panel.setAttribute('aria-hidden', 'true');
             });
-
-            setTimeout(() => {
-                if (questionNum < quizState.totalQuestions) {
-                    questionDiv.classList.add('hidden');
-                    document.getElementById(`question-${questionNum + 1}`).classList.remove('hidden');
-                } else {
-                    showQuizResults();
-                }
-            }, 1500);
+            event.target.parentElement.querySelectorAll('.reflection-tab').forEach(tab => {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+            const panel = document.getElementById(`q${questionNum}-${level}`);
+            panel.classList.add('active');
+            panel.setAttribute('aria-hidden', 'false');
+            event.target.classList.add('active');
+            event.target.setAttribute('aria-selected', 'true');
         }
 
-        function showQuizResults() {
-            document.getElementById('question-3').classList.add('hidden');
+        // Q1: Mining purpose
+        function checkMiningPurpose() {
+            const choice = document.getElementById('q1-quick-choice').value;
+            const feedbackDiv = document.getElementById('q1-quick-feedback');
 
-            const resultsDiv = document.getElementById('quiz-results');
-            const scoreSpan = document.getElementById('score');
-            const feedbackDiv = document.getElementById('quiz-feedback');
+            if (!choice) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
 
-            scoreSpan.textContent = quizState.correctAnswers;
-            resultsDiv.classList.remove('hidden');
-
-            if (quizState.correctAnswers === 3) {
-                feedbackDiv.innerHTML = `
-                    <p style="color: var(--status-green); font-size: 1.2rem; margin-bottom: 1rem;">
-                        🎉 Perfect! You understand Bitcoin mining!
-                    </p>
-                    <p style="color: var(--text-gray);">
-                        You've earned <strong style="color: var(--bright-orange);">+20 Knowledge Points</strong>
-                    </p>
-                `;
-                unlockCompleteButton();
-            } else if (quizState.correctAnswers >= 2) {
-                feedbackDiv.innerHTML = `
-                    <p style="color: var(--status-yellow); font-size: 1.2rem; margin-bottom: 1rem;">
-                        ✅ Good job! You passed!
-                    </p>
-                    <p style="color: var(--text-gray);">
-                        You've earned <strong style="color: var(--bright-orange);">+20 Knowledge Points</strong>
-                    </p>
-                `;
-                unlockCompleteButton();
+            if (choice === 'secure') {
+                feedbackDiv.innerHTML = `<h5>✓ Perfect Understanding!</h5><p>Mining serves <strong>three critical functions</strong>:<br><br>1. <strong>Security:</strong> Proof-of-work makes attacks prohibitively expensive<br>2. <strong>Verification:</strong> Validates transactions are legitimate<br>3. <strong>Issuance:</strong> Releases new Bitcoin on a fixed, predictable schedule<br><br>These are combined because the security work earns the right to issue new coins—elegant incentive alignment.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+                updateProgress('q1');
+            } else if (choice === 'create') {
+                feedbackDiv.innerHTML = `<h5>⚠️ Issuance Is Controlled</h5><p>Mining doesn't create "as much Bitcoin as possible"—it follows a <strong>fixed schedule</strong>. Miners secure the network and verify transactions; the block reward is payment for that work. The amount is predetermined by the protocol, not by mining effort.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
             } else {
-                feedbackDiv.innerHTML = `
-                    <p style="color: var(--status-red); font-size: 1.2rem; margin-bottom: 1rem;">
-                        ❌ You need at least 2/3 correct to pass.
-                    </p>
-                    <p style="color: var(--text-gray);">
-                        <a href="#" onclick="location.reload()" style="color: var(--bright-orange);">Try again</a>!
-                    </p>
-                `;
+                feedbackDiv.innerHTML = `<h5>⚠️ Profit Is Byproduct, Not Purpose</h5><p>While miners earn rewards, the <strong>system purpose</strong> is network security + transaction verification + controlled issuance. Miner profit is the incentive mechanism, not the goal. Bitcoin uses greed to secure the network.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+            feedbackDiv.style.display = 'block';
+            saveResponse('q1-quick', choice);
+        }
+
+        function checkMiningPurposeDeep() {
+            const text = document.getElementById('q1-deep-text').value.toLowerCase();
+            const feedbackDiv = document.getElementById('q1-deep-feedback');
+
+            if (text.length < 30) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
+
+            let score = 0;
+            const keywords = {
+                security: /(secur|protect|attack|defend)/,
+                verify: /(verif|valid|check|confirm)/,
+                issuance: /(issu|creat|reward|supply|distribution)/,
+                incentive: /(incentive|align|econom|reward)/
+            };
+
+            for (let key in keywords) {
+                if (keywords[key].test(text)) score++;
+            }
+
+            if (score >= 3) {
+                feedbackDiv.innerHTML = `<h5>✓ Systems Thinking! (${score}/4 concepts)</h5><p>You understand the elegant design:<br><br><strong>Security</strong> (proof-of-work) + <strong>Verification</strong> (transaction validation) + <strong>Issuance</strong> (new coins on schedule) are combined because the <strong>work earns the right to issue</strong>.<br><br>This aligns incentives: miners are paid to secure and validate. No security work = no new coins. Brilliant economic design.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+                updateProgress('q1');
+            } else if (score >= 2) {
+                feedbackDiv.innerHTML = `<h5>💡 Good Start (${score}/4 concepts)</h5><p>Strengthen your explanation: <strong>security through proof-of-work</strong>, <strong>transaction verification</strong>, <strong>controlled issuance</strong>, <strong>incentive alignment</strong>. Why combine them? The work required for security earns the privilege to issue new coins.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else {
+                feedbackDiv.innerHTML = `<h5>💡 Expand Your Analysis</h5><p>Key functions: <strong>network security</strong>, <strong>transaction verification</strong>, <strong>new coin issuance</strong>, <strong>economic incentives</strong>. These are combined into one process—security work = permission to issue. Explain why this matters!</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+            feedbackDiv.style.display = 'block';
+            saveResponse('q1-deep', text);
+        }
+
+        // Q2: The halving
+        function checkHalving() {
+            const choice = document.getElementById('q2-quick-choice').value;
+            const feedbackDiv = document.getElementById('q2-quick-feedback');
+
+            if (!choice) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
+
+            if (choice === 'halves') {
+                feedbackDiv.innerHTML = `<h5>✓ Correct!</h5><p>Every ~4 years (210,000 blocks), the block reward <strong>halves</strong>.<br><br>Started at 50 BTC (2009), now 3.125 BTC (2024). This creates <strong>increasing scarcity</strong> and ensures the 21M cap is never exceeded. The halving schedule is <strong>algorithmic and unchangeable</strong>.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+                updateProgress('q2');
+            } else if (choice === 'doubles') {
+                feedbackDiv.innerHTML = `<h5>⚠️ Opposite Direction</h5><p>If the reward doubled, Bitcoin supply would be infinite. Instead, it <strong>halves every ~4 years</strong>, creating increasing scarcity. This ensures the 21M cap is mathematically guaranteed.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else {
+                feedbackDiv.innerHTML = `<h5>⚠️ It Changes</h5><p>The reward doesn't stay the same—it <strong>halves every ~4 years</strong>. Started at 50 BTC/block, now 3.125 BTC. This decreasing issuance creates scarcity and ensures the 21M limit is reached around 2140.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+            feedbackDiv.style.display = 'block';
+            saveResponse('q2-quick', choice);
+        }
+
+        function checkHalvingDeep() {
+            const text = document.getElementById('q2-deep-text').value.toLowerCase();
+            const feedbackDiv = document.getElementById('q2-deep-feedback');
+
+            if (text.length < 30) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
+
+            let score = 0;
+            const keywords = {
+                scarcity: /(scarc|limit|finite|decreas)/,
+                inflation: /(inflation|rate|supply|issuance)/,
+                cap21: /(21|million|cap|maximum)/,
+                fees: /(fee|transition|incentive|future)/
+            };
+
+            for (let key in keywords) {
+                if (keywords[key].test(text)) score++;
+            }
+
+            if (score >= 3) {
+                feedbackDiv.innerHTML = `<h5>✓ Economic Insight! (${score}/4 concepts)</h5><p>You grasp the halving's purpose:<br><br><strong>Increasing scarcity</strong> (deflationary schedule), <strong>decreasing inflation rate</strong> over time, <strong>ensures 21M cap</strong> is reached, <strong>forces transition to fee-based incentives</strong>.<br><br>By 2140, miners will earn only fees—not block rewards. This creates a long-term security model based on transaction volume, not new issuance.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+                updateProgress('q2');
+            } else if (score >= 2) {
+                feedbackDiv.innerHTML = `<h5>💡 Good Understanding (${score}/4 concepts)</h5><p>Also consider: <strong>programmed scarcity</strong>, <strong>decreasing inflation rate</strong>, <strong>21M cap enforcement</strong>, <strong>gradual transition to fee-based mining</strong>. The halving isn't arbitrary—it's Bitcoin's monetary policy in code.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else {
+                feedbackDiv.innerHTML = `<h5>💡 Dig Deeper</h5><p>Key effects: <strong>creates scarcity</strong>, <strong>lowers inflation rate</strong> (approaches 0%), <strong>guarantees 21M maximum</strong>, <strong>transitions miners from rewards to fees</strong>. Why halve instead of linear decrease? Exponential scarcity mimics precious metals.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+            feedbackDiv.style.display = 'block';
+            saveResponse('q2-deep', text);
+        }
+
+        // Q3: Difficulty adjustment
+        function checkDifficulty() {
+            const choice = document.getElementById('q3-quick-choice').value;
+            const feedbackDiv = document.getElementById('q3-quick-feedback');
+
+            if (!choice) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
+
+            if (choice === 'automatic') {
+                feedbackDiv.innerHTML = `<h5>✓ Exactly Right!</h5><p>Every 2016 blocks (~2 weeks), difficulty <strong>automatically adjusts</strong> based on how fast the previous blocks were mined.<br><br>Too fast? Difficulty increases. Too slow? Difficulty decreases. This keeps block time at ~10 minutes regardless of total hash power. <strong>No human intervention required</strong>.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+                updateProgress('q3');
+            } else if (choice === 'agreement') {
+                feedbackDiv.innerHTML = `<h5>⚠️ No Coordination Needed</h5><p>Miners don't need to agree or coordinate. The protocol <strong>automatically adjusts difficulty</strong> every 2016 blocks based on math, not miner behavior. This is trustless coordination through code.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else {
+                feedbackDiv.innerHTML = `<h5>⚠️ Fully Automated</h5><p>No developers manually adjust anything. The difficulty adjustment is <strong>algorithmic and automatic</strong>—every 2016 blocks, the protocol calculates if blocks are coming too fast/slow and adjusts accordingly. Zero human discretion.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+            feedbackDiv.style.display = 'block';
+            saveResponse('q3-quick', choice);
+        }
+
+        function checkDifficultyDeep() {
+            const text = document.getElementById('q3-deep-text').value.toLowerCase();
+            const feedbackDiv = document.getElementById('q3-deep-feedback');
+
+            if (text.length < 30) {
+                feedbackDiv.style.display = 'none';
+                return;
+            }
+
+            let score = 0;
+            const keywords = {
+                blocks2016: /(2016|two week|2 week|every 2 week)/,
+                automatic: /(automat|algorithm|self.?adjust|code)/,
+                nohuman: /(no human|no interven|no discret|trustless)/,
+                predictable: /(predict|schedul|regular|consistent)/
+            };
+
+            for (let key in keywords) {
+                if (keywords[key].test(text)) score++;
+            }
+
+            if (score >= 3) {
+                feedbackDiv.innerHTML = `<h5>✓ Protocol Mastery! (${score}/4 concepts)</h5><p>You understand the elegance:<br><br>Every <strong>2016 blocks</strong> (~2 weeks), the network <strong>automatically recalibrates</strong> difficulty based on actual vs. target time. <strong>No human intervention</strong> possible—it's pure math. This ensures <strong>predictable issuance</strong> regardless of hash power.<br><br>Result: 21M supply schedule is guaranteed, even if hash power increases 1000x.</p>`;
+                feedbackDiv.className = 'feedback-box positive';
+                updateProgress('q3');
+            } else if (score >= 2) {
+                feedbackDiv.innerHTML = `<h5>💡 Good Foundation (${score}/4 concepts)</h5><p>Strengthen your explanation: <strong>2016-block intervals</strong>, <strong>automatic adjustment</strong>, <strong>no human control</strong>, <strong>predictable supply schedule</strong>. This algorithm is Bitcoin's thermostat—self-regulating and trustless.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            } else {
+                feedbackDiv.innerHTML = `<h5>💡 Explain the Mechanism</h5><p>Key points: <strong>2016-block cycle</strong>, <strong>algorithmic adjustment</strong>, <strong>zero human discretion</strong>, <strong>maintains 10-min average</strong>. Why critical? Ensures Bitcoin's <strong>supply schedule is unchangeable</strong> no matter how much mining power exists.</p>`;
+                feedbackDiv.className = 'feedback-box hint';
+            }
+            feedbackDiv.style.display = 'block';
+            saveResponse('q3-deep', text);
+        }
+
+        // Progress tracking
+        const completedQuestions = new Set();
+
+        function updateProgress(questionId) {
+            completedQuestions.add(questionId);
+            if (completedQuestions.size >= 3) {
+                document.getElementById('complete-btn').disabled = false;
+                document.getElementById('complete-btn').textContent = '✅ Complete Module & Continue →';
             }
         }
 
-        function unlockCompleteButton() {
-            const btn = document.getElementById('complete-btn');
-            btn.disabled = false;
-            btn.textContent = '✅ Complete Module & Earn Achievement';
+        // Save/load
+        function saveResponse(key, value) {
+            localStorage.setItem(`pragmatist-m4-${key}`, value);
         }
 
+        function loadResponses() {
+            const savedKeys = ['q1-quick', 'q1-deep', 'q2-quick', 'q2-deep', 'q3-quick', 'q3-deep'];
+            savedKeys.forEach(key => {
+                const value = localStorage.getItem(`pragmatist-m4-${key}`);
+                if (value) {
+                    const element = document.getElementById(`${key}-choice`) || document.getElementById(`${key}-text`);
+                    if (element) element.value = value;
+                }
+            });
+        }
+
+        // Complete module
         function completeModule() {
             if (!window.pragmatistProgress.data.completedModules.includes('2-1')) {
                 window.pragmatistProgress.data.completedModules.push('2-1');
@@ -481,28 +630,30 @@
                 <div class="achievement-icon">${icon}</div>
                 <div class="achievement-title">${title}</div>
                 <div style="color: var(--text-gray); font-size: 1.2rem;">${description}</div>
-                <div style="margin-top: 1rem; color: var(--bright-orange); font-weight: bold;">
-                    +20 Knowledge Points
-                </div>
+                <div style="margin-top: 1rem; color: var(--bright-orange); font-weight: bold;">+20 Knowledge Points</div>
             `;
             document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
+            setTimeout(() => notification.remove(), 3000);
         }
 
-        document.querySelectorAll('.hidden').forEach(el => {
-            el.style.display = 'none';
-        });
+        document.addEventListener('DOMContentLoaded', loadResponses);
     </script>
 
+    <!-- Add condensed CSS framework -->
     <style>
-        .hidden {
-            display: none !important;
-        }
-        .quiz-option:disabled {
-            cursor: not-allowed;
+        .reflection-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid rgba(0, 188, 212, 0.2); padding-bottom: 0.5rem; }
+        .reflection-tab { background: transparent; color: var(--text-dim); border: 2px solid rgba(0, 188, 212, 0.3); padding: 0.5rem 1.25rem; border-radius: 8px 8px 0 0; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; }
+        .reflection-tab.active { background: linear-gradient(135deg, rgba(0, 188, 212, 0.2), rgba(0, 172, 193, 0.1)); color: var(--pragmatist-cyan); border-color: var(--pragmatist-cyan); }
+        .reflection-panel { display: none; padding: 1.5rem; background: rgba(26, 26, 26, 0.8); border-radius: 0 8px 8px 8px; border: 2px solid rgba(0, 188, 212, 0.2); }
+        .reflection-panel.active { display: block; }
+        .choice-select { width: 100%; padding: 1rem; background: rgba(0, 0, 0, 0.3); border: 2px solid var(--border-color); border-radius: 0.5rem; color: var(--text-light); font-size: 1rem; cursor: pointer; }
+        .feedback-box { margin-top: 1.5rem; padding: 1.5rem; border-radius: 0.5rem; border: 2px solid; display: none; }
+        .feedback-box.positive { background: rgba(76, 175, 80, 0.1); border-color: #4caf50; color: var(--text-light); }
+        .feedback-box.hint { background: rgba(255, 152, 0, 0.1); border-color: #ff9800; color: var(--text-light); }
+        @media (max-width: 768px) {
+            .reflection-tabs { flex-direction: column; }
+            .reflection-tab { border-radius: 0.5rem; }
+            .reflection-panel { border-radius: 0.5rem; }
         }
     </style>
 
