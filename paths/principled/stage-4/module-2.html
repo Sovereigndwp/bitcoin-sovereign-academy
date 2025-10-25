@@ -3,37 +3,849 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Principle 9: Digital Scarcity | The Principled Path</title>
-    <meta name="description" content="Understanding Bitcoin's fixed supply and financial sovereignty">
-    <link rel="stylesheet" href="/curriculum/first-principles/inline-styles.css">
+    <title>Incentives and Game Theory | Stage 4 Module 2 | Principled Path</title>
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-bronze: #8B6F47;
+            --accent-bronze-light: #A0826D;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .back-btn {
+            display: inline-block;
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(247, 147, 26, 0.4); }
+        .module-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(139, 111, 71, 0.2), rgba(139, 111, 71, 0.05));
+            border-radius: 12px;
+            border: 2px solid var(--accent-bronze);
+        }
+        .module-icon { font-size: 4rem; margin-bottom: 1rem; }
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #8B6F47, #A0826D);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        .module-subtitle { font-size: 1.2rem; color: var(--text-dim); max-width: 700px; margin: 0 auto; }
+        .content-section {
+            background: var(--secondary-dark);
+            border-radius: 12px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            border: 2px solid rgba(139, 111, 71, 0.2);
+        }
+        .content-section h2 {
+            color: var(--accent-bronze);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+        .content-section h3 {
+            color: var(--accent-bronze-light);
+            font-size: 1.3rem;
+            margin: 2rem 0 1rem;
+        }
+        .content-section p {
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+        .content-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .content-section li {
+            padding: 0.75rem 0 0.75rem 2rem;
+            position: relative;
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+        .content-section li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--accent-bronze);
+            font-weight: bold;
+        }
+        .highlight-box {
+            background: rgba(139, 111, 71, 0.1);
+            border-left: 4px solid var(--accent-bronze);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0.5rem;
+        }
+        .highlight-box strong {
+            color: var(--accent-bronze);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .game-matrix {
+            display: grid;
+            grid-template-columns: 150px 1fr 1fr;
+            gap: 0;
+            margin: 2rem 0;
+            border: 2px solid rgba(139, 111, 71, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .matrix-cell {
+            padding: 1.5rem;
+            background: var(--secondary-dark);
+            border: 1px solid rgba(139, 111, 71, 0.2);
+            text-align: center;
+        }
+        .matrix-header {
+            background: rgba(139, 111, 71, 0.2);
+            font-weight: 600;
+            color: var(--accent-bronze);
+        }
+        .matrix-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--accent-bronze-light);
+        }
+        .payoff {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0.5rem 0;
+        }
+        .payoff.positive { color: #2ecc71; }
+        .payoff.negative { color: #e74c3c; }
+        .payoff.neutral { color: var(--text-dim); }
+        .demo-container {
+            background: var(--primary-dark);
+            border: 2px solid rgba(139, 111, 71, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        .demo-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .demo-tab {
+            background: var(--secondary-dark);
+            color: var(--text-dim);
+            border: 2px solid rgba(139, 111, 71, 0.2);
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        .demo-tab:hover {
+            border-color: var(--accent-bronze);
+            color: var(--text-light);
+        }
+        .demo-tab.active {
+            background: linear-gradient(45deg, #8B6F47, #A0826D);
+            color: var(--primary-dark);
+            border-color: var(--accent-bronze);
+        }
+        .demo-panel {
+            display: none;
+        }
+        .demo-panel.active {
+            display: block;
+        }
+        .strategy-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .strategy-card {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(139, 111, 71, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .strategy-card:hover {
+            border-color: var(--accent-bronze);
+            transform: translateY(-4px);
+        }
+        .strategy-title {
+            color: var(--accent-bronze);
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .strategy-outcome {
+            color: var(--text-light);
+            font-weight: 600;
+            margin: 0.5rem 0;
+        }
+        button {
+            background: linear-gradient(45deg, #8B6F47, #A0826D);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 111, 71, 0.4);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .miner-sim {
+            background: var(--secondary-dark);
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+        .miner-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .miner-node {
+            background: var(--primary-dark);
+            border: 2px solid rgba(139, 111, 71, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .miner-node.honest {
+            border-color: #2ecc71;
+        }
+        .miner-node.attacking {
+            border-color: #e74c3c;
+        }
+        .reflection-section {
+            background: linear-gradient(135deg, rgba(139, 111, 71, 0.1), rgba(139, 111, 71, 0.05));
+            border: 2px solid rgba(139, 111, 71, 0.3);
+            border-radius: 12px;
+            padding: 2.5rem;
+            margin: 3rem 0;
+        }
+        .reflection-section h2 {
+            color: var(--accent-bronze);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .question-box {
+            background: var(--secondary-dark);
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border: 2px solid rgba(139, 111, 71, 0.2);
+        }
+        .question-box h3 {
+            color: var(--accent-bronze-light);
+            margin-bottom: 1rem;
+        }
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            background: var(--primary-dark);
+            border: 2px solid rgba(139, 111, 71, 0.3);
+            color: var(--text-light);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-bronze);
+        }
+        .next-module {
+            text-align: center;
+            margin-top: 3rem;
+        }
+        .next-module a {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent-bronze), var(--accent-bronze-light));
+            color: white;
+            padding: 1.25rem 2.5rem;
+            border-radius: 2rem;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        .next-module a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(139, 111, 71, 0.5);
+        }
+        @media (max-width: 768px) {
+            .module-header h1 { font-size: 2rem; }
+            .game-matrix { grid-template-columns: 100px 1fr 1fr; }
+            .strategy-cards { grid-template-columns: 1fr; }
+            .demo-tabs { flex-direction: column; }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header class="module-header">
-            <div class="breadcrumb">
-                <a href="/">Home</a> →
-                <a href="/paths/principled/">The Principled Path</a> →
-                <a href="/paths/principled/stage-4/">Stage 4</a> →
-                <span>Module 2</span>
-            </div>
-            <h1>Principle 9: Digital Scarcity</h1>
-        </header>
+        <a href="/paths/principled/stage-4/" class="back-btn">← Back to Stage 4</a>
 
-        <main>
-            <div class="principle-content">
-                <div class="insight-box">
-                    <p>Content for Principle 9 will be extracted from the first-principles curriculum.</p>
-                    <p><em>This is a placeholder file. Full content extraction pending.</em></p>
+        <div class="module-header">
+            <div class="module-icon">🎲</div>
+            <h1>Incentives and Game Theory</h1>
+            <p class="module-subtitle">
+                Bitcoin doesn't rely on goodwill—it makes honesty profitable and dishonesty expensive.
+                Discover how game theory creates cooperation without trust.
+            </p>
+        </div>
+
+        <!-- Introduction -->
+        <div class="content-section">
+            <h2>Why Bitcoin Participants Stay Honest</h2>
+            <p>
+                Bitcoin doesn't assume people are good. It assumes people are rational—they respond to incentives.
+                The system is designed so that the most profitable strategy is to follow the rules.
+            </p>
+            <p>
+                This is game theory in action: creating a system where selfish actors, pursuing their own
+                self-interest, collectively produce a secure and reliable network.
+            </p>
+
+            <div class="highlight-box">
+                <strong>Key Insight:</strong>
+                Bitcoin's genius isn't technical—it's economic. The protocol aligns individual incentives
+                with network security. Attacking Bitcoin is economically irrational, while supporting it is profitable.
+            </div>
+
+            <p>
+                Let's explore the game-theoretic mechanisms that keep Bitcoin secure:
+            </p>
+        </div>
+
+        <!-- Nash Equilibrium -->
+        <div class="content-section">
+            <h2>The Miner's Dilemma: A Nash Equilibrium</h2>
+            <p>
+                Bitcoin mining creates a Nash equilibrium—a state where no individual participant can improve
+                their outcome by changing strategy unilaterally.
+            </p>
+
+            <h3>The Game Setup</h3>
+            <p>
+                Each miner faces a choice:
+            </p>
+            <ul>
+                <li><strong>Cooperate:</strong> Mine honestly, extend the longest valid chain</li>
+                <li><strong>Defect:</strong> Attempt to double-spend, rewrite history, or create invalid blocks</li>
+            </ul>
+
+            <div class="game-matrix">
+                <div class="matrix-cell matrix-header"></div>
+                <div class="matrix-cell matrix-header">Other Miners Honest</div>
+                <div class="matrix-cell matrix-header">Other Miners Attack</div>
+
+                <div class="matrix-cell matrix-label">You Mine Honestly</div>
+                <div class="matrix-cell">
+                    <div class="payoff positive">+6.25 BTC reward</div>
+                    <div style="color: var(--text-dim); font-size: 0.9rem;">Stable, predictable income</div>
+                </div>
+                <div class="matrix-cell">
+                    <div class="payoff neutral">±0 BTC</div>
+                    <div style="color: var(--text-dim); font-size: 0.9rem;">Network unstable, BTC worthless</div>
                 </div>
 
-                <div class="module-navigation">
-                    <a href="../stage-4/" class="nav-btn nav-btn-secondary">← Back to Stage 4</a>
-                    <a href="/paths/principled/" class="nav-btn">Continue →</a>
+                <div class="matrix-cell matrix-label">You Attack</div>
+                <div class="matrix-cell">
+                    <div class="payoff negative">-$15B hardware cost</div>
+                    <div style="color: var(--text-dim); font-size: 0.9rem;">Attack fails or BTC price crashes</div>
+                </div>
+                <div class="matrix-cell">
+                    <div class="payoff negative">-∞ (system collapse)</div>
+                    <div style="color: var(--text-dim); font-size: 0.9rem;">Complete loss of value</div>
                 </div>
             </div>
-        </main>
+
+            <div class="highlight-box">
+                <strong>Nash Equilibrium: Everyone Mines Honestly</strong>
+                This is the only stable outcome. If you're mining honestly and everyone else is too,
+                switching to attacking makes you worse off. Therefore, rational miners stay honest.
+            </div>
+        </div>
+
+        <!-- Incentive Mechanisms -->
+        <div class="content-section">
+            <h2>How Bitcoin Aligns Incentives</h2>
+            <p>
+                Bitcoin uses four key mechanisms to make honesty more profitable than dishonesty:
+            </p>
+
+            <h3>1. Block Rewards (Carrots)</h3>
+            <p>
+                Miners who successfully mine valid blocks earn newly minted bitcoin plus transaction fees.
+                This direct payment for honest behavior creates immediate positive reinforcement.
+            </p>
+            <ul>
+                <li>Current reward: 6.25 BTC per block (~$190,000 at $30k/BTC)</li>
+                <li>Happens every ~10 minutes</li>
+                <li>Only valid if you follow the rules</li>
+                <li>Worthless if you attack (BTC price collapses)</li>
+            </ul>
+
+            <h3>2. Proof-of-Work (Sticks)</h3>
+            <p>
+                Attacking requires massive energy expenditure with no guaranteed payoff. Even if you
+                control 51% of hashpower, your attack might fail—and your energy is gone forever.
+            </p>
+            <ul>
+                <li>Attack cost: Billions in hardware + millions in electricity</li>
+                <li>Attack success rate: Not guaranteed even with 51%</li>
+                <li>Economic damage: Bitcoin price crashes, making attack pointless</li>
+                <li>Opportunity cost: Could have earned millions mining honestly instead</li>
+            </ul>
+
+            <h3>3. Difficulty Adjustment (Self-Balancing)</h3>
+            <p>
+                Bitcoin automatically adjusts mining difficulty every 2016 blocks to maintain ~10 minute
+                block times. This prevents any single miner from gaining disproportionate power.
+            </p>
+
+            <h3>4. Network Effects (Social Coordination)</h3>
+            <p>
+                Bitcoin's value comes from network adoption. Attacking Bitcoin destroys trust,
+                causing users and merchants to abandon it—making your bitcoin holdings worthless.
+            </p>
+
+            <div class="highlight-box">
+                <strong>The Beautiful Irony:</strong>
+                The more you invest in attacking Bitcoin (buying mining hardware), the more you're
+                incentivized to protect it (because your hardware is only valuable if Bitcoin succeeds).
+            </div>
+        </div>
+
+        <!-- Interactive Demos -->
+        <div class="content-section">
+            <h2>Interactive Game Theory Simulations</h2>
+            <p>
+                Experience Bitcoin's incentive mechanisms through these simulations.
+            </p>
+
+            <div class="demo-container">
+                <div class="demo-tabs">
+                    <button class="demo-tab active" onclick="switchTab('attack')">Attack Cost Calculator</button>
+                    <button class="demo-tab" onclick="switchTab('strategy')">Strategy Comparison</button>
+                    <button class="demo-tab" onclick="switchTab('network')">Network Simulation</button>
+                </div>
+
+                <!-- Attack Cost Calculator -->
+                <div id="attack-panel" class="demo-panel active">
+                    <h3 style="color: var(--accent-bronze-light); margin-bottom: 1rem;">51% Attack vs. Honest Mining</h3>
+                    <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                        Compare the economics of attacking Bitcoin versus mining honestly for 30 days.
+                    </p>
+
+                    <div class="strategy-cards">
+                        <div class="strategy-card" style="border-color: #2ecc71;">
+                            <div class="strategy-title">🟢 Honest Mining Strategy</div>
+                            <div style="color: var(--text-dim); margin: 1rem 0;">
+                                <div>Hardware: $5M (normal operation)</div>
+                                <div>Electricity: $300k/month</div>
+                                <div>Hashrate: 5% of network</div>
+                            </div>
+                            <div class="strategy-outcome">
+                                Revenue (30 days): <span style="color: #2ecc71;">+$2.8M</span>
+                            </div>
+                            <div class="strategy-outcome">
+                                Profit: <span style="color: #2ecc71;">+$2.5M</span>
+                            </div>
+                            <div style="color: var(--text-dim); margin-top: 1rem; font-size: 0.9rem;">
+                                Stable, recurring income. Equipment retains value.
+                            </div>
+                        </div>
+
+                        <div class="strategy-card" style="border-color: #e74c3c;">
+                            <div class="strategy-title">🔴 Attack Strategy</div>
+                            <div style="color: var(--text-dim); margin: 1rem 0;">
+                                <div>Hardware: $15B (51% hashpower)</div>
+                                <div>Electricity: $900k/month</div>
+                                <div>Hashrate: 51% of network</div>
+                            </div>
+                            <div class="strategy-outcome">
+                                Attack Success: <span style="color: #e74c3c;">~30% chance</span>
+                            </div>
+                            <div class="strategy-outcome">
+                                Expected Loss: <span style="color: #e74c3c;">-$15B+</span>
+                            </div>
+                            <div style="color: var(--text-dim); margin-top: 1rem; font-size: 0.9rem;">
+                                Bitcoin price crashes. Equipment becomes worthless. Electricity wasted.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(139, 111, 71, 0.1); border-radius: 8px; border-left: 4px solid var(--accent-bronze);">
+                        <div style="color: var(--accent-bronze); font-weight: 600; margin-bottom: 1rem;">💡 Economic Reality</div>
+                        <div style="color: var(--text-dim); line-height: 1.6;">
+                            Even if your attack succeeds in double-spending $100M, you've spent $15B on hardware
+                            that's now worthless (because Bitcoin's price collapsed). You lost $14.9B trying to steal $100M.
+                            <strong style="display: block; margin-top: 1rem; color: var(--text-light);">
+                                Honest mining is 600x more profitable than attacking.
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategy Comparison -->
+                <div id="strategy-panel" class="demo-panel">
+                    <h3 style="color: var(--accent-bronze-light); margin-bottom: 1rem;">Strategy Payoff Matrix</h3>
+                    <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                        Explore different miner strategies and their outcomes over time.
+                    </p>
+
+                    <div style="background: var(--secondary-dark); padding: 2rem; border-radius: 8px; margin-bottom: 2rem;">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="color: var(--accent-bronze); font-weight: 600; display: block; margin-bottom: 0.5rem;">
+                                Time Horizon: <span id="timeHorizon">1 year</span>
+                            </label>
+                            <input type="range" id="timeSlider" min="1" max="10" value="1"
+                                   oninput="updateStrategyPayoffs()"
+                                   style="width: 100%; margin: 0.5rem 0;">
+                        </div>
+
+                        <div id="strategyResults" style="display: grid; gap: 1rem;"></div>
+                    </div>
+
+                    <div style="padding: 1.5rem; background: rgba(46, 204, 113, 0.1); border-radius: 8px; border-left: 4px solid #2ecc71;">
+                        <div style="color: #2ecc71; font-weight: 600; margin-bottom: 0.5rem;">✓ Dominant Strategy: Mine Honestly</div>
+                        <div style="color: var(--text-dim); font-size: 0.9rem;">
+                            Regardless of time horizon or market conditions, honest mining yields the highest expected value.
+                            This is why Bitcoin has never been successfully attacked despite being worth over $1 trillion.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network Simulation -->
+                <div id="network-panel" class="demo-panel">
+                    <h3 style="color: var(--accent-bronze-light); margin-bottom: 1rem;">Network Behavior Simulation</h3>
+                    <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                        Watch how the network responds when a miner attempts to cheat.
+                    </p>
+
+                    <div class="miner-sim">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <div style="color: var(--text-light); font-size: 1.2rem; margin-bottom: 0.5rem;">
+                                Network Status: <span id="networkStatus" style="color: #2ecc71; font-weight: 600;">Secure</span>
+                            </div>
+                            <div style="color: var(--text-dim);">
+                                Blocks Mined: <span id="blockCount" style="color: var(--accent-bronze); font-weight: 600;">0</span>
+                            </div>
+                        </div>
+
+                        <div class="miner-grid" id="minerGrid"></div>
+
+                        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap;">
+                            <button onclick="simulateHonestBlock()">Mine Honest Block</button>
+                            <button onclick="simulateAttack()" style="background: linear-gradient(45deg, #e74c3c, #c0392b);">
+                                Attempt Invalid Block
+                            </button>
+                            <button onclick="resetNetwork()">Reset Network</button>
+                        </div>
+
+                        <div id="networkLog" style="margin-top: 1.5rem; padding: 1rem; background: var(--primary-dark); border-radius: 6px; color: var(--text-dim); font-size: 0.9rem; max-height: 200px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Repeated Games -->
+        <div class="content-section">
+            <h2>Why Long-Term Thinking Favors Honesty</h2>
+            <p>
+                Bitcoin mining isn't a one-time game—it's a repeated game played indefinitely.
+                This changes the incentive structure dramatically.
+            </p>
+
+            <h3>One-Shot Game vs. Repeated Game</h3>
+            <p>
+                In a one-time interaction, cheating might seem profitable. But Bitcoin miners play the same
+                game every 10 minutes, forever. This creates powerful incentives for reputation and cooperation.
+            </p>
+
+            <ul>
+                <li><strong>Short-term attack profit:</strong> Maybe $100M (if successful)</li>
+                <li><strong>Long-term honest mining profit:</strong> Billions over years</li>
+                <li><strong>Reputation damage from attack:</strong> Irreversible loss of trust</li>
+                <li><strong>Future opportunity cost:</strong> Excluded from profitable mining forever</li>
+            </ul>
+
+            <div class="highlight-box">
+                <strong>The Tit-for-Tat Equilibrium:</strong>
+                In repeated games, the winning strategy is "cooperate first, then mirror your opponent's
+                last move." Bitcoin miners cooperate because they know they'll interact again in 10 minutes.
+                One bad move destroys years of profitable cooperation.
+            </div>
+        </div>
+
+        <!-- Mechanism Design -->
+        <div class="content-section">
+            <h2>Bitcoin as Mechanism Design</h2>
+            <p>
+                Bitcoin is a masterclass in mechanism design—engineering systems so that selfish actors
+                produce socially optimal outcomes.
+            </p>
+
+            <h3>The Design Principles</h3>
+            <ul>
+                <li><strong>Incentive Compatibility:</strong> Truthful behavior is the most profitable strategy</li>
+                <li><strong>Individual Rationality:</strong> Everyone benefits from participation</li>
+                <li><strong>Budget Balance:</strong> The system pays for itself (block rewards decrease, fees increase)</li>
+                <li><strong>Strategy-Proofness:</strong> Manipulating the system is prohibitively expensive</li>
+            </ul>
+
+            <p>
+                These principles ensure Bitcoin remains secure even as participants change, technology
+                evolves, and incentives shift over time.
+            </p>
+        </div>
+
+        <!-- Socratic Reflection -->
+        <div class="reflection-section">
+            <h2>💭 Reflect on What You've Learned</h2>
+            <p style="text-align: center; color: var(--text-dim); margin-bottom: 2rem;">
+                Think deeply about incentives, game theory, and human behavior.
+                Your reflections are saved automatically.
+            </p>
+
+            <div class="question-box">
+                <h3>Question 1: Rational Self-Interest</h3>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                    Bitcoin assumes people are selfish and rational, not altruistic or honest.
+                    Why is designing for selfishness more robust than designing for altruism?
+                    Can you think of other systems that work this way?
+                </p>
+                <textarea id="question1" placeholder="Type your reflection here..."></textarea>
+            </div>
+
+            <div class="question-box">
+                <h3>Question 2: Tragedy of the Commons</h3>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                    The "tragedy of the commons" describes how shared resources get overexploited when
+                    individuals act in self-interest. How does Bitcoin avoid this tragedy despite being
+                    a shared, public ledger? What mechanism prevents miners from "overgrazing" the network?
+                </p>
+                <textarea id="question2" placeholder="Type your reflection here..."></textarea>
+            </div>
+
+            <div class="question-box">
+                <h3>Question 3: Attack Paradox</h3>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                    To successfully attack Bitcoin, you need massive resources (hardware, electricity, capital).
+                    But having those resources means you're already heavily invested in Bitcoin's success.
+                    Why does this create a paradox? How does this relate to the concept of "skin in the game"?
+                </p>
+                <textarea id="question3" placeholder="Type your reflection here..."></textarea>
+            </div>
+        </div>
+
+        <!-- Next Module -->
+        <div class="next-module">
+            <h2 style="color: var(--accent-bronze); margin-bottom: 1rem;">Ready to Continue?</h2>
+            <p style="color: var(--text-dim); margin-bottom: 2rem;">
+                You've learned how incentives keep Bitcoin secure. Next, discover how these pieces
+                combine into a self-regulating, adaptive organism.
+            </p>
+            <a href="/paths/principled/stage-4/?completed=true&module=2">
+                Continue to Module 3: Bitcoin as a Living Organism →
+            </a>
+        </div>
     </div>
-    
-    <script src="/curriculum/first-principles/interactions.js"></script>
+
+    <script>
+        // ===== Strategy Payoff Calculator =====
+        function updateStrategyPayoffs() {
+            const years = parseInt(document.getElementById('timeSlider').value);
+            document.getElementById('timeHorizon').textContent = `${years} year${years > 1 ? 's' : ''}`;
+
+            const honestAnnual = 30; // $30M per year
+            const attackLoss = -15000; // -$15B one-time
+            const attackGain = 100; // $100M if successful (30% chance)
+
+            const honestTotal = honestAnnual * years;
+            const attackExpected = attackLoss + (attackGain * 0.3); // Expected value
+
+            const results = document.getElementById('strategyResults');
+            results.innerHTML = `
+                <div style="padding: 1.5rem; background: rgba(46, 204, 113, 0.1); border-left: 4px solid #2ecc71; border-radius: 6px;">
+                    <div style="color: #2ecc71; font-weight: 600; margin-bottom: 0.5rem;">✓ Honest Mining (${years} year${years > 1 ? 's' : ''})</div>
+                    <div style="color: var(--text-light); font-size: 1.3rem; font-weight: 600;">+$${honestTotal}M profit</div>
+                    <div style="color: var(--text-dim); font-size: 0.9rem; margin-top: 0.5rem;">Stable income, equipment retains value</div>
+                </div>
+                <div style="padding: 1.5rem; background: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; border-radius: 6px;">
+                    <div style="color: #e74c3c; font-weight: 600; margin-bottom: 0.5rem;">✗ Attack Strategy</div>
+                    <div style="color: var(--text-light); font-size: 1.3rem; font-weight: 600;">-$${Math.abs(attackExpected).toLocaleString()}M loss</div>
+                    <div style="color: var(--text-dim); font-size: 0.9rem; margin-top: 0.5rem;">70% chance of total failure, equipment worthless</div>
+                </div>
+                <div style="padding: 1.5rem; background: rgba(139, 111, 71, 0.1); border-left: 4px solid var(--accent-bronze); border-radius: 6px;">
+                    <div style="color: var(--accent-bronze); font-weight: 600; margin-bottom: 0.5rem;">📊 Honest Mining Advantage</div>
+                    <div style="color: var(--text-light); font-size: 1.3rem; font-weight: 600;">${Math.round((honestTotal / Math.abs(attackExpected)) * 100) / 100}x better</div>
+                    <div style="color: var(--text-dim); font-size: 0.9rem; margin-top: 0.5rem;">Over ${years} year${years > 1 ? 's' : ''}, honest mining is vastly superior</div>
+                </div>
+            `;
+        }
+
+        // ===== Network Simulation =====
+        let miners = [];
+        let blocksMinedCount = 0;
+        const minerCount = 8;
+
+        function initializeNetwork() {
+            miners = Array.from({length: minerCount}, (_, i) => ({
+                id: i + 1,
+                honest: true,
+                blocks: 0
+            }));
+            updateMinerDisplay();
+        }
+
+        function simulateHonestBlock() {
+            const miner = miners[Math.floor(Math.random() * miners.length)];
+            miner.blocks++;
+            blocksMinedCount++;
+
+            document.getElementById('blockCount').textContent = blocksMinedCount;
+            logNetwork(`✓ Miner ${miner.id} found valid block #${blocksMinedCount}. All nodes accepted.`);
+            updateMinerDisplay();
+        }
+
+        function simulateAttack() {
+            const attacker = miners[Math.floor(Math.random() * miners.length)];
+            attacker.honest = false;
+
+            document.getElementById('networkStatus').textContent = 'Under Attack';
+            document.getElementById('networkStatus').style.color = '#e74c3c';
+
+            logNetwork(`⚠️ Miner ${attacker.id} attempted to broadcast invalid block...`);
+
+            setTimeout(() => {
+                logNetwork(`✗ Network rejected invalid block from Miner ${attacker.id}`);
+                logNetwork(`🔒 Honest miners continue on valid chain. Attack failed.`);
+                logNetwork(`💸 Miner ${attacker.id} wasted electricity and gained nothing.`);
+
+                setTimeout(() => {
+                    attacker.honest = true;
+                    document.getElementById('networkStatus').textContent = 'Secure';
+                    document.getElementById('networkStatus').style.color = '#2ecc71';
+                    logNetwork(`↩️ Miner ${attacker.id} returns to honest mining (attack was unprofitable)`);
+                    updateMinerDisplay();
+                }, 2000);
+
+                updateMinerDisplay();
+            }, 1500);
+
+            updateMinerDisplay();
+        }
+
+        function resetNetwork() {
+            blocksMinedCount = 0;
+            document.getElementById('blockCount').textContent = '0';
+            document.getElementById('networkStatus').textContent = 'Secure';
+            document.getElementById('networkStatus').style.color = '#2ecc71';
+            document.getElementById('networkLog').innerHTML = '';
+            initializeNetwork();
+            logNetwork('🔄 Network reset to genesis state');
+        }
+
+        function updateMinerDisplay() {
+            const grid = document.getElementById('minerGrid');
+            grid.innerHTML = miners.map(miner => `
+                <div class="miner-node ${miner.honest ? 'honest' : 'attacking'}">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">${miner.honest ? '✓' : '⚠️'}</div>
+                    <div style="color: var(--accent-bronze); font-weight: 600;">Miner ${miner.id}</div>
+                    <div style="color: var(--text-dim); font-size: 0.85rem;">${miner.blocks} blocks</div>
+                    <div style="color: ${miner.honest ? '#2ecc71' : '#e74c3c'}; font-size: 0.85rem; margin-top: 0.25rem;">
+                        ${miner.honest ? 'Honest' : 'Attacking'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function logNetwork(message) {
+            const log = document.getElementById('networkLog');
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML = `<div>${timestamp}: ${message}</div>` + log.innerHTML;
+        }
+
+        // ===== Tab Switching =====
+        function switchTab(tab) {
+            document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.demo-panel').forEach(p => p.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(`${tab}-panel`).classList.add('active');
+        }
+
+        // ===== Reflection Questions with localStorage =====
+        const STORAGE_KEY = 'principled-stage4-module2-reflections';
+
+        function saveReflection(questionNum, value) {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            reflections[`question${questionNum}`] = value;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reflections));
+        }
+
+        function loadReflections() {
+            const reflections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            for (let i = 1; i <= 3; i++) {
+                const textarea = document.getElementById(`question${i}`);
+                if (textarea && reflections[`question${i}`]) {
+                    textarea.value = reflections[`question${i}`];
+                }
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadReflections();
+            updateStrategyPayoffs();
+            initializeNetwork();
+
+            // Auto-save reflections
+            ['question1', 'question2', 'question3'].forEach((id, index) => {
+                const textarea = document.getElementById(id);
+                if (textarea) {
+                    textarea.addEventListener('input', (e) => {
+                        saveReflection(index + 1, e.target.value);
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
