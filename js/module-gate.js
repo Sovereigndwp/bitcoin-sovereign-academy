@@ -1,4 +1,9 @@
 (function () {
+    // ============================================
+    // 🔓 FULLY UNLOCKED VERSION
+    // All gating disabled - all content accessible
+    // ============================================
+
     const storageKey = 'bsa_full_access';
     const previewParam = 'unlock';
     const previewLimit = 2;
@@ -26,6 +31,13 @@
     if (!isPathModule && !isAdvancedModule) {
         return;
     }
+
+    // 🔓 FULLY UNLOCKED - Exit early, no gating applied
+    console.log('🔓 Bitcoin Sovereign Academy - Fully Unlocked Version');
+    return;
+
+    // The code below is disabled in this version
+    // ============================================
 
     const params = new URLSearchParams(window.location.search);
     const unlockParam = params.get(previewParam);

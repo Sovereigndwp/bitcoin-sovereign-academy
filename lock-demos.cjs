@@ -1,11 +1,16 @@
 #!/usr/bin/env node
 /**
- * Lock all interactive demos except the specified unlocked list
+ * 🔓 FULLY UNLOCKED VERSION
+ * This file is modified to keep ALL demos unlocked by default
+ *
+ * Original behavior: Lock all interactive demos except the specified unlocked list
+ * Current behavior: All demos remain unlocked (script does nothing)
  */
 
 const fs = require('fs');
 const path = require('path');
 
+// 🔓 ALL DEMOS UNLOCKED - This list is now ignored
 const UNLOCKED_DEMOS = [
   'account-freeze-locked-out',
   'building-the-chain-demo',
@@ -83,46 +88,20 @@ function getAllDemoFiles() {
 }
 
 function main() {
-  console.log('🔐 Bitcoin Sovereign Academy - Demo Locking Script\n');
-  console.log(`✅ Unlocked demos (${UNLOCKED_DEMOS.length}):`);
-  UNLOCKED_DEMOS.forEach(demo => console.log(`   - ${demo}`));
-  console.log('');
+  console.log('🔓 Bitcoin Sovereign Academy - FULLY UNLOCKED VERSION\n');
+  console.log('⚠️  This is the fully unlocked branch - no demos will be locked.\n');
 
   const allDemos = getAllDemoFiles();
-  const demosToLock = allDemos.filter(demo => !UNLOCKED_DEMOS.includes(demo.name));
 
-  console.log(`🔒 Locking ${demosToLock.length} demos:\n`);
-
-  let locked = 0;
-  let skipped = 0;
-  let errors = 0;
-
-  for (const demo of demosToLock) {
-    try {
-      if (lockDemo(demo.path)) {
-        locked++;
-      } else {
-        skipped++;
-      }
-    } catch (err) {
-      console.error(`❌ Error locking ${demo.path}:`, err.message);
-      errors++;
-    }
-  }
-
-  console.log('');
   console.log('─'.repeat(50));
-  console.log(`✅ Summary:`);
-  console.log(`   🔒 Locked: ${locked}`);
-  console.log(`   ⏭️  Skipped (already locked): ${skipped}`);
-  console.log(`   ✅ Unlocked (by choice): ${UNLOCKED_DEMOS.length}`);
-  console.log(`   ❌ Errors: ${errors}`);
+  console.log(`✅ Status:`);
+  console.log(`   🔓 All demos are unlocked`);
   console.log(`   📊 Total demos: ${allDemos.length}`);
+  console.log(`   ✅ Script disabled in this branch`);
   console.log('─'.repeat(50));
-
-  if (errors > 0) {
-    process.exit(1);
-  }
+  console.log('\n💡 To lock demos again, switch to the main branch and run:');
+  console.log('   git checkout main');
+  console.log('   node lock-demos.cjs\n');
 }
 
 main();
