@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Generator - Bitcoin Sovereign Academy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #f7931a;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #999;
+            margin-bottom: 40px;
+        }
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .tool-card {
+            background: #2d2d2d;
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tool-card:hover {
+            border-color: #f7931a;
+            transform: translateY(-2px);
+        }
+
+        .tool-card h3 {
+            color: #f7931a;
+            margin-bottom: 10px;
+        }
+
+        .tool-card p {
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .generator-panel {
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid #f7931a;
+            display: none;
+        }
+
+        .generator-panel.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #f7931a;
+            font-weight: 600;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 2px solid #444;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #f7931a;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #e8890d;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-area {
+            margin-top: 30px;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 2px solid #444;
+            display: none;
+        }
+
+        .result-area.visible {
+            display: block;
+        }
+
+        .result-section {
+            margin-bottom: 25px;
+        }
+
+        .result-section h4 {
+            color: #f7931a;
+            margin-bottom: 10px;
+        }
+
+        .result-section pre {
+            background: #0d0d0d;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            color: #4caf50;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .spinner {
+            border: 3px solid #333;
+            border-top: 3px solid #f7931a;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .api-key-banner {
+            background: #2d2d2d;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border-left: 4px solid #f7931a;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-secondary {
+            background: #444;
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .btn-secondary:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Content Generator</h1>
+        <p class="subtitle">Powered by Gemini - Create educational content for Bitcoin Sovereign Academy</p>
+
+        <div class="api-key-banner">
+            <div>
+                <strong>API Key Status:</strong> <span id="api-status">Not configured</span>
+            </div>
+            <button class="btn-secondary" onclick="setApiKey()">Configure API Key</button>
+        </div>
+
+        <div class="tool-grid">
+            <div class="tool-card" onclick="showGenerator('lesson')">
+                <h3>📚 Lesson Generator</h3>
+                <p>Create complete lesson content with explanations, analogies, and exercises</p>
+            </div>
+
+            <div class="tool-card" onclick="showGenerator('quiz')">
+                <h3>❓ Quiz Generator</h3>
+                <p>Generate multiple-choice questions with explanations</p>
+            </div>
+
+            <div class="tool-card" onclick="showGenerator('path')">
+                <h3>🛤️ Learning Path</h3>
+                <p>Create personalized learning journeys based on user profiles</p>
+            </div>
+
+            <div class="tool-card" onclick="showGenerator('story')">
+                <h3>📖 Story Generator</h3>
+                <p>Generate engaging narratives to explain Bitcoin concepts</p>
+            </div>
+        </div>
+
+        <!-- Lesson Generator -->
+        <div id="lesson-generator" class="generator-panel">
+            <h2>Lesson Content Generator</h2>
+            <form onsubmit="generateLesson(event)">
+                <div class="form-group">
+                    <label>Topic:</label>
+                    <input type="text" id="lesson-topic" placeholder="e.g., Bitcoin Mining" required>
+                </div>
+                <div class="form-group">
+                    <label>Difficulty Level:</label>
+                    <select id="lesson-level">
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Content Length:</label>
+                    <select id="lesson-length">
+                        <option value="short">Short (2-3 min read)</option>
+                        <option value="medium">Medium (5-7 min read)</option>
+                        <option value="long">Long (10+ min read)</option>
+                    </select>
+                </div>
+                <button type="submit">Generate Lesson</button>
+            </form>
+            <div id="lesson-result" class="result-area"></div>
+        </div>
+
+        <!-- Quiz Generator -->
+        <div id="quiz-generator" class="generator-panel">
+            <h2>Quiz Generator</h2>
+            <form onsubmit="generateQuiz(event)">
+                <div class="form-group">
+                    <label>Topic:</label>
+                    <input type="text" id="quiz-topic" placeholder="e.g., Lightning Network" required>
+                </div>
+                <div class="form-group">
+                    <label>Number of Questions:</label>
+                    <input type="number" id="quiz-count" min="3" max="20" value="5">
+                </div>
+                <div class="form-group">
+                    <label>Difficulty:</label>
+                    <select id="quiz-difficulty">
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+                <button type="submit">Generate Quiz</button>
+            </form>
+            <div id="quiz-result" class="result-area"></div>
+        </div>
+
+        <!-- Learning Path Generator -->
+        <div id="path-generator" class="generator-panel">
+            <h2>Learning Path Generator</h2>
+            <form onsubmit="generatePath(event)">
+                <div class="form-group">
+                    <label>Student Level:</label>
+                    <select id="path-level">
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Interests (comma-separated):</label>
+                    <input type="text" id="path-interests" placeholder="e.g., privacy, economics, technical">
+                </div>
+                <div class="form-group">
+                    <label>Learning Goals:</label>
+                    <textarea id="path-goals" placeholder="What does the learner want to achieve?"></textarea>
+                </div>
+                <button type="submit">Generate Learning Path</button>
+            </form>
+            <div id="path-result" class="result-area"></div>
+        </div>
+
+        <!-- Story Generator -->
+        <div id="story-generator" class="generator-panel">
+            <h2>Story Generator</h2>
+            <form onsubmit="generateStory(event)">
+                <div class="form-group">
+                    <label>Concept to Explain:</label>
+                    <input type="text" id="story-concept" placeholder="e.g., Proof of Work" required>
+                </div>
+                <div class="form-group">
+                    <label>Story Style:</label>
+                    <select id="story-style">
+                        <option value="real-world">Real-world scenario</option>
+                        <option value="historical">Historical parallel</option>
+                        <option value="analogy">Everyday analogy</option>
+                        <option value="future">Future vision</option>
+                    </select>
+                </div>
+                <button type="submit">Generate Story</button>
+            </form>
+            <div id="story-result" class="result-area"></div>
+        </div>
+    </div>
+
+    <script src="../js/gemini-service.js"></script>
+    <script>
+        // Check API key status on load
+        window.addEventListener('load', () => {
+            updateApiStatus();
+        });
+
+        function updateApiStatus() {
+            const hasKey = localStorage.getItem('gemini-api-key');
+            document.getElementById('api-status').textContent = hasKey ? '✓ Configured' : '✗ Not configured';
+            document.getElementById('api-status').style.color = hasKey ? '#4caf50' : '#f44336';
+        }
+
+        function setApiKey() {
+            const key = prompt('Enter your Gemini API key (get one at https://makersuite.google.com/app/apikey):');
+            if (key) {
+                window.geminiService.setApiKey(key);
+                updateApiStatus();
+                alert('API key saved successfully!');
+            }
+        }
+
+        function showGenerator(type) {
+            // Hide all panels
+            document.querySelectorAll('.generator-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+
+            // Show selected panel
+            document.getElementById(`${type}-generator`).classList.add('active');
+        }
+
+        async function generateLesson(event) {
+            event.preventDefault();
+
+            const topic = document.getElementById('lesson-topic').value;
+            const level = document.getElementById('lesson-level').value;
+            const length = document.getElementById('lesson-length').value;
+
+            const resultDiv = document.getElementById('lesson-result');
+            resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Generating lesson content...</p></div>';
+            resultDiv.classList.add('visible');
+
+            try {
+                const content = await window.geminiService.generateContent(topic, {
+                    level,
+                    length,
+                    style: 'conversational',
+                    includeAnalogy: true,
+                    includeExercise: true
+                });
+
+                displayLessonResult(content, resultDiv);
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: #f44336;">Error: ${error.message}</p>`;
+            }
+        }
+
+        function displayLessonResult(content, container) {
+            container.innerHTML = `
+                <div class="result-section">
+                    <h4>Explanation</h4>
+                    <p>${content.explanation || 'No explanation generated'}</p>
+                </div>
+                <div class="result-section">
+                    <h4>Analogy</h4>
+                    <p>${content.analogy || 'No analogy generated'}</p>
+                </div>
+                <div class="result-section">
+                    <h4>Key Takeaways</h4>
+                    <ul>
+                        ${(content.keyTakeaways || []).map(t => `<li>${t}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="result-section">
+                    <h4>Reflection Question</h4>
+                    <p>${content.reflectionQuestion || 'No question generated'}</p>
+                </div>
+            `;
+        }
+
+        async function generateQuiz(event) {
+            event.preventDefault();
+
+            const topic = document.getElementById('quiz-topic').value;
+            const count = parseInt(document.getElementById('quiz-count').value);
+            const difficulty = document.getElementById('quiz-difficulty').value;
+
+            const resultDiv = document.getElementById('quiz-result');
+            resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Generating quiz questions...</p></div>';
+            resultDiv.classList.add('visible');
+
+            try {
+                const questions = await window.geminiService.generateQuiz(topic, count, difficulty);
+                displayQuizResult(questions, resultDiv);
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: #f44336;">Error: ${error.message}</p>`;
+            }
+        }
+
+        function displayQuizResult(questions, container) {
+            container.innerHTML = questions.map((q, i) => `
+                <div class="result-section">
+                    <h4>Question ${i + 1}</h4>
+                    <p><strong>${q.question}</strong></p>
+                    <ul>
+                        ${q.choices.map((c, idx) => `<li>${String.fromCharCode(65 + idx)}. ${c}</li>`).join('')}
+                    </ul>
+                    <p style="color: #4caf50;"><strong>Correct Answer:</strong> ${q.correctAnswer}</p>
+                    <p><em>${q.explanation}</em></p>
+                </div>
+            `).join('');
+        }
+
+        async function generatePath(event) {
+            event.preventDefault();
+
+            const level = document.getElementById('path-level').value;
+            const interests = document.getElementById('path-interests').value.split(',').map(i => i.trim());
+            const goals = document.getElementById('path-goals').value;
+
+            const resultDiv = document.getElementById('path-result');
+            resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Creating learning path...</p></div>';
+            resultDiv.classList.add('visible');
+
+            try {
+                const path = await window.geminiService.generateLearningPath({
+                    level,
+                    interests,
+                    goals,
+                    learningStyle: 'mixed'
+                });
+
+                displayPathResult(path, resultDiv);
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: #f44336;">Error: ${error.message}</p>`;
+            }
+        }
+
+        function displayPathResult(path, container) {
+            container.innerHTML = `<pre>${JSON.stringify(path, null, 2)}</pre>`;
+        }
+
+        async function generateStory(event) {
+            event.preventDefault();
+
+            const concept = document.getElementById('story-concept').value;
+            const style = document.getElementById('story-style').value;
+
+            const resultDiv = document.getElementById('story-result');
+            resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Writing story...</p></div>';
+            resultDiv.classList.add('visible');
+
+            try {
+                const prompt = `Write a ${style} story to explain the Bitcoin concept: "${concept}". Make it engaging, relatable, and educational. Keep it under 300 words.`;
+                const response = await window.geminiService.generateTutorResponse(prompt, { level: 'beginner', topic: concept });
+
+                resultDiv.innerHTML = `
+                    <div class="result-section">
+                        <h4>Generated Story</h4>
+                        <p>${response}</p>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: #f44336;">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
