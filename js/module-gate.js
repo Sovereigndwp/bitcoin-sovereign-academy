@@ -84,15 +84,20 @@
     }
 
     function applyGate(limit) {
-        const main = document.querySelector('main');
-        if (!main) {
+        // Try to find main tag, but fallback to entire document if not found
+        const container = document.querySelector('main') || document.body;
+        if (!container) {
+            console.warn('No container found for gating');
             return;
         }
 
-        const sections = Array.from(main.querySelectorAll('.content-section'));
+        const sections = Array.from(container.querySelectorAll('.content-section'));
         if (sections.length <= limit) {
+            console.log(`Only ${sections.length} sections found, no gating needed (limit: ${limit})`);
             return;
         }
+
+        console.log(`Applying gate: ${sections.length} sections found, locking ${sections.length - limit}`);
 
         injectStyles();
 
