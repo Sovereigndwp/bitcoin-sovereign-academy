@@ -1,9 +1,4 @@
 (function () {
-    // ============================================
-    // 🔓 FULLY UNLOCKED VERSION
-    // All gating disabled - all content accessible
-    // ============================================
-
     const storageKey = 'bsa_full_access';
     const previewParam = 'unlock';
     const previewLimit = 2;
@@ -12,13 +7,21 @@
     const previewKey = 'UILpVhRGw62d0jPe9GPk';  // Secure key - share only with trusted parties
     const previewStorageKey = 'bsa_preview_mode';
 
+    const pathName = normalizePath(window.location.pathname);
+
+    // Only Stage 1, Module 1 is free for all paths
     const alwaysOpen = new Set([
         '/paths/curious/stage-1/module-1.html',
         '/paths/builder/stage-1/module-1.html',
-        '/paths/pragmatist/stage-1/module-1.html'
+        '/paths/pragmatist/stage-1/module-1.html',
+        '/paths/principled/stage-1/module-1.html',
+        '/paths/sovereign/stage-1/module-1.html',
+        '/paths/observer/stage-1/module-1.html',
+        '/paths/hurried/stage-1/module-1.html'
     ]);
 
-    const pathName = normalizePath(window.location.pathname);
+    // Everything beyond Stage 1, Module 1 should be completely locked
+    const shouldLockEntireModule = !alwaysOpen.has(pathName);
 
     // Advanced modules that should be gated
     const advancedModules = [
@@ -31,13 +34,6 @@
     if (!isPathModule && !isAdvancedModule) {
         return;
     }
-
-    // 🔓 FULLY UNLOCKED - Exit early, no gating applied
-    console.log('🔓 Bitcoin Sovereign Academy - Fully Unlocked Version');
-    return;
-
-    // The code below is disabled in this version
-    // ============================================
 
     const params = new URLSearchParams(window.location.search);
     const unlockParam = params.get(previewParam);

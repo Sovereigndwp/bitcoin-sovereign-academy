@@ -131,6 +131,53 @@
         return path;
     }
 
+    function lockEntireModule() {
+        console.log('🔒 Locking entire module - this is not Stage 1, Module 1');
+
+        // Hide entire page content and show upgrade message
+        const container = document.querySelector('main') || document.querySelector('.container') || document.body;
+
+        // Create full-page lock overlay
+        const lockOverlay = document.createElement('div');
+        lockOverlay.style.cssText = `
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        `;
+
+        lockOverlay.innerHTML = `
+            <div style="max-width: 500px; text-align: center; color: white; font-family: system-ui;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🔒</div>
+                <h2 style="font-size: 2rem; margin: 0 0 1rem; color: #f7931a;">Module Locked</h2>
+                <p style="font-size: 1.1rem; color: #e0e0e0; line-height: 1.6; margin-bottom: 2rem;">
+                    This module is available to Bitcoin Sovereign Academy members.
+                    <br><br>
+                    <strong>Free Access:</strong> Stage 1, Module 1 of each path
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+                    <a href="https://learn.bitcoinsovereign.academy${window.location.pathname}"
+                       style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); color: white; text-decoration: none; font-weight: 600; font-size: 1.1rem; padding: 1rem 2rem; border-radius: 999px; transition: transform 0.2s;">
+                        Access as Member →
+                    </a>
+                    <a href="/"
+                       style="display: inline-block; color: #f7931a; text-decoration: none; font-weight: 600; padding: 0.75rem 1.5rem; border: 2px solid #f7931a; border-radius: 999px;">
+                        ← Back to Home
+                    </a>
+                    <p style="color: #888; font-size: 0.9rem; margin-top: 1rem;">
+                        Not a member? <a href="/#unlock" style="color: #f7931a; text-decoration: underline;">Join now</a>
+                    </p>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(lockOverlay);
+    }
+
     function applyGate(limit) {
         // Try to find main tag, but fallback to entire document if not found
         const container = document.querySelector('main') || document.body;
