@@ -168,7 +168,8 @@ export async function webhookBTCPay(req: VercelRequest, res: VercelResponse) {
 
     // Handle invoice settled (payment confirmed)
     if (event.type === 'InvoiceSettled') {
-      const { email, items, amount } = await handleBTCPayPaymentSuccess(event.invoiceId);
+      const { email, items } = await handleBTCPayPaymentSuccess(event.invoiceId);
+      const amount = items.reduce((sum, item) => sum + item.priceUSD, 0);
 
       // Grant entitlement
       const entitlement = grantEntitlement(email, items);

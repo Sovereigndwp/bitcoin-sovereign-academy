@@ -12,7 +12,7 @@ function getStripe(): Stripe {
       throw new Error('STRIPE_SECRET environment variable not set');
     }
     stripe = new Stripe(secret, {
-      apiVersion: '2024-12-18.acacia',
+      apiVersion: '2025-02-24.acacia',
     });
   }
   return stripe;

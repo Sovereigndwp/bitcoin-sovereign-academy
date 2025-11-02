@@ -83,7 +83,7 @@ export function calculatePricing(request: PricingRequest): PricingResponse {
   }
 
   // Check if user is buying all modules in a path (suggest bundle instead)
-  for (const [pathId, modules] of pathPurchases.entries()) {
+  for (const [pathId, modules] of Array.from(pathPurchases.entries())) {
     const path = CATALOG.paths[pathId as keyof typeof CATALOG.paths];
     if (path && modules.length === path.modules.length) {
       const moduleTotal = modules.reduce((sum, m) => sum + m.priceUSD, 0);
