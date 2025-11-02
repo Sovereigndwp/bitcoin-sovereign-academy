@@ -9,7 +9,6 @@
  */
 
 import { User, UserSession } from './auth';
-import { Entitlement } from './entitlements';
 
 // ============================================
 // Configuration

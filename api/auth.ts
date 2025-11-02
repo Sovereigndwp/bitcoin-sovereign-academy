@@ -12,7 +12,7 @@
 
 import { createHash, randomBytes, pbkdf2 } from 'crypto';
 import { promisify } from 'util';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 
 const pbkdf2Async = promisify(pbkdf2);
 
@@ -435,7 +435,8 @@ export async function deleteUser(userId: string): Promise<{ success: boolean }> 
   users.delete(userId);
 
   // Remove all sessions for this user
-  for (const [token, session] of sessions.entries()) {
+  const sessionEntries = Array.from(sessions.entries());
+  for (const [token, session] of sessionEntries) {
     if (session.userId === userId) {
       sessions.delete(token);
     }

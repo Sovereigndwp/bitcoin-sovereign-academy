@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import { Entitlement, JWTPayload, CartItem } from './types';
 
 /**
