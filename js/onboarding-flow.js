@@ -901,5 +901,5 @@ const smartOnboarding = new SmartOnboardingFlow();
 // Global function to restart onboarding
 window.restartOnboarding = () => smartOnboarding.restartOnboarding();
 
-// Export for module use
-export default SmartOnboardingFlow;
+// Export for module use (commented out for non-module browser use)
+// export default SmartOnboardingFlow;
