@@ -8,7 +8,9 @@
 (function () {
     'use strict';
 
-    const previewLimit = 2; // Number of free sections before gate
+    const previewLimit = 2; // Number of free sections before gate (for allowed modules)
+
+    const pathName = normalizePath(window.location.pathname);
 
     // Only Stage 1, Module 1 is free for all paths
     const alwaysOpen = new Set([
@@ -23,8 +25,6 @@
 
     // Everything beyond Stage 1, Module 1 should be completely locked
     const shouldLockEntireModule = !alwaysOpen.has(pathName);
-
-    const pathName = normalizePath(window.location.pathname);
 
     // Advanced modules that should be gated
     const advancedModules = [
@@ -115,7 +115,13 @@
     // ============================================
 
     window.addEventListener('DOMContentLoaded', () => {
-        applyGate(previewLimit);
+        if (shouldLockEntireModule) {
+            // Lock the ENTIRE module (no preview sections)
+            lockEntireModule();
+        } else {
+            // Show first 2 sections, then gate (for Stage 1, Module 1)
+            applyGate(previewLimit);
+        }
     });
 
     function normalizePath(path) {
