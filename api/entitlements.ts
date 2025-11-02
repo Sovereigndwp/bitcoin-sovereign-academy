@@ -38,7 +38,9 @@ export function grantEntitlement(email: string, purchasedItems: CartItem[]): Ent
       modules.add(item.id);
     } else if (item.type === 'path') {
       paths.add(item.id);
-      // TODO: Add all modules from this path
+      // Add all modules from this path
+      const pathModules = getModulesForPath(item.id);
+      pathModules.forEach(moduleId => modules.add(moduleId));
     } else if (item.type === 'bundle') {
       // Add all paths and modules from bundle
       if (item.id === 'all-paths') {
@@ -188,4 +190,48 @@ export function importEntitlements(data: string): void {
  */
 export function getAllEntitlements(): EntitlementStore {
   return entitlements;
+}
+
+/**
+ * Get all module IDs for a given path
+ */
+function getModulesForPath(pathId: string): string[] {
+  const pathModules: { [key: string]: string[] } = {
+    'curious': [
+      'curious-what-is-money',
+      'curious-history-of-money',
+      'curious-bitcoin-basics',
+      'curious-why-bitcoin-matters'
+    ],
+    'builder': [
+      'builder-setting-up-wallet',
+      'builder-running-a-node',
+      'builder-lightning-network',
+      'builder-coinjoin-privacy'
+    ],
+    'sovereign': [
+      'sovereign-advanced-security',
+      'sovereign-multisig-custody',
+      'sovereign-inheritance-planning',
+      'sovereign-operational-security'
+    ],
+    'principled': [
+      'principled-money-ethics',
+      'principled-austrian-economics',
+      'principled-sound-money',
+      'principled-bitcoin-philosophy'
+    ],
+    'pragmatist': [
+      'pragmatist-business-adoption',
+      'pragmatist-tax-compliance',
+      'pragmatist-treasury-management'
+    ],
+    'observer': [
+      'observer-bitcoin-overview',
+      'observer-use-cases',
+      'observer-getting-started'
+    ]
+  };
+
+  return pathModules[pathId] || [];
 }

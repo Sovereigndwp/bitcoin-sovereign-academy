@@ -120,8 +120,21 @@ export async function webhookStripe(req: VercelRequest, res: VercelResponse) {
       const entitlement = grantEntitlement(email, items);
       const token = generateAccessToken(entitlement);
 
-      // TODO: Send email with access token
-      console.log(`Payment successful for ${email}. Token: ${token}`);
+      // Send email with access token
+      const { sendAccessTokenEmail } = await import('./email');
+      const emailSent = await sendAccessTokenEmail({
+        email,
+        token,
+        modules: entitlement.modules,
+        paths: entitlement.paths,
+        totalPaid: session.amount_total ? session.amount_total / 100 : 0
+      });
+
+      if (!emailSent) {
+        console.error(`Failed to send access token email to ${email}`);
+      } else {
+        console.log(`Access token email sent to ${email}`);
+      }
 
       res.status(200).json({ received: true, email, token });
     } else {
@@ -155,14 +168,27 @@ export async function webhookBTCPay(req: VercelRequest, res: VercelResponse) {
 
     // Handle invoice settled (payment confirmed)
     if (event.type === 'InvoiceSettled') {
-      const { email, items } = await handleBTCPayPaymentSuccess(event.invoiceId);
+      const { email, items, amount } = await handleBTCPayPaymentSuccess(event.invoiceId);
 
       // Grant entitlement
       const entitlement = grantEntitlement(email, items);
       const token = generateAccessToken(entitlement);
 
-      // TODO: Send email with access token
-      console.log(`Payment successful for ${email}. Token: ${token}`);
+      // Send email with access token
+      const { sendAccessTokenEmail } = await import('./email');
+      const emailSent = await sendAccessTokenEmail({
+        email,
+        token,
+        modules: entitlement.modules,
+        paths: entitlement.paths,
+        totalPaid: amount
+      });
+
+      if (!emailSent) {
+        console.error(`Failed to send access token email to ${email}`);
+      } else {
+        console.log(`Access token email sent to ${email}`);
+      }
 
       res.status(200).json({ received: true, email, token });
     } else {
