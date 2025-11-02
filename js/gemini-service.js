@@ -5,7 +5,7 @@
 
 class GeminiService {
     constructor(apiKey = null) {
-        this.apiKey = apiKey || this.getApiKey();
+        this.apiKey = apiKey || this.getStoredApiKey();
         this.endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
         this.conversationHistory = [];
         this.initialized = false;
@@ -26,12 +26,17 @@ class GeminiService {
         console.log('[Gemini] Service initialized');
     }
 
+    getStoredApiKey() {
+        // Only get from localStorage, don't prompt
+        return localStorage.getItem('gemini-api-key');
+    }
+
     getApiKey() {
         // Try to get from localStorage first
         const storedKey = localStorage.getItem('gemini-api-key');
         if (storedKey) return storedKey;
 
-        // Prompt user if not found
+        // Prompt user if not found (only when explicitly called)
         const key = prompt('Please enter your Gemini API key (get one at https://makersuite.google.com/app/apikey):');
         if (key) {
             localStorage.setItem('gemini-api-key', key);

@@ -10,11 +10,19 @@
 
     const previewLimit = 2; // Number of free sections before gate
 
+    // Only Stage 1, Module 1 is free for all paths
     const alwaysOpen = new Set([
         '/paths/curious/stage-1/module-1.html',
         '/paths/builder/stage-1/module-1.html',
-        '/paths/pragmatist/stage-1/module-1.html'
+        '/paths/pragmatist/stage-1/module-1.html',
+        '/paths/principled/stage-1/module-1.html',
+        '/paths/sovereign/stage-1/module-1.html',
+        '/paths/observer/stage-1/module-1.html',
+        '/paths/hurried/stage-1/module-1.html'
     ]);
+
+    // Everything beyond Stage 1, Module 1 should be completely locked
+    const shouldLockEntireModule = !alwaysOpen.has(pathName);
 
     const pathName = normalizePath(window.location.pathname);
 

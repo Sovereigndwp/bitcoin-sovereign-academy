@@ -266,6 +266,22 @@ What would you like to learn today?`,
         const text = this.chatInput.value.trim();
         if (!text) return;
 
+        // Check if API key is set, prompt if not
+        if (!this.gemini.apiKey) {
+            const key = prompt('Please enter your Gemini API key to use the AI Tutor.\n\nGet a free key at: https://makersuite.google.com/app/apikey');
+            if (key) {
+                this.gemini.setApiKey(key);
+            } else {
+                // User cancelled, show message
+                const infoMsg = this.createMessage(
+                    'To use the AI Tutor, you need a Gemini API key. Get one free at https://makersuite.google.com/app/apikey, then click the "Set API Key" link below.',
+                    'assistant'
+                );
+                this.chatMessages.appendChild(infoMsg);
+                return;
+            }
+        }
+
         // Add user message
         const userMsg = this.createMessage(text, 'user');
         this.chatMessages.appendChild(userMsg);
