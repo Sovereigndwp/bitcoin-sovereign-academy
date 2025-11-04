@@ -99,6 +99,7 @@
             font-size: 1rem;
         }
     </style>
+    <link rel="stylesheet" href="/css/icons.css">
 </head>
 <body>
     <script src="/js/demo-lock-subdomain.js"></script>
@@ -153,7 +154,7 @@
 
             <div style="text-align: center;">
                 <button class="btn" onclick="attemptTamper()">⚠️ Try to Change Block 1</button>
-                <button class="btn" style="background: #6c757d;" onclick="resetChain()">🔄 Reset Chain</button>
+                <button class="btn" style="background: #6c757d;" onclick="resetChain()"><span data-icon="refresh"></span> Reset Chain</button>
             </div>
 
             <div id="tamper-result"></div>
@@ -264,7 +265,7 @@
             } else if (currentLevel === 'intermediate') {
                 message = `<strong>❌ Invalid Chain State!</strong><br><br>Tampering with Block 1 invalidates its hash. Since Block 2 references Block 1's hash, Block 2 becomes invalid. This cascades through the entire chain.<br><br>To successfully tamper, an attacker must re-mine Block 1 AND all subsequent blocks faster than the honest network continues adding new blocks.`;
             } else {
-                message = `<strong>⚡ Reorg Attack Required!</strong><br><br>Modifying Block 1 requires:<br>1. Re-mining Block 1 with altered data (find new nonce meeting difficulty)<br>2. Re-mining Blocks 2, 3, 4... (cascade effect)<br>3. Outpacing honest chain growth<br><br>Attack cost ≈ (blocks_deep × avg_block_reward × BTC_price). For 6 confirmations: ~$250K in block rewards + computational cost of 6 blocks of PoW. Economic game theory: attack destroys value being stolen.`;
+                message = `<strong><span data-icon="lightning"></span> Reorg Attack Required!</strong><br><br>Modifying Block 1 requires:<br>1. Re-mining Block 1 with altered data (find new nonce meeting difficulty)<br>2. Re-mining Blocks 2, 3, 4... (cascade effect)<br>3. Outpacing honest chain growth<br><br>Attack cost ≈ (blocks_deep × avg_block_reward × BTC_price). For 6 confirmations: ~$250K in block rewards + computational cost of 6 blocks of PoW. Economic game theory: attack destroys value being stolen.`;
             }
 
             result.innerHTML = `
@@ -281,6 +282,29 @@
         }
 
         console.log(`⛓️ Building the Chain Demo Level: ${currentLevel}`);
+    </script>
+
+    <!-- Animated Icon Library -->
+    <script src="/js/icon-library.js"></script>
+    <script>
+        // Inject icons after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.IconLibrary) {
+                document.querySelectorAll('[data-icon]').forEach(function(element) {
+                    var iconName = element.getAttribute('data-icon');
+                    if (iconName) {
+                        var iconHTML = IconLibrary.get(iconName, 20, true);
+                        var span = document.createElement('span');
+                        span.innerHTML = iconHTML;
+                        span.className = 'icon-inline';
+                        span.style.marginRight = '0.5rem';
+                        span.style.display = 'inline-block';
+                        span.style.verticalAlign = 'middle';
+                        element.insertBefore(span, element.firstChild);
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
