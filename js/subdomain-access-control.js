@@ -74,6 +74,46 @@
     }
 
     // ============================================
+    // JWT Token Verification
+    // ============================================
+
+    function hasValidAccessToken() {
+        try {
+            // Check for access token in localStorage
+            const token = localStorage.getItem('bsa_access_token') ||
+                         localStorage.getItem('bsa_jwt_token');
+
+            if (!token) {
+                return false;
+            }
+
+            // Basic JWT validation (check expiration)
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                console.warn('Invalid JWT format');
+                return false;
+            }
+
+            // Decode payload (base64url decode)
+            const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+
+            // Check expiration
+            if (payload.exp && payload.exp * 1000 < Date.now()) {
+                console.log('🔒 JWT token expired');
+                localStorage.removeItem('bsa_access_token');
+                localStorage.removeItem('bsa_jwt_token');
+                return false;
+            }
+
+            console.log('✅ Valid JWT token found - granting member access');
+            return true;
+        } catch (e) {
+            console.warn('Error validating JWT:', e);
+            return false;
+        }
+    }
+
+    // ============================================
     // Access Level Detection
     // ============================================
 
@@ -85,6 +125,12 @@
         if (subdomain === 'dev') {
             console.log('🔧 Development Mode - Full Access');
             return CONFIG.accessLevels.DEV;
+        }
+
+        // Check for valid JWT token (works on any subdomain)
+        if (hasValidAccessToken()) {
+            console.log('✅ Valid Access Token - Member Access Granted');
+            return CONFIG.accessLevels.MEMBER;
         }
 
         // Member subdomain (paid access)
@@ -252,7 +298,20 @@
             shouldUnlockDemo: (demoName) => shouldUnlockDemo(accessLevel, demoName),
             getHostname,
             getSubdomain,
-            config: CONFIG
+            config: CONFIG,
+            // JWT Token Management
+            setAccessToken: (token) => {
+                localStorage.setItem('bsa_access_token', token);
+                console.log('✅ Access token saved - reloading to apply access');
+                window.location.reload();
+            },
+            clearAccessToken: () => {
+                localStorage.removeItem('bsa_access_token');
+                localStorage.removeItem('bsa_jwt_token');
+                console.log('🔒 Access token cleared');
+                window.location.reload();
+            },
+            hasValidToken: hasValidAccessToken
         };
 
         console.log('🌐 Subdomain Access Control Initialized');

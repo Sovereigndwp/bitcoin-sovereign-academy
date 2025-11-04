@@ -414,8 +414,29 @@
         if (params.get('success') === 'true') {
             const sessionId = params.get('session_id');
             const invoiceId = params.get('invoice_id');
+            const token = params.get('token'); // JWT token from email link
 
-            showSuccess('Payment successful! Check your email for access instructions.');
+            // If token is provided, save it
+            if (token) {
+                try {
+                    localStorage.setItem('bsa_access_token', token);
+                    console.log('✅ Access token saved from payment success');
+
+                    // Show success with access granted message
+                    showSuccess('Payment successful! Access granted. Redirecting to your courses...');
+
+                    // Redirect to member area after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } catch (e) {
+                    console.error('Error saving token:', e);
+                    showSuccess('Payment successful! Check your email for access instructions.');
+                }
+            } else {
+                showSuccess('Payment successful! Check your email for access instructions.');
+            }
+
             clearCart();
 
             // Clean URL
