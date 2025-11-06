@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 5: Transaction Safety Checklist | The Hurried Path</title>
+    <meta name="description" content="Avoid costly mistakes. 8-minute safety checklist for bitcoin transactions.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-gold: #FFA726;
+            --accent-green: #4caf50;
+            --accent-red: #ef4444;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(255, 167, 38, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        .nav-buttons { display: flex; justify-content: space-between; margin-bottom: 2rem; }
+
+        .back-button {
+            display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem;
+            background: rgba(255, 167, 38, 0.1); border: 2px solid var(--accent-gold);
+            border-radius: 0.5rem; color: var(--accent-gold); text-decoration: none;
+            font-weight: 600; transition: all 0.2s ease;
+        }
+
+        .back-button:hover { background: rgba(255, 167, 38, 0.2); transform: translateX(-3px); }
+
+        .module-header {
+            text-align: center; padding: 2rem;
+            background: linear-gradient(135deg, rgba(255, 167, 38, 0.2), rgba(255, 167, 38, 0.05));
+            border: 3px solid var(--accent-gold); border-radius: 1rem; margin-bottom: 2rem;
+        }
+
+        .module-number { font-size: 1rem; color: var(--accent-gold); font-weight: 700; margin-bottom: 0.5rem; }
+        .module-header h1 { font-size: 2.5rem; color: var(--accent-gold); margin-bottom: 0.5rem; }
+        .time-estimate { font-size: 1.1rem; color: var(--text-dim); font-weight: 600; }
+        .time-estimate .time { color: var(--accent-gold); }
+
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1); border: 2px solid var(--accent-red);
+            border-radius: 0.75rem; padding: 1.5rem; margin: 2rem 0;
+        }
+
+        .warning-box h3 { color: var(--accent-red); font-size: 1.3rem; margin-bottom: 1rem; }
+        .warning-box ul { list-style: none; padding-left: 0; }
+        .warning-box li { padding: 0.5rem 0; padding-left: 1.5rem; position: relative; }
+        .warning-box li:before { content: "⚠️"; position: absolute; left: 0; }
+
+        .content-section {
+            background: var(--secondary-dark); border: 2px solid var(--border-color);
+            border-radius: 1rem; padding: 2rem; margin: 2rem 0;
+        }
+
+        .content-section h2 { color: var(--accent-gold); font-size: 1.8rem; margin-bottom: 1.5rem; }
+        .content-section h3 { color: var(--text-light); font-size: 1.4rem; margin: 1.5rem 0 1rem 0; }
+        .content-section p { margin-bottom: 1rem; font-size: 1.05rem; }
+
+        .safety-checklist {
+            background: rgba(239, 68, 68, 0.1); border: 2px solid var(--accent-red);
+            border-radius: 0.75rem; padding: 2rem; margin: 2rem 0;
+        }
+
+        .safety-checklist h3 { color: var(--accent-red); font-size: 1.5rem; margin-bottom: 1.5rem; }
+
+        .checklist { list-style: none; padding: 0; }
+
+        .checklist li {
+            padding: 1rem; margin: 0.5rem 0; background: var(--primary-dark);
+            border-radius: 0.5rem; display: flex; align-items: flex-start;
+            gap: 1rem; transition: all 0.2s; cursor: pointer;
+        }
+
+        .checklist li:hover { background: rgba(239, 68, 68, 0.1); }
+        .checklist input[type="checkbox"] {
+            width: 24px; height: 24px; cursor: pointer; flex-shrink: 0; margin-top: 0.25rem;
+        }
+        .checklist li.checked { opacity: 0.6; }
+
+        .key-points {
+            background: rgba(33, 150, 243, 0.1); border-left: 4px solid #2196f3;
+            padding: 1.5rem; margin: 1.5rem 0; border-radius: 0.5rem;
+        }
+
+        .key-points h4 { color: #2196f3; margin-bottom: 1rem; }
+        .key-points ul { list-style: none; padding: 0; }
+        .key-points li { padding: 0.5rem 0; padding-left: 1.5rem; position: relative; }
+        .key-points li:before { content: "→"; position: absolute; left: 0; color: #2196f3; font-weight: bold; }
+
+        .mistake-card {
+            background: var(--primary-dark); border: 2px solid var(--accent-red);
+            border-radius: 0.75rem; padding: 1.5rem; margin: 1rem 0;
+        }
+
+        .mistake-card h4 {
+            color: var(--accent-red); font-size: 1.3rem; margin-bottom: 0.75rem;
+        }
+
+        .mistake-card .solution {
+            color: var(--accent-green); font-weight: 600; margin-top: 0.75rem;
+        }
+
+        .module-nav {
+            display: flex; justify-content: space-between; align-items: center;
+            margin: 3rem 0; padding: 2rem; background: var(--secondary-dark); border-radius: 1rem;
+        }
+
+        .nav-link {
+            display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--accent-gold), #FFB74D);
+            color: white; border-radius: 0.5rem; text-decoration: none;
+            font-weight: 700; font-size: 1.1rem; transition: all 0.3s ease;
+        }
+
+        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 167, 38, 0.4); }
+        .progress-indicator { text-align: center; color: var(--text-dim); font-weight: 600; }
+
+        @media (max-width: 768px) {
+            .container { padding: 1.5rem; }
+            .module-header h1 { font-size: 2rem; }
+            .module-nav { flex-direction: column; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-buttons">
+            <a href="/paths/hurried/stage-2/module-4.html" class="back-button">← Previous</a>
+        </div>
+
+        <header class="module-header">
+            <div class="module-number">STAGE 2 • MODULE 5 OF 8</div>
+            <h1>✅ Transaction Safety Checklist</h1>
+            <p class="time-estimate">Time Required: <span class="time">8 minutes</span></p>
+        </header>
+
+        <div class="warning-box">
+            <h3>🚨 Why This Matters</h3>
+            <ul>
+                <li>Most bitcoin losses come from user error, not hacks</li>
+                <li>One wrong character in an address = funds lost forever</li>
+                <li>There's no customer service to reverse mistakes</li>
+                <li>This 8-minute checklist prevents 95% of costly errors</li>
+            </ul>
+        </div>
+
+        <section class="content-section">
+            <h2>💀 Top 5 Costly Mistakes (And How to Avoid Them)</h2>
+
+            <div class="mistake-card">
+                <h4>Mistake 1: Wrong Address</h4>
+                <p>Sending to an incorrect or malware-modified address. Funds are irretrievable.</p>
+                <div class="solution">✓ Solution: Always verify first 4 and last 4 characters. Use small test amounts first.</div>
+            </div>
+
+            <div class="mistake-card">
+                <h4>Mistake 2: Wrong Network</h4>
+                <p>Sending Bitcoin to a Bitcoin Cash address (or vice versa). Different coins, lost funds.</p>
+                <div class="solution">✓ Solution: Confirm you're on Bitcoin network (BTC). Check address format starts with "bc1" or "3".</div>
+            </div>
+
+            <div class="mistake-card">
+                <h4>Mistake 3: Tiny Fee = Stuck Transaction</h4>
+                <p>Setting fee too low. Transaction stuck for days or weeks.</p>
+                <div class="solution">✓ Solution: Use wallet's recommended fee or check mempool.space for current rates.</div>
+            </div>
+
+            <div class="mistake-card">
+                <h4>Mistake 4: Trusting Clipboard</h4>
+                <p>Malware changes copied address. You paste attacker's address instead of recipient's.</p>
+                <div class="solution">✓ Solution: ALWAYS verify the pasted address character-by-character before sending.</div>
+            </div>
+
+            <div class="mistake-card">
+                <h4>Mistake 5: No Confirmation Check</h4>
+                <p>Assuming transaction went through without checking blockchain confirmation.</p>
+                <div class="solution">✓ Solution: Track transaction on mempool.space. Wait for at least 1 confirmation.</div>
+            </div>
+        </section>
+
+        <div class="safety-checklist">
+            <h3>🛡️ Pre-Send Safety Checklist (USE EVERY TIME)</h3>
+            <p style="margin-bottom: 1.5rem; color: var(--text-light);">
+                Bookmark this checklist. Run through it BEFORE every transaction.
+            </p>
+            <ul class="checklist" id="safetyChecklist">
+                <li><input type="checkbox" id="step1"><label for="step1">✓ I am sending on the BITCOIN network (not Bitcoin Cash, not Lightning)</label></li>
+                <li><input type="checkbox" id="step2"><label for="step2">✓ I have the correct recipient address (verified with them)</label></li>
+                <li><input type="checkbox" id="step3"><label for="step3">✓ Address starts with "bc1", "3", or "1" (valid Bitcoin format)</label></li>
+                <li><input type="checkbox" id="step4"><label for="step4">✓ I verified FIRST 4 and LAST 4 characters match exactly</label></li>
+                <li><input type="checkbox" id="step5"><label for="step5">✓ For large amounts: I sent a $5-10 TEST first</label></li>
+                <li><input type="checkbox" id="step6"><label for="step6">✓ Fee is set appropriately (not too low, not wastefully high)</label></li>
+                <li><input type="checkbox" id="step7"><label for="step7">✓ Amount is correct (decimal point in right place)</label></li>
+                <li><input type="checkbox" id="step8"><label for="step8">✓ I am NOT in a rush - rushing causes mistakes</label></li>
+                <li><input type="checkbox" id="step9"><label for="step9">✓ After sending: I tracked transaction on mempool.space</label></li>
+            </ul>
+        </div>
+
+        <section class="content-section">
+            <h2>🔍 Address Verification Guide</h2>
+            <p>
+                The single most important skill: verifying addresses correctly.
+            </p>
+
+            <h3>Method 1: First 4 + Last 4</h3>
+            <p>
+                Example: <code style="background: #000; padding: 0.25rem 0.5rem; border-radius: 0.25rem; color: var(--accent-green);">bc1q</code><strong style="color: var(--accent-gold);">xy2k</strong>gdygjrsqtzq2n0yrf2493p83kkf<strong style="color: var(--accent-gold);">jhx0</strong>
+            </p>
+            <p>Check: First 4 = <strong>xy2k</strong> | Last 4 = <strong>jhx0</strong></p>
+
+            <h3>Method 2: QR Code (Safest)</h3>
+            <p>
+                If recipient shows QR code, scan it. No typing = no typos. But still verify the address shown after scanning.
+            </p>
+
+            <h3>Method 3: Small Test First</h3>
+            <p>
+                For amounts over $100, ALWAYS send $5-10 test first. Confirm it arrives. Then send the rest.
+            </p>
+
+            <div class="key-points">
+                <h4>💡 Pro Tips</h4>
+                <ul>
+                    <li>Save frequently used addresses in your wallet's address book</li>
+                    <li>Use labeled addresses ("Mom", "Merchant X", etc.)</li>
+                    <li>For large amounts, verify via second channel (call recipient, text separately)</li>
+                    <li>Never trust an address sent via email only (can be intercepted)</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2>🚑 Troubleshooting Common Issues</h2>
+
+            <h3>Transaction Stuck (Low Fee)</h3>
+            <p><strong>Symptoms:</strong> Transaction unconfirmed for hours/days</p>
+            <p><strong>Solution:</strong> Wait (it will eventually confirm or be dropped). Some wallets allow "replace-by-fee" (RBF) to increase fee.</p>
+
+            <h3>Transaction Not Showing Up</h3>
+            <p><strong>Symptoms:</strong> Sent but recipient doesn't see it</p>
+            <p><strong>Solution:</strong> Check transaction ID on mempool.space. Confirm it's broadcasting. Check recipient is looking at correct wallet.</p>
+
+            <h3>Wrong Amount Sent</h3>
+            <p><strong>Symptoms:</strong> Sent 0.01 instead of 0.001</p>
+            <p><strong>Solution:</strong> Contact recipient if known. Otherwise: irreversible. This is why we test with small amounts.</p>
+
+            <h3>Sent to Wrong Address</h3>
+            <p><strong>Symptoms:</strong> Realized address was wrong after sending</p>
+            <p><strong>Solution:</strong> If you control that address (old wallet, etc.), recover it. Otherwise: funds are lost. No reversal possible.</p>
+        </section>
+
+        <section class="content-section">
+            <h2>🎯 Key Takeaways</h2>
+            <div class="key-points">
+                <h4>🏁 What You've Learned:</h4>
+                <ul>
+                    <li>Most losses are preventable with simple checks</li>
+                    <li>Always verify addresses character-by-character</li>
+                    <li>Test transactions for large amounts</li>
+                    <li>Use the safety checklist EVERY time</li>
+                    <li>Bitcoin transactions are irreversible - caution is mandatory</li>
+                </ul>
+            </div>
+
+            <p style="margin-top: 1.5rem; font-size: 1.1rem;">
+                <strong>Next:</strong> Module 6 covers quick security essentials to protect your wallet and funds.
+            </p>
+        </section>
+
+        <nav class="module-nav">
+            <a href="/paths/hurried/stage-2/module-4.html" class="back-button" style="background: transparent;">← Previous</a>
+            <div class="progress-indicator">Module 5 of 8 • Stage 2: Use It Safely</div>
+            <a href="/paths/hurried/stage-2/module-6.html" class="nav-link">Next: Security Essentials →</a>
+        </nav>
+    </div>
+
+    <script>
+        document.querySelectorAll('.checklist input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                this.closest('li').classList.toggle('checked', this.checked);
+                saveProgress();
+            });
+        });
+
+        function loadProgress() {
+            const saved = localStorage.getItem('hurried_module5_progress');
+            if (saved) {
+                JSON.parse(saved).forEach(id => {
+                    const cb = document.getElementById(id);
+                    if (cb) {
+                        cb.checked = true;
+                        cb.closest('li').classList.add('checked');
+                    }
+                });
+            }
+        }
+
+        function saveProgress() {
+            const checked = Array.from(document.querySelectorAll('.checklist input:checked')).map(cb => cb.id);
+            localStorage.setItem('hurried_module5_progress', JSON.stringify(checked));
+        }
+
+        window.addEventListener('DOMContentLoaded', loadProgress);
+    </script>
+</body>
+</html>
