@@ -181,11 +181,14 @@ function generateAccessTokenEmailHTML(data: AccessTokenEmailData): string {
       </div>
       ` : ''}
 
-      <!-- CTA Button -->
+      <!-- CTA Buttons -->
       <div style="text-align: center; margin: 32px 0 0 0;">
-        <a href="https://learn.bitcoinsovereign.academy" style="display: inline-block; background: linear-gradient(135deg, #f7931a, #ffb347); color: #121212; text-decoration: none; font-weight: 700; font-size: 16px; padding: 16px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(247, 147, 26, 0.3);">
-          🚀 Start Learning
+        <a href="https://bitcoinsovereign.academy?token=${encodeURIComponent(data.token)}" style="display: inline-block; background: linear-gradient(135deg, #f7931a, #ffb347); color: #121212; text-decoration: none; font-weight: 700; font-size: 16px; padding: 16px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(247, 147, 26, 0.3); margin: 8px;">
+          🚀 Access Your Content
         </a>
+        <p style="margin: 12px 0 0 0; font-size: 14px; color: #999;">
+          or visit: <a href="https://bitcoinsovereign.academy" style="color: #f7931a; text-decoration: none;">bitcoinsovereign.academy</a>
+        </p>
       </div>
 
     </div>
@@ -257,15 +260,19 @@ CONTENT UNLOCKED
 
 ${data.paths.length > 0 ? `Learning Paths:\n${pathList}\n\n` : ''}${data.modules.length > 0 ? `Modules:\n${moduleList}\n\n` : ''}
 ========================================
-HOW TO USE YOUR TOKEN
+HOW TO ACCESS YOUR CONTENT
 ========================================
 
-1. Visit https://learn.bitcoinsovereign.academy
+QUICK ACCESS (Click or copy this link):
+https://bitcoinsovereign.academy?token=${encodeURIComponent(data.token)}
+
+OR manually enter your token:
+1. Visit https://bitcoinsovereign.academy
 2. You'll be prompted to enter your access token
 3. Paste the token from above
 4. Start learning! All your purchased content is now unlocked
 
-💡 Tip: Bookmark the member site for easy access
+💡 Tip: Bookmark the site with your token for instant access
 
 ========================================
 SUPPORT

@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Bitcoin Sovereign Academy</title>
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --accent-green: #4caf50;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Login Page */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .login-box {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 16px;
+            padding: 3rem;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-box h1 {
+            color: var(--primary-orange);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .login-box p {
+            color: var(--text-dim);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #f7931a, #ffb347);
+            color: #121212;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(247, 147, 26, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        /* Dashboard Layout */
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .dashboard-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--primary-orange);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dashboard-header h1 {
+            color: var(--primary-orange);
+            font-size: 1.5rem;
+        }
+
+        .dashboard-header button {
+            padding: 0.5rem 1rem;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .dashboard-content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid rgba(247, 147, 26, 0.2);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: var(--primary-orange);
+        }
+
+        .tab.active {
+            color: var(--primary-orange);
+            border-bottom-color: var(--primary-orange);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .stat-card h3 {
+            color: var(--text-dim);
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .value {
+            color: var(--primary-orange);
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stat-card .label {
+            color: var(--text-dim);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Tables */
+        .table-container {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(247, 147, 26, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h2 {
+            color: var(--primary-orange);
+            font-size: 1.25rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead tr {
+            background: rgba(247, 147, 26, 0.1);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            color: var(--primary-orange);
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 1rem;
+            border-top: 1px solid rgba(247, 147, 26, 0.1);
+        }
+
+        tbody tr:hover {
+            background: rgba(247, 147, 26, 0.05);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--accent-green);
+        }
+
+        .badge-warning {
+            background: rgba(247, 147, 26, 0.2);
+            color: var(--primary-orange);
+        }
+
+        .badge-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+
+        /* Search */
+        .search-box {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--secondary-dark);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        .search-box button {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-orange);
+            color: #121212;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-dim);
+        }
+
+        .spinner {
+            border: 3px solid rgba(247, 147, 26, 0.1);
+            border-top: 3px solid var(--primary-orange);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 600px;
+            }
+
+            .tabs {
+                gap: 0.5rem;
+            }
+
+            .tab {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Action buttons */
+        .btn-small {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--secondary-dark);
+            border: 2px solid var(--primary-orange);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            color: var(--primary-orange);
+            font-size: 1.5rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .modal-footer button {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage" class="login-container">
+        <div class="login-box">
+            <h1>⚡ Admin Dashboard</h1>
+            <p>Bitcoin Sovereign Academy</p>
+
+            <div id="loginError" class="error-message" style="display: none;"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="password">Admin Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter admin password"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <button type="submit" class="btn" id="loginBtn">
+                    Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard">
+        <div class="dashboard-header">
+            <h1>⚡ Admin Dashboard</h1>
+            <button onclick="logout()">Logout</button>
+        </div>
+
+        <div class="dashboard-content">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('overview')">Overview</button>
+                <button class="tab" onclick="switchTab('users')">Users</button>
+                <button class="tab" onclick="switchTab('payments')">Payments</button>
+                <button class="tab" onclick="switchTab('content')">Content Stats</button>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overviewTab" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Users</h3>
+                        <div class="value" id="totalUsers">0</div>
+                        <div class="label">Registered</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Revenue</h3>
+                        <div class="value" id="totalRevenue">$0</div>
+                        <div class="label">All Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>This Month</h3>
+                        <div class="value" id="monthRevenue">$0</div>
+                        <div class="label">Revenue</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Avg Order</h3>
+                        <div class="value" id="avgOrder">$0</div>
+                        <div class="label">Value</div>
+                    </div>
+                </div>
+
+                <!-- Recent Users -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2>Recent Users</h2>
+                    </div>
+                    <div id="recentUsersTable">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="usersTab" class="tab-content">
+                <div class="search-box">
+                    <input
+                        type="text"
+                        id="userSearch"
+                        placeholder="Search by email..."
+                    >
+                    <button onclick="searchUser()">Search</button>
+                    <button onclick="showGrantAccessModal()">Grant Access</button>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2>All Users</h2>
+                    </div>
+                    <div id="usersTable">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading users...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments Tab -->
+            <div id="paymentsTab" class="tab-content">
+                <div class="table-header">
+                    <h2>Payment History</h2>
+                    <button class="btn-small" onclick="exportPayments()">Export CSV</button>
+                </div>
+                <div id="paymentsTable">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading payments...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Stats Tab -->
+            <div id="contentTab" class="tab-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Modules Granted</h3>
+                        <div class="value" id="totalModules">0</div>
+                        <div class="label">Total Accesses</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Paths Granted</h3>
+                        <div class="value" id="totalPaths">0</div>
+                        <div class="label">Total Accesses</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2>Popular Modules</h2>
+                    </div>
+                    <div id="popularModulesTable"></div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2>Popular Paths</h2>
+                    </div>
+                    <div id="popularPathsTable"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grant Access Modal -->
+    <div id="grantAccessModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Grant Manual Access</h2>
+            </div>
+
+            <form id="grantAccessForm">
+                <div class="form-group">
+                    <label for="grantEmail">Email</label>
+                    <input type="email" id="grantEmail" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="grantPath">Path (optional)</label>
+                    <select id="grantPath">
+                        <option value="">Select path...</option>
+                        <option value="curious">Curious</option>
+                        <option value="builder">Builder</option>
+                        <option value="sovereign">Sovereign</option>
+                        <option value="principled">Principled</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="sendGrantEmail">
+                        Send access email to user
+                    </label>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" onclick="closeGrantAccessModal()">Cancel</button>
+                    <button type="submit" class="btn">Grant Access</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_BASE = '/api';
+
+        // Auth token
+        let authToken = localStorage.getItem('adminToken');
+
+        // Check auth on load
+        if (authToken) {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            loadDashboardData();
+        }
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const errorDiv = document.getElementById('loginError');
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+            errorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/auth`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Login failed');
+                }
+
+                authToken = data.token;
+                localStorage.setItem('adminToken', authToken);
+
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+                loadDashboardData();
+            } catch (err) {
+                errorDiv.textContent = err.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+            }
+        });
+
+        // Logout
+        function logout() {
+            authToken = null;
+            localStorage.removeItem('adminToken');
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('loginPage').style.display = 'flex';
+        }
+
+        // Switch tabs
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+
+            // Load tab data
+            if (tabName === 'users') loadUsers();
+            if (tabName === 'payments') loadPayments();
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/stats`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        logout();
+                        return;
+                    }
+                    throw new Error('Failed to load stats');
+                }
+
+                const data = await response.json();
+                updateDashboard(data.stats);
+            } catch (err) {
+                console.error('Error loading dashboard:', err);
+            }
+        }
+
+        // Update dashboard UI
+        function updateDashboard(stats) {
+            document.getElementById('totalUsers').textContent = stats.overview.totalUsers;
+            document.getElementById('totalRevenue').textContent = `$${stats.revenue.allTime.toFixed(2)}`;
+            document.getElementById('monthRevenue').textContent = `$${stats.revenue.thisMonth.toFixed(2)}`;
+            document.getElementById('avgOrder').textContent = `$${stats.revenue.averageOrderValue.toFixed(2)}`;
+            document.getElementById('totalModules').textContent = stats.overview.totalModulesGranted;
+            document.getElementById('totalPaths').textContent = stats.overview.totalPathsGranted;
+
+            // Recent users table
+            const recentUsersHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Purchase Date</th>
+                            <th>Modules</th>
+                            <th>Paths</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${stats.recentUsers.map(user => `
+                            <tr>
+                                <td>${user.email}</td>
+                                <td>${new Date(user.purchaseDate).toLocaleDateString()}</td>
+                                <td>${user.modulesCount}</td>
+                                <td>${user.pathsCount}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('recentUsersTable').innerHTML = recentUsersHTML;
+
+            // Popular modules
+            const modulesHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Module ID</th>
+                            <th>Access Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${stats.popularContent.modules.map(m => `
+                            <tr>
+                                <td>${m.id}</td>
+                                <td>${m.count}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('popularModulesTable').innerHTML = modulesHTML;
+
+            // Popular paths
+            const pathsHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Path ID</th>
+                            <th>Access Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${stats.popularContent.paths.map(p => `
+                            <tr>
+                                <td>${p.id}</td>
+                                <td>${p.count}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('popularPathsTable').innerHTML = pathsHTML;
+        }
+
+        // Load users
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/users`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+
+                const usersHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>User ID</th>
+                                <th>Modules</th>
+                                <th>Paths</th>
+                                <th>Purchase Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.users.map(user => `
+                                <tr>
+                                    <td>${user.email}</td>
+                                    <td style="font-family: monospace; font-size: 0.75rem;">${user.userId}</td>
+                                    <td>${user.modules.length}</td>
+                                    <td>${user.paths.length}</td>
+                                    <td>${new Date(user.purchaseDate).toLocaleDateString()}</td>
+                                    <td>
+                                        <button class="btn-small btn-danger" onclick="revokeAccess('${user.email}')">Revoke</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                document.getElementById('usersTable').innerHTML = usersHTML;
+            } catch (err) {
+                console.error('Error loading users:', err);
+            }
+        }
+
+        // Search user
+        async function searchUser() {
+            const email = document.getElementById('userSearch').value;
+            if (!email) return loadUsers();
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/users?email=${encodeURIComponent(email)}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+
+                if (!data.user) {
+                    alert('User not found');
+                    return;
+                }
+
+                const user = data.user;
+                const usersHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>User ID</th>
+                                <th>Modules</th>
+                                <th>Paths</th>
+                                <th>Purchase Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${user.email}</td>
+                                <td style="font-family: monospace; font-size: 0.75rem;">${user.userId}</td>
+                                <td>${user.modules.length}</td>
+                                <td>${user.paths.length}</td>
+                                <td>${new Date(user.purchaseDate).toLocaleDateString()}</td>
+                                <td>
+                                    <button class="btn-small btn-danger" onclick="revokeAccess('${user.email}')">Revoke</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                document.getElementById('usersTable').innerHTML = usersHTML;
+            } catch (err) {
+                console.error('Error searching user:', err);
+            }
+        }
+
+        // Revoke access
+        async function revokeAccess(email) {
+            if (!confirm(`Revoke all access for ${email}?`)) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/users?email=${encodeURIComponent(email)}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Access revoked successfully');
+                    loadUsers();
+                } else {
+                    alert(data.error || 'Failed to revoke access');
+                }
+            } catch (err) {
+                alert('Failed to revoke access');
+                console.error('Error:', err);
+            }
+        }
+
+        // Show grant access modal
+        function showGrantAccessModal() {
+            document.getElementById('grantAccessModal').classList.add('active');
+        }
+
+        // Close grant access modal
+        function closeGrantAccessModal() {
+            document.getElementById('grantAccessModal').classList.remove('active');
+            document.getElementById('grantAccessForm').reset();
+        }
+
+        // Grant access form
+        document.getElementById('grantAccessForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('grantEmail').value;
+            const path = document.getElementById('grantPath').value;
+            const sendEmail = document.getElementById('sendGrantEmail').checked;
+
+            const items = [];
+            if (path) {
+                items.push({ type: 'path', id: path, title: path, priceUSD: 0 });
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/users`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ email, items, sendEmail })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(`Access granted successfully! Token: ${data.token}`);
+                    closeGrantAccessModal();
+                    loadUsers();
+                } else {
+                    alert(data.error || 'Failed to grant access');
+                }
+            } catch (err) {
+                alert('Failed to grant access');
+                console.error('Error:', err);
+            }
+        });
+
+        // Load payments
+        async function loadPayments() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/payments`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+
+                const paymentsHTML = `
+                    <p style="text-align: center; padding: 2rem; color: var(--text-dim);">
+                        No payments recorded yet. Payments will appear here after successful transactions.
+                    </p>
+                `;
+                document.getElementById('paymentsTable').innerHTML = paymentsHTML;
+            } catch (err) {
+                console.error('Error loading payments:', err);
+            }
+        }
+
+        // Export payments
+        async function exportPayments() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/payments/export`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `payments-${Date.now()}.csv`;
+                a.click();
+            } catch (err) {
+                alert('Failed to export payments');
+                console.error('Error:', err);
+            }
+        }
+    </script>
+</body>
+</html>

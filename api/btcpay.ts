@@ -43,20 +43,28 @@ export async function createBTCPayInvoice(
 
   const config = getBTCPayConfig();
 
+  // Prepare invoice ID for token retrieval
+  const invoiceIdPrefix = `BSA-${Date.now()}`;
+
+  // Append invoice_id to success URL for token retrieval
+  const successUrlWithInvoice = request.successUrl.includes('?')
+    ? `${request.successUrl}&provider=btcpay&invoice_id={invoiceId}`
+    : `${request.successUrl}?provider=btcpay&invoice_id={invoiceId}`;
+
   // Build invoice request
   const invoiceData = {
     amount: pricing.total.toString(),
     currency: 'USD',
     metadata: {
       buyerEmail: request.email,
-      orderId: `BSA-${Date.now()}`,
+      orderId: invoiceIdPrefix,
       itemDesc: request.items.map((i) => i.title).join(', '),
       items: JSON.stringify(
         request.items.map((i) => ({ type: i.type, id: i.id, title: i.title }))
       ),
     },
     checkout: {
-      redirectURL: request.successUrl,
+      redirectURL: successUrlWithInvoice,
       redirectAutomatically: true,
       defaultLanguage: 'en',
     },

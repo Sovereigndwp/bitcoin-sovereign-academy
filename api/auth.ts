@@ -453,17 +453,27 @@ export async function deleteUser(userId: string): Promise<{ success: boolean }> 
  * Generate JWT access token for API authentication
  */
 export function generateJWTToken(userId: string, email: string): string {
-  const secret = process.env.JWT_SECRET || 'change_me_in_production';
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    throw new Error('FATAL: JWT_SECRET environment variable not configured. Cannot generate tokens.');
+  }
+
+  if (secret.length < 32) {
+    throw new Error('FATAL: JWT_SECRET must be at least 32 characters long for security.');
+  }
 
   return jwt.sign(
     {
       userId,
       email,
-      type: 'access'
+      type: 'access',
+      iat: Math.floor(Date.now() / 1000)
     },
     secret,
     {
-      expiresIn: '30d'
+      expiresIn: '30d',
+      algorithm: 'HS256'
     }
   );
 }
@@ -477,8 +487,13 @@ export function verifyJWTToken(token: string): {
   email?: string;
 } {
   try {
-    const secret = process.env.JWT_SECRET || 'change_me_in_production';
-    const decoded = jwt.verify(token, secret) as any;
+    const secret = process.env.JWT_SECRET;
+
+    if (!secret) {
+      throw new Error('FATAL: JWT_SECRET environment variable not configured. Cannot verify tokens.');
+    }
+
+    const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] }) as any;
 
     return {
       valid: true,

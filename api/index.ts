@@ -136,6 +136,11 @@ export async function webhookStripe(req: VercelRequest, res: VercelResponse) {
         console.log(`Access token email sent to ${email}`);
       }
 
+      // Store token for potential redirect (if session has return_url metadata)
+      // Note: Stripe redirects happen on client-side after checkout completion
+      // We'll need to append the token in the success_url query params
+      console.log(`Token generated for ${email}: ${token}`);
+
       res.status(200).json({ received: true, email, token });
     } else {
       res.status(200).json({ received: true });
@@ -232,6 +237,101 @@ export async function verify(req: VercelRequest, res: VercelResponse) {
 }
 
 /**
+ * GET /api/get-token
+ * Retrieve access token after successful payment
+ */
+export async function getToken(req: VercelRequest, res: VercelResponse) {
+  if (handleCORS(req, res)) return;
+
+  if (req.method !== 'GET') {
+    return errorResponse(res, 405, 'Method not allowed');
+  }
+
+  try {
+    const { session_id, invoice_id, provider = 'stripe' } = req.query;
+
+    let email: string;
+    let items: any[];
+
+    if (provider === 'stripe') {
+      if (!session_id || typeof session_id !== 'string') {
+        return errorResponse(res, 400, 'Missing or invalid session_id parameter');
+      }
+
+      // Retrieve Stripe session
+      const Stripe = (await import('stripe')).default;
+      const stripe = new Stripe(process.env.STRIPE_SECRET || '', {
+        apiVersion: '2025-02-24.acacia',
+      });
+      const session = await stripe.checkout.sessions.retrieve(session_id);
+
+      // Verify payment was successful
+      if (session.payment_status !== 'paid') {
+        return errorResponse(res, 400, 'Payment not completed');
+      }
+
+      // Extract email and items from session
+      email = session.customer_email || session.metadata?.email || '';
+      if (!email) {
+        return errorResponse(res, 400, 'No email found in session');
+      }
+
+      const itemsData = session.metadata?.items;
+      if (!itemsData) {
+        return errorResponse(res, 400, 'No items found in session');
+      }
+
+      items = JSON.parse(itemsData);
+    } else if (provider === 'btcpay') {
+      if (!invoice_id || typeof invoice_id !== 'string') {
+        return errorResponse(res, 400, 'Missing or invalid invoice_id parameter');
+      }
+
+      // Retrieve BTCPay invoice
+      const { getBTCPayInvoiceStatus } = await import('./btcpay');
+      const invoice = await getBTCPayInvoiceStatus(invoice_id);
+
+      // Verify payment was successful
+      if (invoice.status !== 'Settled') {
+        return errorResponse(res, 400, `Payment not completed. Status: ${invoice.status}`);
+      }
+
+      // Extract email and items from invoice
+      email = invoice.metadata?.buyerEmail || '';
+      if (!email) {
+        return errorResponse(res, 400, 'No email found in invoice');
+      }
+
+      const itemsData = invoice.metadata?.items;
+      if (!itemsData) {
+        return errorResponse(res, 400, 'No items found in invoice');
+      }
+
+      items = JSON.parse(itemsData);
+    } else {
+      return errorResponse(res, 400, 'Invalid payment provider');
+    }
+
+    // Grant entitlement and generate token
+    const entitlement = grantEntitlement(email, items);
+    const token = generateAccessToken(entitlement);
+
+    // Return token and entitlement info
+    res.status(200).json({
+      success: true,
+      token,
+      email,
+      modules: entitlement.modules,
+      paths: entitlement.paths,
+      purchaseDate: entitlement.purchaseDate,
+    });
+  } catch (err: any) {
+    console.error('Error retrieving token:', err);
+    return errorResponse(res, 500, err.message);
+  }
+}
+
+/**
  * Default export for Vercel serverless functions
  * Route to appropriate handler based on path
  */
@@ -249,6 +349,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return webhookBTCPay(req, res);
     case '/api/verify':
       return verify(req, res);
+    case '/api/get-token':
+      return getToken(req, res);
     default:
       return errorResponse(res, 404, 'Not found');
   }
