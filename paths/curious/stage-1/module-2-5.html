@@ -6,6 +6,9 @@
     <title>From Patches to Principles | The Curious Path</title>
     <meta name="description" content="Discover the failed attempts to fix money before Bitcoin, and why removing the referee was the breakthrough.">
 
+    <!-- Progress Manager -->
+    <script src="/js/progress-manager.js"></script>
+
     <style>
         :root {
             --primary-orange: #f7931a;
@@ -647,6 +650,10 @@
     </main>
 
     <script>
+        // Initialize ProgressManager
+        const progressManager = new ProgressManager();
+        progressManager.init();
+
         // Track completion on page load (module is complete when user reaches end)
         window.addEventListener('load', function() {
             // Automatically mark as complete after 5 seconds on page (reading time)
@@ -656,30 +663,19 @@
         });
 
         function saveProgress() {
-            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+            // Only save if not already complete
+            if (!progressManager.isModuleComplete('curious', 1, 2.5)) {
+                progressManager.setModuleComplete('curious', 1, 2.5);
+                progressManager.setModuleVisited('curious', 1, 3); // Mark next module as visited
 
-            if (!progress.completedModules) {
-                progress.completedModules = [];
+                // Show completion notice
+                const notice = document.createElement('div');
+                notice.style.cssText = 'position: fixed; top: 20px; right: 20px; background: rgba(76, 175, 80, 0.9); color: white; padding: 1rem 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000;';
+                notice.innerHTML = '✅ Module 2.5 Complete!';
+                document.body.appendChild(notice);
+
+                setTimeout(() => notice.remove(), 3000);
             }
-
-            if (!progress.completedModules.includes('curious-1-2.5')) {
-                progress.completedModules.push('curious-1-2.5');
-            }
-
-            progress.lastActivity = new Date().toISOString();
-            progress.path = 'curious';
-            progress.currentStage = 1;
-            progress.currentModule = 3;
-
-            localStorage.setItem('learningProgress', JSON.stringify(progress));
-
-            // Show completion notice
-            const notice = document.createElement('div');
-            notice.style.cssText = 'position: fixed; top: 20px; right: 20px; background: rgba(76, 175, 80, 0.9); color: white; padding: 1rem 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000;';
-            notice.innerHTML = '✅ Module 2.5 Complete!';
-            document.body.appendChild(notice);
-
-            setTimeout(() => notice.remove(), 3000);
         }
     </script>
 

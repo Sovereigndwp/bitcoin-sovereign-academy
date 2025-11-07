@@ -9,6 +9,9 @@
     <!-- Path Animations -->
     <link rel="stylesheet" href="/css/path-animations.css">
 
+    <!-- Progress Manager -->
+    <script src="/js/progress-manager.js"></script>
+
     <style>
         :root {
             --primary-orange: #f7931a;
@@ -701,33 +704,76 @@
     </main>
 
     <script>
+        // Initialize ProgressManager
+        const progressManager = new ProgressManager();
+        progressManager.init();
+
         // Progress tracking and UI updates
         function updatePathProgress() {
-            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
-            const completedModules = progress.completedModules || [];
-            const completedStages = progress.completedStages || [];
-            const badges = progress.badges || [];
+            // Get completion percentage
+            const completionPercent = progressManager.getPathProgress('curious');
 
-            // Calculate stats
-            const modulesCompleted = completedModules.filter(m => m.startsWith('curious-')).length;
+            // Count completed modules
+            let modulesCompleted = 0;
+            let badgesEarned = 0;
+            let stage1Complete = false;
+            let stage2Complete = false;
+            let stage3Complete = false;
+            let stage4Complete = false;
+
+            // Stage 1: 4 modules
+            const s1m1 = progressManager.isModuleComplete('curious', 1, 1);
+            const s1m2 = progressManager.isModuleComplete('curious', 1, 2);
+            const s1m25 = progressManager.isModuleComplete('curious', 1, 2.5); // module 2.5
+            const s1m3 = progressManager.isModuleComplete('curious', 1, 3);
+            if (s1m1) modulesCompleted++;
+            if (s1m2) modulesCompleted++;
+            if (s1m25) modulesCompleted++;
+            if (s1m3) modulesCompleted++;
+            stage1Complete = s1m1 && s1m2 && s1m25 && s1m3;
+            if (stage1Complete) badgesEarned++;
+
+            // Stage 2: 3 modules
+            const s2m1 = progressManager.isModuleComplete('curious', 2, 1);
+            const s2m2 = progressManager.isModuleComplete('curious', 2, 2);
+            const s2m3 = progressManager.isModuleComplete('curious', 2, 3);
+            if (s2m1) modulesCompleted++;
+            if (s2m2) modulesCompleted++;
+            if (s2m3) modulesCompleted++;
+            stage2Complete = s2m1 && s2m2 && s2m3;
+            if (stage2Complete) badgesEarned++;
+
+            // Stage 3: 3 modules
+            const s3m1 = progressManager.isModuleComplete('curious', 3, 1);
+            const s3m2 = progressManager.isModuleComplete('curious', 3, 2);
+            const s3m3 = progressManager.isModuleComplete('curious', 3, 3);
+            if (s3m1) modulesCompleted++;
+            if (s3m2) modulesCompleted++;
+            if (s3m3) modulesCompleted++;
+            stage3Complete = s3m1 && s3m2 && s3m3;
+            if (stage3Complete) badgesEarned++;
+
+            // Stage 4: 3 modules
+            const s4m1 = progressManager.isModuleComplete('curious', 4, 1);
+            const s4m2 = progressManager.isModuleComplete('curious', 4, 2);
+            const s4m3 = progressManager.isModuleComplete('curious', 4, 3);
+            if (s4m1) modulesCompleted++;
+            if (s4m2) modulesCompleted++;
+            if (s4m3) modulesCompleted++;
+            stage4Complete = s4m1 && s4m2 && s4m3;
+            if (stage4Complete) badgesEarned++;
+
             const totalModules = 13;
-            const completionPercent = Math.round((modulesCompleted / totalModules) * 100);
 
             // Estimate time (5 min per module on average)
             const timeInvested = Math.round((modulesCompleted * 5) / 60 * 10) / 10; // Hours with 1 decimal
 
             // Update header stats
             document.getElementById('completed-modules').textContent = `${modulesCompleted}/${totalModules}`;
-            document.getElementById('badges-earned').textContent = `${badges.length}/${4}`;
+            document.getElementById('badges-earned').textContent = `${badgesEarned}/4`;
             document.getElementById('time-invested').textContent = `${timeInvested} hrs`;
             document.getElementById('completion-percent').textContent = `${completionPercent}%`;
             document.getElementById('overall-progress').style.width = `${completionPercent}%`;
-
-            // Update stage cards
-            const stage1Complete = completedStages.includes('curious-1');
-            const stage2Complete = completedStages.includes('curious-2');
-            const stage3Complete = completedStages.includes('curious-3');
-            const stage4Complete = completedStages.includes('curious-4');
 
             // Stage 1 (starts unlocked)
             if (stage1Complete) {

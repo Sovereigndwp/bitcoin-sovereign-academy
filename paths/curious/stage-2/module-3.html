@@ -6,6 +6,9 @@
     <title>Who Controls Bitcoin? | The Curious Path</title>
     <meta name="description" content="Explore decentralization, understand the roles of nodes, miners, and users, and learn why no single entity can control Bitcoin.">
 
+    <!-- Progress Manager -->
+    <script src="/js/progress-manager.js"></script>
+
     <style>
         :root {
             --primary-orange: #f7931a;
@@ -2037,46 +2040,22 @@
             }
         }
 
+        // Initialize ProgressManager
+        const progressManager = new ProgressManager();
+        progressManager.init();
+
         function saveProgress() {
-            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
-
-            if (!progress.completedModules) {
-                progress.completedModules = [];
-            }
-
-            if (!progress.completedModules.includes('curious-2-3')) {
-                progress.completedModules.push('curious-2-3');
-            }
-
+            progressManager.setModuleComplete('curious', 2, 3);
+            // Last module in stage, visit next stage's first module
+            progressManager.setModuleVisited('curious', 3, 1);
             // Mark Stage 2 as complete
-            if (!progress.completedStages) {
-                progress.completedStages = [];
-            }
-            if (!progress.completedStages.includes('curious-2')) {
-                progress.completedStages.push('curious-2');
-            }
-
+            progressManager.setStageComplete('curious', 2);
             // Award badge
-            if (!progress.badges) {
-                progress.badges = [];
-            }
-            if (!progress.badges.includes('bitcoin-fundamentals')) {
-                progress.badges.push('bitcoin-fundamentals');
-            }
-
-            progress.lastActivity = new Date().toISOString();
-            progress.path = 'curious';
-            progress.currentStage = 3;
-            progress.currentModule = 1;
-
-            localStorage.setItem('learningProgress', JSON.stringify(progress));
+            progressManager.awardBadge('bitcoin-fundamentals');
         }
 
         function checkProgress() {
-            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
-            const completedModules = progress.completedModules || [];
-
-            if (completedModules.includes('curious-2-3')) {
+            if (progressManager.isModuleComplete('curious', 2, 3)) {
                 document.getElementById('completion-banner').style.display = 'block';
 
                 const notice = document.createElement('div');
