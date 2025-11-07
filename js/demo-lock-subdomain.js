@@ -25,7 +25,15 @@
     function checkAccess() {
         const demoName = getDemoName();
 
-        // Check if subdomain access control is available
+        // 1. Check global configuration first (highest priority)
+        if (window.BSA_CONFIG?.FULL_ACCESS || !window.BSA_CONFIG?.ENABLE_DEMO_LOCKS) {
+            if (window.BSA_CONFIG?.DEBUG) {
+                console.log(`✅ Demo "${demoName}" unlocked via BSA_CONFIG`);
+            }
+            return true;
+        }
+
+        // 2. Check if subdomain access control is available
         if (typeof window.BSASubdomainAccess !== 'undefined') {
             if (window.BSASubdomainAccess.shouldUnlockDemo(demoName)) {
                 console.log(`✅ Demo "${demoName}" unlocked via subdomain access`);

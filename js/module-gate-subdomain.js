@@ -8,7 +8,19 @@
 (function () {
     'use strict';
 
-    const previewLimit = 2; // Number of free sections before gate (for allowed modules)
+    // ============================================
+    // Configuration Check (Highest Priority)
+    // ============================================
+
+    // Check configuration for full access or disabled gating
+    if (window.BSA_CONFIG?.FULL_ACCESS || !window.BSA_CONFIG?.ENABLE_MODULE_GATING) {
+        if (window.BSA_CONFIG?.DEBUG) {
+            console.log('[Module Gate Subdomain] Gating disabled by configuration');
+        }
+        return; // Bypass all gating logic
+    }
+
+    const previewLimit = window.BSA_CONFIG?.FREE_MODULES_LIMIT || 2; // Number of free sections before gate (for allowed modules)
 
     const pathName = normalizePath(window.location.pathname);
 
