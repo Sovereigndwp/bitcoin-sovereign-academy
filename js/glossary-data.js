@@ -12,7 +12,7 @@ const GLOSSARY_TERMS = [
         term: "Address",
         category: "basics",
         aka: ["Bitcoin Address", "Wallet Address"],
-        simple: "A string of letters and numbers where you receive Bitcoin, like an email address for money. Each address is unique and can be shared publicly.",
+        simple: "A string of letters and numbers where you receive bitcoin, like an email address for money. Each address is unique and can be shared publicly.",
         advanced: "A cryptographic hash of a public key that represents a destination for a Bitcoin payment. Modern addresses use formats like P2PKH (legacy, starts with '1'), P2SH (starts with '3'), or Bech32 (native SegWit, starts with 'bc1'). Addresses are derived from public keys using hash functions (SHA-256, RIPEMD-160) for security and brevity.",
         related: ["Public Key", "Private Key", "Wallet"]
     },
@@ -77,7 +77,7 @@ const GLOSSARY_TERMS = [
         term: "Cold Storage",
         category: "security",
         aka: ["Cold Wallet", "Offline Storage"],
-        simple: "Storing Bitcoin private keys completely offline, away from internet-connected devices. The safest way to hold large amounts of Bitcoin long-term.",
+        simple: "Storing bitcoin private keys completely offline, away from internet-connected devices. The safest way to hold large amounts of bitcoin long-term.",
         advanced: "Air-gapped private key storage using hardware wallets, paper wallets, or dedicated offline computers. Best practices include: multi-signature setups, metal backup storage (fire/water resistant), geographic distribution, and inheritance planning. Cold storage eliminates remote attack vectors but requires careful operational security for transaction signing.",
         related: ["Hot Wallet", "Hardware Wallet", "Multi-Sig", "Private Key"]
     },
@@ -159,7 +159,7 @@ const GLOSSARY_TERMS = [
         term: "Hardware Wallet",
         category: "security",
         aka: ["Cold Wallet", "Signing Device"],
-        simple: "A physical device designed specifically to store Bitcoin private keys securely. Examples: Ledger, Trezor, Coldcard. Much safer than keeping keys on your computer or phone.",
+        simple: "A physical device designed specifically to store bitcoin private keys securely. Examples: Ledger, Trezor, Coldcard. Much safer than keeping keys on your computer or phone.",
         advanced: "A dedicated hardware security module (HSM) that generates and stores private keys in tamper-resistant environment. Signs transactions offline, displaying transaction details on secure screen for verification before signing. Best practices: verify addresses on device screen, use PIN/passphrase, backup seed phrase on metal, consider multi-sig. Popular open-source options: Coldcard, Foundation, BitBox02.",
         related: ["Cold Storage", "Private Key", "Seed Phrase", "Multi-Sig"]
     },
@@ -376,7 +376,7 @@ const GLOSSARY_TERMS = [
         term: "Wallet",
         category: "basics",
         aka: ["Bitcoin Wallet", "Digital Wallet"],
-        simple: "Software or hardware that stores your private keys and lets you send/receive Bitcoin. Your wallet doesn't actually hold Bitcoin - it holds the keys to access Bitcoin on the blockchain.",
+        simple: "Software or hardware that stores your private keys and lets you send/receive bitcoin. Your wallet doesn't actually hold bitcoin - it holds the keys to access bitcoin on the blockchain.",
         advanced: "A collection of private keys and software for signing transactions. Types: (1) Hot wallets (mobile/desktop/web), (2) Cold wallets (hardware/paper), (3) Custodial (exchange-controlled), (4) Non-custodial (self-custody). Modern wallets use BIP32 HD derivation, BIP39 mnemonics, and BIP44 address discovery. Best practice: non-custodial hardware wallet with multi-sig for large amounts, hot wallet for spending money.",
         related: ["Private Key", "Seed Phrase", "Hot Wallet", "Cold Storage"]
     },

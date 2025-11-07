@@ -56,6 +56,13 @@ const IconLibrary = {
             '🎨': 'palette',
             '⏱️': 'timer',
             '🗺️': 'map',
+            '🚀': 'rocket',
+            '🚨': 'alert',
+            '📈': 'trending-up',
+            '💵': 'dollar',
+            '💸': 'money-flow',
+            '💧': 'water-drop',
+            '🔍': 'search',
         };
 
         let result = text;
@@ -322,6 +329,68 @@ const IconLibrary = {
                 <path d="M12 3L3 21H21L12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                 <path d="M12 3V21M8 14L12 10L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 ${animate ? '<animateTransform attributeName="transform" type="scale" values="1;1.05;1" dur="3s" repeatCount="indefinite"/>' : ''}
+            </svg>
+        `,
+
+        rocket: (size, animate) => `
+            <svg class="icon icon-rocket${animate ? ' icon-animate' : ''}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 15L6 18V21H9L12 18M15 9L18 6H21V9L18 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20 4C20 4 15 5 12 8C9 11 9 15 9 15C9 15 13 15 16 12C19 9 20 4 20 4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="currentColor" fill-opacity="0.2"/>
+                <circle cx="13.5" cy="10.5" r="1.5" fill="currentColor"/>
+                <path d="M5 14L3 17L7 19L10 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                ${animate ? '<animateTransform attributeName="transform" type="translate" values="0,0; -2,-2; 0,0" dur="2s" repeatCount="indefinite"/>' : ''}
+            </svg>
+        `,
+
+        alert: (size, animate) => `
+            <svg class="icon icon-alert${animate ? ' icon-animate' : ''}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="currentColor" fill-opacity="0.1"/>
+                <path d="M12 8V12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                ${animate ? '<animate attributeName="opacity" values="1;0.4;1;0.4;1" dur="2s" repeatCount="indefinite"/>' : ''}
+            </svg>
+        `,
+
+        'trending-up': (size, animate) => `
+            <svg class="icon icon-trending-up${animate ? ' icon-animate' : ''}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 17L9 11L13 15L21 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21 7V13M21 7H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="21" cy="7" r="1.5" fill="currentColor"/>
+                ${animate ? '<animateTransform attributeName="transform" type="translate" values="0,2; 0,-2; 0,2" dur="3s" repeatCount="indefinite"/>' : ''}
+            </svg>
+        `,
+
+        dollar: (size, animate) => `
+            <svg class="icon icon-dollar${animate ? ' icon-animate' : ''}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="7" width="16" height="10" rx="2" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 7V17M15 10C15 8.89543 13.6569 8 12 8C10.3431 8 9 8.89543 9 10C9 11.1046 10.3431 12 12 12C13.6569 12 15 12.8954 15 14C15 15.1046 13.6569 16 12 16C10.3431 16 9 15.1046 9 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                ${animate ? '<animate attributeName="opacity" values="1;0.7;1" dur="3s" repeatCount="indefinite"/>' : ''}
+            </svg>
+        `,
+
+        'money-flow': (size, animate) => `
+            <svg class="icon icon-money-flow${animate ? ' icon-animate' : ''}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 9V15M14 11C14 9.89543 13.1046 9 12 9C10.8954 9 10 9.89543 10 11C10 12.1046 10.8954 13 12 13C13.1046 13 14 13.8954 14 15C14 16.1046 13.1046 17 12 17C10.8954 17 10 16.1046 10 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M19 12H21M3 12H5M12 5V3M12 21V19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                ${animate ? '<animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="8s" repeatCount="indefinite"/>' : ''}
+            </svg>
+        `,
+
+        'water-drop': (size, animate) => `
+            <svg class="icon icon-water-drop${animate ? ' icon-animate' : ''}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3C12 3 6 9 6 14C6 17.3137 8.68629 20 12 20C15.3137 20 18 17.3137 18 14C18 9 12 3 12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="currentColor" fill-opacity="0.2"/>
+                <path d="M9 14C9 12.8954 9.89543 12 11 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+                ${animate ? '<animateTransform attributeName="transform" type="translate" values="0,0; 0,2; 0,0" dur="3s" repeatCount="indefinite"/>' : ''}
+            </svg>
+        `,
+
+        search: (size, animate) => `
+            <svg class="icon icon-search${animate ? ' icon-animate' : ''}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+                <path d="M16 16L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="11" cy="11" r="4" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+                ${animate ? '<animateTransform attributeName="transform" type="scale" values="1;1.1;1" dur="3s" repeatCount="indefinite"/>' : ''}
             </svg>
         `,
     }
