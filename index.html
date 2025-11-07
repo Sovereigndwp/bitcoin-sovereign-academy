@@ -13,7 +13,6 @@
     <title>Bitcoin Sovereign Academy - Learn Bitcoin, Achieve Sovereignty</title>
     <meta name="description" content="Master Bitcoin through interactive experiences and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.">
     <link rel="canonical" href="https://bitcoinsovereign.academy/">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f7931a">
     
     <!-- Open Graph -->
@@ -93,7 +92,7 @@
             --primary-dark: #1a1a1a;
             --secondary-dark: #2d2d2d;
             --text-light: #e0e0e0;
-            --text-dim: #999;
+            --text-dim: #b3b3b3; /* WCAG 2.1 AA contrast fix - changed from #999 */
             --success-green: #4caf50;
             --danger-red: #f44336;
             --gradient-orange: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
@@ -321,7 +320,7 @@
             padding: 1.75rem 1.5rem;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
-            overflow: hidden;
+            overflow: visible; /* Changed from hidden to allow focus outline visibility */
             display: flex;
             flex-direction: column;
             text-decoration: none;
@@ -662,7 +661,7 @@
         .path-persona {
             text-align: center;
             font-style: italic;
-            color: rgba(224, 224, 224, 0.6);
+            color: rgba(224, 224, 224, 0.75); /* WCAG 2.1 AA contrast fix - changed from 0.6 */
             margin-bottom: 1rem;
             font-size: 0.875rem;
             padding-bottom: 0.875rem;
@@ -2341,6 +2340,185 @@
                 text-align: center;
             }
         }
+
+        /* ========================================
+           WCAG 2.1 AA ACCESSIBILITY IMPROVEMENTS
+           ======================================== */
+
+        /* WCAG 2.4.1 - Multiple Skip Links */
+        .skip-links {
+            position: relative;
+            z-index: 10000;
+        }
+
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            z-index: 10000;
+            padding: 1rem 1.5rem;
+            background: var(--primary-orange);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 0 0 8px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .skip-link:focus {
+            left: 0;
+            outline: 3px solid white;
+            outline-offset: 2px;
+        }
+
+        /* Screen reader only content */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* WCAG 2.5.5 - Touch Target Sizes (minimum 44x44px) */
+        button,
+        a,
+        [role="button"],
+        .mobile-menu-toggle {
+            min-height: 44px;
+            min-width: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Exception for inline text links */
+        p a,
+        li a,
+        .path-learn a,
+        .path-perfect-for a {
+            min-height: auto;
+            min-width: auto;
+            padding: 0.25rem 0;
+            display: inline;
+        }
+
+        /* Mobile menu button needs to be a proper button */
+        .mobile-menu-toggle {
+            background: transparent;
+            border: 2px solid transparent;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle:hover,
+        .mobile-menu-toggle:focus {
+            border-color: var(--primary-orange);
+            background: rgba(247, 147, 26, 0.1);
+        }
+
+        .mobile-menu-toggle:focus {
+            outline: 2px solid var(--primary-orange);
+            outline-offset: 2px;
+        }
+
+        /* WCAG 2.4.7 - Enhanced Focus Indicators */
+        *:focus-visible {
+            outline: 3px solid var(--primary-orange);
+            outline-offset: 2px;
+        }
+
+        a:focus-visible,
+        button:focus-visible {
+            outline: 3px solid var(--primary-orange);
+            outline-offset: 4px;
+            box-shadow: 0 0 0 6px rgba(247, 147, 26, 0.2);
+        }
+
+        /* Path cards need special focus handling to prevent clipping */
+        .path-card:focus-visible {
+            outline: 3px solid var(--primary-orange);
+            outline-offset: 6px;
+            z-index: 10;
+        }
+
+        /* WCAG 2.3.3 - Reduced Motion Support */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+
+            /* Disable path icon animations */
+            .path-card.curious .path-icon svg,
+            .path-card.principled .path-icon svg,
+            .path-card.hurried .path-icon svg,
+            .path-card.builder .path-icon svg,
+            .path-card.sovereign .path-icon svg,
+            .path-card.pragmatist .path-icon svg {
+                animation: none !important;
+            }
+
+            /* Disable network animation */
+            .network-animation,
+            .network-node,
+            .network-line,
+            .light-pulse {
+                animation: none !important;
+                opacity: 0.2 !important;
+            }
+
+            /* Reduce transforms to simple opacity changes */
+            .path-card:hover {
+                transform: none;
+            }
+
+            .path-card:hover .path-icon {
+                transform: none;
+            }
+        }
+
+        /* WCAG 1.4.10 - Mobile Responsive (prevent horizontal scrolling) */
+        @media (max-width: 480px) {
+            .live-stats-bar {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                padding: 0.5rem 1rem;
+            }
+
+            .path-cards-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 0 0.5rem;
+            }
+
+            .path-card {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .live-stats-bar {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .header-content {
+                padding: 0 1rem;
+            }
+
+            body {
+                overflow-x: hidden;
+            }
+        }
     </style>
     
     <!-- Dynamic Content & MCP Integration -->
@@ -2353,8 +2531,12 @@
     <link rel="stylesheet" href="/css/icons.css">
 </head>
 <body>
-    <!-- Skip Link for Accessibility (WCAG 2.4.1) -->
-    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <!-- Skip Links for Accessibility (WCAG 2.4.1) -->
+    <div class="skip-links">
+        <a href="#main-content" class="skip-link">Skip to main content</a>
+        <a href="#choose-path" class="skip-link">Skip to path selection</a>
+        <a href="#featured" class="skip-link">Skip to featured experiences</a>
+    </div>
 
     <!-- Loading Screen -->
     <div class="loading" id="loading">
@@ -2368,23 +2550,32 @@
                 <div class="logo-icon" role="img" aria-label="Bitcoin logo">₿</div>
                 <span class="logo-text">Bitcoin Sovereign Academy</span>
             </a>
-            <div class="mobile-menu-toggle" id="mobileMenu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
+            <nav aria-label="Main navigation">
+                <button type="button" class="mobile-menu-toggle" id="mobileMenu"
+                        aria-label="Toggle navigation menu"
+                        aria-expanded="false"
+                        aria-controls="mobile-nav-menu">
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                </button>
+            </nav>
         </div>
-        <div class="live-stats-bar" id="liveStatsBar">
-            <div class="live-stat"><span class="label">₿ Price:</span> <span class="value" id="bar-btc-price">—</span></div>
-            <div class="live-stat"><span class="label">Block:</span> <span class="value" id="bar-block-height">—</span></div>
-            <div class="live-stat"><span class="label">Mempool:</span> <span class="value" id="bar-mempool-count">—</span></div>
-            <div class="live-stat"><span class="label">Fees:</span> <span class="value" id="bar-fee-estimate">—</span></div>
-            <div class="live-stat"><span class="label">Difficulty:</span> <span class="value" id="bar-difficulty">—</span></div>
+        <div class="live-stats-bar" id="liveStatsBar" role="region" aria-label="Live Bitcoin network statistics">
+            <div class="live-stat"><span class="label">₿ Price:</span> <span class="value" id="bar-btc-price" aria-live="polite" aria-atomic="true">—</span></div>
+            <div class="live-stat"><span class="label">Block:</span> <span class="value" id="bar-block-height" aria-live="polite" aria-atomic="true">—</span></div>
+            <div class="live-stat"><span class="label">Mempool:</span> <span class="value" id="bar-mempool-count" aria-live="polite" aria-atomic="true">—</span></div>
+            <div class="live-stat"><span class="label">Fees:</span> <span class="value" id="bar-fee-estimate" aria-live="polite" aria-atomic="true">—</span></div>
+            <div class="live-stat"><span class="label">Difficulty:</span> <span class="value" id="bar-difficulty" aria-live="polite" aria-atomic="true">—</span></div>
         </div>
+        <!-- Hidden status announcer for screen readers -->
+        <div id="live-stats-announcer" class="sr-only" aria-live="polite"></div>
     </header>
 
+    <!-- Main Content -->
+    <main id="main-content">
     <!-- Hero Section with Bitcoin Network Animation -->
-    <section class="hero3d hero3d--compact" id="main-content" aria-label="Bitcoin Sovereign Academy hero" style="min-height: 50vh; padding: 8rem 2rem 4rem; margin-top: 0; background: linear-gradient(135deg, rgba(247, 147, 26, 0.05) 0%, rgba(26, 26, 26, 0.5) 100%); border-top: 1px solid rgba(247, 147, 26, 0.15); position: relative; overflow: hidden; scroll-margin-top: 100px;">
+    <section class="hero3d hero3d--compact" aria-label="Bitcoin Sovereign Academy hero" style="min-height: 50vh; padding: 8rem 2rem 4rem; margin-top: 0; background: linear-gradient(135deg, rgba(247, 147, 26, 0.05) 0%, rgba(26, 26, 26, 0.5) 100%); border-top: 1px solid rgba(247, 147, 26, 0.15); position: relative; overflow: hidden; scroll-margin-top: 100px;">
         
         <!-- Bitcoin Network Animation Background -->
         <div class="network-animation" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.3; z-index: 0;">
@@ -2445,7 +2636,7 @@
                        id="cta-start-journey"
                        onclick="track('Click Choose Path',{ab:abVariant()})"
                        style="padding: 0.7rem 1.4rem; font-size: 0.95rem; font-weight: 600; border-radius: 50px; background: var(--gradient-orange); color: white; text-decoration: none; box-shadow: 0 4px 15px rgba(247, 147, 26, 0.3); transition: all 0.3s ease;">
-                        🚀 Start Your Journey
+                        <span aria-hidden="true">🚀</span> Start Your Journey
                     </a>
                     <a href="/demos/"
                        class="hero3d__action hero3d__action--ghost"
@@ -2776,13 +2967,13 @@
     <section style="padding: 2rem; background: var(--primary-dark);">
         <div style="max-width: 900px; margin: 0 auto; padding: 1.5rem 2rem; background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.08)); border: 2px solid rgba(239, 68, 68, 0.5); border-radius: 12px; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.2);">
             <div style="display: flex; align-items: center; gap: 1.5rem; justify-content: center; flex-wrap: wrap;">
-                <span style="font-size: 2.5rem;">🚨</span>
+                <span style="font-size: 2.5rem;" aria-hidden="true">🚨</span>
                 <div style="flex: 1; min-width: 250px; text-align: left;">
                     <div style="font-weight: 700; font-size: 1.25rem; color: #ef4444; margin-bottom: 0.5rem;">Bitcoin Emergency?</div>
                     <div style="font-size: 1rem; color: rgba(224, 224, 224, 0.85); line-height: 1.5;">Stuck transaction? Lost access? Get immediate help with our emergency troubleshooting kit.</div>
                 </div>
                 <a href="/emergency-kit.html" onclick="track('Click Emergency Kit',{ab:abVariant()})" style="padding: 0.875rem 1.75rem; font-size: 1rem; font-weight: 600; border-radius: 50px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; text-decoration: none; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); transition: all 0.3s ease; white-space: nowrap;">
-                    🆘 Emergency Kit
+                    <span aria-hidden="true">🆘</span> Emergency Kit
                 </a>
             </div>
         </div>
@@ -2922,9 +3113,10 @@
             </div>
         </div>
     </section>
+    </main>
 
     <!-- Footer -->
-    <footer class="footer">
+    <footer class="footer" role="contentinfo">
         <div class="footer-content">
             <div class="footer-section">
                 <h4>Learn</h4>
@@ -3036,6 +3228,20 @@
                 setTimeout(function() {
                     loadingElement.style.display = 'none';
                 }, 500);
+            }
+        });
+    </script>
+
+    <!-- Mobile Menu Toggle - Accessibility Enhancement (WCAG 4.1.2) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuBtn = document.getElementById('mobileMenu');
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                    this.setAttribute('aria-expanded', !isExpanded);
+                    // Additional mobile menu functionality can be added here
+                });
             }
         });
     </script>
