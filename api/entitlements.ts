@@ -1,16 +1,11 @@
 import * as jwt from 'jsonwebtoken';
 import { Entitlement, JWTPayload, CartItem } from './types';
+import * as db from './database';
 
 /**
  * Entitlement system for managing user access to purchased content
+ * Now uses Supabase database for persistent storage
  */
-
-interface EntitlementStore {
-  [email: string]: Entitlement;
-}
-
-// In-memory store (replace with database in production)
-const entitlements: EntitlementStore = {};
 
 /**
  * Get JWT secret from environment
@@ -26,8 +21,9 @@ function getJWTSecret(): string {
 /**
  * Create or update entitlement for a user after successful payment
  */
-export function grantEntitlement(email: string, purchasedItems: CartItem[]): Entitlement {
-  const existing = entitlements[email];
+export async function grantEntitlement(email: string, purchasedItems: CartItem[]): Promise<Entitlement> {
+  // Get existing entitlement from database
+  const existing = await db.findEntitlementByEmail(email);
 
   const modules = new Set(existing?.modules || []);
   const paths = new Set(existing?.paths || []);
@@ -52,15 +48,41 @@ export function grantEntitlement(email: string, purchasedItems: CartItem[]): Ent
     }
   }
 
+  // Get or create user
+  let user = await db.findUserByEmail(email);
+  if (!user) {
+    // Create user account if it doesn't exist
+    const userId = await db.createUser({
+      email,
+      passwordHash: '', // User will set password on first login
+      passwordSalt: '',
+      isEmailVerified: false
+    });
+    user = { id: userId, email } as any;
+  }
+
+  const modulesArray = Array.from(modules);
+  const pathsArray = Array.from(paths);
+
+  // Update or create entitlement in database
+  if (existing) {
+    await db.updateEntitlement(user.id, modulesArray, pathsArray);
+  } else {
+    await db.createEntitlement({
+      userId: user.id,
+      modules: modulesArray,
+      paths: pathsArray
+    });
+  }
+
   const entitlement: Entitlement = {
-    userId: existing?.userId || generateUserId(email),
+    userId: user.id,
     email,
-    modules: Array.from(modules),
-    paths: Array.from(paths),
-    purchaseDate: existing?.purchaseDate || new Date().toISOString(),
+    modules: modulesArray,
+    paths: pathsArray,
+    purchaseDate: existing?.accessToken || new Date().toISOString(),
   };
 
-  entitlements[email] = entitlement;
   return entitlement;
 }
 
@@ -75,15 +97,25 @@ function generateUserId(email: string): string {
 /**
  * Get entitlement for a user
  */
-export function getEntitlement(email: string): Entitlement | null {
-  return entitlements[email] || null;
+export async function getEntitlement(email: string): Promise<Entitlement | null> {
+  const data = await db.findEntitlementByEmail(email);
+
+  if (!data) return null;
+
+  return {
+    userId: '', // Will be populated from user lookup if needed
+    email,
+    modules: data.modules,
+    paths: data.paths,
+    purchaseDate: new Date().toISOString(),
+  };
 }
 
 /**
  * Check if user has access to a specific module
  */
-export function hasModuleAccess(email: string, moduleId: string): boolean {
-  const entitlement = entitlements[email];
+export async function hasModuleAccess(email: string, moduleId: string): Promise<boolean> {
+  const entitlement = await db.findEntitlementByEmail(email);
   if (!entitlement) return false;
 
   // Check if user purchased this specific module
@@ -99,8 +131,8 @@ export function hasModuleAccess(email: string, moduleId: string): boolean {
 /**
  * Check if user has access to a specific path
  */
-export function hasPathAccess(email: string, pathId: string): boolean {
-  const entitlement = entitlements[email];
+export async function hasPathAccess(email: string, pathId: string): Promise<boolean> {
+  const entitlement = await db.findEntitlementByEmail(email);
   if (!entitlement) return false;
 
   return entitlement.paths.includes(pathId);
@@ -142,11 +174,11 @@ export function verifyAccessToken(token: string): Entitlement {
 /**
  * Middleware to protect content routes
  */
-export function requireAccess(
+export async function requireAccess(
   token: string | null,
   requiredModuleId?: string,
   requiredPathId?: string
-): { authorized: boolean; entitlement?: Entitlement; error?: string } {
+): Promise<{ authorized: boolean; entitlement?: Entitlement; error?: string }> {
   if (!token) {
     return { authorized: false, error: 'No access token provided' };
   }
@@ -155,12 +187,12 @@ export function requireAccess(
     const entitlement = verifyAccessToken(token);
 
     // Check specific module access
-    if (requiredModuleId && !hasModuleAccess(entitlement.email, requiredModuleId)) {
+    if (requiredModuleId && !(await hasModuleAccess(entitlement.email, requiredModuleId))) {
       return { authorized: false, error: 'No access to this module' };
     }
 
     // Check specific path access
-    if (requiredPathId && !hasPathAccess(entitlement.email, requiredPathId)) {
+    if (requiredPathId && !(await hasPathAccess(entitlement.email, requiredPathId))) {
       return { authorized: false, error: 'No access to this path' };
     }
 
@@ -172,24 +204,22 @@ export function requireAccess(
 
 /**
  * Export entitlements to JSON (for backup/migration)
+ * Note: Now fetches from database instead of in-memory store
  */
-export function exportEntitlements(): string {
-  return JSON.stringify(entitlements, null, 2);
+export async function exportEntitlements(): Promise<string> {
+  // This would need to query all entitlements from database
+  // Not implemented yet - use Supabase dashboard for exports
+  throw new Error('Export from database not yet implemented. Use Supabase dashboard.');
 }
 
 /**
  * Import entitlements from JSON (for backup/migration)
+ * Note: Now saves to database instead of in-memory store
  */
-export function importEntitlements(data: string): void {
-  const imported = JSON.parse(data);
-  Object.assign(entitlements, imported);
-}
-
-/**
- * Get all entitlements (admin function)
- */
-export function getAllEntitlements(): EntitlementStore {
-  return entitlements;
+export async function importEntitlements(data: string): Promise<void> {
+  // This would need to insert into database
+  // Not implemented yet - use Supabase dashboard for imports
+  throw new Error('Import to database not yet implemented. Use Supabase dashboard.');
 }
 
 /**

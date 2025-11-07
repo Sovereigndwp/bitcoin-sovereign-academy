@@ -37,7 +37,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const moduleId = req.query.module as string | undefined;
     const pathId = req.query.path as string | undefined;
 
-    const result = requireAccess(token, moduleId, pathId);
+    // requireAccess is now async - must await it
+    const result = await requireAccess(token, moduleId, pathId);
 
     if (!result.authorized) {
       return errorResponse(res, 403, result.error || 'Access denied', 'FORBIDDEN');
