@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Interactive Bitcoin node setup simulator. Learn how to install, configure, and run your own Bitcoin Core full node with step-by-step guidance for beginner, intermediate, and advanced users.">
+    <title>Bitcoin Node Setup Sandbox - Interactive Learning Tool | Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <link rel="stylesheet" href="/css/status-indicators.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --accent-purple: #9c27b0;
+            --accent-gold: #FFA726;
+            --text-light: #e0e0e0;
+            --text-dim: #b3b3b3;
+            --border-color: rgba(247, 147, 26, 0.3);
+            --danger-red: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            padding: 1rem;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        h1 {
+            color: var(--accent-purple);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Level Switcher */
+        .level-switcher {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--secondary-dark);
+            border-radius: 0.75rem;
+            justify-content: center;
+        }
+
+        .level-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--border-color);
+            background: var(--primary-dark);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-light);
+            transition: all 0.2s;
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        .level-btn.active {
+            background: var(--accent-purple);
+            color: white;
+            border-color: var(--accent-purple);
+        }
+
+        .level-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: var(--secondary-dark);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 2px solid var(--border-color);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-purple), var(--primary-orange));
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .phase-indicators {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .phase-indicator {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            text-align: center;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .phase-indicator.active {
+            color: var(--primary-orange);
+            font-weight: 600;
+        }
+
+        .phase-indicator.completed {
+            color: var(--accent-green);
+        }
+
+        /* Section Styles */
+        .section {
+            background: var(--secondary-dark);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            border: 2px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .section h2 {
+            color: var(--primary-orange);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section.hidden {
+            display: none;
+        }
+
+        /* Info Boxes */
+        .info-box {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid var(--accent-blue);
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .warning-box {
+            background: rgba(244, 67, 54, 0.1);
+            border: 2px solid var(--danger-red);
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            margin: 1rem 0;
+        }
+
+        .warning-box strong {
+            color: var(--danger-red);
+        }
+
+        .success-box {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--accent-green);
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        /* Hardware Cards */
+        .hardware-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .hardware-card {
+            background: var(--primary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 44px;
+        }
+
+        .hardware-card:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(247, 147, 26, 0.3);
+        }
+
+        .hardware-card.selected {
+            border-color: var(--accent-green);
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .hardware-card h3 {
+            color: var(--primary-orange);
+            margin-bottom: 0.75rem;
+            font-size: 1.3rem;
+        }
+
+        .hardware-card .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .hardware-specs {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+
+        .hardware-specs strong {
+            color: var(--text-light);
+        }
+
+        .cost-badge {
+            display: inline-block;
+            background: rgba(255, 152, 0, 0.2);
+            color: #FF9800;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        /* Terminal Simulator */
+        .terminal {
+            background: #000;
+            color: #00ff00;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+            margin: 1.5rem 0;
+            border: 2px solid var(--border-color);
+        }
+
+        .terminal-header {
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .terminal-line {
+            margin: 0.25rem 0;
+        }
+
+        .terminal-prompt {
+            color: #00ff00;
+        }
+
+        .terminal-output {
+            color: #ffffff;
+        }
+
+        .terminal-error {
+            color: #ff4444;
+        }
+
+        .terminal-success {
+            color: #44ff44;
+        }
+
+        .terminal-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            outline: none;
+            margin-top: 1rem;
+        }
+
+        /* Config Builder */
+        .config-builder {
+            background: var(--primary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .config-option {
+            margin-bottom: 1.5rem;
+        }
+
+        .config-option label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .config-option input,
+        .config-option select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        .config-option .help-text {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .config-preview {
+            background: #000;
+            color: #00ff00;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            white-space: pre-wrap;
+        }
+
+        /* Network Monitor */
+        .network-monitor {
+            background: var(--primary-dark);
+            border: 2px solid var(--accent-blue);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .network-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .sync-progress {
+            margin: 1rem 0;
+        }
+
+        .sync-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .sync-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            transition: width 0.5s ease;
+            border-radius: 15px;
+        }
+
+        .sync-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        .btn-primary {
+            background: var(--primary-orange);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #d67d0e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(247, 147, 26, 0.4);
+        }
+
+        .btn-success {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #3d9142;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-dark);
+            color: var(--text-light);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary-orange);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* Checkbox and Radio Styles */
+        .checkbox-option,
+        .radio-option {
+            background: var(--primary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .checkbox-option:hover,
+        .radio-option:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(247, 147, 26, 0.2);
+        }
+
+        .checkbox-option input,
+        .radio-option input {
+            margin-right: 0.75rem;
+        }
+
+        .checkbox-option.selected,
+        .radio-option.selected {
+            border-color: var(--accent-green);
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        /* Scenario Cards */
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .scenario-card {
+            background: var(--primary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card h4 {
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(247, 147, 26, 0.2);
+        }
+
+        /* Accessibility Enhancements */
+        *:focus-visible {
+            outline: 3px solid var(--primary-orange);
+            outline-offset: 2px;
+        }
+
+        button:focus-visible,
+        a:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 3px solid var(--primary-orange);
+            outline-offset: 4px;
+            box-shadow: 0 0 0 4px rgba(247, 147, 26, 0.2);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .section { padding: 1.5rem; }
+            .hardware-grid,
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+            .level-switcher {
+                flex-direction: column;
+            }
+        }
+
+        /* Level-specific content visibility */
+        .beginner-only,
+        .intermediate-only,
+        .advanced-only {
+            display: block;
+        }
+
+        body.level-beginner .intermediate-only,
+        body.level-beginner .advanced-only {
+            display: none;
+        }
+
+        body.level-intermediate .beginner-only,
+        body.level-intermediate .advanced-only {
+            display: none;
+        }
+
+        body.level-advanced .beginner-only,
+        body.level-advanced .intermediate-only {
+            display: none;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #000;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            color: #00ff00;
+        }
+
+        /* Recommendation badges */
+        .recommended-badge {
+            display: inline-block;
+            background: var(--accent-green);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        /* Quiz styles */
+        .quiz-question {
+            background: var(--primary-dark);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+            border: 2px solid var(--border-color);
+        }
+
+        .quiz-question h4 {
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        /* Checklist styles */
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--text-dim);
+        }
+
+        .checklist li.completed {
+            border-left-color: var(--accent-green);
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .checklist li.completed::before {
+            content: '✓ ';
+            color: var(--accent-green);
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <script src="/js/config.js"></script>
+    <script src="/js/demo-lock-subdomain.js"></script>
+    <script src="/js/subdomain-access-control.js"></script>
+
+    <div class="demo-container">
+        <h1>Bitcoin Node Setup Sandbox</h1>
+        <p class="subtitle">Learn to run your own Bitcoin node through interactive simulation</p>
+
+        <!-- Level Switcher -->
+        <div class="level-switcher">
+            <button class="level-btn" onclick="switchLevel('beginner')">Beginner</button>
+            <button class="level-btn" onclick="switchLevel('intermediate')">Intermediate</button>
+            <button class="level-btn" onclick="switchLevel('advanced')">Advanced</button>
+        </div>
+
+        <!-- Progress Tracker -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 12.5%"></div>
+            </div>
+            <div class="phase-indicators">
+                <div class="phase-indicator active" id="indicator-1">1. Assessment</div>
+                <div class="phase-indicator" id="indicator-2">2. Hardware</div>
+                <div class="phase-indicator" id="indicator-3">3. Installation</div>
+                <div class="phase-indicator" id="indicator-4">4. Configuration</div>
+                <div class="phase-indicator" id="indicator-5">5. Network</div>
+                <div class="phase-indicator" id="indicator-6">6. Security</div>
+                <div class="phase-indicator" id="indicator-7">7. Testing</div>
+                <div class="phase-indicator" id="indicator-8">8. Optimization</div>
+            </div>
+        </div>
+
+        <!-- Phase 1: Assessment -->
+        <div class="section" id="phase-1" role="region" aria-label="Phase 1: Initial Assessment">
+            <h2>Phase 1: Initial Assessment</h2>
+
+            <div class="beginner-only">
+                <p style="margin-bottom: 1.5rem;">Running your own Bitcoin node gives you complete sovereignty over your Bitcoin transactions. Let's determine the best setup for your needs.</p>
+            </div>
+
+            <div class="intermediate-only">
+                <p style="margin-bottom: 1.5rem;">A full node validates all transactions and blocks independently, eliminating trust in third parties. We'll assess your technical capabilities and resources.</p>
+            </div>
+
+            <div class="advanced-only">
+                <p style="margin-bottom: 1.5rem;">Running a full Bitcoin Core node is essential for trustless operation. Let's evaluate your infrastructure requirements for optimal performance.</p>
+            </div>
+
+            <div class="quiz-question">
+                <h4>1. What is your primary goal for running a node?</h4>
+                <div class="quiz-options">
+                    <label class="radio-option">
+                        <input type="radio" name="goal" value="privacy" onchange="updateAssessment()">
+                        Maximum privacy and sovereignty
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="goal" value="learn" onchange="updateAssessment()">
+                        Learning how Bitcoin works
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="goal" value="network" onchange="updateAssessment()">
+                        Supporting the Bitcoin network
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="goal" value="development" onchange="updateAssessment()">
+                        Development and testing
+                    </label>
+                </div>
+            </div>
+
+            <div class="quiz-question">
+                <h4>2. How much storage space can you dedicate?</h4>
+                <div class="quiz-options">
+                    <label class="radio-option">
+                        <input type="radio" name="storage" value="limited" onchange="updateAssessment()">
+                        Less than 50 GB (Pruned node)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="storage" value="moderate" onchange="updateAssessment()">
+                        50-500 GB (Partial archive)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="storage" value="full" onchange="updateAssessment()">
+                        500+ GB (Full archive node)
+                    </label>
+                </div>
+            </div>
+
+            <div class="quiz-question">
+                <h4>3. What is your internet connection speed?</h4>
+                <div class="quiz-options">
+                    <label class="radio-option">
+                        <input type="radio" name="internet" value="slow" onchange="updateAssessment()">
+                        10-50 Mbps (Slower sync)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="internet" value="moderate" onchange="updateAssessment()">
+                        50-200 Mbps (Standard)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="internet" value="fast" onchange="updateAssessment()">
+                        200+ Mbps (Fast sync)
+                    </label>
+                </div>
+            </div>
+
+            <div class="quiz-question beginner-only intermediate-only">
+                <h4>4. What is your technical comfort level?</h4>
+                <div class="quiz-options">
+                    <label class="radio-option">
+                        <input type="radio" name="technical" value="beginner" onchange="updateAssessment()">
+                        Beginner (prefer GUI tools)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="technical" value="intermediate" onchange="updateAssessment()">
+                        Intermediate (comfortable with command line)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="technical" value="advanced" onchange="updateAssessment()">
+                        Advanced (experienced with Linux/servers)
+                    </label>
+                </div>
+            </div>
+
+            <div id="assessment-result" class="info-box" style="display: none; margin-top: 1.5rem;">
+                <h4 style="color: var(--accent-blue); margin-bottom: 0.75rem;">Recommendation:</h4>
+                <p id="recommendation-text"></p>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="nextPhase(1)">Continue to Hardware Selection →</button>
+            </div>
+        </div>
+
+        <!-- Phase 2: Hardware Selection -->
+        <div class="section hidden" id="phase-2" role="region" aria-label="Phase 2: Hardware Selection">
+            <h2>Phase 2: Hardware Selection</h2>
+
+            <p style="margin-bottom: 1.5rem;">Choose the hardware that best fits your needs and budget.</p>
+
+            <div class="hardware-grid">
+                <div class="hardware-card" onclick="selectHardware('raspberry-pi', event)" role="button" tabindex="0" aria-label="Select Raspberry Pi 5 hardware">
+                    <span class="icon">🥧</span>
+                    <h3>Raspberry Pi 5</h3>
+                    <div class="hardware-specs">
+                        <strong>CPU:</strong> Quad-core ARM<br>
+                        <strong>RAM:</strong> 8 GB<br>
+                        <strong>Storage:</strong> 1TB SSD (external)
+                    </div>
+                    <span class="cost-badge">$150-200</span>
+                    <div class="beginner-only">
+                        <p style="color: var(--text-dim); margin-top: 1rem; font-size: 0.9rem;">
+                            Perfect for beginners. Low power consumption, easy setup.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="hardware-card" onclick="selectHardware('desktop', event)" role="button" tabindex="0" aria-label="Select Desktop Computer hardware">
+                    <span class="icon">💻</span>
+                    <h3>Desktop Computer <span class="recommended-badge">Recommended</span></h3>
+                    <div class="hardware-specs">
+                        <strong>CPU:</strong> Dual-core 2.0+ GHz<br>
+                        <strong>RAM:</strong> 8 GB minimum<br>
+                        <strong>Storage:</strong> 1TB SSD
+                    </div>
+                    <span class="cost-badge">$500-1000</span>
+                    <div class="intermediate-only advanced-only">
+                        <p style="color: var(--text-dim); margin-top: 1rem; font-size: 0.9rem;">
+                            Best balance of performance and cost. Can run 24/7.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="hardware-card" onclick="selectHardware('dedicated', event)" role="button" tabindex="0" aria-label="Select Dedicated Server hardware">
+                    <span class="icon">🖥️</span>
+                    <h3>Dedicated Server</h3>
+                    <div class="hardware-specs">
+                        <strong>CPU:</strong> Quad-core 3.0+ GHz<br>
+                        <strong>RAM:</strong> 16 GB+<br>
+                        <strong>Storage:</strong> 2TB+ NVMe SSD
+                    </div>
+                    <span class="cost-badge">$1500+</span>
+                    <div class="advanced-only">
+                        <p style="color: var(--text-dim); margin-top: 1rem; font-size: 0.9rem;">
+                            Maximum performance for development and high-traffic use.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="hardware-card advanced-only" onclick="selectHardware('cloud', event)" role="button" tabindex="0" aria-label="Select Cloud VPS hardware">
+                    <span class="icon">☁️</span>
+                    <h3>Cloud VPS</h3>
+                    <div class="hardware-specs">
+                        <strong>CPU:</strong> 2+ vCPUs<br>
+                        <strong>RAM:</strong> 8 GB<br>
+                        <strong>Storage:</strong> 1TB SSD
+                    </div>
+                    <span class="cost-badge">$50-100/month</span>
+                    <p style="color: var(--text-dim); margin-top: 1rem; font-size: 0.9rem;">
+                        Less private but flexible. Good for development.
+                    </p>
+                </div>
+            </div>
+
+            <div id="hardware-details" class="info-box" style="display: none; margin-top: 1.5rem;">
+                <h4 style="color: var(--accent-blue); margin-bottom: 0.75rem;">Selected Hardware:</h4>
+                <p id="hardware-details-text"></p>
+            </div>
+
+            <div class="warning-box beginner-only">
+                <strong>Storage Note:</strong> The full Bitcoin blockchain is over 500 GB and growing. You can run a "pruned node" with as little as 10 GB of storage, but you won't store the full history.
+            </div>
+
+            <div class="advanced-only">
+                <div class="info-box">
+                    <strong>Pro Tip:</strong> Use an SSD instead of HDD for significantly faster sync times. NVMe SSDs provide the best performance for database operations.
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="prevPhase(2)">← Back</button>
+                <button class="btn btn-primary" onclick="nextPhase(2)">Continue to Installation →</button>
+            </div>
+        </div>
+
+        <!-- Phase 3: Installation -->
+        <div class="section hidden" id="phase-3">
+            <h2>Phase 3: Installation</h2>
+
+            <p style="margin-bottom: 1.5rem;">Let's install Bitcoin Core on your system.</p>
+
+            <div class="beginner-only">
+                <div class="info-box">
+                    <strong>What we'll do:</strong>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Download Bitcoin Core</li>
+                        <li>Verify the download</li>
+                        <li>Install the software</li>
+                        <li>Set up the data directory</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="color: var(--accent-gold); margin: 1.5rem 0 1rem;">Select your operating system:</h3>
+
+            <div class="btn-group" style="margin-bottom: 2rem;">
+                <button class="btn btn-secondary" onclick="selectOS('linux')">🐧 Linux</button>
+                <button class="btn btn-secondary" onclick="selectOS('macos')">🍎 macOS</button>
+                <button class="btn btn-secondary" onclick="selectOS('windows')">🪟 Windows</button>
+            </div>
+
+            <div id="installation-steps" style="display: none;">
+                <div class="terminal" id="install-terminal">
+                    <div class="terminal-header">Bitcoin Core Installation Terminal</div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="startInstallation()">Start Installation</button>
+                </div>
+
+                <div class="intermediate-only advanced-only">
+                    <div class="warning-box" style="margin-top: 1.5rem;">
+                        <strong>Security Best Practice:</strong> Always verify PGP signatures before installing Bitcoin Core to ensure the software hasn't been tampered with.
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-group" style="margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="prevPhase(3)">← Back</button>
+                <button class="btn btn-primary" id="install-next-btn" disabled onclick="nextPhase(3)">Continue to Configuration →</button>
+            </div>
+        </div>
+
+        <!-- Phase 4: Configuration -->
+        <div class="section hidden" id="phase-4">
+            <h2>Phase 4: Configuration</h2>
+
+            <p style="margin-bottom: 1.5rem;">Configure your Bitcoin node with the optimal settings.</p>
+
+            <div class="config-builder">
+                <h3 style="color: var(--primary-orange); margin-bottom: 1.5rem;">Bitcoin Configuration Builder</h3>
+
+                <div class="config-option">
+                    <label>Node Type</label>
+                    <select id="config-node-type" onchange="updateConfig()">
+                        <option value="full">Full Node (500+ GB)</option>
+                        <option value="pruned">Pruned Node (10-50 GB)</option>
+                    </select>
+                    <div class="help-text">Full nodes store the entire blockchain. Pruned nodes only keep recent data.</div>
+                </div>
+
+                <div class="config-option" id="prune-option" style="display: none;">
+                    <label>Prune Size (MB)</label>
+                    <input type="number" id="config-prune" value="10000" min="550" onchange="updateConfig()">
+                    <div class="help-text">Minimum 550 MB required. Recommended 5000-10000 MB for better functionality.</div>
+                </div>
+
+                <div class="config-option intermediate-only advanced-only">
+                    <label>Network</label>
+                    <select id="config-network" onchange="updateConfig()">
+                        <option value="mainnet">Mainnet (Real Bitcoin)</option>
+                        <option value="testnet">Testnet (For testing)</option>
+                        <option value="signet">Signet (Stable testnet)</option>
+                        <option value="regtest" class="advanced-only">Regtest (Local development)</option>
+                    </select>
+                    <div class="help-text">Use testnet for learning without risking real Bitcoin.</div>
+                </div>
+
+                <div class="config-option intermediate-only advanced-only">
+                    <label>RPC Server</label>
+                    <select id="config-rpc" onchange="updateConfig()">
+                        <option value="enabled">Enabled (allows API access)</option>
+                        <option value="disabled">Disabled (GUI only)</option>
+                    </select>
+                    <div class="help-text">Enable RPC to use bitcoin-cli and other tools.</div>
+                </div>
+
+                <div class="config-option advanced-only">
+                    <label>Max Connections</label>
+                    <input type="number" id="config-maxconnections" value="125" min="10" max="200" onchange="updateConfig()">
+                    <div class="help-text">Maximum number of peer connections. Default is 125.</div>
+                </div>
+
+                <div class="config-option advanced-only">
+                    <label>Database Cache (MB)</label>
+                    <input type="number" id="config-dbcache" value="450" min="100" max="16000" onchange="updateConfig()">
+                    <div class="help-text">More cache = faster sync. Use 25-50% of available RAM during IBD.</div>
+                </div>
+
+                <h4 style="color: var(--accent-blue); margin: 2rem 0 1rem;">Generated bitcoin.conf:</h4>
+                <div class="config-preview" id="config-preview"># Bitcoin Core Configuration
+# Auto-generated by Node Setup Sandbox
+
+# Node type
+prune=0
+
+# Network settings
+maxconnections=125
+
+# Database cache
+dbcache=450
+
+# RPC settings
+server=1
+rpcuser=bitcoinrpc
+rpcpassword=CHANGE_THIS_PASSWORD
+                </div>
+
+                <button class="btn btn-success" onclick="copyConfig()">Copy Configuration</button>
+            </div>
+
+            <div class="btn-group" style="margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="prevPhase(4)">← Back</button>
+                <button class="btn btn-primary" onclick="nextPhase(4)">Continue to Network Setup →</button>
+            </div>
+        </div>
+
+        <!-- Phase 5: Network Setup -->
+        <div class="section hidden" id="phase-5">
+            <h2>Phase 5: Network Setup</h2>
+
+            <p style="margin-bottom: 1.5rem;">Configure your network to accept incoming connections and maximize your node's reach.</p>
+
+            <div class="beginner-only">
+                <div class="info-box">
+                    <strong>Why network setup matters:</strong> By accepting incoming connections, your node helps new nodes sync faster and makes the Bitcoin network more robust.
+                </div>
+            </div>
+
+            <div class="scenario-grid">
+                <div class="scenario-card">
+                    <h4>🌐 Port Forwarding</h4>
+                    <p style="margin-bottom: 1rem; color: var(--text-dim);">
+                        Allow incoming connections on port 8333 (mainnet) or 18333 (testnet).
+                    </p>
+                    <div class="beginner-only">
+                        <ol style="margin-left: 1.5rem; color: var(--text-dim); font-size: 0.9rem;">
+                            <li>Log into your router</li>
+                            <li>Find "Port Forwarding" settings</li>
+                            <li>Forward port 8333 to your node's IP</li>
+                            <li>Save and restart router</li>
+                        </ol>
+                    </div>
+                    <div class="advanced-only">
+                        <div class="code-block" style="margin-top: 1rem;">
+# Check if port is open
+telnet YOUR_IP 8333
+
+# Or use online tool:
+# canyouseeme.org
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scenario-card intermediate-only advanced-only">
+                    <h4>🧅 Tor Configuration</h4>
+                    <p style="margin-bottom: 1rem; color: var(--text-dim);">
+                        Route your node through Tor for enhanced privacy.
+                    </p>
+                    <div class="code-block" style="margin-top: 1rem;">
+# Add to bitcoin.conf
+proxy=127.0.0.1:9050
+listen=1
+bind=127.0.0.1
+onlynet=onion
+                    </div>
+                    <p style="margin-top: 0.75rem; color: var(--text-dim); font-size: 0.9rem;">
+                        Requires Tor to be installed and running.
+                    </p>
+                </div>
+
+                <div class="scenario-card">
+                    <h4>🔥 Firewall Setup</h4>
+                    <p style="margin-bottom: 1rem; color: var(--text-dim);">
+                        Configure your firewall to allow Bitcoin traffic.
+                    </p>
+                    <div class="code-block" style="margin-top: 1rem;">
+# Linux (ufw)
+sudo ufw allow 8333/tcp
+
+# macOS
+# Use System Preferences > Security
+                    </div>
+                </div>
+
+                <div class="scenario-card advanced-only">
+                    <h4>⚡ Lightning Network</h4>
+                    <p style="margin-bottom: 1rem; color: var(--text-dim);">
+                        Prepare for Lightning Network integration.
+                    </p>
+                    <div class="code-block" style="margin-top: 1rem;">
+# Add to bitcoin.conf for LN
+zmqpubrawblock=tcp://127.0.0.1:28332
+zmqpubrawtx=tcp://127.0.0.1:28333
+                    </div>
+                </div>
+            </div>
+
+            <div class="network-monitor">
+                <h3 style="color: var(--accent-blue); margin-bottom: 1.5rem;">Network Status Monitor</h3>
+                <div class="network-stats">
+                    <div class="stat-box">
+                        <span class="stat-value" id="peer-count">0</span>
+                        <span class="stat-label">Connected Peers</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value" id="inbound-count">0</span>
+                        <span class="stat-label">Inbound Connections</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value" id="outbound-count">0</span>
+                        <span class="stat-label">Outbound Connections</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="simulateNetworkConnection()">Simulate Network Connection</button>
+            </div>
+
+            <div class="btn-group" style="margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="prevPhase(5)">← Back</button>
+                <button class="btn btn-primary" onclick="nextPhase(5)">Continue to Security →</button>
+            </div>
+        </div>
+
+        <!-- Phase 6: Security -->
+        <div class="section hidden" id="phase-6">
+            <h2>Phase 6: Security Hardening</h2>
+
+            <p style="margin-bottom: 1.5rem;">Secure your node against potential threats.</p>
+
+            <div class="warning-box">
+                <strong>Critical:</strong> Your node handles real Bitcoin transactions. Proper security is essential to protect your funds and privacy.
+            </div>
+
+            <h3 style="color: var(--accent-gold); margin: 1.5rem 0 1rem;">Security Checklist</h3>
+
+            <ul class="checklist">
+                <li id="security-1">Strong RPC password configured</li>
+                <li id="security-2">Wallet encryption enabled</li>
+                <li id="security-3">Firewall properly configured</li>
+                <li id="security-4">Regular backup strategy in place</li>
+                <li id="security-5">Operating system kept up to date</li>
+                <li id="security-6">Physical security of device ensured</li>
+                <li id="security-7" class="intermediate-only advanced-only">SSH key authentication (if remote)</li>
+                <li id="security-8" class="advanced-only">Fail2ban or similar intrusion prevention</li>
+            </ul>
+
+            <button class="btn btn-success" onclick="completeSecurityChecklist()" style="margin: 1.5rem 0;">Mark All as Complete</button>
+
+            <div class="scenario-grid" style="margin-top: 2rem;">
+                <div class="scenario-card">
+                    <h4>🔐 Wallet Encryption</h4>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                        Encrypt your wallet to prevent unauthorized access.
+                    </p>
+                    <div class="code-block">
+# Using bitcoin-cli
+bitcoin-cli encryptwallet "YourStrongPassword"
+
+# Or use GUI: Settings > Encrypt Wallet
+                    </div>
+                </div>
+
+                <div class="scenario-card">
+                    <h4>💾 Backup Strategy</h4>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                        Regular backups protect against data loss.
+                    </p>
+                    <div class="beginner-only">
+                        <ol style="margin-left: 1.5rem; font-size: 0.9rem;">
+                            <li>Stop Bitcoin Core</li>
+                            <li>Copy wallet.dat to safe location</li>
+                            <li>Store backup on encrypted drive</li>
+                            <li>Test restore process</li>
+                        </ol>
+                    </div>
+                    <div class="advanced-only">
+                        <div class="code-block">
+# Backup wallet
+bitcoin-cli backupwallet "/path/to/backup"
+
+# Automated backup script
+# (Set up cron job for daily backups)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scenario-card intermediate-only advanced-only">
+                    <h4>🛡️ Attack Scenarios</h4>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                        What if an attacker gains access?
+                    </p>
+                    <button class="btn btn-secondary" onclick="showSecurityScenario('physical')">Physical Access</button>
+                    <button class="btn btn-secondary" onclick="showSecurityScenario('remote')">Remote Attack</button>
+                </div>
+
+                <div class="scenario-card advanced-only">
+                    <h4>🔒 Advanced Security</h4>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                        Additional hardening measures.
+                    </p>
+                    <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
+                        <li>Run node as non-root user</li>
+                        <li>Use AppArmor/SELinux</li>
+                        <li>Disable unused services</li>
+                        <li>Enable automatic security updates</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="security-scenario" class="info-box" style="display: none; margin-top: 1.5rem;">
+                <h4 style="color: var(--accent-blue); margin-bottom: 0.75rem;">Scenario Response:</h4>
+                <p id="security-scenario-text"></p>
+            </div>
+
+            <div class="btn-group" style="margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="prevPhase(6)">← Back</button>
+                <button class="btn btn-primary" onclick="nextPhase(6)">Continue to Testing →</button>
+            </div>
+        </div>
+
+        <!-- Phase 7: Initial Sync & Testing -->
+        <div class="section hidden" id="phase-7">
+            <h2>Phase 7: Initial Sync & Testing</h2>
+
+            <p style="margin-bottom: 1.5rem;">Your node is now syncing with the Bitcoin network. This process can take several hours to days depending on your hardware and connection.</p>
+
+            <div class="beginner-only">
+                <div class="info-box">
+                    <strong>What's happening:</strong> Your node is downloading and verifying every Bitcoin block since 2009. This ensures you have a complete, trustless copy of the blockchain.
+                </div>
+            </div>
+
+            <div class="network-monitor">
+                <h3 style="color: var(--accent-blue); margin-bottom: 1.5rem;">Blockchain Sync Progress</h3>
+
+                <div class="sync-progress">
+                    <div class="sync-bar">
+                        <div class="sync-fill" id="sync-fill" style="width: 0%"></div>
+                        <div class="sync-text" id="sync-text">0%</div>
+                    </div>
+                </div>
+
+                <div class="network-stats" style="margin-top: 1.5rem;">
+                    <div class="stat-box">
+                        <span class="stat-value" id="blocks-synced">0</span>
+                        <span class="stat-label">Blocks Synced</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value" id="sync-peers">8</span>
+                        <span class="stat-label">Active Peers</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value" id="sync-speed">0 MB/s</span>
+                        <span class="stat-label">Download Speed</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value" id="sync-eta">Calculating...</span>
+                        <span class="stat-label">Time Remaining</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-success" onclick="startSync()" id="sync-btn" style="margin-top: 1.5rem;">Start Sync Simulation</button>
+            </div>
+
+            <div class="intermediate-only advanced-only" style="margin-top: 2rem;">
+                <h3 style="color: var(--accent-gold); margin-bottom: 1rem;">RPC Command Testing</h3>
+
+                <div class="terminal" id="rpc-terminal">
+                    <div class="terminal-header">Bitcoin Core RPC Terminal</div>
+                    <div class="terminal-line terminal-output">Type 'help' to see available commands</div>
+                </div>
+
+                <input type="text" class="terminal-input" id="rpc-input" placeholder="Enter bitcoin-cli command..." onkeypress="handleRPCCommand(event)" aria-label="Bitcoin RPC command input">
+
+                <div class="info-box" style="margin-top: 1rem;">
+                    <strong>Try these commands:</strong>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem; font-family: monospace; font-size: 0.9rem;">
+                        <li>getblockchaininfo</li>
+                        <li>getpeerinfo</li>
+                        <li>getnetworkinfo</li>
+                        <li>getnewaddress</li>
+                        <li>getwalletinfo</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="beginner-only">
+                <div class="success-box" style="margin-top: 2rem;">
+                    <strong>Tip:</strong> You can use your node right away for receiving Bitcoin, even during the initial sync. However, you should wait for the full sync before relying on it for complete privacy.
+                </div>
+            </div>
+
+            <div class="advanced-only">
+                <h3 style="color: var(--accent-gold); margin: 2rem 0 1rem;">Performance Monitoring</h3>
+                <div class="code-block">
+# Monitor resource usage
+bitcoin-cli getmempoolinfo
+bitcoin-cli getchaintxstats
+
+# Check database cache efficiency
+bitcoin-cli getmemoryinfo
+
+# Monitor network bandwidth
+watch -n 1 bitcoin-cli getnettotals
+                </div>
+            </div>
+
+            <div class="btn-group" style="margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="prevPhase(7)">← Back</button>
+                <button class="btn btn-primary" onclick="nextPhase(7)">Continue to Optimization →</button>
+            </div>
+        </div>
+
+        <!-- Phase 8: Optimization & Maintenance -->
+        <div class="section hidden" id="phase-8">
+            <h2>Phase 8: Optimization & Maintenance</h2>
+
+            <p style="margin-bottom: 1.5rem;">Your node is running! Let's optimize performance and set up maintenance routines.</p>
+
+            <div class="success-box">
+                <h3 style="color: var(--accent-green); margin-bottom: 1rem;">🎉 Congratulations!</h3>
+                <p>You've successfully set up a Bitcoin node. You now have complete sovereignty over your Bitcoin transactions.</p>
+            </div>
+
+            <h3 style="color: var(--accent-gold); margin: 2rem 0 1rem;">Performance Tuning</h3>
+
+            <div class="scenario-grid">
+                <div class="scenario-card">
+                    <h4>⚡ Database Optimization</h4>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                        Tune database cache for your workload.
+                    </p>
+                    <div class="beginner-only">
+                        <p style="font-size: 0.9rem;">
+                            After sync completes, you can reduce dbcache to 300-500 MB to free up RAM.
+                        </p>
+                    </div>
+                    <div class="advanced-only">
+                        <div class="code-block">
+# In bitcoin.conf
+# During IBD: 4000-8000
+dbcache=4000
+
+# After sync: 300-500
+dbcache=450
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scenario-card intermediate-only advanced-only">
+                    <h4>🔄 Update Strategy</h4>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                        Keep your node secure and up to date.
+                    </p>
+                    <ol style="margin-left: 1.5rem; font-size: 0.9rem;">
+                        <li>Subscribe to Bitcoin Core releases</li>
+                        <li>Read release notes carefully</li>
+                        <li>Backup wallet before updating</li>
+                        <li>Test on testnet first (optional)</li>
+                        <li>Update during low-traffic periods</li>
+                    </ol>
+                </div>
+
+                <div class="scenario-card">
+                    <h4>📊 Monitoring Setup</h4>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                        Track your node's health over time.
+                    </p>
+                    <div class="beginner-only">
+                        <p style="font-size: 0.9rem;">
+                            Check Bitcoin Core GUI regularly for sync status and peer connections.
+                        </p>
+                    </div>
+                    <div class="advanced-only">
+                        <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
+                            <li>Set up Prometheus + Grafana</li>
+                            <li>Monitor disk space usage</li>
+                            <li>Track mempool size</li>
+                            <li>Alert on peer disconnections</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="scenario-card">
+                    <h4>🛠️ Common Issues</h4>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                        Troubleshooting guide for typical problems.
+                    </p>
+                    <button class="btn btn-secondary" onclick="showTroubleshooting('slow')">Slow Sync</button>
+                    <button class="btn btn-secondary" onclick="showTroubleshooting('peers')">No Peers</button>
+                    <button class="btn btn-secondary" onclick="showTroubleshooting('disk')">Disk Full</button>
+                </div>
+            </div>
+
+            <div id="troubleshooting-box" class="info-box" style="display: none; margin-top: 1.5rem;">
+                <h4 style="color: var(--accent-blue); margin-bottom: 0.75rem;">Troubleshooting:</h4>
+                <p id="troubleshooting-text"></p>
+            </div>
+
+            <div class="intermediate-only advanced-only">
+                <h3 style="color: var(--accent-gold); margin: 2rem 0 1rem;">Next Steps</h3>
+
+                <div class="scenario-grid">
+                    <div class="scenario-card">
+                        <h4>⚡ Lightning Network</h4>
+                        <p style="color: var(--text-dim);">
+                            Set up LND or Core Lightning for instant payments.
+                        </p>
+                    </div>
+
+                    <div class="scenario-card">
+                        <h4>🔍 Block Explorer</h4>
+                        <p style="color: var(--text-dim);">
+                            Run your own private block explorer (BTC RPC Explorer, Mempool).
+                        </p>
+                    </div>
+
+                    <div class="scenario-card">
+                        <h4>🌐 Electrum Server</h4>
+                        <p style="color: var(--text-dim);">
+                            Connect your mobile wallets to your own node.
+                        </p>
+                    </div>
+
+                    <div class="scenario-card advanced-only">
+                        <h4>🔧 Custom Development</h4>
+                        <p style="color: var(--text-dim);">
+                            Build applications using Bitcoin Core RPC.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="success-box" style="margin-top: 2rem;">
+                <h4 style="color: var(--accent-green); margin-bottom: 1rem;">You've Completed Node Setup!</h4>
+                <p style="margin-bottom: 1rem;">You now understand:</p>
+                <ul style="margin-left: 1.5rem;">
+                    <li>How to assess your node requirements</li>
+                    <li>Hardware selection and optimization</li>
+                    <li>Installation and configuration best practices</li>
+                    <li>Network setup and security hardening</li>
+                    <li>Sync monitoring and troubleshooting</li>
+                    <li>Long-term maintenance strategies</li>
+                </ul>
+            </div>
+
+            <div class="btn-group" style="margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="prevPhase(8)">← Back</button>
+                <button class="btn btn-success" onclick="resetSandbox()">🔄 Start Over</button>
+                <a href="/paths/builder.html" class="btn btn-primary" style="text-decoration: none; display: inline-block; text-align: center;">Continue Learning →</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== State Management =====
+        const state = {
+            currentPhase: 1,
+            level: 'beginner',
+            assessment: {
+                goal: null,
+                storage: null,
+                internet: null,
+                technical: null
+            },
+            selectedHardware: null,
+            selectedOS: null,
+            nodeConfig: {
+                nodeType: 'full',
+                prune: 0,
+                network: 'mainnet',
+                rpc: 'enabled',
+                maxconnections: 125,
+                dbcache: 450
+            },
+            installationComplete: false,
+            syncProgress: 0,
+            peers: 0
+        };
+
+        // ===== Initialization =====
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get level from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const level = urlParams.get('level') || 'beginner';
+            state.level = level;
+
+            // Apply level class to body
+            document.body.classList.add(`level-${level}`);
+
+            // Highlight active level button
+            const buttons = document.querySelectorAll('.level-btn');
+            buttons.forEach(btn => {
+                if (btn.textContent.toLowerCase() === level) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Initialize config preview
+            updateConfig();
+
+            // Add keyboard support for hardware cards
+            document.querySelectorAll('.hardware-card').forEach(card => {
+                card.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        card.click();
+                    }
+                });
+            });
+        });
+
+        // ===== Level Switching =====
+        function switchLevel(level) {
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('level', level);
+            window.location.href = newUrl.toString();
+        }
+
+        // ===== Phase Navigation =====
+        function nextPhase(current) {
+            // Hide current phase
+            document.getElementById(`phase-${current}`).classList.add('hidden');
+
+            // Show next phase
+            const next = current + 1;
+            if (next <= 8) {
+                const nextSection = document.getElementById(`phase-${next}`);
+                nextSection.classList.remove('hidden');
+                state.currentPhase = next;
+
+                // Update progress
+                updateProgress(next);
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                // Set focus to next section heading for accessibility
+                setTimeout(() => {
+                    const heading = nextSection.querySelector('h2');
+                    if (heading) {
+                        heading.setAttribute('tabindex', '-1');
+                        heading.focus();
+                    }
+                }, 300);
+            }
+        }
+
+        function prevPhase(current) {
+            // Hide current phase
+            document.getElementById(`phase-${current}`).classList.add('hidden');
+
+            // Show previous phase
+            const prev = current - 1;
+            if (prev >= 1) {
+                const prevSection = document.getElementById(`phase-${prev}`);
+                prevSection.classList.remove('hidden');
+                state.currentPhase = prev;
+
+                // Update progress
+                updateProgress(prev);
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                // Set focus to previous section heading for accessibility
+                setTimeout(() => {
+                    const heading = prevSection.querySelector('h2');
+                    if (heading) {
+                        heading.setAttribute('tabindex', '-1');
+                        heading.focus();
+                    }
+                }, 300);
+            }
+        }
+
+        function updateProgress(phase) {
+            const progress = (phase / 8) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+
+            // Update indicators
+            for (let i = 1; i <= 8; i++) {
+                const indicator = document.getElementById(`indicator-${i}`);
+                indicator.classList.remove('active', 'completed');
+
+                if (i < phase) {
+                    indicator.classList.add('completed');
+                } else if (i === phase) {
+                    indicator.classList.add('active');
+                }
+            }
+        }
+
+        // ===== Phase 1: Assessment =====
+        function updateAssessment() {
+            const goal = document.querySelector('input[name="goal"]:checked')?.value;
+            const storage = document.querySelector('input[name="storage"]:checked')?.value;
+            const internet = document.querySelector('input[name="internet"]:checked')?.value;
+            const technical = document.querySelector('input[name="technical"]:checked')?.value;
+
+            state.assessment = { goal, storage, internet, technical };
+
+            // Update visual selection for radio options
+            document.querySelectorAll('.radio-option').forEach(option => {
+                const input = option.querySelector('input[type="radio"]');
+                if (input && input.checked) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+
+            // Show recommendation if all questions answered
+            if (goal && storage && internet) {
+                showRecommendation();
+            }
+        }
+
+        function showRecommendation() {
+            const { storage, internet } = state.assessment;
+            const resultBox = document.getElementById('assessment-result');
+            const resultText = document.getElementById('recommendation-text');
+
+            let recommendation = '';
+
+            if (storage === 'limited') {
+                recommendation = '<strong>Pruned Node</strong> - With limited storage, we recommend starting with a pruned node (10-50 GB). You can always expand to a full node later.';
+            } else if (storage === 'moderate') {
+                recommendation = '<strong>Partial Archive Node</strong> - You have enough space for a partial archive. Consider keeping 6-12 months of blocks for better privacy and network support.';
+            } else {
+                recommendation = '<strong>Full Archive Node</strong> - Excellent! A full node gives you complete transaction history and maximum sovereignty.';
+            }
+
+            if (internet === 'slow') {
+                recommendation += ' Note: Your internet speed means initial sync may take 1-2 weeks. Be patient!';
+            }
+
+            resultText.innerHTML = recommendation;
+            resultBox.style.display = 'block';
+        }
+
+        // ===== Phase 2: Hardware Selection =====
+        function selectHardware(type, event) {
+            // Remove previous selection
+            document.querySelectorAll('.hardware-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Select new hardware
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('selected');
+            }
+            state.selectedHardware = type;
+
+            // Show hardware details
+            const detailsBox = document.getElementById('hardware-details');
+            const detailsText = document.getElementById('hardware-details-text');
+
+            const hardwareInfo = {
+                'raspberry-pi': 'Raspberry Pi 5 with external SSD. Perfect for learning. Initial sync: 2-7 days. Power consumption: ~15W.',
+                'desktop': 'Desktop computer. Best performance/cost ratio. Initial sync: 1-3 days. Can run 24/7 with low power impact.',
+                'dedicated': 'High-performance dedicated server. Fastest sync and best for development. Initial sync: 6-24 hours.',
+                'cloud': 'Cloud VPS. Flexible but less private. Good for testing. Remember: "Not your hardware, not your node."'
+            };
+
+            detailsText.textContent = hardwareInfo[type] || '';
+            detailsBox.style.display = 'block';
+        }
+
+        // ===== Phase 3: Installation =====
+        function selectOS(os) {
+            state.selectedOS = os;
+
+            // Show installation steps
+            document.getElementById('installation-steps').style.display = 'block';
+
+            const terminal = document.getElementById('install-terminal');
+
+            const instructions = {
+                'linux': `<div class="terminal-line terminal-output"># Linux Installation Instructions</div>
+<div class="terminal-line terminal-output"># 1. Download Bitcoin Core (latest version)</div>
+<div class="terminal-line terminal-prompt">$ wget https://bitcoincore.org/bin/bitcoin-core-27.0/bitcoin-27.0-x86_64-linux-gnu.tar.gz</div>
+<div class="terminal-line terminal-output"># 2. Verify signatures (recommended)</div>
+<div class="terminal-line terminal-prompt">$ wget https://bitcoincore.org/bin/bitcoin-core-27.0/SHA256SUMS</div>
+<div class="terminal-line terminal-prompt">$ sha256sum --check SHA256SUMS 2>&1 | grep OK</div>
+<div class="terminal-line terminal-output"># 3. Extract and install</div>
+<div class="terminal-line terminal-prompt">$ tar xzf bitcoin-27.0-x86_64-linux-gnu.tar.gz</div>
+<div class="terminal-line terminal-prompt">$ sudo install -m 0755 -o root -g root -t /usr/local/bin bitcoin-27.0/bin/*</div>
+<div class="terminal-line terminal-success">✓ Ready to run: bitcoind or bitcoin-qt</div>`,
+
+                'macos': `<div class="terminal-line terminal-output"># macOS Installation Instructions</div>
+<div class="terminal-line terminal-output"># 1. Download Bitcoin Core .dmg (latest version)</div>
+<div class="terminal-line terminal-prompt">$ curl -O https://bitcoincore.org/bin/bitcoin-core-27.0/bitcoin-27.0-arm64-apple-darwin.dmg</div>
+<div class="terminal-line terminal-output"># 2. Verify download (recommended)</div>
+<div class="terminal-line terminal-prompt">$ shasum -a 256 bitcoin-27.0-arm64-apple-darwin.dmg</div>
+<div class="terminal-line terminal-output"># 3. Install</div>
+<div class="terminal-line terminal-output"># - Open the .dmg file</div>
+<div class="terminal-line terminal-output"># - Drag Bitcoin Core to Applications</div>
+<div class="terminal-line terminal-success">✓ Launch Bitcoin Core from Applications</div>`,
+
+                'windows': `<div class="terminal-line terminal-output"># Windows Installation Instructions</div>
+<div class="terminal-line terminal-output"># 1. Download Bitcoin Core installer (latest version)</div>
+<div class="terminal-line terminal-output"># Visit: https://bitcoincore.org/en/download/</div>
+<div class="terminal-line terminal-output"># Download: bitcoin-27.0-win64-setup.exe</div>
+<div class="terminal-line terminal-output"># 2. Verify signature (recommended)</div>
+<div class="terminal-line terminal-output"># Download SHA256SUMS and verify hash</div>
+<div class="terminal-line terminal-output"># 3. Run installer</div>
+<div class="terminal-line terminal-output"># - Double-click .exe file</div>
+<div class="terminal-line terminal-output"># - Follow installation wizard</div>
+<div class="terminal-line terminal-success">✓ Launch Bitcoin Core from Start Menu</div>`
+            };
+
+            terminal.innerHTML = `<div class="terminal-header">Bitcoin Core Installation Terminal</div>` + instructions[os];
+        }
+
+        function startInstallation() {
+            if (!state.selectedOS) {
+                alert('Please select an operating system first');
+                return;
+            }
+
+            const terminal = document.getElementById('install-terminal');
+
+            // Simulate installation progress
+            setTimeout(() => {
+                terminal.innerHTML += `<div class="terminal-line terminal-output" style="margin-top: 1rem;">Installing Bitcoin Core...</div>`;
+            }, 500);
+
+            setTimeout(() => {
+                terminal.innerHTML += `<div class="terminal-line terminal-output">Extracting files...</div>`;
+            }, 1500);
+
+            setTimeout(() => {
+                terminal.innerHTML += `<div class="terminal-line terminal-output">Setting up data directory...</div>`;
+            }, 2500);
+
+            setTimeout(() => {
+                terminal.innerHTML += `<div class="terminal-line terminal-success">✓ Installation complete!</div>`;
+                state.installationComplete = true;
+                document.getElementById('install-next-btn').disabled = false;
+            }, 3500);
+        }
+
+        // ===== Phase 4: Configuration =====
+        function updateConfig() {
+            const nodeType = document.getElementById('config-node-type')?.value || 'full';
+            const prune = document.getElementById('config-prune')?.value || 0;
+            const network = document.getElementById('config-network')?.value || 'mainnet';
+            const rpc = document.getElementById('config-rpc')?.value || 'enabled';
+            const maxconnections = document.getElementById('config-maxconnections')?.value || 125;
+            const dbcache = document.getElementById('config-dbcache')?.value || 450;
+
+            // Show/hide prune option
+            const pruneOption = document.getElementById('prune-option');
+            if (nodeType === 'pruned' && pruneOption) {
+                pruneOption.style.display = 'block';
+            } else if (pruneOption) {
+                pruneOption.style.display = 'none';
+            }
+
+            // Update state
+            state.nodeConfig = { nodeType, prune, network, rpc, maxconnections, dbcache };
+
+            // Generate config preview
+            let config = `# Bitcoin Core Configuration
+# Auto-generated by Node Setup Sandbox
+
+# Node type
+`;
+
+            if (nodeType === 'pruned') {
+                config += `prune=${prune}
+`;
+            } else {
+                config += `prune=0
+`;
+            }
+
+            if (network !== 'mainnet') {
+                config += `\n# Network
+${network}=1
+`;
+            }
+
+            config += `\n# Network settings
+maxconnections=${maxconnections}
+
+# Database cache
+dbcache=${dbcache}
+`;
+
+            if (rpc === 'enabled') {
+                config += `\n# RPC settings
+server=1
+rpcuser=bitcoinrpc
+rpcpassword=CHANGE_THIS_PASSWORD_TO_SOMETHING_SECURE
+rpcallowip=127.0.0.1
+`;
+            }
+
+            const preview = document.getElementById('config-preview');
+            if (preview) {
+                preview.textContent = config;
+            }
+        }
+
+        function copyConfig() {
+            const config = document.getElementById('config-preview').textContent;
+            navigator.clipboard.writeText(config).then(() => {
+                alert('Configuration copied to clipboard!');
+            });
+        }
+
+        // ===== Phase 5: Network Setup =====
+        function simulateNetworkConnection() {
+            let peers = 0;
+            const maxPeers = 8;
+
+            const interval = setInterval(() => {
+                peers++;
+                state.peers = peers;
+
+                const inbound = Math.floor(Math.random() * (peers / 2));
+                const outbound = peers - inbound;
+
+                document.getElementById('peer-count').textContent = peers;
+                document.getElementById('inbound-count').textContent = inbound;
+                document.getElementById('outbound-count').textContent = outbound;
+
+                if (peers >= maxPeers) {
+                    clearInterval(interval);
+                }
+            }, 500);
+        }
+
+        // ===== Phase 6: Security =====
+        function completeSecurityChecklist() {
+            const items = document.querySelectorAll('.checklist li');
+            items.forEach(item => {
+                item.classList.add('completed');
+            });
+        }
+
+        function showSecurityScenario(type) {
+            const scenarioBox = document.getElementById('security-scenario');
+            const scenarioText = document.getElementById('security-scenario-text');
+
+            const scenarios = {
+                'physical': `<strong>Physical Access Attack:</strong><br><br>
+                    If an attacker gains physical access to your node:<br>
+                    1. <strong>Wallet encryption</strong> prevents them from stealing funds<br>
+                    2. <strong>Encrypted backups</strong> protect your backup files<br>
+                    3. <strong>Strong system password</strong> prevents OS-level access<br>
+                    4. <strong>Full disk encryption</strong> (recommended) protects all data<br><br>
+                    Mitigation: Keep your node in a secure location, use full disk encryption, and maintain encrypted off-site backups.`,
+
+                'remote': `<strong>Remote Attack Scenario:</strong><br><br>
+                    If an attacker attempts remote access:<br>
+                    1. <strong>Firewall rules</strong> limit exposure to only necessary ports<br>
+                    2. <strong>Strong RPC password</strong> prevents unauthorized API access<br>
+                    3. <strong>SSH key authentication</strong> (vs passwords) prevents brute force<br>
+                    4. <strong>Fail2ban</strong> blocks repeated failed login attempts<br><br>
+                    Mitigation: Never expose RPC to the internet, use VPN for remote access, keep software updated.`
+            };
+
+            scenarioText.innerHTML = scenarios[type] || '';
+            scenarioBox.style.display = 'block';
+        }
+
+        // ===== Phase 7: Sync & Testing =====
+        function startSync() {
+            const syncBtn = document.getElementById('sync-btn');
+            syncBtn.disabled = true;
+            syncBtn.textContent = 'Syncing...';
+
+            let progress = 0;
+            const totalBlocks = 870000; // Approximate current block height (Nov 2025)
+
+            const syncInterval = setInterval(() => {
+                progress += Math.random() * 3;
+                if (progress > 100) progress = 100;
+
+                const blocks = Math.floor((progress / 100) * totalBlocks);
+                const speed = (Math.random() * 5 + 2).toFixed(1);
+
+                // Update progress bar
+                document.getElementById('sync-fill').style.width = `${progress}%`;
+                document.getElementById('sync-text').textContent = `${progress.toFixed(1)}%`;
+
+                // Update stats
+                document.getElementById('blocks-synced').textContent = blocks.toLocaleString();
+                document.getElementById('sync-speed').textContent = `${speed} MB/s`;
+
+                // Calculate ETA
+                const remaining = 100 - progress;
+                const hoursRemaining = (remaining / 3) / 60; // Rough estimate
+                if (hoursRemaining > 24) {
+                    document.getElementById('sync-eta').textContent = `${Math.floor(hoursRemaining / 24)} days`;
+                } else if (hoursRemaining > 1) {
+                    document.getElementById('sync-eta').textContent = `${Math.floor(hoursRemaining)} hours`;
+                } else {
+                    document.getElementById('sync-eta').textContent = `${Math.floor(hoursRemaining * 60)} minutes`;
+                }
+
+                if (progress >= 100) {
+                    clearInterval(syncInterval);
+                    syncBtn.textContent = 'Sync Complete!';
+                    syncBtn.classList.remove('btn-success');
+                    syncBtn.classList.add('btn-primary');
+                }
+            }, 100);
+        }
+
+        function handleRPCCommand(event) {
+            if (event.key === 'Enter') {
+                const input = document.getElementById('rpc-input');
+                const command = input.value.trim();
+                const terminal = document.getElementById('rpc-terminal');
+
+                if (!command) return;
+
+                // Add command to terminal
+                terminal.innerHTML += `<div class="terminal-line"><span class="terminal-prompt">$ bitcoin-cli ${command}</span></div>`;
+
+                // Simulate command output
+                const outputs = {
+                    'help': '<div class="terminal-line terminal-output">Available commands: getblockchaininfo, getpeerinfo, getnetworkinfo, getnewaddress, getwalletinfo</div>',
+                    'getblockchaininfo': `<div class="terminal-line terminal-output">{
+  "chain": "main",
+  "blocks": 870000,
+  "headers": 870000,
+  "bestblockhash": "00000000000000000002a7c4c1e48d76c5a37902165a270156b7a8d72728a054",
+  "difficulty": 95000000000000.00,
+  "verificationprogress": 0.9999,
+  "chainwork": "000000000000000000000000000000000000000000000000708b6e8e8e8e8e8e"
+}</div>`,
+                    'getpeerinfo': '<div class="terminal-line terminal-output">[ { "id": 1, "addr": "203.0.113.5:8333", "version": 70016 }, ... ]</div>',
+                    'getnetworkinfo': '<div class="terminal-line terminal-output">{ "version": 270000, "subversion": "/Satoshi:27.0.0/", "protocolversion": 70016, "connections": 8 }</div>',
+                    'getnewaddress': '<div class="terminal-line terminal-output">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</div>',
+                    'getwalletinfo': '<div class="terminal-line terminal-output">{ "walletname": "default", "balance": 0.00000000, "txcount": 0 }</div>'
+                };
+
+                terminal.innerHTML += outputs[command] || '<div class="terminal-line terminal-error">Unknown command. Type "help" for available commands.</div>';
+
+                // Clear input
+                input.value = '';
+
+                // Scroll to bottom
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+        }
+
+        // ===== Phase 8: Optimization =====
+        function showTroubleshooting(issue) {
+            const box = document.getElementById('troubleshooting-box');
+            const text = document.getElementById('troubleshooting-text');
+
+            const solutions = {
+                'slow': `<strong>Slow Sync Solutions:</strong><br><br>
+                    1. Increase dbcache to 4000-8000 MB during initial sync<br>
+                    2. Ensure you're using an SSD, not HDD<br>
+                    3. Check internet connection speed and bandwidth caps<br>
+                    4. Temporarily disable antivirus scanning on Bitcoin data directory<br>
+                    5. Make sure you have enough RAM (8GB minimum recommended)<br>
+                    6. Close other bandwidth-heavy applications`,
+
+                'peers': `<strong>No Peers Connection:</strong><br><br>
+                    1. Check firewall is allowing Bitcoin port (8333)<br>
+                    2. Verify router isn't blocking outbound connections<br>
+                    3. Try adding manual peer connections: addnode=<ip>:8333<br>
+                    4. Check if your ISP blocks Bitcoin traffic<br>
+                    5. Consider using Tor: proxy=127.0.0.1:9050<br>
+                    6. Verify system clock is accurate (needed for peer connections)`,
+
+                'disk': `<strong>Disk Space Full:</strong><br><br>
+                    1. Switch to pruned mode: Add "prune=10000" to bitcoin.conf<br>
+                    2. Move blockchain to larger drive and use datadir parameter<br>
+                    3. Clean up debug.log if it's grown large<br>
+                    4. Remove old wallet backups you don't need<br>
+                    5. Consider upgrading storage capacity<br>
+                    6. Monitor disk usage regularly to prevent future issues`
+            };
+
+            text.innerHTML = solutions[issue] || '';
+            box.style.display = 'block';
+        }
+
+        function resetSandbox() {
+            if (confirm('This will reset the entire sandbox. Are you sure?')) {
+                // Reset state
+                state.currentPhase = 1;
+                state.assessment = { goal: null, storage: null, internet: null, technical: null };
+                state.selectedHardware = null;
+                state.selectedOS = null;
+                state.installationComplete = false;
+                state.syncProgress = 0;
+                state.peers = 0;
+
+                // Hide all phases except first
+                for (let i = 2; i <= 8; i++) {
+                    document.getElementById(`phase-${i}`).classList.add('hidden');
+                }
+                document.getElementById('phase-1').classList.remove('hidden');
+
+                // Reset progress
+                updateProgress(1);
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                // Reload page to clear all states
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
