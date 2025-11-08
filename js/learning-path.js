@@ -87,7 +87,7 @@ class ProgressiveLearningPath {
                         description: 'Learn about wallets and security',
                         type: 'interactive-demo',
                         duration: '30 min',
-                        demoPath: '/interactive-demos/wallet-workshop/',
+                        demoPath: '/interactive-demos/wallet-security-workshop/',
                         prerequisites: ['first-transaction'],
                         resources: ['workshop', 'checklist'],
                         checkpoint: true
@@ -185,7 +185,7 @@ class ProgressiveLearningPath {
                         description: 'Self-custody vs custodial services',
                         type: 'interactive-demo',
                         duration: '35 min',
-                        demoPath: '/interactive-demos/wallet-workshop/',
+                        demoPath: '/interactive-demos/wallet-security-workshop/',
                         prerequisites: ['dca-strategy'],
                         resources: ['workshop', 'comparison'],
                         checkpoint: true

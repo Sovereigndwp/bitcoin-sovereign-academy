@@ -35,7 +35,7 @@
     'student': [
       { href: '/interactive-demos/bitcoin-sovereign-game/', label: 'Play the Game' },
       { href: '/curriculum/first-principles/', label: 'First Principles' },
-      { href: '/interactive-demos/wallet-workshop/', label: 'Wallet Workshop' },
+      { href: '/interactive-demos/wallet-security-workshop/', label: 'Wallet Security Workshop' },
     ],
     'business-owner': [
       { href: '/interactive-demos/lightning-lab.html', label: 'Accept Payments' },
@@ -45,7 +45,7 @@
     'investor': [
       { href: '/curriculum/first-principles/', label: 'Why Scarcity Matters' },
       { href: '/interactive-demos/bitcoin-sovereign-game/', label: 'Play the Sovereign Game' },
-      { href: '/interactive-demos/wallet-workshop/', label: 'Self-Custody in 10 Minutes' },
+      { href: '/interactive-demos/wallet-security-workshop/', label: 'Self-Custody in 10 Minutes' },
     ],
     'skeptic': [
       { href: '/curriculum/first-principles/', label: 'First Principles' },
@@ -54,11 +54,11 @@
     ],
     'libertarian': [
       { href: '/curriculum/sovereign-tools/', label: 'Sovereign Tools' },
-      { href: '/interactive-demos/wallet-workshop/', label: 'Wallet Workshop' },
+      { href: '/interactive-demos/wallet-security-workshop/', label: 'Wallet Security Workshop' },
       { href: '/curriculum/first-principles/', label: 'Censorship Resistance' },
     ],
     'parent': [
-      { href: '/interactive-demos/wallet-workshop/', label: 'Try a Wallet' },
+      { href: '/interactive-demos/wallet-security-workshop/', label: 'Try a Wallet' },
       { href: '/curriculum/first-principles/', label: 'Basics in Plain English' },
       { href: '/interactive-demos/consensus-game/', label: 'Consensus Game' },
     ],
@@ -75,7 +75,7 @@
     'retiree': [
       { href: '/curriculum/philosophy-economics/', label: 'Protect Savings' },
       { href: '/curriculum/first-principles/', label: 'First Principles' },
-      { href: '/interactive-demos/wallet-workshop/', label: 'Safe Wallet Setup' },
+      { href: '/interactive-demos/wallet-security-workshop/', label: 'Safe Wallet Setup' },
     ],
     'global': [
       { href: '/interactive-demos/lightning-lab.html', label: 'Send Money Abroad' },

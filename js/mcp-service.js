@@ -138,7 +138,7 @@ class MCPContentService {
                         tags: ['wallet', 'security', 'storage'],
                         personas: ['investor', 'retiree', 'business-owner', 'student'],
                         interactionType: 'interactive-demo',
-                        demoPath: '/interactive-demos/wallet-workshop/'
+                        demoPath: '/interactive-demos/wallet-security-workshop/'
                     },
                     {
                         title: 'Multi-Signature Security',
