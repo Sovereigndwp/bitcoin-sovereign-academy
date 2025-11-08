@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Mempool & Fee Market Visualizer | Learn Bitcoin Transaction Dynamics</title>
+    <meta name="description" content="Interactive visualization of Bitcoin's mempool and fee market. Understand how transactions are prioritized, how miners select transactions, and how to estimate optimal fees.">
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="demo-container">
+        <!-- Header -->
+        <header class="demo-header">
+            <div class="breadcrumb">
+                <a href="../../index.html">Home</a>
+                <span class="separator">›</span>
+                <a href="../index.html">Interactive Demos</a>
+                <span class="separator">›</span>
+                <span>Mempool Visualizer</span>
+            </div>
+            <h1>Bitcoin Mempool & Fee Market</h1>
+            <p class="subtitle">Understanding Transaction Confirmation & Fee Discovery</p>
+        </header>
+
+        <!-- Educational Progress Steps -->
+        <div class="progress-steps">
+            <div class="step active" data-step="1">
+                <span class="step-number">1</span>
+                <span class="step-label">What is Mempool?</span>
+            </div>
+            <div class="step" data-step="2">
+                <span class="step-number">2</span>
+                <span class="step-label">Miner Selection</span>
+            </div>
+            <div class="step" data-step="3">
+                <span class="step-number">3</span>
+                <span class="step-label">Fee Market</span>
+            </div>
+            <div class="step" data-step="4">
+                <span class="step-number">4</span>
+                <span class="step-label">Practice</span>
+            </div>
+            <div class="step" data-step="5">
+                <span class="step-number">5</span>
+                <span class="step-label">Summary</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="demo-content">
+            <!-- Step 1: What is the Mempool? -->
+            <section class="learning-step active" id="step-1">
+                <div class="explanation-box">
+                    <h2>What is the Mempool?</h2>
+                    <p>The <strong>mempool</strong> (memory pool) is the waiting room for unconfirmed Bitcoin transactions. When you broadcast a transaction, it sits in the mempool until a miner includes it in a block.</p>
+
+                    <div class="key-concept">
+                        <h3>Key Concept: Block Space Scarcity</h3>
+                        <ul>
+                            <li>New blocks are created approximately every <strong>10 minutes</strong></li>
+                            <li>Each block has limited space (~4 MB effective capacity)</li>
+                            <li>When demand exceeds supply, a <strong>fee market</strong> emerges</li>
+                            <li>Higher fees = Higher priority in the queue</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="visualization-container">
+                    <div class="mempool-visual" id="mempool-step1">
+                        <div class="mempool-header">
+                            <h3>Live Mempool Visualization</h3>
+                            <div class="mempool-stats">
+                                <span>Pending Transactions: <strong id="tx-count-1">0</strong></span>
+                                <span>Next Block in: <strong id="block-timer-1">10:00</strong></span>
+                            </div>
+                        </div>
+                        <div class="mempool-pool" id="pool-1">
+                            <!-- Transactions will be dynamically added here -->
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <span class="color-box high-fee"></span>
+                                <span>High Fee (50+ sat/vB)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="color-box medium-fee"></span>
+                                <span>Medium Fee (10-50 sat/vB)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="color-box low-fee"></span>
+                                <span>Low Fee (1-10 sat/vB)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-primary" id="add-tx-step1">Add Transaction to Mempool</button>
+                </div>
+
+                <div class="interaction-prompt">
+                    <p>👆 Click "Add Transaction" to see how transactions enter the mempool</p>
+                </div>
+
+                <button class="btn-next" data-next="2">Next: How Do Miners Choose? →</button>
+            </section>
+
+            <!-- Step 2: Miner Selection Process -->
+            <section class="learning-step" id="step-2">
+                <div class="explanation-box">
+                    <h2>How Do Miners Prioritize Transactions?</h2>
+                    <p>Miners are economically incentivized to maximize revenue. They select transactions that pay the <strong>highest fee per byte (sat/vB)</strong>.</p>
+
+                    <div class="key-concept">
+                        <h3>Miner Incentives</h3>
+                        <ul>
+                            <li><strong>Block Reward:</strong> Currently 3.125 BTC per block (halves every ~4 years)</li>
+                            <li><strong>Transaction Fees:</strong> Sum of all fees from included transactions</li>
+                            <li><strong>Total Revenue:</strong> Block Reward + Transaction Fees</li>
+                            <li><strong>Strategy:</strong> Fill block with highest-paying transactions first</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="visualization-container">
+                    <div class="block-building-visual">
+                        <div class="mempool-side">
+                            <h3>Mempool (Sorted by Fee Rate)</h3>
+                            <div class="mempool-pool sorted" id="pool-2">
+                                <!-- Sorted transactions -->
+                            </div>
+                        </div>
+                        <div class="arrow-middle">
+                            <svg width="60" height="100" viewBox="0 0 60 100">
+                                <defs>
+                                    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                        <polygon points="0 0, 10 3, 0 6" fill="var(--color-brand)" />
+                                    </marker>
+                                </defs>
+                                <line x1="10" y1="50" x2="50" y2="50" stroke="var(--color-brand)" stroke-width="2" marker-end="url(#arrowhead)" />
+                            </svg>
+                            <span class="arrow-label">Miner Selects</span>
+                        </div>
+                        <div class="block-side">
+                            <h3>Next Block</h3>
+                            <div class="block-container" id="block-2">
+                                <div class="block-capacity">
+                                    <div class="capacity-fill" id="block-fill-2"></div>
+                                    <span class="capacity-label">Block Capacity: <span id="block-percent-2">0%</span></span>
+                                </div>
+                                <div class="block-transactions" id="block-txs-2">
+                                    <!-- Selected transactions -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn-primary" id="mine-block-step2">Mine Block</button>
+                        <button class="btn-secondary" id="add-more-step2">Add More Transactions</button>
+                    </div>
+                </div>
+
+                <div class="interaction-prompt">
+                    <p>👆 Click "Mine Block" to see which transactions get confirmed first</p>
+                </div>
+
+                <div class="navigation-buttons">
+                    <button class="btn-back" data-prev="1">← Back</button>
+                    <button class="btn-next" data-next="3">Next: Fee Market Dynamics →</button>
+                </div>
+            </section>
+
+            <!-- Step 3: Fee Market Dynamics -->
+            <section class="learning-step" id="step-3">
+                <div class="explanation-box">
+                    <h2>Understanding the Fee Market</h2>
+                    <p>Bitcoin's fee market is pure <strong>supply and demand</strong>. Block space is the scarce resource, and transaction fees are the price.</p>
+
+                    <div class="key-concept">
+                        <h3>Fee Market Principles</h3>
+                        <ul>
+                            <li><strong>Supply:</strong> ~4 MB of block space every 10 minutes (fixed)</li>
+                            <li><strong>Demand:</strong> Variable number of transactions wanting confirmation</li>
+                            <li><strong>Price Discovery:</strong> Users compete by offering higher fees</li>
+                            <li><strong>Market Clearing:</strong> Fees adjust until supply = demand</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="visualization-container">
+                    <div class="scenario-selector">
+                        <h3>Network Scenarios</h3>
+                        <div class="scenario-buttons">
+                            <button class="scenario-btn active" data-scenario="low">Low Demand</button>
+                            <button class="scenario-btn" data-scenario="medium">Medium Demand</button>
+                            <button class="scenario-btn" data-scenario="high">High Demand</button>
+                            <button class="scenario-btn" data-scenario="congested">Congested</button>
+                        </div>
+                    </div>
+
+                    <div class="fee-histogram-container">
+                        <h3>Current Mempool Fee Distribution</h3>
+                        <canvas id="fee-histogram" width="800" height="400"></canvas>
+                        <div class="histogram-stats">
+                            <div class="stat">
+                                <span class="stat-label">Recommended Fee (Next Block):</span>
+                                <span class="stat-value" id="fee-next-block">5 sat/vB</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Economic Fee (Within 6 blocks):</span>
+                                <span class="stat-value" id="fee-6-blocks">2 sat/vB</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Low Priority (24+ hours):</span>
+                                <span class="stat-value" id="fee-24h">1 sat/vB</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="your-transaction-simulator">
+                        <h3>Your Transaction</h3>
+                        <div class="tx-inputs">
+                            <label>
+                                Transaction Size:
+                                <input type="number" id="tx-size" value="250" min="100" max="1000" step="10">
+                                <span class="unit">bytes</span>
+                            </label>
+                            <label>
+                                Fee Rate:
+                                <input type="range" id="fee-rate" min="1" max="100" value="10" step="1">
+                                <span class="fee-display" id="fee-rate-display">10 sat/vB</span>
+                            </label>
+                        </div>
+                        <div class="tx-results">
+                            <div class="result-item">
+                                <span class="label">Total Fee:</span>
+                                <span class="value" id="total-fee">2,500 sats</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Estimated Confirmation:</span>
+                                <span class="value" id="estimated-time">~20 minutes (2 blocks)</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Priority Level:</span>
+                                <span class="value priority" id="priority-level">Medium</span>
+                            </div>
+                        </div>
+                        <div class="mempool-position">
+                            <canvas id="position-indicator" width="600" height="100"></canvas>
+                            <p class="position-text" id="position-text">Your transaction is in the <strong>top 50%</strong> of the mempool</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="navigation-buttons">
+                    <button class="btn-back" data-prev="2">← Back</button>
+                    <button class="btn-next" data-next="4">Next: Practice Scenarios →</button>
+                </div>
+            </section>
+
+            <!-- Step 4: Practice Scenarios -->
+            <section class="learning-step" id="step-4">
+                <div class="explanation-box">
+                    <h2>Practice: Estimate Fees for Different Urgencies</h2>
+                    <p>Test your understanding by choosing the right fee for different situations.</p>
+                </div>
+
+                <div class="scenario-quiz">
+                    <div class="quiz-scenario" data-scenario="1">
+                        <h3>Scenario 1: Paying for Coffee ☕</h3>
+                        <p>You're buying coffee with Bitcoin (via Lightning). The Lightning channel needs to be opened with an on-chain transaction. You're not in a rush.</p>
+                        <div class="urgency-info">
+                            <span class="urgency-label">Urgency:</span>
+                            <span class="urgency-value low">Low (24 hours okay)</span>
+                        </div>
+                        <div class="current-market">
+                            <p><strong>Current Market Conditions:</strong> Medium demand</p>
+                            <ul>
+                                <li>Next block: 20 sat/vB</li>
+                                <li>Within 6 blocks: 8 sat/vB</li>
+                                <li>Within 24 hours: 2 sat/vB</li>
+                            </ul>
+                        </div>
+                        <div class="quiz-options">
+                            <label class="quiz-option">
+                                <input type="radio" name="scenario1" value="a">
+                                <span class="option-content">
+                                    <strong>50 sat/vB</strong> - Confirmation in ~10 minutes
+                                    <span class="cost">(Cost: 12,500 sats / $12.50)</span>
+                                </span>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="scenario1" value="b">
+                                <span class="option-content">
+                                    <strong>8 sat/vB</strong> - Confirmation in ~60 minutes
+                                    <span class="cost">(Cost: 2,000 sats / $2.00)</span>
+                                </span>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="scenario1" value="c">
+                                <span class="option-content">
+                                    <strong>2 sat/vB</strong> - Confirmation in ~24 hours
+                                    <span class="cost">(Cost: 500 sats / $0.50)</span>
+                                </span>
+                            </label>
+                        </div>
+                        <button class="btn-check" data-scenario="1">Check Answer</button>
+                        <div class="feedback" id="feedback-1" style="display: none;"></div>
+                    </div>
+
+                    <div class="quiz-scenario" data-scenario="2">
+                        <h3>Scenario 2: Emergency Exchange Withdrawal 🚨</h3>
+                        <p>You need to withdraw Bitcoin from an exchange urgently to take advantage of a time-sensitive trading opportunity. Speed matters.</p>
+                        <div class="urgency-info">
+                            <span class="urgency-label">Urgency:</span>
+                            <span class="urgency-value high">High (Next block critical)</span>
+                        </div>
+                        <div class="current-market">
+                            <p><strong>Current Market Conditions:</strong> High demand (congestion)</p>
+                            <ul>
+                                <li>Next block: 80 sat/vB</li>
+                                <li>Within 6 blocks: 40 sat/vB</li>
+                                <li>Within 24 hours: 20 sat/vB</li>
+                            </ul>
+                        </div>
+                        <div class="quiz-options">
+                            <label class="quiz-option">
+                                <input type="radio" name="scenario2" value="a">
+                                <span class="option-content">
+                                    <strong>100 sat/vB</strong> - Guaranteed next block
+                                    <span class="cost">(Cost: 25,000 sats / $25.00)</span>
+                                </span>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="scenario2" value="b">
+                                <span class="option-content">
+                                    <strong>40 sat/vB</strong> - Confirmation in ~60 minutes
+                                    <span class="cost">(Cost: 10,000 sats / $10.00)</span>
+                                </span>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="scenario2" value="c">
+                                <span class="option-content">
+                                    <strong>20 sat/vB</strong> - Confirmation in ~24 hours
+                                    <span class="cost">(Cost: 5,000 sats / $5.00)</span>
+                                </span>
+                            </label>
+                        </div>
+                        <button class="btn-check" data-scenario="2">Check Answer</button>
+                        <div class="feedback" id="feedback-2" style="display: none;"></div>
+                    </div>
+
+                    <div class="quiz-scenario" data-scenario="3">
+                        <h3>Scenario 3: Moving to Cold Storage 🔐</h3>
+                        <p>You're consolidating UTXOs and moving funds to cold storage. There's no time pressure.</p>
+                        <div class="urgency-info">
+                            <span class="urgency-label">Urgency:</span>
+                            <span class="urgency-value low">Low (Days/weeks okay)</span>
+                        </div>
+                        <div class="current-market">
+                            <p><strong>Current Market Conditions:</strong> Low demand (mempool clearing)</p>
+                            <ul>
+                                <li>Next block: 5 sat/vB</li>
+                                <li>Within 6 blocks: 2 sat/vB</li>
+                                <li>Within 24 hours: 1 sat/vB</li>
+                            </ul>
+                        </div>
+                        <div class="quiz-options">
+                            <label class="quiz-option">
+                                <input type="radio" name="scenario3" value="a">
+                                <span class="option-content">
+                                    <strong>5 sat/vB</strong> - Confirmation in ~10 minutes
+                                    <span class="cost">(Cost: 2,500 sats / $2.50)</span>
+                                </span>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="scenario3" value="b">
+                                <span class="option-content">
+                                    <strong>2 sat/vB</strong> - Confirmation in ~60 minutes
+                                    <span class="cost">(Cost: 1,000 sats / $1.00)</span>
+                                </span>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="scenario3" value="c">
+                                <span class="option-content">
+                                    <strong>1 sat/vB</strong> - Confirmation in ~24 hours
+                                    <span class="cost">(Cost: 500 sats / $0.50)</span>
+                                </span>
+                            </label>
+                        </div>
+                        <button class="btn-check" data-scenario="3">Check Answer</button>
+                        <div class="feedback" id="feedback-3" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <div class="navigation-buttons">
+                    <button class="btn-back" data-prev="3">← Back</button>
+                    <button class="btn-next" data-next="5">Next: Summary →</button>
+                </div>
+            </section>
+
+            <!-- Step 5: Summary -->
+            <section class="learning-step" id="step-5">
+                <div class="summary-container">
+                    <h2>Key Takeaways: The Fee Market</h2>
+
+                    <div class="takeaway-grid">
+                        <div class="takeaway-card">
+                            <div class="icon">📦</div>
+                            <h3>Mempool = Waiting Room</h3>
+                            <p>Unconfirmed transactions wait in the mempool until a miner includes them in a block.</p>
+                        </div>
+
+                        <div class="takeaway-card">
+                            <div class="icon">⛏️</div>
+                            <h3>Miners Optimize Revenue</h3>
+                            <p>Miners select transactions with the highest fee per byte (sat/vB) to maximize earnings.</p>
+                        </div>
+
+                        <div class="takeaway-card">
+                            <div class="icon">📊</div>
+                            <h3>Supply & Demand</h3>
+                            <p>Block space is scarce. When demand is high, fees rise. When demand is low, fees fall.</p>
+                        </div>
+
+                        <div class="takeaway-card">
+                            <div class="icon">⚖️</div>
+                            <h3>Trade-off: Speed vs. Cost</h3>
+                            <p>Higher fees = Faster confirmation. Lower fees = Longer wait. Choose based on urgency.</p>
+                        </div>
+
+                        <div class="takeaway-card">
+                            <div class="icon">🎯</div>
+                            <h3>Fee Estimation is Critical</h3>
+                            <p>Always check current mempool conditions before broadcasting. Use fee estimation tools.</p>
+                        </div>
+
+                        <div class="takeaway-card">
+                            <div class="icon">🔧</div>
+                            <h3>Advanced: RBF & CPFP</h3>
+                            <p>If your transaction gets stuck, you can use Replace-By-Fee (RBF) or Child-Pays-For-Parent (CPFP) to accelerate it.</p>
+                        </div>
+                    </div>
+
+                    <div class="formula-box">
+                        <h3>Fee Calculation Formula</h3>
+                        <div class="formula">
+                            <p><strong>Total Fee</strong> = Transaction Size (bytes) × Fee Rate (sat/vB)</p>
+                            <p class="example">Example: 250 bytes × 10 sat/vB = 2,500 sats</p>
+                        </div>
+                    </div>
+
+                    <div class="best-practices">
+                        <h3>Best Practices</h3>
+                        <ul>
+                            <li>✅ Always enable <strong>RBF (Replace-By-Fee)</strong> for flexibility</li>
+                            <li>✅ Check mempool conditions before broadcasting transactions</li>
+                            <li>✅ Use fee estimation tools (mempool.space, your wallet's estimator)</li>
+                            <li>✅ For non-urgent transactions, wait for low-demand periods (weekends)</li>
+                            <li>✅ Consolidate UTXOs during low-fee periods to save on future fees</li>
+                            <li>❌ Don't overpay for non-urgent transactions</li>
+                            <li>❌ Don't use 1 sat/vB during high demand unless you can wait days</li>
+                        </ul>
+                    </div>
+
+                    <div class="next-steps">
+                        <h3>Continue Learning</h3>
+                        <div class="link-grid">
+                            <a href="../fee-master-tool/index.html" class="resource-link">
+                                <strong>Fee Master Tool</strong>
+                                <p>Advanced fee estimation & RBF/CPFP tutorials</p>
+                            </a>
+                            <a href="../transaction-builder/index.html" class="resource-link">
+                                <strong>Transaction Builder</strong>
+                                <p>Build and broadcast your own transactions</p>
+                            </a>
+                            <a href="../utxo-visualizer-enhanced/index.html" class="resource-link">
+                                <strong>UTXO Visualizer</strong>
+                                <p>Understand transaction inputs and outputs</p>
+                            </a>
+                            <a href="../../paths/curious/stage-3/module-1.html" class="resource-link">
+                                <strong>Next Module: Buying Bitcoin</strong>
+                                <p>Continue the Curious learning path</p>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="quiz-completion">
+                        <h3>Test Your Knowledge</h3>
+                        <p>Ready to apply what you've learned?</p>
+                        <button class="btn-primary" id="retake-quiz">Review Practice Scenarios</button>
+                        <button class="btn-secondary" id="restart-demo">Restart Demo</button>
+                    </div>
+                </div>
+
+                <div class="navigation-buttons">
+                    <button class="btn-back" data-prev="4">← Back to Practice</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="demo-footer">
+            <div class="footer-content">
+                <p>Part of the <a href="../../index.html">Bitcoin Sovereign Academy</a> curriculum</p>
+                <div class="footer-links">
+                    <a href="../../paths/curious/index.html">Curious Path</a>
+                    <a href="../../paths/builder/index.html">Builder Path</a>
+                    <a href="../index.html">All Interactive Demos</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="mempool-simulation.js"></script>
+    <script src="fee-market.js"></script>
+    <script src="scenarios.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
