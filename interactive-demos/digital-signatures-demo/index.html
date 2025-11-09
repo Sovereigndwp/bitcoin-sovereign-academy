@@ -186,9 +186,25 @@
                 <div class="key-display" id="signature">Sign a message first</div>
             </div>
 
-            <div style="text-align: center; margin-top: 1rem;">
-                <button class="btn" onclick="verifySignature()"><span data-icon="search"></span> Verify Signature</button>
-                <button class="btn btn-danger" onclick="simulateInvalidSignature()">⚠️ Try Invalid Signature</button>
+            <div style="background: rgba(79, 70, 229, 0.1); border: 2px dashed rgba(79, 70, 229, 0.3); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                <h4 style="color: var(--accent-purple); margin-bottom: 0.75rem; font-size: 1rem;">🔬 Verification Lab</h4>
+                <p style="font-size: 0.9rem; margin-bottom: 0.75rem; color: var(--text-dim);">Test signature verification - try changing the message or tampering with the signature!</p>
+
+                <div style="margin-bottom: 0.75rem;">
+                    <label style="display: block; margin-bottom: 0.25rem; font-weight: bold; font-size: 0.9rem;">Message to Verify:</label>
+                    <input type="text" id="verify-message" placeholder="Original message" style="width: 100%; margin-right: 0;">
+                </div>
+
+                <div style="margin-bottom: 0.75rem;">
+                    <label style="display: block; margin-bottom: 0.25rem; font-weight: bold; font-size: 0.9rem;">Signature to Verify:</label>
+                    <input type="text" id="verify-signature" placeholder="Paste signature here or use the one above" style="width: 100%; margin-right: 0; font-family: 'Courier New', monospace; font-size: 0.75rem;">
+                </div>
+
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
+                    <button class="btn" onclick="verifySignature()"><span data-icon="search"></span> Verify Signature</button>
+                    <button class="btn btn-danger" onclick="tamperWithSignature()">⚠️ Tamper with Signature</button>
+                    <button class="btn btn-danger" onclick="changeMessage()">📝 Change Message</button>
+                </div>
             </div>
 
             <div id="signature-result"></div>
@@ -262,94 +278,200 @@
             currentMessage = message;
             currentSignature = generateRandomHex(128);
             document.getElementById('signature').textContent = currentSignature;
+
+            // Auto-populate verification fields
+            document.getElementById('verify-message').value = currentMessage;
+            document.getElementById('verify-signature').value = currentSignature;
         }
 
         function verifySignature() {
+            const verifyMsg = document.getElementById('verify-message').value;
+            const verifySig = document.getElementById('verify-signature').value;
+
+            if (!verifyMsg || !verifySig) {
+                alert('Please enter both a message and signature to verify');
+                return;
+            }
             if (!currentSignature) {
-                alert('Please sign a message first');
+                alert('Please sign a message first to have a baseline for comparison');
                 return;
             }
 
             const result = document.getElementById('signature-result');
 
+            // Check if signature is valid
+            const isValidSignature = (verifySig === currentSignature);
+            const isValidMessage = (verifyMsg === currentMessage);
+            const isValid = isValidSignature && isValidMessage;
+
             let message = '';
-            if (currentLevel === 'beginner') {
-                message = `
-                    <strong style="color: var(--accent-green);">✅ Signature Valid!</strong><br><br>
-                    The signature proves you own the private key without revealing it.<br>
-                    Anyone can verify this using your public key.<br><br>
-                    This is how Bitcoin transactions are authorized!
-                `;
-            } else if (currentLevel === 'intermediate') {
-                message = `
-                    <strong style="color: var(--accent-green);">✅ ECDSA Signature Verified!</strong><br><br>
-                    Message: "${currentMessage}"<br>
-                    Signature: ${currentSignature.substring(0, 32)}...<br><br>
-                    Verification confirms the signer possesses the private key corresponding to the public key,
-                    without revealing the private key itself. This is the mathematical foundation of Bitcoin ownership.
-                `;
+            let backgroundColor = '';
+            let borderColor = '';
+
+            if (isValid) {
+                backgroundColor = 'rgba(40, 167, 80, 0.2)';
+                borderColor = 'var(--accent-green)';
+
+                if (currentLevel === 'beginner') {
+                    message = `
+                        <strong style="color: var(--accent-green);">✅ Signature Valid!</strong><br><br>
+                        ✓ Message matches: "${verifyMsg}"<br>
+                        ✓ Signature matches original<br>
+                        ✓ Public key verified ownership<br><br>
+                        The signature proves you own the private key without revealing it.<br>
+                        This is how Bitcoin transactions are authorized!
+                    `;
+                } else if (currentLevel === 'intermediate') {
+                    message = `
+                        <strong style="color: var(--accent-green);">✅ ECDSA Signature Verified!</strong><br><br>
+                        Message: "${verifyMsg}"<br>
+                        Signature: ${verifySig.substring(0, 32)}...<br><br>
+                        Verification confirms the signer possesses the private key corresponding to the public key,
+                        without revealing the private key itself. This is the mathematical foundation of Bitcoin ownership.
+                    `;
+                } else {
+                    message = `
+                        <strong style="color: var(--accent-green);">✅ Cryptographic Proof Validated!</strong><br><br>
+                        <strong>Verification Process:</strong><br>
+                        1. Hash message: H(m) = SHA-256("${verifyMsg}")<br>
+                        2. Extract signature components: (r, s) from signature<br>
+                        3. Compute: w = s⁻¹ mod n<br>
+                        4. Compute: u₁ = H(m)·w mod n, u₂ = r·w mod n<br>
+                        5. Compute point: (x, y) = u₁·G + u₂·P<br>
+                        6. Verify: x ≡ r (mod n) ✓<br><br>
+                        Signature is cryptographically valid. The signer must possess private key k
+                        such that P = k·G. This is Bitcoin's zero-knowledge proof of ownership.
+                    `;
+                }
             } else {
-                message = `
-                    <strong style="color: var(--accent-green);">✅ Cryptographic Proof Validated!</strong><br><br>
-                    <strong>Verification Process:</strong><br>
-                    1. Hash message: H(m) = SHA-256("${currentMessage}")<br>
-                    2. Extract signature components: (r, s) from signature<br>
-                    3. Compute: w = s⁻¹ mod n<br>
-                    4. Compute: u₁ = H(m)·w mod n, u₂ = r·w mod n<br>
-                    5. Compute point: (x, y) = u₁·G + u₂·P<br>
-                    6. Verify: x ≡ r (mod n)<br><br>
-                    If verification passes, signature is cryptographically valid. The signer must possess private key k
-                    such that P = k·G. This is Bitcoin's zero-knowledge proof of ownership.
-                `;
+                backgroundColor = 'rgba(220, 53, 69, 0.2)';
+                borderColor = 'var(--accent-red)';
+
+                // Determine what was tampered with
+                let tamperedPart = '';
+                if (!isValidMessage && !isValidSignature) {
+                    tamperedPart = 'Both the message and signature were changed!';
+                } else if (!isValidMessage) {
+                    tamperedPart = 'The message was changed!';
+                } else if (!isValidSignature) {
+                    tamperedPart = 'The signature was tampered with!';
+                }
+
+                if (currentLevel === 'beginner') {
+                    message = `
+                        <strong style="color: var(--accent-red);">❌ Signature Invalid!</strong><br><br>
+                        ${tamperedPart}<br><br>
+                        This signature doesn't match the message or was modified.<br>
+                        Someone tried to fake the signature, but the math doesn't work!<br><br>
+                        <strong>What changed:</strong><br>
+                        Original message: "${currentMessage}"<br>
+                        Your message: "${verifyMsg}"<br>
+                        Match: ${isValidMessage ? '✓' : '✗'}<br><br>
+                        Original signature: ${currentSignature.substring(0, 32)}...<br>
+                        Your signature: ${verifySig.substring(0, 32)}...<br>
+                        Match: ${isValidSignature ? '✓' : '✗'}<br><br>
+                        This is why Bitcoin is secure - you can't forge signatures without the private key!
+                    `;
+                } else if (currentLevel === 'intermediate') {
+                    message = `
+                        <strong style="color: var(--accent-red);">❌ ECDSA Verification Failed!</strong><br><br>
+                        ${tamperedPart}<br><br>
+                        The signature is cryptographically invalid. Detected issues:<br>
+                        ${!isValidMessage ? '• Message was altered after signing<br>' : ''}
+                        ${!isValidSignature ? '• Signature was modified or doesn\'t match the public key<br>' : ''}
+                        <br>
+                        <strong>Comparison:</strong><br>
+                        Original: "${currentMessage}" → ${currentSignature.substring(0, 20)}...<br>
+                        Verified: "${verifyMsg}" → ${verifySig.substring(0, 20)}...<br><br>
+                        Bitcoin nodes reject invalid transactions immediately. Without a valid signature proving ownership
+                        of the private key, the transaction cannot spend those UTXOs.
+                    `;
+                } else {
+                    message = `
+                        <strong style="color: var(--accent-red);">❌ Cryptographic Verification Rejected!</strong><br><br>
+                        ${tamperedPart}<br><br>
+                        <strong>Failure Analysis:</strong><br>
+                        The verification equation failed: s⁻¹(H(m)·G + r·P) ≠ R<br><br>
+                        This indicates:<br>
+                        ${!isValidSignature ? '• Signature (r,s) was tampered with or not generated from private key k matching P = k·G<br>' : ''}
+                        ${!isValidMessage ? '• Message hash H(m) doesn\'t match the originally signed message<br>' : ''}
+                        <br>
+                        <strong>Detection:</strong><br>
+                        Expected H(m): SHA-256("${currentMessage}")<br>
+                        Received H(m): SHA-256("${verifyMsg}")<br>
+                        Match: ${isValidMessage ? '✓' : '✗'}<br><br>
+                        Expected (r,s): ${currentSignature.substring(0, 32)}...<br>
+                        Received (r,s): ${verifySig.substring(0, 32)}...<br>
+                        Match: ${isValidSignature ? '✓' : '✗'}<br><br>
+                        <strong>Security Implications:</strong> ECDSA's security relies on the computational hardness
+                        of the Elliptic Curve Discrete Logarithm Problem (ECDLP). Forging a signature without the private
+                        key requires solving ECDLP, which is computationally infeasible with current technology
+                        (estimated 2^128 operations for secp256k1).
+                    `;
+                }
             }
 
             result.innerHTML = `
-                <div style="background: rgba(40, 167, 80, 0.2); border: 2px solid var(--accent-green); border-radius: 12px; padding: 1.5rem; margin-top: 2rem; animation: fadeIn 0.5s;">
+                <div style="background: ${backgroundColor}; border: 2px solid ${borderColor}; border-radius: 12px; padding: 1.5rem; margin-top: 2rem; animation: fadeIn 0.5s;">
                     ${message}
                 </div>
             `;
         }
 
-        function simulateInvalidSignature() {
-            const result = document.getElementById('signature-result');
-
-            let message = '';
-            if (currentLevel === 'beginner') {
-                message = `
-                    <strong style="color: var(--accent-red);">❌ Signature Invalid!</strong><br><br>
-                    This signature doesn't match the message or public key.<br>
-                    Someone tried to fake the signature, but the math doesn't work!<br><br>
-                    This is why Bitcoin is secure - you can't forge signatures without the private key.
-                `;
-            } else if (currentLevel === 'intermediate') {
-                message = `
-                    <strong style="color: var(--accent-red);">❌ ECDSA Verification Failed!</strong><br><br>
-                    The signature is cryptographically invalid. Possible causes:<br>
-                    • Signature was modified after creation<br>
-                    • Wrong public key used for verification<br>
-                    • Message was altered after signing<br><br>
-                    Bitcoin nodes reject invalid transactions immediately. Without a valid signature proving ownership
-                    of the private key, the transaction cannot spend those UTXOs.
-                `;
-            } else {
-                message = `
-                    <strong style="color: var(--accent-red);">❌ Cryptographic Verification Rejected!</strong><br><br>
-                    <strong>Failure Analysis:</strong><br>
-                    The verification equation failed: s⁻¹(H(m)·G + r·P) ≠ R<br><br>
-                    This indicates:<br>
-                    • Signature (r,s) not generated from private key k matching public key P = k·G<br>
-                    • Message hash H(m) doesn't match signed message<br>
-                    • Signature components (r,s) were tampered with<br><br>
-                    <strong>Security Implications:</strong> ECDSA's security relies on the computational hardness
-                    of the Elliptic Curve Discrete Logarithm Problem (ECDLP). Forging a signature without the private
-                    key requires solving ECDLP, which is computationally infeasible with current technology
-                    (estimated 2^128 operations for secp256k1).
-                `;
+        function tamperWithSignature() {
+            if (!currentSignature) {
+                alert('Please sign a message first');
+                return;
             }
 
+            // Randomly modify a few characters in the signature
+            const sigArray = document.getElementById('verify-signature').value.split('');
+            const numChanges = Math.floor(Math.random() * 5) + 3; // 3-7 character changes
+
+            for (let i = 0; i < numChanges; i++) {
+                const randomIndex = Math.floor(Math.random() * sigArray.length);
+                const chars = '0123456789abcdef';
+                sigArray[randomIndex] = chars[Math.floor(Math.random() * chars.length)];
+            }
+
+            document.getElementById('verify-signature').value = sigArray.join('');
+
+            // Show hint
+            const result = document.getElementById('signature-result');
             result.innerHTML = `
-                <div style="background: rgba(220, 53, 69, 0.2); border: 2px solid var(--accent-red); border-radius: 12px; padding: 1.5rem; margin-top: 2rem; animation: fadeIn 0.5s;">
-                    ${message}
+                <div style="background: rgba(255, 152, 0, 0.2); border: 2px solid #ff9800; border-radius: 12px; padding: 1rem; margin-top: 1rem;">
+                    <strong style="color: #ff9800;">⚠️ Signature Tampered!</strong><br>
+                    Several random characters in the signature were changed. Click "Verify Signature" to see what happens!
+                </div>
+            `;
+        }
+
+        function changeMessage() {
+            const currentMsg = document.getElementById('verify-message').value;
+            if (!currentMsg) {
+                alert('Please sign a message first');
+                return;
+            }
+
+            // Suggest modified messages
+            const modifications = [
+                currentMsg + ' (modified)',
+                currentMsg.replace(/1/g, '2'),
+                currentMsg.replace('BTC', 'SATS'),
+                currentMsg.replace('Alice', 'Bob'),
+                currentMsg.toUpperCase(),
+                currentMsg.substring(0, currentMsg.length - 3) + '...'
+            ];
+
+            const randomMod = modifications[Math.floor(Math.random() * modifications.length)];
+            document.getElementById('verify-message').value = randomMod;
+
+            // Show hint
+            const result = document.getElementById('signature-result');
+            result.innerHTML = `
+                <div style="background: rgba(255, 152, 0, 0.2); border: 2px solid #ff9800; border-radius: 12px; padding: 1rem; margin-top: 1rem;">
+                    <strong style="color: #ff9800;">📝 Message Changed!</strong><br>
+                    The message was modified. Click "Verify Signature" to see if the signature still validates!
                 </div>
             `;
         }
