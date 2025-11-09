@@ -1303,28 +1303,6 @@
             document.getElementById('yearEvent').textContent = data.event.title;
             document.getElementById('yearDescription').textContent = data.event.description;
 
-            // MT. GOX COLLAPSE NOTIFICATION
-            if (data.event.mtgoxCollapse) {
-                const lostAmount = data.event.lostBTC.toFixed(4);
-                const lostValue = (data.event.lostBTC * data.bitcoinState.price).toLocaleString();
-
-                showResultModal({
-                    result: {
-                        success: false,
-                        impact: {
-                            lost: data.event.lostBTC,
-                            value: lostValue
-                        },
-                        lesson: 'Not your keys, not your coins - the hardest lesson'
-                    },
-                    narrative: `💔 MT. GOX COLLAPSES 💔\n\nFebruary 2014: Mt. Gox halts all withdrawals. Your ${lostAmount} BTC (worth $${lostValue}) is trapped on the exchange.\n\nMark Karpeles announces 850,000 BTC are "missing" - lost to hackers over years. The exchange files for bankruptcy.\n\nYour Bitcoin is gone. The price you paid for trusting a centralized exchange.\n\n⏳ There may be hope... bankruptcy proceedings will take years, but some creditors might see partial recovery around 2024.`,
-                    reflection: '🔐 This is Bitcoin's most important lesson: self-custody. "Not your keys, not your coins" isn\'t just a saying - it\'s the difference between financial sovereignty and total loss. Would you have made different choices knowing this outcome?',
-                    portfolio: game.player.portfolio,
-                    knowledge: game.player.knowledge,
-                    nextYear: true
-                });
-            }
-
             // Update economic state
             updateEconomicState(data.economicState);
 
@@ -1347,6 +1325,30 @@
             // Reset selection
             selectedOption = null;
             document.getElementById('confirmButton').disabled = true;
+
+            // MT. GOX COLLAPSE NOTIFICATION (after UI is updated)
+            if (data.event.mtgoxCollapse) {
+                setTimeout(() => {
+                    const lostAmount = data.event.lostBTC.toFixed(4);
+                    const lostValue = (data.event.lostBTC * data.bitcoinState.price).toLocaleString();
+
+                    showResultModal({
+                        result: {
+                            success: false,
+                            impact: {
+                                lost: lostAmount + ' BTC',
+                                value: '$' + lostValue
+                            },
+                            lesson: 'Not your keys, not your coins - the hardest lesson'
+                        },
+                        narrative: `💔 MT. GOX COLLAPSES 💔\n\nFebruary 2014: Mt. Gox halts all withdrawals. Your ${lostAmount} BTC (worth $${lostValue}) is trapped on the exchange.\n\nMark Karpeles announces 850,000 BTC are "missing" - lost to hackers over years. The exchange files for bankruptcy.\n\nYour Bitcoin is gone. The price you paid for trusting a centralized exchange.\n\n⏳ There may be hope... bankruptcy proceedings will take years, but some creditors might see partial recovery around 2024.`,
+                        reflection: '🔐 This is Bitcoin\'s most important lesson: self-custody. "Not your keys, not your coins" isn\'t just a saying - it\'s the difference between financial sovereignty and total loss. Would you have made different choices knowing this outcome?',
+                        portfolio: game.player.portfolio,
+                        knowledge: game.player.knowledge,
+                        nextYear: true
+                    });
+                }, 500);
+            }
         }
 
         function updateEconomicState(state) {
@@ -1526,7 +1528,20 @@
 
         function updatePortfolio(portfolio) {
             document.getElementById('fiatValue').textContent = `$${portfolio.fiat.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
-            document.getElementById('bitcoinValue').textContent = `${portfolio.bitcoin.toFixed(4)} BTC`;
+
+            // Show total Bitcoin (self-custody + exchange + lost)
+            const totalBTC = (portfolio.bitcoin || 0) + (portfolio.bitcoinOnExchange || 0);
+            const lostBTC = portfolio.bitcoinLostMtGox || 0;
+
+            let btcDisplay = `${totalBTC.toFixed(4)} BTC`;
+            if (portfolio.bitcoinOnExchange > 0) {
+                btcDisplay += ` (${portfolio.bitcoinOnExchange.toFixed(4)} on exchange ⚠️)`;
+            }
+            if (lostBTC > 0) {
+                btcDisplay += ` [${lostBTC.toFixed(4)} lost to Mt. Gox 💔]`;
+            }
+
+            document.getElementById('bitcoinValue').textContent = btcDisplay;
             document.getElementById('goldValue').textContent = `${portfolio.gold.toFixed(2)} oz`;
             document.getElementById('stocksValue').textContent = `$${portfolio.stocks.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
             document.getElementById('realestateValue').textContent = `$${portfolio.realestate.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
