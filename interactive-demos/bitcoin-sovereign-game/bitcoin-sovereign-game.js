@@ -18,6 +18,8 @@ class BitcoinSovereignGame {
             portfolio: {
                 fiat: 10000,
                 bitcoin: 0,
+                bitcoinOnExchange: 0, // Tracks Bitcoin kept on exchanges (vulnerable to Mt. Gox)
+                bitcoinLostMtGox: 0,  // Tracks lost Bitcoin from Mt. Gox
                 gold: 0,
                 stocks: 0,
                 realestate: 0
@@ -30,7 +32,8 @@ class BitcoinSovereignGame {
             },
             decisions: [],
             achievements: [],
-            riskTolerance: 'moderate'
+            riskTolerance: 'moderate',
+            inSelfCustody: false  // Tracks custody status
         };
         
         // Historical accuracy from CheckOnChain
@@ -140,7 +143,18 @@ class BitcoinSovereignGame {
     startYear(year) {
         this.currentYear = year;
         const event = this.timeline.getEvent(year);
-        
+
+        // MT. GOX COLLAPSE - February 2014
+        // Players who didn't move to self-custody lose their exchange Bitcoin
+        if (year === 2014 && this.player.portfolio.bitcoinOnExchange > 0) {
+            this.player.portfolio.bitcoinLostMtGox = this.player.portfolio.bitcoinOnExchange;
+            this.player.portfolio.bitcoinOnExchange = 0;
+
+            // Add special Mt. Gox event notification
+            event.mtgoxCollapse = true;
+            event.lostBTC = this.player.portfolio.bitcoinLostMtGox;
+        }
+
         return {
             year,
             event,
@@ -255,8 +269,25 @@ class BitcoinSovereignGame {
                 });
             }
             
-            // Custody options (after Mt. Gox)
-            if (year >= 2013 && this.player.portfolio.bitcoin > 0) {
+            // Custody options (2013 - Mt. Gox warning signs appear)
+            if (year === 2013 && this.player.portfolio.bitcoin > 0 && !this.player.inSelfCustody) {
+                options.push({
+                    id: 'self_custody',
+                    label: 'Move Bitcoin to self-custody (Mt. Gox having issues)',
+                    risk: 'low',
+                    knowledge: 'technical',
+                    special: true
+                });
+                options.push({
+                    id: 'keep_on_exchange',
+                    label: 'Keep Bitcoin on Mt. Gox (convenient)',
+                    risk: 'medium',
+                    warning: true
+                });
+            }
+
+            // Post-Mt. Gox custody options
+            if (year >= 2014 && this.player.portfolio.bitcoin > 0 && !this.player.inSelfCustody) {
                 options.push({
                     id: 'self_custody',
                     label: 'Move Bitcoin to self-custody',
@@ -313,6 +344,16 @@ class BitcoinSovereignGame {
                 });
             }
             
+            // Mt. Gox recovery (2024-2025) - Creditors receive some Bitcoin back
+            if ((year === 2024 || year === 2025) && this.player.portfolio.bitcoinLostMtGox > 0) {
+                options.push({
+                    id: 'mtgox_recovery',
+                    label: `Claim Mt. Gox recovery (${(this.player.portfolio.bitcoinLostMtGox * 0.15).toFixed(4)} BTC available)`,
+                    risk: 'none',
+                    special: true
+                });
+            }
+
             // CBDC vs Bitcoin choice (2025)
             if (year === 2025) {
                 options.push(
@@ -408,6 +449,18 @@ class BitcoinSovereignGame {
                 results.success = true;
                 results.lesson = 'Not your keys, not your coins';
                 break;
+
+            case 'keep_on_exchange':
+                results.impact = this.keepOnExchange();
+                results.success = true;
+                results.lesson = 'Convenience has hidden costs...';
+                break;
+
+            case 'mtgox_recovery':
+                results.impact = this.mtgoxRecovery();
+                results.success = true;
+                results.lesson = '10 years later, some Bitcoin returns';
+                break;
                 
             case 'buy_stocks':
                 results.impact = this.buyStocks(amount);
@@ -485,13 +538,19 @@ class BitcoinSovereignGame {
     buyBitcoin(amount) {
         const price = this.getBitcoinState(this.currentYear).price;
         if (price === 0) price = 0.001; // Early days pricing
-        
+
         const maxAmount = Math.min(amount || this.player.portfolio.fiat * 0.1, this.player.portfolio.fiat);
         const btcAmount = maxAmount / price;
-        
+
         this.player.portfolio.fiat -= maxAmount;
-        this.player.portfolio.bitcoin += btcAmount;
-        
+
+        // Before 2014, Bitcoin typically stays on exchanges (Mt. Gox era)
+        if (this.currentYear <= 2013 && !this.player.inSelfCustody) {
+            this.player.portfolio.bitcoinOnExchange += btcAmount;
+        } else {
+            this.player.portfolio.bitcoin += btcAmount;
+        }
+
         return {
             spent: maxAmount,
             acquired: btcAmount,
@@ -517,13 +576,43 @@ class BitcoinSovereignGame {
     }
 
     selfCustody() {
+        // Move Bitcoin from exchange to self-custody
+        const totalBTC = this.player.portfolio.bitcoin + this.player.portfolio.bitcoinOnExchange;
+
+        this.player.portfolio.bitcoin = totalBTC;
+        this.player.portfolio.bitcoinOnExchange = 0;
+        this.player.inSelfCustody = true;
+
         // Protects from exchange hacks
         this.player.achievements.push('Self Sovereign');
         this.player.knowledge.sovereignty += 10;
-        
+
         return {
-            protected: this.player.portfolio.bitcoin,
+            protected: totalBTC,
             security: 'maximum'
+        };
+    }
+
+    keepOnExchange() {
+        // Player chooses convenience over security
+        // Bitcoin stays on bitcoinOnExchange
+        return {
+            onExchange: this.player.portfolio.bitcoinOnExchange,
+            warning: 'Trusting third parties with your Bitcoin...'
+        };
+    }
+
+    mtgoxRecovery() {
+        // Mt. Gox creditors received approximately 15% back in 2024
+        const recoveredBTC = this.player.portfolio.bitcoinLostMtGox * 0.15;
+
+        this.player.portfolio.bitcoin += recoveredBTC;
+        this.player.portfolio.bitcoinLostMtGox -= recoveredBTC;
+
+        return {
+            recovered: recoveredBTC,
+            stillLost: this.player.portfolio.bitcoinLostMtGox,
+            message: 'After 10 years, you received 15% of your lost Bitcoin back'
         };
     }
 
