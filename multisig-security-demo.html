@@ -1,0 +1,1874 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Multisig Vault Security Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #f7931a, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #cccccc;
+            margin-bottom: 2rem;
+        }
+
+        /* Experience Level Selector */
+        .experience-selector {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(247, 147, 26, 0.2);
+        }
+
+        .experience-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffd700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .experience-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .experience-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .experience-card:hover {
+            border-color: #f7931a;
+            background: rgba(247, 147, 26, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .experience-card.selected {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.15);
+        }
+
+        .experience-level {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffd700;
+            margin-bottom: 0.5rem;
+        }
+
+        .experience-description {
+            color: #cccccc;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .experience-details {
+            font-size: 0.85rem;
+            color: #999;
+            font-style: italic;
+        }
+
+        /* Step Container */
+        .step-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(247, 147, 26, 0.2);
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffd700;
+            margin-bottom: 1rem;
+        }
+
+        .step-description {
+            font-size: 1.1rem;
+            color: #cccccc;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        /* Jargon Toggle */
+        .jargon-indicator {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            margin-left: 0.5rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(247, 147, 26, 0.2);
+            color: #f7931a;
+            cursor: help;
+        }
+
+        .explanation-box {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 3px solid #ffd700;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .explanation-box.visible {
+            display: block;
+        }
+
+        /* Attack Demo Section */
+        .attack-demo {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 2px solid rgba(247, 147, 26, 0.3);
+        }
+
+        .attack-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .attack-card {
+            background: rgba(255, 0, 0, 0.05);
+            border: 2px solid rgba(255, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .attack-card:hover {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: #ff6b6b;
+            transform: translateY(-2px);
+        }
+
+        .attack-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .attack-title {
+            font-weight: 700;
+            color: #ff6b6b;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .attack-description {
+            color: #cccccc;
+            font-size: 0.9rem;
+        }
+
+        /* Demo Canvas */
+        .demo-canvas {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            display: none;
+        }
+
+        .demo-canvas.active {
+            display: block;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(45deg, #f7931a, #ffd700);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .demo-stage {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 2rem;
+            align-items: center;
+            margin: 2rem 0;
+            min-height: 200px;
+        }
+
+        .attack-animation-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem;
+            min-height: 150px;
+        }
+
+        .keys-display {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .demo-key {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .demo-key.compromised {
+            background: rgba(255, 0, 0, 0.2);
+            border-color: #ff0000;
+            animation: keyCompromised 0.5s ease;
+        }
+
+        .demo-key.safe {
+            background: rgba(0, 255, 0, 0.2);
+            border-color: #00ff00;
+        }
+
+        @keyframes keyCompromised {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .key-icon {
+            font-size: 1.5rem;
+        }
+
+        .key-label {
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .vault-display {
+            text-align: center;
+        }
+
+        .vault-icon {
+            font-size: 4rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .vault-icon.pulse {
+            animation: vaultPulse 1s infinite;
+        }
+
+        .vault-icon.broken {
+            filter: hue-rotate(0deg) brightness(0.5);
+        }
+
+        @keyframes vaultPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .vault-status {
+            color: #ffd700;
+            font-weight: 600;
+        }
+
+        .bitcoin-display {
+            text-align: center;
+        }
+
+        .bitcoin-icon {
+            font-size: 3rem;
+            color: #f7931a;
+            margin-bottom: 0.5rem;
+            transition: all 0.5s ease;
+        }
+
+        .bitcoin-icon.stolen {
+            animation: bitcoinStolen 1s ease forwards;
+        }
+
+        @keyframes bitcoinStolen {
+            0% { transform: translateX(0) scale(1); opacity: 1; }
+            50% { transform: translateX(100px) scale(0.5); opacity: 0.5; }
+            100% { transform: translateX(200px) scale(0); opacity: 0; }
+        }
+
+        .bitcoin-amount {
+            color: #ffd700;
+            font-weight: 600;
+        }
+
+        /* Path Selection */
+        .path-selection {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .path-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .path-button {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .path-button.danger {
+            background: linear-gradient(45deg, #ff0000, #ff6b6b);
+            color: #ffffff;
+        }
+
+        .path-button.danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 0, 0, 0.4);
+        }
+
+        .path-button.safe {
+            background: linear-gradient(45deg, #00aa00, #4ade80);
+            color: #ffffff;
+        }
+
+        .path-button.safe:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 255, 0, 0.4);
+        }
+
+        /* Result Display */
+        .result-display {
+            text-align: center;
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            display: none;
+        }
+
+        .result-display.active {
+            display: block;
+        }
+
+        .result-display.success {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+        }
+
+        .result-display.failure {
+            background: rgba(255, 0, 0, 0.1);
+            border: 2px solid rgba(255, 0, 0, 0.3);
+        }
+
+        .result-message {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .result-message.success {
+            color: #4ade80;
+        }
+
+        .result-message.failure {
+            color: #ff6b6b;
+        }
+
+        .result-explanation {
+            font-size: 1rem;
+            color: #cccccc;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        /* CTA Button */
+        .cta-button {
+            background: linear-gradient(45deg, #f7931a, #ffd700);
+            color: #000000;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(247, 147, 26, 0.4);
+        }
+
+        .cta-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Confetti Animation */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            animation: confettiFall 2s linear forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(300px) rotate(360deg); opacity: 0; }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Time-Locked Demo Styles */
+        .timelocked-demo {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 2px solid rgba(247, 147, 26, 0.3);
+        }
+
+        .timeline-visualization {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .timeline-stage {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(247, 147, 26, 0.4);
+            border-radius: 12px;
+            padding: 1.5rem;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .stage-label {
+            font-weight: 700;
+            color: #f7931a;
+            text-align: center;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .stage-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .key-requirement {
+            color: #ffd700;
+            font-weight: 600;
+            text-align: center;
+            padding: 0.5rem;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .key-holders {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .key-badge {
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .key-badge.active {
+            background: rgba(0, 255, 0, 0.2);
+            border: 2px solid rgba(0, 255, 0, 0.4);
+            color: #4ade80;
+        }
+
+        .key-badge.inactive {
+            background: rgba(255, 165, 0, 0.2);
+            border: 2px solid rgba(255, 165, 0, 0.4);
+            color: #ffa500;
+        }
+
+        .key-badge.locked {
+            background: rgba(128, 128, 128, 0.2);
+            border: 2px solid rgba(128, 128, 128, 0.4);
+            color: #999;
+            text-decoration: line-through;
+        }
+
+        .stage-status {
+            color: #4ade80;
+            font-weight: 600;
+            text-align: center;
+            padding: 0.5rem;
+            background: rgba(0, 255, 0, 0.1);
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+
+        .timeline-arrow {
+            font-size: 2rem;
+            color: #f7931a;
+            font-weight: 700;
+        }
+
+        .benefit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+        }
+
+        .benefit-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .benefit-item:hover {
+            background: rgba(247, 147, 26, 0.1);
+            border-color: #f7931a;
+            transform: translateY(-2px);
+        }
+
+        .benefit-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .benefit-title {
+            color: #ffd700;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .benefit-text {
+            color: #cccccc;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Inheritance Planning Styles */
+        .inheritance-demo {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 2px solid rgba(247, 147, 26, 0.3);
+        }
+
+        .inheritance-visualization {
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .inheritance-stage {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(247, 147, 26, 0.4);
+            border-radius: 12px;
+            padding: 1.5rem;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .problem-box, .solution-box {
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .problem-box {
+            background: rgba(255, 0, 0, 0.1);
+            border: 2px solid rgba(255, 0, 0, 0.3);
+        }
+
+        .solution-box {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+        }
+
+        .problem-icon, .solution-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .problem-title {
+            color: #ff6b6b;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .solution-title {
+            color: #4ade80;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .inheritance-process {
+            margin: 3rem 0;
+        }
+
+        .process-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .process-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .process-step:hover {
+            background: rgba(247, 147, 26, 0.1);
+            border-color: #f7931a;
+            transform: translateX(5px);
+        }
+
+        .step-number-large {
+            background: linear-gradient(45deg, #f7931a, #ffd700);
+            color: #000000;
+            font-size: 1.8rem;
+            font-weight: 900;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-content .step-title {
+            color: #ffd700;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-content .step-description {
+            color: #cccccc;
+            line-height: 1.6;
+        }
+
+        .inheritance-benefits {
+            margin-top: 3rem;
+        }
+
+        /* Enhanced result display */
+        .security-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .comparison-column {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 2px solid transparent;
+        }
+
+        .comparison-column.single-sig {
+            border-color: rgba(255, 0, 0, 0.4);
+        }
+
+        .comparison-column.multi-sig {
+            border-color: rgba(0, 255, 0, 0.4);
+        }
+
+        .comparison-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .comparison-title.danger {
+            color: #ff6b6b;
+        }
+
+        .comparison-title.safe {
+            color: #4ade80;
+        }
+
+        .comparison-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .comparison-step {
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid;
+        }
+
+        .comparison-step.step-danger {
+            border-color: #ff0000;
+            color: #ff6b6b;
+        }
+
+        .comparison-step.step-warning {
+            border-color: #ffa500;
+            color: #ffb84d;
+        }
+
+        .comparison-step.step-safe {
+            border-color: #00ff00;
+            color: #4ade80;
+        }
+
+        .step-number {
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .security-comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline-arrow {
+                transform: rotate(90deg);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .demo-stage {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .path-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .path-button {
+                width: 200px;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+
+            .experience-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <header class="header">
+            <h1 class="title">Bitcoin Multisig Security Demo</h1>
+            <p class="subtitle">See how collaborative security protects your bitcoin from real-world attacks</p>
+        </header>
+
+        <!-- Experience Level Selector -->
+        <section class="experience-selector">
+            <h2 class="experience-title">Choose Your Experience Level</h2>
+            <div class="experience-options">
+                <div class="experience-card" data-level="beginner">
+                    <div class="experience-level">🌱 Beginner</div>
+                    <div class="experience-description">New to bitcoin security? Start here.</div>
+                    <div class="experience-details">Clear language • Detailed guidance • Minimal jargon</div>
+                </div>
+                <div class="experience-card" data-level="intermediate">
+                    <div class="experience-level">🔧 Intermediate</div>
+                    <div class="experience-description">Familiar with wallets? Level up your security.</div>
+                    <div class="experience-details">Technical terms • Moderate guidance • Key concepts</div>
+                </div>
+                <div class="experience-card" data-level="advanced">
+                    <div class="experience-level">⚡ Advanced</div>
+                    <div class="experience-description">Know your UTXOs? Deep dive awaits.</div>
+                    <div class="experience-details">Technical language • Minimal guidance • Full details</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content (Hidden until level selected) -->
+        <div id="mainContent" class="hidden">
+            <!-- Attack Demo Section -->
+            <section class="attack-demo">
+                <h2 class="step-title">
+                    <span id="attackTitle">Pick Your Poison</span>
+                </h2>
+                <p class="step-description" id="attackDescription">
+                    Click any attack to see how single-sig gets compromised vs how 2-of-3 vault survives
+                </p>
+
+                <div class="attack-grid">
+                    <div class="attack-card" data-attack="sparrow">
+                        <div class="attack-icon">🎣</div>
+                        <div class="attack-title" data-text-beginner="Fake Wallet Update" data-text-intermediate="Fake Sparrow Update" data-text-advanced="Sparrow Phishing Attack">Fake Wallet Update</div>
+                        <div class="attack-description" data-text-beginner="Pop-up tricks you into entering your secret words" data-text-intermediate="Malicious update prompt steals seed phrase" data-text-advanced="Social engineering via fake update vector">"Update now" popup tricks you</div>
+                    </div>
+
+                    <div class="attack-card" data-attack="ellipal">
+                        <div class="attack-icon">📦</div>
+                        <div class="attack-title" data-text-beginner="Tampered Hardware" data-text-intermediate="Supply Chain Attack" data-text-advanced="Ellipal Supply Chain Compromise">Tampered Hardware</div>
+                        <div class="attack-description" data-text-beginner="Device arrives with bad software inside" data-text-intermediate="Compromised firmware pre-installed" data-text-advanced="Pre-deployment firmware compromise">Bad device from factory</div>
+                    </div>
+
+                    <div class="attack-card" data-attack="ledger">
+                        <div class="attack-icon">🍎</div>
+                        <div class="attack-title" data-text-beginner="Fake Wallet App" data-text-intermediate="Fake Ledger Live macOS" data-text-advanced="Ledger Live macOS Malware">Fake Wallet App</div>
+                        <div class="attack-description" data-text-beginner="Downloaded wrong app, it steals your words" data-text-intermediate="Malware disguised as Ledger Live" data-text-advanced="Malicious binary harvests credentials">Wrong download steals secrets</div>
+                    </div>
+
+                    <div class="attack-card" data-attack="amos">
+                        <div class="attack-icon">🦠</div>
+                        <div class="attack-title" data-text-beginner="Computer Virus" data-text-intermediate="AMOS Stealer" data-text-advanced="AMOS InfoStealer Campaign">Computer Virus</div>
+                        <div class="attack-description" data-text-beginner="Virus finds and uploads your secret words" data-text-intermediate="Malware hunts seed files" data-text-advanced="Automated credential exfiltration">Finds seed.txt files</div>
+                    </div>
+
+                    <div class="attack-card" data-attack="poison">
+                        <div class="attack-icon">📧</div>
+                        <div class="attack-title" data-text-beginner="Fake Email Wallet" data-text-intermediate="Seed Poisoning" data-text-advanced="Seed Phrase Poisoning Attack">Fake Email Wallet</div>
+                        <div class="attack-description" data-text-beginner="Email gives you 'free' wallet that's secretly theirs" data-text-intermediate="Pre-generated seed under attacker control" data-text-advanced="Adversary-controlled mnemonic distribution">"Quick start" email trap</div>
+                    </div>
+
+                    <div class="attack-card" data-attack="letter">
+                        <div class="attack-icon">✉️</div>
+                        <div class="attack-title" data-text-beginner="Fake Security Letter" data-text-intermediate="Ledger Phishing Letter" data-text-advanced="Physical Mail Phishing Vector">Fake Security Letter</div>
+                        <div class="attack-description" data-text-beginner="Official-looking mail asks for your secret words" data-text-intermediate="Physical mail directs to phishing site" data-text-advanced="Cross-channel social engineering">Physical mail phishing</div>
+                    </div>
+
+                    <div class="attack-card" data-attack="youtube">
+                        <div class="attack-icon">📺</div>
+                        <div class="attack-title" data-text-beginner="Free Wallet Scam" data-text-intermediate="YouTube Seed Scam" data-text-advanced="Public Seed Honeypot">Free Wallet Scam</div>
+                        <div class="attack-description" data-text-beginner="Comment offers 'free' wallet = instant theft" data-text-intermediate="Public seed phrase honeypot" data-text-advanced="Surveillance-based honeypot deployment">Public seed = instant loss</div>
+                    </div>
+                </div>
+
+                <!-- Demo Canvas -->
+                <div class="demo-canvas" id="demoCanvas">
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+
+                    <div class="demo-stage">
+                        <!-- Attack Animation -->
+                        <div class="attack-animation-area" id="attackAnimationArea"></div>
+
+                        <!-- Keys Display -->
+                        <div class="keys-display">
+                            <div class="demo-key" id="yourKey">
+                                <div class="key-icon">🔑</div>
+                                <div class="key-label" data-text-beginner="Your Key" data-text-intermediate="Client Key" data-text-advanced="Client Key">Your Key</div>
+                            </div>
+                            <div class="demo-key" id="adviserKey">
+                                <div class="key-icon">🔑</div>
+                                <div class="key-label" data-text-beginner="Adviser Key" data-text-intermediate="Adviser Key" data-text-advanced="TBA Key">Adviser Key</div>
+                            </div>
+                            <div class="demo-key" id="providerKey">
+                                <div class="key-icon">🔑</div>
+                                <div class="key-label" data-text-beginner="Provider Key" data-text-intermediate="Provider Key" data-text-advanced="Provider Key">Provider Key</div>
+                            </div>
+                        </div>
+
+                        <!-- Vault Display -->
+                        <div class="vault-display">
+                            <div class="vault-icon" id="vaultIcon">🔒</div>
+                            <div class="vault-status" id="vaultStatus" data-text-beginner="Need 2 keys to unlock" data-text-intermediate="2 of 3 Required" data-text-advanced="2-of-3 Multisig">Need 2 keys to unlock</div>
+                        </div>
+
+                        <!-- Bitcoin Display -->
+                        <div class="bitcoin-display">
+                            <div class="bitcoin-icon" id="bitcoinIcon">₿</div>
+                            <div class="bitcoin-amount">1.5 BTC</div>
+                        </div>
+                    </div>
+
+                    <!-- Path Selection -->
+                    <div class="path-selection" id="pathSelection">
+                        <h3 style="color: #ffd700; margin-bottom: 1rem;" id="pathTitle" data-text-beginner="Which setup do you want to test?" data-text-intermediate="Choose Your Setup" data-text-advanced="Security Model Selection">Choose Your Setup</h3>
+                        <div class="path-buttons">
+                            <button class="path-button danger" id="singleSigPath">
+                                <span data-text-beginner="Single Key (Risky)" data-text-intermediate="Single Sig (YOLO)" data-text-advanced="Single Signature">Single Key (Risky)</span>
+                            </button>
+                            <button class="path-button safe" id="multisigPath">
+                                <span data-text-beginner="Three Keys (Safe)" data-text-intermediate="2-of-3 Vault" data-text-advanced="2-of-3 Multisig Vault">Three Keys (Safe)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Result Display -->
+                    <div class="result-display" id="resultDisplay">
+                        <div class="result-message" id="resultMessage"></div>
+                        <div class="result-explanation" id="resultExplanation"></div>
+                        <button class="cta-button" id="tryAnotherBtn">Try Another Attack</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Educational Section -->
+            <section class="step-container">
+                <h2 class="step-title" id="whyMultisigTitle">
+                    <span data-text-beginner="Why Three Keys Are Better Than One" data-text-intermediate="Why Multisig Beats Single Sig" data-text-advanced="Multisig Security Properties">Why Three Keys Are Better Than One</span>
+                </h2>
+                <div class="step-description" id="whyMultisigContent">
+                    <!-- Content will be populated based on experience level -->
+                </div>
+
+                <div class="explanation-box" id="keyExplanation">
+                    <strong>What's a "key"?</strong><br>
+                    A cryptographic key is like a master password that authorizes bitcoin transactions. Unlike passwords, keys cannot be reset. If someone obtains your key, they can access your bitcoin. Distributing signing authority across multiple keys in different locations significantly reduces this risk.
+                </div>
+            </section>
+
+            <!-- Inheritance Planning Section -->
+            <section class="step-container">
+                <h2 class="step-title">
+                    <span data-text-beginner="Protecting Your Family: Inheritance Planning" data-text-intermediate="Inheritance Planning with Multisig" data-text-advanced="Estate Planning & Inheritance Architecture">Protecting Your Family: Inheritance Planning</span>
+                </h2>
+                <div class="step-description" id="inheritanceContent">
+                    <!-- Content will be populated based on experience level -->
+                </div>
+                
+                <div class="inheritance-demo">
+                    <h3 style="color: #ffd700; text-align: center; margin-bottom: 1.5rem;">Scenario: Client Passes Away</h3>
+                    
+                    <div class="inheritance-visualization">
+                        <div class="inheritance-stage">
+                            <div class="stage-label">Without Planning</div>
+                            <div class="stage-content">
+                                <div class="problem-box">
+                                    <div class="problem-icon">❌</div>
+                                    <div class="problem-title">Single-Sig or 2-Key Custody</div>
+                                    <ul style="text-align: left; margin-top: 1rem; color: #ff6b6b;">
+                                        <li>Heirs must find seed phrase</li>
+                                        <li>Seeds often lost or destroyed</li>
+                                        <li>No guidance on wallet recovery</li>
+                                        <li>Technical barriers for non-experts</li>
+                                        <li>Bitcoin effectively lost</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-arrow">→</div>
+                        
+                        <div class="inheritance-stage">
+                            <div class="stage-label">With TBA Planning</div>
+                            <div class="stage-content">
+                                <div class="solution-box">
+                                    <div class="solution-icon">✅</div>
+                                    <div class="solution-title">Collaborative Security</div>
+                                    <ul style="text-align: left; margin-top: 1rem; color: #4ade80;">
+                                        <li>TBA holds one key independently</li>
+                                        <li>Heirs work with TBA + provider</li>
+                                        <li>Estate plan provides clear instructions</li>
+                                        <li>TBA guides heirs through process</li>
+                                        <li>Bitcoin successfully transferred</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="inheritance-process">
+                        <h4 style="color: #ffd700; margin: 2rem 0 1rem; text-align: center;">How TBA Facilitates Inheritance</h4>
+                        <div class="process-steps">
+                            <div class="process-step">
+                                <div class="step-number-large">1</div>
+                                <div class="step-content">
+                                    <div class="step-title">Estate Plan Created</div>
+                                    <div class="step-description">Client establishes documented inheritance plan with TBA, including heir information and verification procedures</div>
+                                </div>
+                            </div>
+                            <div class="process-step">
+                                <div class="step-number-large">2</div>
+                                <div class="step-content">
+                                    <div class="step-title">Event Occurs</div>
+                                    <div class="step-description">Client passes away; heirs contact TBA with death certificate and estate documentation</div>
+                                </div>
+                            </div>
+                            <div class="process-step">
+                                <div class="step-number-large">3</div>
+                                <div class="step-content">
+                                    <div class="step-title">Verification Process</div>
+                                    <div class="step-description">TBA verifies heir identity and legal authority per estate plan protocols</div>
+                                </div>
+                            </div>
+                            <div class="process-step">
+                                <div class="step-number-large">4</div>
+                                <div class="step-content">
+                                    <div class="step-title">Coordinated Recovery</div>
+                                    <div class="step-description">TBA coordinates with wallet provider and heirs to access bitcoin (2 of 3 signatures from: heir with client's key, TBA, provider)</div>
+                                </div>
+                            </div>
+                            <div class="process-step">
+                                <div class="step-number-large">5</div>
+                                <div class="step-content">
+                                    <div class="step-title">Transfer Complete</div>
+                                    <div class="step-description">Bitcoin transferred to heir's wallet; TBA provides ongoing education and security guidance</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="inheritance-benefits">
+                        <h4 style="color: #ffd700; margin: 2rem 0 1rem;">Why TBA's Independent Key Matters</h4>
+                        <div class="benefit-grid">
+                            <div class="benefit-item">
+                                <div class="benefit-icon">🔑</div>
+                                <div class="benefit-title">True Independence</div>
+                                <div class="benefit-text">TBA holds key separately from wallet provider—prevents single company failure</div>
+                            </div>
+                            <div class="benefit-item">
+                                <div class="benefit-icon">👨‍👩‍👧‍👦</div>
+                                <div class="benefit-title">Expert Guidance</div>
+                                <div class="benefit-text">TBA educates heirs who may have zero bitcoin knowledge</div>
+                            </div>
+                            <div class="benefit-item">
+                                <div class="benefit-icon">📋</div>
+                                <div class="benefit-title">Documented Process</div>
+                                <div class="benefit-text">Clear procedures prevent confusion during difficult times</div>
+                            </div>
+                            <div class="benefit-item">
+                                <div class="benefit-icon">🌍</div>
+                                <div class="benefit-title">Jurisdictional Safety</div>
+                                <div class="benefit-text">TBA can be in different jurisdiction from heirs, adding protection layer</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Time-Locked Keys Section -->
+            <section class="step-container">
+                <h2 class="step-title">
+                    <span data-text-beginner="Advanced Protection: Time-Locked Recovery" data-text-intermediate="Time-Locked Keys & Degrading Multisig" data-text-advanced="Temporal Security: Degrading Multisig Architecture">Advanced Protection: Time-Locked Recovery</span>
+                </h2>
+                <div class="step-description" id="timelockedContent">
+                    <!-- Content will be populated based on experience level -->
+                </div>
+                
+                <div class="timelocked-demo" id="timelockedDemo">
+                    <h3 style="color: #ffd700; text-align: center; margin-bottom: 1.5rem;">Scenario: Provider Disappears</h3>
+                    
+                    <div class="timeline-visualization">
+                        <div class="timeline-stage">
+                            <div class="stage-label">Day 0-89</div>
+                            <div class="stage-content">
+                                <div class="key-requirement">Requires: 2 of 3 keys</div>
+                                <div class="key-holders">
+                                    <span class="key-badge active">You</span>
+                                    <span class="key-badge active">Adviser</span>
+                                    <span class="key-badge inactive">Provider (missing)</span>
+                                </div>
+                                <div class="stage-status">✓ Normal operations continue</div>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-arrow">→</div>
+                        
+                        <div class="timeline-stage">
+                            <div class="stage-label">Day 90+</div>
+                            <div class="stage-content">
+                                <div class="key-requirement">Time-lock activates: 1 of 2 keys</div>
+                                <div class="key-holders">
+                                    <span class="key-badge active">You</span>
+                                    <span class="key-badge active">Adviser</span>
+                                    <span class="key-badge locked">Provider (locked out)</span>
+                                </div>
+                                <div class="stage-status">✓ Full recovery without provider</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="timelocked-benefits">
+                        <h4 style="color: #ffd700; margin: 2rem 0 1rem;">Why This Matters</h4>
+                        <div class="benefit-grid">
+                            <div class="benefit-item">
+                                <div class="benefit-icon">🛡️</div>
+                                <div class="benefit-title">No Single Point of Failure</div>
+                                <div class="benefit-text">If any party disappears, you're not locked out forever</div>
+                            </div>
+                            <div class="benefit-item">
+                                <div class="benefit-icon">⏱️</div>
+                                <div class="benefit-title">Time Gives Security</div>
+                                <div class="benefit-text">Attackers can't rush transactions; you have time to respond</div>
+                            </div>
+                            <div class="benefit-item">
+                                <div class="benefit-icon">🔓</div>
+                                <div class="benefit-title">Guaranteed Recovery</div>
+                                <div class="benefit-text">Your bitcoin remains accessible even if services shut down</div>
+                            </div>
+                            <div class="benefit-item">
+                                <div class="benefit-icon">⚖️</div>
+                                <div class="benefit-title">Inheritance Planning</div>
+                                <div class="benefit-text">Heirs can access funds after specified time periods</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Next Steps -->
+            <section class="step-container">
+                <h2 class="step-title">Ready to Secure Your Bitcoin?</h2>
+                <div class="step-description" id="nextStepsContent">
+                    <!-- Content will be populated based on experience level -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // Experience level state
+        let currentLevel = null;
+        let currentAttack = null;
+        let selectedPath = null;
+
+        // Attack definitions with level-specific content
+        const attacks = {
+            sparrow: {
+                name: {
+                    beginner: "Fake Wallet Update",
+                    intermediate: "Fake Sparrow Update",
+                    advanced: "Sparrow Phishing Attack"
+                },
+                animation: "🎣",
+                singleSigResult: {
+                    beginner: "Your bitcoin is gone 💸",
+                    intermediate: "Wallet drained instantly",
+                    advanced: "Total compromise - funds exfiltrated"
+                },
+                multisigResult: {
+                    beginner: "Your bitcoin is safe! ✅",
+                    intermediate: "Attack blocked - vault secure",
+                    advanced: "Insufficient signatures - vault intact"
+                },
+                explanation: {
+                    single: {
+                        beginner: "You entered your secret words into the fake update. The attacker now has your key and took all your bitcoin.",
+                        intermediate: "Phishing site captured your seed phrase. Attacker has full wallet control and swept all funds.",
+                        advanced: "Credential phishing compromised private key material. Attacker gained complete signing authority and executed unauthorized transactions."
+                    },
+                    multi: {
+                        beginner: "The attacker obtained one of your three keys. However, the multisig vault requires two signatures to authorize any transaction. Since your adviser and provider's keys remain secure in separate locations, the attacker cannot move your bitcoin. You can work with your adviser to generate a new key and rotate out the compromised one.",
+                        intermediate: "Attacker compromised 1 of 3 keys. Vault requires 2 signatures. Your adviser + provider can issue replacement key and rotate security.",
+                        advanced: "Single key compromise insufficient for transaction authorization in 2-of-3 threshold scheme. Remaining cosigners maintain quorum. Key rotation protocol initiated."
+                    }
+                }
+            },
+            ellipal: {
+                name: {
+                    beginner: "Tampered Hardware",
+                    intermediate: "Supply Chain Attack",
+                    advanced: "Supply Chain Compromise"
+                },
+                animation: "📦",
+                singleSigResult: {
+                    beginner: "Device was spying on you 👁️",
+                    intermediate: "Evil firmware stole everything",
+                    advanced: "Pre-compromised hardware - total loss"
+                },
+                multisigResult: {
+                    beginner: "Suspicious device detected 🛡️",
+                    intermediate: "Bad hardware isolated",
+                    advanced: "Single key vector contained"
+                },
+                explanation: {
+                    single: {
+                        beginner: "The device came with bad software secretly installed. It watched your bitcoin and sent your key to the attacker.",
+                        intermediate: "Compromised firmware was pre-installed. Device transmitted seed material to attacker infrastructure. $3M+ precedent.",
+                        advanced: "Supply chain attack vector: malicious firmware embedded at manufacturing or distribution. Private key material exfiltrated via covert channel."
+                    },
+                    multi: {
+                        beginner: "The compromised device only controlled one of three keys. Your adviser and provider maintain their keys on separate hardware in different locations, keeping them secure. The attacker cannot access your bitcoin without obtaining a second signature, which they cannot get.",
+                        intermediate: "Compromised hardware only controls 1 of 3 keys. Adviser + provider use clean hardware for their keys. Vault remains secure.",
+                        advanced: "Hardware compromise limited to single key in 3-key architecture. Remaining signers on isolated hardware maintain quorum. Compromised key rotated out."
+                    }
+                }
+            },
+            ledger: {
+                name: {
+                    beginner: "Fake Wallet App",
+                    intermediate: "Fake Ledger Live",
+                    advanced: "Ledger Live Malware"
+                },
+                animation: "🍎",
+                singleSigResult: {
+                    beginner: "Wrong app stole your secrets 🚨",
+                    intermediate: "Malware captured seed phrase",
+                    advanced: "Credential harvesting - complete loss"
+                },
+                multisigResult: {
+                    beginner: "Only got 1 key, need 2 more ✅",
+                    intermediate: "1 of 3 compromised - vault safe",
+                    advanced: "Threshold not met - security maintained"
+                },
+                explanation: {
+                    single: {
+                        beginner: "You downloaded a fake version of the wallet app. It looked real but was designed to steal your secret words.",
+                        intermediate: "Downloaded malicious binary masquerading as legitimate Ledger Live. Malware harvested seed phrase during coffee break.",
+                        advanced: "Malicious binary distribution via typosquatting or compromised download mirror. Seed material captured and transmitted."
+                    },
+                    multi: {
+                        beginner: "The malicious app captured one key from your computer. However, your bitcoin requires two signatures to move. The adviser and provider keys remain secure on their separate systems, so the malware cannot authorize transactions.",
+                        intermediate: "Malware compromised client key only. Adviser and provider keys remain secure. 2-of-3 threshold prevents unauthorized transactions.",
+                        advanced: "Single key vector: malware limited to client environment. Cosigner keys in isolated security contexts. Multisig quorum prevents execution."
+                    }
+                }
+            },
+            amos: {
+                name: {
+                    beginner: "Computer Virus",
+                    intermediate: "AMOS Stealer",
+                    advanced: "AMOS InfoStealer"
+                },
+                animation: "🦠",
+                singleSigResult: {
+                    beginner: "Virus found your secret file 📄",
+                    intermediate: "Stealer found seed.txt",
+                    advanced: "Automated credential exfiltration"
+                },
+                multisigResult: {
+                    beginner: "Found 1 key, needs 2 more 🔐",
+                    intermediate: "Partial compromise - vault secure",
+                    advanced: "Insufficient key material obtained"
+                },
+                explanation: {
+                    single: {
+                        beginner: "A virus on your computer searched for files with your secret words. It found them and uploaded everything to the attacker.",
+                        intermediate: "Infostealer malware scanned filesystem for seed phrases. Located and uploaded credentials to command & control server.",
+                        advanced: "AMOS infostealer: automated filesystem enumeration targeting mnemonic storage. Credential exfiltration to C2 infrastructure."
+                    },
+                    multi: {
+                        beginner: "The virus found and exfiltrated your key file. However, your adviser and provider store their keys on completely separate systems that the virus cannot access. Without a second signature, the attacker is locked out.",
+                        intermediate: "Malware infected client machine only. Stealer obtained 1 of 3 keys. Other keys on air-gapped or separate infrastructure.",
+                        advanced: "Malware scope limited to client endpoint. Key material for cosigners stored in isolated security domains. Threshold scheme prevents unauthorized signing."
+                    }
+                }
+            },
+            poison: {
+                name: {
+                    beginner: "Fake Email Wallet",
+                    intermediate: "Seed Poisoning",
+                    advanced: "Seed Phrase Poisoning"
+                },
+                animation: "📧",
+                singleSigResult: {
+                    beginner: "Used their wallet, not yours 💀",
+                    intermediate: "Pre-generated seed = instant drain",
+                    advanced: "Adversary-controlled mnemonic"
+                },
+                multisigResult: {
+                    beginner: "Weird activity detected 🚨",
+                    intermediate: "Suspicious pattern flagged",
+                    advanced: "Anomaly detection triggered"
+                },
+                explanation: {
+                    single: {
+                        beginner: "The email gave you a 'free' wallet, but the attacker already has the secret words. They control that wallet, not you.",
+                        intermediate: "Attacker provided pre-generated seed phrase. You imported it thinking it was secure. They maintain complete control.",
+                        advanced: "Seed poisoning attack: attacker generates and distributes mnemonic while retaining key material. Victim creates wallet under adversary control."
+                    },
+                    multi: {
+                        beginner: "During the vault setup process, all three parties coordinate to establish the multisig wallet. Using a pre-generated seed would be detected during this coordination phase, as the addresses wouldn't match the expected multisig configuration. The setup would fail before any bitcoin is at risk.",
+                        intermediate: "Vault setup requires all three parties. Using a poisoned seed would immediately flag during coordination process.",
+                        advanced: "Multisig configuration requires multi-party ceremony. Poisoned seed would fail validation. Cosigner verification prevents single-party compromise."
+                    }
+                }
+            },
+            letter: {
+                name: {
+                    beginner: "Fake Security Letter",
+                    intermediate: "Phishing Letter",
+                    advanced: "Physical Mail Vector"
+                },
+                animation: "✉️",
+                singleSigResult: {
+                    beginner: "Entered secrets on fake website 🌐",
+                    intermediate: "Phishing site captured seed",
+                    advanced: "Cross-channel social engineering success"
+                },
+                multisigResult: {
+                    beginner: "Noticed something was wrong 🤔",
+                    intermediate: "Out-of-band verification failed",
+                    advanced: "Multi-channel verification prevented compromise"
+                },
+                explanation: {
+                    single: {
+                        beginner: "The letter looked official but was fake. It tricked you into entering your secret words on a fake website.",
+                        intermediate: "Physical mail from 'Ledger' directed to phishing site. Appeared legitimate. Captured seed phrase on fake domain.",
+                        advanced: "Physical-to-digital social engineering vector. Spoofed sender identity via mail. Victim credential submission to adversary-controlled domain."
+                    },
+                    multi: {
+                        beginner: "The multisig process requires coordination between multiple parties. If you receive a suspicious request, you can verify it through your adviser via a separate communication channel before taking any action. This out-of-band verification exposes phishing attempts.",
+                        intermediate: "Collaborative custody includes out-of-band verification. Adviser/provider communication would expose phishing attempt before credential entry.",
+                        advanced: "Multi-party coordination provides defense against cross-channel attacks. Out-of-band verification via separate communication channels detects spoofing."
+                    }
+                }
+            },
+            youtube: {
+                name: {
+                    beginner: "Free Wallet Scam",
+                    intermediate: "YouTube Seed Scam",
+                    advanced: "Public Seed Honeypot"
+                },
+                animation: "📺",
+                singleSigResult: {
+                    beginner: "Public wallet = public theft 📹",
+                    intermediate: "Honeypot activated - swept",
+                    advanced: "Surveillance-based attack vector"
+                },
+                multisigResult: {
+                    beginner: "Can't move money alone anyway 🔒",
+                    intermediate: "Single key insufficient",
+                    advanced: "Threshold scheme prevents compromise"
+                },
+                explanation: {
+                    single: {
+                        beginner: "That 'free' wallet in the comments was public - everyone can see it. The attacker was watching and took your bitcoin the moment you sent it there.",
+                        intermediate: "Public seed phrase = public wallet. Attacker monitors for incoming transactions. Auto-sweep script drains funds immediately.",
+                        advanced: "Honeypot deployment: adversary publishes mnemonic and monitors derived addresses. Automated surveillance and immediate transaction execution upon deposit."
+                    },
+                    multi: {
+                        beginner: "Even in the unlikely scenario where you used a public seed for your key, the vault still requires two signatures. The attacker only controls one key. Your adviser and provider hold the other keys, preventing unauthorized transactions.",
+                        intermediate: "Even if you used public seed for your key, vault still requires 2 of 3 signatures. Attacker can't access adviser or provider keys.",
+                        advanced: "Compromised single key in multisig quorum insufficient for transaction authorization. Public seed only represents 1/3 of signing authority."
+                    }
+                }
+            }
+        };
+
+        // Experience level selector
+        document.querySelectorAll('.experience-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.experience-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                currentLevel = card.dataset.level;
+                
+                setTimeout(() => {
+                    document.getElementById('mainContent').classList.remove('hidden');
+                    document.querySelector('.experience-selector').style.display = 'none';
+                    updateContentForLevel();
+                }, 300);
+            });
+        });
+
+        // Update all text content based on experience level
+        function updateContentForLevel() {
+            // Update all data-text attributes
+            document.querySelectorAll('[data-text-beginner]').forEach(el => {
+                const text = el.dataset[`text${currentLevel.charAt(0).toUpperCase() + currentLevel.slice(1)}`];
+                if (text) {
+                    el.textContent = text;
+                }
+            });
+
+            // Update descriptions based on level
+            const attackDesc = document.getElementById('attackDescription');
+            if (currentLevel === 'beginner') {
+                attackDesc.textContent = 'Click any attack below to see what happens with one key vs. three keys protecting your bitcoin';
+            } else if (currentLevel === 'intermediate') {
+                attackDesc.textContent = 'Click any attack to see how single-sig gets compromised vs how 2-of-3 vault survives';
+            } else {
+                attackDesc.textContent = 'Select attack vector to compare single-signature vulnerability surface vs 2-of-3 multisig resilience';
+            }
+
+            // Update why multisig content
+            const whyContent = document.getElementById('whyMultisigContent');
+            if (currentLevel === 'beginner') {
+                whyContent.innerHTML = `
+                    <p><strong>Consider a safe deposit box at a bank:</strong></p>
+                    <p>• You hold one key</p>
+                    <p>• The bank holds another key</p>
+                    <p>• Both keys are required to open the box</p>
+                    <br>
+                    <p>With bitcoin multisig, you use three keys where any two can authorize transactions. You control one key, The Bitcoin Adviser holds a second, and your wallet provider maintains the third. This structure eliminates all single points of failure: no single person, company, or jurisdiction controls access to your bitcoin.</p>
+                    <br>
+                    <p><strong>Why three parties matter:</strong> If you held two keys (as with standard multisig wallet providers), you'd still have single points of failure—your location, jurisdiction, or security practices. By distributing keys across three independent parties in potentially three different jurisdictions, you eliminate these concentrated risks.</p>
+                    <br>
+                    <p><strong>Single key:</strong> One compromised key = total loss<br>
+                    <strong>Three keys (2 required):</strong> One compromised key = bitcoin remains secure</p>
+                `;
+            } else if (currentLevel === 'intermediate') {
+                whyContent.innerHTML = `
+                    <p><strong>Key separation:</strong> Client holds 1 key, The Bitcoin Adviser holds 1 key, wallet provider holds 1 key—no single point of failure</p>
+                    <p><strong>Geographic distribution:</strong> Keys in three different locations/jurisdictions means no single point of legal or physical vulnerability</p>
+                    <p><strong>Jurisdictional resilience:</strong> Regulatory action in one country cannot freeze all keys</p>
+                    <p><strong>Process controls:</strong> Out-of-band verification and policy reviews stop social engineering</p>
+                    <br>
+                    <p>Standard multisig (client holds 2 of 3): Still has single points of failure in client's location and security<br>
+                    True collaborative security (1-1-1 distribution): Eliminates all single points of failure</p>
+                `;
+            } else {
+                whyContent.innerHTML = `
+                    <p><strong>Threshold cryptography:</strong> 2-of-3 signature scheme provides (3 choose 2) = 3 signing combinations</p>
+                    <p><strong>Attack surface reduction:</strong> Adversary must compromise 2 of 3 isolated key environments simultaneously</p>
+                    <p><strong>Byzantine fault tolerance:</strong> Single party compromise, failure, or coercion insufficient for transaction authorization</p>
+                    <p><strong>Jurisdictional distribution:</strong> 1-1-1 key distribution (client-adviser-provider) vs 2-1 (client-provider) eliminates client as single point of failure for physical security, legal coercion, and jurisdictional risk</p>
+                    <br>
+                    <p>Security model: P(compromise) = P(k1 ∩ k2) << P(k1) where k1, k2 are independent key compromise events across geographically and jurisdictionally isolated domains</p>
+                `;
+            }
+
+            // Update inheritance content
+            const inheritanceContent = document.getElementById('inheritanceContent');
+            if (currentLevel === 'beginner') {
+                inheritanceContent.innerHTML = `
+                    <p>What happens to your bitcoin if something happens to you? With traditional single-key wallets, if your heirs can't find your seed phrase, your bitcoin is lost forever. This happens more often than you might think.</p>
+                    <br>
+                    <p><strong>The Bitcoin Adviser difference:</strong> TBA holds one of your three keys independently. If you pass away, your heirs can work with TBA and your wallet provider to access your bitcoin. TBA guides them through the entire process, even if they know nothing about bitcoin.</p>
+                    <br>
+                    <p>This is only possible because TBA holds a separate key—not because you gave them two keys. The 1-1-1 distribution (you, TBA, provider) ensures no single point of failure, including for inheritance.</p>
+                `;
+            } else if (currentLevel === 'intermediate') {
+                inheritanceContent.innerHTML = `
+                    <p><strong>The inheritance problem:</strong> Most bitcoin is lost through death without proper planning, not theft. Heirs face technical barriers and often cannot recover funds.</p>
+                    <br>
+                    <p><strong>TBA's solution:</strong> By holding an independent key (1-1-1 distribution vs traditional 2-1), TBA acts as estate facilitator. Upon death, heirs provide documentation to TBA, who coordinates with wallet provider to execute estate plan. TBA's key remains separate from wallet provider, preventing single-company risk.</p>
+                    <br>
+                    <p><strong>Process:</strong> Documented estate plan → Heir verification → Coordinated 2-of-3 signature recovery (heir + TBA + provider) → Transfer to heir's new wallet with TBA guidance.</p>
+                `;
+            } else {
+                inheritanceContent.innerHTML = `
+                    <p><strong>Inheritance architecture:</strong> Standard multisig (2-1 client-provider distribution) creates SPOF in client estate planning. TBA's 1-1-1 model distributes inheritance risk across independent parties.</p>
+                    <br>
+                    <p><strong>Protocol:</strong> Pre-established estate documentation with cryptographic proof requirements. Upon client death event, heirs provide legal documentation (death certificate, probate if applicable). TBA validates heir claims per documented procedures. Coordination with wallet provider enables 2-of-3 threshold signing (heir controlling client's former key + TBA + provider).</p>
+                    <br>
+                    <p><strong>Jurisdictional benefits:</strong> TBA can operate in different jurisdiction from client and heirs, providing regulatory arbitrage and reducing geopolitical risk for international estates. Independent key custody prevents provider shutdown from blocking inheritance.</p>
+                `;
+            }
+
+            // Update time-locked content
+            const timelockedContent = document.getElementById('timelockedContent');
+            if (currentLevel === 'beginner') {
+                timelockedContent.innerHTML = `
+                    <p>A time-locked key adds an extra layer of protection: if one party becomes unavailable, your bitcoin isn't trapped forever.</p>
+                    <br>
+                    <p><strong>How it works:</strong> After a set period (e.g., 90 days), the signature requirement automatically reduces from 2-of-3 to 1-of-2 keys. This means if your wallet provider disappears, you and your adviser can still access your bitcoin after the waiting period.</p>
+                    <br>
+                    <p>This "degrading multisig" architecture ensures long-term access while maintaining security during normal operations.</p>
+                `;
+            } else if (currentLevel === 'intermediate') {
+                timelockedContent.innerHTML = `
+                    <p><strong>Degrading multisig:</strong> Time-locked recovery paths that reduce signature requirements after specified periods.</p>
+                    <br>
+                    <p>Standard configuration: 2-of-3 multisig with 90-day degradation to 1-of-2. If provider becomes unavailable, clients aren't locked out permanently. The time delay prevents attackers from exploiting the reduced threshold immediately.</p>
+                    <br>
+                    <p><strong>Use cases:</strong> Service provider shutdown, regulatory seizure, natural disasters, inheritance planning.</p>
+                `;
+            } else {
+                timelockedContent.innerHTML = `
+                    <p><strong>Temporal multisig degradation:</strong> Bitcoin script time-locks (OP_CHECKSEQUENCEVERIFY) enable signature threshold reduction after relative time periods.</p>
+                    <br>
+                    <p><strong>Architecture:</strong> Primary path requires 2-of-3 signatures. Secondary path (nSequence-locked) requires 1-of-2 signatures after Δt blocks. Typical implementations use 90-day (≈12,960 blocks) degradation periods.</p>
+                    <br>
+                    <p><strong>Security properties:</strong> Maintains Byzantine fault tolerance during normal operations while guaranteeing eventual recovery. Time delay provides detection window for compromise attempts. Useful for mitigating counterparty risk and ensuring inheritance without trusted third parties.</p>
+                `;
+            }
+
+            // Update next steps content
+            const nextSteps = document.getElementById('nextStepsContent');
+            if (currentLevel === 'beginner') {
+                nextSteps.innerHTML = `
+                    <p><strong>Step 1:</strong> Keep your bitcoin on the exchange while researching multisig options</p>
+                    <p><strong>Step 2:</strong> Understand the difference: Standard multisig wallets (Unchained, Theya) give you 2 keys; TBA model gives you 1 key while TBA holds another independently</p>
+                    <p><strong>Step 3:</strong> Move directly from exchange to collaborative security vault (Client 1 key + TBA 1 key + Wallet Provider 1 key)</p>
+                    <p><strong>Why it matters:</strong> The 1-1-1 distribution eliminates single points of failure in your location, jurisdiction, and security practices. No single person or place controls access.</p>
+                `;
+            } else if (currentLevel === 'intermediate') {
+                nextSteps.innerHTML = `
+                    <p><strong>Evaluate models:</strong> Standard multisig wallets (Unchained, Theya, Casa) = 2 client keys + 1 provider key; TBA model = 1 client + 1 TBA + 1 provider</p>
+                    <p><strong>Key distribution matters:</strong> 2-1 model still has client SPOF; 1-1-1 model eliminates all SPOFs including jurisdictional</p>
+                    <p><strong>Plan your migration:</strong> Exchange → Collaborative security vault with TBA as independent keyholder</p>
+                    <p><strong>Estate planning:</strong> TBA's independent key enables coordinated inheritance without client SPOF</p>
+                `;
+            } else {
+                nextSteps.innerHTML = `
+                    <p><strong>Architecture assessment:</strong> Compare 2-1 (client-provider) vs 1-1-1 (client-TBA-provider) key distribution models. Evaluate PSBT coordination, key derivation paths (BIP32/44/48), and timelock strategies</p>
+                    <p><strong>Security model analysis:</strong> 2-1 model maintains client SPOF for physical security, jurisdiction, coercion; 1-1-1 eliminates SPOF through true three-party distribution</p>
+                    <p><strong>Provider comparison:</strong> Standard multisig wallets (Unchained, Theya, Casa) vs TBA collaborative security model—analyze key distribution, jurisdictional diversity, inheritance protocols</p>
+                    <p><strong>Migration strategy:</strong> UTXO consolidation, fee optimization, address type selection (P2WSH vs P2TR), jurisdictional planning for key distribution</p>
+                `;
+            }
+
+            // Show beginner helper if needed
+            if (currentLevel === 'beginner') {
+                document.getElementById('keyExplanation').classList.add('visible');
+            }
+        }
+
+        // Attack card click handlers
+        document.querySelectorAll('.attack-card').forEach(card => {
+            card.addEventListener('click', () => {
+                currentAttack = card.dataset.attack;
+                startAttackDemo();
+            });
+        });
+
+        // Path selection handlers
+        document.getElementById('singleSigPath').addEventListener('click', () => {
+            selectedPath = 'single';
+            runAttackSimulation();
+        });
+
+        document.getElementById('multisigPath').addEventListener('click', () => {
+            selectedPath = 'multi';
+            runAttackSimulation();
+        });
+
+        // Try another button
+        document.getElementById('tryAnotherBtn').addEventListener('click', () => {
+            resetAttackDemo();
+        });
+
+        function startAttackDemo() {
+            const attack = attacks[currentAttack];
+            const demoCanvas = document.getElementById('demoCanvas');
+            const attackAnimationArea = document.getElementById('attackAnimationArea');
+            const progressBar = document.getElementById('progressBar');
+            
+            // Show demo canvas
+            demoCanvas.classList.add('active');
+            
+            // Reset all elements
+            resetDemoElements();
+            
+            // Show attack animation
+            attackAnimationArea.textContent = attack.animation;
+            
+            // Animate progress bar
+            progressBar.style.width = '33%';
+            
+            // Scroll to demo
+            demoCanvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function runAttackSimulation() {
+            const attack = attacks[currentAttack];
+            const progressBar = document.getElementById('progressBar');
+            const pathSelection = document.getElementById('pathSelection');
+            const resultDisplay = document.getElementById('resultDisplay');
+            const resultMessage = document.getElementById('resultMessage');
+            const resultExplanation = document.getElementById('resultExplanation');
+            
+            // Hide path selection
+            pathSelection.style.display = 'none';
+            
+            // Update progress
+            progressBar.style.width = '66%';
+            
+            // Run simulation based on path
+            setTimeout(() => {
+                if (selectedPath === 'single') {
+                    runSingleSigSimulation(attack);
+                } else {
+                    runMultisigSimulation(attack);
+                }
+                
+                // Complete progress
+                progressBar.style.width = '100%';
+                
+                // Show results with enhanced comparison
+                setTimeout(() => {
+                    resultDisplay.classList.add('active');
+                    resultDisplay.className = `result-display active ${selectedPath === 'single' ? 'failure' : 'success'}`;
+                    resultMessage.className = `result-message ${selectedPath === 'single' ? 'failure' : 'success'}`;
+                    resultMessage.textContent = attack[`${selectedPath}SigResult`][currentLevel];
+                    resultExplanation.textContent = attack.explanation[selectedPath][currentLevel];
+                    
+                    // Add side-by-side comparison
+                    showSecurityComparison(attack);
+                    
+                    if (selectedPath === 'multi') {
+                        createConfetti();
+                    } else {
+                        playFailAnimation();
+                    }
+                }, 1000);
+            }, 1000);
+        }
+
+        function runSingleSigSimulation(attack) {
+            const yourKey = document.getElementById('yourKey');
+            const bitcoinIcon = document.getElementById('bitcoinIcon');
+            const vaultIcon = document.getElementById('vaultIcon');
+            
+            // Compromise your key
+            yourKey.classList.add('compromised');
+            
+            // Break vault
+            vaultIcon.classList.add('broken');
+            vaultIcon.textContent = '💥';
+            
+            // Steal bitcoin
+            setTimeout(() => {
+                bitcoinIcon.classList.add('stolen');
+            }, 500);
+        }
+
+        function runMultisigSimulation(attack) {
+            const yourKey = document.getElementById('yourKey');
+            const adviserKey = document.getElementById('adviserKey');
+            const providerKey = document.getElementById('providerKey');
+            const vaultIcon = document.getElementById('vaultIcon');
+            const vaultStatus = document.getElementById('vaultStatus');
+            
+            // Compromise your key
+            yourKey.classList.add('compromised');
+            
+            // Make other keys safe
+            setTimeout(() => {
+                adviserKey.classList.add('safe');
+                providerKey.classList.add('safe');
+                
+                // Pulse vault but keep it secure
+                vaultIcon.classList.add('pulse');
+                if (currentLevel === 'beginner') {
+                    vaultStatus.textContent = 'Vault Secure - 2 Keys Safe ✓';
+                } else if (currentLevel === 'intermediate') {
+                    vaultStatus.textContent = 'Vault Secure - 2/3 Active';
+                } else {
+                    vaultStatus.textContent = 'Quorum Maintained - 2/3';
+                }
+            }, 500);
+        }
+
+        function resetDemoElements() {
+            const keys = ['yourKey', 'adviserKey', 'providerKey'];
+            keys.forEach(keyId => {
+                const key = document.getElementById(keyId);
+                key.classList.remove('compromised', 'safe');
+            });
+            
+            const vaultIcon = document.getElementById('vaultIcon');
+            const vaultStatus = document.getElementById('vaultStatus');
+            const bitcoinIcon = document.getElementById('bitcoinIcon');
+            const progressBar = document.getElementById('progressBar');
+            const pathSelection = document.getElementById('pathSelection');
+            const resultDisplay = document.getElementById('resultDisplay');
+            
+            vaultIcon.classList.remove('pulse', 'broken');
+            vaultIcon.textContent = '🔒';
+            
+            // Reset vault status based on level
+            const statusText = vaultStatus.getAttribute('data-text-' + currentLevel);
+            vaultStatus.textContent = statusText;
+            
+            bitcoinIcon.classList.remove('stolen');
+            progressBar.style.width = '0%';
+            pathSelection.style.display = 'block';
+            resultDisplay.classList.remove('active');
+            resultDisplay.className = 'result-display';
+        }
+
+        function resetAttackDemo() {
+            const demoCanvas = document.getElementById('demoCanvas');
+            demoCanvas.classList.remove('active');
+            currentAttack = null;
+            selectedPath = null;
+            
+            // Scroll back to attack grid
+            document.querySelector('.attack-grid').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function createConfetti() {
+            const resultDisplay = document.getElementById('resultDisplay');
+            const rect = resultDisplay.getBoundingClientRect();
+            
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.position = 'fixed';
+                    confetti.style.left = (rect.left + Math.random() * rect.width) + 'px';
+                    confetti.style.top = rect.top + 'px';
+                    confetti.style.background = ['#f7931a', '#ffd700', '#4ade80'][Math.floor(Math.random() * 3)];
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 2000);
+                }, i * 50);
+            }
+        }
+
+        function playFailAnimation() {
+            const resultDisplay = document.getElementById('resultDisplay');
+            resultDisplay.style.animation = 'shake 0.5s ease-in-out';
+            setTimeout(() => {
+                resultDisplay.style.animation = '';
+            }, 500);
+        }
+
+        function showSecurityComparison(attack) {
+            const resultExplanation = document.getElementById('resultExplanation');
+            
+            // Create comparison grid
+            const comparisonDiv = document.createElement('div');
+            comparisonDiv.className = 'security-comparison';
+            comparisonDiv.style.marginTop = '2rem';
+            
+            // Single-sig column
+            const singleSigColumn = document.createElement('div');
+            singleSigColumn.className = 'comparison-column single-sig';
+            singleSigColumn.innerHTML = `
+                <div class="comparison-title danger">Single Signature (1 Key)</div>
+                <div class="comparison-steps">
+                    <div class="comparison-step step-danger">
+                        <span class="step-number">1.</span>Attacker compromises your key
+                    </div>
+                    <div class="comparison-step step-danger">
+                        <span class="step-number">2.</span>Attacker has full signing authority
+                    </div>
+                    <div class="comparison-step step-danger">
+                        <span class="step-number">3.</span>Bitcoin is immediately moved
+                    </div>
+                    <div class="comparison-step step-danger">
+                        <span class="step-number">4.</span><strong>Result: Total loss</strong>
+                    </div>
+                </div>
+            `;
+            
+            // Multi-sig column
+            const multiSigColumn = document.createElement('div');
+            multiSigColumn.className = 'comparison-column multi-sig';
+            multiSigColumn.innerHTML = `
+                <div class="comparison-title safe">2-of-3 Multisig (3 Keys)</div>
+                <div class="comparison-steps">
+                    <div class="comparison-step step-warning">
+                        <span class="step-number">1.</span>Attacker compromises your key
+                    </div>
+                    <div class="comparison-step step-safe">
+                        <span class="step-number">2.</span>Attacker still needs 1 more signature
+                    </div>
+                    <div class="comparison-step step-safe">
+                        <span class="step-number">3.</span>Adviser & provider keys remain secure
+                    </div>
+                    <div class="comparison-step step-safe">
+                        <span class="step-number">4.</span><strong>Result: Bitcoin protected, key rotated</strong>
+                    </div>
+                </div>
+            `;
+            
+            comparisonDiv.appendChild(singleSigColumn);
+            comparisonDiv.appendChild(multiSigColumn);
+            
+            // Insert after explanation
+            resultExplanation.parentNode.insertBefore(comparisonDiv, resultExplanation.nextSibling);
+        }
+
+        // Add shake animation to styles dynamically
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                75% { transform: translateX(10px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
