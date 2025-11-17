@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Marshmallow Challenge: Bitcoin Edition | Bitcoin Sovereign Academy</title>
+    <meta name="description" content="Test your time preference with real Bitcoin scenarios. Would you take 1 BTC now or 2 BTC in 4 years? Learn how delayed gratification builds wealth through interactive decision-making.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #0f0f0f;
+            --secondary-dark: #1a1a1a;
+            --text-light: #e0e0e0;
+            --text-dim: #888888;
+            --success-green: #4CAF50;
+            --warning-yellow: #FFC107;
+            --error-red: #ef4444;
+            --accent-gold: #D4AF37;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-orange), var(--accent-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            max-width: 700px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+            border: 1px solid rgba(76, 175, 80, 0.4);
+        }
+
+        /* Main Card */
+        .challenge-card {
+            background: var(--secondary-dark);
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .challenge-card h2 {
+            color: var(--primary-orange);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .challenge-intro {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.15), rgba(212, 175, 55, 0.1));
+            border-left: 4px solid var(--primary-orange);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-radius: 0.5rem;
+        }
+
+        .challenge-intro p {
+            margin-bottom: 0.75rem;
+        }
+
+        .challenge-intro strong {
+            color: var(--accent-gold);
+        }
+
+        /* Scenario Section */
+        .scenario {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .scenario.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scenario-number {
+            color: var(--primary-orange);
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .scenario h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-light);
+        }
+
+        .scenario-description {
+            font-size: 1.05rem;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            line-height: 1.8;
+        }
+
+        /* Choice Buttons */
+        .choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .choice-btn {
+            background: var(--secondary-dark);
+            border: 3px solid rgba(247, 147, 26, 0.3);
+            border-radius: 1rem;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .choice-btn:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(247, 147, 26, 0.3);
+        }
+
+        .choice-btn.selected {
+            border-color: var(--primary-orange);
+            background: rgba(247, 147, 26, 0.15);
+        }
+
+        .choice-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+        }
+
+        .choice-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .choice-detail {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+        }
+
+        /* Results */
+        .result {
+            display: none;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.05));
+            border: 2px solid var(--success-green);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .result.show {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .result.high-time-pref {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05));
+            border-color: var(--error-red);
+        }
+
+        .result h4 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: var(--success-green);
+        }
+
+        .result.high-time-pref h4 {
+            color: var(--error-red);
+        }
+
+        .result-content p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+
+        .result-stats {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: var(--primary-orange);
+        }
+
+        .stat-value.positive {
+            color: var(--success-green);
+        }
+
+        .stat-value.negative {
+            color: var(--error-red);
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--primary-orange);
+            color: white;
+            border-color: var(--primary-orange);
+        }
+
+        .btn-primary:hover {
+            background: #ff8c00;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 147, 26, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-light);
+            border-color: rgba(247, 147, 26, 0.3);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary-orange);
+            background: rgba(247, 147, 26, 0.1);
+        }
+
+        /* Summary Section */
+        .summary-card {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-gold);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .summary-card.show {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .summary-card h2 {
+            color: var(--accent-gold);
+            margin-bottom: 1.5rem;
+        }
+
+        .time-pref-score {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .score-value {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-orange), var(--accent-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0.5rem 0;
+        }
+
+        .score-interpretation {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .choices {
+                grid-template-columns: 1fr;
+            }
+
+            .choice-value {
+                font-size: 1.5rem;
+            }
+
+            .challenge-card {
+                padding: 1.5rem;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="/css/icons.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>⏳ The Marshmallow Challenge: Bitcoin Edition</h1>
+            <p>
+                Test your time preference with real Bitcoin scenarios. Would you choose immediate gratification or delayed rewards? Your decisions reveal your economic thinking.
+            </p>
+            <div class="difficulty-badge">Beginner Friendly</div>
+        </div>
+
+        <!-- Challenge Card -->
+        <div class="challenge-card">
+            <h2>How It Works</h2>
+
+            <div class="challenge-intro">
+                <p>
+                    <strong>The classic marshmallow test:</strong> Children were offered 1 marshmallow now, or 2 marshmallows if they waited 15 minutes. Those who waited showed better life outcomes decades later — higher SAT scores, lower BMI, less substance abuse.
+                </p>
+                <p>
+                    <strong>The Bitcoin version:</strong> You'll face 5 real scenarios where you must choose between immediate Bitcoin rewards or larger future rewards. Then we'll reveal what each choice would have yielded historically.
+                </p>
+                <p>
+                    <strong>Why this matters:</strong> Your decisions reflect your <strong>time preference</strong> — the foundational economic concept that determines wealth accumulation.
+                </p>
+            </div>
+
+            <!-- Scenario 1 -->
+            <div class="scenario active" id="scenario-1">
+                <div class="scenario-number">Scenario 1 of 5</div>
+                <h3>🎁 The Direct Choice</h3>
+                <p class="scenario-description">
+                    Someone offers you a gift. You can have <strong>1 Bitcoin delivered today</strong>, or if you wait 4 years (one halving cycle), you'll receive <strong>2 Bitcoin</strong>. Which do you choose?
+                </p>
+
+                <div class="choices">
+                    <div class="choice-btn" onclick="selectChoice(1, 'now')">
+                        <div class="choice-label">Take it now</div>
+                        <div class="choice-value">1 BTC</div>
+                        <div class="choice-detail">Immediate delivery</div>
+                    </div>
+                    <div class="choice-btn" onclick="selectChoice(1, 'later')">
+                        <div class="choice-label">Wait 4 years</div>
+                        <div class="choice-value">2 BTC</div>
+                        <div class="choice-detail">Double the amount</div>
+                    </div>
+                </div>
+
+                <div class="result" id="result-1"></div>
+            </div>
+
+            <!-- Scenario 2 -->
+            <div class="scenario" id="scenario-2">
+                <div class="scenario-number">Scenario 2 of 5</div>
+                <h3>💰 The Savings Dilemma</h3>
+                <p class="scenario-description">
+                    You have $10,000 in savings. You could <strong>buy a new car today</strong> (which will depreciate 20% the moment you drive off the lot), or you could <strong>buy Bitcoin and drive your current car for 5 more years</strong>. Which do you choose?
+                </p>
+
+                <div class="choices">
+                    <div class="choice-btn" onclick="selectChoice(2, 'now')">
+                        <div class="choice-label">Buy the car</div>
+                        <div class="choice-value">$10,000</div>
+                        <div class="choice-detail">New car today (depreciating asset)</div>
+                    </div>
+                    <div class="choice-btn" onclick="selectChoice(2, 'later')">
+                        <div class="choice-label">Buy Bitcoin + wait</div>
+                        <div class="choice-value">$10,000</div>
+                        <div class="choice-detail">Save in BTC, drive current car 5 years</div>
+                    </div>
+                </div>
+
+                <div class="result" id="result-2"></div>
+            </div>
+
+            <!-- Scenario 3 -->
+            <div class="scenario" id="scenario-3">
+                <div class="scenario-number">Scenario 3 of 5</div>
+                <h3>📈 The Bull Market Test</h3>
+                <p class="scenario-description">
+                    You bought Bitcoin at $20,000. It's now $60,000 (3x gain). You could <strong>cash out and enjoy the profits today</strong>, or <strong>hold through volatility for another market cycle (4 years)</strong>. You've heard Bitcoin can 10x from cycle to cycle, but there's no guarantee. Which do you choose?
+                </p>
+
+                <div class="choices">
+                    <div class="choice-btn" onclick="selectChoice(3, 'now')">
+                        <div class="choice-label">Sell at $60k</div>
+                        <div class="choice-value">3x profit</div>
+                        <div class="choice-detail">Lock in gains, spend now</div>
+                    </div>
+                    <div class="choice-btn" onclick="selectChoice(3, 'later')">
+                        <div class="choice-label">HODL 4 more years</div>
+                        <div class="choice-value">Unknown outcome</div>
+                        <div class="choice-detail">Risk volatility for potential gains</div>
+                    </div>
+                </div>
+
+                <div class="result" id="result-3"></div>
+            </div>
+
+            <!-- Scenario 4 -->
+            <div class="scenario" id="scenario-4">
+                <div class="scenario-number">Scenario 4 of 5</div>
+                <h3>🏠 The House vs Bitcoin Showdown</h3>
+                <p class="scenario-description">
+                    In 2016, you had $50,000 for a house down payment. Bitcoin was $600. You could <strong>buy the house immediately</strong> (20% down on $250k home), or <strong>rent for 8 years and buy Bitcoin instead</strong>. Everyone says "real estate always goes up" and "Bitcoin is too risky." Which do you choose?
+                </p>
+
+                <div class="choices">
+                    <div class="choice-btn" onclick="selectChoice(4, 'now')">
+                        <div class="choice-label">Buy house now</div>
+                        <div class="choice-value">$250k home</div>
+                        <div class="choice-detail">Own property, pay mortgage</div>
+                    </div>
+                    <div class="choice-btn" onclick="selectChoice(4, 'later')">
+                        <div class="choice-label">Rent + buy BTC</div>
+                        <div class="choice-value">~83 BTC</div>
+                        <div class="choice-detail">Uncertain future, rent for 8 years</div>
+                    </div>
+                </div>
+
+                <div class="result" id="result-4"></div>
+            </div>
+
+            <!-- Scenario 5 -->
+            <div class="scenario" id="scenario-5">
+                <div class="scenario-number">Scenario 5 of 5</div>
+                <h3>👶 The Generational Thinking Test</h3>
+                <p class="scenario-description">
+                    You just had a baby. You have $5,000 to either <strong>buy baby gear and toys today</strong>, or <strong>buy Bitcoin and save it in a multi-sig wallet for their 18th birthday</strong>. Which do you choose?
+                </p>
+
+                <div class="choices">
+                    <div class="choice-btn" onclick="selectChoice(5, 'now')">
+                        <div class="choice-label">Spend on baby</div>
+                        <div class="choice-value">$5,000</div>
+                        <div class="choice-detail">Premium gear, toys, clothes</div>
+                    </div>
+                    <div class="choice-btn" onclick="selectChoice(5, 'later')">
+                        <div class="choice-label">Save for child</div>
+                        <div class="choice-value">Bitcoin</div>
+                        <div class="choice-detail">Inheritance in 18 years</div>
+                    </div>
+                </div>
+
+                <div class="result" id="result-5"></div>
+            </div>
+        </div>
+
+        <!-- Summary Card -->
+        <div class="summary-card" id="summary">
+            <h2>Your Time Preference Profile</h2>
+
+            <div class="time-pref-score">
+                <div class="score-label">Your Score</div>
+                <div class="score-value" id="final-score">0/5</div>
+                <div class="score-interpretation" id="score-interpretation"></div>
+            </div>
+
+            <div class="challenge-intro">
+                <p id="summary-text"></p>
+            </div>
+
+            <div class="nav-buttons">
+                <a href="/curriculum/austrian-economics/time-preference-fundamentals.html" class="btn btn-primary">
+                    Learn More About Time Preference →
+                </a>
+                <button class="btn btn-secondary" onclick="resetChallenge()">
+                    Retake Challenge
+                </button>
+            </div>
+        </div>
+
+        <!-- Back to Demos -->
+        <div class="nav-buttons" style="margin-top: 3rem;">
+            <a href="/interactive-demos/" class="btn btn-secondary">
+                ← Back to All Demos
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const scenarios = [
+            {
+                id: 1,
+                nowResult: {
+                    title: "🔴 High Time Preference Choice",
+                    content: `You chose immediate gratification. While 1 BTC today feels concrete, here's what happened historically:
+
+                    <div class="result-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Your choice (2017):</span>
+                            <span class="stat-value">1 BTC @ $5,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Alternative (2021):</span>
+                            <span class="stat-value positive">2 BTC @ $60,000 = $120,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Opportunity cost:</span>
+                            <span class="stat-value negative">-$115,000</span>
+                        </div>
+                    </div>
+
+                    <p>Waiting would have meant <strong>24x more value</strong> ($5k → $120k). This is the power of low time preference.</p>`,
+                    isLowTimePref: false
+                },
+                laterResult: {
+                    title: "🟢 Low Time Preference Choice",
+                    content: `Excellent! You chose delayed gratification. Here's what this historically meant:
+
+                    <div class="result-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Declined (2017):</span>
+                            <span class="stat-value">1 BTC @ $5,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Received (2021):</span>
+                            <span class="stat-value positive">2 BTC @ $60,000 = $120,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Net benefit:</span>
+                            <span class="stat-value positive">+$115,000</span>
+                        </div>
+                    </div>
+
+                    <p>By waiting, you captured <strong>both</strong> the doubling (1→2 BTC) <strong>and</strong> the price appreciation (12x). This is compound time preference in action!</p>`,
+                    isLowTimePref: true
+                }
+            },
+            // Scenario 2
+            {
+                id: 2,
+                nowResult: {
+                    title: "🔴 High Time Preference Choice",
+                    content: `You bought the depreciating asset. Cars lose value the moment you drive them. Here's the math:
+
+                    <div class="result-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Car value today (2024):</span>
+                            <span class="stat-value negative">~$4,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">BTC bought in 2019 @ $10k:</span>
+                            <span class="stat-value">1 BTC</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">BTC value (2024):</span>
+                            <span class="stat-value positive">~$100,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Opportunity cost:</span>
+                            <span class="stat-value negative">-$96,000</span>
+                        </div>
+                    </div>
+
+                    <p>The car depreciated 60%. Bitcoin appreciated 10x. You traded <strong>appreciating money for a depreciating toy</strong>.</p>`,
+                    isLowTimePref: false
+                },
+                laterResult: {
+                    title: "🟢 Low Time Preference Choice",
+                    content: `Smart! You delayed the car purchase. Here's how it played out:
+
+                    <div class="result-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Your old car (5 years):</span>
+                            <span class="stat-value">Still functional</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">BTC bought (2019):</span>
+                            <span class="stat-value">1 BTC @ $10,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">BTC value (2024):</span>
+                            <span class="stat-value positive">~$100,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Net gain:</span>
+                            <span class="stat-value positive">+$90,000</span>
+                        </div>
+                    </div>
+
+                    <p>Now you can buy the car <strong>and</strong> have ~$90k left over. That's the magic of saving in appreciating money!</p>`,
+                    isLowTimePref: true
+                }
+            },
+            // Scenario 3
+            {
+                id: 3,
+                nowResult: {
+                    title: "🔴 High Time Preference Choice",
+                    content: `You sold at $60k (3x). Not bad! But let's see what HODLing would have meant:
+
+                    <div class="result-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Your exit (2021):</span>
+                            <span class="stat-value">$60,000 (sold for profit)</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Bear market low (2022):</span>
+                            <span class="stat-value">$15,000 (-75% crash)</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Actual next cycle (2024-2025):</span>
+                            <span class="stat-value positive">~$100,000 (5x from your entry)</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Opportunity cost:</span>
+                            <span class="stat-value negative">-$40,000</span>
+                        </div>
+                    </div>
+
+                    <p><strong>Reality check:</strong> You expected 10x but it only hit 5x from your entry. <em>But 5x still beat your 3x exit!</em> Yes, you had to endure a -75% crash and years of doubt. Low time preference isn't about perfect predictions—it's about <strong>staying in the game</strong> while the fiat world exits early.</p>`,
+                    isLowTimePref: false
+                },
+                laterResult: {
+                    title: "🟢 Low Time Preference Choice",
+                    content: `Legendary HODLing! You held through volatility. Here's what actually happened:
+
+                    <div class="result-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Buy-in (2020):</span>
+                            <span class="stat-value">$20,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Peak 2021:</span>
+                            <span class="stat-value">$60,000 (you resisted selling)</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Bear market crash (2022):</span>
+                            <span class="stat-value negative">$15,000 (-75%! Painful.)</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Actual 2024-2025 price:</span>
+                            <span class="stat-value positive">~$100,000 (5x total gain)</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Net gain vs selling at $60k:</span>
+                            <span class="stat-value positive">+$40,000 (67% more wealth)</span>
+                        </div>
+                    </div>
+
+                    <p><strong>The harsh truth:</strong> It didn't 10x like you hoped—it "only" did 5x. You watched your $60k peak drop to $15k and questioned everything. <em>But you held.</em> And that 5x from $20k to $100k still beat the 3x paper-hands exit. <strong>Low time preference doesn't mean perfect outcomes—it means better outcomes.</strong> This is how Bitcoiners build wealth while others panic-sell.</p>`,
+                    isLowTimePref: true
+                }
+            },
+            // Scenario 4
+            {
+                id: 4,
+                nowResult: {
+                    title: "🔴 High Time Preference Choice",
+                    content: `You bought the house. Homeownership feels secure, and culturally it's "the smart move." Here's what happened:
+
+                    <div class="result-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">House purchase (2016):</span>
+                            <span class="stat-value">$250,000 (20% down = $50k)</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">House value (2024):</span>
+                            <span class="stat-value positive">~$400,000 (+60%)</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Mortgage interest paid:</span>
+                            <span class="stat-value negative">~$80,000 (8 years @ 4.5%)</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">BTC alternative:</span>
+                            <span class="stat-value">83 BTC @ $600 = $50,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">BTC value (2024):</span>
+                            <span class="stat-value positive">83 BTC × $100k = $8,300,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Opportunity cost:</span>
+                            <span class="stat-value negative">-$8,100,000</span>
+                        </div>
+                    </div>
+
+                    <p>The house appreciated 60%—not bad! You followed conventional wisdom. But Bitcoin did ~167x. <strong>You could now buy 20 houses cash.</strong> Sometimes the "risky" choice is actually the lower-risk choice when measured in purchasing power.</p>`,
+                    isLowTimePref: false
+                },
+                laterResult: {
+                    title: "🟢 Low Time Preference Choice",
+                    content: `Bold decision! You went against cultural norms and rented. Your friends thought you were crazy. Here's what happened:
+
+                    <div class="result-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Rent paid (8 years @ $1,500/mo):</span>
+                            <span class="stat-value negative">~$144,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">BTC bought (2016):</span>
+                            <span class="stat-value">83 BTC @ $600 = $50,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Bitcoin crashed to $3k (2018):</span>
+                            <span class="stat-value negative">-80% (you looked foolish)</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">You held anyway (2024):</span>
+                            <span class="stat-value positive">83 BTC × $100k = $8,300,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Net after buying house cash:</span>
+                            <span class="stat-value positive">~$7,756,000 remaining</span>
+                        </div>
+                    </div>
+
+                    <p><strong>The unglamorous truth:</strong> You paid $144k in "wasted" rent. Your friends with houses mocked you during the 2018 crash. You endured years of doubt and social pressure. <em>But you held.</em> Now you own a house <strong>and</strong> have $7.7M left. Low time preference often means looking foolish for years before you look brilliant. This is the path to sovereignty.</p>`,
+                    isLowTimePref: true
+                }
+            },
+            // Scenario 5
+            {
+                id: 5,
+                nowResult: {
+                    title: "🔴 High Time Preference Choice",
+                    content: `You spent on baby gear. Let's be honest about the outcome:
+
+                    <div class="result-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Spent on gear (2012):</span>
+                            <span class="stat-value">$5,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Value after 18 years:</span>
+                            <span class="stat-value negative">$0 (garage sale items)</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">BTC alternative @ $12:</span>
+                            <span class="stat-value">~417 BTC</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">BTC value at age 18 (2030 est):</span>
+                            <span class="stat-value positive">417 BTC × $500k = $208,500,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Opportunity cost:</span>
+                            <span class="stat-value negative">-$208,495,000</span>
+                        </div>
+                    </div>
+
+                    <p>The gear is in a landfill. The Bitcoin would have set your child up for life—and their children too. <strong>This is generational thinking.</strong></p>`,
+                    isLowTimePref: false
+                },
+                laterResult: {
+                    title: "🟢 Low Time Preference Choice",
+                    content: `Legendary parenting! You thought generationally:
+
+                    <div class="result-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">BTC bought (2012):</span>
+                            <span class="stat-value">~417 BTC @ $12 = $5,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Child's 18th birthday (2030 est):</span>
+                            <span class="stat-value positive">417 BTC × $500k = $208,500,000</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Effective gift value:</span>
+                            <span class="stat-value positive">Life-changing wealth</span>
+                        </div>
+                    </div>
+
+                    <p>Your child turns 18 with <strong>generational wealth</strong>. They can pursue any dream without financial stress. You gave them <strong>freedom</strong>, not toys. This is what low time preference builds.</p>`,
+                    isLowTimePref: true
+                }
+            }
+        ];
+
+        const userChoices = [];
+        let currentScenario = 1;
+
+        function selectChoice(scenarioNum, choice) {
+            // Record choice
+            userChoices[scenarioNum - 1] = choice;
+
+            // Highlight selected choice
+            const choices = document.querySelectorAll(`#scenario-${scenarioNum} .choice-btn`);
+            choices.forEach(btn => btn.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+
+            // Show result
+            setTimeout(() => {
+                showResult(scenarioNum, choice);
+            }, 300);
+        }
+
+        function showResult(scenarioNum, choice) {
+            const scenario = scenarios[scenarioNum - 1];
+            const result = choice === 'now' ? scenario.nowResult : scenario.laterResult;
+            const resultDiv = document.getElementById(`result-${scenarioNum}`);
+
+            resultDiv.className = 'result show';
+            if (!result.isLowTimePref) {
+                resultDiv.classList.add('high-time-pref');
+            }
+
+            resultDiv.innerHTML = `
+                <h4>${result.title}</h4>
+                <div class="result-content">
+                    ${result.content}
+                </div>
+                <div class="nav-buttons">
+                    ${scenarioNum < 5 ?
+                        `<button class="btn btn-primary" onclick="nextScenario()">Next Scenario →</button>` :
+                        `<button class="btn btn-primary" onclick="showSummary()">See Your Results →</button>`
+                    }
+                </div>
+            `;
+        }
+
+        function nextScenario() {
+            // Hide current scenario
+            document.getElementById(`scenario-${currentScenario}`).classList.remove('active');
+
+            // Show next scenario
+            currentScenario++;
+            document.getElementById(`scenario-${currentScenario}`).classList.add('active');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showSummary() {
+            // Calculate score
+            let score = 0;
+            userChoices.forEach((choice, index) => {
+                if (choice === 'later') score++;
+            });
+
+            // Hide last scenario
+            document.getElementById(`scenario-5`).style.display = 'none';
+
+            // Show summary
+            const summary = document.getElementById('summary');
+            summary.classList.add('show');
+
+            // Update score
+            document.getElementById('final-score').textContent = `${score}/5`;
+
+            // Interpretation
+            let interpretation, summaryText;
+            if (score >= 4) {
+                interpretation = "🟢 Low Time Preference Master";
+                summaryText = `Outstanding! You chose delayed gratification in ${score} out of 5 scenarios. You understand that <strong>low time preference builds civilizations</strong>. Historically, these choices would have resulted in <strong>exponentially more wealth</strong> through Bitcoin's appreciation. You're wired for long-term thinking—this is how generational wealth is built.`;
+            } else if (score >= 3) {
+                interpretation = "🟡 Balanced Time Preference";
+                summaryText = `Good judgment! You balanced immediate needs with future planning (${score}/5 delayed). You understand time preference conceptually but sometimes choose short-term gratification. <strong>This is normal</strong>—but remember: Bitcoin rewards those who wait. Consider: what if you increased your low time preference score by just 1 more scenario?`;
+            } else if (score >= 1) {
+                interpretation = "🟠 Moderate Time Preference";
+                summaryText = `You chose immediate gratification in most scenarios (${5-score}/5). This is the <strong>default modern behavior</strong>—fiat money trains us to spend, not save. But here's the insight: <strong>your choices cost you millions in historical wealth</strong>. Bitcoin rewards patience. Low time preference isn't natural in an inflationary world, but it's learnable.`;
+            } else {
+                interpretation = "🔴 High Time Preference";
+                summaryText = `You chose immediate gratification in all scenarios. This is <strong>completely normal</strong> in a fiat world—inflation punishes savers! But Bitcoin changes the game. By choosing now over later, you missed out on <strong>hundreds of millions in theoretical wealth</strong>. The good news? You can train yourself to think longer-term. Start small: delay one purchase this week.`;
+            }
+
+            document.getElementById('score-interpretation').textContent = interpretation;
+            document.getElementById('summary-text').innerHTML = `<p>${summaryText}</p>`;
+
+            // Scroll to summary
+            summary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function resetChallenge() {
+            // Reset state
+            userChoices.length = 0;
+            currentScenario = 1;
+
+            // Hide summary
+            document.getElementById('summary').classList.remove('show');
+
+            // Show first scenario
+            document.getElementById('scenario-1').style.display = 'block';
+            document.getElementById('scenario-1').classList.add('active');
+
+            // Reset all other scenarios
+            for (let i = 2; i <= 5; i++) {
+                const scenario = document.getElementById(`scenario-${i}`);
+                scenario.classList.remove('active');
+                scenario.style.display = 'block';
+
+                // Clear selections and results
+                scenario.querySelectorAll('.choice-btn').forEach(btn => btn.classList.remove('selected'));
+                const result = document.getElementById(`result-${i}`);
+                result.classList.remove('show');
+                result.innerHTML = '';
+            }
+
+            // Clear first scenario result
+            const result1 = document.getElementById('result-1');
+            result1.classList.remove('show');
+            result1.innerHTML = '';
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+
+    <!-- Animated Icon Library -->
+    <script src="/js/icon-library.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.IconLibrary) {
+                document.querySelectorAll('[data-icon]').forEach(function(element) {
+                    var iconName = element.getAttribute('data-icon');
+                    if (iconName) {
+                        var iconHTML = IconLibrary.get(iconName, 20, true);
+                        var span = document.createElement('span');
+                        span.innerHTML = iconHTML;
+                        span.className = 'icon-inline';
+                        span.style.marginRight = '0.5rem';
+                        span.style.display = 'inline-block';
+                        span.style.verticalAlign = 'middle';
+                        element.insertBefore(span, element.firstChild);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
