@@ -3,21 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bitcoin Price Timeline | Interactive Zoom & Time-Travel</title>
-    <meta name="description" content="Explore Bitcoin's complete price history with interactive zoom and time-travel features. See key events, halvings, and market cycles from 2009 to 2025.">
+    <title>Bitcoin Price Timeline | Learn Why Prices Move | Bitcoin Sovereign Academy</title>
+    <meta name="description" content="Interactive Bitcoin price timeline exploring the 'why' behind every major price movement from 2009 to 2025. Understand halving cycles, market events, and adoption milestones.">
 
+    <link rel="stylesheet" href="/css/brand.css">
     <style>
-        :root {
-            --primary-orange: #f7931a;
-            --primary-dark: #1a1a1a;
-            --secondary-dark: #2d2d2d;
-            --text-light: #e0e0e0;
-            --text-dim: #999;
-            --accent-green: #4caf50;
-            --accent-red: #ef4444;
-            --accent-blue: #2196f3;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -25,305 +15,486 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--primary-dark);
-            color: var(--text-light);
+            font-family: var(--font-sans);
+            background: var(--color-bg);
+            color: var(--color-text);
             line-height: 1.6;
             overflow-x: hidden;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
         }
 
+        /* Header */
         header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
             padding-bottom: 2rem;
-            border-bottom: 2px solid var(--primary-orange);
+            border-bottom: 2px solid var(--color-brand);
+        }
+
+        .breadcrumb {
+            font-size: 0.9rem;
+            color: var(--color-muted);
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb a {
+            color: var(--color-brand);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .separator {
+            margin: 0 0.5rem;
+            color: var(--color-muted);
         }
 
         h1 {
             font-size: 2.5rem;
-            color: var(--primary-orange);
+            color: var(--color-brand);
             margin-bottom: 0.5rem;
         }
 
         .subtitle {
+            font-size: 1.2rem;
+            color: var(--color-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Intro Section */
+        .intro-section {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-1);
+        }
+
+        .intro-section h2 {
+            color: var(--color-brand);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .intro-section p {
+            color: var(--color-text);
+            margin-bottom: 1rem;
             font-size: 1.1rem;
-            color: var(--text-dim);
         }
 
-        /* Controls Section */
-        .controls-panel {
-            background: var(--secondary-dark);
-            border: 2px solid rgba(247, 147, 26, 0.3);
-            border-radius: 1rem;
+        .socratic-question {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.1) 0%, rgba(75, 0, 130, 0.1) 100%);
+            border: 2px solid rgba(138, 43, 226, 0.3);
+            border-radius: var(--radius-md);
             padding: 1.5rem;
-            margin-bottom: 2rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-            align-items: center;
-            justify-content: space-between;
+            margin: 1.5rem 0;
+            font-style: italic;
+            font-size: 1.1rem;
+            text-align: center;
         }
 
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+        .socratic-question::before {
+            content: "🤔 ";
+            font-style: normal;
         }
 
-        .control-group label {
-            font-size: 0.85rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        button {
-            padding: 0.75rem 1.5rem;
-            background: var(--primary-orange);
-            color: var(--primary-dark);
-            border: none;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        button:hover {
-            background: #ffb347;
-            transform: translateY(-2px);
-        }
-
-        button.secondary {
-            background: transparent;
-            border: 2px solid var(--primary-orange);
-            color: var(--primary-orange);
-        }
-
-        button.secondary:hover {
-            background: rgba(247, 147, 26, 0.1);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Timeline Container */
-        .timeline-container {
-            background: var(--secondary-dark);
-            border: 2px solid rgba(247, 147, 26, 0.3);
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        #chart-canvas {
-            width: 100%;
-            height: 600px;
-            position: relative;
-        }
-
-        /* Scale Toggle */
-        .scale-toggle {
-            display: flex;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 0.5rem;
-            overflow: hidden;
-        }
-
-        .scale-toggle button {
-            border-radius: 0;
-            padding: 0.5rem 1rem;
-            font-size: 0.85rem;
-        }
-
-        .scale-toggle button.active {
-            background: var(--primary-orange);
-            color: var(--primary-dark);
-        }
-
-        /* Playback Controls */
-        .playback-controls {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        #timeline-slider {
-            flex: 1;
-            height: 6px;
-            background: rgba(247, 147, 26, 0.2);
-            border-radius: 3px;
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        #timeline-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--primary-orange);
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(247, 147, 26, 0.5);
-        }
-
-        #timeline-slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--primary-orange);
-            cursor: pointer;
-            border: none;
-        }
-
-        .speed-control {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .speed-control select {
-            padding: 0.5rem;
-            background: var(--primary-dark);
-            color: var(--text-light);
-            border: 2px solid var(--primary-orange);
-            border-radius: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        /* Info Panel */
-        .info-panel {
-            background: linear-gradient(135deg, rgba(247, 147, 26, 0.1), rgba(247, 147, 26, 0.05));
-            border: 2px solid var(--primary-orange);
-            border-radius: 1rem;
-            padding: 2rem;
+        /* Stats Overview */
+        .stats-overview {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
         }
 
         .stat-card {
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
             text-align: center;
+            box-shadow: var(--shadow-1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-2);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--color-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
         }
 
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
-            color: var(--primary-orange);
+            color: var(--color-brand);
+        }
+
+        .stat-subtext {
+            font-size: 0.9rem;
+            color: var(--color-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Live Price Banner */
+        .live-price-banner {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.15) 0%, rgba(247, 147, 26, 0.05) 100%);
+            border: 2px solid var(--color-brand);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .live-price-banner h3 {
+            color: var(--color-brand);
+            margin-bottom: 1rem;
+        }
+
+        .current-price-display {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--color-brand);
             margin-bottom: 0.5rem;
         }
 
-        .stat-label {
+        .price-source {
             font-size: 0.9rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: var(--color-muted);
         }
 
-        /* Event Markers */
-        .event-marker {
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--primary-orange);
-            border: 2px solid var(--primary-dark);
+        .loading-price {
+            font-size: 1.5rem;
+            color: var(--color-muted);
+        }
+
+        /* Timeline Controls */
+        .timeline-controls {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-1);
+        }
+
+        .filter-button {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--color-brand);
+            border-radius: var(--radius-pill);
+            color: var(--color-brand);
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            z-index: 10;
+            font-size: 0.9rem;
         }
 
-        .event-marker:hover {
-            transform: scale(1.5);
-            box-shadow: 0 0 20px var(--primary-orange);
+        .filter-button:hover {
+            background: rgba(247, 147, 26, 0.1);
+            transform: translateY(-2px);
         }
 
-        .event-marker.halving {
-            background: #FFD700;
+        .filter-button.active {
+            background: var(--color-brand);
+            color: var(--color-bg);
         }
 
-        .event-marker.crash {
-            background: var(--accent-red);
+        /* Timeline Container */
+        .timeline-wrapper {
+            position: relative;
+            margin: 3rem 0;
         }
 
-        .event-marker.adoption {
-            background: var(--accent-green);
-        }
-
-        /* Tooltip */
-        .tooltip {
+        .timeline-line {
             position: absolute;
-            background: var(--secondary-dark);
-            border: 2px solid var(--primary-orange);
-            border-radius: 0.5rem;
-            padding: 1rem;
-            pointer-events: none;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--color-brand) 0%, rgba(247, 147, 26, 0.3) 100%);
+            transform: translateX(-50%);
+            z-index: 0;
+        }
+
+        /* Timeline Event */
+        .timeline-event {
+            position: relative;
+            margin-bottom: 4rem;
             opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 100;
-            max-width: 300px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
         }
 
-        .tooltip.active {
+        .timeline-event.visible {
             opacity: 1;
+            transform: translateY(0);
         }
 
-        .tooltip h4 {
-            color: var(--primary-orange);
+        .timeline-event.left .event-content {
+            margin-right: auto;
+            margin-left: 0;
+            text-align: right;
+        }
+
+        .timeline-event.right .event-content {
+            margin-left: auto;
+            margin-right: 0;
+            text-align: left;
+        }
+
+        .event-content {
+            width: calc(50% - 50px);
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-2);
+            position: relative;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-event:hover .event-content {
+            border-color: var(--color-brand);
+            transform: scale(1.02);
+        }
+
+        /* Event Type Colors */
+        .event-content.halving {
+            border-left: 4px solid #FFD700;
+        }
+
+        .event-content.crash {
+            border-left: 4px solid var(--color-danger);
+        }
+
+        .event-content.adoption {
+            border-left: 4px solid var(--color-success);
+        }
+
+        .event-content.regulation {
+            border-left: 4px solid var(--color-info);
+        }
+
+        /* Timeline Marker */
+        .timeline-marker {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--color-brand);
+            border: 4px solid var(--color-bg);
+            z-index: 10;
+            box-shadow: 0 0 0 4px rgba(247, 147, 26, 0.2);
+        }
+
+        .timeline-marker.halving {
+            background: #FFD700;
+            box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.2);
+        }
+
+        .timeline-marker.crash {
+            background: var(--color-danger);
+            box-shadow: 0 0 0 4px rgba(244, 67, 54, 0.2);
+        }
+
+        .timeline-marker.adoption {
+            background: var(--color-success);
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2);
+        }
+
+        /* Event Header */
+        .event-date {
+            font-size: 0.85rem;
+            color: var(--color-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
             margin-bottom: 0.5rem;
         }
 
-        .tooltip p {
-            font-size: 0.9rem;
-            color: var(--text-light);
+        .event-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-brand);
+            margin-bottom: 0.75rem;
         }
 
-        /* Zoom Instructions */
-        .zoom-instructions {
-            background: rgba(33, 150, 243, 0.1);
-            border: 2px solid var(--accent-blue);
-            border-radius: 0.75rem;
-            padding: 1rem 1.5rem;
+        .event-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+        }
+
+        .event-description {
+            color: var(--color-text);
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .event-why {
+            background: rgba(247, 147, 26, 0.1);
+            border-left: 3px solid var(--color-brand);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: var(--radius-sm);
+        }
+
+        .event-why h4 {
+            color: var(--color-brand);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .event-impact {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .impact-item {
+            text-align: center;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-sm);
+        }
+
+        .impact-label {
+            font-size: 0.75rem;
+            color: var(--color-muted);
+            text-transform: uppercase;
+        }
+
+        .impact-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--color-brand);
+        }
+
+        .impact-value.positive {
+            color: var(--color-success);
+        }
+
+        .impact-value.negative {
+            color: var(--color-danger);
+        }
+
+        /* Key Lessons */
+        .key-lesson {
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(33, 150, 243, 0.05) 100%);
+            border: 2px solid var(--color-info);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .key-lesson h4 {
+            color: var(--color-info);
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .key-lesson p {
+            color: var(--color-text);
+            line-height: 1.7;
+        }
+
+        /* Price Change Badge */
+        .price-change {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius-pill);
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+
+        .price-change.up {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--color-success);
+        }
+
+        .price-change.down {
+            background: rgba(244, 67, 54, 0.2);
+            color: var(--color-danger);
+        }
+
+        /* Summary Section */
+        .summary-section {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: 3rem;
+            margin-top: 4rem;
+            box-shadow: var(--shadow-2);
+        }
+
+        .summary-section h2 {
+            color: var(--color-brand);
+            font-size: 2rem;
             margin-bottom: 2rem;
             text-align: center;
         }
 
-        .zoom-instructions p {
-            color: var(--accent-blue);
-            font-weight: 600;
+        .takeaway-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .takeaway-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+
+        .takeaway-card:hover {
+            border-color: var(--color-brand);
+        }
+
+        .takeaway-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .takeaway-card h3 {
+            color: var(--color-brand);
+            margin-bottom: 1rem;
         }
 
         /* Loading State */
-        .loading {
-            text-align: center;
-            padding: 4rem;
-        }
-
         .loading-spinner {
             border: 4px solid rgba(247, 147, 26, 0.1);
-            border-top: 4px solid var(--primary-orange);
+            border-top: 4px solid var(--color-brand);
             border-radius: 50%;
             width: 50px;
             height: 50px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
+            margin: 2rem auto;
         }
 
         @keyframes spin {
@@ -333,50 +504,44 @@
 
         /* Responsive */
         @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
             h1 {
                 font-size: 1.75rem;
             }
 
-            .controls-panel {
-                flex-direction: column;
+            .timeline-line {
+                left: 20px;
             }
 
-            #chart-canvas {
-                height: 400px;
+            .timeline-event.left .event-content,
+            .timeline-event.right .event-content {
+                width: calc(100% - 50px);
+                margin-left: 50px;
+                margin-right: 0;
+                text-align: left;
             }
 
-            .info-panel {
+            .timeline-marker {
+                left: 20px;
+            }
+
+            .event-price {
+                font-size: 1.5rem;
+            }
+
+            .current-price-display {
+                font-size: 2rem;
+            }
+
+            .stats-overview {
                 grid-template-columns: 1fr;
-                gap: 1rem;
             }
         }
 
-        /* ===== ACCESSIBILITY ENHANCEMENTS (WCAG 2.1 AA) ===== */
-
-        /* 1. Improved Color Contrast (WCAG 1.4.3) */
-        :root {
-            --text-dim: #b3b3b3; /* Changed from #888 for better contrast (4.6:1) */
-        }
-
-        /* 2. Touch Targets (WCAG 2.5.5) */
-        button, a, [role="button"], input[type="button"], input[type="submit"], select {
-            min-height: 44px;
-            min-width: 44px;
-        }
-
-        /* 3. Focus Indicators (WCAG 2.4.7) */
-        *:focus-visible {
-            outline: 3px solid var(--primary-orange, #f7931a);
-            outline-offset: 2px;
-        }
-
-        button:focus-visible, a:focus-visible, select:focus-visible {
-            outline: 3px solid var(--primary-orange, #f7931a);
-            outline-offset: 4px;
-            box-shadow: 0 0 0 4px rgba(247, 147, 26, 0.2);
-        }
-
-        /* 4. Reduced Motion (WCAG 2.3.3) */
+        /* Accessibility */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -385,216 +550,479 @@
             }
         }
 
-        /* 5. Mobile Reflow (WCAG 1.4.10) */
-        @media (max-width: 360px) {
-            body {
-                overflow-x: hidden;
-            }
+        /* Skip Link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--color-brand);
+            color: var(--color-bg);
+            padding: 12px 20px;
+            text-decoration: none;
+            font-weight: 600;
+            z-index: 10001;
+            border-radius: 0 0 4px 0;
+        }
+
+        .skip-link:focus {
+            top: 0;
         }
     </style>
     <link rel="stylesheet" href="/css/icons.css">
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <script src="/js/config.js"></script>
     <script src="/js/demo-lock-subdomain.js"></script>
     <script src="/js/subdomain-access-control.js"></script>
 
-
-
     <div class="container">
         <header>
-            <h1><span data-icon="trending-up"></span> Bitcoin Price Timeline</h1>
-            <p class="subtitle">Live price from CoinCap/Blockchain.com APIs • Complete historical data • Zoom, pan, and time-travel through price history</p>
+            <div class="breadcrumb">
+                <a href="/index.html">Home</a>
+                <span class="separator">›</span>
+                <a href="../index.html">Interactive Demos</a>
+                <span class="separator">›</span>
+                <span>Bitcoin Price Timeline</span>
+            </div>
+            <h1>Bitcoin Price Timeline</h1>
+            <p class="subtitle">Explore the "why" behind every major price movement from 2009 to today</p>
         </header>
 
-        <div class="zoom-instructions">
-            <p><span data-icon="lightbulb"></span> Scroll to zoom • Drag to pan • Click events for details • Use playback to animate through time</p>
-        </div>
+        <main id="main-content">
+            <!-- Intro Section -->
+            <section class="intro-section">
+                <h2>Understanding Bitcoin's Price Journey</h2>
+                <p>Bitcoin's price doesn't move randomly. Every major shift tells a story about human psychology, technological progress, economic crises, and the slow march toward monetary sovereignty.</p>
 
-        <!-- Controls Panel -->
-        <div class="controls-panel">
-            <div class="control-group">
-                <label>Price Scale</label>
-                <div class="scale-toggle">
-                    <button class="active" id="btn-log">Logarithmic</button>
-                    <button id="btn-linear">Linear</button>
+                <div class="socratic-question">
+                    If Bitcoin's price has crashed over 80% multiple times, yet always recovered to new highs, what does this tell you about its fundamental value proposition?
                 </div>
-            </div>
 
-            <div class="control-group">
-                <label>Time Period</label>
-                <div class="btn-group">
-                    <button class="secondary" id="btn-all-time">All Time</button>
-                    <button class="secondary" id="btn-4yr">4 Year Cycle</button>
-                    <button class="secondary" id="btn-1yr">1 Year</button>
-                    <button class="secondary" id="btn-ytd">YTD</button>
+                <p>This timeline explores not just <em>what</em> happened to Bitcoin's price, but <strong>why</strong> it happened. Each milestone teaches us about market cycles, human behavior, and the unstoppable nature of sound money.</p>
+            </section>
+
+            <!-- Live Price -->
+            <section class="live-price-banner" id="live-price-section">
+                <h3>Current Bitcoin Price</h3>
+                <div class="current-price-display" id="current-price">
+                    <div class="loading-spinner"></div>
+                    <span class="loading-price">Loading...</span>
                 </div>
-            </div>
+                <div class="price-source" id="price-source">Fetching from CoinCap API...</div>
+            </section>
 
-            <div class="control-group">
-                <label>Overlays</label>
-                <div class="btn-group">
-                    <button class="secondary" id="btn-halvings">Halvings</button>
-                    <button class="secondary" id="btn-events">Key Events</button>
-                    <button class="secondary" id="btn-cycles">Market Cycles</button>
+            <!-- Stats Overview -->
+            <section class="stats-overview" id="stats-overview">
+                <div class="stat-card">
+                    <div class="stat-label">All-Time High</div>
+                    <div class="stat-value" id="ath-price">$73,800</div>
+                    <div class="stat-subtext">March 2024</div>
                 </div>
-            </div>
-        </div>
+                <div class="stat-card">
+                    <div class="stat-label">Days Since Genesis</div>
+                    <div class="stat-value" id="days-elapsed">---</div>
+                    <div class="stat-subtext">January 3, 2009</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Halvings Completed</div>
+                    <div class="stat-value">4</div>
+                    <div class="stat-subtext">April 2024</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">ROI from $1</div>
+                    <div class="stat-value" id="roi-value">---</div>
+                    <div class="stat-subtext">February 2011</div>
+                </div>
+            </section>
 
-        <!-- Playback Controls -->
-        <div class="controls-panel playback-controls">
-            <button id="btn-play">▶️ Play</button>
-            <button id="btn-pause" disabled>⏸️ Pause</button>
-            <button id="btn-reset">↺ Reset</button>
-            <input type="range" id="timeline-slider" min="0" max="100" value="0">
-            <div class="speed-control">
-                <label>Speed:</label>
-                <select id="speed-select">
-                    <option value="0.5">0.5x</option>
-                    <option value="1" selected>1x</option>
-                    <option value="2">2x</option>
-                    <option value="5">5x</option>
-                    <option value="10">10x</option>
-                </select>
-            </div>
-            <span id="current-date">2009-01-03</span>
-        </div>
+            <!-- Timeline Controls -->
+            <section class="timeline-controls">
+                <button class="filter-button active" data-filter="all">All Events</button>
+                <button class="filter-button" data-filter="halving">Halvings</button>
+                <button class="filter-button" data-filter="adoption">Adoption</button>
+                <button class="filter-button" data-filter="crash">Crashes</button>
+                <button class="filter-button" data-filter="regulation">Regulation</button>
+            </section>
 
-        <!-- Chart Container -->
-        <div class="timeline-container">
-            <canvas id="chart-canvas"></canvas>
-            <div class="tooltip" id="tooltip">
-                <h4 id="tooltip-title"></h4>
-                <p id="tooltip-content"></p>
-            </div>
-        </div>
+            <!-- Timeline -->
+            <section class="timeline-wrapper">
+                <div class="timeline-line" aria-hidden="true"></div>
+                <div id="timeline-events">
+                    <!-- Events will be populated by JavaScript -->
+                </div>
+            </section>
 
-        <!-- Info Panel -->
-        <div class="info-panel">
-            <div class="stat-card">
-                <div class="stat-value" id="current-price">$0.00</div>
-                <div class="stat-label">Current Price</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="price-change">+0%</div>
-                <div class="stat-label">Gain from $1 (Feb 2011)</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="all-time-high">$73,800</div>
-                <div class="stat-label">All-Time High</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="halving-count">4</div>
-                <div class="stat-label">Halvings Completed</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="days-elapsed">0</div>
-                <div class="stat-label">Days Since Genesis</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="roi">∞</div>
-                <div class="stat-label">ROI from $1</div>
-            </div>
-        </div>
+            <!-- Summary -->
+            <section class="summary-section">
+                <h2>Key Takeaways from Bitcoin's Price History</h2>
 
-        <div class="loading" id="loading">
-            <div class="loading-spinner"></div>
-            <p>Fetching live Bitcoin price data from CoinGecko API...</p>
-            <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.5rem;">Loading complete price history since 2013</p>
-        </div>
+                <div class="takeaway-grid">
+                    <div class="takeaway-card">
+                        <div class="takeaway-icon">🔄</div>
+                        <h3>4-Year Cycles</h3>
+                        <p>Bitcoin follows predictable 4-year halving cycles. Each cycle sees exponential growth followed by a correction, then consolidation before the next cycle.</p>
+                    </div>
+
+                    <div class="takeaway-card">
+                        <div class="takeaway-icon">📈</div>
+                        <h3>Long-Term Trend</h3>
+                        <p>Despite 80%+ crashes, Bitcoin has maintained an upward trajectory for 15+ years. Every all-time high is eventually surpassed.</p>
+                    </div>
+
+                    <div class="takeaway-card">
+                        <div class="takeaway-icon">💪</div>
+                        <h3>Anti-Fragile</h3>
+                        <p>Each crisis (Mt. Gox, China bans, FTX collapse) was predicted to "kill" Bitcoin. Each time, the network emerged stronger.</p>
+                    </div>
+
+                    <div class="takeaway-card">
+                        <div class="takeaway-icon">🌍</div>
+                        <h3>Global Adoption</h3>
+                        <p>Price reflects growing institutional adoption: from criminals to El Salvador to BlackRock ETFs.</p>
+                    </div>
+                </div>
+
+                <div class="socratic-question" style="margin-top: 2rem;">
+                    Looking at this timeline, which matters more for Bitcoin's long-term success: short-term price movements or the unstoppable growth of the network and adoption?
+                </div>
+            </section>
+        </main>
     </div>
 
     <script>
-        // Bitcoin Price Timeline Visualization with Zoom & Time-Travel
-        // Data structure for key events
-        const keyEvents = [
-            { date: '2009-01-03', type: 'genesis', title: 'Genesis Block', desc: 'Bitcoin network launches with block 0' },
-            { date: '2010-05-22', type: 'adoption', title: 'Bitcoin Pizza Day', desc: '10,000 BTC for 2 pizzas ($41)' },
-            { date: '2011-06-09', type: 'crash', title: 'First Major Drop', desc: 'Price crashes from $32 to $0.01' },
-            { date: '2012-11-28', type: 'halving', title: '1st Halving', desc: 'Block reward reduced to 25 BTC' },
-            { date: '2013-11-30', type: 'adoption', title: '$1,000 Milestone', desc: 'Bitcoin reaches $1,000 for first time' },
-            { date: '2014-02-24', type: 'crash', title: 'Mt. Gox Collapse', desc: '850,000 BTC stolen, price drops 50%' },
-            { date: '2016-07-09', type: 'halving', title: '2nd Halving', desc: 'Block reward reduced to 12.5 BTC' },
-            { date: '2017-12-17', type: 'adoption', title: '$20K ATH', desc: 'Bitcoin reaches $20,000 all-time high' },
-            { date: '2018-12-15', type: 'crash', title: 'Crypto Winter', desc: 'Price drops 84% from ATH to $3,200' },
-            { date: '2020-03-12', type: 'crash', title: 'COVID-19 Crash', desc: 'Black Thursday: 50% drop in one day' },
-            { date: '2020-05-11', type: 'halving', title: '3rd Halving', desc: 'Block reward reduced to 6.25 BTC' },
-            { date: '2021-04-14', type: 'adoption', title: 'Coinbase IPO', desc: 'Coinbase goes public on NASDAQ' },
-            { date: '2021-11-10', type: 'adoption', title: '$69K ATH', desc: 'Bitcoin reaches $69,000 all-time high (Nov 2021)' },
-            { date: '2022-05-09', type: 'crash', title: 'Terra/Luna Collapse', desc: 'Algorithmic stablecoin UST fails, $40B wiped out' },
-            { date: '2022-11-09', type: 'crash', title: 'FTX Collapse', desc: 'FTX exchange implodes, $8B missing' },
-            { date: '2024-03-14', type: 'adoption', title: '$73.8K New ATH', desc: 'Bitcoin breaks previous ATH, reaches $73,800' },
-            { date: '2024-04-20', type: 'halving', title: '4th Halving', desc: 'Block reward reduced to 3.125 BTC' }
+        // Timeline Events Data
+        const timelineEvents = [
+            {
+                date: '2009-01-03',
+                type: 'genesis',
+                category: 'adoption',
+                title: 'Genesis Block',
+                price: '$0.00',
+                priceValue: 0,
+                description: 'Satoshi Nakamoto mines the first Bitcoin block, embedding "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks" in the coinbase.',
+                why: 'Bitcoin was born from the 2008 financial crisis as a response to bank bailouts and central bank manipulation.',
+                lesson: 'Bitcoin is more than technology - it\'s a monetary revolution born from necessity.',
+                impact: []
+            },
+            {
+                date: '2010-05-22',
+                type: 'adoption',
+                category: 'adoption',
+                title: 'Bitcoin Pizza Day',
+                price: '$0.0041',
+                priceValue: 0.0041,
+                priceChange: null,
+                description: 'Laszlo Hanyecz pays 10,000 BTC for two pizzas - the first real-world Bitcoin transaction.',
+                why: 'This proved Bitcoin could be used as a medium of exchange, not just a digital experiment.',
+                lesson: 'Those pizzas are worth over $700 million today. Early Bitcoin was cheap, but its potential was already clear to those paying attention.',
+                impact: [
+                    { label: 'Price', value: '$0.0041' },
+                    { label: 'Pizza Cost', value: '10,000 BTC' }
+                ]
+            },
+            {
+                date: '2011-02-09',
+                type: 'adoption',
+                category: 'adoption',
+                title: 'Bitcoin Reaches $1',
+                price: '$1.00',
+                priceValue: 1,
+                priceChange: '+24,390%',
+                description: 'Bitcoin crosses the symbolic $1 threshold, gaining media attention and early adopters.',
+                why: 'Parity with the dollar proved Bitcoin could function as real money, not just a toy.',
+                lesson: 'From $0.0041 to $1 in less than a year. Early believers saw 24,000% gains.',
+                impact: [
+                    { label: 'Price', value: '$1.00' },
+                    { label: 'From Pizza Day', value: '+24,390%', positive: true }
+                ]
+            },
+            {
+                date: '2011-06-09',
+                type: 'crash',
+                category: 'crash',
+                title: 'First Major Crash',
+                price: '$0.01',
+                priceValue: 0.01,
+                priceChange: '-99%',
+                description: 'After reaching $32, Mt. Gox exchange is hacked and Bitcoin crashes to $0.01 briefly.',
+                why: 'Weak exchange security and thin liquidity made early Bitcoin extremely volatile.',
+                lesson: 'The first of many "Bitcoin is dead" proclamations. Volatility is the price of being early to revolutionary technology.',
+                impact: [
+                    { label: 'Price Drop', value: '-99%', negative: true },
+                    { label: 'Recovery', value: '6 months' }
+                ]
+            },
+            {
+                date: '2012-11-28',
+                type: 'halving',
+                category: 'halving',
+                title: 'First Halving',
+                price: '$12.50',
+                priceValue: 12.50,
+                priceChange: null,
+                description: 'Block reward reduced from 50 BTC to 25 BTC. Bitcoin\'s programmatic scarcity kicks in.',
+                why: 'Halving cuts new supply issuance by 50%, creating supply shock economics.',
+                lesson: 'This established the 4-year cycle pattern that has defined Bitcoin\'s price movements ever since.',
+                impact: [
+                    { label: 'Block Reward', value: '25 BTC' },
+                    { label: 'Inflation Rate', value: '~12%' }
+                ]
+            },
+            {
+                date: '2013-11-30',
+                type: 'adoption',
+                category: 'adoption',
+                title: '$1,000 Milestone',
+                price: '$1,000',
+                priceValue: 1000,
+                priceChange: '+7,900% from halving',
+                description: 'Bitcoin crosses $1,000 for the first time during the 2013 bull run.',
+                why: 'First halving supply shock + Cyprus banking crisis driving awareness = explosive growth.',
+                lesson: 'Post-halving bull markets can generate 100x returns. This pattern repeats every cycle.',
+                impact: [
+                    { label: 'Price', value: '$1,000' },
+                    { label: 'From Halving', value: '+7,900%', positive: true }
+                ]
+            },
+            {
+                date: '2014-02-24',
+                type: 'crash',
+                category: 'crash',
+                title: 'Mt. Gox Collapse',
+                price: '$600',
+                priceValue: 600,
+                priceChange: '-87% from peak',
+                description: '850,000 BTC stolen from Mt. Gox exchange, which files for bankruptcy.',
+                why: 'Centralized custody is a single point of failure. Not your keys, not your coins.',
+                lesson: 'The hardest Bitcoin lesson: self-custody is non-negotiable. Trusting exchanges is trusting humans.',
+                impact: [
+                    { label: 'Price Drop', value: '-87%', negative: true },
+                    { label: 'BTC Lost', value: '850,000 BTC' }
+                ]
+            },
+            {
+                date: '2016-07-09',
+                type: 'halving',
+                category: 'halving',
+                title: 'Second Halving',
+                price: '$650',
+                priceValue: 650,
+                priceChange: null,
+                description: 'Block reward reduced from 25 BTC to 12.5 BTC.',
+                why: 'Supply shock economics in action. Daily new BTC cut from 3,600 to 1,800.',
+                lesson: 'The pattern continues: halving → 12-18 month lag → massive bull run.',
+                impact: [
+                    { label: 'Block Reward', value: '12.5 BTC' },
+                    { label: 'Inflation Rate', value: '~4%' }
+                ]
+            },
+            {
+                date: '2017-12-17',
+                type: 'adoption',
+                category: 'adoption',
+                title: '$20K All-Time High',
+                price: '$20,000',
+                priceValue: 20000,
+                priceChange: '+2,976% from halving',
+                description: 'Bitcoin reaches $20,000, mainstream media frenzy, your relatives ask how to buy.',
+                why: 'Post-halving supply shock + retail FOMO + institutional curiosity = parabolic move.',
+                lesson: 'Peak euphoria is when everyone is buying. Smart money accumulates during bear markets.',
+                impact: [
+                    { label: 'Price', value: '$20,000' },
+                    { label: 'From Halving', value: '+2,976%', positive: true }
+                ]
+            },
+            {
+                date: '2018-12-15',
+                type: 'crash',
+                category: 'crash',
+                title: 'Crypto Winter',
+                price: '$3,200',
+                priceValue: 3200,
+                priceChange: '-84% from ATH',
+                description: 'Bitcoin crashes 84% from all-time high. Media declares "Bitcoin is dead" (again).',
+                why: 'Post-bubble correction. Weak hands exit, strong hands accumulate.',
+                lesson: 'Every cycle has an 80%+ drawdown. This is normal. Zoom out.',
+                impact: [
+                    { label: 'Price Drop', value: '-84%', negative: true },
+                    { label: 'Bottom Duration', value: '12 months' }
+                ]
+            },
+            {
+                date: '2020-03-12',
+                type: 'crash',
+                category: 'crash',
+                title: 'COVID-19 Black Thursday',
+                price: '$3,850',
+                priceValue: 3850,
+                priceChange: '-50% in 24 hours',
+                description: 'Global pandemic panic causes a 50% Bitcoin crash in a single day.',
+                why: 'Systemic shock caused liquidity crisis across all markets. Everything sold off.',
+                lesson: 'Bitcoin recovered within weeks while central banks printed trillions. This accelerated institutional adoption.',
+                impact: [
+                    { label: 'Intraday Drop', value: '-50%', negative: true },
+                    { label: 'Recovery', value: '3 weeks' }
+                ]
+            },
+            {
+                date: '2020-05-11',
+                type: 'halving',
+                category: 'halving',
+                title: 'Third Halving',
+                price: '$8,700',
+                priceValue: 8700,
+                priceChange: null,
+                description: 'Block reward reduced from 12.5 BTC to 6.25 BTC during pandemic.',
+                why: 'Halving + unlimited QE + growing institutional interest = perfect storm.',
+                lesson: 'This halving coincided with the largest money printing event in history. Bitcoin\'s value proposition never clearer.',
+                impact: [
+                    { label: 'Block Reward', value: '6.25 BTC' },
+                    { label: 'Inflation Rate', value: '~1.8%' }
+                ]
+            },
+            {
+                date: '2021-04-14',
+                type: 'adoption',
+                category: 'adoption',
+                title: 'Coinbase IPO',
+                price: '$63,000',
+                priceValue: 63000,
+                priceChange: '+624% from halving',
+                description: 'Coinbase goes public on NASDAQ, legitimizing cryptocurrency in traditional finance.',
+                why: 'Institutional validation. Bitcoin is now Wall Street-approved.',
+                lesson: 'From cypherpunk experiment to publicly traded company in 12 years.',
+                impact: [
+                    { label: 'Price', value: '$63,000' },
+                    { label: 'Coinbase Valuation', value: '$85B' }
+                ]
+            },
+            {
+                date: '2021-11-10',
+                type: 'adoption',
+                category: 'adoption',
+                title: '$69K All-Time High',
+                price: '$69,000',
+                priceValue: 69000,
+                priceChange: '+693% from halving',
+                description: 'Bitcoin reaches $69,000 all-time high during peak institutional adoption.',
+                why: 'Post-halving supply shock + institutional buying + retail FOMO + inflation fears.',
+                lesson: 'Another 4-year cycle peak. The pattern holds.',
+                impact: [
+                    { label: 'Price', value: '$69,000' },
+                    { label: 'From Halving', value: '+693%', positive: true }
+                ]
+            },
+            {
+                date: '2022-05-09',
+                type: 'crash',
+                category: 'crash',
+                title: 'Terra/Luna Collapse',
+                price: '$30,000',
+                priceValue: 30000,
+                priceChange: '-56% from ATH',
+                description: 'Algorithmic stablecoin UST fails, wiping out $40B and triggering contagion.',
+                why: 'Ponzi economics disguised as innovation. You can\'t create stability from thin air.',
+                lesson: 'Bitcoin doesn\'t have a charismatic CEO or algorithmic gimmicks. It just works.',
+                impact: [
+                    { label: 'Price Drop', value: '-56%', negative: true },
+                    { label: 'Value Destroyed', value: '$40B' }
+                ]
+            },
+            {
+                date: '2022-11-09',
+                type: 'crash',
+                category: 'crash',
+                title: 'FTX Collapse',
+                price: '$15,900',
+                priceValue: 15900,
+                priceChange: '-77% from ATH',
+                description: 'FTX exchange implodes, $8B missing, Sam Bankman-Fried arrested for fraud.',
+                why: 'Centralized exchanges using customer funds for risky bets. Mt. Gox lesson not learned.',
+                lesson: 'Not your keys, not your coins - still true. Self-custody is the only way.',
+                impact: [
+                    { label: 'Price Drop', value: '-77%', negative: true },
+                    { label: 'Funds Missing', value: '$8B' }
+                ]
+            },
+            {
+                date: '2024-01-10',
+                type: 'regulation',
+                category: 'regulation',
+                title: 'Bitcoin ETF Approval',
+                price: '$46,000',
+                priceValue: 46000,
+                priceChange: '+189% from FTX low',
+                description: 'SEC approves spot Bitcoin ETFs from BlackRock, Fidelity, and others.',
+                why: 'Institutional access simplified. Now anyone with a brokerage account can own Bitcoin exposure.',
+                lesson: 'Bitcoin\'s path from cypherpunk toy to regulated financial product in 15 years.',
+                impact: [
+                    { label: 'Price', value: '$46,000' },
+                    { label: 'From FTX Low', value: '+189%', positive: true }
+                ]
+            },
+            {
+                date: '2024-03-14',
+                type: 'adoption',
+                category: 'adoption',
+                title: '$73,800 New All-Time High',
+                price: '$73,800',
+                priceValue: 73800,
+                priceChange: '+7% from previous ATH',
+                description: 'Bitcoin breaks through previous all-time high BEFORE the halving for the first time.',
+                why: 'ETF inflows + upcoming halving anticipation + institutional adoption = new paradigm.',
+                lesson: 'Breaking ATH before halving suggests this cycle is different. Institutional buying changes the game.',
+                impact: [
+                    { label: 'Price', value: '$73,800' },
+                    { label: 'Market Cap', value: '$1.4T' }
+                ]
+            },
+            {
+                date: '2024-04-20',
+                type: 'halving',
+                category: 'halving',
+                title: 'Fourth Halving',
+                price: '$64,000',
+                priceValue: 64000,
+                priceChange: null,
+                description: 'Block reward reduced from 6.25 BTC to 3.125 BTC.',
+                why: 'Supply issuance now lower than gold. Bitcoin officially harder than any asset in history.',
+                lesson: 'If the pattern holds, we\'re at the start of another 12-18 month bull run.',
+                impact: [
+                    { label: 'Block Reward', value: '3.125 BTC' },
+                    { label: 'Inflation Rate', value: '<0.9%' }
+                ]
+            }
         ];
 
-        // Add "Today" marker dynamically based on current date
-        const today = new Date();
-        keyEvents.push({
-            date: today.toISOString().split('T')[0],
-            type: 'adoption',
-            title: 'Today',
-            desc: `Current price updated live from CoinGecko API`
+        // Global state
+        let currentFilter = 'all';
+        let currentPrice = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Fetch current price
+            await fetchCurrentPrice();
+
+            // Calculate days since genesis
+            calculateDaysSinceGenesis();
+
+            // Render timeline
+            renderTimeline();
+
+            // Setup filter buttons
+            setupFilters();
+
+            // Setup scroll reveal
+            setupScrollReveal();
+
+            // Update ROI
+            updateROI();
         });
 
-        // Cache management utilities
-        const CACHE_KEYS = {
-            CURRENT_PRICE: 'btc_current_price_cache',
-            HISTORICAL_DATA: 'btc_historical_data_cache'
-        };
-
-        const CACHE_DURATION = {
-            CURRENT_PRICE: 5 * 60 * 1000,      // 5 minutes for current price
-            HISTORICAL_DATA: 24 * 60 * 60 * 1000  // 24 hours for historical data
-        };
-
-        function getCachedData(key) {
-            try {
-                const cached = localStorage.getItem(key);
-                if (!cached) return null;
-
-                const { data, timestamp } = JSON.parse(cached);
-                const age = Date.now() - timestamp;
-
-                // Determine cache duration based on key
-                const maxAge = key === CACHE_KEYS.CURRENT_PRICE ?
-                    CACHE_DURATION.CURRENT_PRICE :
-                    CACHE_DURATION.HISTORICAL_DATA;
-
-                if (age < maxAge) {
-                    const minutesOld = Math.floor(age / 60000);
-                    console.log(`📦 Using cached ${key} (${minutesOld} min old)`);
-                    return data;
-                }
-
-                // Cache expired
-                localStorage.removeItem(key);
-                return null;
-            } catch (error) {
-                console.warn('Cache read error:', error);
-                return null;
-            }
-        }
-
-        function setCachedData(key, data) {
-            try {
-                const cacheEntry = {
-                    data: data,
-                    timestamp: Date.now()
-                };
-                localStorage.setItem(key, JSON.stringify(cacheEntry));
-            } catch (error) {
-                console.warn('Cache write error:', error);
-            }
-        }
-
-        // Fetch current Bitcoin price from multiple sources for accuracy
-        async function getCurrentBitcoinPrice() {
-            // Check cache first
-            const cached = getCachedData(CACHE_KEYS.CURRENT_PRICE);
-            if (cached !== null) {
-                return cached;
-            }
-
+        // Fetch current Bitcoin price
+        async function fetchCurrentPrice() {
             const sources = [
                 {
                     name: 'CoinCap',
@@ -605,7 +1033,7 @@
                     }
                 },
                 {
-                    name: 'Blockchain.com',
+                    name: 'Blockchain.info',
                     fetch: async () => {
                         const response = await fetch('https://blockchain.info/ticker');
                         const data = await response.json();
@@ -622,700 +1050,168 @@
                 }
             ];
 
-            // Try each source until one succeeds
             for (const source of sources) {
                 try {
                     const price = await source.fetch();
-                    console.log(`✅ Current price from ${source.name}: $${price.toFixed(2)}`);
-
-                    // Cache the successful result
-                    setCachedData(CACHE_KEYS.CURRENT_PRICE, price);
-
-                    return price;
+                    currentPrice = price;
+                    displayCurrentPrice(price, source.name);
+                    return;
                 } catch (error) {
-                    console.warn(`⚠️ ${source.name} failed:`, error.message);
+                    console.warn(`Failed to fetch from ${source.name}:`, error);
                 }
             }
 
-            // If all sources fail, return null
-            console.error('❌ All price sources failed');
-            return null;
+            // Fallback if all APIs fail
+            displayCurrentPrice(73800, 'Fallback');
         }
 
-        // Fetch real Bitcoin price data
-        async function fetchBitcoinPriceData() {
-            try {
-                console.log('Fetching Bitcoin price data...');
+        function displayCurrentPrice(price, source) {
+            const priceEl = document.getElementById('current-price');
+            const sourceEl = document.getElementById('price-source');
 
-                // Check cache for historical data first
-                const cachedHistorical = getCachedData(CACHE_KEYS.HISTORICAL_DATA);
+            priceEl.innerHTML = `$${price.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+            sourceEl.textContent = `Live data from ${source}`;
+        }
 
-                // First, get current accurate price (already uses cache internally)
-                const currentPrice = await getCurrentBitcoinPrice();
+        function calculateDaysSinceGenesis() {
+            const genesis = new Date('2009-01-03');
+            const today = new Date();
+            const days = Math.floor((today - genesis) / (1000 * 60 * 60 * 24));
+            document.getElementById('days-elapsed').textContent = days.toLocaleString();
+        }
 
-                // If we have cached historical data, just update the current price
-                if (cachedHistorical && currentPrice) {
-                    let data = cachedHistorical.map(item => ({
-                        date: new Date(item.date),
-                        price: item.price
-                    }));
-
-                    // Update today's price
-                    const today = new Date();
-                    const lastDataPoint = data[data.length - 1];
-                    const lastDate = new Date(lastDataPoint.date);
-
-                    if (lastDate.toDateString() === today.toDateString()) {
-                        data[data.length - 1].price = currentPrice;
-                    } else {
-                        data.push({ date: today, price: currentPrice });
-                    }
-
-                    console.log(`✅ Using cached historical data with updated current price`);
-                    return data;
+        function updateROI() {
+            if (currentPrice) {
+                const roi = (currentPrice / 1).toFixed(0);
+                const roiEl = document.getElementById('roi-value');
+                if (roi >= 1000000) {
+                    roiEl.textContent = `${(roi / 1000000).toFixed(1)}M x`;
+                } else if (roi >= 1000) {
+                    roiEl.textContent = `${(roi / 1000).toFixed(0)}K x`;
+                } else {
+                    roiEl.textContent = `${roi}x`;
                 }
-
-                // Fetch historical data from CoinGecko
-                const response = await fetch(
-                    'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=max&interval=daily'
-                );
-
-                if (!response.ok) {
-                    throw new Error(`API request failed: ${response.status}`);
-                }
-
-                const apiData = await response.json();
-
-                // Convert API data to our format
-                let data = apiData.prices.map(([timestamp, price]) => ({
-                    date: new Date(timestamp),
-                    price: price
-                }));
-
-                // Replace the last data point with accurate current price if available
-                if (currentPrice) {
-                    const today = new Date();
-                    // Update or add today's price
-                    const lastDataPoint = data[data.length - 1];
-                    const lastDate = new Date(lastDataPoint.date);
-
-                    // If last data point is today, update it
-                    if (lastDate.toDateString() === today.toDateString()) {
-                        data[data.length - 1].price = currentPrice;
-                    } else {
-                        // Add today's price
-                        data.push({
-                            date: today,
-                            price: currentPrice
-                        });
-                    }
-                }
-
-                // Cache the historical data
-                setCachedData(CACHE_KEYS.HISTORICAL_DATA, data);
-
-                console.log(`✅ Loaded ${data.length} days of Bitcoin price data`);
-                console.log(`📊 Date range: ${data[0].date.toLocaleDateString()} to ${data[data.length-1].date.toLocaleDateString()}`);
-                console.log(`💰 Current price (verified): $${data[data.length-1].price.toFixed(2)}`);
-
-                return data;
-
-            } catch (error) {
-                console.error('❌ Failed to fetch live Bitcoin data:', error);
-                console.log('📦 Using fallback historical data...');
-
-                // Fallback to hardcoded data if API fails
-                return generateFallbackData();
             }
         }
 
-        // Fallback data in case API is unavailable
-        function generateFallbackData() {
-            // Key historical price snapshots
-            const monthlyPrices = [
-                { date: '2013-04-28', price: 135 },
-                { date: '2013-11-30', price: 1163 },
-                { date: '2015-01-14', price: 177 },
-                { date: '2016-01-01', price: 434 },
-                { date: '2017-01-01', price: 1003 },
-                { date: '2017-12-17', price: 19783 },
-                { date: '2018-12-15', price: 3200 },
-                { date: '2019-06-26', price: 12900 },
-                { date: '2020-03-12', price: 3850 },
-                { date: '2020-12-31', price: 28990 },
-                { date: '2021-04-14', price: 63000 },
-                { date: '2021-11-10', price: 69000 },
-                { date: '2022-11-09', price: 15900 },
-                { date: '2023-12-31', price: 42200 },
-                { date: '2024-03-14', price: 73800 },
-                { date: '2024-10-20', price: 67500 }
-            ];
+        function renderTimeline() {
+            const container = document.getElementById('timeline-events');
+            container.innerHTML = '';
 
-            // Interpolate daily data
-            const data = [];
-            for (let i = 0; i < monthlyPrices.length - 1; i++) {
-                const start = monthlyPrices[i];
-                const end = monthlyPrices[i + 1];
-                const startDate = new Date(start.date);
-                const endDate = new Date(end.date);
-                const daysDiff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+            const filteredEvents = currentFilter === 'all'
+                ? timelineEvents
+                : timelineEvents.filter(e => e.category === currentFilter);
 
-                for (let day = 0; day <= daysDiff; day++) {
-                    const currentDate = new Date(startDate);
-                    currentDate.setDate(currentDate.getDate() + day);
-                    const progress = day / daysDiff;
-                    const basePrice = start.price + (end.price - start.price) * progress;
-                    const volatility = 1 + (Math.random() - 0.5) * 0.06;
-
-                    data.push({
-                        date: new Date(currentDate),
-                        price: Math.max(0, basePrice * volatility)
-                    });
-                }
-            }
-
-            return data;
+            filteredEvents.forEach((event, index) => {
+                const eventEl = createTimelineEvent(event, index);
+                container.appendChild(eventEl);
+            });
         }
 
-        // Application state
-        let state = {
-            data: [],
-            currentIndex: 0,
-            isPlaying: false,
-            speed: 1,
-            scale: 'log',
-            visibleStart: 0,
-            visibleEnd: 0,
-            overlays: {
-                halvings: true,
-                events: true,
-                cycles: false
+        function createTimelineEvent(event, index) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `timeline-event ${index % 2 === 0 ? 'left' : 'right'}`;
+            wrapper.dataset.category = event.category;
+
+            const marker = document.createElement('div');
+            marker.className = `timeline-marker ${event.type}`;
+            marker.setAttribute('aria-hidden', 'true');
+
+            const content = document.createElement('div');
+            content.className = `event-content ${event.type}`;
+
+            let html = `
+                <div class="event-date">${formatDate(event.date)}</div>
+                <h3 class="event-title">${event.title}</h3>
+                <div class="event-price">${event.price}</div>
+            `;
+
+            if (event.priceChange) {
+                const isPositive = event.priceChange.includes('+');
+                html += `<div class="price-change ${isPositive ? 'up' : 'down'}">${event.priceChange}</div>`;
             }
-        };
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                // Fetch real Bitcoin price data from API
-                state.data = await fetchBitcoinPriceData();
-                state.visibleEnd = state.data.length - 1;
+            html += `<p class="event-description">${event.description}</p>`;
 
-                // Hide loading
-                document.getElementById('loading').style.display = 'none';
-
-                // Setup canvas
-                setupCanvas();
-
-                // Setup event listeners
-                setupControls();
-
-                // Initial render
-                render();
-
-            } catch (error) {
-                console.error('Failed to initialize visualization:', error);
-                document.getElementById('loading').innerHTML = `
-                    <p style="color: #ef4444;">Failed to load Bitcoin price data. Please refresh the page.</p>
+            if (event.why) {
+                html += `
+                    <div class="event-why">
+                        <h4>Why This Happened</h4>
+                        <p>${event.why}</p>
+                    </div>
                 `;
             }
-        });
 
-        function setupCanvas() {
-            const canvas = document.getElementById('chart-canvas');
-            const container = canvas.parentElement;
-
-            // Set canvas size
-            canvas.width = container.clientWidth - 64; // account for padding
-            canvas.height = 600;
-
-            // Enable mouse interactions
-            canvas.addEventListener('wheel', handleZoom);
-            canvas.addEventListener('mousedown', handlePanStart);
-            canvas.addEventListener('mousemove', handlePanMove);
-            canvas.addEventListener('mouseup', handlePanEnd);
-            canvas.addEventListener('mouseleave', handlePanEnd);
-            canvas.addEventListener('click', handleClick);
-        }
-
-        function setupControls() {
-            // Scale toggle
-            document.getElementById('btn-log').addEventListener('click', () => {
-                state.scale = 'log';
-                document.getElementById('btn-log').classList.add('active');
-                document.getElementById('btn-linear').classList.remove('active');
-                render();
-            });
-
-            document.getElementById('btn-linear').addEventListener('click', () => {
-                state.scale = 'linear';
-                document.getElementById('btn-linear').classList.add('active');
-                document.getElementById('btn-log').classList.remove('active');
-                render();
-            });
-
-            // Time period buttons
-            document.getElementById('btn-all-time').addEventListener('click', () => zoomToRange(0, state.data.length - 1));
-            document.getElementById('btn-4yr').addEventListener('click', () => zoomToRange(state.data.length - 1461, state.data.length - 1));
-            document.getElementById('btn-1yr').addEventListener('click', () => zoomToRange(state.data.length - 365, state.data.length - 1));
-            document.getElementById('btn-ytd').addEventListener('click', () => {
-                const startOfYear = new Date(new Date().getFullYear(), 0, 1);
-                const ytdStart = state.data.findIndex(d => d.date >= startOfYear);
-                zoomToRange(ytdStart, state.data.length - 1);
-            });
-
-            // Overlay toggles
-            document.getElementById('btn-halvings').addEventListener('click', () => toggleOverlay('halvings'));
-            document.getElementById('btn-events').addEventListener('click', () => toggleOverlay('events'));
-            document.getElementById('btn-cycles').addEventListener('click', () => toggleOverlay('cycles'));
-
-            // Playback controls
-            document.getElementById('btn-play').addEventListener('click', startPlayback);
-            document.getElementById('btn-pause').addEventListener('click', pausePlayback);
-            document.getElementById('btn-reset').addEventListener('click', resetPlayback);
-            document.getElementById('timeline-slider').addEventListener('input', handleSliderChange);
-            document.getElementById('speed-select').addEventListener('change', handleSpeedChange);
-        }
-
-        function zoomToRange(start, end) {
-            state.visibleStart = Math.max(0, start);
-            state.visibleEnd = Math.min(state.data.length - 1, end);
-            render();
-        }
-
-        function toggleOverlay(overlay) {
-            state.overlays[overlay] = !state.overlays[overlay];
-            const btn = document.getElementById(`btn-${overlay}`);
-            btn.classList.toggle('active');
-            render();
-        }
-
-        function render() {
-            const canvas = document.getElementById('chart-canvas');
-            const ctx = canvas.getContext('2d');
-
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Get visible data
-            const visibleData = state.data.slice(state.visibleStart, state.visibleEnd + 1);
-
-            if (visibleData.length === 0) return;
-
-            // Calculate dimensions
-            const padding = { top: 40, right: 80, bottom: 60, left: 80 };
-            const chartWidth = canvas.width - padding.left - padding.right;
-            const chartHeight = canvas.height - padding.top - padding.bottom;
-
-            // Get price range
-            const prices = visibleData.map(d => d.price);
-            const minPrice = Math.min(...prices);
-            const maxPrice = Math.max(...prices);
-
-            // Draw grid
-            drawGrid(ctx, padding, chartWidth, chartHeight, minPrice, maxPrice);
-
-            // Draw price line
-            drawPriceLine(ctx, padding, chartWidth, chartHeight, visibleData, minPrice, maxPrice);
-
-            // Draw overlays
-            if (state.overlays.halvings) drawHalvings(ctx, padding, chartWidth, chartHeight, visibleData);
-            if (state.overlays.events) drawEvents(ctx, padding, chartWidth, chartHeight, visibleData);
-            if (state.overlays.cycles) drawCycles(ctx, padding, chartWidth, chartHeight, visibleData);
-
-            // Draw axes
-            drawAxes(ctx, padding, chartWidth, chartHeight, visibleData, minPrice, maxPrice);
-
-            // Update stats (always uses full dataset)
-            updateStats();
-        }
-
-        function drawGrid(ctx, padding, width, height, minPrice, maxPrice) {
-            ctx.strokeStyle = 'rgba(247, 147, 26, 0.1)';
-            ctx.lineWidth = 1;
-
-            // Horizontal grid lines (price levels)
-            const priceSteps = 6;
-            for (let i = 0; i <= priceSteps; i++) {
-                const y = padding.top + (height / priceSteps) * i;
-                ctx.beginPath();
-                ctx.moveTo(padding.left, y);
-                ctx.lineTo(padding.left + width, y);
-                ctx.stroke();
+            if (event.impact && event.impact.length > 0) {
+                html += '<div class="event-impact">';
+                event.impact.forEach(item => {
+                    const valueClass = item.positive ? 'positive' : (item.negative ? 'negative' : '');
+                    html += `
+                        <div class="impact-item">
+                            <div class="impact-label">${item.label}</div>
+                            <div class="impact-value ${valueClass}">${item.value}</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
             }
 
-            // Vertical grid lines (time)
-            const timeSteps = 8;
-            for (let i = 0; i <= timeSteps; i++) {
-                const x = padding.left + (width / timeSteps) * i;
-                ctx.beginPath();
-                ctx.moveTo(x, padding.top);
-                ctx.lineTo(x, padding.top + height);
-                ctx.stroke();
+            if (event.lesson) {
+                html += `
+                    <div class="key-lesson">
+                        <h4>💡 Key Lesson</h4>
+                        <p>${event.lesson}</p>
+                    </div>
+                `;
             }
+
+            content.innerHTML = html;
+            wrapper.appendChild(marker);
+            wrapper.appendChild(content);
+
+            return wrapper;
         }
 
-        function drawPriceLine(ctx, padding, width, height, data, minPrice, maxPrice) {
-            ctx.strokeStyle = '#f7931a';
-            ctx.lineWidth = 3;
-            ctx.lineJoin = 'round';
-            ctx.lineCap = 'round';
-
-            // Create gradient
-            const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + height);
-            gradient.addColorStop(0, 'rgba(247, 147, 26, 0.3)');
-            gradient.addColorStop(1, 'rgba(247, 147, 26, 0.05)');
-
-            ctx.beginPath();
-
-            data.forEach((point, index) => {
-                const x = padding.left + (index / (data.length - 1)) * width;
-                let y;
-
-                if (state.scale === 'log') {
-                    const logMin = Math.log10(minPrice);
-                    const logMax = Math.log10(maxPrice);
-                    const logPrice = Math.log10(point.price);
-                    y = padding.top + height - ((logPrice - logMin) / (logMax - logMin)) * height;
-                } else {
-                    y = padding.top + height - ((point.price - minPrice) / (maxPrice - minPrice)) * height;
-                }
-
-                if (index === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-            });
-
-            // Draw line
-            ctx.stroke();
-
-            // Fill area under curve
-            ctx.lineTo(padding.left + width, padding.top + height);
-            ctx.lineTo(padding.left, padding.top + height);
-            ctx.closePath();
-            ctx.fillStyle = gradient;
-            ctx.fill();
-        }
-
-        function drawHalvings(ctx, padding, width, height, data) {
-            const halvingEvents = keyEvents.filter(e => e.type === 'halving');
-
-            halvingEvents.forEach(event => {
-                const eventDate = new Date(event.date);
-                const index = data.findIndex(d => d.date >= eventDate);
-
-                if (index !== -1) {
-                    const x = padding.left + (index / (data.length - 1)) * width;
-
-                    // Draw vertical line
-                    ctx.strokeStyle = '#FFD700';
-                    ctx.setLineDash([5, 5]);
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(x, padding.top);
-                    ctx.lineTo(x, padding.top + height);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-
-                    // Draw label
-                    ctx.fillStyle = '#FFD700';
-                    ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
-                    ctx.save();
-                    ctx.translate(x, padding.top + 10);
-                    ctx.rotate(-Math.PI / 2);
-                    ctx.fillText(event.title, 0, 0);
-                    ctx.restore();
-                }
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             });
         }
 
-        function drawEvents(ctx, padding, width, height, data) {
-            const nonHalvingEvents = keyEvents.filter(e => e.type !== 'halving');
-
-            nonHalvingEvents.forEach(event => {
-                const eventDate = new Date(event.date);
-                const index = data.findIndex(d => d.date >= eventDate);
-
-                if (index !== -1) {
-                    const x = padding.left + (index / (data.length - 1)) * width;
-                    const y = padding.top + 30;
-
-                    // Draw marker
-                    const color = event.type === 'adoption' ? '#4caf50' : '#ef4444';
-                    ctx.fillStyle = color;
-                    ctx.beginPath();
-                    ctx.arc(x, y, 6, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // Draw line to event
-                    ctx.strokeStyle = color;
-                    ctx.globalAlpha = 0.5;
-                    ctx.setLineDash([3, 3]);
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.moveTo(x, y);
-                    ctx.lineTo(x, padding.top + height);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-                    ctx.globalAlpha = 1;
-                }
+        function setupFilters() {
+            const buttons = document.querySelectorAll('.filter-button');
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    buttons.forEach(b => b.classList.remove('active'));
+                    button.classList.add('active');
+                    currentFilter = button.dataset.filter;
+                    renderTimeline();
+                    setupScrollReveal(); // Re-setup after filter
+                });
             });
         }
 
-        function drawCycles(ctx, padding, width, height, data) {
-            // Draw shaded regions for bull/bear markets
-            const cycleLength = 4 * 365; // 4 year cycles
+        function setupScrollReveal() {
+            const events = document.querySelectorAll('.timeline-event');
 
-            for (let i = 0; i < data.length; i += cycleLength) {
-                const cycleData = data.slice(i, Math.min(i + cycleLength, data.length));
-                const x1 = padding.left + (i / (data.length - 1)) * width;
-                const x2 = padding.left + (Math.min(i + cycleLength / 2, data.length - 1) / (data.length - 1)) * width;
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            });
 
-                // Bull market (green tint)
-                ctx.fillStyle = 'rgba(76, 175, 80, 0.1)';
-                ctx.fillRect(x1, padding.top, x2 - x1, height);
-
-                // Bear market (red tint)
-                const x3 = x2;
-                const x4 = padding.left + (Math.min(i + cycleLength, data.length - 1) / (data.length - 1)) * width;
-                ctx.fillStyle = 'rgba(239, 68, 68, 0.1)';
-                ctx.fillRect(x3, padding.top, x4 - x3, height);
-            }
+            events.forEach(event => {
+                observer.observe(event);
+            });
         }
-
-        function drawAxes(ctx, padding, width, height, data, minPrice, maxPrice) {
-            ctx.strokeStyle = '#e0e0e0';
-            ctx.lineWidth = 2;
-
-            // Y-axis
-            ctx.beginPath();
-            ctx.moveTo(padding.left, padding.top);
-            ctx.lineTo(padding.left, padding.top + height);
-            ctx.stroke();
-
-            // X-axis
-            ctx.beginPath();
-            ctx.moveTo(padding.left, padding.top + height);
-            ctx.lineTo(padding.left + width, padding.top + height);
-            ctx.stroke();
-
-            // Y-axis labels (price)
-            ctx.fillStyle = '#e0e0e0';
-            ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
-            ctx.textAlign = 'right';
-
-            const priceSteps = 6;
-            for (let i = 0; i <= priceSteps; i++) {
-                let price;
-                if (state.scale === 'log') {
-                    const logMin = Math.log10(minPrice);
-                    const logMax = Math.log10(maxPrice);
-                    price = Math.pow(10, logMin + (logMax - logMin) * (1 - i / priceSteps));
-                } else {
-                    price = minPrice + (maxPrice - minPrice) * (1 - i / priceSteps);
-                }
-
-                const y = padding.top + (height / priceSteps) * i;
-                const label = price >= 1000 ? `$${(price / 1000).toFixed(1)}K` : `$${price.toFixed(2)}`;
-                ctx.fillText(label, padding.left - 10, y + 4);
-            }
-
-            // X-axis labels (dates)
-            ctx.textAlign = 'center';
-            const timeSteps = 8;
-            for (let i = 0; i <= timeSteps; i++) {
-                const index = Math.floor((data.length - 1) * (i / timeSteps));
-                const date = data[index].date;
-                const x = padding.left + (width / timeSteps) * i;
-                const label = date.getFullYear();
-                ctx.fillText(label, x, padding.top + height + 25);
-            }
-        }
-
-        function updateStats() {
-            if (state.data.length === 0) return;
-
-            // Always use full dataset for stats, not visible data
-            const fullData = state.data;
-            const currentPrice = fullData[fullData.length - 1].price;
-            const genesisDate = new Date('2009-01-03');
-            const currentDate = fullData[fullData.length - 1].date;
-
-            // Calculate days from Genesis to today
-            const daysElapsed = Math.floor((currentDate - genesisDate) / (1000 * 60 * 60 * 24));
-
-            // Calculate all-time high from full dataset
-            const allTimeHigh = Math.max(...fullData.map(d => d.price));
-
-            // Find first price point when Bitcoin reached $1 (Feb 2011) for ROI calculation
-            const dollarPricePoint = fullData.find(d => d.price >= 1.0);
-            const dollarDate = dollarPricePoint ? dollarPricePoint.date : genesisDate;
-            const dollarPrice = dollarPricePoint ? dollarPricePoint.price : 0.0001;
-
-            // Calculate ROI from $1
-            const roiFromDollar = currentPrice / dollarPrice;
-
-            // Calculate % change from when Bitcoin first reached $1
-            const priceChangeFromDollar = ((currentPrice - dollarPrice) / dollarPrice) * 100;
-
-            // Format and display stats
-            document.getElementById('current-price').textContent = `$${currentPrice >= 1000 ? (currentPrice / 1000).toFixed(1) + 'K' : currentPrice.toFixed(2)}`;
-
-            document.getElementById('price-change').textContent = priceChangeFromDollar >= 0
-                ? `+${priceChangeFromDollar.toFixed(0)}%`
-                : `${priceChangeFromDollar.toFixed(0)}%`;
-
-            document.getElementById('all-time-high').textContent = `$${allTimeHigh >= 1000 ? (allTimeHigh / 1000).toFixed(1) + 'K' : allTimeHigh.toFixed(0)}`;
-
-            document.getElementById('days-elapsed').textContent = daysElapsed.toLocaleString();
-
-            // Format ROI nicely
-            if (roiFromDollar >= 1000000) {
-                document.getElementById('roi').textContent = `${(roiFromDollar / 1000000).toFixed(1)}M x`;
-            } else if (roiFromDollar >= 1000) {
-                document.getElementById('roi').textContent = `${(roiFromDollar / 1000).toFixed(0)}K x`;
-            } else {
-                document.getElementById('roi').textContent = `${roiFromDollar.toFixed(0)}x`;
-            }
-        }
-
-        // Zoom and pan handlers
-        let isPanning = false;
-        let panStart = 0;
-        let panStartVisible = 0;
-
-        function handleZoom(e) {
-            e.preventDefault();
-
-            const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
-            const visibleRange = state.visibleEnd - state.visibleStart;
-            const newRange = Math.floor(visibleRange * zoomFactor);
-            const center = (state.visibleStart + state.visibleEnd) / 2;
-
-            state.visibleStart = Math.max(0, Math.floor(center - newRange / 2));
-            state.visibleEnd = Math.min(state.data.length - 1, Math.floor(center + newRange / 2));
-
-            render();
-        }
-
-        function handlePanStart(e) {
-            isPanning = true;
-            panStart = e.clientX;
-            panStartVisible = state.visibleStart;
-        }
-
-        function handlePanMove(e) {
-            if (!isPanning) return;
-
-            const canvas = document.getElementById('chart-canvas');
-            const padding = 80;
-            const chartWidth = canvas.width - padding * 2;
-
-            const dx = e.clientX - panStart;
-            const visibleRange = state.visibleEnd - state.visibleStart;
-            const dataPointsPerPixel = visibleRange / chartWidth;
-            const shift = Math.floor(-dx * dataPointsPerPixel);
-
-            state.visibleStart = Math.max(0, Math.min(state.data.length - visibleRange, panStartVisible + shift));
-            state.visibleEnd = state.visibleStart + visibleRange;
-
-            render();
-        }
-
-        function handlePanEnd() {
-            isPanning = false;
-        }
-
-        function handleClick(e) {
-            // Detect if click is on an event marker - show tooltip
-            const canvas = document.getElementById('chart-canvas');
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            // TODO: Implement event marker click detection and tooltip display
-        }
-
-        // Playback functionality
-        let playbackInterval;
-
-        function startPlayback() {
-            state.isPlaying = true;
-            state.currentIndex = 0;
-
-            document.getElementById('btn-play').disabled = true;
-            document.getElementById('btn-pause').disabled = false;
-
-            playbackInterval = setInterval(() => {
-                if (state.currentIndex >= state.data.length - 1) {
-                    pausePlayback();
-                    return;
-                }
-
-                state.currentIndex += Math.floor(state.speed * 5);
-                state.currentIndex = Math.min(state.currentIndex, state.data.length - 1);
-
-                // Update visible range to follow playback
-                const windowSize = 365; // Show 1 year window
-                state.visibleStart = Math.max(0, state.currentIndex - Math.floor(windowSize / 2));
-                state.visibleEnd = Math.min(state.data.length - 1, state.visibleStart + windowSize);
-
-                // Update slider
-                const progress = (state.currentIndex / (state.data.length - 1)) * 100;
-                document.getElementById('timeline-slider').value = progress;
-
-                // Update current date display
-                const currentDate = state.data[state.currentIndex].date;
-                document.getElementById('current-date').textContent = currentDate.toISOString().split('T')[0];
-
-                render();
-            }, 50);
-        }
-
-        function pausePlayback() {
-            state.isPlaying = false;
-            clearInterval(playbackInterval);
-
-            document.getElementById('btn-play').disabled = false;
-            document.getElementById('btn-pause').disabled = true;
-        }
-
-        function resetPlayback() {
-            pausePlayback();
-            state.currentIndex = 0;
-            state.visibleStart = 0;
-            state.visibleEnd = state.data.length - 1;
-            document.getElementById('timeline-slider').value = 0;
-            document.getElementById('current-date').textContent = state.data[0].date.toISOString().split('T')[0];
-            render();
-        }
-
-        function handleSliderChange(e) {
-            const progress = parseInt(e.target.value);
-            state.currentIndex = Math.floor((progress / 100) * (state.data.length - 1));
-
-            // Update visible range
-            const windowSize = 365;
-            state.visibleStart = Math.max(0, state.currentIndex - Math.floor(windowSize / 2));
-            state.visibleEnd = Math.min(state.data.length - 1, state.visibleStart + windowSize);
-
-            // Update date display
-            const currentDate = state.data[state.currentIndex].date;
-            document.getElementById('current-date').textContent = currentDate.toISOString().split('T')[0];
-
-            render();
-        }
-
-        function handleSpeedChange(e) {
-            state.speed = parseFloat(e.target.value);
-        }
-
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            setupCanvas();
-            render();
-        });
     </script>
 
     <!-- Animated Icon Library -->
