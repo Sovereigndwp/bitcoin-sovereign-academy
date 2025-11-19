@@ -69,7 +69,7 @@ class SmartOnboardingFlow {
                 `,
                 buttons: [
                     { text: 'Get Started', action: 'next', primary: true },
-                    { text: 'Skip Setup', action: 'skip', primary: false }
+                    { text: 'Skip to Homepage', action: 'skip-to-home', primary: false }
                 ]
             },
             {
@@ -257,7 +257,7 @@ class SmartOnboardingFlow {
                 `,
                 buttons: [
                     { text: 'Start My Journey!', action: 'complete', primary: true },
-                    { text: 'Let Me Choose Different', action: 'persona-select', primary: false }
+                    { text: 'Explore All Paths', action: 'go-home', primary: false }
                 ]
             }
         ];
@@ -498,8 +498,14 @@ class SmartOnboardingFlow {
             case 'skip':
                 this.skipOnboarding();
                 break;
+            case 'skip-to-home':
+                this.skipToHomepage();
+                break;
             case 'complete':
                 await this.completeOnboarding();
+                break;
+            case 'go-home':
+                this.goToHomepage();
                 break;
             case 'persona-select':
                 this.showPersonaSelection();
@@ -608,138 +614,179 @@ class SmartOnboardingFlow {
             'time-commitment': time 
         } = this.onboardingData;
         
-        // Decision matrix for persona recommendation
+        // Decision matrix for persona recommendation - MAPS TO ACTUAL PATHS
         const personaRecommendations = {
-            'bitcoin-curious': {
-                name: 'Bitcoin Curious Explorer',
-                icon: '🤔',
+            'curious': {
+                name: 'The Curious Path',
+                icon: '🧭',
+                pathUrl: '/paths/curious/',
                 description: 'Perfect starting point for Bitcoin newcomers',
-                reasoning: 'Based on your curiosity and beginner level, this path introduces Bitcoin concepts gently with engaging stories and interactive demos.',
+                reasoning: `Based on your ${experience === 'complete-beginner' ? 'beginner status' : 'curiosity'}, this path introduces Bitcoin from scratch with clear explanations, interactive demos, and real-world examples. You'll understand what Bitcoin is, why it matters, and how to use it safely.`,
                 highlights: [
-                    'What is Bitcoin and why it matters',
-                    'Interactive Bitcoin timeline game',
-                    'Simple explanations of complex topics',
-                    'Real-world use cases and examples'
+                    'What is Bitcoin and how does it work?',
+                    'Why Bitcoin matters for financial freedom',
+                    'How to safely buy and store your first Bitcoin',
+                    'Understanding the Bitcoin network in simple terms'
                 ],
-                estimatedTime: '2-3 hours',
+                estimatedTime: '8 weeks',
                 difficulty: 'Beginner',
-                modules: '8',
+                modules: '12 modules',
                 score: 0
             },
-            'investor': {
-                name: 'Traditional Investor',
-                icon: '📈',
-                description: 'Bitcoin as an investment and store of value',
-                reasoning: 'Your investment focus aligns perfectly with understanding Bitcoin as a digital asset, risk management, and portfolio allocation.',
+            'hurried': {
+                name: 'The Hurried Path',
+                icon: '🚀',
+                pathUrl: '/paths/hurried/',
+                description: 'Fast-track Bitcoin essentials',
+                reasoning: `Your ${time === 'casual' ? 'limited time' : 'desire for quick results'} matches perfectly with this condensed path. Get the essential Bitcoin knowledge without unnecessary details—learn what matters, skip what doesn't.`,
                 highlights: [
-                    'Bitcoin as digital gold',
-                    'Market analysis and metrics',
-                    'Investment strategies and DCA',
-                    'Risk management and security'
+                    'Bitcoin essentials in bite-sized chunks',
+                    'Quick-start guide to buying and securing Bitcoin',
+                    'Essential security practices you can implement today',
+                    'Fast-track to practical Bitcoin usage'
                 ],
-                estimatedTime: '2-4 hours',
+                estimatedTime: '2-3 weeks',
+                difficulty: 'Beginner',
+                modules: '8 modules',
+                score: 0
+            },
+            'pragmatist': {
+                name: 'The Pragmatist Path',
+                icon: '🔨',
+                pathUrl: '/paths/pragmatist/',
+                description: 'Practical Bitcoin for real-world use',
+                reasoning: `Your ${goal === 'business' ? 'business focus' : 'practical approach'} aligns with this hands-on path. Learn Bitcoin through doing—practical exercises, real transactions, and immediate application.`,
+                highlights: [
+                    'Hands-on Bitcoin wallet setup and usage',
+                    'Real transaction practice in safe environment',
+                    'Lightning Network for instant payments',
+                    'Business integration and payment processing'
+                ],
+                estimatedTime: '6 weeks',
                 difficulty: 'Intermediate',
-                modules: '7',
+                modules: '10 modules',
                 score: 0
             },
-            'developer': {
-                name: 'Tech Developer',
-                icon: '👨‍💻',
-                description: 'Deep technical dive into Bitcoin',
-                reasoning: 'Your technical interest and advanced level make you perfect for our comprehensive developer path with coding exercises.',
+            'builder': {
+                name: 'The Builder Path',
+                icon: '🔧',
+                pathUrl: '/paths/builder/',
+                description: 'Technical deep-dive into Bitcoin',
+                reasoning: `Your ${experience === 'advanced' ? 'advanced knowledge' : 'technical interests'} and preference for ${learningStyle?.includes('hands-on') ? 'hands-on learning' : 'technical content'} make this the ideal path. Build with Bitcoin—understand the protocol, write code, and create applications.`,
                 highlights: [
-                    'Bitcoin protocol deep-dive',
-                    'Cryptographic foundations',
-                    'Hands-on coding exercises',
-                    'Lightning Network development'
+                    'Bitcoin protocol and cryptographic foundations',
+                    'Building Bitcoin applications from scratch',
+                    'Lightning Network development',
+                    'Contributing to Bitcoin open source'
                 ],
-                estimatedTime: '4-6 hours',
+                estimatedTime: '12 weeks',
                 difficulty: 'Advanced',
-                modules: '10',
+                modules: '16 modules',
                 score: 0
             },
-            'libertarian': {
-                name: 'Freedom Seeker',
-                icon: '🗽',
-                description: 'Bitcoin philosophy and monetary freedom',
-                reasoning: 'Your philosophical interests align with understanding Bitcoin as a tool for financial sovereignty and Austrian economics.',
+            'sovereign': {
+                name: 'The Sovereign Path',
+                icon: '🛡️',
+                pathUrl: '/paths/sovereign/',
+                description: 'Master Bitcoin security and self-custody',
+                reasoning: `Your interest in ${goal === 'investment' ? 'protecting your investment' : 'financial sovereignty'} requires deep security knowledge. Master self-custody, multisig, cold storage, and inheritance planning.`,
                 highlights: [
+                    'Advanced self-custody techniques',
+                    'Multi-signature security setups',
+                    'Hardware wallet mastery',
+                    'Bitcoin inheritance and estate planning'
+                ],
+                estimatedTime: '10 weeks',
+                difficulty: 'Advanced',
+                modules: '14 modules',
+                score: 0
+            },
+            'principled': {
+                name: 'The Principled Path',
+                icon: '⭐',
+                pathUrl: '/paths/principled/',
+                description: 'Bitcoin philosophy and monetary ethics',
+                reasoning: `Your ${goal === 'philosophy' ? 'philosophical curiosity' : 'interest in deeper meaning'} resonates with this reflective journey. Explore why Bitcoin exists, Austrian economics, monetary history, and Bitcoin's societal impact.`,
+                highlights: [
+                    'Austrian economics and sound money',
+                    'Monetary history and the fiat system',
                     'Bitcoin philosophy and ethics',
-                    'Austrian economics principles',
-                    'Monetary history and freedom',
-                    'Decentralization benefits'
+                    'Freedom, privacy, and sovereignty'
                 ],
-                estimatedTime: '3-4 hours',
+                estimatedTime: '10 weeks',
                 difficulty: 'Intermediate',
-                modules: '8',
-                score: 0
-            },
-            'business-owner': {
-                name: 'Business Owner',
-                icon: '🏪',
-                description: 'Practical Bitcoin business integration',
-                reasoning: 'Your business focus requires understanding Bitcoin payments, integration challenges, and practical implementation.',
-                highlights: [
-                    'Bitcoin payment processing',
-                    'Business integration strategies',
-                    'Legal and tax considerations',
-                    'Lightning Network for commerce'
-                ],
-                estimatedTime: '3-5 hours',
-                difficulty: 'Intermediate',
-                modules: '9',
-                score: 0
-            },
-            'skeptic': {
-                name: 'Bitcoin Skeptic',
-                icon: '🧐',
-                description: 'Evidence-based Bitcoin exploration',
-                reasoning: 'Your skeptical approach is valuable! This path addresses common concerns with evidence and balanced analysis.',
-                highlights: [
-                    'Addressing Bitcoin criticisms',
-                    'Evidence-based analysis',
-                    'Balanced risk assessment',
-                    'Myth vs reality discussions'
-                ],
-                estimatedTime: '2-3 hours',
-                difficulty: 'Beginner',
-                modules: '6',
+                modules: '13 modules',
                 score: 0
             }
         };
         
-        // Score each persona based on answers
+        // Enhanced scoring algorithm - maps to actual paths
+        
+        // Experience level scoring
         if (experience === 'complete-beginner') {
-            personaRecommendations['bitcoin-curious'].score += 3;
-            personaRecommendations['skeptic'].score += 2;
+            personaRecommendations['curious'].score += 4;
+            personaRecommendations['hurried'].score += 2;
+        } else if (experience === 'some-knowledge') {
+            personaRecommendations['pragmatist'].score += 3;
+            personaRecommendations['curious'].score += 2;
+        } else if (experience === 'intermediate') {
+            personaRecommendations['pragmatist'].score += 3;
+            personaRecommendations['sovereign'].score += 2;
+            personaRecommendations['principled'].score += 2;
         } else if (experience === 'advanced') {
-            personaRecommendations['developer'].score += 3;
+            personaRecommendations['builder'].score += 5;
+            personaRecommendations['sovereign'].score += 3;
         }
         
-        if (goal === 'investment') {
-            personaRecommendations['investor'].score += 5;
+        // Primary goal scoring (highest weight)
+        if (goal === 'curiosity') {
+            personaRecommendations['curious'].score += 6;
+        } else if (goal === 'investment') {
+            personaRecommendations['sovereign'].score += 6;
+            personaRecommendations['pragmatist'].score += 3;
         } else if (goal === 'technical') {
-            personaRecommendations['developer'].score += 5;
+            personaRecommendations['builder'].score += 7;
+            personaRecommendations['pragmatist'].score += 2;
         } else if (goal === 'business') {
-            personaRecommendations['business-owner'].score += 5;
+            personaRecommendations['pragmatist'].score += 7;
+            personaRecommendations['builder'].score += 2;
         } else if (goal === 'philosophy') {
-            personaRecommendations['libertarian'].score += 5;
+            personaRecommendations['principled'].score += 7;
+            personaRecommendations['curious'].score += 2;
         } else if (goal === 'skeptical') {
-            personaRecommendations['skeptic'].score += 5;
-        } else if (goal === 'curiosity') {
-            personaRecommendations['bitcoin-curious'].score += 4;
+            personaRecommendations['curious'].score += 5;
+            personaRecommendations['principled'].score += 3;
         }
         
-        // Adjust based on learning style and time commitment
-        if (learningStyle && learningStyle.includes('hands-on')) {
-            personaRecommendations['developer'].score += 2;
-            personaRecommendations['business-owner'].score += 1;
+        // Learning style adjustments
+        if (learningStyle) {
+            if (learningStyle.includes('hands-on')) {
+                personaRecommendations['builder'].score += 3;
+                personaRecommendations['pragmatist'].score += 2;
+            }
+            if (learningStyle.includes('reading')) {
+                personaRecommendations['principled'].score += 2;
+                personaRecommendations['curious'].score += 1;
+            }
+            if (learningStyle.includes('step-by-step')) {
+                personaRecommendations['curious'].score += 2;
+                personaRecommendations['pragmatist'].score += 1;
+            }
+            if (learningStyle.includes('quick-facts')) {
+                personaRecommendations['hurried'].score += 3;
+            }
         }
         
-        if (time === 'intensive' || time === 'immersive') {
-            personaRecommendations['developer'].score += 1;
-        } else if (time === 'casual') {
-            personaRecommendations['bitcoin-curious'].score += 1;
+        // Time commitment scoring
+        if (time === 'casual') {
+            personaRecommendations['hurried'].score += 3;
+            personaRecommendations['curious'].score += 1;
+        } else if (time === 'regular') {
+            personaRecommendations['curious'].score += 2;
+            personaRecommendations['pragmatist'].score += 2;
+        } else if (time === 'intensive' || time === 'immersive') {
+            personaRecommendations['builder'].score += 2;
+            personaRecommendations['sovereign'].score += 2;
         }
         
         // Find highest scoring persona
@@ -754,6 +801,15 @@ class SmartOnboardingFlow {
      * Complete onboarding and setup persona
      */
     async completeOnboarding() {
+        // Save recommended persona and data
+        localStorage.setItem('btc-academy-persona', this.recommendedPersonaId);
+        localStorage.setItem('btc-academy-onboarding-completed', 'true');
+        localStorage.setItem('btc-academy-onboarding-data', JSON.stringify(this.onboardingData));
+        
+        // Get the recommended path URL
+        const recommendedPersona = this.determineRecommendedPersona();
+        const pathUrl = recommendedPersona.pathUrl;
+        
         // Set persona in MCP service
         if (this.mcpService && this.recommendedPersonaId) {
             await this.mcpService.setPersona(this.recommendedPersonaId);
@@ -764,18 +820,19 @@ class SmartOnboardingFlow {
             await this.learningPath.startLearningPath(this.recommendedPersonaId);
         }
         
-        // Mark onboarding as completed
-        localStorage.setItem('btc-academy-onboarding-completed', 'true');
-        localStorage.setItem('btc-academy-onboarding-data', JSON.stringify(this.onboardingData));
-        
         // Close onboarding
         this.closeOnboarding();
         
-        // Show success message
-        this.showCompletionMessage();
-        
         // Track completion
         this.trackOnboardingCompletion();
+        
+        // Show success message and redirect to path
+        this.showCompletionMessage();
+        
+        // Redirect to recommended path after brief delay
+        setTimeout(() => {
+            window.location.href = pathUrl;
+        }, 2500);
     }
 
     /**
@@ -789,6 +846,26 @@ class SmartOnboardingFlow {
         setTimeout(() => {
             document.getElementById('personaModal')?.classList.remove('hidden');
         }, 500);
+    }
+    
+    /**
+     * Skip directly to homepage
+     */
+    skipToHomepage() {
+        localStorage.setItem('btc-academy-onboarding-skipped', 'true');
+        this.closeOnboarding();
+        // User stays on homepage - just close the modal
+    }
+    
+    /**
+     * Go to homepage (from recommendations page)
+     */
+    goToHomepage() {
+        // Save that they saw recommendations but chose to explore
+        localStorage.setItem('btc-academy-onboarding-completed', 'true');
+        localStorage.setItem('btc-academy-saw-recommendations', 'true');
+        this.closeOnboarding();
+        // User stays on homepage to explore all paths
     }
 
     /**
@@ -808,25 +885,24 @@ class SmartOnboardingFlow {
      * Show completion message
      */
     showCompletionMessage() {
+        const recommendedPersona = this.determineRecommendedPersona();
         const message = document.createElement('div');
         message.className = 'onboarding-completion-message';
         message.innerHTML = `
             <div class="completion-popup">
                 <div class="completion-icon">🎉</div>
-                <h3>Welcome to your Bitcoin journey!</h3>
-                <p>Your personalized learning experience is now ready.</p>
-                <button onclick="this.parentElement.parentElement.remove()" class="completion-btn">
-                    Start Learning
-                </button>
+                <h3>Welcome to ${recommendedPersona.name}!</h3>
+                <p>Redirecting you to your personalized learning path...</p>
+                <div class="completion-spinner"></div>
             </div>
         `;
         
         document.body.appendChild(message);
         
-        // Auto-remove after 5 seconds
+        // Auto-remove when redirect happens
         setTimeout(() => {
             message.remove();
-        }, 5000);
+        }, 3000);
     }
 
     /**
@@ -898,8 +974,20 @@ class SmartOnboardingFlow {
 // Initialize smart onboarding
 const smartOnboarding = new SmartOnboardingFlow();
 
-// Global function to restart onboarding
+// Global functions
 window.restartOnboarding = () => smartOnboarding.restartOnboarding();
+window.showOnboardingRecommendations = () => {
+    // Allow users to return to see their recommendations
+    const savedData = localStorage.getItem('btc-academy-onboarding-data');
+    if (savedData) {
+        smartOnboarding.onboardingData = JSON.parse(savedData);
+        smartOnboarding.currentStep = smartOnboarding.onboardingSteps.length - 1; // Go to recommendations
+        smartOnboarding.startOnboarding();
+    } else {
+        // No saved data, start fresh
+        smartOnboarding.startOnboarding();
+    }
+};
 
 // Export for module use (commented out for non-module browser use)
 // export default SmartOnboardingFlow;
