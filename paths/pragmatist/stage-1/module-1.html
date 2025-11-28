@@ -1045,32 +1045,12 @@
 
         // Complete module
         function completeModule() {
-            if (!window.pragmatistProgress) {
-                // Fallback if progress not loaded
-                window.pragmatistProgress = {
-                    data: {
-                        completedModules: [],
-                        achievements: [],
-                        knowledgeScore: 15
-                    },
-                    save: function() {
-                        localStorage.setItem('pragmatist-progress', JSON.stringify(this.data));
-                    }
-                };
-            }
+            // Save completion to localStorage
+            localStorage.setItem('pragmatist-m1-complete', 'true');
+            localStorage.setItem('pragmatist-m1-completed-at', new Date().toISOString());
 
-            // Add to completed modules
-            if (!window.pragmatistProgress.data.completedModules.includes('1-1')) {
-                window.pragmatistProgress.data.completedModules.push('1-1');
-            }
-
-            // Award achievement
-            if (!window.pragmatistProgress.data.achievements.includes('first-steps')) {
-                window.pragmatistProgress.data.achievements.push('first-steps');
-                showAchievement('First Steps', 'Started your Bitcoin journey!', '👶');
-            }
-
-            window.pragmatistProgress.save();
+            // Show achievement
+            showAchievement('Module 1 Complete', 'You understand Bitcoin as infrastructure!', '✅');
 
             // Redirect to next module
             setTimeout(() => {
@@ -1362,11 +1342,27 @@
 
         function updateProgress(questionId) {
             completedQuestions.add(questionId);
-            if (completedQuestions.size >= 4) {
+            console.log(`Question ${questionId} completed. Total: ${completedQuestions.size}/4`);
+
+            // Enable button after answering at least 2 questions (Pragmatist-friendly)
+            if (completedQuestions.size >= 2) {
                 document.getElementById('complete-btn').disabled = false;
                 document.getElementById('complete-btn').textContent = '✅ Complete Module & Continue →';
+                console.log('Complete button enabled!');
             }
         }
+
+        // Enable button on page load (allow learners to skip quiz if revisiting)
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                const hasVisited = localStorage.getItem('pragmatist-m1-visited');
+                if (hasVisited) {
+                    document.getElementById('complete-btn').disabled = false;
+                    console.log('Returning visitor - button auto-enabled');
+                }
+                localStorage.setItem('pragmatist-m1-visited', 'true');
+            }, 1000);
+        });
 
         // Save/load functions
         function saveResponse(key, value) {
