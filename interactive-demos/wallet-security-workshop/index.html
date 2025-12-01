@@ -1370,14 +1370,54 @@
 
             if (isCorrect) {
                 resultDiv.innerHTML = `
-                    <div class="security-level level-green">🟢 PERFECT! Backup verified correctly!</div>
-                    <p>You've successfully verified your seed phrase. In a real scenario, store this written backup in a secure location (safe, safety deposit box, etc.).</p>
+                    <div class="security-level level-green">
+                        <strong>🟢 PERFECT! Backup verified correctly!</strong>
+                    </div>
+                    <p style="margin-top: 1rem; line-height: 1.6;">
+                        You've successfully verified your seed phrase. In a real scenario, store this written backup in a secure location (safe, safety deposit box, metal backup, etc.).
+                    </p>
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(76, 175, 80, 0.1); border-left: 3px solid var(--accent-green); border-radius: 0.5rem; font-size: 0.95rem;">
+                        <strong>💡 Good to know:</strong> Different wallets use different verification methods. Some ask you to click words in order (like this), others ask for specific word positions (e.g., "What's word #3 and #7?"), and some let you type them in. The goal is always the same: prove you wrote down your backup correctly.
+                    </div>
                 `;
                 updateSecurityScore(25);
             } else {
+                // Find which positions are wrong
+                const wrongPositions = [];
+                selectedBackupWords.forEach((word, index) => {
+                    if (word !== backupWords[index]) {
+                        wrongPositions.push(index + 1);
+                    }
+                });
+
                 resultDiv.innerHTML = `
-                    <div class="security-level level-red">🔴 Incorrect order! Try again.</div>
-                    <p>The words must be in exact order. This is why careful backup is critical!</p>
+                    <div class="security-level level-red">
+                        <strong>🔴 Incorrect order! Try again.</strong>
+                    </div>
+                    <p style="margin-top: 1rem; line-height: 1.6;">
+                        ${wrongPositions.length === backupWords.length
+                            ? 'The words you selected are not in the correct order.'
+                            : `Position${wrongPositions.length > 1 ? 's' : ''} ${wrongPositions.join(', ')} ${wrongPositions.length > 1 ? 'are' : 'is'} incorrect.`}
+                        <strong>Order matters!</strong> Each word must be in the exact position you wrote it down.
+                    </p>
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(255, 152, 0, 0.1); border-left: 3px solid #ff9800; border-radius: 0.5rem; font-size: 0.95rem;">
+                        <strong>📚 About Wallet Verification:</strong>
+                        <p style="margin-top: 0.5rem; line-height: 1.6;">
+                            Different wallets verify backups in different ways:
+                        </p>
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.8;">
+                            <li><strong>Click in order</strong> (like this demo) - Click all words sequentially</li>
+                            <li><strong>Specific positions</strong> - "Enter word #3, #7, and #12"</li>
+                            <li><strong>Type all words</strong> - Manually type the entire phrase</li>
+                            <li><strong>Random selection</strong> - Wallet randomly asks for 4-6 words</li>
+                        </ul>
+                        <p style="margin-top: 0.75rem; font-style: italic; color: var(--text-dim);">
+                            All methods test the same thing: Did you write it down correctly and can you read your own handwriting?
+                        </p>
+                    </div>
+                    <p style="margin-top: 1rem; color: var(--text-light);">
+                        Click <strong>Reset</strong> below to try again, or use the <strong>Hide Seed</strong> button above to practice for real!
+                    </p>
                 `;
                 updateSecurityScore(-5);
             }
