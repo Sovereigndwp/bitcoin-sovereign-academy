@@ -150,18 +150,24 @@
         <div class="intro-box">
             <h3 style="color: var(--accent-purple); margin-bottom: 0.75rem;">How Bitcoin Proves Ownership</h3>
             <p class="beginner-only">
-                Your Bitcoin is protected by a secret "private key" that only you know. To spend Bitcoin, you create a "digital signature" that proves you own it WITHOUT revealing your private key. Anyone can verify the signature is real using your "public key."
+                Your Bitcoin is protected by a secret "private key" that only you know. To spend Bitcoin, you create a "digital signature" that proves you own it WITHOUT revealing your private key. Anyone can verify the signature is real using your "public key."<br><br>
+                <strong style="color: var(--primary-orange);">Bitcoin originally used ECDSA signatures</strong> (since 2009), but in 2021 added <strong style="color: #9C27B0;">Schnorr signatures</strong> via the Taproot upgrade — they're simpler, faster, and more private!
             </p>
             <p class="intermediate-only">
-                Bitcoin uses elliptic curve cryptography (secp256k1) for digital signatures. Private keys sign transactions, public keys verify signatures. The mathematical relationship is one-way: easy to derive public from private, impossible to reverse.
+                Bitcoin uses elliptic curve cryptography (secp256k1) for digital signatures. Private keys sign transactions, public keys verify signatures. The mathematical relationship is one-way: easy to derive public from private, impossible to reverse.<br><br>
+                <strong>Two signature algorithms:</strong> ECDSA (original, 2009-present) and <strong style="color: #9C27B0;">Schnorr</strong> (Taproot, 2021+). Schnorr enables signature aggregation and batch verification for improved efficiency and privacy.
             </p>
             <p class="advanced-only">
-                Bitcoin implements ECDSA (Elliptic Curve Digital Signature Algorithm) over secp256k1 curve. Private key k generates public key P = k·G where G is generator point. Signature (r,s) proves knowledge of k without revealing it. Verification: s⁻¹(H(m)·G + r·P) = R validates ownership.
+                Bitcoin originally implemented ECDSA (Elliptic Curve Digital Signature Algorithm) over secp256k1 curve. Private key k generates public key P = k·G where G is generator point. Signature (r,s) proves knowledge of k without revealing it. Verification: s⁻¹(H(m)·G + r·P) = R validates ownership.<br><br>
+                <strong>BIP-340 (Schnorr):</strong> Introduced with Taproot (2021). Uses x-only pubkeys, tagged hashes, and enables linear aggregation via MuSig2. Signature verification: s·G = R + e·P where e = Hash<sub>BIP0340/challenge</sub>(r || P || m).
             </p>
         </div>
 
         <div class="demo-container">
-            <h4 style="color: var(--accent-purple); margin-bottom: 1rem; font-size: 1.1rem;">Generate Your Key Pair</h4>
+            <h4 style="color: var(--accent-purple); margin-bottom: 1rem; font-size: 1.1rem;">🔐 Step 1: Generate Your Key Pair</h4>
+            <p class="beginner-only" style="margin-bottom: 1rem; color: var(--text-dim);">First, let's create keys and try the <strong>original ECDSA signatures</strong> that Bitcoin has used since 2009. Then we'll explore the newer Schnorr signatures!</p>
+            <p class="intermediate-only" style="margin-bottom: 1rem; color: var(--text-dim);">This demo shows ECDSA (the original signature scheme). We'll compare it with Schnorr signatures below.</p>
+            <p class="advanced-only" style="margin-bottom: 1rem; color: var(--text-dim); font-family: 'Courier New', monospace; font-size: 0.85rem;">ECDSA implementation: Generate random k per signature, compute (r,s) where r = x(k·G), s = k⁻¹(H(m) + r·x) mod n</p>
 
             <button class="btn" onclick="generateKeyPair()">🔑 Generate Key Pair</button>
 
@@ -176,14 +182,15 @@
             </div>
 
             <div style="margin-top: 1rem;">
-                <p style="margin-bottom: 0.5rem;"><strong>Create Digital Signature:</strong></p>
+                <p style="margin-bottom: 0.5rem;"><strong>Create Digital Signature <span class="beginner-only intermediate-only">(ECDSA)</span>:</strong></p>
                 <input type="text" id="message-to-sign" placeholder="Enter message to sign (e.g., 'Send 1 BTC to Alice')">
-                <button class="btn" onclick="signMessage()">✍️ Sign Message</button>
+                <button class="btn" onclick="signMessage()">✈️ Sign Message (ECDSA)</button>
             </div>
 
             <div>
-                <p style="margin-bottom: 0.25rem;"><strong>Digital Signature:</strong></p>
+                <p style="margin-bottom: 0.25rem;"><strong>Digital Signature <span class="beginner-only intermediate-only">(ECDSA format)</span>:</strong></p>
                 <div class="key-display" id="signature">Sign a message first</div>
+                <p class="beginner-only" style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.5rem;">This signature is about 72 bytes. Schnorr signatures below are always 64 bytes!</p>
             </div>
 
             <div style="background: rgba(79, 70, 229, 0.1); border: 2px dashed rgba(79, 70, 229, 0.3); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
@@ -210,13 +217,380 @@
             <div id="signature-result"></div>
         </div>
 
-        <div style="background: rgba(40, 167, 80, 0.1); border-left: 4px solid var(--accent-green); border-radius: 0.5rem; padding: 1rem; margin-top: 1rem;">
-            <h4 style="color: var(--accent-green); margin-bottom: 0.5rem;">How Bitcoin Uses This</h4>
-            <ul style="margin-left: 1.5rem; line-height: 1.8;">
-                <li class="beginner-only"><strong>Bitcoin Addresses:</strong> Derived from public keys</li>
-                <li class="intermediate-only"><strong>Transaction Authorization:</strong> Each input requires valid signature proving ownership</li>
-                <li class="advanced-only"><strong>Script Validation:</strong> CHECKSIG opcode verifies ECDSA signature against public key hash (P2PKH) or raw pubkey (P2PK)</li>
-            </ul>
+        <!-- SCHNORR SIGNATURES SECTION -->
+        <div class="demo-container" style="border-color: #9C27B0; margin-top: 1.5rem;">
+            <h4 style="color: #9C27B0; margin-bottom: 1rem; font-size: 1.2rem;">✨ Schnorr Signatures: The Magic Upgrade (2021+)</h4>
+            
+            <!-- BEGINNER LEVEL -->
+            <div class="beginner-only">
+                <div style="background: rgba(156, 39, 176, 0.1); border-left: 4px solid #9C27B0; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <h5 style="color: #9C27B0; margin-bottom: 0.75rem;">🪄 The Magic Lockbox Story</h5>
+                    <p style="margin-bottom: 0.5rem;">Imagine your Bitcoin is in a <strong>super-safe magic lockbox</strong>:</p>
+                    <p style="margin-bottom: 0.5rem;"><strong>Old way (ECDSA):</strong> 🤔 Complicated, clunky, a bit messy</p>
+                    <p><strong>New way (Schnorr):</strong> 😊 Simple, clean, and has <em>magic superpowers!</em></p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0;">
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 2px solid #9C27B0;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎲</div>
+                        <strong style="color: #9C27B0;">Step 1: Pick Random Secret</strong>
+                        <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.5rem;">
+                            You pick a one-time random number (called 'k'). This creates a hint: <strong>R = k × G</strong>
+                        </p>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 2px solid #9C27B0;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎯</div>
+                        <strong style="color: #9C27B0;">Step 2: Magic Challenge</strong>
+                        <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.5rem;">
+                            Computer creates challenge: <strong>e = hash(R + message + your key)</strong>
+                        </p>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 2px solid #9C27B0;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">✨</div>
+                        <strong style="color: #9C27B0;">Step 3: Create Signature</strong>
+                        <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.5rem;">
+                            You calculate: <strong>s = k + e × secret</strong><br>
+                            Send: <strong>(R, s)</strong> — only 64 bytes!
+                        </p>
+                    </div>
+                </div>
+
+                <div style="background: rgba(156, 39, 176, 0.15); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                    <h5 style="color: #9C27B0; margin-bottom: 0.75rem;">🌟 The Superpowers</h5>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr style="border-bottom: 1px solid rgba(156, 39, 176, 0.3);">
+                            <th style="padding: 0.5rem; text-align: left; color: #9C27B0;">Feature</th>
+                            <th style="padding: 0.5rem; text-align: left;">Old ECDSA</th>
+                            <th style="padding: 0.5rem; text-align: left;">New Schnorr</th>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(156, 39, 176, 0.2);">
+                            <td style="padding: 0.5rem;"><strong>Math</strong></td>
+                            <td style="padding: 0.5rem;">🤔 Complicated</td>
+                            <td style="padding: 0.5rem;">😊 Simple & clean</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(156, 39, 176, 0.2);">
+                            <td style="padding: 0.5rem;"><strong>Speed</strong></td>
+                            <td style="padding: 0.5rem;">🐢 Normal</td>
+                            <td style="padding: 0.5rem;">🚀 Faster</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(156, 39, 176, 0.2);">
+                            <td style="padding: 0.5rem;"><strong>Size</strong></td>
+                            <td style="padding: 0.5rem;">📏 Bigger</td>
+                            <td style="padding: 0.5rem;">📦 Smaller (saves space!)</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem;"><strong>Magic Trick</strong></td>
+                            <td style="padding: 0.5rem;">❌ Can't combine</td>
+                            <td style="padding: 0.5rem;">✨ Can ADD signatures like numbers!</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div style="background: rgba(76, 175, 80, 0.1); border: 2px solid #4CAF50; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                    <strong style="color: #4CAF50;">🎪 Real Magic Trick: Group Signature</strong>
+                    <p style="margin-top: 0.5rem;">With Schnorr, 10 people can all sign the same thing → Their signatures get <strong>added together</strong> into ONE tiny signature → On the blockchain, it looks like <strong>only 1 person</strong> signed!</p>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-dim);">Perfect for: Team wallets, Lightning Network, Privacy tools (CoinJoin)</p>
+                </div>
+            </div>
+
+            <!-- INTERMEDIATE LEVEL -->
+            <div class="intermediate-only">
+                <div style="background: rgba(156, 39, 176, 0.1); border-left: 4px solid #9C27B0; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <p>Schnorr signatures (activated in Bitcoin via Taproot in 2021) are simpler, more efficient, and enable powerful features like <strong>signature aggregation</strong> and <strong>batch verification</strong>.</p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0;">
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 2px solid var(--accent-red);">
+                        <h5 style="color: var(--accent-red); margin-bottom: 0.5rem;">ECDSA (Old Way)</h5>
+                        <p style="font-size: 0.85rem;"><strong>Signature:</strong> (r, s) where r and s are derived separately</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Verification:</strong> Complex multi-step process</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Size:</strong> ~72 bytes (DER-encoded)</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Aggregation:</strong> ❌ Not possible</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Malleability:</strong> ⚠️ Signature can be tweaked</p>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 2px solid #9C27B0;">
+                        <h5 style="color: #9C27B0; margin-bottom: 0.5rem;">Schnorr (New Way)</h5>
+                        <p style="font-size: 0.85rem;"><strong>Signature:</strong> (R, s) where R is a curve point, s is scalar</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Verification:</strong> Simple equation: s·G = R + e·P</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Size:</strong> 64 bytes (always fixed)</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Aggregation:</strong> ✅ Multiple signatures → 1 signature!</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Malleability:</strong> ✅ Impossible to tweak</p>
+                    </div>
+                </div>
+
+                <div style="background: rgba(156, 39, 176, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                    <h5 style="color: #9C27B0; margin-bottom: 0.75rem;">How Schnorr Signing Works</h5>
+                    <ol style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li><strong>Generate nonce:</strong> Pick random k, compute R = k·G</li>
+                        <li><strong>Create challenge:</strong> e = Hash(R || P || m) where P is public key, m is message</li>
+                        <li><strong>Compute signature:</strong> s = k + e·x (where x is private key)</li>
+                        <li><strong>Output:</strong> Signature is (R, s)</li>
+                    </ol>
+                    <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-dim);"><strong>Verification:</strong> Check if s·G = R + e·P. If true, signature is valid!</p>
+                </div>
+
+                <div style="background: rgba(76, 175, 80, 0.1); border: 2px solid #4CAF50; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                    <strong style="color: #4CAF50;">💡 Key Advantage: Linearity</strong>
+                    <p style="margin-top: 0.5rem;">Schnorr's linearity property allows <strong>signature aggregation</strong>: Multiple parties can combine their signatures into a single signature. This makes complex multisig setups look identical to single-key spends on-chain — massive privacy and efficiency gains!</p>
+                </div>
+            </div>
+
+            <!-- ADVANCED LEVEL -->
+            <div class="advanced-only">
+                <div style="background: rgba(156, 39, 176, 0.1); border-left: 4px solid #9C27B0; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <p>Schnorr signatures (BIP-340) provide provable security, linearity enabling key and signature aggregation, and batch verification. Bitcoin's implementation uses secp256k1 curve with x-only public keys and tagged hashing.</p>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 2px solid #9C27B0; margin-bottom: 1rem;">
+                    <h5 style="color: #9C27B0; margin-bottom: 0.75rem;">Schnorr Signature Algorithm (BIP-340)</h5>
+                    <div style="font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6;">
+                        <strong style="color: var(--primary-orange);">// Signing</strong><br>
+                        k = random_scalar()  <span style="color: var(--text-dim);">// Random nonce</span><br>
+                        R = k·G  <span style="color: var(--text-dim);">// Nonce point</span><br>
+                        r = x(R)  <span style="color: var(--text-dim);">// x-only coordinate</span><br>
+                        e = int(Hash<sub>BIP0340/challenge</sub>(r || P || m)) mod n  <span style="color: var(--text-dim);">// Tagged hash</span><br>
+                        s = (k + e·x) mod n  <span style="color: var(--text-dim);">// Signature scalar</span><br>
+                        return (r, s)  <span style="color: var(--text-dim);">// 64-byte signature</span><br><br>
+                        
+                        <strong style="color: var(--primary-orange);">// Verification</strong><br>
+                        e = int(Hash<sub>BIP0340/challenge</sub>(r || P || m)) mod n<br>
+                        R' = s·G - e·P  <span style="color: var(--text-dim);">// Compute expected R</span><br>
+                        return x(R') == r && has_even_y(R')  <span style="color: var(--text-dim);">// Verify</span>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0;">
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                        <h5 style="color: #9C27B0; margin-bottom: 0.5rem;">BIP-340 Design Decisions</h5>
+                        <ul style="margin-left: 1.5rem; line-height: 1.6; font-size: 0.85rem;">
+                            <li><strong>x-only pubkeys:</strong> 32 bytes instead of 33</li>
+                            <li><strong>Implicit y-parity:</strong> Always even y-coordinate</li>
+                            <li><strong>Tagged hashing:</strong> Prevents cross-protocol attacks</li>
+                            <li><strong>Nonce generation:</strong> RFC6979-style deterministic</li>
+                            <li><strong>Batch verification:</strong> Verify n signatures in ~1.5n time</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                        <h5 style="color: #9C27B0; margin-bottom: 0.5rem;">Security Properties</h5>
+                        <ul style="margin-left: 1.5rem; line-height: 1.6; font-size: 0.85rem;">
+                            <li><strong>SUF-CMA secure:</strong> Strong existential unforgeability under chosen message attack</li>
+                            <li><strong>Non-malleable:</strong> Cannot modify existing valid signatures</li>
+                            <li><strong>Provably secure:</strong> Security reduction to DLP</li>
+                            <li><strong>Linear:</strong> Enables MuSig2, FROST protocols</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="background: rgba(76, 175, 80, 0.1); border: 2px solid #4CAF50; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                    <strong style="color: #4CAF50;">🔬 Key Aggregation with MuSig2</strong>
+                    <p style="margin-top: 0.5rem; font-family: 'Courier New', monospace; font-size: 0.85rem;">
+                        P<sub>agg</sub> = P<sub>1</sub> + P<sub>2</sub> + ... + P<sub>n</sub>  (with key coefficient adjustments)<br>
+                        s<sub>agg</sub> = s<sub>1</sub> + s<sub>2</sub> + ... + s<sub>n</sub> mod n
+                    </p>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem;">Indistinguishable from single-key signature. Enables n-of-n multisig with constant O(1) space and verification time.</p>
+                </div>
+            </div>
+
+            <!-- SCHNORR PLAYGROUND (all levels) -->
+            <div style="background: rgba(0,0,0,0.3); border: 2px dashed rgba(156, 39, 176, 0.3); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                <h5 style="color: #9C27B0; margin-bottom: 0.75rem;">🎮 Schnorr Playground</h5>
+                <div style="display: grid; gap: 0.75rem;">
+                    <div>
+                        <label style="font-weight: 600;">Message:</label>
+                        <input type="text" id="schnorr-message" placeholder="Enter message to sign (Schnorr)" style="width: 100%; margin-right: 0;">
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn" onclick="schnorrSignMessage()">✨ Sign with Schnorr</button>
+                        <button class="btn" onclick="schnorrVerify()">🔍 Verify (Schnorr)</button>
+                        <div style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <label for="agg-count" style="font-weight: 600;">Aggregate</label>
+                            <select id="agg-count" style="padding: 0.4rem; border-radius: 6px; background: rgba(0,0,0,0.3); color: var(--text-light); border: 2px solid #9C27B0;">
+                                <option value="2">2 signers</option>
+                                <option value="3">3 signers</option>
+                                <option value="5">5 signers</option>
+                            </select>
+                            <button class="btn" onclick="schnorrAggregate()">➕ Combine</button>
+                        </div>
+                    </div>
+
+                    <div class="key-display"><strong>R (nonce point):</strong> <span id="schnorr-R">-</span></div>
+                    <div class="key-display"><strong>s (scalar):</strong> <span id="schnorr-s">-</span></div>
+                    <div class="key-display"><strong>Signature (R||s):</strong> <span id="schnorr-sig">-</span></div>
+
+                    <div id="schnorr-verify-result"></div>
+
+                    <div id="schnorr-agg" style="display:none; background: rgba(76, 175, 80, 0.1); border: 2px solid #4CAF50; border-radius: 8px; padding: 0.75rem;">
+                        <strong style="color: #4CAF50;">✅ Aggregated!</strong>
+                        <div style="margin-top: 0.5rem; font-family: 'Courier New', monospace; font-size: 0.85rem;" id="schnorr-agg-details"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAPROOT SECTION -->
+        <div class="demo-container" style="border-color: #4CAF50; margin-top: 1.5rem;">
+            <h4 style="color: #4CAF50; margin-bottom: 1rem; font-size: 1.2rem;">🌳 Taproot: Make Complex Look Simple</h4>
+
+            <!-- BEGINNER LEVEL -->
+            <div class="beginner-only">
+                <div style="background: rgba(76, 175, 80, 0.1); border-left: 4px solid #4CAF50; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <p>Taproot glues two upgrades together: <strong>Schnorr Signatures</strong> + <strong>MAST</strong> (Merkleized scripts). Result: Cheaper, more private, more powerful.</p>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                        <strong>New Address Type:</strong>
+                        <p style="margin-top: 0.5rem;">P2TR (Pay to Taproot) starts with <strong>bc1p...</strong></p>
+                        <div class="key-display" id="taproot-address">Click build below</div>
+                        <button class="btn" onclick="taprootBuildAddress()">🏗️ Build Taproot Address</button>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                        <strong>Two Ways to Spend:</strong>
+                        <ul style="margin-left: 1.25rem; margin-top: 0.5rem;">
+                            <li><strong>Key-path:</strong> One 64-byte Schnorr signature (normal)</li>
+                            <li><strong>Script-path:</strong> Reveal one script leaf only (plan B)</li>
+                        </ul>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                        <strong>On-chain Appearance:</strong>
+                        <p style="margin-top: 0.5rem;">Most spends look like <strong>one person signed</strong>, even if many did (privacy win!)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INTERMEDIATE LEVEL -->
+            <div class="intermediate-only">
+                <div style="background: rgba(76, 175, 80, 0.1); border-left: 4px solid #4CAF50; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <p>Taproot outputs (P2TR) commit to a <strong>tweaked key</strong> that optionally includes a hidden <strong>script tree</strong>. You can spend via <strong>key-path</strong> (cheap) or reveal one <strong>Merkle branch</strong> (script-path).</p>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                    <h5 style="color: #4CAF50; margin-bottom: 0.5rem;">Interactive: Spend Type</h5>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn" onclick="taprootShow('key')">🔑 Key-path</button>
+                        <button class="btn" onclick="taprootShow('script')">🧾 Script-path</button>
+                    </div>
+                    <div id="taproot-spend-view" style="margin-top: 0.75rem; font-family: 'Courier New', monospace;"></div>
+                </div>
+            </div>
+
+            <!-- ADVANCED LEVEL -->
+            <div class="advanced-only">
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                    <h5 style="color: #4CAF50; margin-bottom: 0.5rem;">Taproot Math (Simplified)</h5>
+                    <div style="font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.7;">
+                        Given internal key P and script tree root t:<br>
+                        tweak = Hash<sub>tapTweak</sub>(x(P) || t)<br>
+                        Q = P + tweak·G  // output key (x-only)<br>
+                        
+                        Key-path spend: provide Schnorr signature with key Q<br>
+                        Script-path spend: reveal script leaf + Merkle branch + control block
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: rgba(40, 167, 80, 0.1); border-left: 4px solid var(--accent-green); border-radius: 0.5rem; padding: 1rem; margin-top: 1.5rem;">
+            <h4 style="color: var(--accent-green); margin-bottom: 1rem;">📚 Summary: How Bitcoin Uses Digital Signatures</h4>
+            
+            <!-- BEGINNER -->
+            <div class="beginner-only">
+                <div style="display: grid; gap: 0.75rem;">
+                    <div style="background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 6px;">
+                        <strong>💼 Bitcoin Addresses:</strong> Derived from your public key. People send Bitcoin to your address.
+                    </div>
+                    <div style="background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 6px;">
+                        <strong>✈️ Spending Bitcoin:</strong> When you spend, you create a signature with your private key. This proves you own the Bitcoin.
+                    </div>
+                    <div style="background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 6px;">
+                        <strong>🔒 Old vs New:</strong>
+                        <ul style="margin-left: 1.25rem; margin-top: 0.5rem;">
+                            <li><strong>ECDSA</strong> (2009-now): Original signatures, work great but bigger</li>
+                            <li><strong>Schnorr + Taproot</strong> (2021-now): Newer, smaller, more private — multisig looks like single-sig!</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- INTERMEDIATE -->
+            <div class="intermediate-only">
+                <table style="width: 100%; border-collapse: collapse; margin-top: 0.5rem;">
+                    <tr style="border-bottom: 2px solid var(--accent-green);">
+                        <th style="padding: 0.5rem; text-align: left; color: var(--accent-green);">Component</th>
+                        <th style="padding: 0.5rem; text-align: left; color: var(--accent-green);">ECDSA (Legacy)</th>
+                        <th style="padding: 0.5rem; text-align: left; color: var(--accent-green);">Schnorr + Taproot</th>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(40, 167, 80, 0.2);">
+                        <td style="padding: 0.5rem;"><strong>Address Type</strong></td>
+                        <td style="padding: 0.5rem;">P2PKH (1...), P2WPKH (bc1q...)</td>
+                        <td style="padding: 0.5rem;">P2TR (bc1p...)</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(40, 167, 80, 0.2);">
+                        <td style="padding: 0.5rem;"><strong>Signature Size</strong></td>
+                        <td style="padding: 0.5rem;">~72 bytes (DER encoded)</td>
+                        <td style="padding: 0.5rem;">64 bytes (fixed)</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(40, 167, 80, 0.2);">
+                        <td style="padding: 0.5rem;"><strong>Multisig</strong></td>
+                        <td style="padding: 0.5rem;">Visible on-chain, multiple sigs</td>
+                        <td style="padding: 0.5rem;">Aggregated → looks like 1 sig</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.5rem;"><strong>Privacy</strong></td>
+                        <td style="padding: 0.5rem;">Lower (script types visible)</td>
+                        <td style="padding: 0.5rem;">Higher (key-path hides complexity)</td>
+                    </tr>
+                </table>
+                <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-dim);"><strong>Key Point:</strong> Every Bitcoin transaction input requires a valid signature. Schnorr + Taproot make complex smart contracts indistinguishable from simple payments.</p>
+            </div>
+            
+            <!-- ADVANCED -->
+            <div class="advanced-only">
+                <div style="font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.7;">
+                    <strong style="color: var(--accent-green);">Script Validation Opcodes:</strong><br>
+                    • <strong>OP_CHECKSIG:</strong> Verifies ECDSA signature against pubkey<br>
+                    • <strong>OP_CHECKSIGVERIFY:</strong> Same but fails script if invalid<br>
+                    • <strong>OP_CHECKMULTISIG:</strong> Verifies m-of-n ECDSA signatures<br>
+                    • <strong>OP_CHECKSIGADD (Tapscript):</strong> Accumulator-based multisig for Schnorr<br><br>
+                    
+                    <strong style="color: var(--accent-green);">Taproot Signature Validation (BIP-341/342):</strong><br>
+                    Key-path: Single Schnorr signature validates against tweaked pubkey Q<br>
+                    Script-path: Execute revealed script leaf (Tapscript), supports OP_CHECKSIGADD<br><br>
+                    
+                    <strong style="color: var(--accent-green);">Security Model:</strong><br>
+                    ECDSA: SUF-CMA secure under Random Oracle Model + ECDLP hardness<br>
+                    Schnorr (BIP-340): SUF-CMA secure with tighter reduction, non-malleable<br>
+                    Both: ~128-bit security with secp256k1 (256-bit keys)
+                </div>
+            </div>
+        </div>
+        
+        <!-- FINAL COMPARISON BOX -->
+        <div style="background: linear-gradient(135deg, rgba(247, 147, 26, 0.1), rgba(156, 39, 176, 0.1)); border: 2px solid var(--primary-orange); border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem; text-align: center;">
+            <h3 style="color: var(--primary-orange); margin-bottom: 1rem;">🎓 What You've Learned</h3>
+            <p class="beginner-only" style="font-size: 1rem; line-height: 1.8;">
+                ✅ How digital signatures prove ownership without revealing secrets<br>
+                ✅ The difference between ECDSA (old) and Schnorr (new) signatures<br>
+                ✅ How Taproot makes complex Bitcoin transactions look simple<br>
+                ✅ Why Bitcoin's privacy and efficiency improved in 2021
+            </p>
+            <p class="intermediate-only" style="font-size: 0.95rem; line-height: 1.8;">
+                ✅ ECDSA signature generation and verification mechanics<br>
+                ✅ Schnorr's linearity property enables signature aggregation<br>
+                ✅ Taproot's key-path vs script-path spending trade-offs<br>
+                ✅ How MuSig2 enables efficient n-of-n multisig with Schnorr
+            </p>
+            <p class="advanced-only" style="font-size: 0.9rem; line-height: 1.8; font-family: 'Courier New', monospace;">
+                ✅ ECDSA: (r,s) where r = x(k·G), s = k⁻¹(H(m) + r·x) mod n<br>
+                ✅ Schnorr (BIP-340): (r,s) where s = k + e·x, e = Hash<sub>BIP0340/challenge</sub>(r || P || m)<br>
+                ✅ Taproot (BIP-341): Q = P + Hash<sub>TapTweak</sub>(P || t)·G<br>
+                ✅ MuSig2: Non-interactive n-of-n with key aggregation P<sub>agg</sub> = ∑ a<sub>i</sub>P<sub>i</sub>
+            </p>
+            <div style="margin-top: 1rem;">
+                <p style="font-size: 0.9rem; color: var(--text-dim);">Want to dive deeper? Explore the <a href="/interactive-demos/" style="color: var(--primary-orange); text-decoration: underline;">other interactive demos</a>!</p>
+            </div>
         </div>
     </div>
 
@@ -474,6 +848,85 @@
                     The message was modified. Click "Verify Signature" to see if the signature still validates!
                 </div>
             `;
+        }
+
+        // ===== Schnorr Playground Logic (educational, simplified) =====
+        let schnorrState = { message: '', R: '', s: '', pubkey: '' };
+
+        function randomHex(bytes) {
+            return Array.from(crypto.getRandomValues(new Uint8Array(bytes))).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function schnorrSignMessage() {
+            const msg = document.getElementById('schnorr-message').value.trim();
+            if (!msg) { alert('Enter a message to sign (Schnorr)'); return; }
+            // Generate x-only pubkey (simulated)
+            if (!schnorrState.pubkey) schnorrState.pubkey = randomHex(32);
+            // Simulate k, R, e, s
+            const k = randomHex(32);
+            const R = randomHex(32); // x-only R for display
+            const e = randomHex(32); // simulate challenge
+            const s = randomHex(32);
+            schnorrState.message = msg;
+            schnorrState.R = R;
+            schnorrState.s = s;
+            document.getElementById('schnorr-R').textContent = R;
+            document.getElementById('schnorr-s').textContent = s;
+            document.getElementById('schnorr-sig').textContent = R + s;
+            document.getElementById('schnorr-verify-result').innerHTML = '';
+            document.getElementById('schnorr-agg').style.display = 'none';
+        }
+
+        function schnorrVerify() {
+            const msg = document.getElementById('schnorr-message').value.trim();
+            const ok = (msg === schnorrState.message) && schnorrState.R && schnorrState.s;
+            const box = document.getElementById('schnorr-verify-result');
+            if (ok) {
+                box.innerHTML = `
+                    <div style="background: rgba(40, 167, 80, 0.2); border: 2px solid var(--accent-green); border-radius: 12px; padding: 1rem; margin-top: 0.5rem;">
+                        <strong style="color: var(--accent-green);">✅ Valid Schnorr Signature!</strong><br>
+                        Verified using: <code>s·G = R + e·P</code><br>
+                        (Educational demo: equation shown conceptually)
+                    </div>`;
+            } else {
+                box.innerHTML = `
+                    <div style="background: rgba(220, 53, 69, 0.2); border: 2px solid var(--accent-red); border-radius: 12px; padding: 1rem; margin-top: 0.5rem;">
+                        <strong style="color: var(--accent-red);">❌ Invalid Schnorr Signature</strong><br>
+                        Message changed or signature missing.
+                    </div>`;
+            }
+        }
+
+        function schnorrAggregate() {
+            const n = parseInt(document.getElementById('agg-count').value, 10) || 2;
+            const pubkeys = Array.from({length: n}, () => randomHex(32));
+            const aggPub = randomHex(32);
+            const aggSig = randomHex(64/2); // 32 bytes s, 32 bytes R combined notionally → 64 bytes total
+            const details = `Signers: ${n}\nPubKeys: ${pubkeys.map(p=>p.slice(0,8)+'…').join(', ')}\nCombined pubkey: ${aggPub.slice(0,16)}…\nCombined signature size: 64 bytes`;
+            document.getElementById('schnorr-agg').style.display = 'block';
+            document.getElementById('schnorr-agg-details').textContent = details;
+        }
+
+        // ===== Taproot mini-demo =====
+        function taprootBuildAddress() {
+            const bech = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+            const rand = (len)=>Array.from({length: len}, ()=>bech[Math.floor(Math.random()*bech.length)]).join('');
+            document.getElementById('taproot-address').textContent = 'bc1p' + rand(38);
+        }
+
+        function taprootShow(type) {
+            const view = document.getElementById('taproot-spend-view');
+            if (type === 'key') {
+                view.innerHTML = `
+                    <div><strong>Key-path Spend</strong></div>
+                    <div>Reveal: 64-byte Schnorr signature</div>
+                    <div>On-chain: looks like single-sig ✅</div>`;
+            } else {
+                view.innerHTML = `
+                    <div><strong>Script-path Spend</strong></div>
+                    <div>Reveal: Merkle branch + script leaf + signatures</div>
+                    <div>Only the used branch is revealed ✅</div>`;
+            }
         }
 
         console.log(`🔐 Digital Signatures Demo Level: ${currentLevel}`);
