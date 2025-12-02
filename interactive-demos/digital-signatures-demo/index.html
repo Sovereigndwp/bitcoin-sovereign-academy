@@ -450,6 +450,18 @@
                 <div style="background: rgba(76, 175, 80, 0.1); border-left: 4px solid #4CAF50; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
                     <p>Taproot outputs (P2TR) commit to a <strong>tweaked key</strong> that optionally includes a hidden <strong>script tree</strong>. You can spend via <strong>key-path</strong> (cheap) or reveal one <strong>Merkle branch</strong> (script-path).</p>
                 </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <h5 style="color: #4CAF50; margin-bottom: 0.75rem;">How Taproot Works</h5>
+                    <ol style="margin-left: 1.5rem; line-height: 1.8; font-size: 0.9rem;">
+                        <li><strong>Start with internal key P:</strong> This is your base public key</li>
+                        <li><strong>Add script commitments:</strong> Hash your script tree to get root t</li>
+                        <li><strong>Tweak the key:</strong> Q = P + Hash(P||t)·G</li>
+                        <li><strong>Create P2TR address:</strong> bc1p... from Q (x-only)</li>
+                    </ol>
+                    <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-dim);">The tweaked key Q becomes the address. Scripts stay hidden in the hash until you need them.</p>
+                </div>
+
                 <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
                     <h5 style="color: #4CAF50; margin-bottom: 0.5rem;">Interactive: Spend Type</h5>
                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
@@ -458,20 +470,61 @@
                     </div>
                     <div id="taproot-spend-view" style="margin-top: 0.75rem; font-family: 'Courier New', monospace;"></div>
                 </div>
+
+                <div style="background: rgba(76, 175, 80, 0.05); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                    <h5 style="color: #4CAF50; margin-bottom: 0.75rem;">Real-World Example: 2-of-3 Multisig</h5>
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;"><strong>Without Taproot:</strong> Everyone sees it's a 2-of-3 multisig. ~200 bytes on-chain.</p>
+                    <p style="font-size: 0.9rem;"><strong>With Taproot:</strong> If all 3 cooperate, use key-path (64 bytes, looks like single-sig). If one is unavailable, reveal script-path. Privacy + efficiency!</p>
+                </div>
             </div>
 
             <!-- ADVANCED LEVEL -->
             <div class="advanced-only">
-                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
-                    <h5 style="color: #4CAF50; margin-bottom: 0.5rem;">Taproot Math (Simplified)</h5>
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <h5 style="color: #4CAF50; margin-bottom: 0.75rem;">Taproot Construction (BIP-341)</h5>
                     <div style="font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.7;">
-                        Given internal key P and script tree root t:<br>
-                        tweak = Hash<sub>tapTweak</sub>(x(P) || t)<br>
-                        Q = P + tweak·G  // output key (x-only)<br>
+                        <strong style="color: var(--primary-orange);">// Key Construction</strong><br>
+                        P = internal_pubkey  <span style="color: var(--text-dim);">// Base public key</span><br>
+                        t = tagged_hash("TapBranch", left_hash || right_hash)  <span style="color: var(--text-dim);">// Merkle root</span><br>
+                        tweak = tagged_hash("TapTweak", x(P) || t)  <span style="color: var(--text-dim);">// BIP-340 tagged hash</span><br>
+                        Q = lift_x(x(P) + tweak mod n)  <span style="color: var(--text-dim);">// Output key (x-only, even y)</span><br><br>
                         
-                        Key-path spend: provide Schnorr signature with key Q<br>
-                        Script-path spend: reveal script leaf + Merkle branch + control block
+                        <strong style="color: var(--primary-orange);">// Key-path Spend</strong><br>
+                        sig = Sign(sk + tweak, message)  <span style="color: var(--text-dim);">// Schnorr sig with tweaked key</span><br>
+                        witness: [sig]  <span style="color: var(--text-dim);">// 64 bytes only</span><br><br>
+                        
+                        <strong style="color: var(--primary-orange);">// Script-path Spend</strong><br>
+                        control_block = [parity || x(P) || merkle_proof]<br>
+                        witness: [script_inputs... || script || control_block]<br>
+                        verify: Hash(control_block[1:33] + hash(script) + proof) == t
                     </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                        <h5 style="color: #4CAF50; margin-bottom: 0.5rem;">Tapscript Changes (BIP-342)</h5>
+                        <ul style="margin-left: 1.5rem; line-height: 1.6; font-size: 0.85rem;">
+                            <li><strong>OP_CHECKSIGADD:</strong> Replaces OP_CHECKMULTISIG</li>
+                            <li><strong>OP_SUCCESS:</strong> Reserved opcodes for soft forks</li>
+                            <li><strong>Schnorr-only:</strong> No ECDSA in Tapscript</li>
+                            <li><strong>Signature validation:</strong> Uses BIP-340 exclusively</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                        <h5 style="color: #4CAF50; margin-bottom: 0.5rem;">MAST Benefits</h5>
+                        <ul style="margin-left: 1.5rem; line-height: 1.6; font-size: 0.85rem;">
+                            <li><strong>Privacy:</strong> Unexecuted branches stay hidden</li>
+                            <li><strong>Efficiency:</strong> O(log n) witness size</li>
+                            <li><strong>Flexibility:</strong> Unlimited script alternatives</li>
+                            <li><strong>Composability:</strong> Combine with covenants</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="background: rgba(76, 175, 80, 0.05); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                    <strong style="color: #4CAF50;">🔬 Implementation Note:</strong>
+                    <p style="margin-top: 0.5rem; font-size: 0.85rem;">Taproot witness program: 1-byte version (0x01) + 32-byte x-only pubkey Q. SegWit v1 uses Bech32m encoding. Key-path spends are indistinguishable from each other regardless of hidden scripts.</p>
                 </div>
             </div>
         </div>
