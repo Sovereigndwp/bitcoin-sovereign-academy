@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin IRA Decision Tool | Interactive Demo</title>
+    <meta name="description" content="Decide if a Bitcoin IRA fits your situation. Step-by-step questionnaire with personalized recommendations for retirement Bitcoin exposure.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --sovereign-gold: #d4af37;
+            --sovereign-amber: #FFBF00;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-red: #ef4444;
+            --accent-orange: #ff9800;
+            --accent-blue: #3498db;
+            --text-light: #e0e0e0;
+            --text-dim: #b3b3b3;
+            --border-color: rgba(212, 175, 55, 0.2);
+        }
+
+        /* ===== ACCESSIBILITY ENHANCEMENTS (WCAG 2.1 AA) ===== */
+        button, a, [role="button"], input[type="button"], input[type="submit"], .choice {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        *:focus-visible {
+            outline: 3px solid var(--sovereign-gold);
+            outline-offset: 2px;
+        }
+
+        button:focus-visible, a:focus-visible {
+            outline: 3px solid var(--sovereign-gold);
+            outline-offset: 4px;
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--sovereign-gold);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            max-width: 700px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .intro-box {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .intro-box h2 {
+            color: var(--sovereign-gold);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .intro-box p {
+            color: var(--text-dim);
+            margin-bottom: 0.75rem;
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            margin-bottom: 3rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: var(--secondary-dark);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--sovereign-gold), var(--sovereign-amber));
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Step Card */
+        .step-card {
+            background: var(--secondary-dark);
+            border: 3px solid var(--sovereign-gold);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 24px rgba(212, 175, 55, 0.2);
+            display: none;
+        }
+
+        .step-card.active {
+            display: block;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: var(--sovereign-gold);
+            color: var(--primary-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-title h2 {
+            font-size: 1.75rem;
+            color: var(--sovereign-gold);
+            margin-bottom: 0.25rem;
+        }
+
+        .step-subtitle {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+        }
+
+        .question {
+            margin-bottom: 2rem;
+        }
+
+        .question h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .question-desc {
+            color: var(--text-dim);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        /* Choices */
+        .choices {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .choice {
+            background: var(--primary-dark);
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .choice:hover {
+            border-color: var(--sovereign-gold);
+            transform: translateX(5px);
+        }
+
+        .choice.selected {
+            border-color: var(--sovereign-gold);
+            background: rgba(212, 175, 55, 0.15);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .choice-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .choice-desc {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Input Fields */
+        input[type="number"],
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-light);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--sovereign-gold);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Checkboxes */
+        .checkbox-group {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--primary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            border-color: var(--sovereign-gold);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: var(--sovereign-gold);
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--sovereign-gold);
+            color: var(--primary-dark);
+        }
+
+        .btn-primary:hover {
+            background: var(--sovereign-amber);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--sovereign-gold);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+            animation: slideIn 0.4s ease;
+        }
+
+        .result-card {
+            background: var(--secondary-dark);
+            border: 3px solid var(--border-color);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card.recommend {
+            border-color: var(--accent-green);
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        .result-card.caution {
+            border-color: var(--accent-orange);
+            background: rgba(255, 152, 0, 0.05);
+        }
+
+        .result-card.not-recommend {
+            border-color: var(--accent-red);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-icon {
+            font-size: 3rem;
+        }
+
+        .result-title h2 {
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .result-card.recommend .result-title h2 {
+            color: var(--accent-green);
+        }
+
+        .result-card.caution .result-title h2 {
+            color: var(--accent-orange);
+        }
+
+        .result-card.not-recommend .result-title h2 {
+            color: var(--accent-red);
+        }
+
+        .result-summary {
+            background: var(--primary-dark);
+            border-left: 4px solid var(--sovereign-gold);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-summary p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .action-plan {
+            margin-top: 2rem;
+        }
+
+        .action-plan h3 {
+            color: var(--sovereign-gold);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .action-item {
+            background: var(--primary-dark);
+            padding: 1.25rem;
+            border-left: 4px solid var(--sovereign-gold);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .action-item strong {
+            color: var(--sovereign-gold);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-section {
+            background: rgba(52, 152, 219, 0.1);
+            border: 2px solid var(--accent-blue);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-section h3 {
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+
+        .info-section ul {
+            list-style-position: inside;
+            color: var(--text-dim);
+        }
+
+        .info-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .provider-table {
+            width: 100%;
+            background: var(--primary-dark);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin: 1.5rem 0;
+        }
+
+        .provider-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .provider-table th,
+        .provider-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .provider-table th {
+            background: var(--secondary-dark);
+            color: var(--sovereign-gold);
+            font-weight: 600;
+        }
+
+        .provider-table td {
+            color: var(--text-dim);
+        }
+
+        .expand-section {
+            cursor: pointer;
+            padding: 1rem;
+            background: var(--primary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .expand-section:hover {
+            border-color: var(--sovereign-gold);
+        }
+
+        .expand-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .expand-header h4 {
+            color: var(--sovereign-gold);
+            font-size: 1.1rem;
+        }
+
+        .expand-icon {
+            font-size: 1.5rem;
+            color: var(--sovereign-gold);
+            transition: transform 0.3s ease;
+        }
+
+        .expand-section.open .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .expand-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .expand-section.open .expand-content {
+            max-height: 2000px;
+            padding-top: 1rem;
+        }
+
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid var(--accent-red);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .warning-box h4 {
+            color: var(--accent-red);
+            margin-bottom: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .step-title h2 {
+                font-size: 1.4rem;
+            }
+
+            .result-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .provider-table {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>💰 Bitcoin IRA Decision Tool</h1>
+            <p>
+                Use this step-by-step tool to decide if a Bitcoin IRA fits your situation, what type you need, 
+                and what you should do next. Answer the questions honestly to get a personalized action plan.
+            </p>
+        </header>
+
+        <div class="intro-box">
+            <h2>How This Tool Works</h2>
+            <p>✓ <strong>9 steps</strong> covering your situation, goals, funding, allocation, and security preferences</p>
+            <p>✓ Each answer shapes your personalized recommendation</p>
+            <p>✓ At the end: clear next actions and provider comparison (if applicable)</p>
+            <p>✓ Takes approximately <strong>10-15 minutes</strong> to complete</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-section">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Step 0 of 9</div>
+        </div>
+
+        <!-- Step 1: Initial Qualification -->
+        <div class="step-card active" id="step1">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <div class="step-title">
+                    <h2>Initial Qualification</h2>
+                    <div class="step-subtitle">Let's see if a Bitcoin IRA makes sense for you</div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>Are you a United States taxpayer?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="usTaxpayer" data-value="yes">
+                        <div class="choice-title">✓ Yes</div>
+                        <div class="choice-desc">I file US taxes and am subject to IRS rules</div>
+                    </div>
+                    <div class="choice" data-question="usTaxpayer" data-value="no">
+                        <div class="choice-title">✗ No</div>
+                        <div class="choice-desc">I am not a US taxpayer</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>Is this money meant for retirement rather than short-term spending?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="retirementPurpose" data-value="yes">
+                        <div class="choice-title">✓ Yes, for retirement</div>
+                        <div class="choice-desc">I won't need this money for many years</div>
+                    </div>
+                    <div class="choice" data-question="retirementPurpose" data-value="no">
+                        <div class="choice-title">✗ No, might need it sooner</div>
+                        <div class="choice-desc">I may need access within a few years</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>How many years until you think you will need this money?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="timeHorizon" data-value="<5">
+                        <div class="choice-title">Less than 5 years</div>
+                        <div class="choice-desc">Short-term horizon</div>
+                    </div>
+                    <div class="choice" data-question="timeHorizon" data-value="5-15">
+                        <div class="choice-title">Between 5 and 15 years</div>
+                        <div class="choice-desc">Medium-term horizon</div>
+                    </div>
+                    <div class="choice" data-question="timeHorizon" data-value=">15">
+                        <div class="choice-title">More than 15 years</div>
+                        <div class="choice-desc">Long-term horizon</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>How do you feel about price drops in Bitcoin?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="volatilityTolerance" data-value="panic">
+                        <div class="choice-title">😰 I panic easily</div>
+                        <div class="choice-desc">Large price drops make me very uncomfortable</div>
+                    </div>
+                    <div class="choice" data-question="volatilityTolerance" data-value="nervous">
+                        <div class="choice-title">😬 I feel nervous but can stay calm</div>
+                        <div class="choice-desc">It's uncomfortable but I can handle it</div>
+                    </div>
+                    <div class="choice" data-question="volatilityTolerance" data-value="calm">
+                        <div class="choice-title">😎 I can handle big swings without reacting</div>
+                        <div class="choice-desc">Volatility doesn't bother me</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>Why are you interested in a Bitcoin IRA instead of buying Bitcoin directly in self-custody?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="iraMotivation" data-value="tax">
+                        <div class="choice-title">Tax advantages</div>
+                        <div class="choice-desc">I want tax-deferred or tax-free growth</div>
+                    </div>
+                    <div class="choice" data-question="iraMotivation" data-value="existing">
+                        <div class="choice-title">I already have most wealth in retirement accounts</div>
+                        <div class="choice-desc">My funds are already in 401(k)/IRA structures</div>
+                    </div>
+                    <div class="choice" data-question="iraMotivation" data-value="adviser">
+                        <div class="choice-title">My adviser suggested it</div>
+                        <div class="choice-desc">Professional recommendation</div>
+                    </div>
+                    <div class="choice" data-question="iraMotivation" data-value="unsure">
+                        <div class="choice-title">I am not sure</div>
+                        <div class="choice-desc">Still exploring options</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="window.location.href='/paths/sovereign/'">← Back to Sovereign Path</button>
+                <button class="btn btn-primary" onclick="nextStep(1)" id="step1Next" disabled>Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Clarify Goals -->
+        <div class="step-card" id="step2">
+            <div class="step-header">
+                <div class="step-number">2</div>
+                <div class="step-title">
+                    <h2>Clarify Your Goals</h2>
+                    <div class="step-subtitle">Define what you want Bitcoin to do in your retirement plan</div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>What is the main role you want Bitcoin to play in your retirement plan?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="primaryGoal" data-value="hedge">
+                        <div class="choice-title">Hedge against money printing</div>
+                        <div class="choice-desc">Protection from inflation and currency debasement</div>
+                    </div>
+                    <div class="choice" data-question="primaryGoal" data-value="growth">
+                        <div class="choice-title">High growth part of my portfolio</div>
+                        <div class="choice-desc">Seeking significant appreciation potential</div>
+                    </div>
+                    <div class="choice" data-question="primaryGoal" data-value="wealth-transfer">
+                        <div class="choice-title">Way to pass wealth to family</div>
+                        <div class="choice-desc">Intergenerational wealth preservation</div>
+                    </div>
+                    <div class="choice" data-question="primaryGoal" data-value="experiment">
+                        <div class="choice-title">Just a small experiment</div>
+                        <div class="choice-desc">Testing the waters with limited exposure</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>What matters more to you?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="taxPriority" data-value="now">
+                        <div class="choice-title">Protect current cash flow with tax deduction now</div>
+                        <div class="choice-desc">Traditional IRA approach - lower taxes today</div>
+                    </div>
+                    <div class="choice" data-question="taxPriority" data-value="later">
+                        <div class="choice-title">Maximize tax-free withdrawals in the future</div>
+                        <div class="choice-desc">Roth IRA approach - tax-free growth and withdrawals</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>If Bitcoin dropped fifty percent next year, how would you react?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="dropReaction" data-value="sell">
+                        <div class="choice-title">😱 I would sell</div>
+                        <div class="choice-desc">I'd want to cut losses</div>
+                    </div>
+                    <div class="choice" data-question="dropReaction" data-value="wait">
+                        <div class="choice-title">⏳ I would wait</div>
+                        <div class="choice-desc">Hold and hope for recovery</div>
+                    </div>
+                    <div class="choice" data-question="dropReaction" data-value="buy">
+                        <div class="choice-title">🎯 I would likely buy more</div>
+                        <div class="choice-desc">View it as an opportunity</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="previousStep(2)">← Previous</button>
+                <button class="btn btn-primary" onclick="nextStep(2)" id="step2Next" disabled>Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Traditional vs Roth -->
+        <div class="step-card" id="step3">
+            <div class="step-header">
+                <div class="step-number">3</div>
+                <div class="step-title">
+                    <h2>Traditional vs Roth</h2>
+                    <div class="step-subtitle">Choose the account type that matches your tax situation</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Quick Reminder</h3>
+                <ul>
+                    <li><strong>Traditional:</strong> You may get a tax break now, you pay tax when you withdraw in retirement</li>
+                    <li><strong>Roth:</strong> You pay tax now, qualified withdrawals after retirement can be tax-free</li>
+                </ul>
+            </div>
+
+            <div class="question">
+                <h3>Is your current income tax rate likely lower or higher than what you expect in retirement?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="taxRateComparison" data-value="lower">
+                        <div class="choice-title">Lower now</div>
+                        <div class="choice-desc">I'm in a relatively low tax bracket currently</div>
+                    </div>
+                    <div class="choice" data-question="taxRateComparison" data-value="higher">
+                        <div class="choice-title">Higher now</div>
+                        <div class="choice-desc">I'm in a high tax bracket currently</div>
+                    </div>
+                    <div class="choice" data-question="taxRateComparison" data-value="unsure">
+                        <div class="choice-title">No idea</div>
+                        <div class="choice-desc">Hard to predict future tax rates</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>Can you afford to pay taxes now in order to have tax-free Bitcoin withdrawals later?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="payTaxNow" data-value="yes">
+                        <div class="choice-title">✓ Yes</div>
+                        <div class="choice-desc">I can handle the tax burden now for future benefit</div>
+                    </div>
+                    <div class="choice" data-question="payTaxNow" data-value="no">
+                        <div class="choice-title">✗ No</div>
+                        <div class="choice-desc">I need the tax deduction now</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>Do you already have Roth accounts?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="hasRoth" data-value="yes">
+                        <div class="choice-title">✓ Yes</div>
+                        <div class="choice-desc">I have existing Roth IRA or Roth 401(k)</div>
+                    </div>
+                    <div class="choice" data-question="hasRoth" data-value="no">
+                        <div class="choice-title">✗ No</div>
+                        <div class="choice-desc">This would be my first Roth account</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>Are you close to Roth income limits this year?</h3>
+                <p class="question-desc">For 2025: $161,000 (single) or $240,000 (married filing jointly) phase-out begins</p>
+                <div class="choices">
+                    <div class="choice" data-question="rothLimits" data-value="yes">
+                        <div class="choice-title">Yes, close to limits</div>
+                        <div class="choice-desc">My income is near or above Roth limits</div>
+                    </div>
+                    <div class="choice" data-question="rothLimits" data-value="no">
+                        <div class="choice-title">No, well below limits</div>
+                        <div class="choice-desc">I'm comfortably under the income limits</div>
+                    </div>
+                    <div class="choice" data-question="rothLimits" data-value="unsure">
+                        <div class="choice-title">Not sure</div>
+                        <div class="choice-desc">Need to check my income level</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="previousStep(3)">← Previous</button>
+                <button class="btn btn-primary" onclick="nextStep(3)" id="step3Next" disabled>Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Funding Strategy -->
+        <div class="step-card" id="step4">
+            <div class="step-header">
+                <div class="step-number">4</div>
+                <div class="step-title">
+                    <h2>Funding Strategy</h2>
+                    <div class="step-subtitle">Decide how you will fund your Bitcoin IRA</div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>Do you have any of these right now? (Select all that apply)</h3>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="old401k" data-question="existingAccounts">
+                        <label for="old401k">Old 401(k) from a past job</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="current401k" data-question="existingAccounts">
+                        <label for="current401k">Current 401(k) with in-service rollover allowed</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="existingIRA" data-question="existingAccounts">
+                        <label for="existingIRA">Existing Traditional or Roth IRA</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="noneAbove" data-question="existingAccounts">
+                        <label for="noneAbove">None of the above</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>Do you want to:</h3>
+                <div class="choices">
+                    <div class="choice" data-question="fundingApproach" data-value="rollover">
+                        <div class="choice-title">Move some of an old account into Bitcoin</div>
+                        <div class="choice-desc">Rollover existing retirement funds</div>
+                    </div>
+                    <div class="choice" data-question="fundingApproach" data-value="contributions">
+                        <div class="choice-title">Only add new yearly contributions</div>
+                        <div class="choice-desc">Start fresh with new money</div>
+                    </div>
+                    <div class="choice" data-question="fundingApproach" data-value="both">
+                        <div class="choice-title">Do both</div>
+                        <div class="choice-desc">Rollover plus ongoing contributions</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>Roughly how much are you thinking of putting into Bitcoin through retirement accounts in the next year?</h3>
+                <p class="question-desc">Enter amount in USD (e.g., 10000 for $10,000)</p>
+                <input type="number" id="initialAmount" placeholder="0" min="0" step="1000">
+            </div>
+
+            <div class="question">
+                <h3>What percent of your total retirement savings would that be?</h3>
+                <p class="question-desc">Rough estimate is fine</p>
+                <div class="choices">
+                    <div class="choice" data-question="percentOfRetirement" data-value="<5">
+                        <div class="choice-title">Less than 5%</div>
+                        <div class="choice-desc">Small allocation</div>
+                    </div>
+                    <div class="choice" data-question="percentOfRetirement" data-value="5-10">
+                        <div class="choice-title">5-10%</div>
+                        <div class="choice-desc">Moderate allocation</div>
+                    </div>
+                    <div class="choice" data-question="percentOfRetirement" data-value="10-25">
+                        <div class="choice-title">10-25%</div>
+                        <div class="choice-desc">Significant allocation</div>
+                    </div>
+                    <div class="choice" data-question="percentOfRetirement" data-value=">25">
+                        <div class="choice-title">More than 25%</div>
+                        <div class="choice-desc">Major allocation</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="previousStep(4)">← Previous</button>
+                <button class="btn btn-primary" onclick="nextStep(4)" id="step4Next" disabled>Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 5: Allocation & Risk -->
+        <div class="step-card" id="step5">
+            <div class="step-header">
+                <div class="step-number">5</div>
+                <div class="step-title">
+                    <h2>Allocation & Risk Guardrails</h2>
+                    <div class="step-subtitle">Set your target Bitcoin allocation</div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>What is your total retirement balance across all accounts today?</h3>
+                <p class="question-desc">Approximate total in USD</p>
+                <input type="number" id="totalRetirement" placeholder="0" min="0" step="10000">
+            </div>
+
+            <div class="question">
+                <h3>Maximum percent of that amount you feel comfortable holding in Bitcoin</h3>
+                <div class="choices">
+                    <div class="choice" data-question="maxBitcoinPercent" data-value="<5">
+                        <div class="choice-title">Under 5%</div>
+                        <div class="choice-desc">Very conservative approach</div>
+                    </div>
+                    <div class="choice" data-question="maxBitcoinPercent" data-value="5-10">
+                        <div class="choice-title">Between 5 and 10%</div>
+                        <div class="choice-desc">Moderate approach</div>
+                    </div>
+                    <div class="choice" data-question="maxBitcoinPercent" data-value="10-20">
+                        <div class="choice-title">Between 10 and 20%</div>
+                        <div class="choice-desc">Aggressive approach</div>
+                    </div>
+                    <div class="choice" data-question="maxBitcoinPercent" data-value=">20">
+                        <div class="choice-title">More than 20%</div>
+                        <div class="choice-desc">Very aggressive approach</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>How would you feel if your Bitcoin part dropped by half while stocks stayed flat?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="halfDropFeeling" data-value="change">
+                        <div class="choice-title">😰 I would change my plan</div>
+                        <div class="choice-desc">Would need to reduce or exit position</div>
+                    </div>
+                    <div class="choice" data-question="halfDropFeeling" data-value="stay">
+                        <div class="choice-title">😬 I would feel bad but stay with the plan</div>
+                        <div class="choice-desc">Uncomfortable but committed</div>
+                    </div>
+                    <div class="choice" data-question="halfDropFeeling" data-value="buy">
+                        <div class="choice-title">😎 I would see it as a chance to add more</div>
+                        <div class="choice-desc">View drops as opportunities</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>Do you want to add Bitcoin slowly over time or in one larger move?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="implementationStyle" data-value="monthly">
+                        <div class="choice-title">📅 Monthly plan</div>
+                        <div class="choice-desc">Dollar-cost averaging over time</div>
+                    </div>
+                    <div class="choice" data-question="implementationStyle" data-value="lump">
+                        <div class="choice-title">💰 One-time lump sum</div>
+                        <div class="choice-desc">Single allocation</div>
+                    </div>
+                    <div class="choice" data-question="implementationStyle" data-value="mix">
+                        <div class="choice-title">🔄 Mix of both</div>
+                        <div class="choice-desc">Initial amount plus ongoing contributions</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="previousStep(5)">← Previous</button>
+                <button class="btn btn-primary" onclick="nextStep(5)" id="step5Next" disabled>Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 6: Security & Custody -->
+        <div class="step-card" id="step6">
+            <div class="step-header">
+                <div class="step-number">6</div>
+                <div class="step-title">
+                    <h2>Security & Custody Preferences</h2>
+                    <div class="step-subtitle">Define your security requirements</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Important Note</h3>
+                <p>In a Bitcoin IRA, you do not hold the keys yourself. A regulated custodian must hold them on behalf of the account. Security still matters a lot.</p>
+            </div>
+
+            <div class="question">
+                <h3>Are you comfortable with professional custody that uses cold storage and multi-sig controls instead of your own hardware wallet?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="professionalCustody" data-value="yes">
+                        <div class="choice-title">✓ Yes, comfortable</div>
+                        <div class="choice-desc">I trust regulated custodians with proper security</div>
+                    </div>
+                    <div class="choice" data-question="professionalCustody" data-value="no">
+                        <div class="choice-title">✗ No, not comfortable</div>
+                        <div class="choice-desc">I strongly prefer self-custody</div>
+                    </div>
+                    <div class="choice" data-question="professionalCustody" data-value="unsure">
+                        <div class="choice-title">🤔 Unsure, want a call</div>
+                        <div class="choice-desc">Need more information to decide</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>Which of these security features do you see as non-negotiable? (Select all that apply)</h3>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="coldStorage" data-question="securityFeatures">
+                        <label for="coldStorage">Cold storage for most funds</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="multiSig" data-question="securityFeatures">
+                        <label for="multiSig">Multi-sig controls</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="insurance" data-question="securityFeatures">
+                        <label for="insurance">Insurance against theft or custodian error</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="audits" data-question="securityFeatures">
+                        <label for="audits">Regular third-party security audits</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>How important is clear reporting for tax and compliance?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="reportingImportance" data-value="very">
+                        <div class="choice-title">Very important</div>
+                        <div class="choice-desc">Need detailed, clear records</div>
+                    </div>
+                    <div class="choice" data-question="reportingImportance" data-value="somewhat">
+                        <div class="choice-title">Somewhat important</div>
+                        <div class="choice-desc">Basic reporting is fine</div>
+                    </div>
+                    <div class="choice" data-question="reportingImportance" data-value="not">
+                        <div class="choice-title">Not important</div>
+                        <div class="choice-desc">I'll handle my own records</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>Do you prefer a provider who focuses only on Bitcoin or one that holds many coins?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="providerFocus" data-value="bitcoin">
+                        <div class="choice-title">Bitcoin-only</div>
+                        <div class="choice-desc">Specialized Bitcoin focus</div>
+                    </div>
+                    <div class="choice" data-question="providerFocus" data-value="multi">
+                        <div class="choice-title">Multi-crypto</div>
+                        <div class="choice-desc">Flexibility to diversify into other assets</div>
+                    </div>
+                    <div class="choice" data-question="providerFocus" data-value="either">
+                        <div class="choice-title">Either is fine</div>
+                        <div class="choice-desc">No strong preference</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="previousStep(6)">← Previous</button>
+                <button class="btn btn-primary" onclick="nextStep(6)" id="step6Next" disabled>Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 7: Provider Comparison (Knowledge) -->
+        <div class="step-card" id="step7">
+            <div class="step-header">
+                <div class="step-number">7</div>
+                <div class="step-title">
+                    <h2>Understanding Provider Fees</h2>
+                    <div class="step-subtitle">Learn what to look for in providers</div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>When comparing providers, which factors matter most to you? (Rank or select top 3)</h3>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="lowFees" data-question="providerPriorities">
+                        <label for="lowFees">Lowest total fees</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="highestSecurity" data-question="providerPriorities">
+                        <label for="highestSecurity">Highest security & insurance</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="easeOfUse" data-question="providerPriorities">
+                        <label for="easeOfUse">Ease of use & customer support</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="reputation" data-question="providerPriorities">
+                        <label for="reputation">Established reputation & track record</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="education" data-question="providerPriorities">
+                        <label for="education">Educational resources & guidance</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>Are you willing to pay higher fees for better security and insurance?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="feeVsSecurity" data-value="yes">
+                        <div class="choice-title">✓ Yes</div>
+                        <div class="choice-desc">Security is worth the premium</div>
+                    </div>
+                    <div class="choice" data-question="feeVsSecurity" data-value="no">
+                        <div class="choice-title">✗ No</div>
+                        <div class="choice-desc">I want the lowest fees possible</div>
+                    </div>
+                    <div class="choice" data-question="feeVsSecurity" data-value="balance">
+                        <div class="choice-title">⚖️ Need balance</div>
+                        <div class="choice-desc">Want reasonable fees with solid security</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="previousStep(7)">← Previous</button>
+                <button class="btn btn-primary" onclick="nextStep(7)" id="step7Next" disabled>Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 8: Withdrawal Rules & Risks -->
+        <div class="step-card" id="step8">
+            <div class="step-header">
+                <div class="step-number">8</div>
+                <div class="step-title">
+                    <h2>Withdrawal Rules & Risks</h2>
+                    <div class="step-subtitle">Understand the constraints and penalties</div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>How old are you now?</h3>
+                <p class="question-desc">This determines your withdrawal timeline</p>
+                <input type="number" id="currentAge" placeholder="Enter your age" min="18" max="100">
+            </div>
+
+            <div class="question">
+                <h3>Do you expect to touch this Bitcoin IRA before age 59½?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="earlyWithdrawal" data-value="yes">
+                        <div class="choice-title">Yes, likely</div>
+                        <div class="choice-desc">I may need to access funds early</div>
+                    </div>
+                    <div class="choice" data-question="earlyWithdrawal" data-value="no">
+                        <div class="choice-title">No, won't touch it</div>
+                        <div class="choice-desc">Can wait until retirement age</div>
+                    </div>
+                    <div class="choice" data-question="earlyWithdrawal" data-value="maybe">
+                        <div class="choice-title">Maybe / Unsure</div>
+                        <div class="choice-desc">Life circumstances may change</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>If you had a sudden need for cash, would you rather:</h3>
+                <div class="choices">
+                    <div class="choice" data-question="emergencyCash" data-value="non-retirement">
+                        <div class="choice-title">Tap non-retirement Bitcoin first</div>
+                        <div class="choice-desc">Keep IRA untouched, use other holdings</div>
+                    </div>
+                    <div class="choice" data-question="emergencyCash" data-value="savings">
+                        <div class="choice-title">Tap cash savings</div>
+                        <div class="choice-desc">Use traditional emergency fund</div>
+                    </div>
+                    <div class="choice" data-question="emergencyCash" data-value="ira">
+                        <div class="choice-title">Tap the IRA even with penalty</div>
+                        <div class="choice-desc">Would accept penalty if necessary</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <h4>⚠️ Important Penalties to Understand</h4>
+                <p><strong>Early Withdrawal (before 59½):</strong> 10% penalty + income taxes</p>
+                <p><strong>Traditional IRA RMDs:</strong> Required minimum distributions start at age 73</p>
+                <p><strong>Roth IRA:</strong> Contributions can be withdrawn tax/penalty-free anytime, but earnings have rules</p>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="previousStep(8)">← Previous</button>
+                <button class="btn btn-primary" onclick="nextStep(8)" id="step8Next" disabled>Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 9: Final Reflection -->
+        <div class="step-card" id="step9">
+            <div class="step-header">
+                <div class="step-number">9</div>
+                <div class="step-title">
+                    <h2>Final Reflection</h2>
+                    <div class="step-subtitle">Confirm your decision before seeing recommendations</div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>After going through these questions, do you still want to move ahead with a Bitcoin IRA?</h3>
+                <div class="choices">
+                    <div class="choice" data-question="finalDecision" data-value="yes">
+                        <div class="choice-title">✓ Yes, I'm ready to proceed</div>
+                        <div class="choice-desc">Show me my personalized plan</div>
+                    </div>
+                    <div class="choice" data-question="finalDecision" data-value="pause">
+                        <div class="choice-title">⏸️ I'll pause and learn more</div>
+                        <div class="choice-desc">Need more education first</div>
+                    </div>
+                    <div class="choice" data-question="finalDecision" data-value="no">
+                        <div class="choice-title">✗ No, not for me right now</div>
+                        <div class="choice-desc">Will explore other options</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <h3>Any specific concerns or questions you want addressed? (Optional)</h3>
+                <textarea id="additionalConcerns" placeholder="Share any concerns, questions, or specific situations we should address in your recommendations..."></textarea>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="previousStep(9)">← Previous</button>
+                <button class="btn btn-primary" onclick="generateResults()" id="step9Next" disabled>See My Recommendations →</button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="results">
+            <!-- Results will be dynamically generated here -->
+        </div>
+    </div>
+
+    <script>
+        // Store user responses
+        const responses = {};
+        let currentStep = 1;
+        const totalSteps = 9;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress();
+            setupChoiceListeners();
+            setupCheckboxListeners();
+        });
+
+        function updateProgress() {
+            const percent = ((currentStep - 1) / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = `Step ${currentStep} of ${totalSteps}`;
+        }
+
+        function setupChoiceListeners() {
+            document.querySelectorAll('.choice').forEach(choice => {
+                choice.addEventListener('click', function() {
+                    const question = this.dataset.question;
+                    const value = this.dataset.value;
+                    
+                    // Remove selected from siblings
+                    this.parentElement.querySelectorAll('.choice').forEach(c => {
+                        c.classList.remove('selected');
+                    });
+                    
+                    // Add selected to this choice
+                    this.classList.add('selected');
+                    
+                    // Store response
+                    responses[question] = value;
+                    
+                    // Check if step can proceed
+                    checkStepCompletion(currentStep);
+                });
+            });
+        }
+
+        function setupCheckboxListeners() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    checkStepCompletion(currentStep);
+                });
+            });
+
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                input.addEventListener('input', function() {
+                    checkStepCompletion(currentStep);
+                });
+            });
+        }
+
+        function checkStepCompletion(step) {
+            const stepCard = document.getElementById(`step${step}`);
+            const nextBtn = document.getElementById(`step${step}Next`);
+            
+            let isComplete = false;
+
+            switch(step) {
+                case 1:
+                    isComplete = responses.usTaxpayer && responses.retirementPurpose && 
+                                responses.timeHorizon && responses.volatilityTolerance && 
+                                responses.iraMotivation;
+                    break;
+                case 2:
+                    isComplete = responses.primaryGoal && responses.taxPriority && 
+                                responses.dropReaction;
+                    break;
+                case 3:
+                    isComplete = responses.taxRateComparison && responses.payTaxNow && 
+                                responses.hasRoth && responses.rothLimits;
+                    break;
+                case 4:
+                    const hasExistingAccounts = stepCard.querySelectorAll('input[type="checkbox"]:checked').length > 0;
+                    const hasAmount = document.getElementById('initialAmount')?.value > 0;
+                    isComplete = hasExistingAccounts && responses.fundingApproach && 
+                                hasAmount && responses.percentOfRetirement;
+                    break;
+                case 5:
+                    const hasTotal = document.getElementById('totalRetirement')?.value > 0;
+                    isComplete = hasTotal && responses.maxBitcoinPercent && 
+                                responses.halfDropFeeling && responses.implementationStyle;
+                    break;
+                case 6:
+                    const hasSecurityFeatures = stepCard.querySelectorAll('input[type="checkbox"]:checked').length > 0;
+                    isComplete = responses.professionalCustody && hasSecurityFeatures && 
+                                responses.reportingImportance && responses.providerFocus;
+                    break;
+                case 7:
+                    const hasPriorities = stepCard.querySelectorAll('input[type="checkbox"]:checked').length >= 1;
+                    isComplete = hasPriorities && responses.feeVsSecurity;
+                    break;
+                case 8:
+                    const hasAge = document.getElementById('currentAge')?.value > 0;
+                    isComplete = hasAge && responses.earlyWithdrawal && responses.emergencyCash;
+                    break;
+                case 9:
+                    isComplete = responses.finalDecision;
+                    break;
+            }
+
+            if (nextBtn) {
+                nextBtn.disabled = !isComplete;
+            }
+        }
+
+        function nextStep(step) {
+            // Store any text inputs
+            if (step === 4) {
+                responses.initialAmount = document.getElementById('initialAmount').value;
+                responses.existingAccounts = Array.from(document.querySelectorAll('#step4 input[type="checkbox"]:checked')).map(cb => cb.id);
+            }
+            if (step === 5) {
+                responses.totalRetirement = document.getElementById('totalRetirement').value;
+            }
+            if (step === 6) {
+                responses.securityFeatures = Array.from(document.querySelectorAll('#step6 input[type="checkbox"]:checked')).map(cb => cb.id);
+            }
+            if (step === 7) {
+                responses.providerPriorities = Array.from(document.querySelectorAll('#step7 input[type="checkbox"]:checked')).map(cb => cb.id);
+            }
+            if (step === 8) {
+                responses.currentAge = document.getElementById('currentAge').value;
+            }
+
+            // Hide current step
+            document.getElementById(`step${step}`).classList.remove('active');
+            
+            // Show next step
+            currentStep = step + 1;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            
+            // Update progress
+            updateProgress();
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function previousStep(step) {
+            // Hide current step
+            document.getElementById(`step${step}`).classList.remove('active');
+            
+            // Show previous step
+            currentStep = step - 1;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            
+            // Update progress
+            updateProgress();
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function generateResults() {
+            // Store final inputs
+            responses.additionalConcerns = document.getElementById('additionalConcerns').value;
+
+            // Hide step 9
+            document.getElementById('step9').classList.remove('active');
+            
+            // Generate and show results
+            const resultsHtml = buildResults();
+            document.getElementById('results').innerHTML = resultsHtml;
+            document.getElementById('results').classList.add('active');
+            
+            // Setup expandable sections
+            setupExpandSections();
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function buildResults() {
+            // Determine recommendation level
+            let recommendation = 'recommend'; // recommend, caution, not-recommend, alternative
+            let reasonsAgainst = [];
+            let cautionFlags = [];
+
+            // Check disqualifiers
+            if (responses.usTaxpayer === 'no') {
+                recommendation = 'not-recommend';
+                reasonsAgainst.push('Bitcoin IRAs are only available to US taxpayers');
+            }
+
+            if (responses.retirementPurpose === 'no' || responses.timeHorizon === '<5') {
+                recommendation = 'not-recommend';
+                reasonsAgainst.push('Bitcoin IRAs have early withdrawal penalties and are designed for long-term retirement savings');
+            }
+
+            if (responses.volatilityTolerance === 'panic' || responses.dropReaction === 'sell') {
+                cautionFlags.push('Your volatility tolerance suggests Bitcoin may cause excessive stress');
+                if (recommendation === 'recommend') recommendation = 'caution';
+            }
+
+            if (responses.professionalCustody === 'no') {
+                recommendation = 'alternative';
+                reasonsAgainst.push('You prefer self-custody, which is not possible with Bitcoin IRAs');
+            }
+
+            if (responses.earlyWithdrawal === 'yes') {
+                cautionFlags.push('You may need early access, which triggers 10% penalty + taxes');
+                if (recommendation === 'recommend') recommendation = 'caution';
+            }
+
+            // Build appropriate result card
+            if (recommendation === 'not-recommend') {
+                return buildNotRecommendedResult(reasonsAgainst);
+            } else if (recommendation === 'alternative') {
+                return buildAlternativeResult(reasonsAgainst);
+            } else if (recommendation === 'caution') {
+                return buildCautionResult(cautionFlags);
+            } else {
+                return buildRecommendedResult();
+            }
+        }
+
+        function buildNotRecommendedResult(reasons) {
+            return `
+                <div class="result-card not-recommend">
+                    <div class="result-header">
+                        <div class="result-icon">🛑</div>
+                        <div class="result-title">
+                            <h2>Bitcoin IRA Not Recommended</h2>
+                            <p style="color: var(--text-dim);">Based on your answers, a Bitcoin IRA may not be the right fit</p>
+                        </div>
+                    </div>
+
+                    <div class="result-summary">
+                        <p><strong>Primary concerns:</strong></p>
+                        <ul style="margin-top: 1rem; margin-left: 1.5rem;">
+                            ${reasons.map(r => `<li>${r}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="action-plan">
+                        <h3>Alternative Recommendations</h3>
+                        ${buildAlternativeOptions()}
+                    </div>
+
+                    <div class="nav-buttons" style="margin-top: 2rem;">
+                        <button class="btn btn-secondary" onclick="location.reload()">← Start Over</button>
+                        <button class="btn btn-primary" onclick="window.location.href='/paths/sovereign/'">Back to Sovereign Path →</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildAlternativeResult(reasons) {
+            return `
+                <div class="result-card caution">
+                    <div class="result-header">
+                        <div class="result-icon">🔄</div>
+                        <div class="result-title">
+                            <h2>Consider Self-Custody Instead</h2>
+                            <p style="color: var(--text-dim);">Your preferences align better with direct Bitcoin ownership</p>
+                        </div>
+                    </div>
+
+                    <div class="result-summary">
+                        <p>You indicated a strong preference for self-custody. Bitcoin IRAs require third-party custodians to hold your keys, which doesn't match your goals.</p>
+                    </div>
+
+                    <div class="action-plan">
+                        <h3>Recommended Path Forward</h3>
+                        <div class="action-item">
+                            <strong>Action 1: Master Self-Custody</strong>
+                            Continue through the Sovereign Path to learn hardware wallets, multisig setups, and complete self-custody. This gives you full control.
+                        </div>
+                        <div class="action-item">
+                            <strong>Action 2: Consider Bitcoin ETFs in Existing IRA</strong>
+                            If you want retirement account exposure, you can buy Bitcoin ETFs (like IBIT or FBTC) in your current IRA without changing custodians. Lower fees, but no direct ownership.
+                        </div>
+                        <div class="action-item">
+                            <strong>Action 3: Split Strategy</strong>
+                            Keep most Bitcoin in self-custody for full sovereignty, and use a small allocation in a traditional IRA via Bitcoin ETFs for tax benefits.
+                        </div>
+                    </div>
+
+                    ${buildAlternativeOptions()}
+
+                    <div class="nav-buttons" style="margin-top: 2rem;">
+                        <button class="btn btn-secondary" onclick="location.reload()">← Start Over</button>
+                        <button class="btn btn-primary" onclick="window.location.href='/paths/sovereign/'">Continue Sovereign Path →</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildCautionResult(flags) {
+            const iraType = determineIRAType();
+            const targetAllocation = responses.maxBitcoinPercent;
+            const implementation = responses.implementationStyle;
+
+            return `
+                <div class="result-card caution">
+                    <div class="result-header">
+                        <div class="result-icon">⚠️</div>
+                        <div class="result-title">
+                            <h2>Proceed with Caution</h2>
+                            <p style="color: var(--text-dim);">A Bitcoin IRA could work, but there are important considerations</p>
+                        </div>
+                    </div>
+
+                    <div class="result-summary">
+                        <p><strong>Your Profile:</strong> ${iraType} Bitcoin IRA with ${targetAllocation} target allocation</p>
+                        <p style="margin-top: 1rem;"><strong>Caution Flags:</strong></p>
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            ${flags.map(f => `<li>${f}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="action-plan">
+                        <h3>Recommended Next Steps</h3>
+                        <div class="action-item">
+                            <strong>Action 1: Consult a Tax Professional</strong>
+                            Before opening a Bitcoin IRA, discuss your specific tax situation with a qualified tax advisor to confirm ${iraType} is optimal for your bracket and retirement timeline.
+                        </div>
+                        <div class="action-item">
+                            <strong>Action 2: Start with Lower Allocation</strong>
+                            Given the caution flags, consider starting with a smaller allocation (perhaps half of your ${targetAllocation} target) and increasing over time as you gain comfort.
+                        </div>
+                        <div class="action-item">
+                            <strong>Action 3: Build Separate Emergency Fund</strong>
+                            Ensure you have ${responses.earlyWithdrawal === 'yes' || responses.earlyWithdrawal === 'maybe' ? '6-12 months' : '3-6 months'} of expenses in accessible cash before locking funds in an IRA.
+                        </div>
+                        ${buildProviderResearchAction()}
+                    </div>
+
+                    ${buildProviderComparison()}
+                    ${buildEducationalResources()}
+
+                    <div class="nav-buttons" style="margin-top: 2rem;">
+                        <button class="btn btn-secondary" onclick="location.reload()">← Start Over</button>
+                        <button class="btn btn-secondary" onclick="window.print()">🖨️ Print This Plan</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildRecommendedResult() {
+            const iraType = determineIRAType();
+            const targetAllocation = responses.maxBitcoinPercent;
+            const fundingApproach = responses.fundingApproach;
+            const implementation = responses.implementationStyle;
+            const initialAmount = responses.initialAmount;
+
+            return `
+                <div class="result-card recommend">
+                    <div class="result-header">
+                        <div class="result-icon">✅</div>
+                        <div class="result-title">
+                            <h2>Bitcoin IRA Recommended</h2>
+                            <p style="color: var(--text-dim);">Strong candidate for Bitcoin IRA exploration</p>
+                        </div>
+                    </div>
+
+                    <div class="result-summary">
+                        <p><strong>Your Personalized Profile:</strong></p>
+                        <p style="margin-top: 0.75rem;">
+                            "${responses.primaryGoal === 'hedge' ? 'I want Bitcoin as a hedge against money printing' : 
+                              responses.primaryGoal === 'growth' ? 'I want Bitcoin as high-growth part of my portfolio' :
+                              responses.primaryGoal === 'wealth-transfer' ? 'I want Bitcoin to pass wealth to family' :
+                              'I want to experiment with Bitcoin'} 
+                            inside my retirement plan and I care more about 
+                            ${responses.taxPriority === 'now' ? 'tax savings now' : 'tax-free withdrawals later'}."
+                        </p>
+                    </div>
+
+                    <div class="action-plan">
+                        <h3>Your Personalized Action Plan</h3>
+                        <div class="action-item">
+                            <strong>Action 1: Consult Tax & Financial Advisors</strong>
+                            Book a call with a tax professional to confirm if ${iraType} is better for your current tax bracket (based on your indication that you ${responses.taxRateComparison === 'lower' ? 'expect higher taxes later' : responses.taxRateComparison === 'higher' ? 'expect lower taxes later' : 'are unsure about future tax rates'}) and retirement plans.
+                        </div>
+                        <div class="action-item">
+                            <strong>Action 2: Shortlist Bitcoin IRA Custodians</strong>
+                            Based on your priorities (${getTopPriorities()}), review the provider comparison below. Request detailed fee sheets in writing from your top 2-3 choices that match your security checklist.
+                        </div>
+                        <div class="action-item">
+                            <strong>Action 3: Set Target Allocation & Schedule</strong>
+                            Target Bitcoin allocation: <strong>${targetAllocation}</strong> of your retirement accounts
+                            <br>Implementation: <strong>${
+                                implementation === 'monthly' ? `Dollar-cost average over 6-12 months with monthly contributions` :
+                                implementation === 'lump' ? `Single allocation of $${Number(initialAmount).toLocaleString()}` :
+                                `Initial allocation of $${Number(initialAmount/2).toLocaleString()} followed by monthly contributions`
+                            }</strong>
+                            <br>Funding method: <strong>${
+                                fundingApproach === 'rollover' ? 'Roll over existing retirement funds' :
+                                fundingApproach === 'contributions' ? 'New yearly contributions only' :
+                                'Combination of rollover and new contributions'
+                            }</strong>
+                        </div>
+                    </div>
+
+                    ${buildProviderComparison()}
+                    ${buildSecurityChecklist()}
+                    ${buildWithdrawalGuidance()}
+                    ${buildEducationalResources()}
+
+                    <div class="expand-section">
+                        <div class="expand-header" onclick="toggleExpand(this)">
+                            <h4>💡 Pro Tips for Success</h4>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="expand-content">
+                            <ul style="margin-top: 1rem; margin-left: 1.5rem; color: var(--text-dim);">
+                                <li>Start with a small test transaction to familiarize yourself with the platform</li>
+                                <li>Keep detailed records of all transactions for tax purposes</li>
+                                <li>Review your allocation quarterly and rebalance if Bitcoin exceeds your target significantly</li>
+                                <li>Maintain a separate self-custody stack outside your IRA for maximum flexibility</li>
+                                <li>Set calendar reminders for RMD requirements (if Traditional IRA) starting at age 73</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="nav-buttons" style="margin-top: 2rem;">
+                        <button class="btn btn-secondary" onclick="location.reload()">← Start Over</button>
+                        <button class="btn btn-secondary" onclick="window.print()">🖨️ Print This Plan</button>
+                        <button class="btn btn-primary" onclick="window.location.href='/paths/sovereign/'">Continue Learning →</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function determineIRAType() {
+            if (responses.taxPriority === 'later' || responses.payTaxNow === 'yes') {
+                return 'Roth';
+            } else if (responses.taxPriority === 'now' || responses.payTaxNow === 'no') {
+                return 'Traditional';
+            } else {
+                return 'Roth or Traditional (consult tax advisor)';
+            }
+        }
+
+        function getTopPriorities() {
+            if (!responses.providerPriorities || responses.providerPriorities.length === 0) {
+                return 'balanced approach';
+            }
+            const priorityLabels = {
+                'lowFees': 'low fees',
+                'highestSecurity': 'high security',
+                'easeOfUse': 'ease of use',
+                'reputation': 'reputation',
+                'education': 'education'
+            };
+            return responses.providerPriorities.map(p => priorityLabels[p]).join(', ');
+        }
+
+        function buildProviderComparison() {
+            const bitcoinOnly = responses.providerFocus === 'bitcoin';
+            const securityFocus = responses.providerPriorities && responses.providerPriorities.includes('highestSecurity');
+            const feeFocus = responses.providerPriorities && responses.providerPriorities.includes('lowFees');
+
+            return `
+                <div class="expand-section">
+                    <div class="expand-header" onclick="toggleExpand(this)">
+                        <h4>📊 Top Bitcoin IRA Provider Comparison (2025)</h4>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="expand-content">
+                        <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                            Based on your preferences, here are the top providers to consider:
+                        </p>
+                        
+                        <div class="provider-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Provider</th>
+                                        <th>Best For</th>
+                                        <th>Fees</th>
+                                        <th>Min Investment</th>
+                                        <th>Security</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${bitcoinOnly ? `
+                                    <tr style="background: rgba(76, 175, 80, 0.1);">
+                                        <td><strong>Swan Bitcoin</strong> ⭐</td>
+                                        <td>Bitcoin-only long-term holders</td>
+                                        <td>0.99% flat</td>
+                                        <td>None</td>
+                                        <td>Equity Trust custodian, cold storage</td>
+                                    </tr>
+                                    ` : ''}
+                                    <tr ${!bitcoinOnly && feeFocus ? 'style="background: rgba(76, 175, 80, 0.1);"' : ''}>
+                                        <td><strong>iTrustCapital</strong> ${!bitcoinOnly && feeFocus ? '⭐' : ''}</td>
+                                        <td>Ease of use & diversification</td>
+                                        <td>1% trading (no setup/annual)</td>
+                                        <td>$1,000</td>
+                                        <td>Coinbase Custody, institutional-grade</td>
+                                    </tr>
+                                    <tr ${securityFocus ? 'style="background: rgba(76, 175, 80, 0.1);"' : ''}>
+                                        <td><strong>Bitcoin IRA</strong> ${securityFocus ? '⭐' : ''}</td>
+                                        <td>Security & insurance</td>
+                                        <td>1-2% spread + $50-$300 annual</td>
+                                        <td>$5,000</td>
+                                        <td>BitGo multi-sig, up to $700M insurance</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>CoinIRA</strong></td>
+                                        <td>Beginners & education</td>
+                                        <td>0.5-1% trading</td>
+                                        <td>None</td>
+                                        <td>Multi-sig cold storage, $250M+ insurance</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>AltoIRA</strong></td>
+                                        <td>Broad alternative investments</td>
+                                        <td>1% trading</td>
+                                        <td>$10</td>
+                                        <td>Coinbase custody, mix hot/cold storage</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <p style="color: var(--text-dim); margin-top: 1rem; font-size: 0.9rem;">
+                            ⭐ = Recommended based on your preferences | All providers are IRS-compliant and offer rollover support
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildSecurityChecklist() {
+            const requiredFeatures = responses.securityFeatures || [];
+            return `
+                <div class="expand-section">
+                    <div class="expand-header" onclick="toggleExpand(this)">
+                        <h4>🔒 Your Security Checklist</h4>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="expand-content">
+                        <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                            Any provider you choose must meet these non-negotiable requirements:
+                        </p>
+                        <ul style="margin-left: 1.5rem; color: var(--text-light);">
+                            ${requiredFeatures.includes('coldStorage') ? '<li>✅ <strong>Cold storage for most funds</strong></li>' : ''}
+                            ${requiredFeatures.includes('multiSig') ? '<li>✅ <strong>Multi-sig controls</strong></li>' : ''}
+                            ${requiredFeatures.includes('insurance') ? '<li>✅ <strong>Insurance against theft or custodian error</strong></li>' : ''}
+                            ${requiredFeatures.includes('audits') ? '<li>✅ <strong>Regular third-party security audits</strong></li>' : ''}
+                            <li>✅ <strong>IRS-approved qualified custodian status</strong></li>
+                            <li>✅ <strong>Clear fee structure in writing</strong></li>
+                            <li>✅ <strong>${responses.reportingImportance === 'very' ? 'Detailed' : 'Basic'} tax reporting and compliance support</strong></li>
+                        </ul>
+                        <div class="warning-box" style="margin-top: 1rem;">
+                            <h4>🚨 Red Flags to Avoid</h4>
+                            <p>❌ Providers who promise "IRS-approved crypto" (no such thing exists)</p>
+                            <p>❌ Hidden fees or vague fee structures</p>
+                            <p>❌ No clear insurance or security documentation</p>
+                            <p>❌ Pressure to invest immediately without consultation period</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildWithdrawalGuidance() {
+            const age = parseInt(responses.currentAge);
+            const yearsToRetirement = Math.max(0, 59.5 - age);
+            const earlyRisk = responses.earlyWithdrawal === 'yes' ? 'HIGH' : responses.earlyWithdrawal === 'maybe' ? 'MEDIUM' : 'LOW';
+
+            return `
+                <div class="expand-section">
+                    <div class="expand-header" onclick="toggleExpand(this)">
+                        <h4>📅 Withdrawal Rules & Timeline</h4>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="expand-content">
+                        <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                            <strong>Your Situation:</strong> Age ${age}, approximately ${yearsToRetirement.toFixed(1)} years until penalty-free withdrawals (age 59½)
+                        </p>
+                        <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                            <strong>Early Withdrawal Risk:</strong> <span style="color: ${earlyRisk === 'HIGH' ? 'var(--accent-red)' : earlyRisk === 'MEDIUM' ? 'var(--accent-orange)' : 'var(--accent-green)'}; font-weight: 600;">${earlyRisk}</span>
+                        </p>
+                        
+                        ${earlyRisk !== 'LOW' ? `
+                        <div class="warning-box">
+                            <h4>⚠️ Important Consideration</h4>
+                            <p>You indicated you may need to access funds before age 59½. Remember:</p>
+                            <p><strong>Early withdrawal = 10% penalty + ordinary income taxes</strong></p>
+                            <p style="margin-top: 0.5rem;">Consider keeping a separate self-custody Bitcoin stack outside your IRA for flexibility, or maintain a robust emergency fund in cash.</p>
+                        </div>
+                        ` : ''}
+
+                        <h4 style="color: var(--sovereign-gold); margin-top: 1.5rem; margin-bottom: 0.75rem;">Key Rules to Remember:</h4>
+                        <ul style="margin-left: 1.5rem; color: var(--text-dim);">
+                            <li><strong>Traditional IRA:</strong> Required Minimum Distributions (RMDs) start at age 73 under current rules</li>
+                            <li><strong>Roth IRA:</strong> Contributions can be withdrawn anytime penalty-free, but earnings have 5-year rule + age 59½ requirement for tax-free withdrawals</li>
+                            <li><strong>Exceptions:</strong> Some penalty-free early withdrawals allowed for first home ($10k), qualified education, disability, or substantially equal payments (SEPP)</li>
+                        </ul>
+
+                        <p style="color: var(--text-dim); margin-top: 1rem; font-style: italic;">
+                            💡 Tip: ${responses.emergencyCash === 'non-retirement' ? 'Your strategy to tap non-retirement Bitcoin first is smart - it preserves IRA tax benefits.' : responses.emergencyCash === 'savings' ? 'Your strategy to use cash savings first is wise - maintain at least 6 months of expenses accessible.' : 'Reconsider your emergency strategy - tapping IRA early is costly. Build a cash buffer or separate Bitcoin holdings first.'}
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildAlternativeOptions() {
+            return `
+                <div class="info-section">
+                    <h3>💡 Alternative Bitcoin Exposure Options</h3>
+                    <div style="margin-top: 1rem;">
+                        <h4 style="color: var(--sovereign-gold); margin-bottom: 0.75rem;">1. Bitcoin ETFs in Existing IRA/401(k)</h4>
+                        <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                            Buy spot Bitcoin ETFs (IBIT, FBTC, BTC) in your current retirement account. Lower fees (0.15-0.25%), easier setup, available through any broker. No direct ownership but simple tax-advantaged exposure.
+                        </p>
+
+                        <h4 style="color: var(--sovereign-gold); margin-bottom: 0.75rem;">2. Direct Self-Custody Bitcoin</h4>
+                        <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                            Buy Bitcoin directly and hold in self-custody (hardware wallet, multisig). Complete control, full sovereignty. Pay capital gains taxes but keep all other benefits. Recommended path: <a href="/paths/sovereign/" style="color: var(--sovereign-gold);">Continue Sovereign Path</a>
+                        </p>
+
+                        <h4 style="color: var(--sovereign-gold); margin-bottom: 0.75rem;">3. Hybrid Approach</h4>
+                        <p style="color: var(--text-dim);">
+                            Combine strategies: Bitcoin ETF in existing IRA (10-20% allocation) + self-custody Bitcoin outside retirement accounts. Best of both worlds - tax efficiency + sovereignty.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="expand-section">
+                    <div class="expand-header" onclick="toggleExpand(this)">
+                        <h4>📊 Quick Comparison: Bitcoin IRA vs ETF vs Self-Custody</h4>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="expand-content">
+                        <div class="provider-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Option</th>
+                                        <th>Tax Benefits</th>
+                                        <th>Fees</th>
+                                        <th>Control</th>
+                                        <th>Best For</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Bitcoin IRA</strong></td>
+                                        <td>✅✅ Tax-deferred/free growth</td>
+                                        <td>❌ High (0.5-2% + annual)</td>
+                                        <td>❌ Custodian holds keys</td>
+                                        <td>Long-term retirement focus</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Bitcoin ETF in IRA</strong></td>
+                                        <td>✅✅ Tax-deferred/free growth</td>
+                                        <td>✅✅ Low (0.15-0.25%)</td>
+                                        <td>❌ Fund holds Bitcoin</td>
+                                        <td>Simple retirement exposure</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Self-Custody</strong></td>
+                                        <td>❌ Capital gains taxes</td>
+                                        <td>✅✅✅ Minimal (network fees only)</td>
+                                        <td>✅✅✅ Full control</td>
+                                        <td>Maximum sovereignty</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildEducationalResources() {
+            return `
+                <div class="expand-section">
+                    <div class="expand-header" onclick="toggleExpand(this)">
+                        <h4>📚 Additional Resources & Next Steps</h4>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="expand-content">
+                        <h4 style="color: var(--sovereign-gold); margin-bottom: 0.75rem;">Continue Your Education:</h4>
+                        <ul style="margin-left: 1.5rem; color: var(--text-dim);">
+                            <li><a href="/paths/sovereign/" style="color: var(--sovereign-gold);">The Sovereign Path</a> - Master self-custody fundamentals</li>
+                            <li><a href="/paths/sovereign/stage-2/" style="color: var(--sovereign-gold);">Privacy & Anonymity</a> - Protect your financial privacy</li>
+                            <li><a href="/paths/sovereign/stage-4/" style="color: var(--sovereign-gold);">Inheritance Planning</a> - Secure Bitcoin for next generation</li>
+                        </ul>
+
+                        <h4 style="color: var(--sovereign-gold); margin-top: 1.5rem; margin-bottom: 0.75rem;">External Resources:</h4>
+                        <ul style="margin-left: 1.5rem; color: var(--text-dim);">
+                            <li>IRS Publication 590-A & 590-B (IRA contribution and distribution rules)</li>
+                            <li>Bitcoin IRA provider comparison sites (updated quarterly)</li>
+                            <li>Consult with CPA or tax attorney who understands cryptocurrency</li>
+                            <li>Estate planning attorney for inheritance considerations</li>
+                        </ul>
+
+                        <h4 style="color: var(--sovereign-gold); margin-top: 1.5rem; margin-bottom: 0.75rem;">Questions to Ask Providers:</h4>
+                        <ul style="margin-left: 1.5rem; color: var(--text-dim);">
+                            <li>What is the total effective annual cost (all fees combined)?</li>
+                            <li>How is Bitcoin stored and who has access to keys?</li>
+                            <li>What insurance coverage exists and what does it cover?</li>
+                            <li>Can you provide references from long-term clients?</li>
+                            <li>What is your process for rollovers and how long does it take?</li>
+                            <li>How do distributions work and what are my options at retirement?</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildProviderResearchAction() {
+            return `
+                <div class="action-item">
+                    <strong>Action 4: Research Providers</strong>
+                    Review the provider comparison below. Focus on providers that match your security requirements and fee tolerance. Request detailed documentation before committing.
+                </div>
+            `;
+        }
+
+        function toggleExpand(header) {
+            const section = header.parentElement;
+            section.classList.toggle('open');
+        }
+
+        function setupExpandSections() {
+            // Expandable sections are set up via onclick in HTML
+        }
+    </script>
+</body>
+</html>
