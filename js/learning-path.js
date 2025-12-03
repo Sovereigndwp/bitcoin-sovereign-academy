@@ -30,6 +30,38 @@ class ProgressiveLearningPath {
      */
     initializeLearningPaths() {
         return {
+            'skeptic': {
+                name: 'The Skeptic Path',
+                description: 'Challenge every Bitcoin objection with data',
+                totalSteps: 2,
+                estimatedTime: '25 minutes',
+                difficulty: 'Beginner',
+                steps: [
+                    {
+                        id: 'debunk-myths',
+                        title: 'Debunking the Myths',
+                        description: 'Address 6 major Bitcoin objections with evidence',
+                        type: 'interactive-demo',
+                        duration: '10-15 min',
+                        demoPath: '/paths/skeptic/stage-1/',
+                        prerequisites: [],
+                        resources: ['data', 'evidence'],
+                        checkpoint: true
+                    },
+                    {
+                        id: 'bitcoin-mvp',
+                        title: "Bitcoin's MVP",
+                        description: 'Understand Bitcoin from first principles',
+                        type: 'deep-dive',
+                        duration: '15-20 min',
+                        demoPath: '/paths/skeptic/stage-2/',
+                        prerequisites: ['debunk-myths'],
+                        resources: ['first-principles', 'technical'],
+                        checkpoint: true,
+                        completion: true
+                    }
+                ]
+            },
             'bitcoin-curious': {
                 name: 'Bitcoin Curious Explorer',
                 description: 'Start your Bitcoin journey with fundamentals',
