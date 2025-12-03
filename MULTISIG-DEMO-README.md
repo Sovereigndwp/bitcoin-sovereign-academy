@@ -18,7 +18,7 @@ Interactive educational tool demonstrating how 2-of-3 multisig with The Bitcoin 
 **Status:** Highlighted CTA with gold gradient border  
 **Position:** After Security Risk Simulator CTA
 
-### 3. Curriculum - Sovereign Tools (`/curriculum/sovereign-tools/index.html`)
+### 3. Curriculum - Sovereign Tools (`/deep-dives/sovereign-tools/index.html`)
 **Location:** Self-Custody section  
 **Status:** ⭐ NEW badge  
 **Position:** First link in custody section

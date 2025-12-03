@@ -11,8 +11,8 @@
 ### 1. Current Repo: `/interactive-demos/`
 Location: `/Users/dalia/projects/bitcoin-sovereign-academy/interactive-demos/`
 
-### 2. Current Repo: `/curriculum/`
-Location: `/Users/dalia/projects/bitcoin-sovereign-academy/curriculum/`
+### 2. Current Repo: `/deep-dives/`
+Location: `/Users/dalia/projects/bitcoin-sovereign-academy/deep-dives/`
 
 ### 3. Current Repo: `/paths/`
 Location: `/Users/dalia/projects/bitcoin-sovereign-academy/paths/`
@@ -50,7 +50,7 @@ Type: Standalone HTML
 
 ---
 
-### Curriculum Content (/curriculum/)
+### Curriculum Content (/deep-dives/)
 
 | Resource | Type | Concepts | Interactive Content | Status |
 |----------|------|----------|---------------------|--------|
@@ -106,11 +106,11 @@ Location: `../bitcoin-first-principles-site/index.html`
 **Content**: Full interactive first-principles guide with embedded demos
 
 **Relationship to current repo**:
-- Current `/curriculum/first-principles/index.html` appears to be derived from this
+- Current `/deep-dives/first-principles/index.html` appears to be derived from this
 - Should compare to see if they're identical or if features were lost
 
 **Action**:
-- 🔍 Compare `../bitcoin-first-principles-site/index.html` with `/curriculum/first-principles/index.html`
+- 🔍 Compare `../bitcoin-first-principles-site/index.html` with `/deep-dives/first-principles/index.html`
 - Determine if one is canonical or if they should be merged
 
 ---
@@ -136,9 +136,9 @@ grep -r "Merkle tree" paths/ curriculum/ interactive-demos/ --include="*.html"
 
 ---
 
-### Phase 2: Extract Embedded Interactives from /curriculum/
+### Phase 2: Extract Embedded Interactives from /deep-dives/
 
-**Problem**: `/curriculum/first-principles/index.html` has interactive demos embedded inline. These should be extracted to `/interactive-demos/` for reusability across paths.
+**Problem**: `/deep-dives/first-principles/index.html` has interactive demos embedded inline. These should be extracted to `/interactive-demos/` for reusability across paths.
 
 **Embedded Demos to Extract**:
 1. **Trust Demo** — Trust vs. trustless comparison cards
@@ -166,7 +166,7 @@ grep -r "Merkle tree" paths/ curriculum/ interactive-demos/ --include="*.html"
 - 🔄 **Decision Needed**: Merge or keep separate?
 
 #### 3. First Principles Content (2 versions)
-- 🔍 **Action**: Compare `../bitcoin-first-principles-site/index.html` vs. `/curriculum/first-principles/index.html`
+- 🔍 **Action**: Compare `../bitcoin-first-principles-site/index.html` vs. `/deep-dives/first-principles/index.html`
 - 🔄 **Decision Needed**: Are they identical? If not, which is canonical?
 
 ---
@@ -285,9 +285,9 @@ Each concept gets a `metadata.json`:
 ## Action Items & Prioritization
 
 ### 🔴 High Priority (Do First)
-- [ ] **Compare first-principles content**: `../bitcoin-first-principles-site/index.html` vs. `/curriculum/first-principles/index.html`
+- [ ] **Compare first-principles content**: `../bitcoin-first-principles-site/index.html` vs. `/deep-dives/first-principles/index.html`
 - [ ] **Audit Learn-bitcoin-by-doing integration**: Map which modules are already integrated
-- [ ] **Extract embedded demos**: Pull inline interactives from `/curriculum/first-principles/` into `/interactive-demos/`
+- [ ] **Extract embedded demos**: Pull inline interactives from `/deep-dives/first-principles/` into `/interactive-demos/`
 - [ ] **Consolidate UTXO demos**: Archive v1/v2, enhance `utxo-visualizer-enhanced.html` with multi-level
 
 ### 🟡 Medium Priority (Do Next)
@@ -307,7 +307,7 @@ Each concept gets a `metadata.json`:
 ## Questions for Decision
 
 ### 1. First Principles Content
-**Q**: Are `../bitcoin-first-principles-site/index.html` and `/curriculum/first-principles/index.html` identical?
+**Q**: Are `../bitcoin-first-principles-site/index.html` and `/deep-dives/first-principles/index.html` identical?
 - If YES → Keep one, archive the other
 - If NO → Which is canonical? Or merge the best of both?
 
@@ -324,7 +324,7 @@ Each concept gets a `metadata.json`:
 - **Recommendation**: Option B — consolidate duplicates first, then restructure when patterns are clear
 
 ### 4. Embedded Interactives
-**Q**: Should embedded demos in `/curriculum/first-principles/` stay inline or be extracted?
+**Q**: Should embedded demos in `/deep-dives/first-principles/` stay inline or be extracted?
 - **Option A**: Extract to standalone files (reusable, multi-level capable)
 - **Option B**: Keep embedded (simpler, all-in-one experience)
 - **Recommendation**: Option A — extract for reusability across paths
@@ -343,7 +343,7 @@ Each concept gets a `metadata.json`:
    - Mark ✅ integrated, ⚠️ partially integrated, or ❌ missing
 
 3. **Extract embedded demos**:
-   - Start with Trust Demo from `/curriculum/first-principles/`
+   - Start with Trust Demo from `/deep-dives/first-principles/`
    - Create `/interactive-demos/concepts/trust-demo.html`
    - Replace inline code with `<iframe>` or link
 
@@ -370,7 +370,7 @@ Each concept gets a `metadata.json`:
 | Bitcoin Script | ❌ None | ScriptsModule.js | ❌ Missing |
 | Bitcoin Units | ❌ None | NumbersModule.js | ❌ Missing |
 | Consensus | `consensus-game/` | (May be original) | ✅ Integrated |
-| Money Basics | `/curriculum/first-principles/` | MoneyModule.js | ⚠️ Check overlap |
+| Money Basics | `/deep-dives/first-principles/` | MoneyModule.js | ⚠️ Check overlap |
 | Network Security | `security-dojo.html` | (May be original) | ✅ Integrated |
 | Economics | `debt-crisis.html`, `time-machine.html` | (May be original) | ✅ Integrated |
 
