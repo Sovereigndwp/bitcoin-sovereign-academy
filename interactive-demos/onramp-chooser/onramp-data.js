@@ -175,12 +175,12 @@ const ONRAMP_RULES = [
             },
             {
                 name: 'Bitcoin ATM (local)',
-                fee: '7–15%',
+                fee: '7–20% spread',
                 time: '5 minutes',
-                bestFor: 'Emergency cash → BTC, fully anonymous under $1k',
+                bestFor: 'Emergency cash → BTC only when necessary',
                 link: 'https://coinatmradar.com',
-                kyc: 'None (<$1k)',
-                notes: 'High fees but instant and private'
+                kyc: 'Varies (often required)',
+                notes: '⚠️ Very high spreads! Many now require KYC/ID scan. Non-KYC limits vary by operator and country.'
             },
             {
                 name: 'Bisq',
@@ -265,13 +265,13 @@ const ONRAMP_RULES = [
                 notes: 'Requires Lightning wallet'
             },
             {
-                name: 'Bisq',
-                fee: '0.5–1.5%',
-                time: '1–48 hours',
-                bestFor: 'Decentralized, SEPA supported',
-                link: 'https://bisq.network',
-                kyc: 'None',
-                notes: 'Desktop app, requires security deposit'
+                name: 'Bitcoin ATM (local)',
+                fee: '7–20% spread',
+                time: '5 minutes',
+                bestFor: 'Emergency only - avoid if possible',
+                link: 'https://coinatmradar.com',
+                kyc: 'Often required in EU',
+                notes: '⚠️ Very high spreads! Most EU ATMs now require ID scan. Use as last resort only.'
             }
         ]
     },
@@ -338,6 +338,15 @@ const ONRAMP_RULES = [
                 notes: 'Growing LATAM community'
             },
             {
+                name: 'Bitcoin ATM (local)',
+                fee: '10–25% spread',
+                time: '5 minutes',
+                bestFor: 'Emergency only - very expensive',
+                link: 'https://coinatmradar.com',
+                kyc: 'Varies widely',
+                notes: '⚠️ Extremely high spreads in LATAM! KYC requirements vary by country and amount. Use P2P instead.'
+            },
+            {
                 name: 'HodlHodl',
                 fee: '0.5–1%',
                 time: '1–24 hours',
@@ -345,15 +354,6 @@ const ONRAMP_RULES = [
                 link: 'https://hodlhodl.com',
                 kyc: 'None',
                 notes: 'Latin America liquidity'
-            },
-            {
-                name: 'Local Bitcoin meetups',
-                fee: 'Negotiable',
-                time: 'Hours to days',
-                bestFor: 'Face-to-face, build local network',
-                link: 'https://bitcoin-only.com/#meetups',
-                kyc: 'None',
-                notes: 'Most private, social benefit'
             }
         ]
     },
@@ -474,13 +474,13 @@ const ONRAMP_RULES = [
                 notes: 'Global liquidity, many currencies'
             },
             {
-                name: 'AgoraDesk',
-                fee: '0.25–1%',
-                time: '1–24 hours',
-                bestFor: 'P2P marketplace, cash/online',
-                link: 'https://agoradesk.com',
-                kyc: 'None',
-                notes: 'Privacy-focused, escrow'
+                name: 'Bitcoin ATM (if available)',
+                fee: '8–25% spread',
+                time: '5 minutes',
+                bestFor: 'Emergency only when other options unavailable',
+                link: 'https://coinatmradar.com',
+                kyc: 'Usually required',
+                notes: '⚠️ Extreme spreads! Most countries now require ID/phone verification. Check local regulations.'
             }
         ]
     },
