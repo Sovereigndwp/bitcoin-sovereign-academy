@@ -54,8 +54,8 @@ class AddressGenerator {
     }
 
     /**
-     * Generate a random BIP39-like seed phrase
-     * NOTE: This is NOT cryptographically secure - for demo only!
+     * Generate a random BIP39-like seed phrase using Web Crypto API
+     * Uses cryptographically secure random number generation
      */
     generateRandomSeed() {
         const words = [
@@ -77,9 +77,24 @@ class AddressGenerator {
         ];
 
         const seedWords = [];
-        for (let i = 0; i < 12; i++) {
-            const randomIndex = Math.floor(Math.random() * words.length);
-            seedWords.push(words[randomIndex]);
+        
+        // Use Web Crypto API for cryptographically secure random numbers
+        if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+            // Generate 12 cryptographically secure random words
+            const randomValues = new Uint32Array(12);
+            window.crypto.getRandomValues(randomValues);
+            
+            for (let i = 0; i < 12; i++) {
+                const randomIndex = randomValues[i] % words.length;
+                seedWords.push(words[randomIndex]);
+            }
+        } else {
+            // Fallback for non-browser environments (testing)
+            console.warn('Web Crypto API not available, using Math.random() fallback');
+            for (let i = 0; i < 12; i++) {
+                const randomIndex = Math.floor(Math.random() * words.length);
+                seedWords.push(words[randomIndex]);
+            }
         }
 
         return seedWords.join(' ');

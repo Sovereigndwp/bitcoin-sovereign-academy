@@ -16,6 +16,11 @@ function init() {
     addressGen = new AddressGenerator();
     feeCalc = new FeeCalculator();
 
+    // Initialize 3D icons
+    if (typeof IconLibrary !== 'undefined') {
+        IconLibrary.initIcons();
+    }
+
     // Generate initial addresses
     currentAddresses = addressGen.generateAddresses();
     displayAddresses(currentAddresses);
@@ -40,8 +45,8 @@ function setupEventListeners() {
     // Copy buttons
     document.querySelectorAll('.copy-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const target = e.target.dataset.target;
-            copyToClipboard(target, e.target);
+            const target = e.currentTarget.dataset.target;
+            copyToClipboard(target, e.currentTarget);
         });
     });
 
@@ -88,7 +93,8 @@ function generateNewSeed() {
     // Visual feedback
     const btn = document.getElementById('generate-new-seed');
     if (btn) {
-        btn.textContent = '✓ New Addresses Generated!';
+        const checkIcon = IconLibrary ? IconLibrary.get('check', 16, true) : '✓';
+        btn.innerHTML = checkIcon + ' New Addresses Generated!';
         btn.style.background = 'var(--color-segwit)';
 
         setTimeout(() => {
@@ -160,12 +166,13 @@ function fallbackCopy(text, button) {
  * Show visual feedback after copying
  */
 function showCopyFeedback(button) {
-    const originalText = button.textContent;
-    button.textContent = '✓';
+    const originalHTML = button.innerHTML;
+    const checkIcon = IconLibrary ? IconLibrary.get('check', 16, true) : '✓';
+    button.innerHTML = checkIcon;
     button.classList.add('copied');
 
     setTimeout(() => {
-        button.textContent = originalText;
+        button.innerHTML = originalHTML;
         button.classList.remove('copied');
     }, 2000);
 }
@@ -259,29 +266,31 @@ function getRecommendation() {
         if (multisig) {
             if (privacyImportant) {
                 format = 'taproot';
+                const checkIcon = IconLibrary ? IconLibrary.get('check', 16, true) : '✅';
                 recommendation = `
                     <div class="format-badge taproot">Taproot (bc1p...)</div>
                     <p><strong>Best choice for your needs!</strong></p>
                     <p>Taproot provides:</p>
                     <ul style="text-align: left; margin: 1rem 0;">
-                        <li>✅ Maximum privacy - multi-sig looks like single-sig</li>
-                        <li>✅ Lowest fees (52% savings vs Legacy)</li>
-                        <li>✅ Advanced multi-sig capabilities</li>
-                        <li>✅ Future-proof technology</li>
+                        <li>${checkIcon} Maximum privacy - multi-sig looks like single-sig</li>
+                        <li>${checkIcon} Lowest fees (52% savings vs Legacy)</li>
+                        <li>${checkIcon} Advanced multi-sig capabilities</li>
+                        <li>${checkIcon} Future-proof technology</li>
                     </ul>
                     <p><strong>Wallets that support Taproot multi-sig:</strong> Sparrow Wallet, Bitcoin Core, Electrum (recent versions)</p>
                 `;
             } else {
                 format = 'segwit';
+                const checkIcon = IconLibrary ? IconLibrary.get('check', 16, true) : '✅';
                 recommendation = `
                     <div class="format-badge segwit">Native SegWit (bc1q...)</div>
                     <p><strong>Solid choice for multi-sig!</strong></p>
                     <p>Native SegWit provides:</p>
                     <ul style="text-align: left; margin: 1rem 0;">
-                        <li>✅ Good fee savings (40% vs Legacy)</li>
-                        <li>✅ Wide wallet support</li>
-                        <li>✅ Proven multi-sig implementation</li>
-                        <li>✅ Excellent balance of features</li>
+                        <li>${checkIcon} Good fee savings (40% vs Legacy)</li>
+                        <li>${checkIcon} Wide wallet support</li>
+                        <li>${checkIcon} Proven multi-sig implementation</li>
+                        <li>${checkIcon} Excellent balance of features</li>
                     </ul>
                     <p><em>Consider upgrading to Taproot for privacy!</em></p>
                 `;
@@ -289,29 +298,31 @@ function getRecommendation() {
         } else {
             if (feeSavings && privacyImportant) {
                 format = 'taproot';
+                const checkIcon = IconLibrary ? IconLibrary.get('check', 16, true) : '✅';
                 recommendation = `
                     <div class="format-badge taproot">Taproot (bc1p...)</div>
                     <p><strong>Perfect match!</strong></p>
                     <p>Taproot offers:</p>
                     <ul style="text-align: left; margin: 1rem 0;">
-                        <li>✅ Maximum fee savings (52% vs Legacy)</li>
-                        <li>✅ Enhanced privacy</li>
-                        <li>✅ Modern wallet standard</li>
-                        <li>✅ Smallest transaction size</li>
+                        <li>${checkIcon} Maximum fee savings (52% vs Legacy)</li>
+                        <li>${checkIcon} Enhanced privacy</li>
+                        <li>${checkIcon} Modern wallet standard</li>
+                        <li>${checkIcon} Smallest transaction size</li>
                     </ul>
                     <p><strong>Recommended wallets:</strong> Sparrow, Bitcoin Core, BlueWallet, Electrum</p>
                 `;
             } else if (feeSavings) {
                 format = 'segwit';
+                const checkIcon = IconLibrary ? IconLibrary.get('check', 16, true) : '✅';
                 recommendation = `
                     <div class="format-badge segwit">Native SegWit (bc1q...)</div>
                     <p><strong>Best default choice!</strong></p>
                     <p>Native SegWit provides:</p>
                     <ul style="text-align: left; margin: 1rem 0;">
-                        <li>✅ 40% fee savings vs Legacy</li>
-                        <li>✅ Universal modern wallet support</li>
-                        <li>✅ Proven and reliable</li>
-                        <li>✅ Error-resistant addressing</li>
+                        <li>${checkIcon} 40% fee savings vs Legacy</li>
+                        <li>${checkIcon} Universal modern wallet support</li>
+                        <li>${checkIcon} Proven and reliable</li>
+                        <li>${checkIcon} Error-resistant addressing</li>
                     </ul>
                     <p>This is what most people should use!</p>
                 `;
@@ -329,29 +340,33 @@ function getRecommendation() {
         // Old wallet
         if (multisig) {
             format = 'p2sh';
+            const checkIcon = IconLibrary ? IconLibrary.get('check', 16, true) : '✅';
+            const alertIcon = IconLibrary ? IconLibrary.get('alert', 16, true) : '⚠️';
             recommendation = `
                 <div class="format-badge p2sh">P2SH (3...)</div>
                 <p><strong>Transitional choice</strong></p>
                 <p>For older wallets, P2SH provides:</p>
                 <ul style="text-align: left; margin: 1rem 0;">
-                    <li>✅ Multi-sig support</li>
-                    <li>✅ Some fee savings (26% vs Legacy)</li>
-                    <li>✅ Wide compatibility</li>
+                    <li>${checkIcon} Multi-sig support</li>
+                    <li>${checkIcon} Some fee savings (26% vs Legacy)</li>
+                    <li>${checkIcon} Wide compatibility</li>
                 </ul>
-                <p><strong>⚠️ Recommendation:</strong> Consider upgrading to a modern wallet to use SegWit or Taproot for better fees and privacy!</p>
+                <p><strong>${alertIcon} Recommendation:</strong> Consider upgrading to a modern wallet to use SegWit or Taproot for better fees and privacy!</p>
             `;
         } else {
             format = 'legacy';
+            const closeIcon = IconLibrary ? IconLibrary.get('close', 16, true) : '❌';
+            const targetIcon = IconLibrary ? IconLibrary.get('target', 16, true) : '🎯';
             recommendation = `
                 <div class="format-badge legacy">Legacy (1...)</div>
                 <p><strong>Only for compatibility</strong></p>
                 <p>Legacy addresses work everywhere, but:</p>
                 <ul style="text-align: left; margin: 1rem 0;">
-                    <li>❌ Highest transaction fees</li>
-                    <li>❌ Largest transaction size</li>
-                    <li>❌ Missing modern features</li>
+                    <li>${closeIcon} Highest transaction fees</li>
+                    <li>${closeIcon} Largest transaction size</li>
+                    <li>${closeIcon} Missing modern features</li>
                 </ul>
-                <p><strong>🎯 Strong Recommendation:</strong> Upgrade to a modern wallet (2020+) to use Native SegWit or Taproot. You'll save significantly on fees!</p>
+                <p><strong>${targetIcon} Strong Recommendation:</strong> Upgrade to a modern wallet (2020+) to use Native SegWit or Taproot. You'll save significantly on fees!</p>
             `;
         }
     }
