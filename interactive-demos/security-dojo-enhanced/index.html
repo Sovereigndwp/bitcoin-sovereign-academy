@@ -977,6 +977,118 @@
     </div>
 
     <form class="assessment-form" id="assessment-form">
+      <!-- Experience Level Triage -->
+      <div class="form-section" id="triage-section">
+        <h3>🎯 Your Bitcoin Journey</h3>
+        <p class="help-text">This assessment adapts to your experience level to provide the most relevant security guidance.</p>
+
+        <div class="form-group">
+          <label>What best describes your Bitcoin journey?</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="experience_level" value="pre-bitcoin" required>
+              <div class="radio-content">
+                <span class="radio-icon">🔍</span>
+                <div class="radio-text">
+                  <strong>Researching Bitcoin</strong>
+                  <span>Don't own any yet, learning before buying</span>
+                </div>
+              </div>
+              <div class="check-indicator"></div>
+            </label>
+
+            <label class="radio-option">
+              <input type="radio" name="experience_level" value="beginner">
+              <div class="radio-content">
+                <span class="radio-icon">🌱</span>
+                <div class="radio-text">
+                  <strong>Just Started</strong>
+                  <span>Own less than $1,000 in Bitcoin</span>
+                </div>
+              </div>
+              <div class="check-indicator"></div>
+            </label>
+
+            <label class="radio-option">
+              <input type="radio" name="experience_level" value="intermediate">
+              <div class="radio-content">
+                <span class="radio-icon">🏗️</span>
+                <div class="radio-text">
+                  <strong>Building Stack</strong>
+                  <span>$1K - $50K, active self-custody journey</span>
+                </div>
+              </div>
+              <div class="check-indicator"></div>
+            </label>
+
+            <label class="radio-option">
+              <input type="radio" name="experience_level" value="advanced">
+              <div class="radio-content">
+                <span class="radio-icon">🏛️</span>
+                <div class="radio-text">
+                  <strong>Serious Holder / Business</strong>
+                  <span>Over $50K or institutional use</span>
+                </div>
+              </div>
+              <div class="check-indicator"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>What's your main goal with this assessment?</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="primary_goal" value="protect-holdings" required>
+              <div class="radio-content">
+                <span class="radio-icon">🛡️</span>
+                <div class="radio-text">
+                  <strong>Protect my existing Bitcoin</strong>
+                  <span>I have Bitcoin and want to secure it properly</span>
+                </div>
+              </div>
+              <div class="check-indicator"></div>
+            </label>
+
+            <label class="radio-option">
+              <input type="radio" name="primary_goal" value="learn-before-buy">
+              <div class="radio-content">
+                <span class="radio-icon">📚</span>
+                <div class="radio-text">
+                  <strong>Learn security before buying</strong>
+                  <span>Want to understand security first</span>
+                </div>
+              </div>
+              <div class="check-indicator"></div>
+            </label>
+
+            <label class="radio-option">
+              <input type="radio" name="primary_goal" value="upgrade-security">
+              <div class="radio-content">
+                <span class="radio-icon">⬆️</span>
+                <div class="radio-text">
+                  <strong>Upgrade from exchange to self-custody</strong>
+                  <span>Ready to take full control</span>
+                </div>
+              </div>
+              <div class="check-indicator"></div>
+            </label>
+
+            <label class="radio-option">
+              <input type="radio" name="primary_goal" value="inheritance">
+              <div class="radio-content">
+                <span class="radio-icon">🏛️</span>
+                <div class="radio-text">
+                  <strong>Estate planning / inheritance</strong>
+                  <span>Ensure family can access if needed</span>
+                </div>
+              </div>
+              <div class="check-indicator"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+
       <!-- Wallet Setup -->
       <div class="form-section">
         <h3>💼 Your Wallet Setup</h3>
@@ -1405,6 +1517,8 @@
       // Collect form data
       const formData = new FormData(e.target);
       const responses = {
+        experience_level: formData.get('experience_level'),
+        primary_goal: formData.get('primary_goal'),
         wallet_type: formData.get('wallet_type'),
         amount: formData.get('amount'),
         backup: formData.getAll('backup'),
@@ -1440,68 +1554,219 @@
     });
 
     function calculateSecurityScore(responses) {
-      let score = 0;
+      // Multi-dimensional scoring system
+      const dimensions = {
+        knowledge: { score: 0, maxPossible: 100, weight: 1.0 },
+        security: { score: 0, maxPossible: 100, weight: 1.5 },
+        threatAwareness: { score: 0, maxPossible: 100, weight: 1.2 },
+        recovery: { score: 0, maxPossible: 100, weight: 1.3 },
+        privacy: { score: 0, maxPossible: 100, weight: 1.0 },
+        technical: { score: 0, maxPossible: 100, weight: 0.8 }
+      };
+
       let issues = {
         critical: [],
         high: [],
         medium: []
       };
 
-      // Wallet type scoring
-      if (responses.wallet_type === 'hardware') score += 30;
-      else if (responses.wallet_type === 'multisig') score += 40;
-      else if (responses.wallet_type === 'software_hot') score += 15;
-      else if (responses.wallet_type === 'exchange') {
-        score += 5;
-        issues.critical.push('exchange_custody');
+      // Experience level mapping
+      const experienceLevelMap = {
+        'pre-bitcoin': 0,
+        'beginner': 1,
+        'intermediate': 2,
+        'advanced': 3
+      };
+      const experienceLevel = experienceLevelMap[responses.experience_level] || 0;
+
+      // === KNOWLEDGE DIMENSION ===
+      // Phishing test (critical knowledge indicator)
+      if (responses.phishing_test === 'ignore') {
+        dimensions.knowledge.score += 40;
+        dimensions.threatAwareness.score += 30;
+      } else if (responses.phishing_test === 'click') {
+        dimensions.knowledge.score += 0;
+        dimensions.threatAwareness.score += 0;
+        issues.critical.push('phishing_vulnerable');
+      } else if (responses.phishing_test === 'verify') {
+        dimensions.knowledge.score += 20;
+        dimensions.threatAwareness.score += 15;
       }
 
-      // Backup scoring
-      if (responses.backup.includes('metal')) score += 20;
-      else if (responses.backup.includes('paper')) score += 10;
+      // Experience level contributes to knowledge
+      dimensions.knowledge.score += experienceLevel * 15;
 
-      if (responses.backup.includes('multiple')) score += 15;
-      else issues.high.push('single_location');
+      // === SECURITY DIMENSION ===
+      // Wallet type scoring
+      if (responses.wallet_type === 'multisig') {
+        dimensions.security.score += 45;
+        dimensions.technical.score += 25;
+      } else if (responses.wallet_type === 'hardware') {
+        dimensions.security.score += 35;
+        dimensions.technical.score += 15;
+      } else if (responses.wallet_type === 'software_hot') {
+        dimensions.security.score += 15;
+      } else if (responses.wallet_type === 'exchange') {
+        dimensions.security.score += 5;
+        issues.critical.push('exchange_custody');
+      } else if (responses.wallet_type === 'none') {
+        dimensions.security.score += 10; // Learning is good!
+      }
 
-      if (responses.backup.includes('none')) {
-        score -= 20;
+      // Security measures
+      const securityMeasures = responses.security || [];
+      if (securityMeasures.includes('2fa')) dimensions.security.score += 5;
+      if (securityMeasures.includes('passphrase')) {
+        dimensions.security.score += 8;
+        dimensions.technical.score += 10;
+      }
+      if (securityMeasures.includes('dedicated')) dimensions.security.score += 7;
+      if (securityMeasures.includes('verify_addresses')) {
+        dimensions.security.score += 10;
+        dimensions.threatAwareness.score += 10;
+      }
+      if (securityMeasures.includes('coin_control')) {
+        dimensions.privacy.score += 15;
+        dimensions.technical.score += 15;
+      }
+      if (securityMeasures.includes('tor')) {
+        dimensions.privacy.score += 20;
+        dimensions.technical.score += 15;
+      }
+
+      if (!securityMeasures.includes('verify_addresses') && responses.wallet_type === 'hardware') {
+        issues.high.push('no_verification');
+      }
+
+      // === RECOVERY DIMENSION ===
+      // Backup strategy
+      const backupMethods = responses.backup || [];
+      if (backupMethods.includes('metal')) {
+        dimensions.recovery.score += 30;
+        dimensions.security.score += 10;
+      } else if (backupMethods.includes('paper')) {
+        dimensions.recovery.score += 20;
+      }
+
+      if (backupMethods.includes('encrypted')) {
+        dimensions.recovery.score += 15;
+        dimensions.technical.score += 10;
+      }
+
+      if (backupMethods.includes('multiple')) {
+        dimensions.recovery.score += 25;
+      } else if (!backupMethods.includes('none')) {
+        issues.high.push('single_location');
+      }
+
+      if (backupMethods.includes('none')) {
+        dimensions.recovery.score += 0;
         issues.critical.push('no_backup');
       }
 
-      // Recovery test
-      if (responses.tested_recovery === 'yes') score += 15;
-      else if (responses.tested_recovery === 'no') issues.high.push('untested_recovery');
+      if (backupMethods.includes('memorized')) {
+        dimensions.recovery.score -= 10;
+        issues.high.push('memory_only');
+      }
 
-      // Security measures
-      const securityCount = responses.security.length;
-      score += Math.min(securityCount * 5, 20);
+      // Recovery testing
+      if (responses.tested_recovery === 'yes') {
+        dimensions.recovery.score += 30;
+        dimensions.technical.score += 15;
+      } else if (responses.tested_recovery === 'no') {
+        issues.high.push('untested_recovery');
+      }
 
-      if (!responses.security.includes('2fa')) issues.medium.push('no_2fa');
-      if (!responses.security.includes('verify_addresses')) issues.high.push('no_verification');
-
+      // === PRIVACY DIMENSION ===
       // Public disclosure (OPSEC)
-      if (responses.public_disclosure === 'secret') score += 10;
-      else if (responses.public_disclosure === 'social') {
-        score -= 10;
+      if (responses.public_disclosure === 'secret') {
+        dimensions.privacy.score += 40;
+        dimensions.threatAwareness.score += 20;
+      } else if (responses.public_disclosure === 'friends') {
+        dimensions.privacy.score += 25;
+        dimensions.threatAwareness.score += 10;
+      } else if (responses.public_disclosure === 'social') {
+        dimensions.privacy.score += 0;
+        dimensions.threatAwareness.score += 0;
         issues.high.push('public_disclosure');
       }
 
-      // Phishing test
-      if (responses.phishing_test === 'ignore') score += 10;
-      else if (responses.phishing_test === 'click') {
-        score -= 15;
-        issues.critical.push('phishing_vulnerable');
+      // === THREAT AWARENESS DIMENSION ===
+      // Already scored through phishing test and other measures
+      // Add bonus for advanced users showing good practices
+      if (experienceLevel >= 2 && dimensions.security.score > 30) {
+        dimensions.threatAwareness.score += 15;
       }
 
+      // === NORMALIZE SCORES ===
+      Object.keys(dimensions).forEach(dim => {
+        dimensions[dim].normalizedScore = Math.max(0, Math.min(100, dimensions[dim].score));
+      });
+
+      // === CALCULATE WEIGHTED OVERALL SCORE ===
+      let totalWeightedScore = 0;
+      let totalWeight = 0;
+
+      Object.keys(dimensions).forEach(dim => {
+        totalWeightedScore += dimensions[dim].normalizedScore * dimensions[dim].weight;
+        totalWeight += dimensions[dim].weight;
+      });
+
+      let overallScore = totalWeightedScore / totalWeight;
+
+      // === EXPERIENCE LEVEL ADJUSTMENTS ===
+      if (experienceLevel === 0) {
+        // Pre-Bitcoin: focus on knowledge and threat awareness
+        overallScore = (dimensions.knowledge.normalizedScore * 0.5 +
+                       dimensions.threatAwareness.normalizedScore * 0.3 +
+                       dimensions.security.normalizedScore * 0.2);
+      } else if (experienceLevel === 1) {
+        // Beginner: security and recovery most important
+        overallScore = (dimensions.security.normalizedScore * 0.4 +
+                       dimensions.recovery.normalizedScore * 0.3 +
+                       dimensions.threatAwareness.normalizedScore * 0.2 +
+                       dimensions.knowledge.normalizedScore * 0.1);
+      }
+      // Intermediate and Advanced use the weighted calculation above
+
       // Ensure score is between 0-100
-      score = Math.max(0, Math.min(100, score));
+      overallScore = Math.max(0, Math.min(100, overallScore));
+
+      // === BELT RANKING WITH EXPERIENCE LEVEL MODIFIERS ===
+      const modifiers = {
+        0: -10,  // Pre-Bitcoin: harder to get high belt
+        1: -5,   // Beginner: slight penalty
+        2: 0,    // Intermediate: no modifier
+        3: +5    // Advanced: bonus for complex setups
+      };
+
+      const adjustedScore = Math.max(0, Math.min(100, overallScore + modifiers[experienceLevel]));
+      const belt = determineBeltRank(adjustedScore);
 
       return {
-        score,
-        grade: getGrade(score),
-        issues,
-        responses
+        score: Math.round(overallScore),
+        adjustedScore: Math.round(adjustedScore),
+        grade: getGrade(adjustedScore),
+        belt: belt,
+        dimensions: dimensions,
+        issues: issues,
+        experienceLevel: experienceLevel,
+        responses: responses
       };
+    }
+
+    function determineBeltRank(score) {
+      const belts = [
+        { rank: "White Belt", min: 0, max: 29, color: "#FFFFFF", icon: "⚪", description: "Security Novice" },
+        { rank: "Yellow Belt", min: 30, max: 49, color: "#FFD700", icon: "🟡", description: "Security Aware" },
+        { rank: "Orange Belt", min: 50, max: 59, color: "#FF8C00", icon: "🟠", description: "Security Practitioner" },
+        { rank: "Green Belt", min: 60, max: 69, color: "#22c55e", icon: "🟢", description: "Security Competent" },
+        { rank: "Blue Belt", min: 70, max: 79, color: "#3b82f6", icon: "🔵", description: "Security Proficient" },
+        { rank: "Brown Belt", min: 80, max: 89, color: "#8B4513", icon: "🟤", description: "Security Expert" },
+        { rank: "Black Belt", min: 90, max: 100, color: "#000000", icon: "⚫", description: "Security Master" }
+      ];
+
+      return belts.find(belt => score >= belt.min && score <= belt.max) || belts[0];
     }
 
     function getGrade(score) {
@@ -1527,22 +1792,44 @@
       document.getElementById('high-count').textContent = scoreData.issues.high.length;
       document.getElementById('medium-count').textContent = scoreData.issues.medium.length;
 
-      // Set message
+      // Set message based on experience level and score
       let message = '';
+      const experienceLevelNames = ['Pre-Bitcoin', 'Beginner', 'Intermediate', 'Advanced'];
+      const levelName = experienceLevelNames[scoreData.experienceLevel];
+
       if (scoreData.score >= 80) {
-        message = 'Excellent security! Continue training to maintain your edge.';
+        if (scoreData.experienceLevel === 0) {
+          message = `Excellent security knowledge for someone researching Bitcoin! You're well-prepared to start your journey.`;
+        } else {
+          message = `Excellent ${levelName} security! Continue training to maintain your edge.`;
+        }
       } else if (scoreData.score >= 60) {
-        message = 'Good foundation, but critical gaps remain. Complete recommended training.';
+        message = `Good ${levelName} foundation, but critical gaps remain. Complete recommended training.`;
+      } else if (scoreData.score >= 40) {
+        message = `Your security needs significant improvement. Start with high-priority stations immediately.`;
       } else {
-        message = 'Your Bitcoin is at significant risk. Start training immediately.';
+        if (scoreData.experienceLevel === 0) {
+          message = `Learning security before buying Bitcoin is wise. Complete the foundational modules before acquiring Bitcoin.`;
+        } else {
+          message = `CRITICAL: Your Bitcoin is at significant risk. Address critical issues today.`;
+        }
       }
       document.getElementById('score-message').textContent = message;
+
+      // Update belt display
+      if (scoreData.belt) {
+        const beltDisplay = document.querySelector('.belt-badge');
+        if (beltDisplay) {
+          beltDisplay.innerHTML = `${scoreData.belt.icon} <span>${scoreData.belt.rank}</span> - ${scoreData.belt.description}`;
+          beltDisplay.style.borderColor = scoreData.belt.color;
+        }
+      }
 
       // Load personalized training stations
       loadTrainingStations(scoreData, responses);
 
       // Update belt rank
-      updateBeltRank(scoreData.score);
+      updateBeltRank(scoreData.belt ? scoreData.belt.rank : scoreData.score);
     }
 
     function loadTrainingStations(scoreData, responses) {
@@ -2171,19 +2458,30 @@ Failure to verify within 24 hours will result in permanent account closure.<br/>
             </div>
 
             <h3>🧅 Privacy Tools</h3>
+
+            <div class="warning-banner" style="margin: 1.5rem 0;">
+              <h3>🚨 CRITICAL: Verify All Links Before Use</h3>
+              <p style="margin-bottom: 0.75rem;">
+                <strong>ALWAYS verify the authenticity and current validity of any Bitcoin-related links before clicking or downloading.</strong>
+              </p>
+              <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                <li>Check official sources and community verification</li>
+                <li>Verify SSL certificates and domain authenticity</li>
+                <li>Be aware that projects can be compromised, seized, or discontinued</li>
+                <li>Use multiple independent sources to confirm legitimacy</li>
+                <li>When in doubt, seek guidance from trusted Bitcoin communities</li>
+              </ul>
+              <p style="margin-top: 0.75rem; font-style: italic; color: var(--color-muted);">
+                The Bitcoin security landscape changes constantly. Never trust blindly—verify everything.
+              </p>
+            </div>
+
             <div class="resource-card">
               <div class="resource-info">
                 <h4>Tor Browser</h4>
                 <p>Browse anonymously and run Bitcoin Core over Tor</p>
               </div>
               <a href="https://www.torproject.org/" target="_blank" class="resource-link">Download</a>
-            </div>
-            <div class="resource-card">
-              <div class="resource-info">
-                <h4>Samourai Wallet</h4>
-                <p>Privacy-focused mobile wallet with CoinJoin</p>
-              </div>
-              <a href="https://samouraiwallet.com/" target="_blank" class="resource-link">Learn More</a>
             </div>
             <div class="resource-card">
               <div class="resource-info">
