@@ -6,6 +6,7 @@
 let addressGen;
 let feeCalc;
 let currentAddresses;
+let currentFeeRate = 20; // Default fallback
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
@@ -28,8 +29,11 @@ function init() {
     // Setup event listeners
     setupEventListeners();
 
-    // Calculate initial fees
-    updateFeeCalculator();
+    // Fetch current fee rate from mempool.space
+    fetchCurrentFeeRate().then(() => {
+        // Calculate initial fees with live rate
+        updateFeeCalculator();
+    });
 }
 
 /**
@@ -224,6 +228,15 @@ function updateFeeCard(format, data, btcPrice) {
     if (feeSatsEl) {
         feeSatsEl.textContent = feeCalc.formatSats(data.feeSats) + ' sats';
     }
+
+    // Update savings text
+    const savingsEl = feeAmountEl?.parentElement?.querySelector('.savings');
+    if (savingsEl && format !== 'legacy') {
+        if (data.savingsUSD > 0) {
+            savingsEl.textContent = `Save ${feeCalc.formatUSD(data.savingsUSD)}/year (${data.savingsPercent}%)`;
+            savingsEl.classList.add('save');
+        }
+    }
 }
 
 /**
@@ -389,4 +402,69 @@ function getRecommendation() {
  */
 function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/**
+ * Fetch current fee rate from mempool.space API
+ */
+async function fetchCurrentFeeRate() {
+    const feeAPIs = [
+        {
+            name: 'Mempool.space',
+            url: 'https://mempool.space/api/v1/fees/recommended',
+            parse: (data) => parseInt(data?.halfHourFee || data?.hourFee || data?.fastestFee || 20, 10)
+        },
+        {
+            name: 'Blockstream',
+            url: 'https://blockstream.info/api/fee-estimates',
+            parse: (data) => Math.round(parseFloat(data?.['3'] || data?.['6'] || 20))
+        }
+    ];
+
+    for (const api of feeAPIs) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        try {
+            const response = await fetch(api.url, {
+                cache: 'no-store',
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+                const data = await response.json();
+                const fee = api.parse(data);
+
+                if (!isNaN(fee) && fee > 0 && fee < 1000) { // Sanity check
+                    currentFeeRate = fee;
+                    console.log(`✓ Current fee rate from ${api.name}: ${fee} sat/vB`);
+
+                    // Update the slider and display
+                    const feeRateInput = document.getElementById('fee-rate');
+                    const feeRateDisplay = document.getElementById('fee-rate-display');
+
+                    if (feeRateInput) {
+                        feeRateInput.value = fee;
+                    }
+
+                    if (feeRateDisplay) {
+                        feeRateDisplay.textContent = `${fee} sat/vB (Live)`;
+                        feeRateDisplay.style.color = '#4CAF50'; // Green to indicate live data
+                    }
+
+                    return fee;
+                }
+            }
+        } catch (error) {
+            clearTimeout(timeoutId);
+            console.warn(`${api.name} fee fetch failed:`, error.message);
+            continue;
+        }
+    }
+
+    console.warn('All fee rate APIs failed, using fallback of 20 sat/vB');
+    currentFeeRate = 20;
+    return 20;
 }
