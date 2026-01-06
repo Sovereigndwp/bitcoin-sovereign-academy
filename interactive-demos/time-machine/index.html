@@ -520,6 +520,133 @@
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+
+        /* Spam demo grid mobile responsiveness */
+        @media (max-width: 768px) {
+            #spam-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modalCard {
+            width: min(720px, 92vw);
+            max-height: 86vh;
+            overflow: auto;
+            background: var(--secondary-dark);
+            border: 2px solid var(--primary-orange);
+            border-radius: 18px;
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modalClose {
+            float: right;
+            background: transparent;
+            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+        }
+
+        .modalClose:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary-orange);
+            color: var(--primary-orange);
+        }
+
+        .demoWrap h2 {
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+            clear: both;
+            padding-top: 1rem;
+        }
+
+        .demoWrap label {
+            display: block;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .demoWrap textarea,
+        .demoWrap input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .demoWrap textarea:focus,
+        .demoWrap input:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+        }
+
+        .demoWrap button {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-orange);
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .demoWrap button:hover:not(:disabled) {
+            background: #ff8c00;
+            transform: translateY(-1px);
+        }
+
+        .demoWrap button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .demoWrap pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border-left: 3px solid var(--primary-orange);
+            overflow-x: auto;
+            color: var(--accent-green);
+            font-size: 0.85rem;
+        }
+
+        .demoWrap .status-valid {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        .demoWrap .status-invalid {
+            color: #ff4444;
+            font-weight: 600;
+        }
     </style>
     <link rel="stylesheet" href="/css/icons.css">
     <link rel="stylesheet" href="/css/interactive-demos.css">
@@ -547,7 +674,7 @@
 
                 <div class="timeline-controls">
                     <button class="control-button" onclick="revealAll()"><span data-icon="lightning"></span> Reveal All</button>
-                    <button class="control-button" onclick="toggleComparison()"><span data-icon="refresh"></span> Compare: Without These</button>
+                    <button class="control-button" onclick="toggleComparison(event)"><span data-icon="refresh"></span> Compare: Without These</button>
                     <button class="control-button" onclick="toggleConnections()"><span data-icon="map"></span> Connections Map</button>
                 </div>
 
@@ -555,24 +682,24 @@
                     <h3 style="color: var(--primary-orange); text-align: center; margin-bottom: 1rem;">How Six Pillars Became Bitcoin</h3>
                     <p style="text-align: center; color: var(--text-dim); margin-bottom: 1.5rem;">Click each technology to see how it connects to Bitcoin's design</p>
                     <div class="connections-grid">
-                        <div class="connection-node" onclick="highlightConnection('crypto')"><span data-icon="lock"></span> <br><strong><span class="term-tooltip" data-definition="A lock and key system for digital ownership. You keep one key secret, share the other publicly.">Public-Key Crypto</span></strong><br>
+                        <div class="connection-node" onclick="highlightConnection(event, 'crypto')"><span data-icon="lock"></span> <br><strong><span class="term-tooltip" data-definition="A lock and key system for digital ownership. You keep one key secret, share the other publicly.">Public-Key Crypto</span></strong><br>
                             <small style="color: var(--text-dim);">→ Digital ownership</small>
                         </div>
-                        <div class="connection-node" onclick="highlightConnection('network')"><span data-icon="network"></span> <br><strong><span class="term-tooltip" data-definition="Computers talking directly to each other, no middleman or central server needed.">P2P Networks</span></strong><br>
+                        <div class="connection-node" onclick="highlightConnection(event, 'network')"><span data-icon="network"></span> <br><strong><span class="term-tooltip" data-definition="Computers talking directly to each other, no middleman or central server needed.">P2P Networks</span></strong><br>
                             <small style="color: var(--text-dim);">→ <span class="term-tooltip" data-definition="No single point of control. Power is spread across many participants.">Decentralization</span></small>
                         </div>
-                        <div class="connection-node" onclick="highlightConnection('timestamping')"><span data-icon="clock"></span> <br><strong><span class="term-tooltip" data-definition="Linking records together with timestamps so history can't be rewritten or backdated.">Timestamping</span></strong><br>
+                        <div class="connection-node" onclick="highlightConnection(event, 'timestamping')"><span data-icon="clock"></span> <br><strong><span class="term-tooltip" data-definition="Linking records together with timestamps so history can't be rewritten or backdated.">Timestamping</span></strong><br>
                             <small style="color: var(--text-dim);">→ <span class="term-tooltip" data-definition="Cannot be changed or erased. Once recorded, it's permanent.">Immutability</span></small>
                         </div>
-                        <div class="connection-node" onclick="highlightConnection('merkle')">
+                        <div class="connection-node" onclick="highlightConnection(event, 'merkle')">
                             🌳<br><strong><span class="term-tooltip" data-definition="A clever way to bundle thousands of items into one compact proof. Like a tree where branches combine into a single root.">Merkle Trees</span></strong><br>
                             <small style="color: var(--text-dim);">→ Efficient proofs</small>
                         </div>
-                        <div class="connection-node" onclick="highlightConnection('pow')">
+                        <div class="connection-node" onclick="highlightConnection(event, 'pow')">
                             💎<br><strong><span class="term-tooltip" data-definition="A rule that says you must burn real energy solving a math puzzle to participate. Makes spam expensive and secures networks.">Proof of Work</span></strong><br>
                             <small style="color: var(--text-dim);">→ <span class="term-tooltip" data-definition="Unwanted junk messages sent in bulk. Proof of Work makes spam expensive.">Spam</span> prevention</small>
                         </div>
-                        <div class="connection-node" onclick="highlightConnection('failed')">
+                        <div class="connection-node" onclick="highlightConnection(event, 'failed')">
                             🧩<br><strong>Failed Attempts</strong><br>
                             <small style="color: var(--text-dim);">→ Learned mistakes</small>
                         </div>
@@ -582,47 +709,65 @@
                 <div class="timeline-container">
                     <div class="timeline-line"></div>
 
-                    <!-- 1970s: Public-Key Cryptography -->
-                    <div class="timeline-card left" onclick="revealCard(this)" data-era="1970s">
+                    <!-- 1976: Public-Key Cryptography Concept -->
+                    <div class="timeline-card left" onclick="revealCard(this)" data-era="1976">
                         <div class="timeline-dot"></div>
                         <div class="card-content">
                             <span class="card-icon"><span data-icon="lock"></span> </span>
-                            <div class="card-year">1970s</div>
-                            <div class="card-title">The Age of Secret Codes</div>
+                            <div class="card-year">1976</div>
+                            <div class="card-title">Public-Key Cryptography</div>
                             <div class="card-description">
-                                Whitfield Diffie & Martin Hellman invented <span class="term-tooltip" data-definition="A lock and key system for digital ownership. You keep one key secret, share the other publicly.">public-key cryptography</span> (1976), followed by RSA <span class="term-tooltip" data-definition="Using math locks that can't be broken. Like a safe that only opens with the right combination.">encryption</span> (1977).
-                                These breakthroughs made digital ownership possible for the first time.
+                                Diffie & Hellman publish the idea of <span class="term-tooltip" data-definition="A lock and key system for digital ownership. You keep one key secret, share the other publicly.">public-key cryptography</span>. Two keys are linked by one-way math.
+                                <strong>Encrypt with a public key</strong>, only the matching private key can decrypt. <strong>Sign with a private key</strong>, anyone can verify with the public key.
+                                Result: you can share securely without first sharing a secret.
                             </div>
-                            <button class="demo-button" onclick="event.stopPropagation(); demoPublicKey(this)">🔑 Try Public Key Demo</button>
+                            <button class="demo-button" onclick="event.stopPropagation(); openKeysDemo()">🔑 Try the Keys Demo</button>
+                            <div class="demo-output"></div>
+                        </div>
+                    </div>
+
+                    <!-- 1977: Digital Signatures Become Practical -->
+                    <div class="timeline-card right" onclick="revealCard(this)" data-era="1977">
+                        <div class="timeline-dot"></div>
+                        <div class="card-content">
+                            <span class="card-icon">✍️</span>
+                            <div class="card-year">1977</div>
+                            <div class="card-title">RSA Makes It Real</div>
+                            <div class="card-description">
+                                Rivest, Shamir & Adleman publish RSA—a practical method for <strong>both encryption and digital signatures</strong>.
+                                A signature <strong>proves who signed a message</strong>. It does not hide the message—it makes tampering obvious.
+                                <strong>If one character changes, verification fails. That is the point.</strong>
+                            </div>
+                            <button class="demo-button" onclick="event.stopPropagation(); openSignaturesDemo()">✍️ Try the Signatures Demo</button>
                             <div class="demo-output"></div>
                         </div>
                     </div>
 
                     <!-- 1983-1990s: Internet -->
-                    <div class="timeline-card right" onclick="revealCard(this)" data-era="1990s">
+                    <div class="timeline-card left" onclick="revealCard(this)" data-era="1990s">
                         <div class="timeline-dot"></div>
                         <div class="card-content">
                             <span class="card-icon"><span data-icon="network"></span> </span>
                             <div class="card-year">1983-1990s</div>
                             <div class="card-title">The Internet Goes Global</div>
                             <div class="card-description">
-                                <span class="term-tooltip" data-definition="The language computers use to talk to each other over the internet.">TCP/IP protocol</span> connects computers worldwide without central control. This <span class="term-tooltip" data-definition="Computers talking directly to each other, no middleman or central server needed.">peer-to-peer</span> foundation
-                                became essential for Bitcoin's <span class="term-tooltip" data-definition="No single point of control. Power is spread across many participants.">decentralized</span> network.
+                                ARPANET switches to <span class="term-tooltip" data-definition="The language computers use to talk to each other over the internet.">TCP/IP</span> on January 1, 1983, enabling global networking.
+                                This infrastructure later made <span class="term-tooltip" data-definition="Computers talking directly to each other, no middleman or central server needed.">peer-to-peer</span> applications like Bitcoin possible.
                             </div>
                             <button class="demo-button" onclick="event.stopPropagation(); demoNetwork(this)">🕸️ See Network Effect</button>
                             <div class="demo-output"></div>
                         </div>
                     </div>
 
-                    <!-- 1989: DigiCash -->
-                    <div class="timeline-card left" onclick="revealCard(this)" data-era="1989">
+                    <!-- 1983-1989: eCash / DigiCash -->
+                    <div class="timeline-card right" onclick="revealCard(this)" data-era="1989">
                         <div class="timeline-dot"></div>
                         <div class="card-content">
                             <span class="card-icon"><span data-icon="money"></span> </span>
-                            <div class="card-year">1989</div>
-                            <div class="card-title">DigiCash - First Digital Money</div>
+                            <div class="card-year">1983 → 1989</div>
+                            <div class="card-title">eCash Concept & DigiCash</div>
                             <div class="card-description">
-                                David Chaum created the first <span class="term-tooltip" data-definition="Using math locks that can't be broken to secure digital money.">cryptographic</span> digital currency. It worked perfectly but required trust
+                                David Chaum developed the eCash concept in the early 1980s, then founded DigiCash to commercialize it. The first <span class="term-tooltip" data-definition="Using math locks that can't be broken to secure digital money.">cryptographic</span> digital currency worked perfectly but required trust
                                 in a central company - the missing piece Bitcoin would later solve.
                             </div>
                             <button class="demo-button" onclick="event.stopPropagation(); demoDigiCash(this)">💳 See DigiCash Model</button>
@@ -631,7 +776,7 @@
                     </div>
 
                     <!-- 1991: Timestamping -->
-                    <div class="timeline-card right" onclick="revealCard(this)" data-era="1991">
+                    <div class="timeline-card left" onclick="revealCard(this)" data-era="1991">
                         <div class="timeline-dot"></div>
                         <div class="card-content">
                             <span class="card-icon"><span data-icon="clock"></span> </span>
@@ -641,20 +786,22 @@
                                 Stuart Haber & Scott Stornetta created the first "<span class="term-tooltip" data-definition="Linking records together with timestamps so history can't be rewritten or backdated.">timechain</span>" - linking documents together so no one
                                 could backdate or alter them. This became Bitcoin's <span class="term-tooltip" data-definition="Another name for timechain. A chain of blocks, each containing records and linked to the previous one.">blockchain</span> foundation.
                             </div>
-                            <button class="demo-button" onclick="event.stopPropagation(); demoTimechain(this)">⛓️ Build a Chain</button>
+                            <button class="demo-button" onclick="event.stopPropagation(); demoMoneyAsHistory(this)">📜 Money as Recorded History</button>
+                            <div class="demo-output"></div>
+                            <button class="demo-button" onclick="event.stopPropagation(); demoTimechain(this)" style="margin-top: 0.5rem;">⛓️ Build a Chain</button>
                             <div class="demo-output"></div>
                         </div>
                     </div>
 
-                    <!-- 1992: Merkle Trees -->
-                    <div class="timeline-card left" onclick="revealCard(this)" data-era="1992">
+                    <!-- 1979/1992: Merkle Trees -->
+                    <div class="timeline-card right" onclick="revealCard(this)" data-era="1992">
                         <div class="timeline-dot"></div>
                         <div class="card-content">
                             <span class="card-icon">🌳</span>
-                            <div class="card-year">1992</div>
-                            <div class="card-title">Merkle Trees Added</div>
+                            <div class="card-year">1979 → 1992</div>
+                            <div class="card-title">Merkle Trees Invented, Then Adopted</div>
                             <div class="card-description">
-                                Haber, Stornetta & Bayer improve their design with <span class="term-tooltip" data-definition="A clever way to bundle thousands of items into one compact proof. Like a tree where branches combine into a single root.">Merkle Trees</span>. Now, multiple documents can be
+                                Ralph Merkle invented <span class="term-tooltip" data-definition="A clever way to bundle thousands of items into one compact proof. Like a tree where branches combine into a single root.">Merkle Trees</span> in 1979. In 1992, Haber, Stornetta & Bayer adopted them into their timestamping design. Now, multiple documents can be
                                 linked into a single proof efficiently. This innovation later powers Bitcoin's block structure.
                             </div>
                             <button class="demo-button" onclick="event.stopPropagation(); demoMerkle(this)">🌲 See 8 Transactions → 1 Root</button>
@@ -663,30 +810,32 @@
                     </div>
 
                     <!-- 1997: Hashcash -->
-                    <div class="timeline-card right" onclick="revealCard(this)" data-era="1997">
+                    <div class="timeline-card left" onclick="revealCard(this)" data-era="1997">
                         <div class="timeline-dot"></div>
                         <div class="card-content">
                             <span class="card-icon">💎</span>
-                            <div class="card-year">1997</div>
+                            <div class="card-year">1992 → 1997</div>
                             <div class="card-title">Hashcash - Proof of Work</div>
                             <div class="card-description">
-                                Adam Back invented Hashcash to fight email <span class="term-tooltip" data-definition="Unwanted junk messages sent in bulk. Hashcash made each email cost energy to send.">spam</span>. Users had to solve a small math problem before
+                                Building on academic work by Dwork & Naor (1992) about making spam costly, Adam Back invented Hashcash (1997) to fight email <span class="term-tooltip" data-definition="Unwanted junk messages sent in bulk. Hashcash made each email cost energy to send.">spam</span>. Users had to solve a small math problem before
                                 sending emails, making spam expensive. Bitcoin uses this exact concept: <span class="term-tooltip" data-definition="A rule that says you must burn real energy solving a math puzzle to participate. Makes spam expensive and secures networks.">Proof of Work</span>.
                             </div>
-                            <button class="demo-button" onclick="event.stopPropagation(); demoHashcash(this)">⛏️ Try <span class="term-tooltip" data-definition="A unique fingerprint for data. Change one letter, the entire fingerprint changes completely.">Hash</span> <span class="term-tooltip" data-definition="Using energy to solve puzzles and earn new Bitcoin. Like a lottery where more work = more tickets.">Mining</span></button>
+                            <button class="demo-button" onclick="event.stopPropagation(); demoSpamPrevention(this)">🚫 See How PoW Stops Spam</button>
+                            <div class="demo-output"></div>
+                            <button class="demo-button" onclick="event.stopPropagation(); demoHashcash(this)" style="margin-top: 0.5rem;">⛏️ Try <span class="term-tooltip" data-definition="A unique fingerprint for data. Change one letter, the entire fingerprint changes completely.">Hash</span> <span class="term-tooltip" data-definition="Using energy to solve puzzles and earn new Bitcoin. Like a lottery where more work = more tickets.">Mining</span></button>
                             <div class="demo-output"></div>
                         </div>
                     </div>
 
-                    <!-- 1998-2005: Cypherpunks -->
-                    <div class="timeline-card left" onclick="revealCard(this)" data-era="2000s">
+                    <!-- 1996-2005: Cypherpunks -->
+                    <div class="timeline-card right" onclick="revealCard(this)" data-era="2000s">
                         <div class="timeline-dot"></div>
                         <div class="card-content">
                             <span class="card-icon">👥</span>
-                            <div class="card-year">1998-2005</div>
+                            <div class="card-year">1996-2005</div>
                             <div class="card-title">Cypherpunks & Failed Prototypes</div>
                             <div class="card-description">
-                                Privacy advocates created b-money (Wei Dai), Bit Gold (Nick Szabo), and e-gold (Douglas Jackson).
+                                Privacy advocates created e-gold (1996), b-money (Wei Dai, 1998), Bit Gold (Nick Szabo, 2005), and RPOW (Hal Finney, 2004).
                                 Each solved part of the puzzle, but none achieved full decentralization.
                             </div>
                             <button class="demo-button" onclick="event.stopPropagation(); demoCypherpunks(this)">🧩 See the Pieces</button>
@@ -695,7 +844,7 @@
                     </div>
 
                     <!-- 2008: Whitepaper -->
-                    <div class="timeline-card right" onclick="revealCard(this)" data-era="2008">
+                    <div class="timeline-card left" onclick="revealCard(this)" data-era="2008">
                         <div class="timeline-dot"></div>
                         <div class="card-content">
                             <span class="card-icon">📜</span>
@@ -711,7 +860,7 @@
                     </div>
 
                     <!-- 2009: Genesis Block -->
-                    <div class="timeline-card left" onclick="revealCard(this)" data-era="2009">
+                    <div class="timeline-card right" onclick="revealCard(this)" data-era="2009">
                         <div class="timeline-dot"></div>
                         <div class="card-content">
                             <span class="card-icon">⛏️</span>
@@ -727,7 +876,7 @@
                     </div>
 
                     <!-- 2010: Pizza Day -->
-                    <div class="timeline-card right" onclick="revealCard(this)" data-era="2010">
+                    <div class="timeline-card left" onclick="revealCard(this)" data-era="2010">
                         <div class="timeline-dot"></div>
                         <div class="card-content">
                             <span class="card-icon">🍕</span>
@@ -770,8 +919,8 @@
             });
         }
 
-        function toggleComparison() {
-            const button = event.target;
+        function toggleComparison(e) {
+            const button = e.currentTarget;
             const showing = button.textContent.includes('Without');
 
             if (showing) {
@@ -794,7 +943,7 @@
             map.classList.toggle('visible');
         }
 
-        function highlightConnection(tech) {
+        function highlightConnection(e, tech) {
             const connections = {
                 crypto: 'Public-Key Cryptography enables Bitcoin\'s digital signatures and addresses. Without it, there\'s no way to prove ownership of coins!',
                 network: 'P2P Networks allow Bitcoin to operate without any central server. Every node is equal, making censorship nearly impossible.',
@@ -810,7 +959,7 @@
             document.querySelectorAll('.connection-node').forEach(node => {
                 node.classList.remove('active');
             });
-            event.target.closest('.connection-node').classList.add('active');
+            e.currentTarget.classList.add('active');
         }
 
         // === Demo Functions ===
@@ -821,64 +970,6 @@
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        function demoPublicKey(button) {
-            const output = button.nextElementSibling;
-
-            // Generate actual cryptographic keys
-            const privateKey = Array.from({length: 32}, () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0')).join('');
-            const publicKey = '04' + Array.from({length: 64}, () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0')).join('');
-
-            output.innerHTML = `
-<strong>🔑 Interactive Public-Key Cryptography</strong>
-
-<div style="margin: 1rem 0;">
-    <label>Your Message:</label>
-    <input type="text" id="msg-input" placeholder="Type a message to sign..." value="Hello Bitcoin!" />
-</div>
-
-<button onclick="signMessage('${privateKey}', '${publicKey}')">🔏 Sign Message</button>
-
-<div id="key-display" style="margin-top: 1rem;">
-    <code>Private Key (Keep Secret!):</code><br>
-    <small style="color: #ff6b6b; word-break: break-all;">${privateKey}</small><br><br>
-
-    <code>Public Key (Share This):</code><br>
-    <small style="color: var(--accent-green); word-break: break-all;">${publicKey.substring(0, 40)}...</small>
-</div>
-
-<div id="signature-result"></div>
-
-<div style="margin-top: 1rem; padding: 0.75rem; background: rgba(76, 175, 80, 0.1); border-left: 3px solid var(--accent-green); font-size: 0.9rem;">
-    <strong><span data-icon="sparkles"></span> The Magic:</strong><br>
-    • Private key signs → Creates unique signature<br>
-    • Anyone with public key can verify signature<br>
-    • Can't reverse engineer private from public<br>
-    • This is how Bitcoin proves ownership!
-</div>
-            `;
-            output.classList.add('visible');
-        }
-
-        async function signMessage(privateKey, publicKey) {
-            const message = document.getElementById('msg-input').value;
-            const resultDiv = document.getElementById('signature-result');
-
-            // Simulate signing (in real Bitcoin, this would use ECDSA)
-            const signature = await sha256(message + privateKey);
-
-            resultDiv.innerHTML = `
-<div style="margin-top: 1rem; padding: 0.75rem; background: rgba(247, 147, 26, 0.1); border: 1px solid var(--primary-orange); border-radius: 0.25rem;">
-    <strong>📝 Signed Message:</strong><br>
-    <small style="color: var(--text-dim);">"${message}"</small><br><br>
-
-    <strong>✍️ Signature:</strong><br>
-    <code style="font-size: 0.75rem; word-break: break-all;">${signature}</code><br><br>
-
-    <strong>✅ Verification:</strong> Anyone with your public key can verify this signature proves YOU signed this message!
-</div>
-            `;
         }
 
         let networkState = {
@@ -918,7 +1009,7 @@
     <strong><span data-icon="lightbulb"></span> The Power of P2P:</strong><br>
     • No central server to attack<br>
     • Nodes can go offline without affecting network<br>
-    • Bitcoin has ~15,000 nodes worldwide<br>
+    • Bitcoin has thousands of reachable nodes across the world<br>
     • Network stays alive as long as ONE node exists!
 </div>
             `;
@@ -992,13 +1083,15 @@
         function demoDigiCash(button) {
             const output = button.nextElementSibling;
             output.innerHTML = `
-<strong>💳 DigiCash Model (1989)</strong>
+<strong>💳 eCash / DigiCash Model (1980s-1998)</strong>
 
 <code>How It Worked:</code>
-1. Bank issues digital coins (cryptographically signed)
-2. You spend coins anonymously
-3. Merchant verifies with bank
-4. Bank prevents double-spending
+1. David Chaum developed eCash concept (early 1980s)
+2. DigiCash Inc. commercialized it (1989)
+3. Banks issued digital coins (cryptographically signed)
+4. Users spent coins anonymously
+5. Merchants verified with bank
+6. Bank prevented double-spending
 
 <code>The Problem:</code>
 ❌ Requires trusting DigiCash Inc.
@@ -1008,6 +1101,134 @@
 <strong><span data-icon="lightbulb"></span> Bitcoin's Fix: No company required!</strong>
             `;
             output.classList.add('visible');
+        }
+
+        let moneyStep = 0;
+
+        function demoMoneyAsHistory(button) {
+            const output = button.nextElementSibling;
+            moneyStep = 0;
+
+            output.innerHTML = `
+<strong>📜 The Evolution of Money: From Possession to Proof</strong>
+
+<p style="color: var(--text-dim); margin-bottom: 1rem;">Click through three types of money systems to see how "recorded history" changed everything:</p>
+
+<div id="money-display" style="margin: 1.5rem 0; padding: 1.5rem; background: rgba(0, 0, 0, 0.3); border: 2px solid var(--primary-orange); border-radius: 0.5rem; min-height: 200px;">
+    <div style="text-align: center;">
+        <div style="font-size: 3rem; margin: 1rem 0;">🪙</div>
+        <h4 style="color: var(--primary-orange); margin: 0.5rem 0;">Physical Gold (3000 BC - Present)</h4>
+        <p style="color: var(--text-dim); font-size: 0.9rem; margin: 1rem 0;">Possession = Ownership</p>
+
+        <div style="background: rgba(247, 147, 26, 0.1); padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; text-align: left;">
+            <strong>How it works:</strong><br>
+            • Bob physically holds 5 gold coins<br>
+            • No ledger, no record, just possession<br>
+            • Transfer = hand over the coins<br><br>
+
+            <strong style="color: var(--accent-green);">✅ Advantages:</strong><br>
+            • Complete privacy<br>
+            • No trust required<br>
+            • Censorship-resistant<br><br>
+
+            <strong style="color: #ff6b6b;">❌ Problems:</strong><br>
+            • Can be stolen or lost<br>
+            • Hard to verify authenticity<br>
+            • Impossible to send long distances<br>
+            • No record = no proof of past ownership
+        </div>
+    </div>
+</div>
+
+<button onclick="nextMoneyStep()" id="money-next-btn" style="width: 100%; padding: 0.75rem; background: var(--primary-orange); border: none; border-radius: 0.5rem; color: white; font-weight: 600; cursor: pointer; margin-top: 1rem;">
+    Next: Bank Ledgers →
+</button>
+
+<div style="margin-top: 1rem; padding: 0.75rem; background: rgba(247, 147, 26, 0.1); border-left: 3px solid var(--primary-orange); font-size: 0.9rem;">
+    <strong><span data-icon="lightbulb"></span> Key Insight:</strong><br>
+    Money evolved from physical possession → trusted records → cryptographic proof. Bitcoin is the final step: money as immutable, timestamped history that anyone can verify.
+</div>
+            `;
+            output.classList.add('visible');
+        }
+
+        function nextMoneyStep() {
+            moneyStep++;
+            const display = document.getElementById('money-display');
+            const btn = document.getElementById('money-next-btn');
+
+            if (moneyStep === 1) {
+                // Bank Ledger step
+                display.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 3rem; margin: 1rem 0;">🏦</div>
+                        <h4 style="color: var(--accent-blue); margin: 0.5rem 0;">Bank Ledger (1600s - Present)</h4>
+                        <p style="color: var(--text-dim); font-size: 0.9rem; margin: 1rem 0;">Centralized Record = Ownership</p>
+
+                        <div style="background: rgba(33, 150, 243, 0.1); padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; text-align: left;">
+                            <strong>How it works:</strong><br>
+                            • Bank maintains a private ledger<br>
+                            • "Bob's Account: $500" written in bank's database<br>
+                            • Transfer = bank updates their ledger<br>
+                            • Only bank can see and modify records<br><br>
+
+                            <strong style="color: var(--accent-green);">✅ Advantages:</strong><br>
+                            • Easy to send digitally<br>
+                            • Records provide proof of ownership<br>
+                            • Insurance and regulations<br><br>
+
+                            <strong style="color: #ff6b6b;">❌ Problems:</strong><br>
+                            • Must trust the bank completely<br>
+                            • Bank can freeze or confiscate<br>
+                            • Records can be altered or erased<br>
+                            • Single point of failure<br>
+                            • No way to verify bank's claims
+                        </div>
+                    </div>
+                `;
+                btn.textContent = 'Next: Bitcoin Blockchain →';
+
+            } else if (moneyStep === 2) {
+                // Bitcoin step
+                display.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 3rem; margin: 1rem 0;">₿</div>
+                        <h4 style="color: var(--accent-green); margin: 0.5rem 0;">Bitcoin Blockchain (2009 - Present)</h4>
+                        <p style="color: var(--text-dim); font-size: 0.9rem; margin: 1rem 0;">Immutable Public History = Ownership</p>
+
+                        <div style="background: rgba(76, 175, 80, 0.1); padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; text-align: left;">
+                            <strong>How it works:</strong><br>
+                            • Global public ledger, timestamped & chained<br>
+                            • "Block 750123, 2023-01-15: Alice → Bob, 0.5 BTC"<br>
+                            • Transfer = broadcast to network, verified by thousands<br>
+                            • Every transaction permanently recorded<br>
+                            • Anyone can verify the entire history<br><br>
+
+                            <strong style="color: var(--accent-green);">✅ Advantages:</strong><br>
+                            • No trust required (verify yourself)<br>
+                            • Cannot be altered or erased (immutable)<br>
+                            • No single point of failure<br>
+                            • Censorship-resistant<br>
+                            • Complete transparency<br>
+                            • Timestamped proof of every transaction<br><br>
+
+                            <strong style="color: #ffaa00;">⚠️ Trade-off:</strong><br>
+                            • Less privacy (public ledger)<br>
+                            • Can use privacy techniques to mitigate
+                        </div>
+
+                        <div style="margin-top: 1rem; padding: 1rem; background: rgba(247, 147, 26, 0.2); border: 2px solid var(--primary-orange); border-radius: 0.5rem;">
+                            <strong style="color: var(--primary-orange);">💡 The Breakthrough:</strong><br>
+                            Bitcoin combines the best of both worlds: the trustlessness of physical gold + the convenience of digital ledgers + cryptographic proof that nobody can cheat. Money becomes <em>recorded history</em> that everyone can verify but nobody can change.
+                        </div>
+                    </div>
+                `;
+                btn.textContent = '↺ Restart';
+
+            } else {
+                // Reset
+                demoMoneyAsHistory(document.querySelector('[onclick*="demoMoneyAsHistory"]'));
+            }
         }
 
         let timechainBlocks = [];
@@ -1102,6 +1323,134 @@
             output.classList.add('visible');
         }
 
+        let spamState = { without: 0, with: 0, withInProgress: false };
+
+        function demoSpamPrevention(button) {
+            const output = button.nextElementSibling;
+
+            output.innerHTML = `
+<strong>🚫 Spam Prevention: Before & After Proof of Work</strong>
+
+<div id="spam-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0;">
+    <!-- WITHOUT Proof of Work -->
+    <div style="background: rgba(255, 68, 68, 0.1); border: 2px solid #ff4444; border-radius: 0.5rem; padding: 1rem;">
+        <h4 style="color: #ff4444; margin: 0 0 0.5rem 0;">❌ Without PoW</h4>
+        <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1rem;">No cost to send emails</p>
+
+        <button onclick="sendSpamWithout()" style="width: 100%; padding: 0.75rem; background: #ff4444; border: none; border-radius: 0.25rem; color: white; font-weight: 600; cursor: pointer;">
+            Send 100 Emails
+        </button>
+
+        <div id="without-output" style="margin-top: 1rem; padding: 0.75rem; background: rgba(0, 0, 0, 0.3); border-radius: 0.25rem; min-height: 80px;">
+            <div style="font-size: 0.9rem; color: var(--text-dim);">Click to send spam...</div>
+        </div>
+    </div>
+
+    <!-- WITH Proof of Work -->
+    <div style="background: rgba(76, 175, 80, 0.1); border: 2px solid var(--accent-green); border-radius: 0.5rem; padding: 1rem;">
+        <h4 style="color: var(--accent-green); margin: 0 0 0.5rem 0;">✅ With PoW</h4>
+        <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1rem;">Must solve puzzle per email</p>
+
+        <button onclick="sendSpamWith()" id="pow-button" style="width: 100%; padding: 0.75rem; background: var(--accent-green); border: none; border-radius: 0.25rem; color: white; font-weight: 600; cursor: pointer;">
+            Send 100 Emails
+        </button>
+
+        <div id="with-output" style="margin-top: 1rem; padding: 0.75rem; background: rgba(0, 0, 0, 0.3); border-radius: 0.25rem; min-height: 80px;">
+            <div style="font-size: 0.9rem; color: var(--text-dim);">Click to send with PoW...</div>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top: 1rem; padding: 0.75rem; background: rgba(247, 147, 26, 0.1); border-left: 3px solid var(--primary-orange); font-size: 0.9rem;">
+    <strong><span data-icon="lightbulb"></span> The Economic Barrier:</strong><br>
+    • Without PoW: Spammers send millions of emails for free<br>
+    • With PoW: Each email costs time & electricity<br>
+    • Legitimate users (1-10 emails/day) barely notice<br>
+    • Spammers (millions/day) become economically impossible<br>
+    • Bitcoin uses this to prevent spam transactions!
+</div>
+            `;
+            output.classList.add('visible');
+        }
+
+        function sendSpamWithout() {
+            const output = document.getElementById('without-output');
+            spamState.without = 0;
+
+            output.innerHTML = '<div style="color: #ff4444; font-weight: 600;">⚡ Sending 100 emails instantly...</div>';
+
+            setTimeout(() => {
+                spamState.without = 100;
+                output.innerHTML = `
+                    <div style="color: #ff4444; font-weight: 600;">✅ 100 emails sent!</div>
+                    <div style="font-size: 0.85rem; margin-top: 0.5rem;">
+                        ⏱️ Time: <strong>0.01 seconds</strong><br>
+                        💰 Cost: <strong>$0.00</strong><br>
+                        📧 Rate: <strong>10,000 emails/second</strong>
+                    </div>
+                    <div style="margin-top: 0.75rem; padding: 0.5rem; background: rgba(255, 68, 68, 0.2); border-radius: 0.25rem; font-size: 0.8rem;">
+                        ⚠️ Spammer could send 864 million emails per day!
+                    </div>
+                `;
+            }, 100);
+        }
+
+        async function sendSpamWith() {
+            const output = document.getElementById('with-output');
+            const button = document.getElementById('pow-button');
+
+            if (spamState.withInProgress) return;
+
+            spamState.withInProgress = true;
+            spamState.with = 0;
+            button.disabled = true;
+            button.style.opacity = '0.5';
+            button.style.cursor = 'not-allowed';
+
+            const startTime = Date.now();
+            const totalEmails = 100;
+            const timePerEmail = 80; // milliseconds per email (simulating PoW)
+
+            output.innerHTML = '<div style="color: var(--accent-green); font-weight: 600;">⛏️ Solving PoW puzzles...</div>';
+
+            for (let i = 1; i <= totalEmails; i++) {
+                await new Promise(resolve => setTimeout(resolve, timePerEmail));
+                spamState.with = i;
+
+                if (i % 10 === 0 || i === totalEmails) {
+                    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                    output.innerHTML = `
+                        <div style="color: var(--accent-green); font-weight: 600;">⛏️ Working... ${i}/${totalEmails}</div>
+                        <div style="font-size: 0.85rem; margin-top: 0.5rem;">
+                            ⏱️ Elapsed: <strong>${elapsed}s</strong><br>
+                            💻 Computing hashes...<br>
+                            📊 Progress: <strong>${i}%</strong>
+                        </div>
+                    `;
+                }
+            }
+
+            const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+
+            output.innerHTML = `
+                <div style="color: var(--accent-green); font-weight: 600;">✅ 100 emails sent!</div>
+                <div style="font-size: 0.85rem; margin-top: 0.5rem;">
+                    ⏱️ Time: <strong>${totalTime} seconds</strong><br>
+                    💰 Cost: <strong>~$0.002 electricity</strong><br>
+                    📧 Rate: <strong>${(100 / totalTime).toFixed(1)} emails/second</strong>
+                </div>
+                <div style="margin-top: 0.75rem; padding: 0.5rem; background: rgba(76, 175, 80, 0.2); border-radius: 0.25rem; font-size: 0.8rem;">
+                    ✅ Spammer limited to ~${Math.floor((86400 / (totalTime / 100)))} emails/day<br>
+                    (vs 864 million without PoW)
+                </div>
+            `;
+
+            button.disabled = false;
+            button.style.opacity = '1';
+            button.style.cursor = 'pointer';
+            spamState.withInProgress = false;
+        }
+
         async function demoHashcash(button) {
             const output = button.nextElementSibling;
 
@@ -1167,25 +1516,30 @@
 <strong>🧩 The Puzzle Pieces</strong>
 
 <div style="margin: 1rem 0;">
-    <strong style="color: var(--accent-blue);">b-money (Wei Dai, 1998):</strong><br>
-    ✅ Anonymous transactions<br>
-    ✅ Decentralized network<br>
-    ❌ No solution for consensus<br><br>
-
-    <strong style="color: var(--primary-orange);">Bit Gold (Nick Szabo, 2005):</strong><br>
-    ✅ Proof of Work for scarcity<br>
-    ✅ Timestamped chain<br>
-    ❌ Complex token system<br><br>
-
     <strong style="color: #ff6b6b;">e-gold (Douglas Jackson, 1996):</strong><br>
     ✅ Gold-backed digital currency<br>
     ✅ Popular (millions of users)<br>
-    ❌ Centralized company (shut down by government)
+    ❌ Centralized company (shut down by government)<br><br>
+
+    <strong style="color: var(--accent-blue);">b-money (Wei Dai, 1998):</strong><br>
+    ✅ Anonymous transactions<br>
+    ✅ Decentralized network concept<br>
+    ❌ No solution for consensus<br><br>
+
+    <strong style="color: var(--primary-orange);">RPOW (Hal Finney, 2004):</strong><br>
+    ✅ Reusable proof of work tokens<br>
+    ✅ Connected PoW to digital scarcity<br>
+    ❌ Still required trusted server<br><br>
+
+    <strong style="color: #9b59b6;">Bit Gold (Nick Szabo, 2005):</strong><br>
+    ✅ Proof of Work for scarcity<br>
+    ✅ Timestamped chain design<br>
+    ❌ Complex token system
 </div>
 
 <div style="padding: 0.75rem; background: rgba(76, 175, 80, 0.1); border-left: 3px solid var(--accent-green); font-size: 0.9rem;">
     <strong><span data-icon="lightbulb"></span> Bitcoin's Breakthrough:</strong><br>
-    Satoshi took the BEST parts of each system and solved the missing pieces. Bitcoin = b-money's decentralization + Bit Gold's proof of work + no single point of failure!
+    Satoshi took the BEST parts of each system and solved the missing pieces. Bitcoin = b-money's decentralization + Bit Gold's proof of work + RPOW's reusability + no single point of failure!
 </div>
             `;
             output.classList.add('visible');
@@ -1269,7 +1623,268 @@
             `;
             output.classList.add('visible');
         }
+
+        // === Modal Control ===
+
+        function openModal() {
+            const modal = document.getElementById("demoModal");
+            modal.classList.remove("hidden");
+            modal.setAttribute("aria-hidden", "false");
+        }
+
+        function closeModal() {
+            const modal = document.getElementById("demoModal");
+            modal.classList.add("hidden");
+            modal.setAttribute("aria-hidden", "true");
+            document.getElementById("demoMount").innerHTML = "";
+        }
+
+        // Close modal on button click
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById("demoClose").addEventListener("click", closeModal);
+
+            // Close modal on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeModal();
+            });
+
+            // Close modal on background click
+            document.getElementById("demoModal").addEventListener("click", function(e) {
+                if (e.target === this) closeModal();
+            });
+        });
+
+        // === WebCrypto Signature Demo Functions ===
+
+        async function generateEcdsaKeys() {
+            return crypto.subtle.generateKey(
+                { name: "ECDSA", namedCurve: "P-256" },
+                true,
+                ["sign", "verify"]
+            );
+        }
+
+        function enc(str) {
+            return new TextEncoder().encode(str);
+        }
+
+        function b64(buf) {
+            const bytes = new Uint8Array(buf);
+            let bin = "";
+            for (const b of bytes) bin += String.fromCharCode(b);
+            return btoa(bin);
+        }
+
+        async function exportPublicKeyJwk(publicKey) {
+            return crypto.subtle.exportKey("jwk", publicKey);
+        }
+
+        async function signMessage(privateKey, message) {
+            return crypto.subtle.sign(
+                { name: "ECDSA", hash: "SHA-256" },
+                privateKey,
+                enc(message)
+            );
+        }
+
+        async function verifySig(publicKey, message, signature) {
+            return crypto.subtle.verify(
+                { name: "ECDSA", hash: "SHA-256" },
+                publicKey,
+                signature,
+                enc(message)
+            );
+        }
+
+        function renderSignaturesDemo(mountEl) {
+            mountEl.innerHTML = `
+                <div class="demoWrap">
+                    <h2>✍️ Digital Signatures Demo</h2>
+                    <p>Write a message. Sign it. Verify it. Then change one character and watch it fail.</p>
+
+                    <label>Message</label>
+                    <textarea id="sigMsg" rows="3">I owe you 1 BTC</textarea>
+
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+                        <button id="sigGen">Generate Keys</button>
+                        <button id="sigSign" disabled>Sign Message</button>
+                        <button id="sigVerify" disabled>Verify Signature</button>
+                    </div>
+
+                    <div style="margin-top:14px;">
+                        <div><strong>Status</strong></div>
+                        <div id="sigStatus">Generate keys to start.</div>
+                    </div>
+
+                    <div style="margin-top:14px;">
+                        <div><strong>Public Key (share this)</strong></div>
+                        <pre id="sigPub" style="white-space:pre-wrap;">No key yet...</pre>
+                    </div>
+
+                    <div style="margin-top:14px;">
+                        <div><strong>Signature</strong></div>
+                        <pre id="sigOut" style="white-space:pre-wrap;">No signature yet...</pre>
+                    </div>
+
+                    <div style="margin-top:14px; padding: 0.75rem; background: rgba(247, 147, 26, 0.1); border-left: 3px solid var(--primary-orange); font-size: 0.9rem;">
+                        <strong>💡 Key Insight:</strong><br>
+                        • <strong>Verification is public.</strong> Anyone with the public key can verify.<br>
+                        • <strong>Signing is private.</strong> Only the private key can sign.<br>
+                        • If one character changes, verification fails. That is the point.<br>
+                        • Bitcoin uses secp256k1 (different curve), same concept.
+                    </div>
+                </div>
+            `;
+
+            const msgEl = mountEl.querySelector("#sigMsg");
+            const statusEl = mountEl.querySelector("#sigStatus");
+            const pubEl = mountEl.querySelector("#sigPub");
+            const sigEl = mountEl.querySelector("#sigOut");
+            const genBtn = mountEl.querySelector("#sigGen");
+            const signBtn = mountEl.querySelector("#sigSign");
+            const verifyBtn = mountEl.querySelector("#sigVerify");
+
+            let keys = null;
+            let signature = null;
+            let signedMessage = null;
+
+            genBtn.addEventListener("click", async () => {
+                statusEl.textContent = "⚙️ Generating cryptographic keys...";
+                keys = await generateEcdsaKeys();
+                const jwk = await exportPublicKeyJwk(keys.publicKey);
+                pubEl.textContent = `x: ${jwk.x}\ny: ${jwk.y}`;
+                signature = null;
+                sigEl.textContent = "No signature yet...";
+                signBtn.disabled = false;
+                verifyBtn.disabled = true;
+                statusEl.innerHTML = '<span style="color: var(--accent-green);">✅ Keys ready. Now sign the message.</span>';
+            });
+
+            signBtn.addEventListener("click", async () => {
+                if (!keys) return;
+                statusEl.textContent = "✍️ Signing with private key...";
+                signedMessage = msgEl.value;
+                signature = await signMessage(keys.privateKey, signedMessage);
+                sigEl.textContent = b64(signature);
+                verifyBtn.disabled = false;
+                statusEl.innerHTML = '<span style="color: var(--accent-green);">✅ Signed! Now verify. Try changing the message first to see it fail.</span>';
+            });
+
+            verifyBtn.addEventListener("click", async () => {
+                if (!keys || !signature) return;
+                statusEl.textContent = "🔍 Verifying signature with public key...";
+                const ok = await verifySig(keys.publicKey, msgEl.value, signature);
+
+                if (ok) {
+                    statusEl.innerHTML = '<span class="status-valid">✅ VALID SIGNATURE</span><br>Message matches what was signed. Verification is public—anyone with the public key can verify this.';
+                } else {
+                    statusEl.innerHTML = '<span class="status-invalid">❌ INVALID SIGNATURE</span><br>Message was changed! This proves tampering. The signature no longer matches.';
+                }
+            });
+        }
+
+        function openSignaturesDemo() {
+            openModal();
+            renderSignaturesDemo(document.getElementById("demoMount"));
+        }
+
+        // === Keys Demo (Real WebCrypto - No Signatures) ===
+
+        async function exportPrivateKeyJwk(privateKey) {
+            return crypto.subtle.exportKey("jwk", privateKey);
+        }
+
+        function renderKeysDemo(mountEl) {
+            mountEl.innerHTML = `
+                <div class="demoWrap">
+                    <h2>🔑 Public-Key Cryptography Demo</h2>
+                    <p>The breakthrough: Two mathematically linked keys. One private (secret), one public (shareable).</p>
+
+                    <div style="margin: 1.5rem 0;">
+                        <button id="generateKeysBtn" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                            🎲 Generate New Key Pair
+                        </button>
+                    </div>
+
+                    <div id="keysDisplay" style="display: none;">
+                        <div style="margin: 1.5rem 0; padding: 1.5rem; background: rgba(255, 68, 68, 0.1); border: 2px solid #ff4444; border-radius: 0.5rem;">
+                            <h3 style="color: #ff4444; margin: 0 0 1rem 0;">🔒 Private Key (Keep Secret!)</h3>
+                            <pre id="privateKeyDisplay" style="border-color: #ff4444; word-break: break-all; font-size: 0.85rem;"></pre>
+                            <p style="font-size: 0.9rem; margin-top: 0.5rem;">⚠️ Never share this. Anyone with your private key controls your coins.</p>
+                        </div>
+
+                        <div style="margin: 1.5rem 0; padding: 1.5rem; background: rgba(76, 175, 80, 0.1); border: 2px solid var(--accent-green); border-radius: 0.5rem;">
+                            <h3 style="color: var(--accent-green); margin: 0 0 1rem 0;">🌍 Public Key (Share Freely)</h3>
+                            <pre id="publicKeyDisplay" style="border-color: var(--accent-green); word-break: break-all; font-size: 0.85rem;"></pre>
+                            <p style="font-size: 0.9rem; margin-top: 0.5rem;">✅ Share this with anyone. It's safe. Your Bitcoin address is derived from this.</p>
+                        </div>
+
+                        <div style="margin-top: 1rem; padding: 1rem; background: rgba(33, 150, 243, 0.1); border-left: 3px solid var(--accent-blue);">
+                            <strong>🔗 Mathematical Link:</strong><br>
+                            The public key (x, y coordinates) is mathematically derived from the private key (d value) using one-way math.
+                            It's impossible to reverse: you cannot calculate d from x and y.
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(247, 147, 26, 0.1); border-left: 3px solid var(--primary-orange);">
+                        <strong>💡 The 1976 Breakthrough:</strong><br><br>
+                        <strong>1. Two Mathematically Linked Keys</strong><br>
+                        Public key is derived from the private key using one-way math. You can't reverse it.<br><br>
+
+                        <strong>2. Two Revolutionary Uses</strong><br>
+                        • <strong>Encryption:</strong> Encrypt with public key → only private key can decrypt<br>
+                        • <strong>Signatures:</strong> Sign with private key → anyone can verify with public key<br><br>
+
+                        <strong>3. Why This Changed Everything</strong><br>
+                        Before 1976, you needed to share a secret to communicate securely. Now you don't.
+                        This unlocked the internet, e-commerce, and Bitcoin.<br><br>
+
+                        <small style="opacity: 0.8;">Note: This demo uses P-256. Bitcoin uses secp256k1. Concept is the same.</small>
+                    </div>
+                </div>
+            `;
+
+            // Add event listener for generate button
+            const generateBtn = mountEl.querySelector('#generateKeysBtn');
+            const keysDisplay = mountEl.querySelector('#keysDisplay');
+            const privateKeyDisplay = mountEl.querySelector('#privateKeyDisplay');
+            const publicKeyDisplay = mountEl.querySelector('#publicKeyDisplay');
+
+            generateBtn.addEventListener('click', async () => {
+                generateBtn.disabled = true;
+                generateBtn.textContent = '⚙️ Generating...';
+
+                // Generate real ECDSA keys using WebCrypto
+                const keys = await generateEcdsaKeys();
+                const pub = await exportPublicKeyJwk(keys.publicKey);
+                const priv = await exportPrivateKeyJwk(keys.privateKey);
+
+                // Display keys in JWK format
+                privateKeyDisplay.textContent = `d: ${priv.d}`;
+                publicKeyDisplay.textContent = `x: ${pub.x}\ny: ${pub.y}`;
+
+                // Show the keys display
+                keysDisplay.style.display = 'block';
+
+                // Update button
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '🔄 Generate Another Key Pair';
+            });
+        }
+
+        function openKeysDemo() {
+            openModal();
+            renderKeysDemo(document.getElementById("demoMount"));
+        }
     </script>
+
+    <!-- Demo Modal -->
+    <div id="demoModal" class="modal hidden" aria-hidden="true">
+        <div class="modalCard">
+            <button id="demoClose" class="modalClose" type="button">✕ Close</button>
+            <div id="demoMount"></div>
+        </div>
+    </div>
 
     <!-- Animated Icon Library -->
     <script src="/js/icon-library.js"></script>
