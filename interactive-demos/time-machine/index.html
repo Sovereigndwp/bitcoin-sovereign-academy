@@ -1789,16 +1789,37 @@
 
         // === Keys Demo (Real WebCrypto - No Signatures) ===
 
+        function base64urlToHex(base64url) {
+            // Convert base64url to base64
+            let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+            // Add padding if needed
+            while (base64.length % 4 !== 0) {
+                base64 += '=';
+            }
+            // Decode base64 to binary
+            const binary = atob(base64);
+            // Convert to hex
+            let hex = '';
+            for (let i = 0; i < binary.length; i++) {
+                const byte = binary.charCodeAt(i).toString(16).padStart(2, '0');
+                hex += byte;
+            }
+            return hex;
+        }
+
         async function keyToHex(key, isPrivate) {
-            // Export as raw bytes and convert to hex
-            const exported = await crypto.subtle.exportKey(
-                isPrivate ? "pkcs8" : "spki",
-                key
-            );
-            const bytes = new Uint8Array(exported);
-            return Array.from(bytes)
-                .map(b => b.toString(16).padStart(2, '0'))
-                .join('');
+            // Export as JWK to get raw key material without format wrapper
+            const jwk = await crypto.subtle.exportKey("jwk", key);
+
+            if (isPrivate) {
+                // For private key, show the 'd' parameter (the actual secret)
+                return base64urlToHex(jwk.d);
+            } else {
+                // For public key, show x and y coordinates combined
+                const xHex = base64urlToHex(jwk.x);
+                const yHex = base64urlToHex(jwk.y);
+                return xHex + yHex;
+            }
         }
 
         function renderKeysDemo(mountEl) {
@@ -1858,26 +1879,33 @@
             const publicKeyDisplay = mountEl.querySelector('#publicKeyDisplay');
 
             generateBtn.addEventListener('click', async () => {
-                generateBtn.disabled = true;
-                generateBtn.textContent = '⚙️ Generating...';
+                try {
+                    generateBtn.disabled = true;
+                    generateBtn.textContent = '⚙️ Generating...';
 
-                // Generate real ECDSA keys using WebCrypto
-                const keys = await generateEcdsaKeys();
+                    // Generate real ECDSA keys using WebCrypto
+                    const keys = await generateEcdsaKeys();
 
-                // Convert to hex strings
-                const privateHex = await keyToHex(keys.privateKey, true);
-                const publicHex = await keyToHex(keys.publicKey, false);
+                    // Convert to hex strings
+                    const privateHex = await keyToHex(keys.privateKey, true);
+                    const publicHex = await keyToHex(keys.publicKey, false);
 
-                // Display keys as simple hex strings
-                privateKeyDisplay.textContent = privateHex;
-                publicKeyDisplay.textContent = publicHex;
+                    // Display keys as simple hex strings
+                    privateKeyDisplay.textContent = privateHex;
+                    publicKeyDisplay.textContent = publicHex;
 
-                // Show the keys display
-                keysDisplay.style.display = 'block';
+                    // Show the keys display
+                    keysDisplay.style.display = 'block';
 
-                // Update button
-                generateBtn.disabled = false;
-                generateBtn.innerHTML = '🔄 Generate Another Key Pair';
+                    // Update button
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = '🔄 Generate Another Key Pair';
+                } catch (error) {
+                    console.error('Key generation error:', error);
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = '❌ Error - Try Again';
+                    alert('Error generating keys: ' + error.message);
+                }
             });
         }
 
