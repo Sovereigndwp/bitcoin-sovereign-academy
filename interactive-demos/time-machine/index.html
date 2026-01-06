@@ -1675,10 +1675,6 @@
             return btoa(bin);
         }
 
-        async function exportPublicKeyJwk(publicKey) {
-            return crypto.subtle.exportKey("jwk", publicKey);
-        }
-
         async function signMessage(privateKey, message) {
             return crypto.subtle.sign(
                 { name: "ECDSA", hash: "SHA-256" },
@@ -1718,12 +1714,12 @@
 
                     <div style="margin-top:14px;">
                         <div><strong>Public Key (share this)</strong></div>
-                        <pre id="sigPub" style="white-space:pre-wrap;">No key yet...</pre>
+                        <pre id="sigPub" style="white-space:pre-wrap; font-size: 0.75rem; font-family: 'Courier New', monospace;">No key yet...</pre>
                     </div>
 
                     <div style="margin-top:14px;">
                         <div><strong>Signature</strong></div>
-                        <pre id="sigOut" style="white-space:pre-wrap;">No signature yet...</pre>
+                        <pre id="sigOut" style="white-space:pre-wrap; font-size: 0.85rem;">No signature yet...</pre>
                     </div>
 
                     <div style="margin-top:14px; padding: 0.75rem; background: rgba(247, 147, 26, 0.1); border-left: 3px solid var(--primary-orange); font-size: 0.9rem;">
@@ -1751,8 +1747,11 @@
             genBtn.addEventListener("click", async () => {
                 statusEl.textContent = "⚙️ Generating cryptographic keys...";
                 keys = await generateEcdsaKeys();
-                const jwk = await exportPublicKeyJwk(keys.publicKey);
-                pubEl.textContent = `x: ${jwk.x}\ny: ${jwk.y}`;
+
+                // Export public key as hex instead of JWK
+                const publicHex = await keyToHex(keys.publicKey, false);
+                pubEl.textContent = publicHex;
+
                 signature = null;
                 sigEl.textContent = "No signature yet...";
                 signBtn.disabled = false;
@@ -1790,8 +1789,16 @@
 
         // === Keys Demo (Real WebCrypto - No Signatures) ===
 
-        async function exportPrivateKeyJwk(privateKey) {
-            return crypto.subtle.exportKey("jwk", privateKey);
+        async function keyToHex(key, isPrivate) {
+            // Export as raw bytes and convert to hex
+            const exported = await crypto.subtle.exportKey(
+                isPrivate ? "pkcs8" : "spki",
+                key
+            );
+            const bytes = new Uint8Array(exported);
+            return Array.from(bytes)
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
         }
 
         function renderKeysDemo(mountEl) {
@@ -1809,20 +1816,20 @@
                     <div id="keysDisplay" style="display: none;">
                         <div style="margin: 1.5rem 0; padding: 1.5rem; background: rgba(255, 68, 68, 0.1); border: 2px solid #ff4444; border-radius: 0.5rem;">
                             <h3 style="color: #ff4444; margin: 0 0 1rem 0;">🔒 Private Key (Keep Secret!)</h3>
-                            <pre id="privateKeyDisplay" style="border-color: #ff4444; word-break: break-all; font-size: 0.85rem;"></pre>
+                            <pre id="privateKeyDisplay" style="border-color: #ff4444; word-break: break-all; font-size: 0.75rem; font-family: 'Courier New', monospace;"></pre>
                             <p style="font-size: 0.9rem; margin-top: 0.5rem;">⚠️ Never share this. Anyone with your private key controls your coins.</p>
                         </div>
 
                         <div style="margin: 1.5rem 0; padding: 1.5rem; background: rgba(76, 175, 80, 0.1); border: 2px solid var(--accent-green); border-radius: 0.5rem;">
                             <h3 style="color: var(--accent-green); margin: 0 0 1rem 0;">🌍 Public Key (Share Freely)</h3>
-                            <pre id="publicKeyDisplay" style="border-color: var(--accent-green); word-break: break-all; font-size: 0.85rem;"></pre>
+                            <pre id="publicKeyDisplay" style="border-color: var(--accent-green); word-break: break-all; font-size: 0.75rem; font-family: 'Courier New', monospace;"></pre>
                             <p style="font-size: 0.9rem; margin-top: 0.5rem;">✅ Share this with anyone. It's safe. Your Bitcoin address is derived from this.</p>
                         </div>
 
                         <div style="margin-top: 1rem; padding: 1rem; background: rgba(33, 150, 243, 0.1); border-left: 3px solid var(--accent-blue);">
                             <strong>🔗 Mathematical Link:</strong><br>
-                            The public key (x, y coordinates) is mathematically derived from the private key (d value) using one-way math.
-                            It's impossible to reverse: you cannot calculate d from x and y.
+                            The public key is mathematically derived from the private key using one-way math.
+                            It's impossible to reverse: you cannot calculate the private key from the public key.
                         </div>
                     </div>
 
@@ -1856,12 +1863,14 @@
 
                 // Generate real ECDSA keys using WebCrypto
                 const keys = await generateEcdsaKeys();
-                const pub = await exportPublicKeyJwk(keys.publicKey);
-                const priv = await exportPrivateKeyJwk(keys.privateKey);
 
-                // Display keys in JWK format
-                privateKeyDisplay.textContent = `d: ${priv.d}`;
-                publicKeyDisplay.textContent = `x: ${pub.x}\ny: ${pub.y}`;
+                // Convert to hex strings
+                const privateHex = await keyToHex(keys.privateKey, true);
+                const publicHex = await keyToHex(keys.publicKey, false);
+
+                // Display keys as simple hex strings
+                privateKeyDisplay.textContent = privateHex;
+                publicKeyDisplay.textContent = publicHex;
 
                 // Show the keys display
                 keysDisplay.style.display = 'block';
