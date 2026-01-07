@@ -526,6 +526,21 @@
             #spam-grid {
                 grid-template-columns: 1fr !important;
             }
+
+            /* Merkle tree mobile responsiveness */
+            #merkle-tree-viz .demo-output {
+                font-size: 0.85rem;
+            }
+
+            #merkle-tree-viz input[type="text"] {
+                font-size: 0.65rem !important;
+                padding: 0.4rem !important;
+            }
+
+            #merkle-tree-viz .merkle-hash {
+                font-size: 0.55rem !important;
+                padding: 0.4rem !important;
+            }
         }
 
         /* Modal styles */
@@ -804,8 +819,8 @@
                                 Ralph Merkle invented <span class="term-tooltip" data-definition="A clever way to bundle thousands of items into one compact proof. Like a tree where branches combine into a single root.">Merkle Trees</span> in 1979. In 1992, Haber, Stornetta & Bayer adopted them into their timestamping design. Now, multiple documents can be
                                 linked into a single proof efficiently. This innovation later powers Bitcoin's block structure.
                             </div>
-                            <button class="demo-button" onclick="event.stopPropagation(); demoMerkle(this)">🌲 See 8 Transactions → 1 Root</button>
-                            <div class="demo-output"></div>
+                            <button class="demo-button" onclick="event.stopPropagation(); buildInteractiveMerkle(this)">🌲 Build Interactive Merkle Tree</button>
+                            <div class="demo-output" id="merkle-interactive"></div>
                         </div>
                     </div>
 
@@ -1283,44 +1298,194 @@
             input.value = '';
         }
 
-        function demoMerkle(button) {
+        // Interactive Merkle Tree Builder
+        let merkleData = {
+            transactions: ['Alice→Bob: 1 BTC', 'Carol→Dave: 2 BTC', 'Eve→Frank: 0.5 BTC', 'Grace→Hal: 3 BTC',
+                          'Ivan→Jane: 1.5 BTC', 'Kate→Leo: 2.5 BTC', 'Mike→Nina: 0.8 BTC', 'Oscar→Pam: 1.2 BTC'],
+            hashes: { level1: [], level2: [], level3: [], root: '' },
+            previousRoot: ''
+        };
+
+        async function buildInteractiveMerkle(button) {
             const output = button.nextElementSibling;
+
             output.innerHTML = `
-<strong>🌳 Merkle Tree Demo</strong>
+<strong>🌳 Interactive Merkle Tree Builder</strong>
 
-<p style="color: var(--text-dim);">Watch how 8 transactions compress into 1 root hash:</p>
+<p style="color: var(--text-dim); margin-bottom: 1rem;">Edit any transaction below and watch how it changes ALL parent hashes up to the root!</p>
 
-<div style="text-align: center; margin: 1.5rem 0;">
-    <div style="margin: 1rem 0;">
-        <strong style="color: var(--primary-orange);">8 Transactions (Bottom):</strong><br>
-        <small style="font-size: 0.7rem; color: var(--text-dim);">TX1, TX2, TX3, TX4, TX5, TX6, TX7, TX8</small>
+<div id="merkle-tree-viz" style="margin: 1.5rem 0;">
+    <!-- Level 0: 8 Transactions (Leaves) -->
+    <div style="margin-bottom: 2rem;">
+        <div style="text-align: center; margin-bottom: 0.5rem;">
+            <strong style="color: var(--primary-orange);">📝 8 Transactions (Leaves)</strong>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;">
+            ${merkleData.transactions.map((tx, i) => `
+                <input type="text" id="tx${i}" value="${tx}"
+                    style="padding: 0.5rem; background: rgba(247, 147, 26, 0.1); border: 1px solid var(--primary-orange);
+                    border-radius: 0.25rem; color: var(--text-light); font-size: 0.75rem; text-align: center;"
+                    oninput="updateMerkleTree()" />
+            `).join('')}
+        </div>
     </div>
-    <div style="font-size: 2rem; margin: 1rem 0;">↓</div>
-    <div style="margin: 1rem 0;">
-        <strong>4 Hashes (Pair & Hash):</strong><br>
-        <small style="font-size: 0.7rem; color: var(--text-dim);">H(TX1+TX2), H(TX3+TX4), H(TX5+TX6), H(TX7+TX8)</small>
+
+    <!-- Visual connector -->
+    <div style="text-align: center; font-size: 1.5rem; margin: 0.5rem 0; color: var(--text-dim);">↓ ↓ ↓ ↓</div>
+
+    <!-- Level 1: 4 Hashes -->
+    <div style="margin-bottom: 2rem;">
+        <div style="text-align: center; margin-bottom: 0.5rem;">
+            <strong>🔗 4 Pair Hashes (Level 1)</strong>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;">
+            ${Array(4).fill(0).map((_, i) => `
+                <div id="hash-l1-${i}" class="merkle-hash"
+                    style="padding: 0.5rem; background: rgba(33, 150, 243, 0.1); border: 2px solid var(--accent-blue);
+                    border-radius: 0.25rem; font-family: monospace; font-size: 0.65rem; text-align: center;
+                    word-break: break-all; transition: all 0.3s ease;">
+                    ...
+                </div>
+            `).join('')}
+        </div>
     </div>
-    <div style="font-size: 2rem; margin: 1rem 0;">↓</div>
-    <div style="margin: 1rem 0;">
-        <strong>2 Hashes:</strong><br>
-        <small style="font-size: 0.7rem; color: var(--text-dim);">H(H12+H34), H(H56+H78)</small>
+
+    <!-- Visual connector -->
+    <div style="text-align: center; font-size: 1.5rem; margin: 0.5rem 0; color: var(--text-dim);">↓ ↓</div>
+
+    <!-- Level 2: 2 Hashes -->
+    <div style="margin-bottom: 2rem;">
+        <div style="text-align: center; margin-bottom: 0.5rem;">
+            <strong>🔗 2 Combined Hashes (Level 2)</strong>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; max-width: 600px; margin: 0 auto;">
+            ${Array(2).fill(0).map((_, i) => `
+                <div id="hash-l2-${i}" class="merkle-hash"
+                    style="padding: 0.75rem; background: rgba(156, 39, 176, 0.1); border: 2px solid #9c27b0;
+                    border-radius: 0.25rem; font-family: monospace; font-size: 0.7rem; text-align: center;
+                    word-break: break-all; transition: all 0.3s ease;">
+                    ...
+                </div>
+            `).join('')}
+        </div>
     </div>
-    <div style="font-size: 2rem; margin: 1rem 0;">↓</div>
-    <div style="margin: 1rem 0; padding: 1rem; background: rgba(76, 175, 80, 0.2); border: 2px solid var(--accent-green); border-radius: 0.5rem;">
-        <strong style="color: var(--accent-green);">1 Root Hash (Top):</strong><br>
-        <code style="font-size: 0.8rem;">d3a0f1c1e2b3c4d5e6f7...</code>
+
+    <!-- Visual connector -->
+    <div style="text-align: center; font-size: 1.5rem; margin: 0.5rem 0; color: var(--text-dim);">↓</div>
+
+    <!-- Root Hash -->
+    <div style="margin-bottom: 1rem;">
+        <div style="text-align: center; margin-bottom: 0.5rem;">
+            <strong style="color: var(--accent-green);">🌳 Merkle Root (Proves All Transactions)</strong>
+        </div>
+        <div id="merkle-root"
+            style="padding: 1rem; background: rgba(76, 175, 80, 0.2); border: 3px solid var(--accent-green);
+            border-radius: 0.5rem; font-family: monospace; font-size: 0.8rem; text-align: center;
+            word-break: break-all; max-width: 600px; margin: 0 auto; transition: all 0.3s ease;">
+            ...
+        </div>
+    </div>
+
+    <div id="change-indicator" style="text-align: center; padding: 0.75rem; margin: 1rem 0; background: rgba(247, 147, 26, 0.1);
+        border-left: 3px solid var(--primary-orange); border-radius: 0.25rem; font-size: 0.9rem; display: none;">
     </div>
 </div>
 
 <div style="padding: 0.75rem; background: rgba(33, 150, 243, 0.1); border-left: 3px solid var(--accent-blue); font-size: 0.9rem;">
-    <strong><span data-icon="lightbulb"></span> Why This Matters:</strong><br>
+    <strong><span data-icon="lightbulb"></span> Try This:</strong><br>
+    1. Change any transaction (try changing "Alice" to "Mallory")<br>
+    2. Watch how the hash changes cascade up the tree<br>
+    3. Notice the Merkle Root completely changes<br>
+    4. This proves tampering: one character change = entire root changes!
+</div>
+
+<div style="padding: 0.75rem; background: rgba(76, 175, 80, 0.1); border-left: 3px solid var(--accent-green); font-size: 0.9rem; margin-top: 0.75rem;">
+    <strong>💡 Why This Matters:</strong><br>
     • Bitcoin blocks contain thousands of transactions<br>
     • Merkle root = single 32-byte hash proving ALL transactions<br>
-    • You can verify a transaction without downloading entire block!<br>
+    • Change one transaction? The root changes instantly<br>
+    • You can verify a transaction without downloading the entire block!<br>
     • This enables lightweight mobile wallets
 </div>
             `;
+
             output.classList.add('visible');
+
+            // Build tree on first load
+            setTimeout(updateMerkleTree, 100);
+        }
+
+        async function updateMerkleTree() {
+            // Get current transaction values
+            const transactions = [];
+            for (let i = 0; i < 8; i++) {
+                const input = document.getElementById(`tx${i}`);
+                if (input) transactions.push(input.value);
+            }
+
+            // Store previous root for comparison
+            merkleData.previousRoot = merkleData.hashes.root;
+
+            // Level 1: Hash pairs of transactions (8 → 4)
+            merkleData.hashes.level1 = [];
+            for (let i = 0; i < 4; i++) {
+                const combined = transactions[i * 2] + transactions[i * 2 + 1];
+                const hash = await sha256(combined);
+                merkleData.hashes.level1.push(hash);
+
+                const elem = document.getElementById(`hash-l1-${i}`);
+                if (elem) {
+                    elem.textContent = hash.substring(0, 12) + '...';
+                    elem.style.background = 'rgba(33, 150, 243, 0.2)';
+                    setTimeout(() => {
+                        elem.style.background = 'rgba(33, 150, 243, 0.1)';
+                    }, 300);
+                }
+            }
+
+            // Level 2: Hash pairs of level 1 (4 → 2)
+            merkleData.hashes.level2 = [];
+            for (let i = 0; i < 2; i++) {
+                const combined = merkleData.hashes.level1[i * 2] + merkleData.hashes.level1[i * 2 + 1];
+                const hash = await sha256(combined);
+                merkleData.hashes.level2.push(hash);
+
+                const elem = document.getElementById(`hash-l2-${i}`);
+                if (elem) {
+                    elem.textContent = hash.substring(0, 16) + '...';
+                    elem.style.background = 'rgba(156, 39, 176, 0.2)';
+                    setTimeout(() => {
+                        elem.style.background = 'rgba(156, 39, 176, 0.1)';
+                    }, 300);
+                }
+            }
+
+            // Root: Hash the final two (2 → 1)
+            const combined = merkleData.hashes.level2[0] + merkleData.hashes.level2[1];
+            merkleData.hashes.root = await sha256(combined);
+
+            const rootElem = document.getElementById('merkle-root');
+            if (rootElem) {
+                rootElem.textContent = merkleData.hashes.root;
+                rootElem.style.background = 'rgba(76, 175, 80, 0.3)';
+                setTimeout(() => {
+                    rootElem.style.background = 'rgba(76, 175, 80, 0.2)';
+                }, 300);
+            }
+
+            // Show change indicator if root changed
+            const indicator = document.getElementById('change-indicator');
+            if (indicator && merkleData.previousRoot && merkleData.previousRoot !== merkleData.hashes.root) {
+                indicator.style.display = 'block';
+                indicator.innerHTML = `
+                    <strong>⚠️ Root Hash Changed!</strong><br>
+                    <small>Previous: ${merkleData.previousRoot.substring(0, 24)}...</small><br>
+                    <small>Current: ${merkleData.hashes.root.substring(0, 24)}...</small><br>
+                    <span style="color: var(--accent-green);">✓ This proves the transaction data was modified!</span>
+                `;
+            } else if (indicator && !merkleData.previousRoot) {
+                indicator.style.display = 'none';
+            }
         }
 
         let spamState = { without: 0, with: 0, withInProgress: false };
