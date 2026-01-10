@@ -972,7 +972,14 @@
         function logEntropy(message) {
             const log = document.getElementById('entropyLog');
             const timestamp = new Date().toLocaleTimeString();
-            log.innerHTML = `<div>${timestamp}: ${message}</div>` + log.innerHTML;
+            // SECURITY: Escape message to prevent XSS
+            const escapeHTML = window.BSASecurity?.escapeHTML || ((text) => {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            });
+            const safeMessage = escapeHTML(String(message || ''));
+            log.innerHTML = `<div>${timestamp}: ${safeMessage}</div>` + log.innerHTML;
         }
 
         // ===== Interactive Reflection System =====

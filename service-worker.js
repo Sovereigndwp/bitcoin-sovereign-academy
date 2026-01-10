@@ -61,9 +61,20 @@ self.addEventListener('fetch', event => {
         const fetchRequest = event.request.clone();
 
         return fetch(fetchRequest).then(response => {
+          // SECURITY: Validate response before caching
           // Check if valid response
           if (!response || response.status !== 200 || response.type === 'opaque') {
             return response;
+          }
+          
+          // Additional security: Don't cache responses that might be malicious
+          const contentType = response.headers.get('content-type') || '';
+          // Only cache safe content types
+          const safeContentTypes = ['text/html', 'text/css', 'application/javascript', 'application/json', 'image/', 'font/'];
+          const isSafeContentType = safeContentTypes.some(type => contentType.includes(type));
+          
+          if (!isSafeContentType) {
+            return response; // Return without caching
           }
 
           // Clone the response
@@ -72,9 +83,18 @@ self.addEventListener('fetch', event => {
           // Cache the fetched response for future use
           caches.open(CACHE_NAME)
             .then(cache => {
-              // Only cache same-origin and CORS-enabled resources
-              if (event.request.url.startsWith(self.location.origin) || 
-                  event.request.url.startsWith('https://')) {
+              // SECURITY: Only cache same-origin resources to prevent caching malicious external content
+              // Only cache resources from our own domain
+              const requestUrl = new URL(event.request.url);
+              const originUrl = new URL(self.location.origin);
+              
+              // Only cache if:
+              // 1. Same origin (same protocol, hostname, port)
+              // 2. Response is successful (status 200)
+              // 3. Response type is not opaque (CORS issues)
+              if (requestUrl.origin === originUrl.origin && 
+                  response.status === 200 && 
+                  response.type !== 'opaque') {
                 cache.put(event.request, responseToCache);
               }
             });

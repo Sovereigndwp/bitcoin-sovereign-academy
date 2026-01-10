@@ -389,7 +389,10 @@
     "@type": "Audience",
     "audienceType": "Students interested in Bitcoin and cryptocurrency"
   }
-}</script></head>
+}</script>
+    <!-- Security utilities for XSS prevention -->
+    <script src="/js/security-utils.js"></script>
+</head>
 <body>
     <div class="container">
         <!-- Header -->
@@ -675,13 +678,23 @@
                 return;
             }
 
+            // SECURITY: Escape alert messages to prevent XSS
+            const escapeHTML = window.BSASecurity?.escapeHTML || ((text) => {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            });
+            
             alertsList.innerHTML = monitoringData.alerts.map(alert => {
                 const timeAgo = getTimeAgo(new Date(alert.timestamp));
+                // SECURITY: Escape alert message and type to prevent XSS
+                const safeMessage = escapeHTML(alert.message || '');
+                const safeType = escapeHTML(alert.type || 'info');
                 return `
-                    <div class="alert-item alert-${alert.type}">
+                    <div class="alert-item alert-${safeType}">
                         <div class="alert-icon">${getAlertIcon(alert.type)}</div>
                         <div class="alert-content">
-                            <div class="alert-message">${alert.message}</div>
+                            <div class="alert-message">${safeMessage}</div>
                             <div class="alert-details">Domain: ${alert.domain} • ${alert.details}</div>
                         </div>
                         <div class="alert-time">${timeAgo}</div>

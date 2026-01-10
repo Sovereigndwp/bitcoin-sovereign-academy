@@ -354,13 +354,36 @@
             // Create checkout session
             const session = await createCheckoutSession(email, provider);
 
-            // Redirect to payment provider
+            // SECURITY: Validate payment URL before redirecting
             if (session.url) {
-                // Save email for later
-                localStorage.setItem('bsa_checkout_email', email);
+                // Validate URL is from trusted payment provider
+                const trustedDomains = [
+                    'checkout.stripe.com',
+                    'zaprite.com',
+                    'pay.btcpay.server',
+                    'bitcoinsovereign.academy' // For internal redirects
+                ];
+                
+                try {
+                    const url = new URL(session.url);
+                    const isTrusted = trustedDomains.some(domain => 
+                        url.hostname === domain || url.hostname.endsWith('.' + domain)
+                    );
+                    
+                    if (!isTrusted) {
+                        console.error('Blocked redirect to untrusted domain:', url.hostname);
+                        throw new Error('Invalid payment provider URL');
+                    }
+                    
+                    // Save email for later
+                    localStorage.setItem('bsa_checkout_email', email);
 
-                // Redirect
-                window.location.href = session.url;
+                    // Safe to redirect
+                    window.location.href = session.url;
+                } catch (urlError) {
+                    console.error('Invalid payment URL:', urlError);
+                    throw new Error('Invalid payment URL format');
+                }
             } else {
                 throw new Error('No payment URL received');
             }
@@ -408,17 +431,37 @@
     // ============================================
 
     function checkPaymentStatus() {
-        const params = new URLSearchParams(window.location.search);
+        // SECURITY: Use safe URL parameter validation
+        const getSafeURLParam = window.BSASecurity?.getSafeURLParam || ((name) => {
+            const params = new URLSearchParams(window.location.search);
+            const value = params.get(name);
+            return value ? value.replace(/[<>'"&]/g, '').substring(0, 500) : null;
+        });
+        
+        const isValidJWTFormat = window.BSASecurity?.isValidJWTFormat || ((token) => {
+            if (!token || typeof token !== 'string' || token.length < 20 || token.length > 2000) return false;
+            const parts = token.split('.');
+            return parts.length === 3 && parts.every(part => part.length > 0);
+        });
+        
+        const isValidOrderId = window.BSASecurity?.isValidOrderId || ((id) => /^[a-zA-Z0-9_-]{1,100}$/.test(id));
 
-        // Check for success
-        if (params.get('success') === 'true') {
-            const sessionId = params.get('session_id');
-            const invoiceId = params.get('invoice_id');
-            const token = params.get('token'); // JWT token from email link
+        // Check for success (validate boolean parameter)
+        const successParam = getSafeURLParam('success');
+        if (successParam === 'true') {
+            const sessionId = getSafeURLParam('session_id', { maxLength: 200 });
+            const invoiceId = getSafeURLParam('invoice_id', { maxLength: 200 });
+            const token = getSafeURLParam('token', { maxLength: 2000 }); // JWT token from email link
 
-            // If token is provided, save it
+            // SECURITY: Validate token before storing
+            // If token is provided, validate and save it
             if (token) {
                 try {
+                    // Use centralized JWT validation
+                    if (!isValidJWTFormat(token)) {
+                        throw new Error('Invalid token format');
+                    }
+                    
                     localStorage.setItem('bsa_access_token', token);
                     console.log('✅ Access token saved from payment success');
 

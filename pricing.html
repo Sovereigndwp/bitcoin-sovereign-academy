@@ -387,7 +387,10 @@
     "@type": "Audience",
     "audienceType": "Students interested in Bitcoin and cryptocurrency"
   }
-}</script></head>
+}</script>
+    <!-- Security utilities for redirect URL validation -->
+    <script src="/js/security-utils.js"></script>
+</head>
 <body>
     <div class="container">
         <!-- Hero Section -->
@@ -682,8 +685,37 @@
                     timestamp: Date.now()
                 }));
 
-                // Redirect to Zaprite checkout
-                window.location.href = data.checkoutUrl;
+                // SECURITY: Validate checkout URL before redirecting
+                const checkoutUrl = data.checkoutUrl;
+                if (!checkoutUrl || typeof checkoutUrl !== 'string') {
+                    throw new Error('Invalid checkout URL received');
+                }
+                
+                // Only allow redirects to trusted payment providers
+                const trustedDomains = [
+                    'zaprite.com',
+                    'checkout.stripe.com',
+                    'pay.btcpay.server',
+                    'bitcoinsovereign.academy' // For internal redirects
+                ];
+                
+                try {
+                    const url = new URL(checkoutUrl);
+                    const isTrusted = trustedDomains.some(domain => 
+                        url.hostname === domain || url.hostname.endsWith('.' + domain)
+                    );
+                    
+                    if (!isTrusted) {
+                        console.error('Blocked redirect to untrusted domain:', url.hostname);
+                        throw new Error('Invalid payment provider');
+                    }
+                    
+                    // Safe to redirect
+                    window.location.href = checkoutUrl;
+                } catch (urlError) {
+                    console.error('Invalid checkout URL:', urlError);
+                    throw new Error('Invalid checkout URL format');
+                }
 
             } catch (error) {
                 console.error('Payment error:', error);

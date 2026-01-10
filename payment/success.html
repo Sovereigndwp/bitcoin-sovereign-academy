@@ -241,7 +241,10 @@
     "@type": "Audience",
     "audienceType": "Students interested in Bitcoin and cryptocurrency"
   }
-}</script></head>
+}</script>
+    <!-- Security utilities for URL parameter validation -->
+    <script src="/js/security-utils.js"></script>
+</head>
 <body>
     <div class="success-container">
         <div class="success-icon">✓</div>
@@ -324,13 +327,29 @@
             }
         };
 
-        // Get URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('order');
-        const productId = urlParams.get('product');
+        // SECURITY: Get and validate URL parameters
+        // Load security utilities if available
+        let getSafeURLParam, isValidProductId, isValidOrderId;
+        if (window.BSASecurity) {
+            getSafeURLParam = window.BSASecurity.getSafeURLParam;
+            isValidProductId = window.BSASecurity.isValidProductId;
+            isValidOrderId = window.BSASecurity.isValidOrderId;
+        } else {
+            // Fallback validation functions
+            getSafeURLParam = (name) => {
+                const params = new URLSearchParams(window.location.search);
+                const value = params.get(name);
+                return value ? value.replace(/[<>'"&]/g, '').substring(0, 500) : null;
+            };
+            isValidProductId = (id) => ['curious', 'builder', 'sovereign', 'principled', 'all-paths', 'full-academy'].includes(id);
+            isValidOrderId = (id) => /^[a-zA-Z0-9_-]{1,100}$/.test(id);
+        }
+        
+        const orderId = getSafeURLParam('order', { pattern: /^[a-zA-Z0-9_-]{1,100}$/ });
+        const productId = getSafeURLParam('product');
 
-        // Update UI with product information
-        if (productId && PRODUCTS[productId]) {
+        // Update UI with product information (only if product ID is valid)
+        if (productId && isValidProductId(productId) && PRODUCTS[productId]) {
             const product = PRODUCTS[productId];
             document.getElementById('product-name').textContent = `Welcome to ${product.name}!`;
             document.getElementById('demo-count').textContent = product.demoCount;
