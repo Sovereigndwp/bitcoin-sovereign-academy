@@ -280,6 +280,45 @@
     }
 
     // ============================================
+    // Server Verification
+    // ============================================
+
+    async function verifyWithServer() {
+        const token = localStorage.getItem('bsa_access_token');
+        if (!token) return;
+
+        try {
+            const response = await fetch('/api/verify-access', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    pathId: getSubdomain() === 'learn' ? undefined : undefined // Optional: send context
+                })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                console.warn('⚠️ Server verification failed:', data.reason);
+                
+                // Server rejected the token - revoke access
+                localStorage.removeItem('bsa_access_token');
+                localStorage.removeItem('bsa_jwt_token');
+                
+                // Reload to enforce public access
+                window.location.reload();
+            } else {
+                console.log('✅ Server verification passed');
+            }
+        } catch (err) {
+            console.error('Server verification error:', err);
+            // Don't revoke on network error, be lenient for now
+        }
+    }
+
+    // ============================================
     // Initialization
     // ============================================
 
@@ -287,6 +326,11 @@
         const accessLevel = detectAccessLevel();
         storeAccessLevel(accessLevel);
         showAccessBanner(accessLevel);
+
+        // Perform server-side verification if we think we have access
+        if (hasValidAccessToken()) {
+            verifyWithServer();
+        }
 
         // Export global API
         window.BSASubdomainAccess = {

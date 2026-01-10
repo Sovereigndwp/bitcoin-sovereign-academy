@@ -9,6 +9,7 @@
  */
 
 import { User, UserSession } from './auth';
+import { isValidEmail, sanitizeEmail } from './validators';
 
 // ============================================
 // Configuration
@@ -103,10 +104,19 @@ export async function findEntitlementByEmail(email: string): Promise<{
   accessToken?: string;
 } | null> {
   try {
+    // 🛡️ SECURITY: Check if the email is valid before using it
+    if (!isValidEmail(email)) {
+      console.warn('Invalid email format attempted:', email);
+      return null; // Reject bad emails quietly
+    }
+
+    // Clean the email (make it safe)
+    const cleanEmail = sanitizeEmail(email);
+
     // First get user by email
     const users = await supabaseFetch<any[]>('users', {
       select: 'id',
-      eq: { email: email.toLowerCase().trim() },
+      eq: { email: cleanEmail },
       limit: 1
     });
 
@@ -190,8 +200,12 @@ export async function updateEntitlement(userId: string, modules: string[], paths
   });
 }
 
-// ============================================
-// User Operations
+export async function deleteUser(userId: string): Promise<void> {
+  await supabaseFetch('users', {
+    method: 'DELETE',
+    eq: { id: userId }
+  });
+}
 // ============================================
 
 export async function createUser(user: Omit<User, 'id' | 'createdAt'>): Promise<string> {
@@ -238,11 +252,11 @@ export async function findUserByEmail(email: string): Promise<User | null> {
   }
 }
 
-export async function findUserById(id: string): Promise<User | null> {
+export async function findUserByVerificationToken(token: string): Promise<User | null> {
   try {
     const users = await supabaseFetch<any[]>('users', {
       select: '*',
-      eq: { id },
+      eq: { email_verification_token: token },
       limit: 1
     });
 
@@ -262,13 +276,56 @@ export async function findUserById(id: string): Promise<User | null> {
       lastLoginAt: u.last_login_at ? new Date(u.last_login_at) : undefined
     };
   } catch (error) {
-    console.error('findUserById error:', error);
+    console.error('findUserByVerificationToken error:', error);
     return null;
   }
 }
 
-// ============================================
-// Payment Operations
+export async function findUserByResetToken(token: string): Promise<User | null> {
+  try {
+    const users = await supabaseFetch<any[]>('users', {
+      select: '*',
+      eq: { password_reset_token: token },
+      limit: 1
+    });
+
+    if (!users || users.length === 0) return null;
+
+    const u = users[0];
+    return {
+      id: u.id,
+      email: u.email,
+      passwordHash: u.password_hash,
+      passwordSalt: u.password_salt,
+      isEmailVerified: u.is_email_verified,
+      emailVerificationToken: u.email_verification_token,
+      passwordResetToken: u.password_reset_token,
+      passwordResetExpires: u.password_reset_expires ? new Date(u.password_reset_expires) : undefined,
+      createdAt: new Date(u.created_at),
+      lastLoginAt: u.last_login_at ? new Date(u.last_login_at) : undefined
+    };
+  } catch (error) {
+    console.error('findUserByResetToken error:', error);
+    return null;
+  }
+}
+  if (updates.email) dbUpdates.email = updates.email;
+  if (updates.passwordHash) dbUpdates.password_hash = updates.passwordHash;
+  if (updates.passwordSalt) dbUpdates.password_salt = updates.passwordSalt;
+  if (updates.isEmailVerified !== undefined) dbUpdates.is_email_verified = updates.isEmailVerified;
+  if (updates.emailVerificationToken !== undefined) dbUpdates.email_verification_token = updates.emailVerificationToken;
+  if (updates.passwordResetToken !== undefined) dbUpdates.password_reset_token = updates.passwordResetToken;
+  if (updates.passwordResetExpires) dbUpdates.password_reset_expires = updates.passwordResetExpires.toISOString();
+  if (updates.lastLoginAt) dbUpdates.last_login_at = updates.lastLoginAt.toISOString();
+
+  if (Object.keys(dbUpdates).length === 0) return;
+
+  await supabaseFetch('users', {
+    method: 'PATCH',
+    eq: { id: userId },
+    body: dbUpdates
+  });
+}
 // ============================================
 
 export interface Payment {

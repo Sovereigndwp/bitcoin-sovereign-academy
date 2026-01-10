@@ -13,6 +13,7 @@
 import { createHash, randomBytes, pbkdf2 } from 'crypto';
 import { promisify } from 'util';
 import * as jwt from 'jsonwebtoken';
+import * as db from './database';
 
 const pbkdf2Async = promisify(pbkdf2);
 
@@ -60,14 +61,6 @@ export interface PasswordResetConfirm {
 }
 
 // ============================================
-// In-Memory Storage (Replace with database)
-// ============================================
-
-// TODO: Replace with actual database queries
-const users: Map<string, User> = new Map();
-const sessions: Map<string, UserSession> = new Map();
-
-// ============================================
 // Password Hashing
 // ============================================
 
@@ -101,16 +94,6 @@ async function verifyPassword(password: string, hash: string, salt: string): Pro
 // ============================================
 // User ID Generation
 // ============================================
-
-/**
- * Generate user ID from email (deterministic)
- */
-function generateUserId(email: string): string {
-  return createHash('sha256')
-    .update(email.toLowerCase().trim())
-    .digest('hex')
-    .substring(0, 16);
-}
 
 /**
  * Generate UUID v4
@@ -153,7 +136,7 @@ export async function registerUser(request: RegisterRequest): Promise<{
   }
 
   // Check if user already exists
-  const existingUser = Array.from(users.values()).find(u => u.email === email);
+  const existingUser = await db.findUserByEmail(email);
   if (existingUser) {
     return { success: false, error: 'Email already registered' };
   }
@@ -165,19 +148,13 @@ export async function registerUser(request: RegisterRequest): Promise<{
   const verificationToken = generateToken();
 
   // Create user
-  const userId = generateUUID();
-  const user: User = {
-    id: userId,
+  const userId = await db.createUser({
     email,
     passwordHash: hash,
     passwordSalt: salt,
     isEmailVerified: false,
-    emailVerificationToken: verificationToken,
-    createdAt: new Date()
-  };
-
-  // Store user (TODO: Save to database)
-  users.set(userId, user);
+    emailVerificationToken: verificationToken
+  });
 
   return {
     success: true,
@@ -195,18 +172,17 @@ export async function registerUser(request: RegisterRequest): Promise<{
  */
 export async function verifyEmail(token: string): Promise<{ success: boolean; error?: string }> {
   // Find user by verification token
-  const user = Array.from(users.values()).find(u => u.emailVerificationToken === token);
+  const user = await db.findUserByVerificationToken(token);
 
   if (!user) {
     return { success: false, error: 'Invalid or expired verification token' };
   }
 
   // Mark email as verified
-  user.isEmailVerified = true;
-  user.emailVerificationToken = undefined;
-
-  // Update user (TODO: Save to database)
-  users.set(user.id, user);
+  await db.updateUser(user.id, {
+    isEmailVerified: true,
+    emailVerificationToken: null as any
+  });
 
   return { success: true };
 }
@@ -227,7 +203,7 @@ export async function loginUser(request: LoginRequest): Promise<{
   const email = request.email.toLowerCase().trim();
 
   // Find user
-  const user = Array.from(users.values()).find(u => u.email === email);
+  const user = await db.findUserByEmail(email);
   if (!user) {
     return { success: false, error: 'Invalid email or password' };
   }
@@ -238,26 +214,11 @@ export async function loginUser(request: LoginRequest): Promise<{
     return { success: false, error: 'Invalid email or password' };
   }
 
-  // Check email verification (optional - can be enabled later)
-  // if (!user.isEmailVerified) {
-  //   return { success: false, error: 'Please verify your email first' };
-  // }
-
-  // Create session
-  const sessionToken = generateToken();
-  const session: UserSession = {
-    userId: user.id,
-    email: user.email,
-    sessionToken,
-    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
-  };
-
-  // Store session (TODO: Save to database)
-  sessions.set(sessionToken, session);
+  // Create session (stateless JWT)
+  const sessionToken = generateJWTToken(user.id, user.email);
 
   // Update last login
-  user.lastLoginAt = new Date();
-  users.set(user.id, user);
+  await db.updateUser(user.id, { lastLoginAt: new Date() });
 
   return {
     success: true,
@@ -278,22 +239,17 @@ export async function validateSession(sessionToken: string): Promise<{
   userId?: string;
   email?: string;
 }> {
-  const session = sessions.get(sessionToken);
-
-  if (!session) {
-    return { valid: false };
-  }
-
-  // Check expiration
-  if (session.expiresAt < new Date()) {
-    sessions.delete(sessionToken);
+  // Verify JWT
+  const verification = verifyJWTToken(sessionToken);
+  
+  if (!verification.valid) {
     return { valid: false };
   }
 
   return {
     valid: true,
-    userId: session.userId,
-    email: session.email
+    userId: verification.userId,
+    email: verification.email
   };
 }
 
@@ -301,7 +257,8 @@ export async function validateSession(sessionToken: string): Promise<{
  * Logout user (invalidate session)
  */
 export async function logoutUser(sessionToken: string): Promise<{ success: boolean }> {
-  sessions.delete(sessionToken);
+  // Stateless JWTs cannot be easily invalidated without a blacklist.
+  // For now, we assume client-side removal is sufficient.
   return { success: true };
 }
 
@@ -320,7 +277,7 @@ export async function initiatePasswordReset(request: PasswordResetRequest): Prom
   const email = request.email.toLowerCase().trim();
 
   // Find user
-  const user = Array.from(users.values()).find(u => u.email === email);
+  const user = await db.findUserByEmail(email);
   if (!user) {
     // Don't reveal that user doesn't exist (security)
     return { success: true };
@@ -328,11 +285,13 @@ export async function initiatePasswordReset(request: PasswordResetRequest): Prom
 
   // Generate reset token
   const resetToken = generateToken();
-  user.passwordResetToken = resetToken;
-  user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+  const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-  // Update user (TODO: Save to database)
-  users.set(user.id, user);
+  // Update user
+  await db.updateUser(user.id, {
+    passwordResetToken: resetToken,
+    passwordResetExpires: resetExpires
+  });
 
   return {
     success: true,
@@ -348,7 +307,7 @@ export async function confirmPasswordReset(request: PasswordResetConfirm): Promi
   error?: string;
 }> {
   // Find user by reset token
-  const user = Array.from(users.values()).find(u => u.passwordResetToken === request.token);
+  const user = await db.findUserByResetToken(request.token);
 
   if (!user) {
     return { success: false, error: 'Invalid or expired reset token' };
@@ -368,13 +327,12 @@ export async function confirmPasswordReset(request: PasswordResetConfirm): Promi
   const { hash, salt } = await hashPassword(request.newPassword);
 
   // Update user
-  user.passwordHash = hash;
-  user.passwordSalt = salt;
-  user.passwordResetToken = undefined;
-  user.passwordResetExpires = undefined;
-
-  // Update user (TODO: Save to database)
-  users.set(user.id, user);
+  await db.updateUser(user.id, {
+    passwordHash: hash,
+    passwordSalt: salt,
+    passwordResetToken: null as any,
+    passwordResetExpires: null as any
+  });
 
   return { success: true };
 }
@@ -387,15 +345,14 @@ export async function confirmPasswordReset(request: PasswordResetConfirm): Promi
  * Get user by ID
  */
 export async function getUserById(userId: string): Promise<User | null> {
-  return users.get(userId) || null;
+  return await db.findUserById(userId);
 }
 
 /**
  * Get user by email
  */
 export async function getUserByEmail(email: string): Promise<User | null> {
-  const normalizedEmail = email.toLowerCase().trim();
-  return Array.from(users.values()).find(u => u.email === normalizedEmail) || null;
+  return await db.findUserByEmail(email);
 }
 
 /**
@@ -405,25 +362,20 @@ export async function updateUserEmail(
   userId: string,
   newEmail: string
 ): Promise<{ success: boolean; error?: string }> {
-  const user = users.get(userId);
-  if (!user) {
-    return { success: false, error: 'User not found' };
-  }
-
   const normalizedEmail = newEmail.toLowerCase().trim();
 
   // Check if email already exists
-  const existingUser = Array.from(users.values()).find(u => u.email === normalizedEmail);
+  const existingUser = await db.findUserByEmail(normalizedEmail);
   if (existingUser && existingUser.id !== userId) {
     return { success: false, error: 'Email already in use' };
   }
 
   // Update email and mark as unverified
-  user.email = normalizedEmail;
-  user.isEmailVerified = false;
-  user.emailVerificationToken = generateToken();
-
-  users.set(userId, user);
+  await db.updateUser(userId, {
+    email: normalizedEmail,
+    isEmailVerified: false,
+    emailVerificationToken: generateToken()
+  });
 
   return { success: true };
 }
@@ -432,16 +384,7 @@ export async function updateUserEmail(
  * Delete user account
  */
 export async function deleteUser(userId: string): Promise<{ success: boolean }> {
-  users.delete(userId);
-
-  // Remove all sessions for this user
-  const sessionEntries = Array.from(sessions.entries());
-  for (const [token, session] of sessionEntries) {
-    if (session.userId === userId) {
-      sessions.delete(token);
-    }
-  }
-
+  await db.deleteUser(userId);
   return { success: true };
 }
 
@@ -513,14 +456,13 @@ export function verifyJWTToken(token: string): {
  * Export all users (for database migration)
  */
 export function exportUsers(): User[] {
-  return Array.from(users.values());
+    // In-memory export no longer supported
+    return [];
 }
 
 /**
  * Import users (for database migration)
  */
 export function importUsers(userList: User[]): void {
-  userList.forEach(user => {
-    users.set(user.id, user);
-  });
+  // In-memory import no longer supported
 }

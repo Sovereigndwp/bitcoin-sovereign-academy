@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Best Practices | Building Applications | The Builder Path</title>
@@ -340,7 +338,28 @@
     <script src="/js/subdomain-access-control.js"></script>
     <script src="/js/module-gate-subdomain.js"></script>
     <link rel="stylesheet" href="/css/icons.css">
-</head>
+<link rel="canonical" href="https://bitcoinsovereign.academy/module-3.html"><meta property="og:title" content="Module 3 - Bitcoin Sovereign Academy"><meta property="og:description" content="Learn about module 3 at Bitcoin Sovereign Academy. Interactive Bitcoin education with hands-on exercises and expert guidance."><meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg"><meta property="og:url" content="https://bitcoinsovereign.academy/module-3.html"><meta property="og:type" content="website"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Bitcoin Sovereign Academy",
+  "description": "Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.",
+  "url": "https://bitcoinsovereign.academy",
+  "logo": "https://bitcoinsovereign.academy/assets/og-image.jpg",
+  "sameAs": [
+    "https://github.com/Sovereigndwp/bitcoin-sovereign-academy"
+  ],
+  "educationalLevel": "Beginner to Advanced",
+  "teaches": [
+    "Bitcoin Fundamentals",
+    "Cryptocurrency Technology",
+    "Financial Sovereignty",
+    "Digital Asset Security"
+  ],
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Students interested in Bitcoin and cryptocurrency"
+  }
+}</script></head>
 <body>
     <header class="module-header">
         <div class="container">
@@ -509,10 +528,10 @@ class InputValidator:
         if not isinstance(amount, (int, float)):
             raise ValueError("Amount must be numeric")
 
-        if amount <= 0:
+        if amount &lt;= 0:
             raise ValueError("Amount must be positive")
 
-        if amount > max_btc * 100_000_000:  # Convert to sats
+        if amount &gt; max_btc * 100_000_000:  # Convert to sats
             raise ValueError("Amount exceeds maximum possible")
 
         return True
@@ -560,20 +579,20 @@ def send_transaction(address, amount):
     # 3. Verify output amounts
     total_output = sum(out.amount for out in tx.outputs)
 
-    if total_output > total_input:
+    if total_output &gt; total_input:
         errors.append("Outputs exceed inputs")
 
     # 4. Verify fee is reasonable
     fee = total_input - total_output
-    if fee < 0:
+    if fee &lt; 0:
         errors.append("Negative fee")
-    if fee > total_input * 0.1:  # Fee > 10% of input
+    if fee &gt; total_input * 0.1:  # Fee &gt; 10% of input
         errors.append("Fee suspiciously high")
 
     # 5. Check for dust outputs
     dust_limit = 546  # satoshis
     for out in tx.outputs:
-        if out.amount < dust_limit:
+        if out.amount &lt; dust_limit:
             errors.append(f"Output below dust limit: {out.amount}")
 
     # 6. Verify signatures (if signed)
@@ -635,8 +654,8 @@ def test_utxo_selection():
     selected, total, fee = selector.select_for_amount(60000, fee_rate=10)
 
     assert len(selected) == 2
-    assert total >= 60000 + fee
-    assert fee > 0
+    assert total &gt;= 60000 + fee
+    assert fee &gt; 0
 
 def test_fee_calculation():
     """Test fee calculation accuracy"""
@@ -646,7 +665,7 @@ def test_fee_calculation():
     fee = calculator.calculate(num_inputs=2, num_outputs=2, fee_rate=10)
 
     # Expected: ~(10 + 68*2 + 31*2) * 10 = ~1980 sats
-    assert 1900 < fee < 2100
+    assert 1900 &lt; fee &lt; 2100
 
 # Run tests: pytest test_wallet.py -v</code></pre>
 
@@ -692,7 +711,7 @@ def test_wallet_transaction_flow(regtest_setup):
 
     # 3. Check balance
     balance = wallet1.get_balance()
-    assert balance > 0
+    assert balance &gt; 0
 
     # 4. Send to wallet2
     addr2 = wallet2.get_address()
@@ -718,7 +737,7 @@ def test_rbf_functionality(regtest_setup):
     txid2 = wallet.rbf(txid1, fee_rate=10)
 
     assert txid1 != txid2
-    assert wallet.get_transaction(txid2)['fee'] > wallet.get_transaction(txid1)['fee']</code></pre>
+    assert wallet.get_transaction(txid2)['fee'] &gt; wallet.get_transaction(txid1)['fee']</code></pre>
 
                 <h3>3. Property-Based Testing</h3>
                 <p>Use Hypothesis to test properties that should always hold:</p>
@@ -736,15 +755,15 @@ def test_fee_calculation_properties(num_inputs, num_outputs, fee_rate):
     fee = calculator.calculate(num_inputs, num_outputs, fee_rate)
 
     # Property 1: Fee should be positive
-    assert fee > 0
+    assert fee &gt; 0
 
     # Property 2: More inputs = higher fee
     fee_more_inputs = calculator.calculate(num_inputs + 1, num_outputs, fee_rate)
-    assert fee_more_inputs > fee
+    assert fee_more_inputs &gt; fee
 
     # Property 3: Higher fee rate = higher fee
     fee_higher_rate = calculator.calculate(num_inputs, num_outputs, fee_rate * 2)
-    assert fee_higher_rate > fee * 1.9  # Allow for rounding
+    assert fee_higher_rate &gt; fee * 1.9  # Allow for rounding
 
 @given(
     utxos=st.lists(
@@ -765,14 +784,14 @@ def test_utxo_selection_properties(utxos, target):
         selected, total, fee = selector.select_for_amount(target, fee_rate=10)
 
         # Property 1: Selected amount covers target + fee
-        assert total >= target + fee
+        assert total &gt;= target + fee
 
         # Property 2: All selected UTXOs are from input set
         assert all(u in utxos for u in selected)
 
     except ValueError:
         # Insufficient funds is acceptable
-        assert sum(u['amount'] for u in utxos) < target</code></pre>
+        assert sum(u['amount'] for u in utxos) &lt; target</code></pre>
 
                 <h3>4. Fuzzing</h3>
                 <p>Test with random/malformed inputs to find edge cases:</p>
@@ -913,7 +932,7 @@ class RobustWallet:
                 # Retry on network errors
                 last_error = e
                 logger.warning(f"Network error on attempt {attempt + 1}: {e}")
-                if attempt < max_retries - 1:
+                if attempt &lt; max_retries - 1:
                     time.sleep(2 ** attempt)  # Exponential backoff
                     continue
 
@@ -1029,7 +1048,7 @@ class RobustWallet:
                         <label for="check2">
                             <strong>Comprehensive Test Coverage</strong><br>
                             <span style="font-size: 0.9rem; color: var(--text-dim);">
-                                Unit tests, integration tests, and property-based tests with >90% coverage
+                                Unit tests, integration tests, and property-based tests with &gt;90% coverage
                             </span>
                         </label>
                     </div>
@@ -1241,7 +1260,7 @@ class Config:
             <!-- Navigation -->
             <nav class="module-navigation">
                 <a href="module-2.html" class="nav-btn nav-btn-secondary">← Previous: Building with Bitcoin</a>
-                <button id="complete-module" class="nav-btn">Mark Complete & Finish Stage 3 →</button>
+                <button id="complete-module" class="nav-btn">Mark Complete &amp; Finish Stage 3 →</button>
             </nav>
         </div>
     </main>
@@ -1291,5 +1310,6 @@ class Config:
             }
         });
     </script>
-</body>
-</html>
+
+
+</body></html>
