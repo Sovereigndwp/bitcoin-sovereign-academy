@@ -213,6 +213,12 @@
             return;
         }
 
+        // Show warning before the section that PRECEDES the lock
+        const warningIndex = Math.max(0, limit - 1);
+        if (sections[warningIndex]) {
+            showUpcomingGateWarning(sections[warningIndex]);
+        }
+
         const lockedWrapper = document.createElement('div');
         lockedWrapper.className = 'module-locked-zone';
 
@@ -229,17 +235,63 @@
 
         const overlay = document.createElement('div');
         overlay.className = 'module-lock-overlay';
-        overlay.innerHTML = [
-            '<h3>Unlock the Full Module</h3>',
-            '<p>Join the Bitcoin Sovereign Academy to continue. Get full access to all modules, interactive exercises, and advanced demos.</p>',
-            '<ul>',
-            '<li>✔️ Full module content and interactive exercises</li>',
-            '<li>✔️ Guided progression through every stage</li>',
-            '<li>✔️ Access to advanced demos and tools</li>',
-            '</ul>',
-            '<button type="button" class="module-lock-cta">Unlock Full Access</button>',
-            '<small>Already a member? <a href="https://learn.bitcoinsovereign.academy' + window.location.pathname + '">Access member site</a></small>'
-        ].join('');
+        
+        // Dynamic content based on path
+        const pathName = getPathName();
+        const completedSections = limit;
+        const totalSections = sections.length;
+        const remainingSections = totalSections - completedSections;
+        
+        overlay.innerHTML = `
+            <div class="lock-overlay-content">
+                <div class="lock-icon">🔐</div>
+                <h3>Continue Your ${pathName} Journey</h3>
+                <p class="lock-subtitle">
+                    You've explored ${completedSections} sections.
+                    ${remainingSections} more chapters await.
+                </p>
+
+                <div class="unlock-preview">
+                    <h4>What's Next in This Module:</h4>
+                    <ul class="preview-topics">
+                        <li>
+                            <span class="topic-icon">📖</span>
+                            <span>Interactive Demonstrations</span>
+                        </li>
+                        <li>
+                            <span class="topic-icon">🧠</span>
+                            <span>Knowledge Check & Quiz</span>
+                        </li>
+                        <li>
+                            <span class="topic-icon">🛠️</span>
+                            <span>Practical Exercises</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="social-proof">
+                    <div class="testimonial">
+                        <div class="stars">⭐⭐⭐⭐⭐</div>
+                        <p>"Best Bitcoin course I've taken. Worth every satoshi!"</p>
+                    </div>
+                    <div class="stats">
+                        <span>✓ 2,847 students enrolled</span>
+                    </div>
+                </div>
+
+                <div class="pricing-preview">
+                    <span class="price-detail">One-time payment • Lifetime access</span>
+                </div>
+
+                <button type="button" class="module-lock-cta">
+                    Unlock Full Access
+                </button>
+
+                <div class="lock-footer">
+                    <small>Already enrolled? <a href="https://learn.bitcoinsovereign.academy${window.location.pathname}" class="module-lock-login">Sign in</a></small>
+                </div>
+            </div>
+        `;
 
         lockedWrapper.appendChild(innerWrapper);
         lockedWrapper.appendChild(overlay);
@@ -248,6 +300,40 @@
         ctaButton.addEventListener('click', () => {
             window.location.href = '/#unlock';
         });
+    }
+
+    function getPathName() {
+        const path = window.location.pathname;
+        if (path.includes('curious')) return 'Curious Path';
+        if (path.includes('builder')) return 'Builder Path';
+        if (path.includes('sovereign')) return 'Sovereign Path';
+        if (path.includes('principled')) return 'Principled Path';
+        if (path.includes('pragmatist')) return 'Pragmatist Path';
+        if (path.includes('observer')) return 'Observer Path';
+        if (path.includes('hurried')) return 'Hurried Path';
+        return 'Bitcoin';
+    }
+
+    function showUpcomingGateWarning(targetElement) {
+        if (!targetElement || targetElement.querySelector('.gate-warning')) return;
+
+        const warning = document.createElement('div');
+        warning.className = 'gate-warning';
+        warning.innerHTML = `
+            <div class="warning-content">
+                <div class="warning-header">
+                    <span class="warning-icon">🔓</span>
+                    <h4>One more free section, then...</h4>
+                </div>
+                <p>The next sections dive deeper into Bitcoin's technical architecture.</p>
+                <div class="warning-cta-area">
+                    <a href="/#pricing" class="warning-cta-small">View Pricing</a>
+                    <small>One-time payment • No subscription</small>
+                </div>
+            </div>
+        `;
+        
+        targetElement.parentNode.insertBefore(warning, targetElement);
     }
 
     function injectStyles() {
@@ -331,13 +417,153 @@
                 color: #f7931a;
                 text-decoration: underline;
             }
+            
+            /* Gate Warning Banner */
+            .gate-warning {
+                background: rgba(45, 45, 45, 0.6);
+                border: 1px dashed rgba(247, 147, 26, 0.4);
+                border-radius: 12px;
+                padding: 1.5rem;
+                margin-bottom: 2rem;
+                display: flex;
+                align-items: center;
+                gap: 1.5rem;
+            }
+            .gate-warning .warning-content {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                width: 100%;
+            }
+            .gate-warning .warning-header {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+            .gate-warning h4 {
+                margin: 0;
+                color: #e0e0e0;
+                font-size: 1.1rem;
+            }
+            .gate-warning p {
+                margin: 0;
+                color: #9aa4b2;
+                font-size: 0.95rem;
+            }
+            .gate-warning .warning-cta-area {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin-top: 0.5rem;
+            }
+            .warning-cta-small {
+                color: #f7931a;
+                font-weight: bold;
+                text-decoration: none;
+                border: 1px solid #f7931a;
+                padding: 0.4rem 1rem;
+                border-radius: 20px;
+                font-size: 0.9rem;
+                transition: all 0.2s;
+            }
+            .warning-cta-small:hover {
+                background: rgba(247, 147, 26, 0.1);
+            }
+            .gate-warning small {
+                color: #666;
+                font-size: 0.85rem;
+            }
+
+            /* Enhanced Lock Overlay */
+            .lock-icon {
+                font-size: 3.5rem;
+                margin-bottom: 1rem;
+                animation: float 3s ease-in-out infinite;
+            }
+            @keyframes float {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-10px); }
+            }
+            .lock-subtitle {
+                font-size: 1.1rem;
+                margin-bottom: 2rem;
+                opacity: 0.9;
+            }
+            .unlock-preview {
+                background: rgba(255, 255, 255, 0.05);
+                padding: 1.5rem;
+                border-radius: 12px;
+                margin-bottom: 2rem;
+                text-align: left;
+            }
+            .unlock-preview h4 {
+                color: #f7931a;
+                margin: 0 0 1rem 0;
+                font-size: 1rem;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+            .preview-topics {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            .preview-topics li {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                color: #e0e0e0;
+                font-size: 1rem;
+            }
+            .topic-icon {
+                font-size: 1.2rem;
+            }
+            .social-proof {
+                margin-bottom: 2rem;
+                padding-bottom: 1.5rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .testimonial p {
+                font-style: italic;
+                color: #ccc;
+                margin: 0.5rem 0 0;
+            }
+            .stats span {
+                display: inline-block;
+                background: rgba(16, 185, 129, 0.2);
+                color: #10b981;
+                padding: 0.25rem 0.75rem;
+                border-radius: 12px;
+                font-size: 0.85rem;
+                font-weight: bold;
+                margin-top: 1rem;
+            }
+            .pricing-preview {
+                margin-bottom: 1.5rem;
+            }
+            .price-detail {
+                color: #f7931a;
+                font-weight: bold;
+                font-size: 1.1rem;
+            }
+            .lock-footer {
+                margin-top: 1.5rem;
+            }
+
             @media (max-width: 768px) {
-                .module-lock-overlay {
-                    inset: 5%;
-                    padding: 1.5rem;
+                .gate-warning {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 1rem;
                 }
-                .module-lock-overlay h3 {
-                    font-size: 1.3rem;
+                .module-lock-overlay {
+                    inset: 1rem;
+                    padding: 1.5rem;
+                    max-height: 90vh;
+                    overflow-y: auto;
                 }
             }
         `;

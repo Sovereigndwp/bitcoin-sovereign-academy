@@ -316,8 +316,23 @@
         // Email input
         const emailInput = document.getElementById('email');
         if (emailInput) {
+            // Real-time update state
             emailInput.addEventListener('input', (e) => {
                 state.userEmail = e.target.value;
+                // Clear error when user starts typing valid-looking input
+                if (emailInput.validity.valid || isValidEmail(state.userEmail)) {
+                    clearFieldError(emailInput);
+                }
+            });
+
+            // Validation on blur
+            emailInput.addEventListener('blur', () => {
+                const email = emailInput.value.trim();
+                if (email && !isValidEmail(email)) {
+                    showFieldError(emailInput, 'Please enter a valid email address');
+                } else if (email) {
+                    clearFieldError(emailInput);
+                }
             });
         }
 
@@ -400,6 +415,46 @@
 
     function isValidEmail(email) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function showFieldError(input, message) {
+        let errorEl = input.nextElementSibling;
+        // Skip over the "We'll send your access token..." small text if present
+        if (errorEl && errorEl.tagName === 'SMALL' && !errorEl.classList.contains('field-error')) {
+            errorEl = errorEl.nextElementSibling;
+        }
+
+        if (!errorEl || !errorEl.classList.contains('field-error')) {
+            errorEl = document.createElement('span');
+            errorEl.className = 'field-error';
+            errorEl.setAttribute('role', 'alert');
+            // Insert after the small helper text if it exists, otherwise after input
+            const nextNode = input.nextElementSibling;
+            if (nextNode && nextNode.tagName === 'SMALL') {
+                nextNode.parentNode.insertBefore(errorEl, nextNode.nextSibling);
+            } else {
+                input.parentNode.insertBefore(errorEl, input.nextSibling);
+            }
+        }
+        errorEl.textContent = message;
+        input.setAttribute('aria-invalid', 'true');
+        input.setAttribute('aria-describedby', errorEl.id || 'error-' + input.id);
+        
+        // Ensure error is visible
+        errorEl.style.display = 'block';
+    }
+
+    function clearFieldError(input) {
+        let errorEl = input.nextElementSibling;
+        // Skip over small text
+        if (errorEl && errorEl.tagName === 'SMALL' && !errorEl.classList.contains('field-error')) {
+            errorEl = errorEl.nextElementSibling;
+        }
+
+        if (errorEl && errorEl.classList.contains('field-error')) {
+            errorEl.remove();
+        }
+        input.setAttribute('aria-invalid', 'false');
     }
 
     function showError(message) {
