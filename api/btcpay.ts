@@ -52,6 +52,7 @@ export async function createBTCPayInvoice(
     : `${request.successUrl}?provider=btcpay&invoice_id={invoiceId}`;
 
   // Build invoice request
+  // Note: For single product purchases, include productId in metadata
   const invoiceData = {
     amount: pricing.total.toString(),
     currency: 'USD',
@@ -59,6 +60,8 @@ export async function createBTCPayInvoice(
       buyerEmail: request.email,
       orderId: invoiceIdPrefix,
       itemDesc: request.items.map((i) => i.title).join(', '),
+      // For new payment flow: store productId for validation
+      productId: request.items[0]?.id || null,
       items: JSON.stringify(
         request.items.map((i) => ({ type: i.type, id: i.id, title: i.title }))
       ),
