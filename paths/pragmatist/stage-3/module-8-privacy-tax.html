@@ -30,8 +30,9 @@
   }
 }</script></head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="module-header">
-        <div class="container">
+        <main id="main-content" class="container">
             <div class="breadcrumb">
                 <a href="/paths/pragmatist/">← Back to Pragmatist Path</a> / Stage 3 / Module 8
             </div>
@@ -46,7 +47,7 @@
         </div>
     </div>
 
-    <div class="container">
+    <main id="main-content" class="container">
         <!-- Privacy Basics -->
         <section class="content-section">
             <h2><span data-icon="search"></span> Bitcoin Privacy: What You Need to Know</h2>
@@ -355,10 +356,48 @@
                     }
                 });
             }
-            if (window.pragmatistProgress) {
-                window.pragmatistProgress.data.completedModules.push('3-1');
-                window.pragmatistProgress.data.knowledgeScore += 20;
-                window.pragmatistProgress.save();
+            const progress = (function getOrCreatePragmatistProgress() {
+                if (window.pragmatistProgress && window.pragmatistProgress.data && typeof window.pragmatistProgress.save === 'function') {
+                    return window.pragmatistProgress;
+                }
+
+                const storageKey = 'pragmatist-progress';
+                let data;
+                try {
+                    data = JSON.parse(localStorage.getItem(storageKey));
+                } catch (e) {
+                    data = null;
+                }
+
+                if (!data || typeof data !== 'object') {
+                    data = {
+                        completedModules: [],
+                        knowledgeScore: 0,
+                        achievements: [],
+                        startTime: Date.now()
+                    };
+                }
+
+                if (!Array.isArray(data.completedModules)) data.completedModules = [];
+                if (!Array.isArray(data.achievements)) data.achievements = [];
+                if (typeof data.knowledgeScore !== 'number' || !Number.isFinite(data.knowledgeScore)) data.knowledgeScore = 0;
+                if (typeof data.startTime !== 'number' || !Number.isFinite(data.startTime)) data.startTime = Date.now();
+
+                const progress = {
+                    data,
+                    save: function() {
+                        localStorage.setItem(storageKey, JSON.stringify(this.data));
+                    }
+                };
+
+                window.pragmatistProgress = progress;
+                return progress;
+            })();
+
+            if (!progress.data.completedModules.includes('3-1')) {
+                progress.data.completedModules.push('3-1');
+                progress.data.knowledgeScore += 20;
+                progress.save();
             }
         });
     </script>

@@ -513,6 +513,7 @@
   }
 }</script></head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <!-- Achievement Notification -->
     <div class="achievement-notification" id="achievement-notification">
         <div class="icon"><span data-icon="trophy"></span> </div>
@@ -1094,9 +1095,43 @@
 
         // Complete module
         function completeModule() {
-            // Save completion to localStorage
+            // Save completion to localStorage (legacy)
             localStorage.setItem('pragmatist-m1-complete', 'true');
             localStorage.setItem('pragmatist-m1-completed-at', new Date().toISOString());
+
+            // Also update global Pragmatist path progress
+            const storageKey = 'pragmatist-progress';
+            let data;
+            try {
+                data = JSON.parse(localStorage.getItem(storageKey));
+            } catch (e) {
+                data = null;
+            }
+
+            if (!data || typeof data !== 'object') {
+                data = {
+                    completedModules: [],
+                    knowledgeScore: 0,
+                    achievements: [],
+                    startTime: Date.now()
+                };
+            }
+
+            if (!Array.isArray(data.completedModules)) data.completedModules = [];
+            if (!Array.isArray(data.achievements)) data.achievements = [];
+            if (typeof data.knowledgeScore !== 'number' || !Number.isFinite(data.knowledgeScore)) data.knowledgeScore = 0;
+            if (typeof data.startTime !== 'number' || !Number.isFinite(data.startTime)) data.startTime = Date.now();
+
+            if (!data.completedModules.includes('1-1')) {
+                data.completedModules.push('1-1');
+                data.knowledgeScore += 15;
+            }
+
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(data));
+            } catch (e) {
+                // Ignore write errors (private mode / quota)
+            }
 
             // Show achievement
             showAchievement('Module 1 Complete', 'You understand Bitcoin as infrastructure!', '✅');
