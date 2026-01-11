@@ -13,12 +13,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   email VARCHAR(255) UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  password_salt TEXT NOT NULL,
+  magic_link_token TEXT,
+  magic_link_expires TIMESTAMP,
   is_email_verified BOOLEAN DEFAULT FALSE,
-  email_verification_token TEXT,
-  password_reset_token TEXT,
-  password_reset_expires TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW(),
   last_login_at TIMESTAMP,
   updated_at TIMESTAMP DEFAULT NOW()
@@ -26,8 +23,25 @@ CREATE TABLE users (
 
 -- Index for fast email lookups
 CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_verification_token ON users(email_verification_token);
-CREATE INDEX idx_users_reset_token ON users(password_reset_token);
+CREATE INDEX idx_users_magic_link_token ON users(magic_link_token);
+
+-- ============================================
+-- Devices Table (For device management)
+-- ============================================
+
+CREATE TABLE devices (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  device_fingerprint TEXT NOT NULL,
+  device_name TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
+  last_active_at TIMESTAMP DEFAULT NOW(),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_devices_user_id ON devices(user_id);
+CREATE INDEX idx_devices_fingerprint ON devices(device_fingerprint);
+CREATE INDEX idx_devices_active ON devices(user_id, is_active);
 
 -- ============================================
 -- Sessions Table
@@ -36,6 +50,7 @@ CREATE INDEX idx_users_reset_token ON users(password_reset_token);
 CREATE TABLE sessions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  device_id UUID REFERENCES devices(id) ON DELETE CASCADE,
   session_token TEXT UNIQUE NOT NULL,
   expires_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT NOW(),
@@ -55,43 +70,47 @@ CREATE INDEX idx_sessions_expires_at ON sessions(expires_at);
 CREATE TABLE entitlements (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  modules TEXT[] DEFAULT '{}',           -- Array of module IDs
-  paths TEXT[] DEFAULT '{}',             -- Array of path IDs
-  access_token TEXT UNIQUE,              -- JWT token for API access
-  purchase_date TIMESTAMP DEFAULT NOW(),
-  expires_at TIMESTAMP,                  -- NULL = lifetime access
+  entitlement_type VARCHAR(50) NOT NULL,  -- 'demo', 'workshop', 'path_monthly', 'path_annual', 'path_lifetime', 'all_access_monthly', 'all_access_annual'
+  item_id TEXT,                           -- Specific demo/workshop/path ID, or NULL for all-access
+  expires_at TIMESTAMP,                   -- NULL = lifetime access
+  is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Index for fast entitlement lookups
 CREATE INDEX idx_entitlements_user_id ON entitlements(user_id);
-CREATE INDEX idx_entitlements_access_token ON entitlements(access_token);
+CREATE INDEX idx_entitlements_type ON entitlements(entitlement_type);
+CREATE INDEX idx_entitlements_item ON entitlements(item_id);
+CREATE INDEX idx_entitlements_active ON entitlements(user_id, is_active);
+CREATE INDEX idx_entitlements_expires ON entitlements(expires_at);
 
 -- ============================================
 -- Payments Table
 -- ============================================
 
-CREATE TABLE payments (
+CREATE TABLE purchases (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES users(id) ON DELETE SET NULL,
   email VARCHAR(255) NOT NULL,           -- Store email even if user deleted
+  product_id VARCHAR(100) NOT NULL,       -- 'demo_single', 'workshop_bundle', 'path_monthly_curious', etc.
+  amount_usd DECIMAL(10, 2) NOT NULL,
   provider VARCHAR(50) NOT NULL,          -- 'stripe' or 'btcpay'
   provider_payment_id TEXT NOT NULL,      -- Stripe session ID or BTCPay invoice ID
-  amount_usd DECIMAL(10, 2) NOT NULL,
-  items JSONB NOT NULL,                   -- Cart items purchased
-  status VARCHAR(50) DEFAULT 'pending',   -- pending, completed, failed, refunded
+  status VARCHAR(50) DEFAULT 'pending',   -- pending, completed, failed, refunded, cancelled
   metadata JSONB,                         -- Additional payment data
   paid_at TIMESTAMP,
+  refunded_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Index for fast payment lookups
-CREATE INDEX idx_payments_user_id ON payments(user_id);
-CREATE INDEX idx_payments_email ON payments(email);
-CREATE INDEX idx_payments_provider_id ON payments(provider, provider_payment_id);
-CREATE INDEX idx_payments_status ON payments(status);
+CREATE INDEX idx_purchases_user_id ON purchases(user_id);
+CREATE INDEX idx_purchases_email ON purchases(email);
+CREATE INDEX idx_purchases_provider_id ON purchases(provider, provider_payment_id);
+CREATE INDEX idx_purchases_status ON purchases(status);
+CREATE INDEX idx_purchases_product ON purchases(product_id);
 
 -- ============================================
 -- Webhook Events Table (For Debugging)
@@ -143,7 +162,7 @@ CREATE TABLE promo_code_usage (
   promo_code_id UUID NOT NULL REFERENCES promo_codes(id) ON DELETE CASCADE,
   user_id UUID REFERENCES users(id) ON DELETE SET NULL,
   email VARCHAR(255) NOT NULL,
-  payment_id UUID REFERENCES payments(id) ON DELETE SET NULL,
+  purchase_id UUID REFERENCES purchases(id) ON DELETE SET NULL,
   discount_amount DECIMAL(10, 2) NOT NULL,
   used_at TIMESTAMP DEFAULT NOW()
 );
@@ -172,7 +191,7 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
 CREATE TRIGGER update_entitlements_updated_at BEFORE UPDATE ON entitlements
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_payments_updated_at BEFORE UPDATE ON payments
+CREATE TRIGGER update_purchases_updated_at BEFORE UPDATE ON purchases
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================
@@ -183,10 +202,10 @@ CREATE TRIGGER update_payments_updated_at BEFORE UPDATE ON payments
 CREATE VIEW revenue_by_month AS
 SELECT
   DATE_TRUNC('month', paid_at) AS month,
-  COUNT(*) AS payment_count,
+  COUNT(*) AS purchase_count,
   SUM(amount_usd) AS total_revenue,
   AVG(amount_usd) AS avg_order_value
-FROM payments
+FROM purchases
 WHERE status = 'completed'
 GROUP BY DATE_TRUNC('month', paid_at)
 ORDER BY month DESC;
@@ -202,10 +221,12 @@ FROM users;
 -- Content access stats
 CREATE VIEW content_access_stats AS
 SELECT
-  UNNEST(modules) AS module_id,
+  entitlement_type,
+  item_id,
   COUNT(*) AS access_count
 FROM entitlements
-GROUP BY module_id
+WHERE is_active = TRUE
+GROUP BY entitlement_type, item_id
 ORDER BY access_count DESC;
 
 -- ============================================
@@ -222,9 +243,10 @@ ORDER BY access_count DESC;
 
 -- Enable RLS
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE devices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE entitlements ENABLE ROW LEVEL SECURITY;
-ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE purchases ENABLE ROW LEVEL SECURITY;
 
 -- Users can read their own data
 CREATE POLICY users_select_own ON users
@@ -251,8 +273,18 @@ CREATE POLICY entitlements_select_own ON entitlements
   FOR SELECT
   USING (auth.uid() = user_id);
 
--- Users can read their own payments
-CREATE POLICY payments_select_own ON payments
+-- Users can read their own devices
+CREATE POLICY devices_select_own ON devices
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Users can update their own devices
+CREATE POLICY devices_update_own ON devices
+  FOR UPDATE
+  USING (auth.uid() = user_id);
+
+-- Users can read their own purchases
+CREATE POLICY purchases_select_own ON purchases
   FOR SELECT
   USING (auth.uid() = user_id);
 
@@ -272,35 +304,93 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function to get user entitlements
-CREATE OR REPLACE FUNCTION get_user_entitlements(user_email TEXT)
-RETURNS TABLE (
-  modules TEXT[],
-  paths TEXT[],
-  access_token TEXT
-) AS $$
-BEGIN
-  RETURN QUERY
-  SELECT e.modules, e.paths, e.access_token
-  FROM entitlements e
-  JOIN users u ON e.user_id = u.id
-  WHERE u.email = user_email
-  LIMIT 1;
-END;
-$$ LANGUAGE plpgsql;
+-- ============================================
+-- Usage Events Table (For credits/metering)
+-- ============================================
 
--- Function to check module access
-CREATE OR REPLACE FUNCTION has_module_access(user_email TEXT, module_id TEXT)
+CREATE TABLE usage_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  item_id TEXT NOT NULL,                  -- demo ID, workshop ID, etc.
+  event_type VARCHAR(50) NOT NULL,         -- 'demo_view', 'workshop_start', etc.
+  metadata JSONB,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_usage_events_user_id ON usage_events(user_id);
+CREATE INDEX idx_usage_events_item ON usage_events(item_id);
+CREATE INDEX idx_usage_events_type ON usage_events(event_type);
+
+-- ============================================
+-- Subscription Management Table
+-- ============================================
+
+CREATE TABLE subscriptions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  product_id VARCHAR(100) NOT NULL,       -- 'path_monthly_curious', 'all_access_annual', etc.
+  provider VARCHAR(50) NOT NULL,          -- 'stripe' or 'btcpay'
+  provider_subscription_id TEXT,          -- Stripe subscription ID
+  status VARCHAR(50) DEFAULT 'active',    -- active, cancelled, expired, past_due
+  current_period_start TIMESTAMP,
+  current_period_end TIMESTAMP,
+  cancel_at_period_end BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
+CREATE INDEX idx_subscriptions_status ON subscriptions(status);
+CREATE INDEX idx_subscriptions_provider_id ON subscriptions(provider, provider_subscription_id);
+
+CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON subscriptions
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Function to check if user has access to content
+CREATE OR REPLACE FUNCTION has_content_access(p_user_id UUID, p_item_id TEXT, p_item_type TEXT)
 RETURNS BOOLEAN AS $$
 DECLARE
-  has_access BOOLEAN;
+  has_access BOOLEAN := FALSE;
 BEGIN
-  SELECT module_id = ANY(e.modules) INTO has_access
-  FROM entitlements e
-  JOIN users u ON e.user_id = u.id
-  WHERE u.email = user_email;
-
-  RETURN COALESCE(has_access, FALSE);
+  -- Check for all-access entitlements
+  SELECT EXISTS(
+    SELECT 1 FROM entitlements
+    WHERE user_id = p_user_id
+    AND entitlement_type IN ('all_access_monthly', 'all_access_annual')
+    AND is_active = TRUE
+    AND (expires_at IS NULL OR expires_at > NOW())
+  ) INTO has_access;
+  
+  IF has_access THEN
+    RETURN TRUE;
+  END IF;
+  
+  -- Check for specific item access
+  SELECT EXISTS(
+    SELECT 1 FROM entitlements
+    WHERE user_id = p_user_id
+    AND item_id = p_item_id
+    AND is_active = TRUE
+    AND (expires_at IS NULL OR expires_at > NOW())
+  ) INTO has_access;
+  
+  IF has_access THEN
+    RETURN TRUE;
+  END IF;
+  
+  -- Check for path access (if item belongs to a path)
+  IF p_item_type = 'module' THEN
+    SELECT EXISTS(
+      SELECT 1 FROM entitlements e
+      WHERE e.user_id = p_user_id
+      AND e.entitlement_type LIKE 'path_%'
+      AND e.is_active = TRUE
+      AND (e.expires_at IS NULL OR e.expires_at > NOW())
+      AND p_item_id LIKE e.item_id || '%'  -- Simple path matching
+    ) INTO has_access;
+  END IF;
+  
+  RETURN has_access;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -308,10 +398,13 @@ $$ LANGUAGE plpgsql;
 -- Comments
 -- ============================================
 
-COMMENT ON TABLE users IS 'User accounts with authentication data';
+COMMENT ON TABLE users IS 'User accounts with magic link authentication';
+COMMENT ON TABLE devices IS 'User devices for session management';
 COMMENT ON TABLE sessions IS 'Active user sessions';
 COMMENT ON TABLE entitlements IS 'User content access permissions';
-COMMENT ON TABLE payments IS 'Payment transaction records';
+COMMENT ON TABLE purchases IS 'One-time purchase transaction records';
+COMMENT ON TABLE subscriptions IS 'Recurring subscription records';
+COMMENT ON TABLE usage_events IS 'Content usage tracking for analytics';
 COMMENT ON TABLE webhook_events IS 'Webhook event log for debugging';
 COMMENT ON TABLE promo_codes IS 'Promotional discount codes';
 COMMENT ON TABLE promo_code_usage IS 'Promo code redemption history';
