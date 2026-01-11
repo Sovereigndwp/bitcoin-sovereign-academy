@@ -40,6 +40,17 @@
 | **BASE_URL** | Your site URL | "https://bitcoinsovereign.academy" |
 | **ALLOWED_ORIGIN** | CORS allowed origin | "https://bitcoinsovereign.academy" |
 
+### 🟦 AUTOMATIC - Set by Vercel (Don't Set Manually)
+
+| Variable | Purpose | Notes |
+|----------|---------|-------|
+| **NODE_ENV** | Environment type | Automatically set by Vercel (development/preview/production) |
+| **VERCEL_URL** | Deployment URL | Automatically set by Vercel for each deployment |
+
+**⚠️ Don't set these manually** - Vercel sets them automatically based on the deployment environment.
+
+---
+
 ### 🔵 OPTIONAL - Alternative Payment Methods
 
 | Variable | Purpose | How to Get |
@@ -201,16 +212,18 @@ openssl rand -base64 64
 
    #### Optional Variables:
    
-   **BASE_URL:**
+   **BASE_URL (Optional - Has Default):**
    - Key: `BASE_URL`
    - Value: `https://bitcoinsovereign.academy`
    - Environment: ✅ Production, ✅ Preview, ✅ Development
+   - **Note:** If you already have this set, keep it. If not, it defaults to `https://bitcoinsovereign.academy`
    - Click "Save"
 
-   **ALLOWED_ORIGIN:**
+   **ALLOWED_ORIGIN (Optional - Has Default):**
    - Key: `ALLOWED_ORIGIN`
    - Value: `https://bitcoinsovereign.academy`
    - Environment: ✅ Production, ✅ Preview, ✅ Development
+   - **Note:** If you already have this set, keep it. If not, it defaults to `https://bitcoinsovereign.academy`
    - Click "Save"
 
    **EMAIL_API_KEY (If Using Email):**
@@ -387,4 +400,4 @@ Once you've set up the required variables:
 
 ---
 
-**Last Updated:** January 2025
+**Last Updated:** January 2026
