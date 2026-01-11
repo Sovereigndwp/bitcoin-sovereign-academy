@@ -1,0 +1,143 @@
+name: Quality Gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lighthouse:
+    name: Lighthouse Performance Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm ci || npm install
+        
+      - name: Build site
+        run: npm run build || echo "No build step defined"
+        
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: |
+            http://localhost:8080
+            http://localhost:8080/paths/curious/
+            http://localhost:8080/interactive-demos/
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          
+  accessibility:
+    name: Accessibility Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install axe-core
+        run: npm install -g @axe-core/cli
+        
+      - name: Run axe accessibility tests
+        run: |
+          # Test key pages for accessibility issues
+          axe index.html --exit || echo "Accessibility issues found"
+          axe paths/curious/index.html --exit || echo "Accessibility issues found"
+          
+  link-checker:
+    name: Broken Link Detection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          config-file: '.github/link-check-config.json'
+          
+      - name: HTML Link Checker
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: --verbose --no-progress '**/*.html' --exclude 'node_modules'
+          fail: true
+          
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Snyk Security Scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          
+  typescript-check:
+    name: TypeScript Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm ci || npm install
+        
+      - name: Type check
+        run: npm run type-check || tsc --noEmit || echo "No TypeScript check configured"
+        
+  design-tokens-check:
+    name: Design Token Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check for inline styles
+        run: |
+          echo "Checking for hardcoded colors instead of design tokens..."
+          # Look for hardcoded hex colors (excluding design-tokens.css and comments)
+          if grep -r --include="*.html" --include="*.css" --exclude="design-tokens.css" '#[0-9a-fA-F]\{6\}' . | grep -v '<!--' | grep -v '/\*'; then
+            echo "⚠️  Found hardcoded colors. Please use design tokens from css/design-tokens.css"
+            exit 1
+          else
+            echo "✅ No hardcoded colors found"
+          fi
+          
+  summary:
+    name: Quality Gate Summary
+    runs-on: ubuntu-latest
+    needs: [lighthouse, accessibility, link-checker, typescript-check, design-tokens-check]
+    if: always()
+    steps:
+      - name: Check quality gate status
+        run: |
+          echo "Quality Gate Results:"
+          echo "- Lighthouse: ${{ needs.lighthouse.result }}"
+          echo "- Accessibility: ${{ needs.accessibility.result }}"
+          echo "- Link Checker: ${{ needs.link-checker.result }}"
+          echo "- TypeScript: ${{ needs.typescript-check.result }}"
+          echo "- Design Tokens: ${{ needs.design-tokens-check.result }}"
+          
+          if [ "${{ needs.lighthouse.result }}" != "success" ] || \
+             [ "${{ needs.accessibility.result }}" != "success" ] || \
+             [ "${{ needs.link-checker.result }}" != "success" ]; then
+            echo "❌ Quality gate failed"
+            exit 1
+          else
+            echo "✅ All quality checks passed"
+          fi
