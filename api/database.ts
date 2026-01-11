@@ -309,6 +309,10 @@ export async function findUserByResetToken(token: string): Promise<User | null> 
     return null;
   }
 }
+
+export async function updateUser(userId: string, updates: Partial<User>): Promise<void> {
+  const dbUpdates: any = {};
+
   if (updates.email) dbUpdates.email = updates.email;
   if (updates.passwordHash) dbUpdates.password_hash = updates.passwordHash;
   if (updates.passwordSalt) dbUpdates.password_salt = updates.passwordSalt;
