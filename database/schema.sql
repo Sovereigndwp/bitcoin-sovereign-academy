@@ -329,11 +329,13 @@ CREATE TABLE subscriptions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   product_id VARCHAR(100) NOT NULL,       -- 'path_monthly_curious', 'all_access_annual', etc.
-  provider VARCHAR(50) NOT NULL,          -- 'stripe' or 'btcpay'
-  provider_subscription_id TEXT,          -- Stripe subscription ID
+  stripe_subscription_id TEXT UNIQUE,     -- Stripe subscription ID
+  stripe_customer_id TEXT,                 -- Stripe customer ID
   status VARCHAR(50) DEFAULT 'active',    -- active, cancelled, expired, past_due
   current_period_start TIMESTAMP,
   current_period_end TIMESTAMP,
+  cancel_at TIMESTAMP,                     -- When subscription will cancel
+  canceled_at TIMESTAMP,                   -- When subscription was canceled
   cancel_at_period_end BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
@@ -341,7 +343,8 @@ CREATE TABLE subscriptions (
 
 CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
 CREATE INDEX idx_subscriptions_status ON subscriptions(status);
-CREATE INDEX idx_subscriptions_provider_id ON subscriptions(provider, provider_subscription_id);
+CREATE INDEX idx_subscriptions_stripe_id ON subscriptions(stripe_subscription_id);
+CREATE INDEX idx_subscriptions_customer_id ON subscriptions(stripe_customer_id);
 
 CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON subscriptions
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
