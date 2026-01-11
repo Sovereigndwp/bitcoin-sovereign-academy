@@ -232,6 +232,22 @@ async function processPaymentSuccess(invoiceId: string, webhookEventId: string):
       invoiceId
     });
   });
+
+  // Send payment receipt email (don't block on email sending)
+  try {
+    const { sendPaymentReceipt } = await import('../lib/email');
+    await sendPaymentReceipt({
+      email,
+      productName: product.name,
+      amount: paidAmount,
+      currency: 'USD',
+      date: new Date(),
+      invoiceId
+    });
+  } catch (emailError) {
+    console.error('Failed to send receipt email:', emailError);
+    // Don't fail the webhook - payment is already processed
+  }
 }
 
 /**

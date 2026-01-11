@@ -32,47 +32,20 @@ async function checkRateLimit(email: string): Promise<boolean> {
 }
 
 /**
- * Send magic link email
- * TODO: Implement actual email sending (SendGrid, Resend, etc.)
+ * Send magic link email using email service
  */
 async function sendMagicLinkEmail(
   email: string,
   token: string,
   baseUrl: string
 ): Promise<void> {
-  const magicLink = `${baseUrl}/auth/verify?token=${token}`;
+  const { sendMagicLinkEmail: sendEmail } = await import('../lib/email');
   
-  // TODO: Replace with actual email service
-  // For now, just log it (NEVER do this in production!)
-  console.log('='.repeat(80));
-  console.log('MAGIC LINK EMAIL (DEVELOPMENT ONLY)');
-  console.log('='.repeat(80));
-  console.log(`To: ${email}`);
-  console.log(`Link: ${magicLink}`);
-  console.log('='.repeat(80));
-  
-  // Production implementation example:
-  /*
-  const sgMail = require('@sendgrid/mail');
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  
-  await sgMail.send({
-    to: email,
-    from: 'auth@bitcoinsovereign.academy',
-    subject: 'Your Bitcoin Sovereign Academy Login Link',
-    text: `Click here to log in: ${magicLink}\n\nThis link expires in 15 minutes and can only be used once.\n\nIf you didn't request this, please ignore this email.`,
-    html: `
-      <h2>Your Login Link</h2>
-      <p>Click the button below to log in to Bitcoin Sovereign Academy:</p>
-      <a href="${magicLink}" style="display: inline-block; padding: 12px 24px; background: #f7931a; color: white; text-decoration: none; border-radius: 8px;">
-        Log In
-      </a>
-      <p>Or copy and paste this link: ${magicLink}</p>
-      <p><strong>This link expires in 15 minutes and can only be used once.</strong></p>
-      <p>If you didn't request this, please ignore this email.</p>
-    `
+  await sendEmail({
+    email,
+    token,
+    expiresInMinutes: 15
   });
-  */
 }
 
 /**
