@@ -19,6 +19,7 @@ Specialized bots that detect issues and propose fixes:
 - **`link-health-auditor.js`** - Crawls site, validates demo routes, checks console errors
 - **`bitcoin-scout.js`** - Monitors Bitcoin ecosystem for curriculum updates
 - **`bug-triage.js`** - Converts errors and feedback into actionable issues
+- **`content-generator.js`** - Autonomously identifies content gaps and generates high-value educational modules
 
 #### 2. Scripts (`/scripts/`)
 
@@ -173,6 +174,55 @@ Output:
 📝 Generating patch notes...
 Creating content update PR...
 ```
+
+### Generating New Educational Content
+
+```bash
+node mcp/auditors/content-generator.js
+```
+
+Output:
+```
+🎨 Content Generator MCP - Starting...
+
+📊 Step 1: Analyzing content gaps...
+   Found 18 content gaps across 5 categories
+
+🎯 Step 2: Prioritizing by impact...
+   Top 10 priorities:
+   1. [CRITICAL] Backup & Recovery Procedures (practical_skills)
+   2. [HIGH] Inflation vs Deflation (financial_literacy)
+   3. [HIGH] Digital Privacy Fundamentals (sovereignty_concepts)
+   4. [HIGH] Receiving Salary in Bitcoin (real_world_scenarios)
+   5. [HIGH] Mining Difficulty Adjustment Simulator (interactive_demos)
+   ...
+
+📝 Step 3: Generating content templates...
+   Generated 3 content templates
+
+✅ Content generation report saved
+   Location: mcp/reports/content-generation-report.json
+
+📋 Summary:
+   • 18 total content gaps identified
+   • 10 prioritized for development
+   • 3 templates generated
+   • Next: Use AI to generate full modules from templates
+```
+
+The Content Generator identifies gaps in:
+- **Financial Literacy** - inflation, purchasing power, time preference
+- **Sovereignty Concepts** - privacy, censorship resistance, self-custody
+- **Practical Skills** - backup procedures, fee estimation, signature verification  
+- **Real-World Scenarios** - salary in Bitcoin, remittances, estate planning
+- **Interactive Demos** - difficulty adjustment, UTXO management, Lightning channels
+
+Each gap includes:
+- Priority level (critical/high/medium)
+- Target learning paths
+- Suggested format (simulator, calculator, decision-tree, etc.)
+- AI generation prompt for creating full content
+- Quality standards checklist
 
 ## Future Enhancements
 
