@@ -558,22 +558,178 @@
         // Load purchases
         async function loadPurchases() {
             const container = document.getElementById('purchases-list');
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="icon">🛒</div>
-                    <p>Purchase history coming soon</p>
-                </div>
+            
+            try {
+                const response = await fetch('/api/account/purchases', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load purchases');
+                }
+
+                if (data.purchases.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="icon">🛒</div>
+                            <p>No purchases yet</p>
+                            <a href="/pricing-new.html" class="btn btn-primary" style="display: inline-block; margin-top: 1rem;">Browse Products</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <ul class="item-list">
+                        ${data.purchases.map(purchase => renderPurchase(purchase)).join('')}
+                    </ul>
+                `;
+            } catch (error) {
+                console.error('Failed to load purchases:', error);
+                container.innerHTML = `
+                    <div class="error">${error.message}</div>
+                `;
+            }
+        }
+
+        // Render purchase
+        function renderPurchase(purchase) {
+            const statusClass = purchase.status === 'completed' ? 'status-active' : 
+                               purchase.status === 'pending' ? 'status-past-due' : 
+                               'status-canceled';
+            
+            const date = purchase.paidAt ? new Date(purchase.paidAt).toLocaleDateString() :
+                        new Date(purchase.createdAt).toLocaleDateString();
+            
+            const providerIcon = purchase.provider === 'btcpay' ? '₿' : '💳';
+            
+            return `
+                <li class="item">
+                    <div class="item-header">
+                        <div>
+                            <div class="item-title">${purchase.productName}</div>
+                            <div class="item-subtitle">${providerIcon} ${purchase.provider.toUpperCase()}</div>
+                        </div>
+                        <span class="status-badge ${statusClass}">${purchase.status}</span>
+                    </div>
+                    <div class="item-meta">
+                        <span>📅 ${date}</span>
+                        <span>💰 $${purchase.amount.toFixed(2)} ${purchase.currency}</span>
+                    </div>
+                </li>
             `;
         }
 
         // Load entitlements
         async function loadEntitlements() {
             const container = document.getElementById('entitlements-list');
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="icon">🔓</div>
-                    <p>Content access management coming soon</p>
-                </div>
+            
+            try {
+                const response = await fetch('/api/account/entitlements', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load content access');
+                }
+
+                let html = '';
+
+                // Show all-access badge if applicable
+                if (data.hasAllAccess) {
+                    html += `
+                        <div style="background: rgba(76, 175, 80, 0.1); border: 2px solid var(--green); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎉</div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: var(--green);">All Access Active</div>
+                            <div style="color: var(--text-dim);">You have access to all content</div>
+                        </div>
+                    `;
+                }
+
+                // Paid entitlements
+                if (data.entitlements.length > 0) {
+                    html += `
+                        <h3 style="margin-bottom: 1rem; color: var(--text-dim); font-size: 0.9rem; text-transform: uppercase;">Your Access</h3>
+                        <ul class="item-list">
+                            ${data.entitlements.map(e => renderEntitlement(e)).join('')}
+                        </ul>
+                    `;
+                }
+
+                // Free demos
+                if (data.freeDemos.length > 0) {
+                    html += `
+                        <h3 style="margin: 2rem 0 1rem; color: var(--text-dim); font-size: 0.9rem; text-transform: uppercase;">Free Demos</h3>
+                        <ul class="item-list">
+                            ${data.freeDemos.map(e => renderEntitlement(e)).join('')}
+                        </ul>
+                    `;
+                }
+
+                if (!html) {
+                    html = `
+                        <div class="empty-state">
+                            <div class="icon">🔓</div>
+                            <p>No content access yet</p>
+                            <a href="/pricing-new.html" class="btn btn-primary" style="display: inline-block; margin-top: 1rem;">Get Access</a>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Failed to load entitlements:', error);
+                container.innerHTML = `
+                    <div class="error">${error.message}</div>
+                `;
+            }
+        }
+
+        // Render entitlement
+        function renderEntitlement(entitlement) {
+            const statusClass = entitlement.isActive ? 'status-active' : 
+                               entitlement.isExpired ? 'status-canceled' : 
+                               'status-past-due';
+            
+            const statusText = entitlement.isActive ? 'Active' : 
+                              entitlement.isExpired ? 'Expired' : 
+                              'Inactive';
+            
+            let expiryInfo = '';
+            if (entitlement.expiresAt) {
+                const expiryDate = new Date(entitlement.expiresAt);
+                if (entitlement.isExpired) {
+                    expiryInfo = `Expired ${expiryDate.toLocaleDateString()}`;
+                } else {
+                    expiryInfo = `Expires ${expiryDate.toLocaleDateString()}`;
+                }
+            } else if (entitlement.type !== 'free') {
+                expiryInfo = 'Lifetime access';
+            }
+            
+            return `
+                <li class="item">
+                    <div class="item-header">
+                        <div>
+                            <div class="item-title">${entitlement.itemName || entitlement.typeName}</div>
+                            <div class="item-subtitle">${entitlement.typeName}</div>
+                        </div>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    ${expiryInfo ? `
+                        <div class="item-meta">
+                            <span>📅 ${expiryInfo}</span>
+                        </div>
+                    ` : ''}
+                </li>
             `;
         }
 
