@@ -25,11 +25,12 @@ export function getPool(): Pool {
       throw new Error('DATABASE_URL environment variable not set');
     }
 
+    // Supabase requires SSL but with rejectUnauthorized: false for pooled connections
     pool = new Pool({
       connectionString,
-      ssl: {
-        rejectUnauthorized: true
-      },
+      ssl: process.env.NODE_ENV === 'production' ? {
+        rejectUnauthorized: false // Required for Supabase pooler
+      } : false,
       max: 20, // Maximum pool size
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
