@@ -103,7 +103,7 @@ const translations = {
       community: 'Community',
       resources: 'Resources',
       copyright: '© 2025 Bitcoin Sovereign Academy. Educational content only, not financial advice.',
-      quote: '"Not your keys, not your coins. Not your knowledge, not your sovereignty."'
+      quote: '"Get your Bitcoin off exchanges. Not your knowledge, not your sovereignty."'
     },
     
     // Stats

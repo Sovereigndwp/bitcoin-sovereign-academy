@@ -407,7 +407,7 @@ class TimeMachineAgent {
         // Universal lessons
         lessons.push('Bitcoin is inevitable');
         lessons.push('You are still early');
-        lessons.push('Not your keys, not your coins');
+        lessons.push('Get your Bitcoin off exchanges');
         
         return lessons;
     }

@@ -20,7 +20,7 @@ After reviewing all 6 existing module files, they are **already 80-90% aligned**
 ### Module 2 (Move to Self-Custody)
 - Wallet app comparisons (BlueWallet, Muun, Phoenix)
 - Step-by-step withdrawal instructions
-- "Not your keys, not your coins" emphasis
+- "Get your Bitcoin off exchanges" emphasis
 - Exchange horror stories (Mt. Gox, FTX)
 
 ### Module 3 (Secure Seed Phrase)

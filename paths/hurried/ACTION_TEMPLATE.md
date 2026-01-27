@@ -51,7 +51,7 @@
 ## Module 2: Move to Self-Custody (10 min)
 **Goal:** Bitcoin in YOUR wallet, off exchange
 
-**WHY:** Mt. Gox, FTX, Celsius. Not your keys, not your coins.
+**WHY:** Mt. Gox, FTX, Celsius. Get your Bitcoin off exchanges.
 
 **HOW:**
 1. Download BlueWallet or Muun

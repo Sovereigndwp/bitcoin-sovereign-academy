@@ -38,7 +38,7 @@ class NewsTicker {
             { icon: '⚡', text: 'Lightning Network capacity expanding globally', category: 'lightning' },
             { icon: '🌍', text: 'Institutions increasing Bitcoin adoption', category: 'adoption' },
             { icon: '💎', text: '21 million Bitcoin cap ensures scarcity', category: 'fundamentals' },
-            { icon: '🔐', text: 'Self-custody: Not your keys, not your coins', category: 'security' },
+            { icon: '🔐', text: 'Self-custody: Get your Bitcoin off exchanges', category: 'security' },
             { icon: '📈', text: 'Bitcoin dominance remains strong', category: 'market' },
             { icon: '⛏️', text: 'Mining difficulty adjusts every 2016 blocks', category: 'mining' },
             { icon: '🌟', text: 'Start your Bitcoin sovereignty journey today', category: 'education' }

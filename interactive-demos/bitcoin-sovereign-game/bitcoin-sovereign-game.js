@@ -447,7 +447,7 @@ class BitcoinSovereignGame {
             case 'self_custody':
                 results.impact = this.selfCustody();
                 results.success = true;
-                results.lesson = 'Not your keys, not your coins';
+                results.lesson = 'Get your Bitcoin off exchanges';
                 break;
 
             case 'keep_on_exchange':
@@ -839,7 +839,7 @@ class BitcoinSovereignGame {
             
             2010: "Laszlo Hanyecz buys two pizzas for 10,000 BTC. People laugh at the 'stupid' purchase. Those pizzas would be worth hundreds of millions in the future. This moment proves Bitcoin has value - someone accepted it for real goods...",
             
-            2013: "Bitcoin reaches $1,000 for the first time! But Mt. Gox, handling 70% of all Bitcoin transactions, suddenly halts withdrawals. The exchange collapses, taking 850,000 BTC with it. The lesson is harsh: not your keys, not your coins...",
+            2013: "Bitcoin reaches $1,000 for the first time! But Mt. Gox, handling 70% of all Bitcoin transactions, suddenly halts withdrawals. The exchange collapses, taking 850,000 BTC with it. The lesson is harsh: get your Bitcoin off exchanges...",
             
             2017: "Euphoria grips the market. Everyone's talking about Bitcoin at Thanksgiving dinner. ICOs promise to disrupt everything. Your taxi driver is giving crypto tips. The price touches $20,000. Is this adoption or mania?",
             
@@ -1254,7 +1254,7 @@ class SocraticTutor {
         const reflections = {
             buy_bitcoin: "You chose to exit the traditional system. Time will tell if you're early or wrong.",
             mine_bitcoin: "You saw opportunity where others saw worthless computation. The best investments often look like toys.",
-            self_custody: "You learned the most important lesson: not your keys, not your coins.",
+            self_custody: "You learned the most important lesson: get your Bitcoin off exchanges.",
             buy_stocks: "Traditional markets have centuries of history. But is past performance indicative of future results?",
             buy_gold: "5000 years of monetary history. But can analog money survive in a digital world?",
             educate: "The best investment is in yourself. Knowledge compounds forever.",

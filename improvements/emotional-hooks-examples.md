@@ -68,7 +68,7 @@ This isn't fantasy. This is Bitcoin in 2024."
 
 **Improved (Journey):**
 ```
-"You're about to learn the single most important concept in Bitcoin: the private key. Master this, and you'll understand why 'not your keys, not your coins' isn't just a slogan—it's the difference between true ownership and digital serfdom."
+"You're about to learn the single most important concept in Bitcoin: the private key. Master this, and you'll understand why 'get your Bitcoin off exchanges' isn't just a slogan—it's the difference between true ownership and digital serfdom."
 ```
 
 ### 6. Future-Backward Storytelling
