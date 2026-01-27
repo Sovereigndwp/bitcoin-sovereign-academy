@@ -11,7 +11,7 @@
 class NavigationContextManager {
     constructor() {
         this.STORAGE_KEY = 'bsa-navigation-context';
-        this.CONTEXT_EXPIRY = 30 * 60 * 1000; // 30 minutes
+        this.CONTEXT_EXPIRY = 2 * 60 * 60 * 1000; // 2 hours (increased from 30 min)
         
         // Path display names
         this.PATH_NAMES = {
@@ -20,8 +20,13 @@ class NavigationContextManager {
             'hurried': 'The Hurried Path',
             'pragmatist': 'The Pragmatist Path',
             'builder': 'The Builder Path',
-            'sovereign': 'The Sovereign Path'
+            'sovereign': 'The Sovereign Path',
+            'skeptic': 'The Skeptic Path',
+            'observer': 'The Observer Path'
         };
+        
+        this.demoStartTime = null;
+        this.hasScrolledToBottom = false;
     }
 
     /**
@@ -151,9 +156,13 @@ class NavigationContextManager {
         // Don't show on path pages themselves
         if (window.location.pathname.startsWith('/paths/')) return;
         
+        // Track demo start time for completion detection
+        this.demoStartTime = Date.now();
+        
         // Create the nav element
         const nav = document.createElement('div');
         nav.className = `bsa-return-nav bsa-return-nav--${position}`;
+        nav.id = 'bsa-return-nav';
         nav.innerHTML = `
             <a href="${context.returnUrl}" class="bsa-return-nav__link">
                 <span class="bsa-return-nav__icon">↩</span>
@@ -187,6 +196,84 @@ class NavigationContextManager {
         // Animate in
         requestAnimationFrame(() => {
             nav.classList.add('bsa-return-nav--visible');
+        });
+        
+        // Setup completion detection
+        this.setupCompletionDetection(context);
+    }
+    
+    /**
+     * Setup detection for when user has likely "completed" the demo
+     * Shows a more prominent return prompt
+     */
+    setupCompletionDetection(context) {
+        const self = this;
+        
+        // Detect scroll to bottom
+        const checkScrollBottom = () => {
+            const scrollHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.scrollY;
+            const clientHeight = window.innerHeight;
+            
+            // Within 200px of bottom
+            if (scrollTop + clientHeight >= scrollHeight - 200) {
+                if (!self.hasScrolledToBottom) {
+                    self.hasScrolledToBottom = true;
+                    // Show completion prompt after scrolling to bottom + 3 seconds
+                    setTimeout(() => {
+                        self.showCompletionPrompt(context);
+                    }, 3000);
+                }
+            }
+        };
+        
+        window.addEventListener('scroll', checkScrollBottom, { passive: true });
+        
+        // Also show completion prompt after spending 2+ minutes on the demo
+        setTimeout(() => {
+            if (!document.getElementById('bsa-completion-prompt')) {
+                self.showCompletionPrompt(context);
+            }
+        }, 2 * 60 * 1000);
+    }
+    
+    /**
+     * Show a more prominent completion prompt
+     */
+    showCompletionPrompt(context) {
+        // Don't show if already dismissed or if floating nav was dismissed
+        if (document.getElementById('bsa-completion-prompt')) return;
+        if (!document.getElementById('bsa-return-nav')) return;
+        
+        const pathName = this.PATH_NAMES[context.pathId] || context.pathId;
+        
+        const prompt = document.createElement('div');
+        prompt.id = 'bsa-completion-prompt';
+        prompt.className = 'bsa-completion-prompt';
+        prompt.innerHTML = `
+            <div class="bsa-completion-prompt__content">
+                <div class="bsa-completion-prompt__icon">✓</div>
+                <div class="bsa-completion-prompt__text">
+                    <strong>Ready to continue your journey?</strong>
+                    <span>Return to ${pathName}</span>
+                </div>
+                <a href="${context.returnUrl}" class="bsa-completion-prompt__btn">
+                    Continue Path →
+                </a>
+                <button class="bsa-completion-prompt__dismiss" aria-label="Dismiss">×</button>
+            </div>
+        `;
+        
+        prompt.querySelector('.bsa-completion-prompt__dismiss').addEventListener('click', (e) => {
+            e.preventDefault();
+            prompt.classList.add('bsa-completion-prompt--hidden');
+            setTimeout(() => prompt.remove(), 300);
+        });
+        
+        document.body.appendChild(prompt);
+        
+        requestAnimationFrame(() => {
+            prompt.classList.add('bsa-completion-prompt--visible');
         });
     }
 
@@ -331,8 +418,125 @@ class NavigationContextManager {
             
             /* Respect reduced motion */
             @media (prefers-reduced-motion: reduce) {
-                .bsa-return-nav {
+                .bsa-return-nav,
+                .bsa-completion-prompt {
                     transition: none;
+                }
+            }
+            
+            /* Completion Prompt Styles */
+            .bsa-completion-prompt {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 10000;
+                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+                border-top: 3px solid #f7931a;
+                padding: 1rem 1.5rem;
+                opacity: 0;
+                transform: translateY(100%);
+                transition: opacity 0.4s ease, transform 0.4s ease;
+                box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+            }
+            
+            .bsa-completion-prompt--visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            
+            .bsa-completion-prompt--hidden {
+                opacity: 0;
+                transform: translateY(100%);
+            }
+            
+            .bsa-completion-prompt__content {
+                max-width: 800px;
+                margin: 0 auto;
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .bsa-completion-prompt__icon {
+                width: 48px;
+                height: 48px;
+                background: linear-gradient(135deg, #4caf50, #66bb6a);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                color: white;
+                flex-shrink: 0;
+            }
+            
+            .bsa-completion-prompt__text {
+                flex: 1;
+                min-width: 200px;
+            }
+            
+            .bsa-completion-prompt__text strong {
+                display: block;
+                color: #fff;
+                font-size: 1.1rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .bsa-completion-prompt__text span {
+                color: #b3b3b3;
+                font-size: 0.95rem;
+            }
+            
+            .bsa-completion-prompt__btn {
+                padding: 0.875rem 2rem;
+                background: linear-gradient(135deg, #f7931a 0%, #ff8c00 100%);
+                color: white;
+                text-decoration: none;
+                border-radius: 50px;
+                font-weight: 700;
+                font-size: 1rem;
+                box-shadow: 0 4px 16px rgba(247, 147, 26, 0.4);
+                transition: all 0.3s ease;
+                white-space: nowrap;
+            }
+            
+            .bsa-completion-prompt__btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 24px rgba(247, 147, 26, 0.5);
+            }
+            
+            .bsa-completion-prompt__dismiss {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.5rem;
+                width: 28px;
+                height: 28px;
+                background: transparent;
+                border: none;
+                color: #666;
+                font-size: 1.2rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: color 0.2s ease;
+            }
+            
+            .bsa-completion-prompt__dismiss:hover {
+                color: #f44336;
+            }
+            
+            @media (max-width: 600px) {
+                .bsa-completion-prompt__content {
+                    flex-direction: column;
+                    text-align: center;
+                }
+                
+                .bsa-completion-prompt__btn {
+                    width: 100%;
                 }
             }
         `;
