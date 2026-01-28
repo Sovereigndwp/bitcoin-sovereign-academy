@@ -1124,7 +1124,11 @@
             "zebra", "zero", "zone", "zoo"
         ];
 
-        const WEAK_WORDS = ['password', 'bitcoin', 'wallet', 'money', 'crypto', 'blockchain', 'test', '123'];
+        // Preset weak patterns using actual BIP39 words (for demonstration)
+        // All words starting with 'a' - showing predictable patterns are dangerous
+        const WEAK_PATTERN_A = BIP39_WORDLIST.filter(w => w.startsWith('a'));
+        // All words starting with 'b'
+        const WEAK_PATTERN_B = BIP39_WORDLIST.filter(w => w.startsWith('b'));
 
         // Global state
         let currentSeed = '';
@@ -1194,13 +1198,11 @@
             const length = parseInt(document.getElementById('seedLength').value);
             const seed = [];
 
-            // Intentionally weak for demonstration
+            // Intentionally weak for demonstration - all words start with 'a'
+            // This shows why predictable patterns are dangerous even with valid BIP39 words
             for (let i = 0; i < length; i++) {
-                if (i < WEAK_WORDS.length) {
-                    seed.push(WEAK_WORDS[i]);
-                } else {
-                    seed.push(BIP39_WORDLIST[i % 20]);
-                }
+                // Use words starting with 'a' in order (very predictable pattern)
+                seed.push(WEAK_PATTERN_A[i % WEAK_PATTERN_A.length]);
             }
 
             currentSeed = seed.join(' ');
@@ -1386,14 +1388,42 @@
             const canvas = document.getElementById('qrCode');
             const container = document.getElementById('qrContainer');
 
-            if (typeof QRCode !== 'undefined') {
+            // Ensure canvas has proper dimensions before QR generation
+            canvas.width = 200;
+            canvas.height = 200;
+
+            if (typeof QRCode !== 'undefined' && QRCode.toCanvas) {
                 QRCode.toCanvas(canvas, text, {
                     width: 200,
                     margin: 2,
                     color: { dark: '#000000', light: '#FFFFFF' }
                 }, function (error) {
-                    if (error) console.error(error);
+                    if (error) {
+                        console.error('QR Code error:', error);
+                        // Fallback: show address text prominently if QR fails
+                        canvas.style.display = 'none';
+                        container.innerHTML = `
+                            <h3>QR Code</h3>
+                            <div style="padding: 1rem; background: #fff; border-radius: 8px; color: #000; font-family: monospace; word-break: break-all; font-size: 0.8rem;">
+                                ${text}
+                            </div>
+                            <p><small>Copy address above to share</small></p>
+                        `;
+                    } else {
+                        canvas.style.display = 'block';
+                    }
                 });
+            } else {
+                // QRCode library not loaded - show text fallback
+                console.warn('QRCode library not available');
+                canvas.style.display = 'none';
+                container.innerHTML = `
+                    <h3>Address</h3>
+                    <div style="padding: 1rem; background: #fff; border-radius: 8px; color: #000; font-family: monospace; word-break: break-all; font-size: 0.8rem;">
+                        ${text}
+                    </div>
+                    <p><small>Copy address above to share</small></p>
+                `;
             }
 
             container.style.display = 'block';
@@ -1510,7 +1540,7 @@
 
                 resultDiv.innerHTML = `
                     <div class="security-level level-red">
-                        <strong>🔴 Incorrect order! Try again.</strong>
+                        <strong>🔴 Incorrect order! Please try again.</strong>
                     </div>
                     <p style="margin-top: 1rem; line-height: 1.6;">
                         ${wrongPositions.length === backupWords.length
@@ -1518,26 +1548,31 @@
                             : `Position${wrongPositions.length > 1 ? 's' : ''} ${wrongPositions.join(', ')} ${wrongPositions.length > 1 ? 'are' : 'is'} incorrect.`}
                         <strong>Order matters!</strong> Each word must be in the exact position you wrote it down.
                     </p>
-                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(255, 152, 0, 0.1); border-left: 3px solid #ff9800; border-radius: 0.5rem; font-size: 0.95rem;">
-                        <strong>📚 About Wallet Verification:</strong>
-                        <p style="margin-top: 0.5rem; line-height: 1.6;">
-                            Different wallets verify backups in different ways:
-                        </p>
-                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.8;">
-                            <li><strong>Click in order</strong> (like this demo) - Click all words sequentially</li>
-                            <li><strong>Specific positions</strong> - "Enter word #3, #7, and #12"</li>
-                            <li><strong>Type all words</strong> - Manually type the entire phrase</li>
-                            <li><strong>Random selection</strong> - Wallet randomly asks for 4-6 words</li>
-                        </ul>
-                        <p style="margin-top: 0.75rem; font-style: italic; color: var(--text-dim);">
-                            All methods test the same thing: Did you write it down correctly and can you read your own handwriting?
-                        </p>
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(244, 67, 54, 0.15); border: 2px solid var(--accent-red); border-radius: 0.5rem; text-align: center;">
+                        <p style="margin-bottom: 1rem; font-weight: 600;">🔄 Your selection has been cleared. Try again!</p>
+                        <p style="color: var(--text-dim); font-size: 0.9rem;">Tip: Review the seed phrase above carefully before selecting words.</p>
                     </div>
-                    <p style="margin-top: 1rem; color: var(--text-light);">
-                        Click <strong>Reset</strong> below to try again, or use the <strong>Hide Seed</strong> button above to practice for real!
-                    </p>
                 `;
                 updateSecurityScore(-5);
+
+                // Automatically reset after showing feedback so user must try again
+                setTimeout(() => {
+                    resetBackup();
+                    // Keep the error message visible
+                    resultDiv.innerHTML = `
+                        <div class="security-level level-yellow" style="margin-bottom: 1rem;">
+                            ⚠️ Previous attempt was incorrect. Try again!
+                        </div>
+                        <div style="padding: 1rem; background: rgba(255, 152, 0, 0.1); border-left: 3px solid #ff9800; border-radius: 0.5rem; font-size: 0.95rem;">
+                            <strong>💡 Tips for success:</strong>
+                            <ul style="margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.8;">
+                                <li>Read each word and its number carefully</li>
+                                <li>Select words in exact order: 1, 2, 3...</li>
+                                <li>Double-check before clicking "Check My Backup"</li>
+                            </ul>
+                        </div>
+                    `;
+                }, 2500);
             }
         }
 
