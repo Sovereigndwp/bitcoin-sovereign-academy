@@ -868,6 +868,177 @@
                     </div>
                 </div>
 
+                <!-- Derivation Paths Deep Dive -->
+                <h3>🗂️ Understanding Derivation Paths</h3>
+                <p style="margin-bottom: 1rem;">Derivation paths are not advanced Bitcoin trivia—they are the <strong>index system of your money</strong>. Understanding them prevents recovery panic.</p>
+
+                <div class="security-dropdown" style="margin-bottom: 1rem;">
+                    <button class="security-dropdown-header" onclick="toggleSecurityDropdown('path-evolution')">
+                        <span class="dropdown-icon" id="path-evolution-icon">▶</span>
+                        <strong>Why Different Wallets Use Different Paths</strong>
+                    </button>
+                    <div class="security-dropdown-content" id="path-evolution-content" style="display: none;">
+                        <p>Early Bitcoin wallets had no standard. Then standards appeared over time, each solving a problem. Think of it as <strong>versions</strong>, not competition.</p>
+                        
+                        <div style="margin: 1.5rem 0;">
+                            <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; margin-bottom: 0.75rem; border-left: 3px solid #9e9e9e;">
+                                <strong>Legacy (m/44')</strong> — Addresses start with <code>1</code><br>
+                                <span style="color: var(--text-dim);">Oldest style. Works everywhere but higher fees, less efficient.</span>
+                            </div>
+                            <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; margin-bottom: 0.75rem; border-left: 3px solid #2196F3;">
+                                <strong>SegWit Wrapped (m/49')</strong> — Addresses start with <code>3</code><br>
+                                <span style="color: var(--text-dim);">Transition step. Better fees, backward compatible.</span>
+                            </div>
+                            <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; margin-bottom: 0.75rem; border-left: 3px solid var(--accent-green);">
+                                <strong>Native SegWit (m/84')</strong> — Addresses start with <code>bc1q</code><br>
+                                <span style="color: var(--text-dim);">Lower fees, cleaner design. Today's most common default.</span>
+                            </div>
+                            <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; border-left: 3px solid var(--primary-orange);">
+                                <strong>Taproot (m/86')</strong> — Addresses start with <code>bc1p</code><br>
+                                <span style="color: var(--text-dim);">More privacy and flexibility. Still newer, not all tools support it fully.</span>
+                            </div>
+                        </div>
+                        
+                        <p style="font-style: italic; color: var(--text-dim);">Wallets did not "change their minds"—they adopted new standards as Bitcoin evolved. That's why an older wallet, a newer wallet, and a multisig coordinator may all use different paths by default.</p>
+                    </div>
+                </div>
+
+                <div class="security-dropdown" style="margin-bottom: 1rem;">
+                    <button class="security-dropdown-header" onclick="toggleSecurityDropdown('path-recovery')">
+                        <span class="dropdown-icon" id="path-recovery-icon">▶</span>
+                        <strong>What Actually Happens During Recovery</strong>
+                    </button>
+                    <div class="security-dropdown-content" id="path-recovery-content" style="display: none;">
+                        <p>This is where most recovery panic comes from.</p>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0;">
+                            <div style="padding: 1rem; background: rgba(244, 67, 54, 0.1); border-radius: 0.5rem; border: 1px solid var(--accent-red);">
+                                <strong style="color: var(--accent-red);">❌ What Users Expect</strong>
+                                <p style="margin-top: 0.5rem;">"I entered my seed phrase. My balance should appear."</p>
+                            </div>
+                            <div style="padding: 1rem; background: rgba(76, 175, 80, 0.1); border-radius: 0.5rem; border: 1px solid var(--accent-green);">
+                                <strong style="color: var(--accent-green);">✅ What Actually Happens</strong>
+                                <p style="margin-top: 0.5rem;">The wallet assumes a default path, scans addresses along it, stops when it sees no history.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="tip-box" style="background: rgba(255, 152, 0, 0.1); border-left-color: #ff9800;">
+                            <strong>⚠️ If your Bitcoin was created on a different path, the wallet sees nothing.</strong><br><br>
+                            This does NOT mean:
+                            <ul style="margin: 0.5rem 0 0 1.5rem;">
+                                <li>Seed is wrong</li>
+                                <li>Bitcoin is lost</li>
+                                <li>Wallet failed</li>
+                            </ul>
+                            <p style="margin-top: 1rem;">It only means: <strong>The wallet is searching the wrong filing cabinet.</strong></p>
+                        </div>
+                        
+                        <p style="margin-top: 1rem;">Tools like Sparrow or Electrum allow you to try different paths, manually specify one, or scan multiple address types. They assume you may not know which wallet originally created the addresses.</p>
+                    </div>
+                </div>
+
+                <div class="security-dropdown" style="margin-bottom: 1rem;">
+                    <button class="security-dropdown-header" onclick="toggleSecurityDropdown('path-multisig')">
+                        <span class="dropdown-icon" id="path-multisig-icon">▶</span>
+                        <strong>Why Multisig Is Stricter About Paths</strong>
+                    </button>
+                    <div class="security-dropdown-content" id="path-multisig-content" style="display: none;">
+                        <p>Multisig wallets are shared agreements. Everyone must agree on: keys, script type, address format, <strong>and derivation paths</strong>.</p>
+                        
+                        <p style="margin: 1rem 0;">If even one signer uses a different path or address type, the wallets no longer recognize the same coins.</p>
+                        
+                        <div class="tip-box">
+                            <strong>🔐 Simple Analogy</strong><br><br>
+                            Imagine three people sharing a safe. They agree on:
+                            <ul style="margin: 0.5rem 0 0.5rem 1.5rem;">
+                                <li>Which building</li>
+                                <li>Which floor</li>
+                                <li>Which room</li>
+                                <li>Which safe number</li>
+                            </ul>
+                            <p style="margin-top: 0.75rem;">If one person uses a different floor, they are opening a <strong>different safe</strong>.<br>
+                            Same key material. Different location.</p>
+                        </div>
+                        
+                        <p style="margin-top: 1rem;">That's why multisig setups always document: script type, derivation paths, and policy rules. This is not paranoia—it's coordination.</p>
+                    </div>
+                </div>
+
+                <div class="security-dropdown" style="margin-bottom: 1rem;">
+                    <button class="security-dropdown-header" onclick="toggleSecurityDropdown('path-addresses')">
+                        <span class="dropdown-icon" id="path-addresses-icon">▶</span>
+                        <strong>Why Wallets Keep Generating New Addresses</strong>
+                    </button>
+                    <div class="security-dropdown-content" id="path-addresses-content" style="display: none;">
+                        <p>You may notice paths end with a number like <code>/5</code> or <code>/27</code>. Wallets do this automatically.</p>
+                        
+                        <p style="margin: 1rem 0;">Every time you receive Bitcoin:</p>
+                        <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                            <li>Wallet uses the next unused address</li>
+                            <li>Privacy improves (payments aren't linked)</li>
+                            <li>Address reuse is avoided</li>
+                        </ul>
+                        
+                        <p style="margin: 1rem 0;">During recovery, wallets scan: Address 0, Address 1, Address 2... until they see no history.</p>
+                        
+                        <div class="tip-box" style="background: rgba(255, 152, 0, 0.1); border-left-color: #ff9800;">
+                            <strong>⚠️ If the wallet stops scanning too early, funds may appear missing.</strong><br>
+                            Good wallets scan far enough. Advanced wallets let you adjust the "gap limit."
+                        </div>
+                    </div>
+                </div>
+
+                <div class="security-dropdown" style="margin-bottom: 1rem;">
+                    <button class="security-dropdown-header" onclick="toggleSecurityDropdown('path-document')">
+                        <span class="dropdown-icon" id="path-document-icon">▶</span>
+                        <strong>How to Document Derivation Paths Safely</strong>
+                    </button>
+                    <div class="security-dropdown-content" id="path-document-content" style="display: none;">
+                        <p>This matters more than people think.</p>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0;">
+                            <div style="padding: 1rem; background: rgba(76, 175, 80, 0.1); border-radius: 0.5rem; border: 1px solid var(--accent-green);">
+                                <strong style="color: var(--accent-green);">✅ Safe to Store</strong>
+                                <ul style="margin: 0.5rem 0 0 1rem; line-height: 1.8;">
+                                    <li>Derivation path</li>
+                                    <li>Address type</li>
+                                    <li>Wallet software used</li>
+                                    <li>Multisig policy details</li>
+                                </ul>
+                                <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-dim);">These do NOT give access to your Bitcoin.</p>
+                            </div>
+                            <div style="padding: 1rem; background: rgba(244, 67, 54, 0.1); border-radius: 0.5rem; border: 1px solid var(--accent-red);">
+                                <strong style="color: var(--accent-red);">❌ Must Stay Secret</strong>
+                                <ul style="margin: 0.5rem 0 0 1rem; line-height: 1.8;">
+                                    <li>Seed phrase</li>
+                                    <li>Private keys</li>
+                                    <li>Recovery shares</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tip-box">
+                            <strong>📝 Example Documentation</strong>
+                            <pre style="margin-top: 0.75rem; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 0.5rem; font-size: 0.9rem; line-height: 1.6;">Wallet created with Native SegWit
+Path: m/84'/0'/0'
+Used with Sparrow
+Multisig: 2-of-3</pre>
+                            <p style="margin-top: 0.75rem; font-style: italic; color: var(--text-dim);">This note helps future-you recover calmly instead of guessing under stress.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-box" style="margin: 1.5rem 0; background: rgba(156, 39, 176, 0.1); border-left-color: #9C27B0;">
+                    <strong>💡 The Biggest Misconception</strong><br><br>
+                    People think: <em>"My seed phrase is my wallet."</em><br><br>
+                    Reality: <strong>Your wallet is seed phrase + derivation path + script rules.</strong>
+                    <ul style="margin: 1rem 0 0 1.5rem; line-height: 1.8;">
+                        <li>Lose the seed → funds are <strong>gone forever</strong></li>
+                        <li>Lose the path → funds are <strong>hidden but recoverable</strong></li>
+                    </ul>
+                    <p style="margin-top: 1rem;">Only one is irreversible. Bitcoin does not forget—wallets just need to know where to look.</p>
+                </div>
+
                 <h3><span data-icon="lock"></span> Test Your Understanding</h3>
                 <div class="tip-box">
                     <p><strong>Question:</strong> Why must seed phrases be truly random?</p>

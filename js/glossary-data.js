@@ -114,6 +114,14 @@ const GLOSSARY_TERMS = [
         related: ["Node", "Mining", "Consensus"]
     },
     {
+        term: "Derivation Path",
+        category: "technical",
+        aka: ["HD Path", "BIP32 Path"],
+        simple: "A formula that tells your wallet where to find your Bitcoin addresses within your seed phrase. Different paths lead to different addresses. If you recover with the wrong path, your balance appears as zero (but isn't lost).",
+        advanced: "A hierarchical notation (e.g., m/84'/0'/0'/0/0) defining the tree structure for deterministic key generation from a master seed per BIP32. Path components: purpose (44=Legacy, 49=SegWit-wrapped, 84=Native SegWit, 86=Taproot), coin type (0=Bitcoin), account, change (0=receiving, 1=change), address index. Critical for wallet recovery - same seed with different path produces different addresses. Documenting your derivation path alongside seed backup prevents recovery confusion.",
+        related: ["HD Wallet", "Seed Phrase", "BIP32", "BIP44", "Address"]
+    },
+    {
         term: "Difficulty",
         category: "technical",
         aka: ["Mining Difficulty", "Difficulty Target"],
