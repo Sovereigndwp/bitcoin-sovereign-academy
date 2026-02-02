@@ -1,6 +1,7 @@
 /**
  * Gemini AI Tutor UI Component
  * Interactive chat interface for Bitcoin education
+ * Enhanced with context awareness and improved UX
  */
 
 class GeminiTutorUI {
@@ -9,42 +10,53 @@ class GeminiTutorUI {
         this.container = null;
         this.chatWindow = null;
         this.isOpen = false;
+        this.isMinimized = false;
         this.currentContext = {
             level: 'beginner',
             topic: 'bitcoin-basics',
             persona: 'curious'
         };
 
-        this.init();
+        // Wait for gemini service to be ready
+        if (!this.gemini) {
+            window.addEventListener('load', () => {
+                this.gemini = window.geminiService;
+                this.init();
+            });
+        } else {
+            this.init();
+        }
     }
 
     init() {
         this.createTutorButton();
         this.createChatInterface();
         this.bindEvents();
-        console.log('[GeminiTutor] UI initialized');
+        this.updateContextDisplay();
     }
 
     createTutorButton() {
         const button = document.createElement('button');
         button.id = 'gemini-tutor-btn';
+        button.setAttribute('aria-label', 'Open AI Tutor');
         button.innerHTML = `
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
-            <span>Ask AI Tutor</span>
+            <span class="tutor-btn-text">Ask AI Tutor</span>
+            <span class="tutor-btn-badge" style="display: none;"></span>
         `;
         button.style.cssText = `
             position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 1000;
-            padding: 15px 25px;
+            bottom: 24px;
+            right: 24px;
+            z-index: 10000;
+            padding: 14px 24px;
             background: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
             color: white;
             border: none;
             border-radius: 50px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             box-shadow: 0 4px 20px rgba(247, 147, 26, 0.4);
@@ -52,15 +64,16 @@ class GeminiTutorUI {
             align-items: center;
             gap: 10px;
             transition: all 0.3s ease;
+            min-height: 48px;
         `;
 
         button.addEventListener('mouseenter', () => {
-            button.style.transform = 'translateY(-2px)';
+            button.style.transform = 'translateY(-2px) scale(1.02)';
             button.style.boxShadow = '0 6px 25px rgba(247, 147, 26, 0.6)';
         });
 
         button.addEventListener('mouseleave', () => {
-            button.style.transform = 'translateY(0)';
+            button.style.transform = 'translateY(0) scale(1)';
             button.style.boxShadow = '0 4px 20px rgba(247, 147, 26, 0.4)';
         });
 
@@ -71,71 +84,91 @@ class GeminiTutorUI {
     createChatInterface() {
         const container = document.createElement('div');
         container.id = 'gemini-tutor-chat';
+        container.setAttribute('role', 'dialog');
+        container.setAttribute('aria-label', 'AI Bitcoin Tutor Chat');
         container.style.cssText = `
             position: fixed;
-            bottom: 100px;
-            right: 30px;
-            width: 400px;
-            max-width: calc(100vw - 60px);
+            bottom: 90px;
+            right: 24px;
+            width: 420px;
+            max-width: calc(100vw - 48px);
             height: 600px;
-            max-height: calc(100vh - 150px);
+            max-height: calc(100vh - 140px);
             background: #1a1a1a;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            z-index: 999;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(247, 147, 26, 0.2);
+            z-index: 9999;
             display: none;
             flex-direction: column;
             overflow: hidden;
-            border: 2px solid #f7931a;
+            border: 2px solid rgba(247, 147, 26, 0.3);
         `;
 
         container.innerHTML = `
             <div class="chat-header" style="
-                padding: 20px;
-                background: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
-                color: white;
+                padding: 16px 20px;
+                background: linear-gradient(135deg, rgba(247, 147, 26, 0.15) 0%, rgba(247, 147, 26, 0.05) 100%);
+                border-bottom: 1px solid rgba(247, 147, 26, 0.2);
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
             ">
                 <div>
-                    <h3 style="margin: 0; font-size: 18px;">AI Bitcoin Tutor</h3>
-                    <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.9;">Powered by Gemini</p>
+                    <h3 style="margin: 0; font-size: 16px; color: #f7931a; font-weight: 700;">🎓 AI Bitcoin Tutor</h3>
+                    <p id="tutor-context-display" style="margin: 4px 0 0 0; font-size: 12px; color: #999;">Bitcoin Learning</p>
                 </div>
-                <button id="close-tutor" style="
-                    background: none;
-                    border: none;
-                    color: white;
-                    font-size: 24px;
-                    cursor: pointer;
-                    width: 30px;
-                    height: 30px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                ">&times;</button>
+                <div style="display: flex; gap: 8px;">
+                    <button id="clear-chat" aria-label="Clear conversation" title="Clear conversation" style="
+                        background: rgba(255,255,255,0.05);
+                        border: 1px solid rgba(255,255,255,0.1);
+                        color: #999;
+                        font-size: 14px;
+                        cursor: pointer;
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 8px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">🗑️</button>
+                    <button id="close-tutor" aria-label="Close tutor" style="
+                        background: rgba(255,255,255,0.05);
+                        border: 1px solid rgba(255,255,255,0.1);
+                        color: #e0e0e0;
+                        font-size: 18px;
+                        cursor: pointer;
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 8px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">&times;</button>
+                </div>
             </div>
 
             <div class="chat-messages" id="chat-messages" style="
                 flex: 1;
                 overflow-y: auto;
-                padding: 20px;
+                padding: 16px;
                 display: flex;
                 flex-direction: column;
-                gap: 15px;
+                gap: 12px;
+                scroll-behavior: smooth;
             "></div>
 
             <div class="chat-quick-questions" id="quick-questions" style="
-                padding: 10px 20px;
-                border-top: 1px solid #333;
+                padding: 12px 16px;
+                border-top: 1px solid rgba(255,255,255,0.1);
                 display: flex;
-                gap: 10px;
+                gap: 8px;
                 flex-wrap: wrap;
+                background: rgba(0,0,0,0.2);
             "></div>
 
             <div class="chat-input-area" style="
-                padding: 20px;
-                border-top: 2px solid #333;
+                padding: 16px;
+                border-top: 1px solid rgba(255,255,255,0.1);
                 background: #2d2d2d;
             ">
                 <div style="display: flex; gap: 10px;">
@@ -143,29 +176,32 @@ class GeminiTutorUI {
                         type="text"
                         id="chat-input"
                         placeholder="Ask me anything about Bitcoin..."
+                        aria-label="Chat message input"
                         style="
                             flex: 1;
-                            padding: 12px 15px;
-                            border: 2px solid #444;
-                            border-radius: 10px;
+                            padding: 12px 16px;
+                            border: 2px solid rgba(247, 147, 26, 0.2);
+                            border-radius: 12px;
                             background: #1a1a1a;
                             color: #e0e0e0;
                             font-size: 14px;
+                            transition: border-color 0.2s ease;
                         "
                     />
-                    <button id="send-btn" style="
+                    <button id="send-btn" aria-label="Send message" style="
                         padding: 12px 20px;
-                        background: #f7931a;
+                        background: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
                         border: none;
-                        border-radius: 10px;
+                        border-radius: 12px;
                         color: white;
                         font-weight: 600;
                         cursor: pointer;
                         transition: all 0.3s ease;
+                        min-width: 70px;
                     ">Send</button>
                 </div>
-                <div style="margin-top: 10px; font-size: 11px; color: #999;">
-                    Press Enter to send • <a href="#" id="api-key-link" style="color: #f7931a;">Set API Key</a>
+                <div id="api-key-notice" style="margin-top: 10px; font-size: 11px; color: #666; display: none;">
+                    <a href="#" id="api-key-link" style="color: #f7931a;">⚙️ Configure API Key</a> to enable AI responses
                 </div>
             </div>
         `;
@@ -175,10 +211,13 @@ class GeminiTutorUI {
         this.chatMessages = container.querySelector('#chat-messages');
         this.chatInput = container.querySelector('#chat-input');
         this.sendBtn = container.querySelector('#send-btn');
+        this.contextDisplay = container.querySelector('#tutor-context-display');
+        this.apiKeyNotice = container.querySelector('#api-key-notice');
 
         // Add welcome message
         this.addWelcomeMessage();
         this.addQuickQuestions();
+        this.checkApiKeyStatus();
     }
 
     bindEvents() {
@@ -186,10 +225,24 @@ class GeminiTutorUI {
         this.tutorButton.addEventListener('click', () => this.toggleChat());
         this.container.querySelector('#close-tutor').addEventListener('click', () => this.toggleChat());
 
+        // Clear chat
+        this.container.querySelector('#clear-chat').addEventListener('click', () => this.clearChat());
+
         // Send message
         this.sendBtn.addEventListener('click', () => this.sendMessage());
         this.chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.sendMessage();
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.sendMessage();
+            }
+        });
+
+        // Input focus styling
+        this.chatInput.addEventListener('focus', () => {
+            this.chatInput.style.borderColor = 'rgba(247, 147, 26, 0.5)';
+        });
+        this.chatInput.addEventListener('blur', () => {
+            this.chatInput.style.borderColor = 'rgba(247, 147, 26, 0.2)';
         });
 
         // API key link
@@ -197,6 +250,38 @@ class GeminiTutorUI {
             e.preventDefault();
             this.promptForApiKey();
         });
+
+        // Escape key to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isOpen) {
+                this.toggleChat();
+            }
+        });
+    }
+
+    updateContextDisplay() {
+        if (this.gemini && this.contextDisplay) {
+            this.contextDisplay.textContent = this.gemini.getContextSummary();
+        }
+    }
+
+    checkApiKeyStatus() {
+        if (this.gemini && !this.gemini.hasApiKey()) {
+            this.apiKeyNotice.style.display = 'block';
+        } else {
+            this.apiKeyNotice.style.display = 'none';
+        }
+    }
+
+    clearChat() {
+        if (confirm('Clear conversation history?')) {
+            this.chatMessages.innerHTML = '';
+            if (this.gemini) {
+                this.gemini.clearHistory();
+            }
+            this.addWelcomeMessage();
+            this.addQuickQuestions();
+        }
     }
 
     toggleChat() {
@@ -209,54 +294,61 @@ class GeminiTutorUI {
     }
 
     addWelcomeMessage() {
-        const message = this.createMessage(
-            `Welcome to your AI Bitcoin Tutor! 👋
+        const contextSummary = this.gemini ? this.gemini.getContextSummary() : 'Bitcoin Learning';
+        const isOnDemo = this.gemini?.pageContext?.type === 'demo';
+        const topic = this.gemini?.pageContext?.topic || '';
 
-I'm here to help you understand Bitcoin through personalized conversations. Ask me anything - from basics like "What is Bitcoin?" to advanced topics like "How does the Lightning Network work?"
+        let welcomeText = `Welcome! 👋 I'm your Bitcoin tutor.
 
-I use the Socratic method, so I'll often answer your questions with questions to help you discover insights yourself.
+I use the Socratic method - I'll ask questions to help you discover insights yourself rather than just giving answers.`;
 
-What would you like to learn today?`,
-            'assistant'
-        );
+        if (isOnDemo && topic) {
+            welcomeText += `\n\nI see you're exploring **${topic}**. What aspect interests you most, or what question brought you here?`;
+        } else {
+            welcomeText += `\n\nWhat would you like to explore today?`;
+        }
+
+        const message = this.createMessage(welcomeText, 'assistant');
         this.chatMessages.appendChild(message);
     }
 
     addQuickQuestions() {
-        const questions = [
+        // Get context-aware questions from the service
+        const questions = this.gemini?.getSuggestedQuestions() || [
             "What is Bitcoin?",
-            "How does mining work?",
-            "Why use Bitcoin?",
-            "What are UTXOs?"
+            "Why does this matter?",
+            "How do I get started?"
         ];
 
         const container = this.container.querySelector('#quick-questions');
-        container.innerHTML = '<div style="width: 100%; font-size: 12px; color: #999; margin-bottom: 5px;">Quick questions:</div>';
+        container.innerHTML = '<div style="width: 100%; font-size: 11px; color: #666; margin-bottom: 6px;">💡 Suggested:</div>';
 
         questions.forEach(q => {
             const btn = document.createElement('button');
             btn.textContent = q;
+            btn.setAttribute('aria-label', `Ask: ${q}`);
             btn.style.cssText = `
-                padding: 8px 12px;
-                background: #2d2d2d;
-                border: 1px solid #444;
-                border-radius: 8px;
+                padding: 6px 12px;
+                background: rgba(247, 147, 26, 0.1);
+                border: 1px solid rgba(247, 147, 26, 0.2);
+                border-radius: 16px;
                 color: #e0e0e0;
-                font-size: 12px;
+                font-size: 11px;
                 cursor: pointer;
                 transition: all 0.2s ease;
+                white-space: nowrap;
             `;
             btn.addEventListener('click', () => {
                 this.chatInput.value = q;
                 this.sendMessage();
             });
             btn.addEventListener('mouseenter', () => {
-                btn.style.background = '#3d3d3d';
-                btn.style.borderColor = '#f7931a';
+                btn.style.background = 'rgba(247, 147, 26, 0.2)';
+                btn.style.borderColor = 'rgba(247, 147, 26, 0.4)';
             });
             btn.addEventListener('mouseleave', () => {
-                btn.style.background = '#2d2d2d';
-                btn.style.borderColor = '#444';
+                btn.style.background = 'rgba(247, 147, 26, 0.1)';
+                btn.style.borderColor = 'rgba(247, 147, 26, 0.2)';
             });
             container.appendChild(btn);
         });
@@ -324,16 +416,24 @@ What would you like to learn today?`,
 
         msg.style.cssText = `
             padding: 12px 16px;
-            border-radius: 12px;
-            max-width: 85%;
+            border-radius: ${isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px'};
+            max-width: 88%;
             align-self: ${isUser ? 'flex-end' : 'flex-start'};
-            background: ${isUser ? '#f7931a' : isError ? '#f44336' : '#2d2d2d'};
-            color: ${isUser || isError ? 'white' : '#e0e0e0'};
+            background: ${isUser ? 'linear-gradient(135deg, #f7931a 0%, #e88a17 100%)' : isError ? 'rgba(244, 67, 54, 0.15)' : 'rgba(255, 255, 255, 0.05)'};
+            color: ${isUser ? 'white' : isError ? '#ff6b6b' : '#e0e0e0'};
             word-wrap: break-word;
-            line-height: 1.5;
+            line-height: 1.6;
+            font-size: 14px;
+            border: ${isUser ? 'none' : isError ? '1px solid rgba(244, 67, 54, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)'};
         `;
 
-        msg.textContent = text;
+        // Support basic markdown: **bold** and *italic*
+        let formattedText = text
+            .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+            .replace(/\n/g, '<br>');
+
+        msg.innerHTML = formattedText;
         return msg;
     }
 
@@ -373,16 +473,54 @@ What would you like to learn today?`,
     }
 
     promptForApiKey() {
-        const key = prompt('Enter your Gemini API key (get one at https://makersuite.google.com/app/apikey):');
-        if (key) {
-            this.gemini.setApiKey(key);
-            alert('API key saved! You can now chat with the AI tutor.');
+        const key = prompt('Enter your Gemini API key to enable AI responses.\n\nGet a free key at: https://aistudio.google.com/app/apikey\n\nYour key is stored locally and never sent to our servers.');
+        if (key && key.trim()) {
+            this.gemini.setApiKey(key.trim());
+            this.checkApiKeyStatus();
+            const successMsg = this.createMessage('✅ API key configured! I\'m ready to help you learn. What would you like to explore?', 'assistant');
+            this.chatMessages.appendChild(successMsg);
+            this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
         }
     }
 
     setContext(level, topic, persona) {
         this.currentContext = { level, topic, persona };
-        console.log('[GeminiTutor] Context updated:', this.currentContext);
+        if (this.gemini) {
+            this.gemini.refreshContext();
+        }
+        this.updateContextDisplay();
+        this.addQuickQuestions(); // Refresh suggestions
+    }
+
+    /**
+     * Show the tutor panel (can be called externally)
+     */
+    show() {
+        if (!this.isOpen) {
+            this.toggleChat();
+        }
+    }
+
+    /**
+     * Hide the tutor panel
+     */
+    hide() {
+        if (this.isOpen) {
+            this.toggleChat();
+        }
+    }
+
+    /**
+     * Pre-fill a question and optionally send it
+     */
+    askQuestion(question, autoSend = false) {
+        this.show();
+        this.chatInput.value = question;
+        if (autoSend) {
+            this.sendMessage();
+        } else {
+            this.chatInput.focus();
+        }
     }
 }
 
@@ -393,4 +531,9 @@ if (document.readyState === 'loading') {
     });
 } else {
     window.geminiTutorUI = new GeminiTutorUI();
+}
+
+// Export for module use
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = GeminiTutorUI;
 }

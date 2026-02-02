@@ -1,29 +1,200 @@
 /**
  * Gemini AI Service for Bitcoin Sovereign Academy
  * Provides AI-powered tutoring and content generation
+ * Enhanced with context awareness, learning progress integration, and Socratic methodology
  */
 
 class GeminiService {
     constructor(apiKey = null) {
         this.apiKey = apiKey || this.getStoredApiKey();
         this.endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-        this.conversationHistory = [];
+        this.conversationHistory = this.loadConversationHistory();
         this.initialized = false;
+        
+        // Learning context detection
+        this.pageContext = this.detectPageContext();
+        this.userProgress = this.loadUserProgress();
+        this.userProfile = this.loadUserProfile();
 
-        // Bitcoin education context
+        // Enhanced Bitcoin education context with strong Socratic emphasis
         this.systemContext = {
-            role: 'Bitcoin education expert and Socratic tutor',
+            role: 'Bitcoin education expert and Socratic tutor at Bitcoin Sovereign Academy',
             principles: [
-                'Truth over trust',
-                'Financial sovereignty',
-                'Education through experience',
-                'Privacy and open access'
+                'Truth over trust - verify, don\'t believe',
+                'Financial sovereignty - your keys, your Bitcoin',
+                'Education through experience - learn by doing',
+                'Privacy as a right - protect personal information',
+                'Open access - education should be free and accessible'
             ],
-            style: 'Socratic, conversational, visual, sharp - avoid jargon',
-            focus: 'Help learners understand Bitcoin through questions, reflections, and real-world examples'
+            socraticMethod: [
+                'NEVER just give answers - guide discovery through questions',
+                'When asked "what is X?" respond with "What do you think X might be, based on...?"',
+                'After explaining, always end with a thought-provoking question',
+                'Celebrate "aha moments" and build on them',
+                'Connect new concepts to what the learner already knows',
+                'Use real-world analogies from everyday life'
+            ],
+            style: 'Warm but challenging. Ask questions that make learners think. Never lecture.',
+            focus: 'Empower learners to discover Bitcoin\'s value through guided inquiry'
+        };
+    }
+
+    /**
+     * Detect context from current page URL
+     */
+    detectPageContext() {
+        if (typeof window === 'undefined') return { type: 'unknown' };
+        
+        const path = window.location.pathname;
+        const context = {
+            type: 'general',
+            path: path,
+            module: null,
+            stage: null,
+            demo: null,
+            topic: null
         };
 
-        console.log('[Gemini] Service initialized');
+        // Detect learning path context
+        const pathMatch = path.match(/\/paths\/([^\/]+)(?:\/stage-(\d+))?(?:\/module-(\d+))?/);
+        if (pathMatch) {
+            context.type = 'learning-path';
+            context.learningPath = pathMatch[1];
+            context.stage = pathMatch[2] ? parseInt(pathMatch[2]) : null;
+            context.module = pathMatch[3] ? parseInt(pathMatch[3]) : null;
+        }
+
+        // Detect interactive demo context
+        const demoMatch = path.match(/\/interactive-demos\/([^\/]+)/);
+        if (demoMatch) {
+            context.type = 'demo';
+            context.demo = demoMatch[1];
+            context.topic = this.demoToTopic(demoMatch[1]);
+        }
+
+        // Detect deep dive context
+        const deepDiveMatch = path.match(/\/deep-dives\/([^\/]+)/);
+        if (deepDiveMatch) {
+            context.type = 'deep-dive';
+            context.topic = deepDiveMatch[1];
+        }
+
+        return context;
+    }
+
+    /**
+     * Map demo names to educational topics
+     */
+    demoToTopic(demoName) {
+        const topicMap = {
+            'wallet-security-workshop': 'wallet security and seed phrase management',
+            'bitcoin-key-generator-visual': 'cryptographic keys and address generation',
+            'mining-simulator': 'proof of work and mining',
+            'mempool-visualizer': 'transaction fees and mempool dynamics',
+            'utxo-visualizer': 'UTXO model and transaction structure',
+            'lightning-network-demo': 'Lightning Network and payment channels',
+            'address-format-explorer': 'Bitcoin address formats and encoding',
+            'coinjoin-simulator': 'privacy and CoinJoin transactions',
+            'multisig-setup-wizard': 'multisignature security',
+            'inflation-lab': 'monetary inflation and purchasing power',
+            'bitcoin-supply-schedule': 'Bitcoin\'s fixed supply and halving'
+        };
+        return topicMap[demoName] || demoName.replace(/-/g, ' ');
+    }
+
+    /**
+     * Load user progress from localStorage
+     */
+    loadUserProgress() {
+        try {
+            const progress = localStorage.getItem('bsa-progress');
+            return progress ? JSON.parse(progress) : { completed: {}, current: null };
+        } catch {
+            return { completed: {}, current: null };
+        }
+    }
+
+    /**
+     * Load user profile from localStorage
+     */
+    loadUserProfile() {
+        try {
+            const profile = localStorage.getItem('bsa-assessment');
+            const learningProgress = localStorage.getItem('learningProgress');
+            return {
+                assessment: profile ? JSON.parse(profile) : null,
+                progress: learningProgress ? JSON.parse(learningProgress) : null
+            };
+        } catch {
+            return { assessment: null, progress: null };
+        }
+    }
+
+    /**
+     * Load conversation history from localStorage
+     */
+    loadConversationHistory() {
+        try {
+            const history = localStorage.getItem('bsa-tutor-history');
+            return history ? JSON.parse(history) : [];
+        } catch {
+            return [];
+        }
+    }
+
+    /**
+     * Save conversation history to localStorage
+     */
+    saveConversationHistory() {
+        try {
+            // Keep last 20 messages to avoid storage bloat
+            const recentHistory = this.conversationHistory.slice(-20);
+            localStorage.setItem('bsa-tutor-history', JSON.stringify(recentHistory));
+        } catch (e) {
+            console.warn('[Gemini] Could not save conversation history:', e);
+        }
+    }
+
+    /**
+     * Clear conversation history from memory and localStorage
+     */
+    clearHistory() {
+        this.conversationHistory = [];
+        try {
+            localStorage.removeItem('bsa-tutor-history');
+        } catch (e) {
+            console.warn('[Gemini] Could not clear conversation history:', e);
+        }
+    }
+
+    /**
+     * Get suggested questions based on current context
+     */
+    getSuggestedQuestions() {
+        const context = this.pageContext;
+        const questions = [];
+
+        if (context.type === 'demo' && context.topic) {
+            questions.push(
+                `Why does ${context.topic} matter for Bitcoin?`,
+                `How does this relate to financial sovereignty?`,
+                `What could go wrong if I don't understand this?`
+            );
+        } else if (context.type === 'learning-path') {
+            questions.push(
+                `What should I focus on in this module?`,
+                `How does this connect to what I learned before?`,
+                `What's the most important takeaway here?`
+            );
+        } else {
+            questions.push(
+                `What is Bitcoin, really?`,
+                `Why should I learn about Bitcoin?`,
+                `Where should I start my learning journey?`
+            );
+        }
+
+        return questions;
     }
 
     getStoredApiKey() {
@@ -75,13 +246,17 @@ class GeminiService {
             this.conversationHistory.push({
                 role: 'user',
                 content: userMessage,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                context: this.pageContext
             });
             this.conversationHistory.push({
                 role: 'assistant',
                 content: response,
                 timestamp: Date.now()
             });
+
+            // Persist to localStorage
+            this.saveConversationHistory();
 
             return response;
 
@@ -224,22 +399,58 @@ Format as JSON with weeks array.
 
     buildSystemPrompt(context) {
         const { level = 'beginner', topic = '', persona = 'curious' } = context;
+        const pageContext = this.pageContext;
+        const progress = this.userProgress;
 
-        return `You are an expert Bitcoin educator at Bitcoin Sovereign Academy.
+        // Determine effective topic from context or page
+        const effectiveTopic = topic || pageContext.topic || 'Bitcoin fundamentals';
+        
+        // Build progress context
+        let progressContext = '';
+        if (progress.completed && Object.keys(progress.completed).length > 0) {
+            const completedCount = Object.keys(progress.completed).length;
+            progressContext = `\nLearner has completed ${completedCount} modules.`;
+        }
 
-Your role: ${this.systemContext.role}
+        // Build page-specific context
+        let pageSpecificContext = '';
+        if (pageContext.type === 'demo') {
+            pageSpecificContext = `\nThe learner is currently using the "${pageContext.demo}" interactive demo about ${pageContext.topic}.`;
+        } else if (pageContext.type === 'learning-path') {
+            pageSpecificContext = `\nThe learner is on the "${pageContext.learningPath}" learning path${pageContext.stage ? `, Stage ${pageContext.stage}` : ''}${pageContext.module ? `, Module ${pageContext.module}` : ''}.`;
+        }
 
-Core principles:
-${this.systemContext.principles.map(p => `- ${p}`).join('\n')}
+        return `You are an expert Bitcoin educator and STRICT Socratic tutor at Bitcoin Sovereign Academy.
 
-Teaching style: ${this.systemContext.style}
+## YOUR ROLE
+${this.systemContext.role}
 
-Current context:
-- Student level: ${level}
-- Topic: ${topic}
-- Learning persona: ${persona}
+## CORE PRINCIPLES
+${this.systemContext.principles.map(p => `• ${p}`).join('\n')}
 
-Respond in a way that empowers the learner to think critically and discover insights themselves.`;
+## SOCRATIC METHOD (CRITICAL - FOLLOW STRICTLY)
+${this.systemContext.socraticMethod.map(s => `• ${s}`).join('\n')}
+
+## TEACHING STYLE
+${this.systemContext.style}
+
+## CURRENT CONTEXT
+• Student level: ${level}
+• Current topic: ${effectiveTopic}
+• Learning persona: ${persona}${progressContext}${pageSpecificContext}
+
+## RESPONSE FORMAT
+1. Acknowledge their question warmly (1 sentence)
+2. Provide insight through a question or analogy (not a lecture)
+3. Share key understanding if appropriate (2-3 sentences max)
+4. ALWAYS end with a thought-provoking question to deepen understanding
+
+## IMPORTANT RULES
+• Keep responses concise (under 150 words unless explaining something complex)
+• Use everyday analogies (kitchens, mailboxes, diaries - not technical jargon)
+• If they ask "what is X?" - first ask what THEY think, then build on it
+• Celebrate when they make connections or have insights
+• Never be condescending - assume intelligence, not knowledge`;
     }
 
     async callGeminiAPI(prompt) {
@@ -348,16 +559,57 @@ Respond in a way that empowers the learner to think critically and discover insi
 
     clearHistory() {
         this.conversationHistory = [];
-        console.log('[Gemini] Conversation history cleared');
+        localStorage.removeItem('bsa-tutor-history');
     }
 
     getHistory() {
         return this.conversationHistory;
+    }
+
+    /**
+     * Refresh context (call when page changes or after navigation)
+     */
+    refreshContext() {
+        this.pageContext = this.detectPageContext();
+        this.userProgress = this.loadUserProgress();
+        this.userProfile = this.loadUserProfile();
+    }
+
+    /**
+     * Get a brief context summary for UI display
+     */
+    getContextSummary() {
+        const ctx = this.pageContext;
+        if (ctx.type === 'demo') {
+            return `Learning: ${ctx.topic}`;
+        } else if (ctx.type === 'learning-path') {
+            const pathNames = {
+                curious: 'The Curious',
+                pragmatist: 'The Pragmatist',
+                principled: 'The Principled',
+                sovereign: 'The Sovereign',
+                hurried: 'The Hurried'
+            };
+            const name = pathNames[ctx.learningPath] || ctx.learningPath;
+            return `${name} Path${ctx.stage ? ` • Stage ${ctx.stage}` : ''}`;
+        }
+        return 'Bitcoin Learning';
+    }
+
+    /**
+     * Check if API key is configured
+     */
+    hasApiKey() {
+        return !!this.apiKey;
     }
 }
 
 // Initialize global service
 if (typeof window !== 'undefined') {
     window.geminiService = new GeminiService();
-    console.log('[Gemini] Global service ready. Access via window.geminiService');
+    
+    // Refresh context on navigation
+    window.addEventListener('popstate', () => {
+        window.geminiService.refreshContext();
+    });
 }
