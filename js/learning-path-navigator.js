@@ -114,14 +114,66 @@
     }
 
     function determinePrimaryPath(answers) {
-        // Simplified path determination
-        // Real logic would mirror my-learning/index.html
-        const hasAssessment = answers && Object.keys(answers).length > 0;
-        if (!hasAssessment) return 'curious';
+        // If no assessment completed, default to curious
+        if (!answers || Object.keys(answers).length === 0) return 'curious';
 
-        // Default to curious for now
-        // TODO: Implement proper path determination
-        return 'curious';
+        const tagCounts = {};
+
+        // Tag mapping for answer IDs (matches my-learning/index.html)
+        const tagMapping = {
+            'understand': ['curious', 'beginner'],
+            'use': ['pragmatist', 'practical'],
+            'skeptical': ['principled', 'philosophy'],
+            'secure': ['sovereign', 'security'],
+            'build': ['builder', 'advanced'],
+            'worried': ['curious', 'economics'],
+            'step_by_step': ['curious', 'guided'],
+            'hands_on': ['pragmatist', 'interactive'],
+            'theory': ['principled', 'deep'],
+            'quick': ['hurried', 'overview'],
+            'philosophy': ['principled', 'philosophy'],
+            'beginner': ['curious', 'level-1'],
+            'some': ['pragmatist', 'level-2'],
+            'basics': ['principled', 'level-3'],
+            'advanced': ['sovereign', 'level-4'],
+            'scam': ['curious', 'skeptical'],
+            'security': ['sovereign', 'security'],
+            'volatile': ['economics', 'risk'],
+            'tracking': ['sovereign', 'privacy'],
+            'complex': ['pragmatist', 'simplify'],
+            'not_concerned': ['curious', 'explorer'],
+            '10min': ['hurried', 'quick-start'],
+            '1hour': ['pragmatist', 'focused'],
+            'deep': ['principled', 'comprehensive'],
+            'own_pace': ['curious', 'flexible'],
+            'buy': ['pragmatist', 'beginner', 'buying'],
+            'custody': ['sovereign', 'security', 'custody'],
+            'transactions': ['pragmatist', 'lightning'],
+            'savings': ['economics', 'store-value'],
+            'explore': ['curious', 'explorer']
+        };
+
+        // Count tags from all answers
+        Object.values(answers).flat().forEach(answerId => {
+            const tags = tagMapping[answerId] || [];
+            tags.forEach(tag => {
+                tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+            });
+        });
+
+        // Calculate path scores
+        const pathScores = {
+            curious: (tagCounts['curious'] || 0) + (tagCounts['beginner'] || 0) + (tagCounts['explorer'] || 0),
+            hurried: (tagCounts['hurried'] || 0) + (tagCounts['quick-start'] || 0) + (tagCounts['overview'] || 0),
+            pragmatist: (tagCounts['pragmatist'] || 0) + (tagCounts['practical'] || 0),
+            principled: (tagCounts['principled'] || 0) + (tagCounts['philosophy'] || 0) + (tagCounts['deep'] || 0),
+            sovereign: (tagCounts['sovereign'] || 0) + (tagCounts['security'] || 0) + (tagCounts['advanced'] || 0)
+        };
+
+        // Return the path with highest score
+        return Object.keys(pathScores).reduce((a, b) =>
+            pathScores[a] > pathScores[b] ? a : b
+        );
     }
 
     // ============================================

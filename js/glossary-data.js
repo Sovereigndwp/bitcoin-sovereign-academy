@@ -72,7 +72,25 @@ const GLOSSARY_TERMS = [
         related: ["Soft Fork", "Hard Fork", "SegWit", "Taproot"]
     },
 
+    // ===== A (continued) =====
+    {
+        term: "ASIC",
+        category: "technical",
+        aka: ["Application-Specific Integrated Circuit"],
+        simple: "Specialized computer chips designed only for Bitcoin mining. They're much faster than regular computers but can only do one thing: mine Bitcoin.",
+        advanced: "Custom silicon designed exclusively for SHA-256 hashing. Modern ASICs achieve ~100+ TH/s (terahashes/second) at ~30 J/TH efficiency. Major manufacturers: Bitmain (Antminer), MicroBT (Whatsminer), Canaan. ASICs made CPU/GPU mining obsolete by 2013. Capital-intensive ($2-10K per unit), require cheap electricity (<$0.05/kWh) for profitability. Lifespan ~3-5 years before obsolescence. Network hashrate ~500+ EH/s.",
+        related: ["Mining", "Hashrate", "Proof-of-Work"]
+    },
+
     // ===== C =====
+    {
+        term: "CPFP",
+        category: "technical",
+        aka: ["Child Pays for Parent"],
+        simple: "A technique to speed up a stuck transaction by creating a new transaction that spends its outputs with a higher fee. The miner must include both to get the combined fee.",
+        advanced: "Fee-bumping technique where a child transaction spending an unconfirmed parent's output incentivizes miners to confirm both. Child pays enough fee to make combined package attractive. Useful when: (1) you're the recipient and can't RBF, (2) original sender didn't enable RBF. Miners evaluate transaction packages for fee revenue. Implemented in Bitcoin Core mempool policy. Alternative to RBF for stuck transactions.",
+        related: ["RBF", "Transaction Fee", "Mempool", "UTXO"]
+    },
     {
         term: "Cold Storage",
         category: "security",
@@ -156,6 +174,14 @@ const GLOSSARY_TERMS = [
 
     // ===== H =====
     {
+        term: "HD Wallet",
+        category: "technical",
+        aka: ["Hierarchical Deterministic Wallet", "BIP32 Wallet"],
+        simple: "A wallet that generates all your addresses from a single seed phrase. You only need to back up the seed once, and it can create unlimited addresses.",
+        advanced: "BIP32 wallet architecture deriving an unlimited tree of private/public keys from a master seed. Benefits: single backup recovers all keys, easy address generation without accessing private keys (xpub), account separation (BIP44). Path notation: m/purpose'/coin'/account'/change/index. Modern standards: BIP44 (legacy), BIP49 (wrapped SegWit), BIP84 (native SegWit), BIP86 (Taproot). All major wallets use HD derivation.",
+        related: ["Seed Phrase", "Derivation Path", "BIP32", "BIP44", "xpub"]
+    },
+    {
         term: "Halving",
         category: "basics",
         aka: ["Halvening", "Block Reward Halving"],
@@ -194,6 +220,16 @@ const GLOSSARY_TERMS = [
         simple: "A Bitcoin wallet connected to the internet, like a mobile app or desktop software. Convenient for daily use but less secure than cold storage.",
         advanced: "An internet-connected wallet for everyday transactions. Trade-off: convenience vs. security. Types: mobile (BlueWallet, Phoenix), desktop (Sparrow, Electrum), web (not recommended). Best for small amounts only. Security measures: strong passwords, 2FA, regular updates, encrypted backups. Never store large amounts in hot wallets - use cold storage instead.",
         related: ["Cold Storage", "Wallet", "Private Key", "Security"]
+    },
+
+    // ===== K =====
+    {
+        term: "KYC",
+        category: "basics",
+        aka: ["Know Your Customer"],
+        simple: "Identity verification required by regulated exchanges and financial services. You typically must provide ID, address proof, and sometimes selfies to use these services.",
+        advanced: "Regulatory requirement for financial institutions to verify customer identity, typically involving government ID, proof of address, and biometric verification. KYC data creates privacy risks (data breaches, surveillance) and excludes underbanked populations. Bitcoin alternatives: P2P trading (Bisq, HodlHodl), Bitcoin ATMs (some limits), earning BTC, mining. 'Non-KYC Bitcoin' trades at slight premium but offers better privacy.",
+        related: ["Privacy", "Exchange", "AML"]
     },
 
     // ===== L =====
@@ -294,6 +330,24 @@ const GLOSSARY_TERMS = [
         related: ["Transaction Fee", "Mempool", "CPFP", "Confirmation"]
     },
 
+    // ===== P =====
+    {
+        term: "P2SH",
+        category: "technical",
+        aka: ["Pay-to-Script-Hash"],
+        simple: "A type of Bitcoin address (starting with '3') that can have complex spending conditions, like requiring multiple signatures. The complexity is hidden until the funds are spent.",
+        advanced: "BIP16 script type where the address commits to a hash of the redeem script rather than the script itself. Script details only revealed at spend time. Used for multi-sig (e.g., 2-of-3), time-locks, and wrapped SegWit (P2SH-P2WPKH/P2WSH). Addresses start with '3' on mainnet. Superceded by native SegWit (P2WPKH/P2WSH, bc1q...) and Taproot (P2TR, bc1p...) for new applications.",
+        related: ["Multi-Sig", "Address", "SegWit", "Script"]
+    },
+    {
+        term: "P2WPKH",
+        category: "technical",
+        aka: ["Pay-to-Witness-Public-Key-Hash", "Native SegWit"],
+        simple: "The most common modern Bitcoin address type (starting with 'bc1q'). Offers the lowest fees for single-signature transactions.",
+        advanced: "BIP84 native SegWit v0 output type for single-signature addresses. Locking script is a 20-byte pubkey hash with OP_0 version byte. Addresses start with 'bc1q' (Bech32 encoding). Benefits: ~38% smaller than P2PKH, lowest fees, no script hash overhead. Default for most modern wallets. Derivation path: m/84'/0'/0'.",
+        related: ["SegWit", "Address", "Derivation Path", "BIP84"]
+    },
+
     // ===== S =====
     {
         term: "Satoshi",
@@ -371,12 +425,30 @@ const GLOSSARY_TERMS = [
 
     // ===== U =====
     {
+        term: "UASF",
+        category: "technical",
+        aka: ["User-Activated Soft Fork"],
+        simple: "A way for Bitcoin users to enforce protocol upgrades without waiting for miners. If most economic nodes agree, miners must follow or risk mining invalid blocks.",
+        advanced: "A soft fork activation mechanism where economic nodes (exchanges, wallets, businesses) enforce new rules regardless of miner signaling. BIP148 (SegWit UASF, August 1, 2017) demonstrated that users, not miners, hold ultimate authority over consensus rules. Miners who don't upgrade risk mining invalid blocks that economic nodes reject. Represents Bitcoin's ultimate check on miner power.",
+        related: ["Soft Fork", "SegWit", "Node", "Consensus"]
+    },
+    {
         term: "UTXO",
         category: "technical",
         aka: ["Unspent Transaction Output", "UTXO Set"],
         simple: "A chunk of Bitcoin that hasn't been spent yet, like a bill in your physical wallet. Your wallet balance is the sum of all your UTXOs.",
         advanced: "An unspent output from a previous transaction, representing spendable Bitcoin. The UTXO model (vs. account model) means there are no 'account balances' - only discrete outputs. Each UTXO has: amount, locking script (pubkey/address), and block height. The UTXO set (~100M entries, ~5GB) is the critical state all full nodes maintain. Spending a UTXO consumes it entirely; change is returned as new UTXO. Consolidation reduces UTXO count and future fees.",
         related: ["Transaction", "Input", "Output", "Wallet"]
+    },
+
+    // ===== V =====
+    {
+        term: "Vbyte",
+        category: "technical",
+        aka: ["Virtual Byte", "vB"],
+        simple: "A unit for measuring transaction size after SegWit. SegWit transactions are measured in vbytes, which results in lower fees compared to legacy transactions.",
+        advanced: "A weight-normalized unit for transaction size introduced with SegWit (BIP141). Calculated as transaction weight ÷ 4. SegWit witness data weighs 1 weight unit per byte vs. 4 for non-witness data, effectively making SegWit transactions ~75% cheaper for the same actual byte size. Fee rates are typically quoted in sat/vB. A typical P2WPKH transaction is ~140 vbytes.",
+        related: ["SegWit", "Transaction Fee", "Block Weight"]
     },
 
     // ===== W =====
