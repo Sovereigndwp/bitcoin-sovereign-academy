@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Membership | Bitcoin Sovereign Academy</title>
+    <meta name="description" content="Choose your learning path: Free exploration, earn-while-you-learn with sats, or lifetime Sovereign access.">
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --surface: #1a1a1a;
+            --surface-2: #2d2d2d;
+            --text: #e0e0e0;
+            --muted: #999;
+            --accent: #f7931a;
+            --accent-light: #ffb347;
+            --success: #4CAF50;
+            --purple: #9333ea;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 4rem 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #ccc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Membership Status Banner */
+        .status-banner {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.15) 0%, rgba(247, 147, 26, 0.05) 100%);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 3rem;
+            display: none;
+        }
+
+        .status-banner.active { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+
+        .status-banner h3 { color: var(--accent); margin: 0; }
+        .status-banner p { color: var(--muted); margin: 0; }
+
+        .progress-bar {
+            width: 200px;
+            height: 8px;
+            background: var(--surface-2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-light));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Pricing Grid */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .pricing-card {
+            background: var(--surface);
+            border: 2px solid var(--surface-2);
+            border-radius: 20px;
+            padding: 2.5rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            border-color: rgba(247, 147, 26, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .pricing-card.featured {
+            border-color: var(--accent);
+            box-shadow: 0 8px 32px rgba(247, 147, 26, 0.2);
+        }
+
+        .pricing-card .badge {
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: var(--accent);
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .pricing-card .tier-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-card .tagline {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pricing-card .price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 0.25rem;
+        }
+
+        .pricing-card .price-detail {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            font-family: monospace;
+        }
+
+        .pricing-card .highlight {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--success);
+        }
+
+        .pricing-card ul {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .pricing-card ul li {
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--surface-2);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .pricing-card ul li:last-child { border-bottom: none; }
+        .pricing-card ul li .check { color: var(--success); font-size: 1.1rem; }
+
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            color: #000;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(247, 147, 26, 0.4);
+        }
+
+        .btn-secondary {
+            width: 100%;
+            background: var(--surface-2);
+            color: var(--text);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: var(--surface);
+        }
+
+        /* Payment Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 2rem;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: var(--surface);
+            border: 2px solid var(--accent);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 480px;
+            width: 100%;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .modal .subtitle {
+            color: var(--muted);
+            margin-bottom: 2rem;
+        }
+
+        .qr-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .qr-container img {
+            max-width: 256px;
+            border-radius: 12px;
+            background: white;
+            padding: 16px;
+        }
+
+        .invoice-box {
+            background: var(--bg);
+            border: 1px solid var(--surface-2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--muted);
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            width: 100%;
+            background: var(--surface-2);
+            color: var(--text);
+            border: none;
+            padding: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover { background: var(--surface); }
+
+        .payment-status {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .payment-status.waiting {
+            background: rgba(247, 147, 26, 0.1);
+            color: var(--accent);
+        }
+
+        .payment-status.success {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success);
+        }
+
+        .confirm-manual {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .confirm-manual button {
+            background: none;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .timer {
+            font-family: monospace;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        /* Value Props */
+        .value-props {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+            padding: 3rem;
+            background: var(--surface);
+            border-radius: 20px;
+        }
+
+        .value-prop {
+            text-align: center;
+        }
+
+        .value-prop .icon { font-size: 2.5rem; margin-bottom: 1rem; }
+        .value-prop h4 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .value-prop p { color: var(--muted); font-size: 0.9rem; }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        footer a { color: var(--accent); text-decoration: none; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .modal { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <!-- Hero -->
+        <section class="hero">
+            <h1>Choose Your Learning Path</h1>
+            <p>Three ways to learn Bitcoin. One philosophy: your education, your sovereignty.</p>
+        </section>
+
+        <!-- Status Banner (shown for paid members) -->
+        <div id="status-banner" class="status-banner">
+            <div>
+                <h3>🎓 Apprentice Member</h3>
+                <p id="status-text">Complete modules to earn sats back</p>
+            </div>
+            <div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span id="earned-sats" style="color: var(--accent); font-weight: 700;">0 sats earned</span>
+                    <div class="progress-bar">
+                        <div class="fill" id="progress-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div class="pricing-grid">
+            <!-- Explorer (Free) -->
+            <div class="pricing-card">
+                <div class="tier-icon">🔭</div>
+                <h3>Explorer</h3>
+                <p class="tagline">Start your Bitcoin journey</p>
+                <div class="price">Free</div>
+                <p class="price-detail">Forever</p>
+                <ul>
+                    <li><span class="check">✓</span> All 44 interactive demos</li>
+                    <li><span class="check">✓</span> 8 guided learning paths</li>
+                    <li><span class="check">✓</span> AI Tutor (bring your own API key)</li>
+                    <li><span class="check">✓</span> Glossary & resources</li>
+                </ul>
+                <button class="btn-secondary" onclick="window.location.href='/interactive-demos/'">
+                    Start Exploring
+                </button>
+            </div>
+
+            <!-- Apprentice (Sats Deposit) -->
+            <div class="pricing-card featured">
+                <span class="badge">Earn While You Learn</span>
+                <div class="tier-icon">⚡</div>
+                <h3>Apprentice</h3>
+                <p class="tagline">Skin in the game</p>
+                <div class="price">50,000 sats</div>
+                <p class="price-detail">~$25 deposit</p>
+                <div class="highlight">
+                    ✨ Complete modules → Earn up to <strong>40,000 sats</strong> back (80%)
+                </div>
+                <ul>
+                    <li><span class="check">✓</span> Everything in Explorer</li>
+                    <li><span class="check">✓</span> Unlimited AI Tutor access</li>
+                    <li><span class="check">✓</span> Premium deep-dive content</li>
+                    <li><span class="check">✓</span> Completion certificates</li>
+                    <li><span class="check">✓</span> Sats rewards for learning</li>
+                </ul>
+                <button class="btn-primary" id="btn-apprentice" onclick="openApprenticeModal()">
+                    ⚡ Deposit & Start Earning
+                </button>
+            </div>
+
+            <!-- Sovereign (Lifetime) -->
+            <div class="pricing-card">
+                <div class="tier-icon">👑</div>
+                <h3>Sovereign</h3>
+                <p class="tagline">Everything. Forever. No hoops.</p>
+                <div class="price">$399</div>
+                <p class="price-detail">One-time payment</p>
+                <ul>
+                    <li><span class="check">✓</span> Everything in Apprentice</li>
+                    <li><span class="check">✓</span> Lifetime access to all content</li>
+                    <li><span class="check">✓</span> All future updates included</li>
+                    <li><span class="check">✓</span> Private community access</li>
+                    <li><span class="check">✓</span> Direct support</li>
+                </ul>
+                <button class="btn-primary" onclick="openSovereignCheckout()" style="background: linear-gradient(135deg, #9333ea 0%, #a855f7 100%);">
+                    👑 Get Lifetime Access
+                </button>
+            </div>
+        </div>
+
+        <!-- Value Propositions -->
+        <div class="value-props">
+            <div class="value-prop">
+                <div class="icon">🔐</div>
+                <h4>Non-Custodial Payments</h4>
+                <p>Pay with Lightning. No accounts, no personal data collected.</p>
+            </div>
+            <div class="value-prop">
+                <div class="icon">📚</div>
+                <h4>Learn by Doing</h4>
+                <p>44 interactive demos. Understand Bitcoin, don't just read about it.</p>
+            </div>
+            <div class="value-prop">
+                <div class="icon">🎯</div>
+                <h4>Skin in the Game</h4>
+                <p>Deposit sats, earn them back. Completion changes incentives.</p>
+            </div>
+            <div class="value-prop">
+                <div class="icon">♾️</div>
+                <h4>No Subscriptions</h4>
+                <p>One payment, lifetime value. We practice what we preach.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Payment Modal -->
+    <div class="modal-overlay" id="payment-modal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <h2>⚡ Apprentice Deposit</h2>
+            <p class="subtitle">Scan with any Lightning wallet to deposit 50,000 sats</p>
+
+            <div class="qr-container">
+                <img id="qr-code" src="" alt="Lightning Invoice QR Code">
+            </div>
+
+            <div class="invoice-box" id="invoice-text">
+                Generating invoice...
+            </div>
+
+            <button class="copy-btn" onclick="copyInvoice()">
+                📋 Copy Invoice
+            </button>
+
+            <div class="payment-status waiting" id="payment-status">
+                <span class="timer" id="timer">Waiting for payment...</span>
+            </div>
+
+            <div class="confirm-manual">
+                <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 0.5rem;">Already paid?</p>
+                <button onclick="confirmPaymentManually()">I've Completed Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/lightning-payment.js"></script>
+    <script>
+        // Check membership status on load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMembershipUI();
+        });
+
+        // Listen for membership changes
+        window.addEventListener('membershipChanged', function(e) {
+            updateMembershipUI();
+        });
+
+        function updateMembershipUI() {
+            const membership = window.lightningPayment.getMembership();
+            const banner = document.getElementById('status-banner');
+            const apprenticeBtn = document.getElementById('btn-apprentice');
+
+            if (membership.tier === 'apprentice') {
+                banner.classList.add('active');
+                banner.querySelector('h3').textContent = '🎓 Apprentice Member';
+                apprenticeBtn.textContent = '✓ Already Enrolled';
+                apprenticeBtn.disabled = true;
+                apprenticeBtn.style.opacity = '0.6';
+
+                // Update progress
+                const progress = window.lightningPayment.getRefundProgress();
+                if (progress) {
+                    document.getElementById('earned-sats').textContent = `${progress.earnedSats.toLocaleString()} sats earned`;
+                    document.getElementById('progress-fill').style.width = `${progress.percentComplete}%`;
+                    document.getElementById('status-text').textContent = 
+                        `${progress.completedModules}/${progress.totalModules} modules • ${progress.remainingToEarn.toLocaleString()} sats to earn`;
+                }
+            } else if (membership.tier === 'sovereign') {
+                banner.classList.add('active');
+                banner.querySelector('h3').textContent = '👑 Sovereign Member';
+                document.getElementById('status-text').textContent = 'Lifetime access to all content';
+                document.getElementById('earned-sats').textContent = '';
+                document.getElementById('progress-fill').parentElement.style.display = 'none';
+                
+                apprenticeBtn.textContent = '✓ You have full access';
+                apprenticeBtn.disabled = true;
+                apprenticeBtn.style.opacity = '0.6';
+            }
+        }
+
+        let currentInvoice = null;
+
+        async function openApprenticeModal() {
+            const modal = document.getElementById('payment-modal');
+            modal.classList.add('active');
+
+            try {
+                // Generate invoice
+                currentInvoice = await window.lightningPayment.createApprenticeInvoice();
+
+                // Generate QR code
+                const qrUrl = await window.lightningPayment.generateQRCode(currentInvoice.paymentRequest);
+                document.getElementById('qr-code').src = qrUrl;
+
+                // Show invoice
+                document.getElementById('invoice-text').textContent = currentInvoice.paymentRequest;
+
+                // Start countdown
+                startTimer(currentInvoice.expires);
+
+                // Start polling for payment
+                window.lightningPayment.waitForPayment(currentInvoice, updatePaymentStatus)
+                    .then(result => {
+                        showPaymentSuccess();
+                    })
+                    .catch(err => {
+                        document.getElementById('payment-status').innerHTML = 
+                            '<span style="color: #ef4444;">Invoice expired. Please try again.</span>';
+                    });
+
+            } catch (error) {
+                console.error('Failed to create invoice:', error);
+                document.getElementById('invoice-text').textContent = 
+                    'Error creating invoice. Please try again.';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('payment-modal').classList.remove('active');
+            window.lightningPayment.stopPolling();
+        }
+
+        function copyInvoice() {
+            if (currentInvoice) {
+                navigator.clipboard.writeText(currentInvoice.paymentRequest);
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => btn.textContent = '📋 Copy Invoice', 2000);
+            }
+        }
+
+        function startTimer(expiresAt) {
+            const timerEl = document.getElementById('timer');
+            
+            const updateTimer = () => {
+                const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                timerEl.textContent = `Expires in ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (remaining > 0) {
+                    setTimeout(updateTimer, 1000);
+                }
+            };
+            
+            updateTimer();
+        }
+
+        function updatePaymentStatus(status) {
+            // Update UI during polling
+            document.getElementById('timer').textContent = 
+                `Waiting for payment... (${status.remainingSeconds}s remaining)`;
+        }
+
+        function confirmPaymentManually() {
+            if (currentInvoice && confirm('Did you successfully send the payment? This action cannot be undone.')) {
+                const result = window.lightningPayment.confirmPaymentManually(currentInvoice);
+                if (result.success) {
+                    showPaymentSuccess();
+                }
+            }
+        }
+
+        function showPaymentSuccess() {
+            const statusEl = document.getElementById('payment-status');
+            statusEl.className = 'payment-status success';
+            statusEl.innerHTML = `
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎉</div>
+                <strong>Payment Confirmed!</strong>
+                <p style="margin-top: 0.5rem; color: var(--muted);">Welcome to the Apprentice tier. Start learning to earn sats back!</p>
+            `;
+
+            // Hide manual confirm
+            document.querySelector('.confirm-manual').style.display = 'none';
+
+            // Refresh UI
+            setTimeout(() => {
+                closeModal();
+                updateMembershipUI();
+            }, 3000);
+        }
+
+        function openSovereignCheckout() {
+            // For now, show a placeholder
+            // You can integrate Stripe or BTCPay here
+            alert('Sovereign tier checkout coming soon!\n\nFor early access, contact us directly.');
+            
+            // Future: redirect to BTCPay or Stripe
+            // window.location.href = 'https://your-btcpay.com/checkout/sovereign';
+        }
+    </script>
+
+    <footer>
+        <p>
+            <a href="/">Home</a> • 
+            <a href="/interactive-demos/">Demos</a> • 
+            <a href="/about.html">About</a>
+        </p>
+        <p style="margin-top: 1rem;">Bitcoin Sovereign Academy — Learn. Practice. Verify.</p>
+    </footer>
+</body>
+</html>
