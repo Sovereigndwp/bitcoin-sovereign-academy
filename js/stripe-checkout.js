@@ -17,7 +17,7 @@
     const CONFIG = {
         // Replace with your Stripe Payment Link
         // Create at: https://dashboard.stripe.com/payment-links
-        stripePaymentLink: 'https://buy.stripe.com/test_XXXXXXXX', // TODO: Replace
+        stripePaymentLink: 'https://buy.stripe.com/9B63cu7m47Wd9rVdc21oI00',
         
         // Price in cents for verification
         sovereignPriceUSD: 39900, // $399.00
