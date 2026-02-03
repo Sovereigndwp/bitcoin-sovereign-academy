@@ -12,7 +12,7 @@
     // Configuration - Change this to your Lightning address
     const CONFIG = {
         // Your Lightning address (get one free at getalby.com)
-        lightningAddress: 'bsa@getalby.com', // TODO: Replace with your address
+        lightningAddress: 'dulcetsurf67367@getalby.com',
         
         // Deposit amount in sats
         apprenticeDeposit: 50000,
