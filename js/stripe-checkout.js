@@ -117,6 +117,12 @@
 
             localStorage.setItem(CONFIG.storageKeys.membership, JSON.stringify(membership));
             
+            // Track analytics
+            if (window.bsaAnalytics) {
+                window.bsaAnalytics.trackStripeSuccess(referenceId);
+                window.bsaAnalytics.trackMembershipSet('sovereign', 'stripe');
+            }
+            
             // Dispatch event for UI updates
             window.dispatchEvent(new CustomEvent('membershipChanged', { detail: membership }));
 

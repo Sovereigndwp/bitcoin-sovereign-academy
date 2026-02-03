@@ -95,6 +95,15 @@
                 tx: txData
             };
             localStorage.setItem(CONFIG.storageKeys.membership, JSON.stringify(membership));
+            
+            // Track analytics
+            if (window.bsaAnalytics) {
+                if (txData && txData.paymentHash) {
+                    window.bsaAnalytics.trackLightningSuccess(txData.paymentHash, txData.amount);
+                }
+                window.bsaAnalytics.trackMembershipSet(tier, 'lightning');
+            }
+            
             window.dispatchEvent(new CustomEvent('membershipChanged', { detail: membership }));
             return membership;
         }

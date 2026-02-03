@@ -213,6 +213,11 @@
          * Show the full-page gate overlay
          */
         showGateOverlay() {
+            // Track gate view
+            if (window.bsaAnalytics) {
+                window.bsaAnalytics.trackGateView(window.location.pathname);
+            }
+
             // Inject styles
             this.injectStyles();
 
@@ -231,7 +236,7 @@
                             <h3>⚡ Apprentice</h3>
                             <div class="option-price">50,000 sats</div>
                             <p>Deposit sats, earn up to 80% back as you learn</p>
-                            <button class="gate-btn primary" onclick="window.location.href='/membership.html#apprentice'">
+                            <button class="gate-btn primary" onclick="if(window.bsaAnalytics)window.bsaAnalytics.trackMembershipClick('apprentice','gate');window.location.href='/membership.html#apprentice'">
                                 Start Earning
                             </button>
                         </div>
@@ -240,7 +245,7 @@
                             <h3>👑 Sovereign</h3>
                             <div class="option-price">$399</div>
                             <p>Lifetime access to everything. No hoops.</p>
-                            <button class="gate-btn secondary" onclick="window.location.href='/membership.html#sovereign'">
+                            <button class="gate-btn secondary" onclick="if(window.bsaAnalytics)window.bsaAnalytics.trackMembershipClick('sovereign','gate');window.location.href='/membership.html#sovereign'">
                                 Get Lifetime Access
                             </button>
                         </div>
