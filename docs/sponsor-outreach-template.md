@@ -177,9 +177,9 @@ Best,
 ## Target Companies List
 
 ### Hardware Wallets (High Priority)
-- Trezor — security@trezor.io
-- Ledger — partnerships@ledger.com
-- Coldcard — support@coinkite.com
+- **Trezor/SatoshiLabs** — support@satoshilabs.com (general), trezor.io/support for partnerships inquiry
+- **Ledger** — media@ledger.com (press/partnerships), ledger.com/partners (partner programs page)
+- **Coldcard/Coinkite** — support@coinkite.com (verified from official docs)
 - Foundation Devices — hello@foundationdevices.com
 - BitBox — contact@shiftcrypto.ch
 
@@ -188,13 +188,18 @@ Best,
 - Unchained — hello@unchained.com
 - River Financial — support@river.com
 
+### Media/Publications
+- **Bitcoin Magazine** — sales@bitcoinmagazine.com (advertising/sponsorship, $10k minimum)
+- **Bitcoin Magazine** — editor@bitcoinmagazine.com (editorial/story pitches)
+
 ### Infrastructure
 - Start9 — support@start9.com
 - Umbrel — hi@umbrel.com
 - Mempool.space — hello@mempool.space
 
 ### Foundations (Grants)
-- Human Rights Foundation — grants@hrf.org
+- **Human Rights Foundation Bitcoin Dev Fund** — dev.fund@hrf.org (verified, accepts applications year-round)
+- **HRF** — hrf.org/program/financial-freedom/bitcoin-development-fund (application form)
 - OpenSats — apply at opensats.org
 - Brink — apply at brink.dev
 
