@@ -2,7 +2,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lightning Network Self-Hosting | The Sovereign Path</title>
-    <meta name="description" content="Placeholder content for Lightning Network Self-Hosting - Coming soon!">
+    <meta name="description" content="Master self-hosted Lightning Network nodes. Learn LND, Core Lightning, channel management, liquidity, routing, and connecting mobile wallets to your sovereign infrastructure.">
 
     <style>
         :root {
@@ -297,8 +297,8 @@
             <div class="module-title-section">
                 <h1>Lightning Network Self-Hosting</h1>
                 <div class="module-meta">
-                    <span><span data-icon="timer"></span> 30 minutes</span>
-                    <span>📝 Placeholder</span>
+                    <span><span data-icon="timer"></span> 55 minutes</span>
+                    <span><span data-icon="lightning"></span> Layer 2 Sovereignty</span>
                 </div>
             </div>
         </div>
@@ -306,58 +306,539 @@
 
     <main>
         <div class="container">
-            <div class="placeholder-notice">
-                <h3>🚧 Content Under Development</h3>
+            <section class="content-section">
+                <h2><span data-icon="lightning"></span> Introduction: Why Self-Host Lightning?</h2>
                 <p>
-                    This is placeholder content. The full module with interactive lessons, examples, 
-                    and exercises will be available soon. Check back later!
+                    You've set up your Bitcoin node. You verify your own transactions. You control your own keys.
+                    But when it comes to Lightning payments, are you still trusting someone else's infrastructure?
                 </p>
-            </div>
+                <p>
+                    The Lightning Network enables instant, low-fee Bitcoin payments by creating payment channels
+                    between nodes. But using custodial Lightning wallets—like Wallet of Satoshi or the default
+                    mode of many apps—means trusting a third party with your funds. <strong>Self-hosting your
+                    Lightning node is the final step to complete payment sovereignty.</strong>
+                </p>
 
-            <section class="content-section">
-                <h2>Introduction</h2>
-                <p>This module covers Lightning Network node setup and management. Content is currently in development.</p>
+                <div class="info-box">
+                    <h4><span data-icon="lightbulb"></span> Custodial vs. Self-Hosted Lightning</h4>
+                    <p><strong>Custodial Lightning (e.g., Wallet of Satoshi):</strong></p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Someone else holds your Bitcoin</li>
+                        <li>They can see all your payments</li>
+                        <li>They can freeze your funds</li>
+                        <li>They can be hacked, go bankrupt, or exit scam</li>
+                        <li>Convenient but not sovereign</li>
+                    </ul>
+                    <p style="margin-top: 1rem;"><strong>Self-Hosted Lightning:</strong></p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>You control your funds (your keys, your channels)</li>
+                        <li>Your payment history stays private</li>
+                        <li>No one can freeze your funds</li>
+                        <li>You choose who to connect with</li>
+                        <li>Requires setup and maintenance, but maximizes sovereignty</li>
+                    </ul>
+                </div>
+
+                <h3>What Self-Hosting Gives You</h3>
+                <ul>
+                    <li><strong>True custody:</strong> Your Bitcoin never leaves your control</li>
+                    <li><strong>Payment privacy:</strong> No third party sees your transactions</li>
+                    <li><strong>Censorship resistance:</strong> No one can block your payments</li>
+                    <li><strong>Routing revenue:</strong> Optionally earn sats by routing others' payments</li>
+                    <li><strong>Integration:</strong> Connect mobile wallets to your own node</li>
+                </ul>
+
+                <h3>Prerequisites</h3>
+                <p>Before setting up a Lightning node, you should have:</p>
+                <ul>
+                    <li><strong>A running Bitcoin full node</strong> (from Module 3 of Stage 2)</li>
+                    <li><strong>Some on-chain Bitcoin</strong> for opening channels (0.01-0.1+ BTC recommended)</li>
+                    <li><strong>Always-on hardware</strong> or willingness to run your node frequently</li>
+                    <li><strong>Basic command-line comfort</strong> (or use a GUI-based solution like Umbrel)</li>
+                </ul>
+
+                <div class="warning-box">
+                    <h4><span data-icon="alert"></span> Lightning Requires Attention</h4>
+                    <p>
+                        Unlike cold storage, Lightning requires your node to be online to receive payments and
+                        monitor for cheating attempts (old channel states). If you go offline for extended periods
+                        without proper watchtower protection, you risk losing funds.
+                    </p>
+                    <p>
+                        <strong>Start small.</strong> Begin with amounts you're comfortable experimenting with
+                        while you learn the system.
+                    </p>
+                </div>
             </section>
 
             <section class="content-section">
-                <h2>Lightning Node Setup</h2>
-                <p>Learn to deploy and configure your own Lightning Network node. Content coming soon.</p>
+                <h2><span data-icon="server"></span> Lightning Node Implementations</h2>
+                <p>
+                    There are several Lightning node implementations, each with different philosophies and features.
+                    All implement the same BOLT (Basis of Lightning Technology) specifications, so they can
+                    interoperate.
+                </p>
+
+                <div class="config-card">
+                    <h3>LND (Lightning Network Daemon)</h3>
+                    <p>Developed by Lightning Labs. The most popular implementation.</p>
+                    <h4>Pros:</h4>
+                    <ul>
+                        <li>Largest ecosystem of tools and integrations</li>
+                        <li>Excellent documentation and community support</li>
+                        <li>Used by most node packages (Umbrel, RaspiBlitz, etc.)</li>
+                        <li>Strong mobile wallet support (Zeus, Zap, BlueWallet)</li>
+                        <li>Active development with regular updates</li>
+                    </ul>
+                    <h4>Cons:</h4>
+                    <ul>
+                        <li>Slightly higher resource usage</li>
+                        <li>Some advanced features require paid services (Loop, Pool)</li>
+                        <li>Written in Go (harder to audit for some)</li>
+                    </ul>
+                    <h4>Best for:</h4>
+                    <p>Most users, especially beginners. The safest choice for broad compatibility.</p>
+                </div>
+
+                <div class="config-card">
+                    <h3>Core Lightning (CLN, formerly c-lightning)</h3>
+                    <p>Developed by Blockstream. Focus on modularity and spec compliance.</p>
+                    <h4>Pros:</h4>
+                    <ul>
+                        <li>Lightweight and efficient (lower resource usage)</li>
+                        <li>Highly modular plugin system</li>
+                        <li>Written in C (easier to audit, very fast)</li>
+                        <li>Strict spec compliance</li>
+                        <li>Great for developers building custom solutions</li>
+                    </ul>
+                    <h4>Cons:</h4>
+                    <ul>
+                        <li>Smaller ecosystem of tools</li>
+                        <li>Fewer GUI options</li>
+                        <li>Less beginner-friendly documentation</li>
+                    </ul>
+                    <h4>Best for:</h4>
+                    <p>Advanced users, developers, or those who want maximum efficiency.</p>
+                </div>
+
+                <div class="config-card">
+                    <h3>Eclair</h3>
+                    <p>Developed by ACINQ (creators of Phoenix Wallet). Written in Scala.</p>
+                    <h4>Pros:</h4>
+                    <ul>
+                        <li>Powers Phoenix, one of the best Lightning wallets</li>
+                        <li>Strong focus on mobile-first experience</li>
+                        <li>Implements latest features (splicing, etc.)</li>
+                    </ul>
+                    <h4>Cons:</h4>
+                    <ul>
+                        <li>Smaller community outside ACINQ ecosystem</li>
+                        <li>Less commonly used for self-hosting</li>
+                        <li>JVM-based (higher memory usage)</li>
+                    </ul>
+                    <h4>Best for:</h4>
+                    <p>Users who want to run infrastructure compatible with Phoenix wallet ecosystem.</p>
+                </div>
+
+                <div class="info-box">
+                    <h4><span data-icon="lightbulb"></span> Recommendation</h4>
+                    <p>
+                        <strong>For most sovereign users: Start with LND.</strong> It has the best ecosystem,
+                        documentation, and support. Most node packages (Umbrel, Start9, RaspiBlitz) use LND
+                        by default. You can always run CLN later if you want to experiment.
+                    </p>
+                </div>
             </section>
 
             <section class="content-section">
-                <h2>Channel Management</h2>
-                <p>Master opening channels, routing payments, and earning fees. Content coming soon.</p>
+                <h2><span data-icon="download"></span> Setting Up Your Lightning Node</h2>
+                <p>
+                    There are two main approaches to running a Lightning node: using a node package (easier)
+                    or manual installation (more control).
+                </p>
+
+                <h3>Option 1: Node Packages (Recommended for Most)</h3>
+                <p>
+                    Node packages like Umbrel, Start9, RaspiBlitz, and MyNode bundle Bitcoin Core + LND
+                    (and other services) into an easy-to-use package.
+                </p>
+
+                <div class="config-card">
+                    <h3>Umbrel</h3>
+                    <p>Beautiful interface, one-click app installs, beginner-friendly.</p>
+                    <ul>
+                        <li>Install on Raspberry Pi, old PC, or Umbrel Home hardware</li>
+                        <li>Bitcoin + Lightning ready out of the box</li>
+                        <li>App store for additional services (BTCPay, Mempool, etc.)</li>
+                        <li>Web-based GUI for channel management</li>
+                    </ul>
+                    <p><strong>Setup time:</strong> 1-2 hours (plus sync time)</p>
+                </div>
+
+                <div class="config-card">
+                    <h3>Start9</h3>
+                    <p>Privacy-focused, open-source, excellent for self-hosting multiple services.</p>
+                    <ul>
+                        <li>Embassy OS provides a clean interface</li>
+                        <li>Strong focus on sovereignty and privacy</li>
+                        <li>Marketplace of self-hosted apps</li>
+                        <li>Tor integration by default</li>
+                    </ul>
+                    <p><strong>Setup time:</strong> 2-3 hours (plus sync time)</p>
+                </div>
+
+                <div class="config-card">
+                    <h3>RaspiBlitz</h3>
+                    <p>DIY-focused, educational, highly customizable.</p>
+                    <ul>
+                        <li>LCD display shows node status</li>
+                        <li>Script-based interface (SSH)</li>
+                        <li>Great for learning the internals</li>
+                        <li>Very active community</li>
+                    </ul>
+                    <p><strong>Setup time:</strong> 2-4 hours (plus sync time)</p>
+                </div>
+
+                <h3>Option 2: Manual Installation</h3>
+                <p>
+                    For maximum control, you can install LND or CLN directly on your Bitcoin node.
+                    This is more complex but gives you full configuration control.
+                </p>
+
+                <h4>Basic LND Setup (Linux)</h4>
+                <div style="background: var(--secondary-dark); padding: 1.5rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.85rem; overflow-x: auto; margin: 1.5rem 0;">
+                    <p style="color: var(--text-dim);"># Download LND (check for latest version)</p>
+                    <p style="color: var(--sovereign-gold);">wget https://github.com/lightningnetwork/lnd/releases/download/v0.17.0-beta/lnd-linux-amd64-v0.17.0-beta.tar.gz</p>
+                    <p style="color: var(--sovereign-gold);">tar -xzf lnd-linux-amd64-v0.17.0-beta.tar.gz</p>
+                    <p style="color: var(--sovereign-gold);">sudo mv lnd-linux-amd64-v0.17.0-beta/lnd /usr/local/bin/</p>
+                    <p style="color: var(--sovereign-gold);">sudo mv lnd-linux-amd64-v0.17.0-beta/lncli /usr/local/bin/</p>
+                    <p>&nbsp;</p>
+                    <p style="color: var(--text-dim);"># Create config directory</p>
+                    <p style="color: var(--sovereign-gold);">mkdir -p ~/.lnd</p>
+                    <p>&nbsp;</p>
+                    <p style="color: var(--text-dim);"># Create basic config (lnd.conf)</p>
+                    <p style="color: var(--sovereign-gold);">cat > ~/.lnd/lnd.conf << EOF</p>
+                    <p style="color: var(--text-dim);">[Application Options]</p>
+                    <p style="color: var(--text-light);">alias=YourNodeName</p>
+                    <p style="color: var(--text-dim);">[Bitcoin]</p>
+                    <p style="color: var(--text-light);">bitcoin.active=1</p>
+                    <p style="color: var(--text-light);">bitcoin.mainnet=1</p>
+                    <p style="color: var(--text-light);">bitcoin.node=bitcoind</p>
+                    <p style="color: var(--text-dim);">[Bitcoind]</p>
+                    <p style="color: var(--text-light);">bitcoind.rpcuser=yourrpcuser</p>
+                    <p style="color: var(--text-light);">bitcoind.rpcpass=yourrpcpass</p>
+                    <p style="color: var(--sovereign-gold);">EOF</p>
+                </div>
+
+                <div class="warning-box">
+                    <h4><span data-icon="alert"></span> Backup Your Seed and Static Channel Backup</h4>
+                    <p>
+                        When you first create your LND wallet, you'll get a 24-word seed phrase. <strong>Back this
+                        up immediately</strong> using the same security practices as your on-chain wallet.
+                    </p>
+                    <p>
+                        Additionally, enable <strong>Static Channel Backups (SCB)</strong>. This file allows you
+                        to recover channel funds if your node is destroyed. Back it up after every channel
+                        open/close.
+                    </p>
+                </div>
+            </section>
+
+            <section class="content-section">
+                <h2><span data-icon="link"></span> Channel Management</h2>
+                <p>
+                    Channels are the core of Lightning. Understanding how to open, manage, and close them
+                    is essential for a well-functioning node.
+                </p>
+
+                <h3>Opening Channels</h3>
+                <p>
+                    When you open a channel, you commit on-chain Bitcoin to a 2-of-2 multisig with your
+                    channel partner. This Bitcoin can then move back and forth off-chain.
+                </p>
+
+                <h4>Key Considerations:</h4>
+                <ul>
+                    <li><strong>Channel size:</strong> Larger channels can route bigger payments. Start with 500K-2M sats per channel.</li>
+                    <li><strong>On-chain fees:</strong> Opening and closing channels requires on-chain transactions. Open during low-fee periods.</li>
+                    <li><strong>Partner selection:</strong> Connect to well-connected, reliable nodes. Check their uptime and channel capacity.</li>
+                    <li><strong>Balanced channels:</strong> For routing, you want channels with funds on both sides.</li>
+                </ul>
+
+                <div class="config-card">
+                    <h3>Who to Connect To</h3>
+                    <p>For a new node, consider opening channels to:</p>
+                    <ul>
+                        <li><strong>Large routing nodes:</strong> ACINQ, Wallet of Satoshi, Kraken, etc. Good connectivity to the network.</li>
+                        <li><strong>Merchants you use:</strong> Direct channels to places you pay save routing fees.</li>
+                        <li><strong>Friends' nodes:</strong> Build a web of trust and help each other.</li>
+                        <li><strong>LSPs (Lightning Service Providers):</strong> They can open channels back to you, providing inbound liquidity.</li>
+                    </ul>
+                </div>
+
+                <h3>Inbound vs. Outbound Liquidity</h3>
+                <p>
+                    This is the most confusing concept for new Lightning users:
+                </p>
+                <ul>
+                    <li><strong>Outbound liquidity:</strong> Bitcoin on YOUR side of channels. You can send this much.</li>
+                    <li><strong>Inbound liquidity:</strong> Bitcoin on the OTHER side of channels. Others can send you this much.</li>
+                </ul>
+                <p>
+                    When you open a channel, all the funds are on your side (outbound). You can send but not
+                    receive until you spend some or get inbound liquidity.
+                </p>
+
+                <h4>Getting Inbound Liquidity:</h4>
+                <ul>
+                    <li><strong>Spend Bitcoin:</strong> Every payment you make moves funds to the other side</li>
+                    <li><strong>Request incoming channels:</strong> Ask others to open channels TO you</li>
+                    <li><strong>Use liquidity services:</strong> Loop Out, Magma, LN+, Lightning Pool</li>
+                    <li><strong>Dual-funded channels:</strong> Both sides contribute (if supported)</li>
+                </ul>
+
+                <h3>Closing Channels</h3>
+                <p>There are three types of channel closes:</p>
+                <ul>
+                    <li><strong>Cooperative close:</strong> Both parties agree, settles quickly with low fees. Best case.</li>
+                    <li><strong>Force close:</strong> One party closes unilaterally. Funds locked for days (time-lock). Higher fees.</li>
+                    <li><strong>Breach close:</strong> Your node catches a cheating attempt. You claim all funds. Requires being online.</li>
+                </ul>
+
+                <div class="warning-box">
+                    <h4><span data-icon="alert"></span> Avoid Force Closes</h4>
+                    <p>
+                        Force closes are expensive and lock your funds for days. They happen when:
+                    </p>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>Your peer is offline for too long</li>
+                        <li>Software bugs or crashes</li>
+                        <li>Network issues prevent communication</li>
+                    </ul>
+                    <p>
+                        Keep your node online and updated. If you need to close, always try cooperative first.
+                    </p>
+                </div>
+            </section>
+
+            <section class="content-section">
+                <h2><span data-icon="route"></span> Routing and Earning Fees</h2>
+                <p>
+                    One benefit of running a Lightning node is the potential to earn sats by routing
+                    payments for others. But this requires active management.
+                </p>
+
+                <h3>How Routing Works</h3>
+                <p>
+                    When someone sends a payment that doesn't have a direct channel, the payment "hops"
+                    through intermediate nodes. Each hop can charge a small fee.
+                </p>
+                <p>
+                    To route payments, you need:
+                </p>
+                <ul>
+                    <li><strong>Channels with liquidity on both sides</strong> (balanced channels)</li>
+                    <li><strong>Good connectivity</strong> (channels to well-connected nodes)</li>
+                    <li><strong>Competitive fees</strong> (not too high or payments route around you)</li>
+                    <li><strong>High uptime</strong> (offline nodes can't route)</li>
+                </ul>
+
+                <h3>Setting Fees</h3>
+                <p>Lightning fees have two components:</p>
+                <ul>
+                    <li><strong>Base fee:</strong> Fixed fee per payment (e.g., 1 sat)</li>
+                    <li><strong>Fee rate:</strong> Percentage of payment (e.g., 0.0001% = 1 ppm)</li>
+                </ul>
+                <p>
+                    Start with default fees and adjust based on your channel balance. Raise fees on
+                    channels that are draining; lower fees on channels that are filling up.
+                </p>
+
+                <div class="info-box">
+                    <h4><span data-icon="lightbulb"></span> Routing Reality Check</h4>
+                    <p>
+                        Routing income is typically very small—a few hundred to a few thousand sats per month
+                        for hobbyist nodes. Don't expect to get rich. The real benefits are:
+                    </p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Learning how Lightning works deeply</li>
+                        <li>Contributing to network decentralization</li>
+                        <li>Having great connectivity for your own payments</li>
+                        <li>The satisfaction of self-hosting</li>
+                    </ul>
+                </div>
+
+                <h3>Automated Channel Management</h3>
+                <p>Several tools can help manage channels automatically:</p>
+                <ul>
+                    <li><strong>Balance of Satoshis (BOS):</strong> CLI tool for channel management, rebalancing, accounting</li>
+                    <li><strong>Ride The Lightning (RTL):</strong> Web UI for managing LND or CLN</li>
+                    <li><strong>ThunderHub:</strong> Another excellent web UI with analytics</li>
+                    <li><strong>LNDg:</strong> Advanced analytics and automation for LND</li>
+                    <li><strong>Charge-lnd:</strong> Automatic fee adjustment based on channel balance</li>
+                </ul>
+            </section>
+
+            <section class="content-section">
+                <h2><span data-icon="mobile"></span> Connecting Mobile Wallets</h2>
+                <p>
+                    One of the best features of self-hosting is connecting your mobile wallet to your own
+                    node. This gives you the convenience of mobile payments with the sovereignty of your
+                    own infrastructure.
+                </p>
+
+                <h3>Zeus Wallet</h3>
+                <p>
+                    Zeus is the most popular wallet for connecting to your own LND or CLN node.
+                </p>
+                <ul>
+                    <li>Supports LND, CLN, and Eclair</li>
+                    <li>Connects over Tor (no port forwarding needed)</li>
+                    <li>Full node control from your phone</li>
+                    <li>Can also run embedded node (Zeus 0.8+)</li>
+                </ul>
+                <p><strong>Setup:</strong> Generate a connection string from your node (Umbrel makes this easy), scan QR code in Zeus.</p>
+
+                <h3>Zap Wallet</h3>
+                <p>Clean interface, good for basic LND management.</p>
+                <ul>
+                    <li>LND only</li>
+                    <li>Desktop and mobile apps</li>
+                    <li>Simple and beginner-friendly</li>
+                </ul>
+
+                <h3>BlueWallet (LNDHub)</h3>
+                <p>
+                    BlueWallet can connect to your own LNDHub instance, which acts as an account layer
+                    on top of LND. Good for sharing your node with family.
+                </p>
+
+                <h3>Phoenix (ACINQ)</h3>
+                <p>
+                    Phoenix is non-custodial but uses ACINQ's LSP. For true self-hosting, use Zeus or
+                    run your own Eclair node that Phoenix connects to.
+                </p>
+
+                <div class="config-card">
+                    <h3>Connecting Over Tor</h3>
+                    <p>
+                        Most node packages expose your Lightning node as a Tor hidden service. This means:
+                    </p>
+                    <ul>
+                        <li>No port forwarding required</li>
+                        <li>Your home IP stays private</li>
+                        <li>Works from anywhere with internet</li>
+                    </ul>
+                    <p>
+                        Connections are slower over Tor but the privacy benefits are worth it.
+                    </p>
+                </div>
+            </section>
+
+            <section class="content-section">
+                <h2><span data-icon="shield"></span> Security Best Practices</h2>
+
+                <h3>Backup Strategy</h3>
+                <ul>
+                    <li><strong>Seed phrase:</strong> Back up your 24-word seed. This recovers on-chain funds but NOT channel state.</li>
+                    <li><strong>Static Channel Backup (SCB):</strong> Back up after every channel change. Enables force-close recovery.</li>
+                    <li><strong>channel.db:</strong> The full channel database. Can restore exact state but is tricky (risk of broadcasting old state).</li>
+                </ul>
+
+                <div class="warning-box">
+                    <h4><span data-icon="alert"></span> Never Restore channel.db to Multiple Nodes</h4>
+                    <p>
+                        If you restore an old channel.db and broadcast an old state, your peer can claim all
+                        your funds as a "breach." Only use channel.db restoration as a last resort, and ensure
+                        the backup is the most recent state.
+                    </p>
+                </div>
+
+                <h3>Watchtowers</h3>
+                <p>
+                    Watchtowers monitor the blockchain on your behalf and can punish cheating attempts
+                    even when your node is offline. Essential if you can't maintain high uptime.
+                </p>
+                <ul>
+                    <li>LND has built-in watchtower support (client and server)</li>
+                    <li>The Eye of Satoshi (TEOS) is a popular watchtower implementation</li>
+                    <li>Some services offer free watchtower hosting</li>
+                </ul>
+
+                <h3>Updates and Maintenance</h3>
+                <ul>
+                    <li>Keep your node software updated (security fixes)</li>
+                    <li>Monitor channel health (inactive peers, low liquidity)</li>
+                    <li>Close zombie channels (inactive for 2+ weeks)</li>
+                    <li>Watch for unusual activity (failed payments, force closes)</li>
+                </ul>
             </section>
 
             <!-- Interactive Lightning Network Demo -->
             <section class="content-section">
                 <div class="demo-embed" style="background: var(--secondary-dark); border: 2px solid #9C27B0; border-radius: 1rem; padding: 2rem; margin: 2rem 0; text-align: center;">
-                    <h3 style="color: #9C27B0; margin-bottom: 1rem;"><span data-icon="lightning"></span> Interactive: Lightning Network</h3>
+                    <h3 style="color: #9C27B0; margin-bottom: 1rem;"><span data-icon="lightning"></span> Interactive: Lightning Network Simulator</h3>
                     <p style="margin-bottom: 1.5rem; color: var(--text-dim);">
-                        Experience Lightning Network payment channels, multi-hop routing, and HTLCs. Understand how to manage your own Lightning node at the intermediate level.
+                        Practice channel management, routing, and HTLC mechanics in a safe simulation.
+                        Understand how payments flow through the network.
                     </p>
                     <a href="/interactive-demos/lightning-network-demo/index.html?level=intermediate&amp;path=sovereign" target="_blank" class="demo-link">
                         Launch Lightning Network Demo →
                     </a>
-                    <p style="margin-top: 1rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;"><span data-icon="lightbulb"></span> Explore single channels, multi-hop routing, and HTLC mechanics for self-hosting!
-                    </p>
                 </div>
             </section>
 
-            <!-- Beyond Lightning -->
-            <section class="content-section">
-                <div style="background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05)); border: 2px solid var(--sovereign-gold); border-radius: 1rem; padding: 2rem; text-align: center;">
-                    <h3 style="color: var(--sovereign-gold); margin-bottom: 1rem;">🔮 What's Beyond Lightning?</h3>
-                    <p style="margin-bottom: 1.5rem; color: var(--text-light);">
-                        Lightning is just one layer in Bitcoin's growing ecosystem. Explore the full landscape: Liquid for privacy, Fedimint for communities, and emerging protocols.
-                    </p>
-                    <a href="/interactive-demos/bitcoin-layers-map.html?level=intermediate&amp;path=sovereign" target="_blank" style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--sovereign-gold); color: var(--primary-dark); text-decoration: none; border-radius: 0.5rem; font-weight: 600; transition: all 0.3s ease;"><span data-icon="map"></span> Explore Bitcoin Layers Map →
-                    </a>
-                    <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-dim);">
-                        Opens in new tab • Interactive exploration of Bitcoin's layered architecture
-                    </p>
-                </div>
+            <section class="key-takeaways">
+                <h3><span data-icon="star"></span> Key Takeaways: Lightning Self-Hosting</h3>
+                <ul>
+                    <li>
+                        <strong>Self-hosted Lightning = true payment sovereignty.</strong> No one can see your
+                        payments, freeze your funds, or censor your transactions.
+                    </li>
+                    <li>
+                        <strong>LND is the safest choice for most users.</strong> Best ecosystem, documentation,
+                        and mobile wallet support. CLN for advanced users.
+                    </li>
+                    <li>
+                        <strong>Node packages (Umbrel, Start9) make setup easy.</strong> One-click Lightning
+                        deployment with a beautiful interface.
+                    </li>
+                    <li>
+                        <strong>Understand inbound vs. outbound liquidity.</strong> You need both to send
+                        AND receive. New nodes start with only outbound.
+                    </li>
+                    <li>
+                        <strong>Channel selection matters.</strong> Connect to reliable, well-connected nodes.
+                        Start with 2-3 channels of 500K-2M sats each.
+                    </li>
+                    <li>
+                        <strong>Backup your seed AND your SCB.</strong> The seed alone doesn't recover
+                        channel funds. SCB enables force-close recovery.
+                    </li>
+                    <li>
+                        <strong>Use watchtowers if uptime is uncertain.</strong> They protect against cheating
+                        while you're offline.
+                    </li>
+                    <li>
+                        <strong>Connect mobile wallets to your node.</strong> Zeus lets you manage your
+                        Lightning from anywhere, connected to your own infrastructure.
+                    </li>
+                    <li>
+                        <strong>Routing income is small but real.</strong> The bigger benefits are learning,
+                        privacy, and sovereignty.
+                    </li>
+                </ul>
             </section>
+
+            <div class="info-box" style="margin: 2rem 0;">
+                <h4>Next: PayJoin and PayNym</h4>
+                <p>
+                    Now that you can send instant private payments with Lightning, the next module covers
+                    advanced privacy techniques for on-chain transactions: PayJoin (BIP78) for breaking
+                    common input heuristics, and PayNym (BIP47) for reusable payment codes that don't
+                    leak address information.
+                </p>
+            </div>
 
             <nav class="module-navigation">
                 <a href="/paths/sovereign/stage-3/" class="nav-btn nav-btn-secondary">← Back to Stage 3</a>
