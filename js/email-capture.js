@@ -376,6 +376,37 @@
         }
 
         /**
+         * Download emails as CSV file
+         * Call from console: emailCapture.downloadCSV()
+         */
+        downloadCSV() {
+            const csv = this.exportCSV();
+            if (!csv) {
+                console.log('[EmailCapture] No emails to export');
+                return;
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bsa-email-captures-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            console.log(`[EmailCapture] Downloaded ${this.getStoredEmails().length} emails`);
+        }
+
+        /**
+         * Get email count
+         * Call from console: emailCapture.getCount()
+         */
+        getCount() {
+            const count = this.getStoredEmails().length;
+            console.log(`[EmailCapture] ${count} emails captured`);
+            return count;
+        }
+
+        /**
          * Submit to Substack (opens in new window)
          */
         submitToSubstack(email) {
