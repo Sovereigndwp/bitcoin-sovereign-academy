@@ -175,10 +175,10 @@
             '<button type="button" class="module-lock-dismiss" aria-label="Go back to previous page">×</button>',
             '<div class="module-lock-icon">🔐</div>',
             `<h3>Continue Your ${currentPath} Journey</h3>`,
-            `<p class="module-lock-subtitle">You've completed ${limit} free sections. ${remainingSections} more sections await in this module.</p>`,
+            `<p class="module-lock-subtitle">You have completed ${limit} free sections. ${remainingSections} more sections await in this module.</p>`,
 
             '<div class="module-unlock-benefits">',
-            '  <h4>What You'll Get:</h4>',
+            '  <h4>What You Will Get:</h4>',
             '  <ul>',
             '    <li><span class="benefit-icon">✓</span> Complete this module + 94 more across all paths</li>',
             '    <li><span class="benefit-icon">✓</span> Interactive demos & Bitcoin simulations</li>',

@@ -52,8 +52,8 @@ const translations = {
       },
       
       security: {
-        title: 'Security Dojo',
-        description: 'Master self-custody, multi-sig setups, and operational security through safe simulations.',
+        title: 'Security Training Lab',
+        description: 'Train through hands-on security stations: phishing defense, backup drills, and hardware wallet masterclass.',
         badge: 'COMING SOON'
       },
       

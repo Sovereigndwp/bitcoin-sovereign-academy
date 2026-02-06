@@ -714,10 +714,10 @@ class PhilosophyAgent {
     }
 
     constructArguments(topic, framework) {
-        const arguments = [];
+        const args = [];
         
         // Main argument
-        arguments.push({
+        args.push({
             type: 'primary',
             claim: `Bitcoin embodies ${topic} through technological means`,
             support: framework.bitcoinConnection,
@@ -726,7 +726,7 @@ class PhilosophyAgent {
         
         // Supporting arguments
         framework.questions.forEach(question => {
-            arguments.push({
+            args.push({
                 type: 'supporting',
                 claim: this.deriveClaimFromQuestion(question),
                 support: this.generateSupport(question, framework),
@@ -734,7 +734,7 @@ class PhilosophyAgent {
             });
         });
         
-        return arguments;
+        return args;
     }
 
     gatherEvidence(topic, framework) {

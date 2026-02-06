@@ -78,7 +78,7 @@ function checkLiveQuiz(questionNum) {
         if (selected.value === 'medium') {
             feedbackDiv.innerHTML = `<p class="correct">✅ Correct! Use the Medium Priority rate (${liveFeeData.hourFee} sat/vB) for confirmation within 1 hour. The High Priority rate would be overkill and waste money.</p>`;
         } else if (selected.value === 'high') {
-            feedbackDiv.innerHTML = '<p class="incorrect">❌ While this would work, you'd be overpaying. High Priority is for urgent (next block) transactions. Medium Priority is sufficient for 1-hour confirmation.</p>';
+            feedbackDiv.innerHTML = '<p class="incorrect">❌ While this would work, you would be overpaying. High Priority is for urgent (next block) transactions. Medium Priority is sufficient for 1-hour confirmation.</p>';
         } else {
             feedbackDiv.innerHTML = '<p class="incorrect">❌ Low Priority might take 24+ hours. Since you need confirmation within 1 hour, use Medium Priority.</p>';
         }

@@ -798,7 +798,7 @@ class CBDCBitcoinModule {
             },
             
             psychologicalEffects: {
-                self-censorship: {
+                selfCensorship: {
                     description: "When people know they're being watched, they modify behavior",
                     effects: [
                         "Avoiding purchases that might be judged negatively",

@@ -929,16 +929,16 @@ class DebateSimulatorAgent {
         return roleEvidence[Math.floor(Math.random() * roleEvidence.length)];
     }
 
-    async generateRebuttals(arguments) {
+    async generateRebuttals(debateArgs) {
         const rebuttals = [];
         
-        for (let i = 0; i < arguments.length; i++) {
-            for (let j = 0; j < arguments.length; j++) {
-                if (i !== j && arguments[i].stance !== arguments[j].stance) {
+        for (let i = 0; i < debateArgs.length; i++) {
+            for (let j = 0; j < debateArgs.length; j++) {
+                if (i !== j && debateArgs[i].stance !== debateArgs[j].stance) {
                     rebuttals.push({
-                        from: arguments[i].speaker,
-                        to: arguments[j].speaker,
-                        rebuttal: this.createRebuttal(arguments[i], arguments[j])
+                        from: debateArgs[i].speaker,
+                        to: debateArgs[j].speaker,
+                        rebuttal: this.createRebuttal(debateArgs[i], debateArgs[j])
                     });
                 }
             }
@@ -1925,4 +1925,60 @@ class BlockchainPoetryAgent {
             data: blockchainData,
             visualization,
             educational: this.extractEducationalElements(poem, blockchainData),
-            interactive: this.createInteractivePoe 
+            interactive: this.createInteractivePoetry(poem)
+        };
+    }
+
+    async gatherBlockchainData(data) {
+        return {
+            blockHeight: data.blockHeight || 870000,
+            price: data.price || 97000,
+            difficulty: data.difficulty || '65T',
+            hashrate: data.hashrate || '500 EH/s'
+        };
+    }
+
+    composePoem(data, form) {
+        if (form.structure && form.structure[0] === 5 && form.structure.length === 3) {
+            // Haiku
+            return [
+                `Block ${data.blockHeight} stands`,
+                `Immutable truth now sealed`,
+                `Satoshi's vision`
+            ].join('\n');
+        }
+        return `Bitcoin rises, block by block, to ${data.blockHeight}`;
+    }
+
+    createPoeticVisualization(poem, form) {
+        return { type: form, lines: poem.split('\n').length };
+    }
+
+    extractEducationalElements(poem, data) {
+        return {
+            concepts: ['blocks', 'immutability', 'proof-of-work'],
+            data: data
+        };
+    }
+
+    createInteractivePoetry(poem) {
+        return { poem, interactive: true };
+    }
+}
+
+// Export for use
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        AIAgentOrchestrator,
+        BitcoinDebateOrchestrator,
+        SovereignGuideAgent,
+        BlockchainPoetryAgent
+    };
+}
+
+if (typeof window !== 'undefined') {
+    window.AIAgentOrchestrator = AIAgentOrchestrator;
+    window.BitcoinDebateOrchestrator = BitcoinDebateOrchestrator;
+    window.SovereignGuideAgent = SovereignGuideAgent;
+    window.BlockchainPoetryAgent = BlockchainPoetryAgent;
+}

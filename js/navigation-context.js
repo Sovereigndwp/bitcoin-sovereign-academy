@@ -551,6 +551,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // On path pages, auto-save context
     if (window.location.pathname.startsWith('/paths/')) {
         window.NavigationContext.autoSaveIfOnPath();
+        
+        // Also add click handlers to demo/tool links to ensure context is saved
+        // before the user navigates away (especially important for target="_blank" links)
+        document.querySelectorAll('a[href*="/interactive-demos/"], a[href*="/deep-dives/"], a[href*="/tools/"]').forEach(function(link) {
+            link.addEventListener('click', function() {
+                // Save context right before navigating to demo/tool
+                window.NavigationContext.autoSaveIfOnPath();
+            });
+        });
     }
     
     // On deep-dive/demo/tool pages, inject return nav
@@ -559,6 +568,34 @@ document.addEventListener('DOMContentLoaded', function() {
                        window.location.pathname.includes('/demos/');
     
     if (isDeepDive) {
+        // Check for path hint in query string
+        const urlParams = new URLSearchParams(window.location.search);
+        const pathHint = urlParams.get('path');
+        const existingContext = window.NavigationContext.getContext();
+        
+        // Use query parameter if:
+        // 1. There's no existing context, OR
+        // 2. The query parameter path is different from the existing context path
+        //    (means user came from a different learning path)
+        if (pathHint) {
+            const pathNames = window.NavigationContext.PATH_NAMES;
+            if (pathNames[pathHint]) {
+                const shouldUpdateContext = !existingContext || existingContext.pathId !== pathHint;
+                
+                if (shouldUpdateContext) {
+                    const stageHint = urlParams.get('stage') || '1';
+                    const moduleHint = urlParams.get('module') || '1';
+                    window.NavigationContext.saveContext({
+                        pathId: pathHint,
+                        stage: parseInt(stageHint),
+                        module: parseInt(moduleHint),
+                        title: pathNames[pathHint],
+                        returnUrl: `/paths/${pathHint}/stage-${stageHint}/module-${moduleHint}.html`
+                    });
+                }
+            }
+        }
+        
         // Slight delay to let page render first
         setTimeout(() => {
             window.NavigationContext.injectReturnNav('floating');
