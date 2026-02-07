@@ -33,16 +33,16 @@ const VaultApp = (function() {
     function cacheElements() {
         // Screens
         elements.unlockScreen = document.getElementById('unlock-screen');
-        elements.mainApp = document.getElementById('main-app');
+        elements.mainApp = document.getElementById('main-content');
 
         // Unlock form elements
         elements.modeToggle = document.querySelectorAll('.mode-btn');
         elements.unlockForm = document.getElementById('unlock-form');
-        elements.passwordInput = document.getElementById('vault-password');
-        elements.confirmPasswordGroup = document.getElementById('confirm-password-group');
+        elements.passwordInput = document.getElementById('master-password');
+        elements.confirmPasswordGroup = document.querySelector('.new-vault-only');
         elements.confirmPasswordInput = document.getElementById('confirm-password');
-        elements.togglePasswordBtn = document.getElementById('toggle-password');
-        elements.unlockBtn = document.getElementById('unlock-btn');
+        elements.togglePasswordBtn = document.querySelector('.toggle-password');
+        elements.unlockBtn = document.querySelector('.btn-unlock');
         elements.unlockError = document.getElementById('unlock-error');
 
         // Navigation
@@ -50,8 +50,8 @@ const VaultApp = (function() {
         elements.tabContents = document.querySelectorAll('.tab-content');
 
         // Header
-        elements.headerScore = document.getElementById('header-resilience-score');
-        elements.lockBtn = document.getElementById('lock-btn');
+        elements.headerScore = document.getElementById('header-score');
+        elements.lockBtn = document.getElementById('btn-lock');
         elements.settingsBtn = document.getElementById('settings-btn');
 
         // Dashboard elements
@@ -192,17 +192,22 @@ const VaultApp = (function() {
         elements.modeToggle.forEach(btn => {
             const mode = btn.dataset.mode;
             btn.classList.toggle('active', 
-                (vaultExists && mode === 'unlock') || 
-                (!vaultExists && mode === 'create')
+                (vaultExists && mode === 'existing') || 
+                (!vaultExists && mode === 'new')
             );
         });
 
-        // Update form state
-        if (elements.confirmPasswordGroup) {
-            elements.confirmPasswordGroup.style.display = vaultExists ? 'none' : 'block';
-        }
-        if (elements.unlockBtn) {
-            elements.unlockBtn.textContent = vaultExists ? 'Unlock Vault' : 'Create Vault';
+        // Update form state - show/hide confirm password for new vault
+        document.querySelectorAll('.new-vault-only').forEach(el => {
+            el.style.display = vaultExists ? 'none' : 'block';
+        });
+        
+        // Update button text
+        const existingText = document.querySelector('.btn-unlock .existing-text');
+        const newText = document.querySelector('.btn-unlock .new-text');
+        if (existingText && newText) {
+            existingText.style.display = vaultExists ? 'inline' : 'none';
+            newText.style.display = vaultExists ? 'none' : 'inline';
         }
 
         // Show unlock screen
@@ -214,16 +219,23 @@ const VaultApp = (function() {
      */
     function handleModeToggle(e) {
         const mode = e.currentTarget.dataset.mode;
+        const isNew = mode === 'new';
         
         elements.modeToggle.forEach(btn => {
             btn.classList.toggle('active', btn.dataset.mode === mode);
         });
 
-        if (elements.confirmPasswordGroup) {
-            elements.confirmPasswordGroup.style.display = mode === 'create' ? 'block' : 'none';
-        }
-        if (elements.unlockBtn) {
-            elements.unlockBtn.textContent = mode === 'create' ? 'Create Vault' : 'Unlock Vault';
+        // Show/hide confirm password for new vault
+        document.querySelectorAll('.new-vault-only').forEach(el => {
+            el.style.display = isNew ? 'block' : 'none';
+        });
+        
+        // Update button text
+        const existingText = document.querySelector('.btn-unlock .existing-text');
+        const newText = document.querySelector('.btn-unlock .new-text');
+        if (existingText && newText) {
+            existingText.style.display = isNew ? 'none' : 'inline';
+            newText.style.display = isNew ? 'inline' : 'none';
         }
     }
 
@@ -234,7 +246,9 @@ const VaultApp = (function() {
         e.preventDefault();
 
         const password = elements.passwordInput.value;
-        const isCreate = elements.confirmPasswordGroup.style.display !== 'none';
+        // Check if we're in create mode by looking at which mode button is active
+        const activeModeBtn = document.querySelector('.mode-btn.active');
+        const isCreate = activeModeBtn && activeModeBtn.dataset.mode === 'new';
 
         if (isCreate) {
             const confirmPassword = elements.confirmPasswordInput.value;
@@ -249,7 +263,7 @@ const VaultApp = (function() {
 
             try {
                 elements.unlockBtn.disabled = true;
-                elements.unlockBtn.textContent = 'Creating...';
+                setButtonText('Creating...');
                 
                 await VaultCrypto.createVault(password);
                 await VaultCore.loadVault();
@@ -261,12 +275,12 @@ const VaultApp = (function() {
                 showError(error.message);
             } finally {
                 elements.unlockBtn.disabled = false;
-                elements.unlockBtn.textContent = 'Create Vault';
+                restoreButtonText();
             }
         } else {
             try {
                 elements.unlockBtn.disabled = true;
-                elements.unlockBtn.textContent = 'Unlocking...';
+                setButtonText('Unlocking...');
                 
                 await VaultCrypto.unlockVault(password);
                 await VaultCore.loadVault();
@@ -278,7 +292,7 @@ const VaultApp = (function() {
                 showError(error.message || 'Invalid password');
             } finally {
                 elements.unlockBtn.disabled = false;
-                elements.unlockBtn.textContent = 'Unlock Vault';
+                restoreButtonText();
             }
         }
 
@@ -296,6 +310,42 @@ const VaultApp = (function() {
         VaultCrypto.lockVault();
         _isUnlocked = false;
         showScreen('unlock');
+    }
+
+    /**
+     * Set button text during loading states
+     */
+    function setButtonText(text) {
+        const existingText = elements.unlockBtn.querySelector('.existing-text');
+        const newText = elements.unlockBtn.querySelector('.new-text');
+        if (existingText) existingText.style.display = 'none';
+        if (newText) newText.style.display = 'none';
+        
+        // Add loading text if not exists
+        let loadingText = elements.unlockBtn.querySelector('.loading-text');
+        if (!loadingText) {
+            loadingText = document.createElement('span');
+            loadingText.className = 'loading-text';
+            elements.unlockBtn.appendChild(loadingText);
+        }
+        loadingText.textContent = text;
+        loadingText.style.display = 'inline';
+    }
+
+    /**
+     * Restore button text after loading
+     */
+    function restoreButtonText() {
+        const loadingText = elements.unlockBtn.querySelector('.loading-text');
+        if (loadingText) loadingText.style.display = 'none';
+        
+        const activeModeBtn = document.querySelector('.mode-btn.active');
+        const isNew = activeModeBtn && activeModeBtn.dataset.mode === 'new';
+        
+        const existingText = elements.unlockBtn.querySelector('.existing-text');
+        const newText = elements.unlockBtn.querySelector('.new-text');
+        if (existingText) existingText.style.display = isNew ? 'none' : 'inline';
+        if (newText) newText.style.display = isNew ? 'inline' : 'none';
     }
 
     /**
