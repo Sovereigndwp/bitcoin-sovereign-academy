@@ -149,6 +149,22 @@ const VaultApp = (function() {
             card.addEventListener('click', handleTemplateSelect);
         });
 
+        // Add device button in wallet form
+        const addDeviceBtn = document.getElementById('btn-add-device');
+        if (addDeviceBtn) {
+            addDeviceBtn.addEventListener('click', handleAddDevice);
+        }
+
+        // Add wallet/backup buttons in section headers
+        const btnAddWallet = document.getElementById('btn-add-wallet');
+        if (btnAddWallet) {
+            btnAddWallet.addEventListener('click', () => openModal('modal-add-wallet'));
+        }
+        const btnAddBackup = document.getElementById('btn-add-backup');
+        if (btnAddBackup) {
+            btnAddBackup.addEventListener('click', () => openModal('modal-add-backup'));
+        }
+
         // Wizard navigation
         document.querySelectorAll('[data-wizard-nav]').forEach(btn => {
             btn.addEventListener('click', handleWizardNav);
@@ -945,6 +961,53 @@ const VaultApp = (function() {
     }
 
     /**
+     * Handle add device button in wallet form
+     */
+    let deviceCounter = 0;
+    function handleAddDevice() {
+        const devicesList = document.getElementById('wallet-devices');
+        if (!devicesList) return;
+
+        deviceCounter++;
+        const deviceId = `device-${deviceCounter}`;
+        
+        const deviceEntry = document.createElement('div');
+        deviceEntry.className = 'device-entry';
+        deviceEntry.id = deviceId;
+        deviceEntry.innerHTML = `
+            <select class="device-type" name="device-type-${deviceCounter}">
+                <option value="">Select device...</option>
+                <option value="coldcard">Coldcard</option>
+                <option value="ledger">Ledger</option>
+                <option value="trezor">Trezor</option>
+                <option value="bitbox">BitBox02</option>
+                <option value="foundation">Foundation Passport</option>
+                <option value="seedsigner">SeedSigner</option>
+                <option value="jade">Blockstream Jade</option>
+                <option value="keystone">Keystone</option>
+                <option value="other">Other</option>
+            </select>
+            <input type="text" class="device-label" placeholder="Label (e.g., Key #1)" name="device-label-${deviceCounter}">
+            <button type="button" class="btn-icon btn-remove-device" onclick="VaultApp.removeDevice('${deviceId}')" aria-label="Remove device">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+            </button>
+        `;
+        devicesList.appendChild(deviceEntry);
+    }
+
+    /**
+     * Remove a device entry
+     */
+    function removeDevice(deviceId) {
+        const deviceEntry = document.getElementById(deviceId);
+        if (deviceEntry) {
+            deviceEntry.remove();
+        }
+    }
+
+    /**
      * Handle template selection
      */
     function handleTemplateSelect(e) {
@@ -1043,6 +1106,7 @@ const VaultApp = (function() {
             case 'verify-backup':
                 switchTab('backups');
                 break;
+            case 'generate-emergency':
             case 'emergency-doc':
                 switchTab('emergency');
                 break;
@@ -1096,6 +1160,9 @@ const VaultApp = (function() {
         // Wallet actions
         editWallet: (id) => console.log('Edit wallet:', id), // TODO
         deleteWallet,
+        
+        // Device actions
+        removeDevice,
         
         // Backup actions
         verifyBackup,
