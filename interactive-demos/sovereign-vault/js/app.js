@@ -211,6 +211,16 @@ const VaultApp = (function() {
             dmsToggle.addEventListener('change', handleDMSToggle);
         }
 
+        // Keyholder radio toggle in heir form
+        document.querySelectorAll('input[name="heir-keyholder"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const keyDetailsDiv = document.getElementById('heir-key-details');
+                if (keyDetailsDiv) {
+                    keyDetailsDiv.style.display = e.target.value === 'yes' ? 'block' : 'none';
+                }
+            });
+        });
+
         // Keyboard shortcuts
         document.addEventListener('keydown', handleKeyboard);
     }
@@ -824,10 +834,26 @@ const VaultApp = (function() {
     function openModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
+            // Populate dropdowns before showing
+            if (modalId === 'modal-add-backup') {
+                populateBackupFormDropdowns();
+            }
             modal.classList.add('active');
             // Focus first input
             const firstInput = modal.querySelector('input, select, textarea');
             if (firstInput) firstInput.focus();
+        }
+    }
+
+    /**
+     * Populate wallet dropdown in backup form
+     */
+    function populateBackupFormDropdowns() {
+        const walletSelect = document.getElementById('backup-wallet');
+        if (walletSelect) {
+            const wallets = VaultCore.getWallets();
+            walletSelect.innerHTML = '<option value="">Select wallet...</option>' +
+                wallets.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
         }
     }
 
@@ -846,44 +872,85 @@ const VaultApp = (function() {
     async function handleAddWallet(e) {
         e.preventDefault();
 
-        const formData = new FormData(e.target);
         const walletData = {
             name: document.getElementById('wallet-name').value,
             type: document.getElementById('wallet-type').value,
             purpose: document.getElementById('wallet-purpose').value,
             requiredSignatures: parseInt(document.getElementById('multisig-m')?.value) || 1,
             totalKeys: parseInt(document.getElementById('multisig-n')?.value) || 1,
+            coordinator: document.getElementById('wallet-coordinator')?.value || '',
             notes: document.getElementById('wallet-notes')?.value || ''
         };
 
+        // Collect key data from key entries
+        const keyEntries = document.querySelectorAll('#wallet-keys .key-entry');
+        if (keyEntries.length > 0) {
+            walletData.keys = Array.from(keyEntries).map(entry => ({
+                source: entry.querySelector('.key-source')?.value || '',
+                holder: entry.querySelector('.key-holder')?.value || 'user',
+                label: entry.querySelector('.key-label')?.value || ''
+            }));
+        }
+
+        // Collect device data from device entries
+        const deviceEntries = document.querySelectorAll('#wallet-devices .device-entry');
+        if (deviceEntries.length > 0) {
+            walletData.devices = Array.from(deviceEntries).map(entry => ({
+                type: entry.querySelector('.device-type')?.value || '',
+                label: entry.querySelector('.device-label')?.value || ''
+            }));
+        }
+
         try {
-            await VaultCore.addWallet(walletData);
+            if (_editingWalletId) {
+                // Update existing wallet
+                await VaultCore.updateWallet(_editingWalletId, walletData);
+                _editingWalletId = null;
+            } else {
+                // Add new wallet
+                await VaultCore.addWallet(walletData);
+            }
             closeAllModals();
-            e.target.reset();
+            resetWalletForm();
             updateWalletsList();
             updateDashboard();
         } catch (error) {
-            alert('Error adding wallet: ' + error.message);
+            alert('Error saving wallet: ' + error.message);
         }
     }
 
     /**
      * Handle add backup form
+     * Creates both a location and a backup record
      */
     async function handleAddBackup(e) {
         e.preventDefault();
 
-        const backupData = {
-            walletId: document.getElementById('backup-wallet').value,
-            locationId: document.getElementById('backup-location').value,
-            mediaType: document.getElementById('backup-media').value,
-            format: document.getElementById('backup-format').value,
-            wordCount: parseInt(document.getElementById('backup-words').value) || 24,
-            hasPassphrase: document.getElementById('backup-passphrase')?.checked || false,
+        // Collect security features from checkboxes
+        const securityCheckboxes = document.querySelectorAll('input[name="backup-security"]:checked');
+        const securityFeatures = Array.from(securityCheckboxes).map(cb => cb.value);
+
+        // First create or get the location
+        const locationData = {
+            alias: document.getElementById('backup-alias').value,
+            category: document.getElementById('backup-type').value,
+            geographicRegion: document.getElementById('backup-region').value || 'local',
+            securityFeatures: securityFeatures,
             notes: document.getElementById('backup-notes')?.value || ''
         };
 
         try {
+            // Create location
+            const location = await VaultCore.addLocation(locationData);
+
+            // Now create backup linking to the location
+            const backupData = {
+                walletId: document.getElementById('backup-wallet').value || null,
+                locationId: location.id,
+                mediaType: locationData.category, // Using backup type as media type
+                lastVerified: document.getElementById('backup-verified').value || null
+            };
+
             await VaultCore.addBackup(backupData);
             closeAllModals();
             e.target.reset();
@@ -900,22 +967,35 @@ const VaultApp = (function() {
     async function handleAddHeir(e) {
         e.preventDefault();
 
+        const keyholderRadio = document.querySelector('input[name="heir-keyholder"]:checked');
+        const isKeyHolder = keyholderRadio?.value === 'yes';
+
         const heirData = {
             name: document.getElementById('heir-name').value,
             relationship: document.getElementById('heir-relationship').value,
             email: document.getElementById('heir-email').value,
+            technicalLevel: document.getElementById('heir-tech-level')?.value || 'none',
             accessLevel: document.getElementById('heir-access-level').value,
+            isKeyHolder: isKeyHolder,
+            keyNumber: isKeyHolder ? parseInt(document.getElementById('heir-key-number')?.value) || null : null,
             notes: document.getElementById('heir-notes')?.value || ''
         };
 
         try {
-            await VaultCore.addHeir(heirData);
+            if (_editingHeirId) {
+                // Update existing heir
+                await VaultCore.updateHeir(_editingHeirId, heirData);
+                _editingHeirId = null;
+            } else {
+                // Add new heir
+                await VaultCore.addHeir(heirData);
+            }
             closeAllModals();
-            e.target.reset();
+            resetHeirForm();
             updateInheritanceTab();
             updateDashboard();
         } catch (error) {
-            alert('Error adding heir: ' + error.message);
+            alert('Error saving heir: ' + error.message);
         }
     }
 
@@ -1378,6 +1458,146 @@ const VaultApp = (function() {
         }
     }
 
+    /**
+     * Edit wallet - open modal with existing data
+     */
+    let _editingWalletId = null;
+    function editWallet(walletId) {
+        const wallet = VaultCore.getWallet(walletId);
+        if (!wallet) {
+            alert('Wallet not found');
+            return;
+        }
+
+        _editingWalletId = walletId;
+
+        // Populate form fields
+        const nameInput = document.getElementById('wallet-name');
+        const typeSelect = document.getElementById('wallet-type');
+        const purposeSelect = document.getElementById('wallet-purpose');
+        const mInput = document.getElementById('multisig-m');
+        const nInput = document.getElementById('multisig-n');
+        const notesInput = document.getElementById('wallet-notes');
+        const coordinatorSelect = document.getElementById('wallet-coordinator');
+
+        if (nameInput) nameInput.value = wallet.name || '';
+        if (typeSelect) typeSelect.value = wallet.type || 'singlesig';
+        if (purposeSelect) purposeSelect.value = wallet.purpose || '';
+        if (mInput) mInput.value = wallet.requiredSignatures || 2;
+        if (nInput) nInput.value = wallet.totalKeys || 3;
+        if (notesInput) notesInput.value = wallet.notes || '';
+        if (coordinatorSelect) coordinatorSelect.value = wallet.coordinator || '';
+
+        // Update modal title and button
+        const modal = document.getElementById('modal-add-wallet');
+        if (modal) {
+            const title = modal.querySelector('.modal-header h2');
+            const submitBtn = modal.querySelector('button[type="submit"]');
+            if (title) title.textContent = 'Edit Wallet';
+            if (submitBtn) submitBtn.textContent = 'Save Changes';
+        }
+
+        openModal('modal-add-wallet');
+    }
+
+    /**
+     * Reset wallet form to add mode
+     */
+    function resetWalletForm() {
+        _editingWalletId = null;
+        const form = document.getElementById('form-add-wallet');
+        if (form) form.reset();
+
+        const modal = document.getElementById('modal-add-wallet');
+        if (modal) {
+            const title = modal.querySelector('.modal-header h2');
+            const submitBtn = modal.querySelector('button[type="submit"]');
+            if (title) title.textContent = 'Add Wallet';
+            if (submitBtn) submitBtn.textContent = 'Add Wallet';
+        }
+
+        // Clear keys list
+        const keysList = document.getElementById('wallet-keys');
+        if (keysList) keysList.innerHTML = '';
+
+        // Clear devices list
+        const devicesList = document.getElementById('wallet-devices');
+        if (devicesList) devicesList.innerHTML = '';
+    }
+
+    /**
+     * Edit heir - open modal with existing data
+     */
+    let _editingHeirId = null;
+    function editHeir(heirId) {
+        const heir = VaultCore.getHeir(heirId);
+        if (!heir) {
+            alert('Heir not found');
+            return;
+        }
+
+        _editingHeirId = heirId;
+
+        // Populate form fields
+        const nameInput = document.getElementById('heir-name');
+        const relationshipSelect = document.getElementById('heir-relationship');
+        const emailInput = document.getElementById('heir-email');
+        const techLevelSelect = document.getElementById('heir-tech-level');
+        const accessLevelSelect = document.getElementById('heir-access-level');
+        const notesInput = document.getElementById('heir-notes');
+
+        if (nameInput) nameInput.value = heir.name || '';
+        if (relationshipSelect) relationshipSelect.value = heir.relationship || '';
+        if (emailInput) emailInput.value = heir.email || '';
+        if (techLevelSelect) techLevelSelect.value = heir.technicalLevel || 'none';
+        if (accessLevelSelect) accessLevelSelect.value = heir.accessLevel || 'full';
+        if (notesInput) notesInput.value = heir.notes || '';
+
+        // Handle keyholder radio
+        const keyholderRadios = document.querySelectorAll('input[name="heir-keyholder"]');
+        keyholderRadios.forEach(radio => {
+            radio.checked = (heir.isKeyHolder && radio.value === 'yes') || (!heir.isKeyHolder && radio.value === 'no');
+        });
+
+        if (heir.isKeyHolder && heir.keyNumber) {
+            const keyNumberInput = document.getElementById('heir-key-number');
+            const keyDetailsDiv = document.getElementById('heir-key-details');
+            if (keyNumberInput) keyNumberInput.value = heir.keyNumber;
+            if (keyDetailsDiv) keyDetailsDiv.style.display = 'block';
+        }
+
+        // Update modal title and button
+        const modal = document.getElementById('modal-add-heir');
+        if (modal) {
+            const title = modal.querySelector('.modal-header h2');
+            const submitBtn = modal.querySelector('button[type="submit"]');
+            if (title) title.textContent = 'Edit Heir';
+            if (submitBtn) submitBtn.textContent = 'Save Changes';
+        }
+
+        openModal('modal-add-heir');
+    }
+
+    /**
+     * Reset heir form to add mode
+     */
+    function resetHeirForm() {
+        _editingHeirId = null;
+        const form = document.getElementById('form-add-heir');
+        if (form) form.reset();
+
+        const modal = document.getElementById('modal-add-heir');
+        if (modal) {
+            const title = modal.querySelector('.modal-header h2');
+            const submitBtn = modal.querySelector('button[type="submit"]');
+            if (title) title.textContent = 'Add Heir';
+            if (submitBtn) submitBtn.textContent = 'Add Heir';
+        }
+
+        const keyDetailsDiv = document.getElementById('heir-key-details');
+        if (keyDetailsDiv) keyDetailsDiv.style.display = 'none';
+    }
+
     // Public API
     return {
         init,
@@ -1386,7 +1606,7 @@ const VaultApp = (function() {
         closeAllModals,
         
         // Wallet actions
-        editWallet: (id) => console.log('Edit wallet:', id), // TODO
+        editWallet,
         deleteWallet,
         
         // Device actions
@@ -1401,7 +1621,7 @@ const VaultApp = (function() {
         deleteBackup,
         
         // Heir actions
-        editHeir: (id) => console.log('Edit heir:', id), // TODO
+        editHeir,
         deleteHeir,
         
         // For debugging
