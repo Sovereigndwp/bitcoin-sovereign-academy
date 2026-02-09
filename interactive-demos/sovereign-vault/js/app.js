@@ -165,6 +165,23 @@ const VaultApp = (function() {
             btnAddBackup.addEventListener('click', () => openModal('modal-add-backup'));
         }
 
+        // Add key button in wallet form
+        const addKeyBtn = document.getElementById('btn-add-key');
+        if (addKeyBtn) {
+            addKeyBtn.addEventListener('click', handleAddKey);
+        }
+
+        // Custody model selection
+        document.querySelectorAll('.custody-card').forEach(card => {
+            card.addEventListener('click', handleCustodyModelChange);
+        });
+
+        // Collaborative provider selection
+        const collabProvider = document.getElementById('collab-provider');
+        if (collabProvider) {
+            collabProvider.addEventListener('change', handleProviderChange);
+        }
+
         // Wizard navigation
         document.querySelectorAll('[data-wizard-nav]').forEach(btn => {
             btn.addEventListener('click', handleWizardNav);
@@ -1008,6 +1025,217 @@ const VaultApp = (function() {
     }
 
     /**
+     * Handle custody model change
+     */
+    function handleCustodyModelChange(e) {
+        const card = e.currentTarget;
+        const model = card.dataset.model;
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+
+        // Update visual selection
+        document.querySelectorAll('.custody-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+
+        // Show/hide collaborative options
+        const collabGroup = document.getElementById('collab-provider-group');
+        const providerInfo = document.getElementById('provider-info');
+        const isCollaborative = model === 'collaborative';
+
+        if (collabGroup) {
+            collabGroup.style.display = isCollaborative ? 'block' : 'none';
+        }
+        if (providerInfo && !isCollaborative) {
+            providerInfo.style.display = 'none';
+        }
+
+        // Reset keys list based on custody model
+        updateKeysForCustodyModel(model);
+    }
+
+    /**
+     * Handle provider selection change
+     */
+    function handleProviderChange(e) {
+        const providerId = e.target.value;
+        const providerInfo = document.getElementById('provider-info');
+        const keysList = document.getElementById('wallet-keys');
+
+        if (!providerId || !VaultCore.COLLAB_PROVIDERS) {
+            if (providerInfo) providerInfo.style.display = 'none';
+            return;
+        }
+
+        const provider = VaultCore.COLLAB_PROVIDERS[providerId];
+        if (!provider) {
+            if (providerInfo) providerInfo.style.display = 'none';
+            return;
+        }
+
+        // Show provider info card
+        if (providerInfo) {
+            providerInfo.style.display = 'block';
+            providerInfo.innerHTML = `
+                <h4>🤝 ${provider.name}</h4>
+                <p class="provider-model">${provider.keyModel}</p>
+                <ul class="provider-features">
+                    ${provider.features.map(f => `<li>${f}</li>`).join('')}
+                </ul>
+                <p class="provider-note">${provider.notes}</p>
+                ${provider.mobileKeyType === 'secure_enclave' ? `
+                    <div class="secure-enclave-warning">
+                        <span class="secure-enclave-warning-icon">📱</span>
+                        <div class="secure-enclave-warning-content">
+                            <strong>Secure Enclave Key:</strong> The mobile key is stored in your phone's secure hardware and <strong>cannot be backed up as a seed phrase</strong>. If you lose your phone and its backup, this key is lost forever. Your other keys can still recover funds.
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        // Pre-populate keys based on provider template
+        const template = VaultCore.WALLET_TEMPLATES[`collab_${providerId}`];
+        if (template && template.defaultKeys && keysList) {
+            keysList.innerHTML = '';
+            template.defaultKeys.forEach((key, index) => {
+                addKeyEntry(key.keyNumber, key.source, key.holder, key.label);
+            });
+        }
+    }
+
+    /**
+     * Update keys list based on custody model
+     */
+    function updateKeysForCustodyModel(model) {
+        const keysList = document.getElementById('wallet-keys');
+        if (!keysList) return;
+
+        // Clear existing keys
+        keysList.innerHTML = '';
+
+        // For self-custody, start with empty (user adds as needed)
+        // For collaborative, we'll populate when provider is selected
+    }
+
+    /**
+     * Handle add key button
+     */
+    let keyCounter = 0;
+    function handleAddKey() {
+        addKeyEntry(++keyCounter);
+    }
+
+    /**
+     * Add a key entry to the keys list
+     */
+    function addKeyEntry(keyNumber, source = '', holder = 'user', label = '') {
+        const keysList = document.getElementById('wallet-keys');
+        if (!keysList) return;
+
+        const keyId = `key-${keyNumber}`;
+        const keyEntry = document.createElement('div');
+        keyEntry.className = 'key-entry';
+        keyEntry.id = keyId;
+
+        const sourceOptions = VaultCore.KEY_SOURCES ? Object.entries(VaultCore.KEY_SOURCES).map(([id, src]) => 
+            `<option value="${id}" ${source === id ? 'selected' : ''}>${src.icon} ${src.name}</option>`
+        ).join('') : '';
+
+        keyEntry.innerHTML = `
+            <div class="key-entry-header">
+                <span class="key-number">Key #${keyNumber}</span>
+                <button type="button" class="btn-icon btn-remove-key" onclick="VaultApp.removeKey('${keyId}')" aria-label="Remove key">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="key-entry-fields">
+                <div class="form-row">
+                    <label>Key Source</label>
+                    <select class="key-source" name="key-source-${keyNumber}" onchange="VaultApp.updateKeyWarnings('${keyId}')">
+                        <option value="">Select source...</option>
+                        ${sourceOptions}
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Holder</label>
+                    <select class="key-holder" name="key-holder-${keyNumber}">
+                        <option value="user" ${holder === 'user' ? 'selected' : ''}>You (Self-Controlled)</option>
+                        <option value="theya" ${holder === 'theya' ? 'selected' : ''}>Theya</option>
+                        <option value="unchained" ${holder === 'unchained' ? 'selected' : ''}>Unchained Capital</option>
+                        <option value="casa" ${holder === 'casa' ? 'selected' : ''}>Casa</option>
+                        <option value="other_custodian" ${holder === 'other_custodian' ? 'selected' : ''}>Other Custodian</option>
+                        <option value="unknown" ${holder === 'unknown' ? 'selected' : ''}>Unknown</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Label</label>
+                    <input type="text" class="key-label" name="key-label-${keyNumber}" value="${label}" placeholder="e.g., Coldcard #1, Theya Mobile">
+                </div>
+                <div class="key-warnings" id="${keyId}-warnings"></div>
+            </div>
+        `;
+        keysList.appendChild(keyEntry);
+
+        // Update warnings based on initial source
+        if (source) {
+            updateKeyWarnings(keyId);
+        }
+    }
+
+    /**
+     * Remove a key entry
+     */
+    function removeKey(keyId) {
+        const keyEntry = document.getElementById(keyId);
+        if (keyEntry) {
+            keyEntry.remove();
+        }
+    }
+
+    /**
+     * Update warnings for a key based on its source
+     */
+    function updateKeyWarnings(keyId) {
+        const keyEntry = document.getElementById(keyId);
+        if (!keyEntry) return;
+
+        const sourceSelect = keyEntry.querySelector('.key-source');
+        const warningsDiv = document.getElementById(`${keyId}-warnings`);
+        if (!sourceSelect || !warningsDiv) return;
+
+        const source = sourceSelect.value;
+        const sourceInfo = VaultCore.KEY_SOURCES?.[source];
+
+        warningsDiv.innerHTML = '';
+
+        if (sourceInfo?.warning) {
+            warningsDiv.innerHTML = `
+                <div class="trust-warning">
+                    <span class="trust-warning-icon">⚠️</span>
+                    <div class="trust-warning-content">
+                        <h5>${sourceInfo.name}</h5>
+                        <p>${sourceInfo.warning}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Add special warning for Secure Enclave
+        if (source === 'mobile_secure_enclave') {
+            warningsDiv.innerHTML += `
+                <div class="secure-enclave-warning">
+                    <span class="secure-enclave-warning-icon">📱</span>
+                    <div class="secure-enclave-warning-content">
+                        <strong>No Seed Backup:</strong> This key exists only in your device's secure hardware. It cannot be exported as a seed phrase. Ensure you have enough other keys to meet your signature threshold.
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    /**
      * Handle template selection
      */
     function handleTemplateSelect(e) {
@@ -1163,6 +1391,10 @@ const VaultApp = (function() {
         
         // Device actions
         removeDevice,
+        
+        // Key actions
+        removeKey,
+        updateKeyWarnings,
         
         // Backup actions
         verifyBackup,

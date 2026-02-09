@@ -41,6 +41,121 @@ const VaultCore = (function() {
         auditLog: []
     };
 
+    // Custody models
+    const CUSTODY_MODELS = {
+        self_custody: {
+            name: 'Full Self-Custody',
+            description: 'You control all keys. Maximum sovereignty, full responsibility.',
+            icon: '🏰',
+            trustLevel: 'none',
+            riskNote: null
+        },
+        collaborative: {
+            name: 'Collaborative Custody',
+            description: 'Keys shared between you and trusted service providers.',
+            icon: '🤝',
+            trustLevel: 'partial',
+            riskNote: 'You trust a third party with one or more keys. Verify their security practices.'
+        },
+        assisted: {
+            name: 'Assisted Self-Custody',
+            description: 'You hold all keys, but a service helps with setup/recovery.',
+            icon: '🛠️',
+            trustLevel: 'minimal',
+            riskNote: 'Service may have seen your keys during setup. Consider key rotation.'
+        }
+    };
+
+    // Key sources - where a key comes from and who controls it
+    const KEY_SOURCES = {
+        hardware_wallet: {
+            name: 'Hardware Wallet',
+            description: 'Key generated and stored on a dedicated hardware device',
+            icon: '🔐',
+            controlledBy: 'user',
+            hasBackup: true,
+            examples: ['Coldcard', 'Ledger', 'Trezor', 'BitBox02', 'Foundation Passport']
+        },
+        mobile_secure_enclave: {
+            name: 'Mobile Secure Enclave',
+            description: 'Key generated in phone\'s secure hardware (cannot be exported)',
+            icon: '📱',
+            controlledBy: 'user',
+            hasBackup: false,
+            examples: ['Theya iPhone', 'Casa iOS'],
+            warning: 'Key cannot be backed up as seed phrase. If device is lost, key is lost.'
+        },
+        software_wallet: {
+            name: 'Software Wallet',
+            description: 'Key stored in software on computer or phone',
+            icon: '💻',
+            controlledBy: 'user',
+            hasBackup: true,
+            examples: ['Sparrow', 'Electrum', 'BlueWallet']
+        },
+        custodian_held: {
+            name: 'Custodian-Held Key',
+            description: 'Key held by a third-party service provider',
+            icon: '🏢',
+            controlledBy: 'third_party',
+            hasBackup: 'unknown',
+            examples: ['Theya', 'Unchained', 'Casa', 'Nunchuk'],
+            warning: 'You do not control this key. Verify custodian\'s security and legal jurisdiction.'
+        },
+        unknown: {
+            name: 'Unknown/Not Documented',
+            description: 'Key source or holder is not known or documented',
+            icon: '❓',
+            controlledBy: 'unknown',
+            hasBackup: 'unknown',
+            warning: 'Undocumented keys are a security risk. Document all key sources.'
+        }
+    };
+
+    // Collaborative custody providers
+    const COLLAB_PROVIDERS = {
+        theya: {
+            name: 'Theya',
+            website: 'theya.us',
+            keyModel: '2-of-3 (you hold 2, Theya holds 1)',
+            mobileKeyType: 'secure_enclave',
+            features: ['Mobile Secure Enclave key', 'Hardware wallet key', 'Theya recovery key'],
+            notes: 'Theya\'s key is for emergency recovery only. iPhone key uses Secure Enclave.'
+        },
+        unchained: {
+            name: 'Unchained Capital',
+            website: 'unchained.com',
+            keyModel: '2-of-3 (you hold 2, Unchained holds 1)',
+            mobileKeyType: null,
+            features: ['Two hardware wallet keys', 'Unchained recovery key'],
+            notes: 'Unchained key is held in cold storage. Requires identity verification.'
+        },
+        casa: {
+            name: 'Casa',
+            website: 'keys.casa',
+            keyModel: '2-of-3 or 3-of-5',
+            mobileKeyType: 'secure_enclave',
+            features: ['Mobile key option', 'Hardware wallet keys', 'Casa recovery key'],
+            notes: 'Casa offers multiple tiers with different key configurations.'
+        },
+        nunchuk: {
+            name: 'Nunchuk',
+            website: 'nunchuk.io',
+            keyModel: 'Flexible (assisted or full self-custody)',
+            mobileKeyType: 'software',
+            features: ['Software-based keys', 'Hardware wallet support', 'Optional assisted recovery'],
+            notes: 'Can be used for full self-custody or with Nunchuk assistance.'
+        },
+        bitcoin_adviser: {
+            name: 'The Bitcoin Adviser',
+            website: 'thebitcoinadviser.com',
+            keyModel: 'Custom (typically via Theya or direct setup)',
+            mobileKeyType: 'varies',
+            features: ['Consultation-based setup', 'Education included', 'Ongoing support'],
+            notes: 'May use Theya, Unchained, or help set up full self-custody.'
+        }
+    };
+
     // Wallet templates
     const WALLET_TEMPLATES = {
         singlesig: {
@@ -48,28 +163,74 @@ const VaultCore = (function() {
             type: 'singlesig',
             description: 'Standard wallet with one key',
             requiredSignatures: 1,
-            totalKeys: 1
+            totalKeys: 1,
+            custodyModel: 'self_custody'
         },
         multisig_2of3: {
             name: '2-of-3 Multisig',
             type: 'multisig',
             description: 'Requires 2 of 3 keys to spend',
             requiredSignatures: 2,
-            totalKeys: 3
+            totalKeys: 3,
+            custodyModel: 'self_custody'
         },
         multisig_3of5: {
             name: '3-of-5 Multisig',
             type: 'multisig',
             description: 'Requires 3 of 5 keys to spend',
             requiredSignatures: 3,
-            totalKeys: 5
+            totalKeys: 5,
+            custodyModel: 'self_custody'
+        },
+        collab_theya: {
+            name: 'Theya 2-of-3',
+            type: 'multisig',
+            description: 'Collaborative custody with Theya (you hold 2 keys)',
+            requiredSignatures: 2,
+            totalKeys: 3,
+            custodyModel: 'collaborative',
+            provider: 'theya',
+            defaultKeys: [
+                { keyNumber: 1, source: 'mobile_secure_enclave', holder: 'user', label: 'Theya Mobile Key' },
+                { keyNumber: 2, source: 'hardware_wallet', holder: 'user', label: 'Hardware Wallet Key' },
+                { keyNumber: 3, source: 'custodian_held', holder: 'theya', label: 'Theya Recovery Key' }
+            ]
+        },
+        collab_unchained: {
+            name: 'Unchained 2-of-3',
+            type: 'multisig',
+            description: 'Collaborative custody with Unchained (you hold 2 keys)',
+            requiredSignatures: 2,
+            totalKeys: 3,
+            custodyModel: 'collaborative',
+            provider: 'unchained',
+            defaultKeys: [
+                { keyNumber: 1, source: 'hardware_wallet', holder: 'user', label: 'Hardware Key #1' },
+                { keyNumber: 2, source: 'hardware_wallet', holder: 'user', label: 'Hardware Key #2' },
+                { keyNumber: 3, source: 'custodian_held', holder: 'unchained', label: 'Unchained Recovery Key' }
+            ]
+        },
+        collab_casa: {
+            name: 'Casa 2-of-3',
+            type: 'multisig',
+            description: 'Collaborative custody with Casa',
+            requiredSignatures: 2,
+            totalKeys: 3,
+            custodyModel: 'collaborative',
+            provider: 'casa',
+            defaultKeys: [
+                { keyNumber: 1, source: 'mobile_secure_enclave', holder: 'user', label: 'Casa Mobile Key' },
+                { keyNumber: 2, source: 'hardware_wallet', holder: 'user', label: 'Hardware Wallet Key' },
+                { keyNumber: 3, source: 'custodian_held', holder: 'casa', label: 'Casa Recovery Key' }
+            ]
         },
         custom: {
             name: 'Custom Setup',
             type: 'custom',
             description: 'Define your own configuration',
             requiredSignatures: null,
-            totalKeys: null
+            totalKeys: null,
+            custodyModel: 'self_custody'
         }
     };
 
@@ -808,6 +969,9 @@ const VaultCore = (function() {
         WALLET_TEMPLATES,
         BACKUP_MEDIA_TYPES,
         LOCATION_CATEGORIES,
+        CUSTODY_MODELS,
+        KEY_SOURCES,
+        COLLAB_PROVIDERS,
 
         // Wallet operations
         addWallet,
