@@ -73,7 +73,7 @@
         // Fallback: check if we're on a member/preview subdomain directly
         const hostname = window.location.hostname.toLowerCase();
         if (hostname.includes('learn.') || hostname.includes('preview.') ||
-            hostname === 'localhost' || hostname.includes('vercel.app')) {
+            hostname === 'localhost') {
             console.log('✅ Access subdomain detected - bypassing module gate');
             return true;
         }
