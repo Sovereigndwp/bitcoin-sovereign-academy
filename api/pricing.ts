@@ -9,7 +9,7 @@ export const CATALOG = {
     curious: {
       id: 'curious',
       name: 'Curious Path',
-      bundlePriceUSD: 49,
+      bundlePriceUSD: 19,
       modules: [
         { id: 'curious-s1m1', title: 'What is Money?', path: 'curious', stage: 1, priceUSD: 9 },
         { id: 'curious-s1m2', title: 'History of Money', path: 'curious', stage: 1, priceUSD: 9 },
@@ -20,7 +20,7 @@ export const CATALOG = {
     builder: {
       id: 'builder',
       name: 'Builder Path',
-      bundlePriceUSD: 99,
+      bundlePriceUSD: 39,
       modules: [
         { id: 'builder-s1m1', title: 'Setting Up a Wallet', path: 'builder', stage: 1, priceUSD: 12 },
         { id: 'builder-s1m2', title: 'Running a Node', path: 'builder', stage: 1, priceUSD: 12 },
@@ -30,7 +30,7 @@ export const CATALOG = {
     sovereign: {
       id: 'sovereign',
       name: 'Sovereign Path',
-      bundlePriceUSD: 199,
+      bundlePriceUSD: 79,
       modules: [
         { id: 'sovereign-s1m1', title: 'Advanced Security', path: 'sovereign', stage: 1, priceUSD: 25 },
         { id: 'sovereign-s1m2', title: 'Multi-sig Custody', path: 'sovereign', stage: 1, priceUSD: 25 },
@@ -40,7 +40,7 @@ export const CATALOG = {
     principled: {
       id: 'principled',
       name: 'Principled Path',
-      bundlePriceUSD: 79,
+      bundlePriceUSD: 29,
       modules: [
         { id: 'principled-s1m1', title: 'Money Ethics', path: 'principled', stage: 1, priceUSD: 10 },
         { id: 'principled-s1m2', title: 'Austrian Economics', path: 'principled', stage: 1, priceUSD: 10 },
@@ -52,8 +52,8 @@ export const CATALOG = {
     'all-paths': {
       id: 'all-paths',
       name: 'Complete Academy Bundle',
-      priceUSD: 299,
-      savings: 127,
+      priceUSD: 149,
+      savings: 37,
     },
   },
 };

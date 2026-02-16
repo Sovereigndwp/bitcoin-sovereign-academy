@@ -611,119 +611,160 @@
         </div>
     </div>
 
+    <!-- Email capture modal -->
+    <div id="emailModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:10000; align-items:center; justify-content:center;">
+        <div style="background:var(--secondary-dark); border:2px solid var(--tertiary-dark); border-radius:20px; padding:2.5rem; max-width:440px; width:90%; position:relative;">
+            <button onclick="closeEmailModal()" style="position:absolute; top:1rem; right:1rem; background:none; border:none; color:var(--text-dim); font-size:1.5rem; cursor:pointer;">&times;</button>
+            <h3 style="margin-bottom:0.5rem; color:var(--text-light); font-size:1.5rem;" id="modalTitle">Enter your email</h3>
+            <p style="color:var(--text-dim); margin-bottom:1.5rem; font-size:0.95rem;">We'll send your access credentials to this email after payment.</p>
+            <form id="emailForm" onsubmit="submitCheckout(event)">
+                <input type="email" id="checkoutEmail" required placeholder="you@example.com"
+                    style="width:100%; padding:0.9rem 1rem; border-radius:10px; border:2px solid var(--tertiary-dark); background:var(--primary-dark); color:var(--text-light); font-size:1rem; margin-bottom:1rem; outline:none;"
+                    onfocus="this.style.borderColor='var(--primary-orange)'" onblur="this.style.borderColor='var(--tertiary-dark)'">
+                <button type="submit" class="btn-unlock" id="modalCheckoutBtn">
+                    <span>⚡</span> <span id="modalBtnText">Proceed to Checkout</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script>
-        // Product configurations
+        // Product configurations mapped to API CartItem format
         const products = {
             curious_path: {
                 name: 'Curious Path',
                 price: 19,
                 sats: 50000,
-                currency: 'USD'
+                cartItem: { type: 'path', id: 'curious', title: 'Curious Path', priceUSD: 19 }
             },
             builder_path: {
                 name: 'Builder Path',
                 price: 39,
                 sats: 100000,
-                currency: 'USD'
+                cartItem: { type: 'path', id: 'builder', title: 'Builder Path', priceUSD: 39 }
             },
             sovereign_path: {
                 name: 'Sovereign Path',
                 price: 79,
                 sats: 200000,
-                currency: 'USD'
+                cartItem: { type: 'path', id: 'sovereign', title: 'Sovereign Path', priceUSD: 79 }
             },
             full_academy: {
                 name: 'Full Academy',
                 price: 149,
                 sats: 400000,
-                currency: 'USD'
+                cartItem: { type: 'bundle', id: 'all-paths', title: 'Full Academy Access', priceUSD: 149 }
             }
         };
 
-        // Create order via Zaprite API
-        async function createOrder(productId) {
-            const product = products[productId];
-            const button = event.target;
+        let pendingProductId = null;
+        let pendingButton = null;
 
-            // Disable button and show loading
-            button.classList.add('loading');
-            button.disabled = true;
-            button.textContent = 'Creating checkout';
+        // Open email modal when user clicks a buy button
+        function createOrder(productId) {
+            const product = products[productId];
+            if (!product) return;
+
+            pendingProductId = productId;
+            pendingButton = event.target.closest('.btn-unlock');
+
+            // Pre-fill email if stored
+            const savedEmail = localStorage.getItem('bsa_email');
+            if (savedEmail) {
+                document.getElementById('checkoutEmail').value = savedEmail;
+            }
+
+            document.getElementById('modalTitle').textContent = 'Unlock ' + product.name;
+            document.getElementById('modalBtnText').textContent = 'Pay $' + product.price + ' with Stripe';
+            document.getElementById('emailModal').style.display = 'flex';
+            document.getElementById('checkoutEmail').focus();
+        }
+
+        function closeEmailModal() {
+            document.getElementById('emailModal').style.display = 'none';
+            pendingProductId = null;
+            pendingButton = null;
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('emailModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEmailModal();
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeEmailModal();
+        });
+
+        // Submit checkout to /api/checkout
+        async function submitCheckout(e) {
+            e.preventDefault();
+
+            const product = products[pendingProductId];
+            if (!product) return;
+
+            const email = document.getElementById('checkoutEmail').value.trim();
+            if (!email) return;
+
+            // Save email for future use
+            localStorage.setItem('bsa_email', email);
+
+            const btn = document.getElementById('modalCheckoutBtn');
+            btn.disabled = true;
+            document.getElementById('modalBtnText').textContent = 'Creating checkout...';
 
             try {
-                // Generate unique user ID (if not exists)
-                let userId = localStorage.getItem('bsa_user_id');
-                if (!userId) {
-                    userId = 'user_' + Math.random().toString(36).substr(2, 9);
-                    localStorage.setItem('bsa_user_id', userId);
-                }
+                const baseUrl = window.location.origin;
 
-                // Call our serverless function to create Zaprite order
-                const response = await fetch('/api/create-order', {
+                const response = await fetch('/api/checkout', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        product: productId,
-                        userId: userId,
-                        amount: product.price,
-                        currency: product.currency,
-                        label: `Bitcoin Sovereign Academy - ${product.name}`
+                        items: [product.cartItem],
+                        provider: 'stripe',
+                        email: email,
+                        successUrl: baseUrl + '/pricing.html?payment=success',
+                        cancelUrl: baseUrl + '/pricing.html?payment=cancelled'
                     })
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to create order');
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.message || 'Failed to create checkout session');
                 }
 
                 const data = await response.json();
 
-                // Store order ID for verification
+                // Store pending order for verification
                 localStorage.setItem('bsa_pending_order', JSON.stringify({
-                    orderId: data.orderId,
-                    product: productId,
+                    sessionId: data.sessionId,
+                    product: pendingProductId,
+                    email: email,
                     timestamp: Date.now()
                 }));
 
-                // SECURITY: Validate checkout URL before redirecting
-                const checkoutUrl = data.checkoutUrl;
-                if (!checkoutUrl || typeof checkoutUrl !== 'string') {
+                // Validate and redirect to Stripe checkout
+                if (!data.url || typeof data.url !== 'string') {
                     throw new Error('Invalid checkout URL received');
                 }
-                
-                // Only allow redirects to trusted payment providers
-                const trustedDomains = [
-                    'zaprite.com',
-                    'checkout.stripe.com',
-                    'pay.btcpay.server',
-                    'bitcoinsovereign.academy' // For internal redirects
-                ];
-                
-                try {
-                    const url = new URL(checkoutUrl);
-                    const isTrusted = trustedDomains.some(domain => 
-                        url.hostname === domain || url.hostname.endsWith('.' + domain)
-                    );
-                    
-                    if (!isTrusted) {
-                        console.error('Blocked redirect to untrusted domain:', url.hostname);
-                        throw new Error('Invalid payment provider');
-                    }
-                    
-                    // Safe to redirect
-                    window.location.href = checkoutUrl;
-                } catch (urlError) {
-                    console.error('Invalid checkout URL:', urlError);
-                    throw new Error('Invalid checkout URL format');
+
+                const trustedDomains = ['checkout.stripe.com', 'bitcoinsovereign.academy'];
+                const url = new URL(data.url);
+                const isTrusted = trustedDomains.some(domain =>
+                    url.hostname === domain || url.hostname.endsWith('.' + domain)
+                );
+
+                if (!isTrusted) {
+                    throw new Error('Untrusted checkout domain');
                 }
+
+                window.location.href = data.url;
 
             } catch (error) {
                 console.error('Payment error:', error);
                 alert('Sorry, there was an error creating your checkout. Please try again or contact support.');
-                button.classList.remove('loading');
-                button.disabled = false;
-                button.innerHTML = '<span>⚡</span> Unlock ' + product.name;
+                btn.disabled = false;
+                document.getElementById('modalBtnText').textContent = 'Pay $' + product.price + ' with Stripe';
             }
         }
 
@@ -731,8 +772,10 @@
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('payment') === 'success') {
-                // Show success message
                 showPaymentSuccess();
+            }
+            if (urlParams.get('payment') === 'cancelled') {
+                showPaymentCancelled();
             }
         });
 
@@ -753,13 +796,44 @@
                 font-size: 1.1rem;
                 animation: slideDown 0.5s ease;
             `;
-            successBanner.innerHTML = '✓ Payment successful! Your content is now unlocked.';
+            successBanner.innerHTML = 'Payment successful! Check your email for access credentials.';
             document.body.appendChild(successBanner);
 
             setTimeout(() => {
                 successBanner.style.animation = 'slideUp 0.5s ease';
                 setTimeout(() => successBanner.remove(), 500);
             }, 5000);
+
+            // Clean up URL
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+
+        function showPaymentCancelled() {
+            const banner = document.createElement('div');
+            banner.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #f59e0b, #d97706);
+                color: white;
+                padding: 1.5rem 3rem;
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(245, 158, 11, 0.5);
+                z-index: 9999;
+                font-weight: 700;
+                font-size: 1.1rem;
+                animation: slideDown 0.5s ease;
+            `;
+            banner.innerHTML = 'Payment cancelled. No charge was made.';
+            document.body.appendChild(banner);
+
+            setTimeout(() => {
+                banner.style.animation = 'slideUp 0.5s ease';
+                setTimeout(() => banner.remove(), 500);
+            }, 5000);
+
+            window.history.replaceState({}, '', window.location.pathname);
         }
     </script>
 
