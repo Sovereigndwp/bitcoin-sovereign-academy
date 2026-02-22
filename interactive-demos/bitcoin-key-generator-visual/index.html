@@ -1,1390 +1,932 @@
-<!DOCTYPE html><html lang="en"><head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bitcoin Key Generator - Visual Learning Demo</title>
-    <link rel="stylesheet" href="/css/brand.css">
-    <link rel="stylesheet" href="/css/interactive-demos.css">
-    <style>
-        :root {
-            --primary-orange: #f7931a;
-            --primary-dark: #1a1a1a;
-            --secondary-dark: #2d2d2d;
-            --text-light: #e0e0e0;
-            --text-dim: #b3b3b3;
-            --accent-purple: #4f46e5;
-            --accent-green: #28a745;
-            --accent-red: #dc3545;
-            --accent-blue: #007bff;
-        }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin Key Generator — Visual Learning</title>
+<link rel="stylesheet" href="/css/brand.css">
+<style>
+/* ── base ── */
+:root {
+    --orange: #f7931a;
+    --dark:   #1a1a1a;
+    --surf:   #2d2d2d;
+    --surf2:  #383838;
+    --text:   #e0e0e0;
+    --dim:    #999;
+    --purple: #7c5cff;
+    --green:  #28c76f;
+    --red:    #ea5455;
+    --blue:   #00b0ff;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+     background:var(--dark);color:var(--text);min-height:100vh;line-height:1.6}
+.wrap{max-width:1100px;margin:0 auto;padding:1.5rem}
+a{color:var(--orange);text-decoration:none}
+code,pre,.mono{font-family:'Courier New',Courier,monospace}
+button:focus-visible,a:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+/* ── header ── */
+.hdr{text-align:center;padding:1.5rem 1rem 1rem;background:linear-gradient(135deg,rgba(247,147,26,.12),rgba(124,92,255,.12));border-radius:14px;margin-bottom:1.5rem}
+.hdr h1{color:var(--orange);font-size:clamp(1.5rem,4vw,2.2rem);margin-bottom:.4rem}
+.hdr p{color:var(--dim);font-size:.95rem}
 
-        /* ACCESSIBILITY */
-        button, a, [role="button"], input[type="button"], input[type="submit"] {
-            min-height: 44px;
-            min-width: 44px;
-        }
+/* ── FLOW DIAGRAM ── */
+.flow-panel{background:var(--surf);border:2px solid rgba(124,92,255,.4);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem}
+.flow-panel h2{color:var(--purple);font-size:1rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:1.2rem;display:flex;align-items:center;gap:.5rem}
+.flow-chain{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem}
+.flow-node{background:var(--surf2);border:2px solid rgba(124,92,255,.5);border-radius:10px;padding:.6rem .9rem;min-width:130px;transition:border-color .3s,box-shadow .3s}
+.flow-node.active{border-color:var(--orange);box-shadow:0 0 14px rgba(247,147,26,.3)}
+.flow-node .fn-label{font-size:.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.flow-node .fn-value{font-size:.72rem;color:var(--text);word-break:break-all;font-family:'Courier New',monospace;margin-top:.2rem;min-height:1rem;transition:color .4s}
+.flow-node .fn-value.changed{color:var(--orange)}
+.flow-arrow{color:var(--purple);font-size:1.3rem;flex-shrink:0}
+.flow-arrow.down{display:block;width:100%;text-align:center;font-size:1rem;color:var(--purple);margin:.2rem 0}
+.flow-row{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;width:100%;margin:.3rem 0}
 
-        *:focus-visible {
-            outline: 3px solid var(--primary-orange);
-            outline-offset: 2px;
-        }
+/* ── spinner ── */
+.spin-wrap{text-align:center;padding:1rem;display:none}
+.spin-wrap.show{display:block}
+.spinner{display:inline-block;width:28px;height:28px;border:3px solid rgba(247,147,26,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin-label{color:var(--orange);font-size:.85rem;margin-top:.5rem}
 
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
+/* ── accordion ── */
+.accordion{margin-bottom:1rem}
+details.step{background:var(--surf);border:2px solid rgba(124,92,255,.3);border-radius:12px;overflow:hidden;transition:border-color .3s}
+details.step[open]{border-color:var(--orange)}
+details.step>summary{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem;cursor:pointer;list-style:none;user-select:none;transition:background .2s}
+details.step>summary::-webkit-details-marker{display:none}
+details.step>summary:hover{background:rgba(247,147,26,.06)}
+.step-badge{background:var(--orange);color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.95rem;flex-shrink:0}
+.step-title{font-size:1.05rem;font-weight:600;flex:1}
+.step-pill{font-size:.7rem;background:rgba(124,92,255,.2);color:var(--purple);padding:.2rem .6rem;border-radius:20px;margin-left:.5rem}
+.step-chevron{color:var(--dim);font-size:1.2rem;transition:transform .3s;margin-left:auto}
+details.step[open] .step-chevron{transform:rotate(90deg)}
+.step-body{padding:0 1.25rem 1.25rem}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--primary-dark);
-            color: var(--text-light);
-            min-height: 100vh;
-            padding: 1rem;
-            line-height: 1.6;
-        }
+/* ── bit grid ── */
+.bit-grid-wrap{display:flex;justify-content:center;margin:1rem 0}
+.bit-grid{display:grid;grid-template-columns:repeat(16,1fr);gap:3px;max-width:520px;width:100%;background:rgba(0,0,0,.5);padding:10px;border-radius:10px;border:2px solid rgba(124,92,255,.4)}
+.bc{aspect-ratio:1;background:#333;border:1px solid #555;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;cursor:pointer;transition:background .15s,transform .1s;user-select:none}
+.bc.one{background:var(--orange);color:#fff;border-color:#c96f0a}
+.bc.zero{background:#222;color:#555}
+.bc:hover{transform:scale(1.25);z-index:5;border-color:var(--orange)}
 
-        .container { max-width: 1200px; margin: 0 auto; }
-        
-        .header { 
-            text-align: center; 
-            margin-bottom: 2rem; 
-            padding: 1rem;
-            background: linear-gradient(135deg, rgba(247, 147, 26, 0.1), rgba(79, 70, 229, 0.1));
-            border-radius: 12px;
-        }
-        
-        .header h1 { 
-            color: var(--primary-orange); 
-            font-size: 2rem; 
-            margin-bottom: 0.5rem; 
-        }
-        
-        .header p { 
-            color: var(--text-dim); 
-            font-size: 1rem; 
-        }
+/* ── entropy slider ── */
+.entropy-slider-wrap{display:flex;align-items:center;gap:1rem;margin:1rem 0;flex-wrap:wrap}
+.entropy-slider-wrap label{font-size:.85rem;color:var(--dim);white-space:nowrap}
+#entropy-slider{flex:1;min-width:180px;accent-color:var(--orange)}
+.entropy-hex{background:rgba(0,0,0,.4);border:1.5px solid rgba(124,92,255,.4);border-radius:8px;padding:.7rem 1rem;font-family:monospace;font-size:.75rem;word-break:break-all;margin-top:.5rem;line-height:1.6;min-height:2.5rem;transition:background .3s}
+.entropy-hex.flash{background:rgba(247,147,26,.12)}
+.bit-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin:.75rem 0}
+.bs-box{background:rgba(124,92,255,.1);border:1.5px solid rgba(124,92,255,.3);border-radius:8px;padding:.6rem;text-align:center}
+.bs-val{color:var(--orange);font-size:1.3rem;font-weight:700}
+.bs-lbl{color:var(--dim);font-size:.7rem;margin-top:.15rem}
 
-        .intro-box {
-            background: rgba(79, 70, 229, 0.1);
-            border-left: 4px solid var(--accent-purple);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
+/* ── key displays ── */
+.kd{background:rgba(0,0,0,.4);border:1.5px solid rgba(124,92,255,.35);border-radius:8px;padding:.9rem 1rem;margin:.6rem 0}
+.kd-label{color:var(--purple);font-size:.78rem;font-weight:600;margin-bottom:.35rem;display:flex;align-items:center;gap:.5rem}
+.kd-value{color:var(--text);font-size:.75rem;word-break:break-all;font-family:monospace;line-height:1.5}
+.kd-value.hi{color:var(--orange);font-size:.85rem}
+.kd-value.placeholder{color:var(--dim);font-style:italic}
+.copy-btn{background:rgba(0,176,255,.15);color:var(--blue);border:1px solid rgba(0,176,255,.4);padding:.2rem .55rem;border-radius:4px;font-size:.72rem;cursor:pointer;transition:all .2s;margin-left:auto}
+.copy-btn:hover{background:rgba(0,176,255,.28)}
+.copy-btn.ok{background:rgba(40,199,111,.15);color:var(--green);border-color:var(--green)}
 
-        .intro-box h3 {
-            color: var(--accent-purple);
-            margin-bottom: 1rem;
-        }
+/* ── mnemonic grid ── */
+.mnemonic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:.6rem;margin:.75rem 0}
+.mw{background:rgba(124,92,255,.15);border:1.5px solid rgba(124,92,255,.35);border-radius:8px;padding:.65rem .5rem;text-align:center}
+.mw-n{color:var(--dim);font-size:.65rem}
+.mw-w{color:var(--text);font-weight:600;font-size:.9rem}
 
-        .section {
-            background: var(--secondary-dark);
-            border: 2px solid var(--primary-orange);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin: 2rem 0;
-        }
+/* ── HD address table ── */
+.hd-table{width:100%;border-collapse:collapse;font-size:.75rem;margin:.75rem 0}
+.hd-table th{background:rgba(124,92,255,.2);color:var(--purple);padding:.5rem .7rem;text-align:left;font-size:.68rem;text-transform:uppercase}
+.hd-table td{padding:.5rem .7rem;border-bottom:1px solid rgba(255,255,255,.06);word-break:break-all;font-family:monospace;vertical-align:top}
+.hd-table tr:hover td{background:rgba(247,147,26,.05)}
+.hd-table .path-col{color:var(--orange);white-space:nowrap;font-family:monospace}
+.hd-table .addr-col{color:var(--green)}
 
-        .section-title {
-            color: var(--primary-orange);
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+/* ── tabs ── */
+.tabs{display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap}
+.tab-btn{background:rgba(0,0,0,.3);border:1.5px solid rgba(124,92,255,.3);color:var(--dim);padding:.4rem 1rem;border-radius:20px;font-size:.82rem;cursor:pointer;transition:all .2s}
+.tab-btn.active{background:rgba(124,92,255,.2);border-color:var(--purple);color:var(--text)}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
 
-        .step-number {
-            background: var(--primary-orange);
-            color: white;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
+/* ── curve canvas ── */
+.curve-wrap{text-align:center;margin:.75rem 0}
+#curve-canvas{background:#111;border:2px solid rgba(124,92,255,.4);border-radius:8px;max-width:100%;height:220px}
 
-        /* 256-BIT GRID */
-        .grid-container {
-            display: flex;
-            justify-content: center;
-            margin: 1.5rem 0;
-        }
+/* ── info box ── */
+.info{background:rgba(124,92,255,.07);border-left:3px solid var(--purple);border-radius:4px;padding:.75rem 1rem;margin:.6rem 0;font-size:.85rem}
+.info h4{color:var(--purple);margin-bottom:.35rem}
+.info ul{margin-left:1.2rem}
+.warn{background:rgba(234,84,85,.08);border-left:3px solid var(--red);border-radius:4px;padding:.75rem 1rem;margin:.6rem 0;font-size:.85rem}
+.warn h4{color:var(--red);margin-bottom:.3rem}
 
-        .bit-grid {
-            display: grid;
-            grid-template-columns: repeat(16, 1fr);
-            gap: 3px;
-            max-width: 500px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 8px;
-            border: 2px solid var(--accent-purple);
-        }
+/* ── buttons ── */
+.btn{background:var(--orange);color:#fff;padding:.65rem 1.4rem;border:none;border-radius:8px;font-weight:700;cursor:pointer;transition:all .2s;font-size:.9rem;margin:.25rem}
+.btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-sec{background:var(--purple)}
+.btn-sml{padding:.4rem .9rem;font-size:.78rem}
+.btn-row{display:flex;flex-wrap:wrap;gap:.25rem;margin:.6rem 0}
 
-        .bit-cell {
-            aspect-ratio: 1;
-            background: #333;
-            border: 1px solid #555;
-            border-radius: 2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.6rem;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
+/* ── toast ── */
+.toast{position:fixed;top:18px;right:18px;background:#28c76f;color:#fff;padding:.75rem 1.25rem;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);font-size:.88rem;z-index:9999;display:none}
+.toast.show{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
 
-        .bit-cell.one {
-            background: var(--primary-orange);
-            color: white;
-        }
+/* ── error banner ── */
+.err-bar{background:rgba(234,84,85,.15);border:1.5px solid var(--red);border-radius:8px;padding:.75rem 1rem;color:var(--red);font-size:.85rem;display:none;margin:.75rem 0}
+.err-bar.show{display:block}
 
-        .bit-cell.zero {
-            background: #222;
-            color: #666;
-        }
+/* ── hashing playground ── */
+.hash-playground{background:rgba(0,0,0,.25);border-radius:8px;padding:1rem;margin:.75rem 0}
+.hash-playground input{width:100%;padding:.6rem .8rem;background:rgba(0,0,0,.4);border:1.5px solid rgba(124,92,255,.4);border-radius:6px;color:var(--text);font-size:.9rem}
+.hash-result{font-family:monospace;font-size:.78rem;word-break:break-all;color:var(--green);padding:.6rem;background:rgba(0,0,0,.3);border-radius:6px;margin-top:.6rem;display:none}
 
-        .bit-cell:hover {
-            transform: scale(1.2);
-            z-index: 10;
-        }
-
-        /* KEY DISPLAYS */
-        .key-display {
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid var(--accent-purple);
-            border-radius: 8px;
-            padding: 1rem;
-            margin: 1rem 0;
-            font-family: 'Courier New', monospace;
-            word-break: break-all;
-        }
-
-        .key-label {
-            color: var(--accent-purple);
-            font-weight: bold;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .key-value {
-            color: var(--text-light);
-            font-size: 0.85rem;
-            line-height: 1.5;
-        }
-
-        .key-value.large {
-            font-size: 1rem;
-            color: var(--primary-orange);
-        }
-
-        /* BUTTONS */
-        .btn {
-            background: var(--primary-orange);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-            margin: 0.5rem;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(247, 147, 26, 0.4);
-        }
-
-        .btn-secondary {
-            background: var(--accent-purple);
-        }
-
-        .btn-success {
-            background: var(--accent-green);
-        }
-
-        /* EXPLANATION BOXES */
-        .explanation {
-            background: rgba(79, 70, 229, 0.05);
-            border-left: 3px solid var(--accent-purple);
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 4px;
-        }
-
-        .explanation h4 {
-            color: var(--accent-purple);
-            margin-bottom: 0.5rem;
-        }
-
-        /* DIAGRAM */
-        .flow-diagram {
-            background: rgba(0, 0, 0, 0.3);
-            border: 2px dashed var(--accent-purple);
-            border-radius: 8px;
-            padding: 2rem;
-            margin: 2rem 0;
-            text-align: center;
-        }
-
-        .flow-step {
-            display: inline-block;
-            background: var(--secondary-dark);
-            border: 2px solid var(--primary-orange);
-            border-radius: 8px;
-            padding: 1rem;
-            margin: 0.5rem;
-            min-width: 150px;
-        }
-
-        .flow-arrow {
-            display: inline-block;
-            color: var(--primary-orange);
-            font-size: 2rem;
-            margin: 0 0.5rem;
-        }
-
-        /* MNEMONIC WORD GRID */
-        .mnemonic-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 0.75rem;
-            margin: 1rem 0;
-        }
-
-        .mnemonic-word {
-            background: rgba(79, 70, 229, 0.2);
-            border: 2px solid var(--accent-purple);
-            border-radius: 6px;
-            padding: 0.75rem;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .word-number {
-            color: var(--text-dim);
-            font-size: 0.75rem;
-            display: block;
-            margin-bottom: 0.25rem;
-        }
-
-        .word-text {
-            color: var(--text-light);
-            font-size: 1rem;
-        }
-
-        /* ELLIPTIC CURVE VISUAL */
-        .curve-canvas {
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid var(--accent-purple);
-            border-radius: 8px;
-            margin: 1rem 0;
-            width: 100%;
-            max-width: 600px;
-            height: 400px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-
-        .stat-box {
-            background: rgba(79, 70, 229, 0.1);
-            border: 2px solid var(--accent-purple);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-
-        .stat-label {
-            color: var(--text-dim);
-            font-size: 0.85rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-value {
-            color: var(--primary-orange);
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        /* COPY BUTTONS */
-        .copy-btn {
-            background: rgba(33,150,243,0.2);
-            color: #2196F3;
-            border: 1px solid #2196F3;
-            padding: 0.4rem 0.8rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s ease;
-            margin-left: 0.5rem;
-        }
-        
-        .copy-btn:hover {
-            background: rgba(33,150,243,0.3);
-            transform: scale(1.05);
-        }
-        
-        .copy-btn.copied {
-            background: rgba(76,175,80,0.2);
-            color: #4CAF50;
-            border-color: #4CAF50;
-        }
-        
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #4CAF50;
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 10000;
-            display: none;
-        }
-        
-        .toast.show {
-            display: block;
-            animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        details summary {
-            padding: 0.5rem;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        
-        details summary:hover {
-            background: rgba(247,147,26,0.1);
-            border-radius: 4px;
-        }
-        
-        details[open] summary {
-            margin-bottom: 0.5rem;
-            color: var(--primary-orange);
-        }
-
-        @media (max-width: 768px) {
-            .bit-grid {
-                max-width: 100%;
-                gap: 2px;
-                padding: 5px;
-            }
-            
-            .bit-cell {
-                font-size: 0.5rem;
-            }
-            
-            .header h1 {
-                font-size: 1.5rem;
-            }
-        }
-    </style>
-<meta name="description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><link rel="canonical" href="https://bitcoinsovereign.academy/"><meta property="og:title" content="Bitcoin Sovereign Academy"><meta property="og:description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg"><meta property="og:url" content="https://bitcoinsovereign.academy/"><meta property="og:type" content="website"><script type="application/ld+json">{
-  "@context": "https://schema.org",
-  "@type": "EducationalOrganization",
-  "name": "Bitcoin Sovereign Academy",
-  "description": "Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.",
-  "url": "https://bitcoinsovereign.academy",
-  "logo": "https://bitcoinsovereign.academy/assets/og-image.jpg",
-  "sameAs": [
-    "https://github.com/Sovereigndwp/bitcoin-sovereign-academy"
-  ],
-  "educationalLevel": "Beginner to Advanced",
-  "teaches": [
-    "Bitcoin Fundamentals",
-    "Cryptocurrency Technology",
-    "Financial Sovereignty",
-    "Digital Asset Security"
-  ],
-  "audience": {
-    "@type": "Audience",
-    "audienceType": "Students interested in Bitcoin and cryptocurrency"
-  }
-}</script></head>
+/* ── responsive ── */
+@media(max-width:640px){
+    .bit-grid{grid-template-columns:repeat(16,1fr);gap:2px;padding:5px}
+    .bc{font-size:.45rem}
+    .bit-stats{grid-template-columns:repeat(2,1fr)}
+    .hd-table{font-size:.68rem}
+    .flow-chain{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
 <body>
-    <a href="#main-content" class="skip-link">Skip to main content</a>
-    <main id="main-content" class="container">
-        <div class="header">
-            <h1>🔑 Bitcoin Key Generator - Visual Learning</h1>
-            <p>See how Bitcoin creates secure private keys, public keys, and addresses</p>
-        </div>
+<div class="wrap">
 
-        <div class="intro-box">
-            <h3>🎓 What You'll Learn</h3>
-            <p>Bitcoin security starts with a 256-bit random number (your private key). This demo shows you:</p>
-            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                <li>How a 256-bit private key is generated using random 0s and 1s</li>
-                <li>Converting binary (0s and 1s) to hexadecimal format</li>
-                <li>Creating a mnemonic seed phrase (12-24 words) for backup</li>
-                <li>Using elliptic curve multiplication to generate public keys</li>
-                <li>Creating Bitcoin addresses from public keys</li>
-            </ul>
-        </div>
+<!-- ── HEADER ── -->
+<div class="hdr">
+    <h1>🔑 Bitcoin Key Generator</h1>
+    <p>Real cryptography, live and reactive — change one bit, watch everything cascade</p>
+</div>
 
-        <!-- REAL-WORLD ANALOGIES -->
-        <div class="intro-box" style="background: linear-gradient(135deg, rgba(76,175,80,0.1), rgba(139,195,74,0.1)); border-left-color: #4CAF50;">
-            <h3 style="color: #4CAF50;">🏠 Think of Bitcoin Keys Like a House</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px;">
-                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔑</div>
-                    <strong>Private Key</strong>
-                    <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.5rem;">
-                        Like your house key - Never give it to anyone! Anyone with your house key can enter your house and take everything.
-                    </p>
-                </div>
-                <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px;">
-                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🏠</div>
-                    <strong>Public Key</strong>
-                    <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.5rem;">
-                        Like your house address - You can share it freely. People can send you mail (Bitcoin), but they can't take anything out.
-                    </p>
-                </div>
-                <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px;">
-                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🧉</div>
-                    <strong>Hashing</strong>
-                    <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.5rem;">
-                        Like a smoothie blender - Once you blend fruits together, you can't separate them back. One-way transformation!
-                    </p>
-                </div>
+<!-- ── ERROR BAR ── -->
+<div class="err-bar" id="err-bar">⚠ <span id="err-msg"></span></div>
+
+<!-- ── FLOW DIAGRAM ── -->
+<div class="flow-panel">
+    <h2>🔗 Relationship Map — how everything connects</h2>
+    <div class="flow-chain">
+
+        <div class="flow-row">
+            <div class="flow-node" id="fn-entropy">
+                <div class="fn-label">🎲 Entropy</div>
+                <div class="fn-value placeholder" id="fv-entropy">—</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node" id="fn-priv">
+                <div class="fn-label">🔐 Private Key (hex)</div>
+                <div class="fn-value placeholder" id="fv-priv">—</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node" id="fn-mnemonic">
+                <div class="fn-label">📝 Mnemonic</div>
+                <div class="fn-value placeholder" id="fv-mnemonic">—</div>
             </div>
         </div>
 
-        <!-- STEP 1: PRIVATE KEY GENERATION -->
-        <div class="section">
-            <div class="section-title">
-                <span class="step-number">1</span>
-                <span>Generate 256-Bit Private Key</span>
+        <div class="flow-arrow down">↓ PBKDF2 (2048 iter)</div>
+
+        <div class="flow-row">
+            <div class="flow-node" id="fn-seed">
+                <div class="fn-label">🌱 512-bit Seed</div>
+                <div class="fn-value placeholder" id="fv-seed">—</div>
             </div>
-
-            <div class="explanation">
-                <h4>💡 What is a Private Key?</h4>
-                <p>A private key is just a very large random number. Bitcoin uses 256 bits (256 ones or zeros). This gives us 2²⁵⁶ possible combinations - more than atoms in the universe!</p>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node" id="fn-master">
+                <div class="fn-label">🔑 Master Key (BIP32)</div>
+                <div class="fn-value placeholder" id="fv-master">—</div>
             </div>
-
-            <div style="text-align: center; margin: 1.5rem 0;">
-                <button class="btn" onclick="generatePrivateKey()">🎲 Generate Random Private Key</button>
-                <button class="btn btn-secondary" onclick="animateGeneration()">✨ Animate Generation</button>
-            </div>
-
-            <div class="grid-container">
-                <div class="bit-grid" id="bit-grid">
-                    <!-- 256 cells will be generated here -->
-                </div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="stat-label">Total Bits</div>
-                    <div class="stat-value">256</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Ones Count</div>
-                    <div class="stat-value" id="ones-count">0</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Zeros Count</div>
-                    <div class="stat-value" id="zeros-count">256</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Possible Keys</div>
-                    <div class="stat-value">2²⁵⁶</div>
-                </div>
-            </div>
-
-            <div class="key-display">
-                <div class="key-label">🔢 Binary Format (256 bits):</div>
-                <div class="key-value" id="binary-key">Click "Generate" to create a private key</div>
-            </div>
-
-            <div class="key-display">
-                <div class="key-label">🔤 Hexadecimal Format (64 characters):</div>
-                <div class="explanation" style="margin-bottom: 0.5rem; background: rgba(79, 70, 229, 0.05);">
-                    <strong>Why Hexadecimal?</strong> Hex is shorter! Each hex character represents 4 bits. So 256 bits ÷ 4 = 64 hex characters. (0-9 and A-F)
-                </div>
-                <div style="position: relative;">
-                    <div class="key-value large" id="hex-key">-</div>
-                    <button class="copy-btn" onclick="copyToClipboard(document.getElementById('hex-key').textContent, this)" title="Copy to clipboard" aria-label="Copy private key to clipboard">📋 Copy</button>
-                </div>
-            </div>
-
-            <!-- Quiz Section -->
-            <div style="background: rgba(79, 70, 229, 0.1); padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem; border: 2px solid rgba(79, 70, 229, 0.3);">
-                <h4 style="color: #4F46E5; margin-bottom: 1rem;">🧠 Test Your Knowledge</h4>
-                
-                <div style="margin-bottom: 1.5rem;">
-                    <p style="margin-bottom: 0.75rem;"><strong>Q1: If I change just 1 bit in my private key, what happens?</strong></p>
-                    <label style="display: block; margin: 0.5rem 0; cursor: pointer;">
-                        <input type="radio" name="q1" value="a"> The key stays mostly the same
-                    </label>
-                    <label style="display: block; margin: 0.5rem 0; cursor: pointer;">
-                        <input type="radio" name="q1" value="b"> It becomes a completely different key
-                    </label>
-                    <label style="display: block; margin: 0.5rem 0; cursor: pointer;">
-                        <input type="radio" name="q1" value="c"> Only the hex value changes
-                    </label>
-                    <button onclick="checkAnswer(1, 'b')" class="btn btn-secondary" style="margin-top: 0.5rem; padding: 0.4rem 1rem; font-size: 0.9rem;">Check Answer</button>
-                    <div id="feedback-q1" style="display: none; margin-top: 0.5rem; font-weight: bold;"></div>
-                </div>
-
-                <div style="margin-bottom: 1.5rem;">
-                    <p style="margin-bottom: 0.75rem;"><strong>Q2: Can someone recreate your private key from your public key?</strong></p>
-                    <label style="display: block; margin: 0.5rem 0; cursor: pointer;">
-                        <input type="radio" name="q2" value="a"> Yes, easily
-                    </label>
-                    <label style="display: block; margin: 0.5rem 0; cursor: pointer;">
-                        <input type="radio" name="q2" value="b"> Yes, but it takes a long time
-                    </label>
-                    <label style="display: block; margin: 0.5rem 0; cursor: pointer;">
-                        <input type="radio" name="q2" value="c"> No, it's mathematically impossible with current technology
-                    </label>
-                    <button onclick="checkAnswer(2, 'c')" class="btn btn-secondary" style="margin-top: 0.5rem; padding: 0.4rem 1rem; font-size: 0.9rem;">Check Answer</button>
-                    <div id="feedback-q2" style="display: none; margin-top: 0.5rem; font-weight: bold;"></div>
-                </div>
-
-                <div>
-                    <p style="margin-bottom: 0.75rem;"><strong>Q3: What's the main benefit of a seed phrase over a raw private key?</strong></p>
-                    <label style="display: block; margin: 0.5rem 0; cursor: pointer;">
-                        <input type="radio" name="q3" value="a"> It's more secure
-                    </label>
-                    <label style="display: block; margin: 0.5rem 0; cursor: pointer;">
-                        <input type="radio" name="q3" value="b"> It's easier for humans to write down and remember
-                    </label>
-                    <label style="display: block; margin: 0.5rem 0; cursor: pointer;">
-                        <input type="radio" name="q3" value="c"> It makes transactions faster
-                    </label>
-                    <button onclick="checkAnswer(3, 'b')" class="btn btn-secondary" style="margin-top: 0.5rem; padding: 0.4rem 1rem; font-size: 0.9rem;">Check Answer</button>
-                    <div id="feedback-q3" style="display: none; margin-top: 0.5rem; font-weight: bold;"></div>
-                </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node" id="fn-pub">
+                <div class="fn-label">🔓 Public Key</div>
+                <div class="fn-value placeholder" id="fv-pub">—</div>
             </div>
         </div>
 
-        <!-- STEP 2: MNEMONIC SEED PHRASE -->
-        <div class="section">
-            <div class="section-title">
-                <span class="step-number">2</span>
-                <span>Generate Mnemonic Seed Phrase</span>
+        <div class="flow-arrow down">↓ SHA-256 → RIPEMD-160</div>
+
+        <div class="flow-row">
+            <div class="flow-node" id="fn-h160">
+                <div class="fn-label">🔵 hash160</div>
+                <div class="fn-value placeholder" id="fv-h160">—</div>
             </div>
-
-            <div class="explanation">
-                <h4>💡 Why Use Words Instead of Numbers?</h4>
-                <p>Humans are bad at remembering long numbers but good at remembering words! A seed phrase converts your private key into 12-24 easy-to-write words. You can backup your entire wallet by writing down these words.</p>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node" id="fn-legacy">
+                <div class="fn-label">📮 Legacy (P2PKH)</div>
+                <div class="fn-value placeholder" id="fv-legacy">—</div>
             </div>
-
-            <div style="text-align: center; margin: 1rem 0;">
-                <button class="btn btn-secondary" onclick="generateMnemonic()">📝 Convert to Seed Phrase</button>
-            </div>
-
-            <div id="mnemonic-container" style="display: none;">
-                <div class="mnemonic-grid" id="mnemonic-grid">
-                    <!-- Mnemonic words will be generated here -->
-                </div>
-
-                <div class="explanation">
-                    <strong>⚠️ Security Note:</strong> Write these words on paper and store them safely! Anyone with these words can access your Bitcoin. Never store them digitally or take photos.
-                </div>
+            <div class="flow-arrow">&amp;</div>
+            <div class="flow-node" id="fn-segwit">
+                <div class="fn-label">⚡ SegWit (bc1q…)</div>
+                <div class="fn-value placeholder" id="fv-segwit">—</div>
             </div>
         </div>
 
-        <!-- STEP 3: ELLIPTIC CURVE & PUBLIC KEY -->
-        <div class="section">
-            <div class="section-title">
-                <span class="step-number">3</span>
-                <span>Generate Public Key (Elliptic Curve)</span>
-            </div>
+        <div class="flow-arrow down">↓ BIP32 child derivation (HD Wallet)</div>
 
-            <div class="explanation">
-                <h4>💡 What is Elliptic Curve Cryptography?</h4>
-                <p>Bitcoin uses special math called "elliptic curves" to create a public key from your private key. Think of it like this:</p>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                    <li><strong>Easy Direction:</strong> Private Key × Generator Point = Public Key</li>
-                    <li><strong>Impossible Reverse:</strong> You can't figure out the private key from the public key!</li>
-                </ul>
-                <p style="margin-top: 0.5rem;">Bitcoin uses the secp256k1 curve. We multiply your private key by a special starting point called "G" (the generator).</p>
-            </div>
-
-            <div style="text-align: center; margin: 1rem 0;">
-                <button class="btn btn-success" onclick="generatePublicKey()">🔓 Generate Public Key</button>
-            </div>
-
-            <div id="curve-container" style="display: none;">
-                <canvas id="curve-canvas" class="curve-canvas"></canvas>
-
-                <div class="explanation">
-                    <h4>The Math Behind It:</h4>
-                    <p><strong>Public Key = Private Key × G</strong></p>
-                    <p>Where G is the generator point on the secp256k1 curve:</p>
-                    <p style="font-family: monospace; font-size: 0.8rem; margin-top: 0.5rem;">
-                        G = (0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798,<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8)
-                    </p>
-                </div>
-
-                <div class="key-display">
-                    <div class="key-label">🔓 Public Key (Uncompressed - 65 bytes):</div>
-                    <div style="position: relative;">
-                        <div class="key-value" id="public-key-uncompressed">-</div>
-                        <button class="copy-btn" onclick="copyToClipboard(document.getElementById('public-key-uncompressed').textContent, this)" title="Copy to clipboard" aria-label="Copy uncompressed public key to clipboard">📋 Copy</button>
-                    </div>
-                </div>
-
-                <div class="key-display">
-                    <div class="key-label">🔓 Public Key (Compressed - 33 bytes):</div>
-                    <div class="explanation" style="margin-bottom: 0.5rem; background: rgba(79, 70, 229, 0.05);">
-                        <strong>Compressed vs Uncompressed:</strong> A public key is an (x, y) point on the curve. We can save space by only storing x and a prefix (02 or 03) indicating if y is even or odd.
-                    </div>
-                    <div style="position: relative;">
-                        <div class="key-value large" id="public-key-compressed">-</div>
-                        <button class="copy-btn" onclick="copyToClipboard(document.getElementById('public-key-compressed').textContent, this)" title="Copy to clipboard" aria-label="Copy compressed public key to clipboard">📋 Copy</button>
-                    </div>
-                </div>
+        <div class="flow-row">
+            <div class="flow-node" id="fn-hd">
+                <div class="fn-label">🌳 HD Addresses (5 shown)</div>
+                <div class="fn-value placeholder" id="fv-hd">—</div>
             </div>
         </div>
 
-        <!-- HASHING EXPLANATION -->
-        <div class="section" style="background: rgba(156, 39, 176, 0.1); border-color: #9C27B0;">
-            <div class="section-title" style="color: #9C27B0;">
-                <span class="step-number" style="background: #9C27B0;">?</span>
-                <span>What is Hashing?</span>
-            </div>
-
-            <div class="explanation" style="border-left-color: #9C27B0;">
-                <h4>🧩 Hashing: A One-Way Function</h4>
-                <p>A hash function is like a magic blender that:</p>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                    <li>Takes any input (text, number, file) and creates a unique "fingerprint"</li>
-                    <li>Always gives the same output for the same input</li>
-                    <li>Can't be reversed - you can't get the original input from the output</li>
-                    <li>Even tiny changes in input create completely different outputs</li>
-                </ul>
-            </div>
-
-            <div style="background: rgba(0, 0, 0, 0.3); padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
-                <h4 style="color: #9C27B0; margin-bottom: 1rem;">🔍 Hash Example:</h4>
-                <div style="display: grid; gap: 1rem;">
-                    <div>
-                        <strong>Input:</strong> <span style="color: var(--primary-orange);">"Hello"</span><br>
-                        <strong>SHA-256 Output:</strong> <span style="font-family: monospace; font-size: 0.8rem; color: var(--accent-green);">185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969</span>
-                    </div>
-                    <div>
-                        <strong>Input:</strong> <span style="color: var(--primary-orange);">"hello"</span> (lowercase!)<br>
-                        <strong>SHA-256 Output:</strong> <span style="font-family: monospace; font-size: 0.8rem; color: var(--accent-green);">2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824</span>
-                    </div>
-                </div>
-                <p style="margin-top: 1rem; color: var(--text-dim);">Notice: Just one letter different, but completely different output!</p>
-            </div>
-
-            <div class="explanation" style="border-left-color: #9C27B0;">
-                <h4>🔐 Why Bitcoin Uses Hashing:</h4>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                    <li><strong>Privacy:</strong> Your address doesn't reveal your public key</li>
-                    <li><strong>Security:</strong> Adds an extra layer of protection</li>
-                    <li><strong>Shorter:</strong> Makes addresses more manageable</li>
-                    <li><strong>Checksum:</strong> Detects typos in addresses</li>
-                </ul>
-            </div>
-
-            <!-- Interactive Hashing Playground -->
-            <div style="background: rgba(0, 0, 0, 0.3); padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem;">
-                <h4 style="color: #9C27B0; margin-bottom: 1rem;">🎮 Try It Yourself!</h4>
-                <p style="margin-bottom: 1rem;">Hash your name and see what happens when you make tiny changes:</p>
-                
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                    <input type="text" id="name-input" placeholder="Enter your name" style="flex: 1; padding: 0.75rem; border-radius: 4px; border: 2px solid #9C27B0; background: rgba(0,0,0,0.5); color: white; font-size: 1rem;">
-                    <button onclick="hashName()" class="btn" style="background: #9C27B0;">Hash It!</button>
-                </div>
-                
-                <div id="hash-result" style="display: none; margin-top: 1rem;">
-                    <strong style="color: #9C27B0;">Your SHA-256 Hash:</strong>
-                    <div style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 4px; margin-top: 0.5rem; word-break: break-all; font-family: monospace; color: var(--accent-green);" id="hash-output"></div>
-                    <p style="margin-top: 1rem; color: var(--text-dim); font-size: 0.9rem;">💡 <strong>Challenge:</strong> Try changing just one letter. Notice how the entire hash changes completely? That's the power of hashing!</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- STEP 4: BITCOIN ADDRESS -->
-        <div class="section">
-            <div class="section-title">
-                <span class="step-number">4</span>
-                <span>Generate Bitcoin Address</span>
-            </div>
-
-            <div class="explanation">
-                <h4>💡 From Public Key to Address Using Hashing</h4>
-                <p>Now we'll use those hash functions to create your Bitcoin address:</p>
-                <p style="margin-top: 0.5rem;"><strong>The Process:</strong></p>
-                <ol style="margin-left: 1.5rem;">
-                    <li><strong>Start:</strong> Take the public key</li>
-                    <li><strong>Hash #1:</strong> Put it through SHA-256 (creates 256-bit fingerprint)</li>
-                    <li><strong>Hash #2:</strong> Put result through RIPEMD-160 (creates 160-bit fingerprint)</li>
-                    <li><strong>Add checksum:</strong> Prevents typos</li>
-                    <li><strong>Encode:</strong> Convert to Base58 or Bech32 (human-readable)</li>
-                </ol>
-                <p style="margin-top: 0.5rem; color: var(--accent-green);"><strong>Result:</strong> A short, safe-to-share address like: bc1q... or 1...</p>
-            </div>
-
-            <div style="text-align: center; margin: 1rem 0;">
-                <button class="btn btn-success" onclick="generateAddress()">📮 Generate Bitcoin Address</button>
-            </div>
-
-            <div id="address-container" style="display: none;">
-                <div class="key-display">
-                    <div class="key-label">📮 Legacy Address (P2PKH - starts with 1):</div>
-                    <div style="position: relative;">
-                        <div class="key-value large" id="address-legacy">-</div>
-                        <button class="copy-btn" onclick="copyToClipboard(document.getElementById('address-legacy').textContent, this)" title="Copy to clipboard" aria-label="Copy legacy address to clipboard">📋 Copy</button>
-                    </div>
-                </div>
-
-                <div class="key-display">
-                    <div class="key-label">📮 SegWit Address (P2WPKH - starts with bc1):</div>
-                    <div style="position: relative;">
-                        <div class="key-value large" id="address-segwit">-</div>
-                        <button class="copy-btn" onclick="copyToClipboard(document.getElementById('address-segwit').textContent, this)" title="Copy to clipboard" aria-label="Copy SegWit address to clipboard">📋 Copy</button>
-                    </div>
-                </div>
-
-                <div class="explanation">
-                    <strong>✅ Safe to Share:</strong> You can safely share your Bitcoin address with anyone who wants to send you Bitcoin. It's impossible to derive your private key from your address!
-                </div>
-            </div>
-
-            <!-- Security Warnings Section -->
-            <div style="background: rgba(220, 53, 69, 0.1); padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem; border: 2px solid rgba(220, 53, 69, 0.3);">
-                <h4 style="color: #dc3545; margin-bottom: 1rem;">⚠️ Critical Security Rules</h4>
-                
-                <div style="display: grid; gap: 1rem;">
-                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 6px;">
-                        <strong style="color: #dc3545;">📵 NEVER take photos of your seed phrase</strong>
-                        <p style="color: var(--text-dim); margin-top: 0.5rem; font-size: 0.9rem;">Photos can be backed up to the cloud, hacked from your phone, or accidentally shared. Use paper only!</p>
-                    </div>
-                    
-                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 6px;">
-                        <strong style="color: #dc3545;">☁️ NEVER store seeds in the cloud</strong>
-                        <p style="color: var(--text-dim); margin-top: 0.5rem; font-size: 0.9rem;">No Google Drive, Dropbox, iCloud, or email. Cloud services can be hacked or shut down. You lose your Bitcoin forever.</p>
-                    </div>
-                    
-                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 6px;">
-                        <strong style="color: #dc3545;">🎲 NEVER use predictable entropy</strong>
-                        <p style="color: var(--text-dim); margin-top: 0.5rem; font-size: 0.9rem;">Don't create keys from your birthday, name, or common phrases. Use proper random number generators!</p>
-                    </div>
-                    
-                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 6px;">
-                        <strong style="color: #28a745;">✅ DO use a fireproof safe</strong>
-                        <p style="color: var(--text-dim); margin-top: 0.5rem; font-size: 0.9rem;">Store your paper backup in a fireproof, waterproof safe. Consider metal backup plates for extra protection.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- What If Scenarios -->
-            <div style="margin-top: 1.5rem;">
-                <h4 style="color: var(--primary-orange); margin-bottom: 1rem;">🤔 What If Scenarios</h4>
-                
-                <details style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 6px; margin-bottom: 0.5rem; cursor: pointer;">
-                    <summary style="font-weight: bold; cursor: pointer;">🤔 What if I lose my seed phrase?</summary>
-                    <p style="margin-top: 0.5rem; color: var(--text-dim);">Your Bitcoin is <strong>permanently lost</strong>. There's no "forgot password" button. No customer service can help. This is why backups are critical!</p>
-                </details>
-                
-                <details style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 6px; margin-bottom: 0.5rem; cursor: pointer;">
-                    <summary style="font-weight: bold; cursor: pointer;">🤔 What if someone finds my seed phrase?</summary>
-                    <p style="margin-top: 0.5rem; color: var(--text-dim);">They can steal <strong>all your Bitcoin immediately</strong>. Move your funds to a new wallet with a new seed phrase right away if this happens!</p>
-                </details>
-                
-                <details style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 6px; margin-bottom: 0.5rem; cursor: pointer;">
-                    <summary style="font-weight: bold; cursor: pointer;">🤔 What if my house burns down?</summary>
-                    <p style="margin-top: 0.5rem; color: var(--text-dim);">If your only backup burns, your Bitcoin is lost forever. Consider multiple backups in different locations or metal backup plates.</p>
-                </details>
-                
-                <details style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 6px; cursor: pointer;">
-                    <summary style="font-weight: bold; cursor: pointer;">🤔 Can quantum computers break Bitcoin?</summary>
-                    <p style="margin-top: 0.5rem; color: var(--text-dim);">Not yet! Bitcoin addresses (especially unused ones) are quantum-resistant. The Bitcoin protocol can upgrade if quantum computing becomes a threat.</p>
-                </details>
-            </div>
-        </div>
-
-        <!-- RELATIONSHIP DIAGRAM -->
-        <div class="section">
-            <div class="section-title">
-                <span>🔄</span>
-                <span>The Complete Relationship</span>
-            </div>
-
-            <div class="flow-diagram">
-                <div class="flow-step">
-                    <strong>🎲 Random 256 bits</strong>
-                    <div style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.5rem;">Entropy</div>
-                </div>
-                
-                <span class="flow-arrow">→</span>
-                
-                <div class="flow-step">
-                    <strong>🔐 Private Key</strong>
-                    <div style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.5rem;">Keep Secret!</div>
-                </div>
-                
-                <span class="flow-arrow">→</span>
-                
-                <div class="flow-step">
-                    <strong>📝 Seed Phrase</strong>
-                    <div style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.5rem;">12-24 Words</div>
-                </div>
-
-                <div style="display: block; margin: 1rem 0;">
-                    <span class="flow-arrow" style="transform: rotate(90deg);">↓</span>
-                    <div style="color: var(--text-dim); font-size: 0.85rem;">Elliptic Curve Multiplication</div>
-                </div>
-
-                <div class="flow-step">
-                    <strong>🔓 Public Key</strong>
-                    <div style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.5rem;">Share Freely</div>
-                </div>
-                
-                <span class="flow-arrow">→</span>
-                
-                <div class="flow-step">
-                    <strong>📮 Address</strong>
-                    <div style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.5rem;">Receive Bitcoin</div>
-                </div>
-            </div>
-
-            <div class="explanation">
-                <h4>🔒 Key Security Principles:</h4>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                    <li><strong>One-Way Function:</strong> Easy to go from private → public → address, impossible to go backward</li>
-                    <li><strong>Private Key:</strong> Keep this secret always! Anyone with it controls your Bitcoin</li>
-                    <li><strong>Public Key:</strong> Can be shared but usually not needed (address is enough)</li>
-                    <li><strong>Address:</strong> Share freely to receive payments</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- HD WALLET EXPLANATION -->
-        <div class="section" style="background: rgba(76, 175, 80, 0.1); border-color: #4CAF50;">
-            <div class="section-title" style="color: #4CAF50;">
-                <span class="step-number" style="background: #4CAF50;">🌳</span>
-                <span>One Seed, Many Addresses: HD Wallets</span>
-            </div>
-
-            <div class="explanation" style="border-left-color: #4CAF50;">
-                <h4>🌱 What are HD (Hierarchical Deterministic) Wallets?</h4>
-                <p>Modern Bitcoin wallets don't just create one address. They create a whole <strong>tree of addresses</strong> from a single seed phrase!</p>
-                
-                <div style="background: rgba(0, 0, 0, 0.3); padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
-                    <p style="margin-bottom: 1rem;"><strong>Think of it like a tree:</strong></p>
-                    <div style="font-family: monospace; font-size: 0.9rem; line-height: 1.8;">
-                        <div style="color: var(--primary-orange);">🌱 Seed Phrase (12-24 words)</div>
-                        <div style="padding-left: 2rem;">|</div>
-                        <div style="padding-left: 2rem; color: var(--accent-green);">├─ Address 1: bc1q...</div>
-                        <div style="padding-left: 2rem; color: var(--accent-green);">├─ Address 2: bc1q...</div>
-                        <div style="padding-left: 2rem; color: var(--accent-green);">├─ Address 3: bc1q...</div>
-                        <div style="padding-left: 2rem; color: var(--accent-green);">├─ Address 4: bc1q...</div>
-                        <div style="padding-left: 2rem; color: var(--text-dim);">└─ ... (millions more!)</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="explanation" style="border-left-color: #4CAF50;">
-                <h4>🎯 Why Is This Useful?</h4>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                    <li><strong>Privacy:</strong> Use a new address for each transaction — harder for others to track your balance</li>
-                    <li><strong>Organization:</strong> Separate addresses for different purposes (savings, spending, donations)</li>
-                    <li><strong>One Backup:</strong> Write down 12-24 words once, and you can recover ALL your addresses and Bitcoin!</li>
-                    <li><strong>Deterministic:</strong> Same seed phrase always creates the same addresses in the same order</li>
-                </ul>
-            </div>
-
-            <div style="background: rgba(0, 0, 0, 0.3); padding: 1.5rem; border-radius: 8px; margin-top: 1rem;">
-                <h4 style="color: #4CAF50; margin-bottom: 1rem;">💡 How It Works (BIP32/BIP44 Standards):</h4>
-                <div style="font-size: 0.9rem;">
-                    <p style="margin-bottom: 0.5rem;"><strong>Step 1:</strong> Seed phrase → Master private key (512 bits)</p>
-                    <p style="margin-bottom: 0.5rem;"><strong>Step 2:</strong> Master key + index number (0, 1, 2, 3...) → Child key</p>
-                    <p style="margin-bottom: 0.5rem;"><strong>Step 3:</strong> Each child key → Bitcoin address</p>
-                    <p style="margin-top: 1rem; color: var(--text-dim); font-style: italic;">This is a one-way mathematical process. You can't figure out the seed from the addresses!</p>
-                </div>
-            </div>
-
-            <div class="explanation" style="border-left-color: #4CAF50; margin-top: 1rem;">
-                <h4>⚠️ Important Note:</h4>
-                <p>In this demo, we're showing a <strong>single key generation</strong> for educational purposes. Real wallets like Sparrow, Coldcard, or Trezor use HD wallets automatically. When you write down 12 or 24 words, you're backing up an entire wallet, not just one key!</p>
-            </div>
-        </div>
-
-        <div style="text-align: center; margin: 2rem 0; padding: 1.5rem; background: rgba(247, 147, 26, 0.1); border-radius: 8px;">
-            <h3 style="color: var(--primary-orange); margin-bottom: 1rem;">🎓 Ready to Practice?</h3>
-            <p style="margin-bottom: 1rem;">Now that you understand how keys work, try generating multiple keys and see how each one is completely unique!</p>
-            <button class="btn" onclick="resetAll()">🔄 Reset &amp; Start Over</button>
-            <button class="btn btn-secondary" onclick="generateAll()">⚡ Generate Everything at Once</button>
-        </div>
     </div>
 
-    <!-- Toast notification -->
-    <div id="toast" class="toast"></div>
+    <!-- Spinner -->
+    <div class="spin-wrap" id="spinner">
+        <div class="spinner"></div>
+        <div class="spin-label">Computing secp256k1 · BIP32 · BIP39 …</div>
+    </div>
+</div>
 
-    <script src="bitcoin-crypto.js"></script>
-    <script>
-        let currentPrivateKeyBits = [];
-        let currentPrivateKeyHex = '';
+<!-- ══════════════════════════════════════════════════════
+     STEP 1 — ENTROPY
+══════════════════════════════════════════════════════ -->
+<div class="accordion">
+<details class="step" id="step1" open>
+<summary>
+    <span class="step-badge">1</span>
+    <span class="step-title">Entropy — your 256 random bits</span>
+    <span class="step-pill">GENERATE HERE</span>
+    <span class="step-chevron">›</span>
+</summary>
+<div class="step-body">
 
-        // Initialize the 256-bit grid
-        function initGrid() {
-            const grid = document.getElementById('bit-grid');
-            grid.innerHTML = '';
-            for (let i = 0; i < 256; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'bit-cell zero';
-                cell.textContent = '0';
-                cell.onclick = () => toggleBit(i);
-                grid.appendChild(cell);
-            }
+    <div class="info">
+        <h4>What is entropy?</h4>
+        <p>A Bitcoin private key is simply a <strong>very large random number</strong> — 256 ones and zeros chosen at random.
+        There are 2²⁵⁶ possible combinations: more than atoms in the observable universe.
+        <strong>Click any bit</strong> to flip it and watch every downstream value change instantly.</p>
+    </div>
+
+    <div class="btn-row">
+        <button class="btn" onclick="randomize()">🎲 New Random Key</button>
+        <button class="btn btn-sec" onclick="animateBits()">✨ Animate Generation</button>
+    </div>
+
+    <div class="bit-grid-wrap"><div class="bit-grid" id="bit-grid"></div></div>
+
+    <div class="bit-stats">
+        <div class="bs-box"><div class="bs-val" id="stat-ones">0</div><div class="bs-lbl">Ones</div></div>
+        <div class="bs-box"><div class="bs-val" id="stat-zeros">256</div><div class="bs-lbl">Zeros</div></div>
+        <div class="bs-box"><div class="bs-val">256</div><div class="bs-lbl">Total bits</div></div>
+        <div class="bs-box"><div class="bs-val" style="font-size:.9rem">2²⁵⁶</div><div class="bs-lbl">Possible keys</div></div>
+    </div>
+
+    <div class="kd">
+        <div class="kd-label">🔢 Binary (256 bits)</div>
+        <div class="kd-value placeholder mono" id="kd-binary" style="line-height:1.8;font-size:.65rem;word-spacing:.15em">Generate to begin</div>
+    </div>
+    <div class="kd">
+        <div class="kd-label">
+            🔤 Private Key — Hex (64 chars = 256 bits ÷ 4)
+            <button class="copy-btn" onclick="copyEl('kd-hex',this)">Copy</button>
+        </div>
+        <div class="kd-value hi placeholder" id="kd-hex">—</div>
+    </div>
+
+    <div class="warn">
+        <h4>⚠️ Security: what makes entropy safe?</h4>
+        <ul style="margin-left:1.2rem">
+            <li>Must be <strong>truly random</strong> — not your birthday, name, or any predictable pattern</li>
+            <li>Generated by the operating system's cryptographic RNG (CSPRNG)</li>
+            <li>Never stored digitally or photographed</li>
+        </ul>
+    </div>
+</div>
+</details>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     STEP 2 — MNEMONIC
+══════════════════════════════════════════════════════ -->
+<div class="accordion">
+<details class="step" id="step2">
+<summary>
+    <span class="step-badge">2</span>
+    <span class="step-title">BIP39 Mnemonic Seed Phrase</span>
+    <span class="step-pill">12 WORDS</span>
+    <span class="step-chevron">›</span>
+</summary>
+<div class="step-body">
+
+    <div class="info">
+        <h4>Entropy → Words (BIP39)</h4>
+        <ul>
+            <li><strong>Step 1:</strong> Take your 128-bit entropy</li>
+            <li><strong>Step 2:</strong> SHA-256 hash it; take first 4 bits as checksum</li>
+            <li><strong>Step 3:</strong> Combine 128 + 4 = 132 bits</li>
+            <li><strong>Step 4:</strong> Split into 12 groups of 11 bits → each picks 1 of 2,048 words</li>
+        </ul>
+        <p style="margin-top:.5rem">The <strong>same entropy always produces the same words</strong>.
+        Writing down 12 words is equivalent to writing down your private key — but far easier to verify.</p>
+    </div>
+
+    <div class="mnemonic-grid" id="mnemonic-grid">
+        <div class="mw" style="opacity:.3;grid-column:1/-1;text-align:center;color:var(--dim)">Generate entropy first…</div>
+    </div>
+
+    <div class="kd">
+        <div class="kd-label">
+            📋 Full phrase (copy to paper — never digital)
+            <button class="copy-btn" onclick="copyEl('kd-phrase',this)">Copy</button>
+        </div>
+        <div class="kd-value placeholder" id="kd-phrase">—</div>
+    </div>
+
+    <div class="warn">
+        <h4>⚠️ Anyone who has these 12 words controls your Bitcoin</h4>
+        <p>Write on paper · Store in fireproof safe · Never type into a website · Never photograph</p>
+    </div>
+</div>
+</details>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     STEP 3 — SEED & MASTER KEY
+══════════════════════════════════════════════════════ -->
+<div class="accordion">
+<details class="step" id="step3">
+<summary>
+    <span class="step-badge">3</span>
+    <span class="step-title">Seed &amp; BIP32 Master Key</span>
+    <span class="step-pill">BIP39 + BIP32</span>
+    <span class="step-chevron">›</span>
+</summary>
+<div class="step-body">
+
+    <div class="info">
+        <h4>Words → Seed → Master Key</h4>
+        <ul>
+            <li><strong>PBKDF2</strong>: Your 12 words + passphrase "" are stretched through 2,048 rounds of HMAC-SHA-512</li>
+            <li>Output: <strong>512-bit root seed</strong></li>
+            <li><strong>HMAC-SHA-512</strong>(key="Bitcoin seed", data=seed) → left 32 bytes = master private key · right 32 bytes = master chain code</li>
+            <li>Chain code acts as entropy for all child key derivations</li>
+        </ul>
+    </div>
+
+    <div class="kd">
+        <div class="kd-label">
+            🌱 512-bit Seed (hex)
+            <button class="copy-btn" onclick="copyEl('kd-seed',this)">Copy</button>
+        </div>
+        <div class="kd-value placeholder mono" id="kd-seed" style="font-size:.68rem">—</div>
+    </div>
+    <div class="kd">
+        <div class="kd-label">
+            🔑 Master Private Key (BIP32)
+            <button class="copy-btn" onclick="copyEl('kd-master-priv',this)">Copy</button>
+        </div>
+        <div class="kd-value hi placeholder" id="kd-master-priv">—</div>
+    </div>
+    <div class="kd">
+        <div class="kd-label">
+            🔗 Master Chain Code
+            <button class="copy-btn" onclick="copyEl('kd-master-chain',this)">Copy</button>
+        </div>
+        <div class="kd-value placeholder mono" id="kd-master-chain" style="font-size:.72rem">—</div>
+    </div>
+</div>
+</details>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     STEP 4 — PUBLIC KEY
+══════════════════════════════════════════════════════ -->
+<div class="accordion">
+<details class="step" id="step4">
+<summary>
+    <span class="step-badge">4</span>
+    <span class="step-title">Public Key via secp256k1</span>
+    <span class="step-pill">ELLIPTIC CURVE</span>
+    <span class="step-chevron">›</span>
+</summary>
+<div class="step-body">
+
+    <div class="info">
+        <h4>Private key × G = Public key</h4>
+        <p>Bitcoin uses <strong>secp256k1</strong>: the elliptic curve y² = x³ + 7 over a 256-bit prime field.</p>
+        <ul style="margin-top:.4rem">
+            <li><strong>G</strong> (generator point) is a fixed public constant</li>
+            <li>Multiplying G by your private key k times gives the public key point (x, y)</li>
+            <li>This is a <strong>one-way operation</strong>: given the public key, recovering k is computationally impossible</li>
+        </ul>
+        <p style="margin-top:.5rem;font-size:.8rem;color:var(--dim)">
+            G.x = 79BE667EF9DCBBAC…B16F81798<br>
+            G.y = 483ADA7726A3C465…B10D4B8
+        </p>
+    </div>
+
+    <div class="curve-wrap">
+        <canvas id="curve-canvas" width="600" height="220"></canvas>
+        <p style="color:var(--dim);font-size:.75rem;margin-top:.4rem">y² = x³ + 7 over ℝ (conceptual — actual computation is over 𝔽ₚ with p ≈ 2²⁵⁶)</p>
+    </div>
+
+    <div class="kd">
+        <div class="kd-label">
+            🔓 Compressed Public Key (33 bytes)
+            <button class="copy-btn" onclick="copyEl('kd-pub-comp',this)">Copy</button>
+        </div>
+        <div class="kd-value hi placeholder" id="kd-pub-comp">—</div>
+    </div>
+    <div class="kd">
+        <div class="kd-label">
+            🔓 Uncompressed Public Key (65 bytes = 04 + x + y)
+            <button class="copy-btn" onclick="copyEl('kd-pub-unc',this)">Copy</button>
+        </div>
+        <div class="kd-value placeholder mono" id="kd-pub-unc" style="font-size:.68rem">—</div>
+    </div>
+    <div class="kd">
+        <div class="kd-label">X coordinate</div>
+        <div class="kd-value placeholder mono" id="kd-pub-x" style="font-size:.72rem">—</div>
+    </div>
+    <div class="kd">
+        <div class="kd-label">Y coordinate</div>
+        <div class="kd-value placeholder mono" id="kd-pub-y" style="font-size:.72rem">—</div>
+    </div>
+    <div class="kd">
+        <div class="kd-label">
+            🔵 hash160 = RIPEMD-160(SHA-256(pubkey))
+            <button class="copy-btn" onclick="copyEl('kd-h160',this)">Copy</button>
+        </div>
+        <div class="kd-value placeholder mono" id="kd-h160" style="font-size:.72rem">—</div>
+    </div>
+
+    <!-- Hashing playground -->
+    <details style="margin-top:1rem">
+        <summary style="cursor:pointer;color:var(--purple);font-size:.88rem;padding:.4rem 0">🎮 Hash playground — try it yourself</summary>
+        <div class="hash-playground" style="margin-top:.6rem">
+            <p style="font-size:.83rem;margin-bottom:.5rem">Type anything and see SHA-256. Change one letter — the entire hash changes:</p>
+            <div style="display:flex;gap:.5rem">
+                <input type="text" id="hash-input" placeholder="Type something…" oninput="liveHash(this.value)">
+            </div>
+            <div class="hash-result" id="hash-result"></div>
+        </div>
+    </details>
+</div>
+</details>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     STEP 5 — ADDRESSES
+══════════════════════════════════════════════════════ -->
+<div class="accordion">
+<details class="step" id="step5">
+<summary>
+    <span class="step-badge">5</span>
+    <span class="step-title">Bitcoin Addresses &amp; HD Wallet</span>
+    <span class="step-pill">BIP44 · BIP84</span>
+    <span class="step-chevron">›</span>
+</summary>
+<div class="step-body">
+
+    <div class="info">
+        <h4>Public key → Address</h4>
+        <ul>
+            <li><strong>hash160</strong> = RIPEMD-160(SHA-256(compressed pubkey)) → 20 bytes</li>
+            <li><strong>Legacy P2PKH</strong>: 0x00 + hash160 → double-SHA-256 checksum → Base58Check → starts with <code>1</code></li>
+            <li><strong>Native SegWit P2WPKH</strong>: Bech32(witness v0, hash160) → starts with <code>bc1q</code></li>
+        </ul>
+    </div>
+
+    <!-- Single-key addresses -->
+    <h3 style="color:var(--orange);font-size:.9rem;margin:.75rem 0 .35rem">From this entropy's private key directly:</h3>
+    <div class="kd">
+        <div class="kd-label">
+            📮 Legacy P2PKH (Base58Check)
+            <button class="copy-btn" onclick="copyEl('kd-addr-legacy',this)">Copy</button>
+        </div>
+        <div class="kd-value hi placeholder" id="kd-addr-legacy">—</div>
+    </div>
+    <div class="kd">
+        <div class="kd-label">
+            ⚡ Native SegWit P2WPKH (Bech32)
+            <button class="copy-btn" onclick="copyEl('kd-addr-segwit',this)">Copy</button>
+        </div>
+        <div class="kd-value hi placeholder" id="kd-addr-segwit">—</div>
+    </div>
+
+    <!-- HD addresses -->
+    <h3 style="color:var(--purple);font-size:.9rem;margin:1.1rem 0 .35rem">HD Wallet — from the BIP32 master key (BIP44 &amp; BIP84):</h3>
+
+    <div class="info">
+        <h4>One seed → infinite addresses</h4>
+        <p>Modern wallets derive a <strong>tree of child keys</strong> from the master key using HMAC-SHA-512.
+        Each child has its own private key, public key, and address — but all are recoverable from your 12 words alone.</p>
+        <p style="margin-top:.4rem">
+            BIP44 path: <code>m/44'/0'/0'/0/i</code> → Legacy<br>
+            BIP84 path: <code>m/84'/0'/0'/0/i</code> → Native SegWit
+        </p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('legacy')">P2PKH Legacy (BIP44)</button>
+        <button class="tab-btn" onclick="switchTab('segwit')">P2WPKH SegWit (BIP84)</button>
+    </div>
+
+    <div class="tab-pane active" id="tab-legacy">
+        <table class="hd-table">
+            <thead><tr><th>#</th><th>Path</th><th>Address (starts with 1)</th></tr></thead>
+            <tbody id="hd-legacy-body">
+                <tr><td colspan="3" style="color:var(--dim);text-align:center;padding:1rem">Generate entropy to derive…</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="tab-pane" id="tab-segwit">
+        <table class="hd-table">
+            <thead><tr><th>#</th><th>Path</th><th>Address (bc1q…)</th></tr></thead>
+            <tbody id="hd-segwit-body">
+                <tr><td colspan="3" style="color:var(--dim);text-align:center;padding:1rem">Generate entropy to derive…</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="warn" style="margin-top:1rem">
+        <h4>⚠️ Security rules</h4>
+        <ul style="margin-left:1.2rem">
+            <li>Never share your private key or seed phrase with anyone</li>
+            <li>Use a new address for every payment (privacy)</li>
+            <li>In production wallets, Sparrow/Coldcard/Trezor handle all derivation automatically</li>
+        </ul>
+    </div>
+</div>
+</details>
+</div>
+
+<!-- bottom actions -->
+<div style="text-align:center;margin:2rem 0;padding:1.5rem;background:rgba(247,147,26,.07);border-radius:10px">
+    <p style="color:var(--dim);margin-bottom:.75rem">Every time you press "New Random Key", a fresh universe of keys unfolds</p>
+    <button class="btn" onclick="randomize()">🎲 New Random Key</button>
+    <button class="btn btn-sec" onclick="resetAll()">↺ Reset</button>
+</div>
+
+</div><!-- /wrap -->
+
+<div class="toast" id="toast"></div>
+
+<script src="bitcoin-crypto.js"></script>
+<script>
+/* ──────────────────────────────────────────────────
+   State
+────────────────────────────────────────────────── */
+let bits = new Array(256).fill(0);
+let updateTimer = null;
+let animating  = false;
+let lastResult = null;
+
+/* ──────────────────────────────────────────────────
+   Grid initialisation
+────────────────────────────────────────────────── */
+function initGrid() {
+    const g = document.getElementById('bit-grid');
+    g.innerHTML = '';
+    for (let i = 0; i < 256; i++) {
+        const c = document.createElement('div');
+        c.className = 'bc zero';
+        c.textContent = '0';
+        c.addEventListener('click', () => { if (!animating) { bits[i] ^= 1; refreshCell(i); scheduleUpdate(); } });
+        g.appendChild(c);
+    }
+}
+
+function refreshCell(i) {
+    const c = document.getElementById('bit-grid').children[i];
+    c.className = bits[i] ? 'bc one' : 'bc zero';
+    c.textContent = bits[i];
+}
+
+function refreshGrid() {
+    const cells = document.getElementById('bit-grid').children;
+    for (let i = 0; i < 256; i++) {
+        cells[i].className = bits[i] ? 'bc one' : 'bc zero';
+        cells[i].textContent = bits[i];
+    }
+    const ones = bits.filter(b => b).length;
+    document.getElementById('stat-ones').textContent  = ones;
+    document.getElementById('stat-zeros').textContent = 256 - ones;
+    document.getElementById('kd-binary').textContent  = bits.join('');
+    document.getElementById('kd-binary').classList.remove('placeholder');
+}
+
+/* ──────────────────────────────────────────────────
+   Randomise
+────────────────────────────────────────────────── */
+function randomize() {
+    const rand = new Uint8Array(32);
+    crypto.getRandomValues(rand);
+    for (let i = 0; i < 256; i++)
+        bits[i] = (rand[i >> 3] >> (7 - (i & 7))) & 1;
+    refreshGrid();
+    scheduleUpdate();
+}
+
+/* ──────────────────────────────────────────────────
+   Animated bit generation
+────────────────────────────────────────────────── */
+async function animateBits() {
+    if (animating) return;
+    animating = true;
+    const rand = new Uint8Array(32);
+    crypto.getRandomValues(rand);
+    for (let i = 0; i < 256; i++) {
+        bits[i] = (rand[i >> 3] >> (7 - (i & 7))) & 1;
+        refreshCell(i);
+        if (i % 16 === 15) {
+            // update stats periodically
+            const ones = bits.slice(0, i+1).filter(b => b).length;
+            document.getElementById('stat-ones').textContent  = ones;
+            document.getElementById('stat-zeros').textContent = (i + 1) - ones;
+            await delay(18);
         }
+    }
+    refreshGrid();
+    animating = false;
+    scheduleUpdate();
+}
 
-        // Toggle individual bit (for educational purposes)
-        function toggleBit(index) {
-            currentPrivateKeyBits[index] = currentPrivateKeyBits[index] === 1 ? 0 : 1;
-            updateGrid();
-            updateDisplays();
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ──────────────────────────────────────────────────
+   Debounced pipeline trigger
+────────────────────────────────────────────────── */
+function scheduleUpdate() {
+    clearTimeout(updateTimer);
+    updateTimer = setTimeout(runPipeline, 350);
+}
+
+/* ──────────────────────────────────────────────────
+   Main cryptographic pipeline
+────────────────────────────────────────────────── */
+async function runPipeline() {
+    if (bits.every(b => b === 0)) return;
+
+    setSpinner(true);
+    setError('');
+
+    try {
+        const result = await window.BitcoinCrypto.generateFullKeychain(bits);
+        lastResult = result;
+        renderAll(result);
+    } catch (e) {
+        setError(e.message);
+    } finally {
+        setSpinner(false);
+    }
+}
+
+/* ──────────────────────────────────────────────────
+   Render all outputs
+────────────────────────────────────────────────── */
+function renderAll(r) {
+    // flow diagram
+    flashFlow('fv-entropy',  bits.slice(0,16).join('') + '…');
+    flashFlow('fv-priv',     r.privKeyHex.slice(0,16) + '…');
+    flashFlow('fv-mnemonic', r.mnemonic.slice(0,3).join(' ') + '…');
+    flashFlow('fv-seed',     r.seedHex.slice(0,16) + '…');
+    flashFlow('fv-master',   r.masterPrivHex.slice(0,16) + '…');
+    flashFlow('fv-pub',      r.pubKey.compressed.slice(0,16) + '…');
+    flashFlow('fv-h160',     r.h160Hex);
+    flashFlow('fv-legacy',   r.legacySingle);
+    flashFlow('fv-segwit',   r.segwitSingle);
+    flashFlow('fv-hd',       r.hdLegacy[0].address + ' …');
+
+    // step 1
+    set('kd-hex', r.privKeyHex);
+
+    // step 2
+    const grid = document.getElementById('mnemonic-grid');
+    grid.innerHTML = r.mnemonic.map((w, i) =>
+        `<div class="mw"><div class="mw-n">#${i+1}</div><div class="mw-w">${w}</div></div>`
+    ).join('');
+    set('kd-phrase', r.mnemonic.join(' '));
+
+    // step 3
+    set('kd-seed',         r.seedHex);
+    set('kd-master-priv',  r.masterPrivHex);
+    set('kd-master-chain', r.masterChainHex);
+
+    // step 4
+    set('kd-pub-comp', r.pubKey.compressed);
+    set('kd-pub-unc',  r.pubKey.uncompressed);
+    set('kd-pub-x',    r.pubKey.x);
+    set('kd-pub-y',    r.pubKey.y);
+    set('kd-h160',     r.h160Hex);
+    drawCurve(r.pubKey);
+
+    // step 5 — single addresses
+    set('kd-addr-legacy', r.legacySingle);
+    set('kd-addr-segwit', r.segwitSingle);
+
+    // HD tables
+    const legBody = document.getElementById('hd-legacy-body');
+    legBody.innerHTML = r.hdLegacy.map((e, i) =>
+        `<tr>
+           <td>${i}</td>
+           <td class="path-col">${e.path}</td>
+           <td class="addr-col">${e.address}</td>
+         </tr>`
+    ).join('');
+
+    const swBody = document.getElementById('hd-segwit-body');
+    swBody.innerHTML = r.hdSegwit.map((e, i) =>
+        `<tr>
+           <td>${i}</td>
+           <td class="path-col">${e.path}</td>
+           <td class="addr-col">${e.address}</td>
+         </tr>`
+    ).join('');
+}
+
+function set(id, val) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = val;
+    el.classList.remove('placeholder');
+}
+
+function flashFlow(id, val) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = val;
+    el.classList.remove('placeholder', 'changed');
+    void el.offsetWidth; // reflow
+    el.classList.add('changed');
+    setTimeout(() => el.classList.remove('changed'), 800);
+}
+
+/* ──────────────────────────────────────────────────
+   Elliptic curve canvas
+────────────────────────────────────────────────── */
+function drawCurve(pubKey) {
+    const canvas = document.getElementById('curve-canvas');
+    const ctx    = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const cx = W / 2, cy = H / 2;
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0, 0, W, H);
+
+    // axes
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // curve y² = x³ + 7
+    const scale = 38;
+    function drawHalf(sign) {
+        ctx.beginPath();
+        let first = true;
+        for (let px = -cx; px < cx; px += 0.5) {
+            const x = px / scale;
+            const y2 = x**3 + 7;
+            if (y2 < 0) { first = true; continue; }
+            const py = sign * Math.sqrt(y2) * scale;
+            first ? ctx.moveTo(cx + px, cy - py) : ctx.lineTo(cx + px, cy - py);
+            first = false;
         }
+        ctx.stroke();
+    }
+    ctx.strokeStyle = '#5a4fcf'; ctx.lineWidth = 2.5;
+    drawHalf(1); drawHalf(-1);
 
-        // Generate random private key
-        function generatePrivateKey() {
-            currentPrivateKeyBits = [];
-            for (let i = 0; i < 256; i++) {
-                currentPrivateKeyBits.push(Math.random() > 0.5 ? 1 : 0);
-            }
-            updateGrid();
-            updateDisplays();
-        }
+    // generator point G (canonical position on curve)
+    function dot(px, py, color, label, sub) {
+        ctx.fillStyle = color;
+        ctx.beginPath(); ctx.arc(px, py, 8, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.fillStyle = color; ctx.font = 'bold 13px sans-serif';
+        ctx.fillText(label, px + 12, py + 4);
+        if (sub) { ctx.font = '10px sans-serif'; ctx.fillText(sub, px + 12, py + 16); }
+    }
 
-        // Animate bit generation
-        async function animateGeneration() {
-            const cells = document.querySelectorAll('.bit-cell');
-            currentPrivateKeyBits = [];
-            
-            for (let i = 0; i < 256; i++) {
-                await new Promise(resolve => setTimeout(resolve, 10));
-                const bit = Math.random() > 0.5 ? 1 : 0;
-                currentPrivateKeyBits.push(bit);
-                cells[i].className = `bit-cell ${bit === 1 ? 'one' : 'zero'}`;
-                cells[i].textContent = bit.toString();
-            }
-            
-            updateDisplays();
-        }
+    const gx = -2, gy = Math.sqrt(gx**3 + 7);
+    const gPx = cx + gx * scale, gPy = cy - gy * scale;
+    dot(gPx, gPy, '#f7931a', 'G', '(generator)');
 
-        // Update visual grid
-        function updateGrid() {
-            const cells = document.querySelectorAll('.bit-cell');
-            cells.forEach((cell, i) => {
-                const bit = currentPrivateKeyBits[i] || 0;
-                cell.className = `bit-cell ${bit === 1 ? 'one' : 'zero'}`;
-                cell.textContent = bit.toString();
-            });
-        }
+    // public key — pick a deterministic display position from first bytes of pubkey
+    const xFrac = parseInt(pubKey.x.slice(0, 8), 16) / 0xFFFFFFFF;
+    const pkx   = -1.5 + xFrac * 3.5;
+    const pky2  = pkx**3 + 7;
+    if (pky2 >= 0) {
+        const pky = (pubKey.y[63] % 2 === 1 ? -1 : 1) * Math.sqrt(pky2);
+        const pkPx = cx + pkx * scale, pkPy = cy - pky * scale;
+        dot(pkPx, pkPy, '#28c76f', 'K', '(public key)');
+        // dashed line G → K
+        ctx.strokeStyle = '#f7931a'; ctx.lineWidth = 1.5; ctx.setLineDash([7,4]);
+        ctx.beginPath(); ctx.moveTo(gPx, gPy); ctx.lineTo(pkPx, pkPy); ctx.stroke();
+        ctx.setLineDash([]);
+    }
 
-        // Update all text displays
-        function updateDisplays() {
-            // Count ones and zeros
-            const ones = currentPrivateKeyBits.filter(b => b === 1).length;
-            const zeros = 256 - ones;
-            document.getElementById('ones-count').textContent = ones;
-            document.getElementById('zeros-count').textContent = zeros;
+    // label
+    ctx.fillStyle = '#e0e0e0'; ctx.font = 'bold 13px sans-serif';
+    ctx.fillText('y² = x³ + 7', 14, 22);
+    ctx.fillStyle = '#888'; ctx.font = '11px sans-serif';
+    ctx.fillText('K = k · G  (scalar multiplication)', cx - 90, H - 8);
+}
 
-            // Binary display
-            const binaryStr = currentPrivateKeyBits.join('');
-            document.getElementById('binary-key').textContent = binaryStr;
+/* ──────────────────────────────────────────────────
+   Hashing playground
+────────────────────────────────────────────────── */
+async function liveHash(text) {
+    const el = document.getElementById('hash-result');
+    if (!text) { el.style.display = 'none'; return; }
+    const h = await window.BitcoinCrypto.hashText(text);
+    el.textContent = h;
+    el.style.display = 'block';
+}
 
-            // Hex display
-            currentPrivateKeyHex = binaryToHex(binaryStr);
-            document.getElementById('hex-key').textContent = currentPrivateKeyHex;
-        }
+/* ──────────────────────────────────────────────────
+   Tabs
+────────────────────────────────────────────────── */
+function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach((b,i) => {
+        const match = (name === 'legacy' && i === 0) || (name === 'segwit' && i === 1);
+        b.classList.toggle('active', match);
+    });
+    document.getElementById('tab-legacy').classList.toggle('active', name === 'legacy');
+    document.getElementById('tab-segwit').classList.toggle('active', name === 'segwit');
+}
 
-        // Convert binary to hexadecimal
-        function binaryToHex(binary) {
-            let hex = '';
-            for (let i = 0; i < binary.length; i += 4) {
-                const chunk = binary.substr(i, 4);
-                const decimal = parseInt(chunk, 2);
-                hex += decimal.toString(16).toUpperCase();
-            }
-            return hex;
-        }
+/* ──────────────────────────────────────────────────
+   Copy to clipboard
+────────────────────────────────────────────────── */
+function copyEl(id, btn) {
+    const val = document.getElementById(id).textContent.trim();
+    if (!val || val === '—') return;
+    navigator.clipboard.writeText(val).then(() => {
+        showToast('Copied!');
+        btn.textContent = '✓ Copied'; btn.classList.add('ok');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 2000);
+    });
+}
 
-        // Generate mnemonic seed phrase
-        function generateMnemonic() {
-            if (currentPrivateKeyBits.length === 0) {
-                alert('Please generate a private key first!');
-                return;
-            }
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
 
-            // Use first 128 bits for 12-word mnemonic (BIP39 standard)
-            const entropy128 = currentPrivateKeyBits.slice(0, 128);
-            const words = window.BitcoinCrypto.generateMnemonic(entropy128);
+/* ──────────────────────────────────────────────────
+   UI helpers
+────────────────────────────────────────────────── */
+function setSpinner(on) {
+    document.getElementById('spinner').classList.toggle('show', on);
+}
+function setError(msg) {
+    const b = document.getElementById('err-bar');
+    if (msg) { document.getElementById('err-msg').textContent = msg; b.classList.add('show'); }
+    else      { b.classList.remove('show'); }
+}
 
-            const mnemonicGrid = document.getElementById('mnemonic-grid');
-            mnemonicGrid.innerHTML = '';
+function resetAll() {
+    bits.fill(0);
+    refreshGrid();
+    document.getElementById('kd-binary').textContent = 'Generate to begin';
+    document.getElementById('kd-binary').classList.add('placeholder');
+    ['kd-hex','kd-phrase','kd-seed','kd-master-priv','kd-master-chain',
+     'kd-pub-comp','kd-pub-unc','kd-pub-x','kd-pub-y','kd-h160',
+     'kd-addr-legacy','kd-addr-segwit'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = '—'; el.classList.add('placeholder'); }
+    });
+    ['fv-entropy','fv-priv','fv-mnemonic','fv-seed','fv-master',
+     'fv-pub','fv-h160','fv-legacy','fv-segwit','fv-hd'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = '—'; el.classList.add('placeholder'); }
+    });
+    document.getElementById('mnemonic-grid').innerHTML =
+        '<div class="mw" style="opacity:.3;grid-column:1/-1;text-align:center;color:var(--dim)">Generate entropy first…</div>';
+    ['hd-legacy-body','hd-segwit-body'].forEach(id => {
+        document.getElementById(id).innerHTML =
+            '<tr><td colspan="3" style="color:var(--dim);text-align:center;padding:1rem">Generate entropy to derive…</td></tr>';
+    });
+    const ctx = document.getElementById('curve-canvas').getContext('2d');
+    ctx.clearRect(0, 0, 600, 220);
+    setError('');
+}
 
-            // Display the 12 words
-            for (let i = 0; i < words.length; i++) {
-                
-                const wordDiv = document.createElement('div');
-                wordDiv.className = 'mnemonic-word';
-                wordDiv.innerHTML = `
-                    <span class="word-number">#${i + 1}</span>
-                    <span class="word-text">${words[i]}</span>
-                `;
-                mnemonicGrid.appendChild(wordDiv);
-            }
+/* ──────────────────────────────────────────────────
+   Boot
+────────────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+    initGrid();
+    randomize(); // start with a fresh random key on load
+});
+</script>
 
-            document.getElementById('mnemonic-container').style.display = 'block';
-        }
-
-        // Generate public key
-        function generatePublicKey() {
-            if (currentPrivateKeyHex === '') {
-                alert('Please generate a private key first!');
-                return;
-            }
-
-            // Use deterministic public key derivation
-            const publicKeys = window.BitcoinCrypto.derivePublicKey(currentPrivateKeyHex);
-
-            document.getElementById('public-key-uncompressed').textContent = publicKeys.uncompressed;
-            document.getElementById('public-key-compressed').textContent = publicKeys.compressed;
-            document.getElementById('curve-container').style.display = 'block';
-
-            drawEllipticCurve();
-        }
-
-        // Draw elliptic curve visualization
-        function drawEllipticCurve() {
-            const canvas = document.getElementById('curve-canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-
-            const width = canvas.width;
-            const height = canvas.height;
-            const centerX = width / 2;
-            const centerY = height / 2;
-
-            // Clear canvas
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-            ctx.fillRect(0, 0, width, height);
-
-            // Draw axes
-            ctx.strokeStyle = '#444';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.moveTo(0, centerY);
-            ctx.lineTo(width, centerY);
-            ctx.moveTo(centerX, 0);
-            ctx.lineTo(centerX, height);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            // Draw actual elliptic curve: y² = x³ + 7
-            ctx.strokeStyle = '#4f46e5';
-            ctx.lineWidth = 3;
-            
-            // Upper curve
-            ctx.beginPath();
-            let firstPoint = true;
-            for (let px = -width/2; px < width/2; px += 0.5) {
-                const x = px / 40;
-                const ySquared = Math.pow(x, 3) + 7;
-                
-                if (ySquared >= 0) {
-                    const y = Math.sqrt(ySquared) * 40;
-                    if (firstPoint) {
-                        ctx.moveTo(centerX + px, centerY - y);
-                        firstPoint = false;
-                    } else {
-                        ctx.lineTo(centerX + px, centerY - y);
-                    }
-                }
-            }
-            ctx.stroke();
-
-            // Lower curve (negative y)
-            ctx.beginPath();
-            firstPoint = true;
-            for (let px = -width/2; px < width/2; px += 0.5) {
-                const x = px / 40;
-                const ySquared = Math.pow(x, 3) + 7;
-                
-                if (ySquared >= 0) {
-                    const y = Math.sqrt(ySquared) * 40;
-                    if (firstPoint) {
-                        ctx.moveTo(centerX + px, centerY + y);
-                        firstPoint = false;
-                    } else {
-                        ctx.lineTo(centerX + px, centerY + y);
-                    }
-                }
-            }
-            ctx.stroke();
-
-            // Draw equation label
-            ctx.fillStyle = '#4f46e5';
-            ctx.font = 'bold 16px sans-serif';
-            ctx.fillText('y² = x³ + 7', 20, 30);
-
-            // Helper function to find a point on the curve for a given x
-            function findPointOnCurve(xValue) {
-                const ySquared = Math.pow(xValue, 3) + 7;
-                if (ySquared >= 0) {
-                    const y = Math.sqrt(ySquared);
-                    return { x: xValue, y: y }; // Return actual curve coordinates
-                }
-                return null;
-            }
-
-            // Draw generator point G (on the actual curve)
-            // Choose an x value that gives a nice visible position
-            const gXValue = -2; // x coordinate on the curve
-            const gPoint = findPointOnCurve(gXValue);
-            if (gPoint) {
-                const gX = gPoint.x * 40; // Scale for display
-                const gY = -gPoint.y * 40; // Negative for upper curve, scale for display
-                
-                ctx.fillStyle = '#f7931a';
-                ctx.beginPath();
-                ctx.arc(centerX + gX, centerY + gY, 10, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                ctx.fillStyle = '#f7931a';
-                ctx.font = 'bold 18px sans-serif';
-                ctx.fillText('G', centerX + gX - 25, centerY + gY + 5);
-                ctx.font = '12px sans-serif';
-                ctx.fillText('(generator)', centerX + gX - 40, centerY + gY + 20);
-            }
-
-            // Draw public key point (on the actual curve)
-            // Get actual public key coordinates if they exist, otherwise use default
-            const publicKeys = window.BitcoinCrypto && currentPrivateKeyHex ? 
-                window.BitcoinCrypto.derivePublicKey(currentPrivateKeyHex) : null;
-            
-            let pkXValue = 2; // Default x on curve
-            if (publicKeys && publicKeys.x && publicKeys.y) {
-                // Use hash of public key to deterministically choose x value on curve
-                const xHash = parseInt(publicKeys.x.substring(0, 8), 16);
-                // Map to range that works well visually: 0 to 4
-                pkXValue = (xHash % 400) / 100;
-            }
-            
-            const pkPoint = findPointOnCurve(pkXValue);
-            if (pkPoint) {
-                const pkX = pkPoint.x * 40; // Scale for display
-                const pkY = pkPoint.y * 40; // Positive for lower curve, scale for display
-                
-                ctx.fillStyle = '#28a745';
-                ctx.beginPath();
-                ctx.arc(centerX + pkX, centerY + pkY, 10, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                ctx.fillStyle = '#28a745';
-                ctx.font = 'bold 16px sans-serif';
-                ctx.fillText('Public Key', centerX + pkX + 15, centerY + pkY + 5);
-                ctx.font = '11px sans-serif';
-                ctx.fillText('(your point)', centerX + pkX + 15, centerY + pkY + 20);
-
-                // Draw multiplication visualization with actual coordinates
-                ctx.strokeStyle = '#f7931a';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([10, 5]);
-                ctx.beginPath();
-                if (gPoint) {
-                    ctx.moveTo(centerX + gPoint.x * 40, centerY - gPoint.y * 40);
-                    ctx.lineTo(centerX + pkX, centerY + pkY);
-                    ctx.stroke();
-                }
-                ctx.setLineDash([]);
-            }
-
-            // Add operation label
-            ctx.fillStyle = '#e0e0e0';
-            ctx.font = 'bold 14px sans-serif';
-            ctx.fillText('Private Key × G = Public Key', centerX - 90, height - 20);
-            
-            // Add note
-            ctx.font = '11px sans-serif';
-            ctx.fillStyle = '#999';
-            ctx.fillText('Both points lie on the curve y² = x³ + 7', centerX - 90, height - 5);
-        }
-
-        // Generate Bitcoin address
-        async function generateAddress() {
-            if (currentPrivateKeyHex === '') {
-                alert('Please generate a private key first!');
-                return;
-            }
-
-            // Get public key first
-            const publicKeys = window.BitcoinCrypto.derivePublicKey(currentPrivateKeyHex);
-            
-            // Generate addresses from public key
-            const legacyAddress = await window.BitcoinCrypto.generateAddress(publicKeys.uncompressed, 'legacy');
-            const segwitAddress = await window.BitcoinCrypto.generateAddress(publicKeys.compressed, 'segwit');
-
-            document.getElementById('address-legacy').textContent = legacyAddress;
-            document.getElementById('address-segwit').textContent = segwitAddress;
-            document.getElementById('address-container').style.display = 'block';
-        }
-
-        // Helper: Generate random hex
-        function generateRandomHex(length) {
-            let result = '';
-            const chars = '0123456789abcdef';
-            for (let i = 0; i < length; i++) {
-                result += chars[Math.floor(Math.random() * chars.length)];
-            }
-            return result;
-        }
-
-        // Helper: Generate random base58
-        function generateRandomBase58(length) {
-            let result = '';
-            const chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-            for (let i = 0; i < length; i++) {
-                result += chars[Math.floor(Math.random() * chars.length)];
-            }
-            return result;
-        }
-
-        // Generate everything at once
-        function generateAll() {
-            generatePrivateKey();
-            setTimeout(() => {
-                generateMnemonic();
-                generatePublicKey();
-                generateAddress();
-            }, 500);
-        }
-
-        // Reset everything
-        function resetAll() {
-            currentPrivateKeyBits = [];
-            currentPrivateKeyHex = '';
-            initGrid();
-            
-            document.getElementById('ones-count').textContent = '0';
-            document.getElementById('zeros-count').textContent = '256';
-            document.getElementById('binary-key').textContent = 'Click "Generate" to create a private key';
-            document.getElementById('hex-key').textContent = '-';
-            
-            document.getElementById('mnemonic-container').style.display = 'none';
-            document.getElementById('curve-container').style.display = 'none';
-            document.getElementById('address-container').style.display = 'none';
-        }
-
-        // Interactive hashing playground
-        async function hashName() {
-            const nameInput = document.getElementById('name-input').value.trim();
-            if (!nameInput) {
-                document.getElementById('hash-output').textContent = 'Please enter a name';
-                return;
-            }
-            
-            const hashHex = await window.BitcoinCrypto.simpleSHA256(nameInput);
-            document.getElementById('hash-output').textContent = hashHex;
-            document.getElementById('hash-result').style.display = 'block';
-        }
-
-        // Quiz functionality
-        function checkAnswer(questionNum, correctAnswer) {
-            const selected = document.querySelector(`input[name="q${questionNum}"]:checked`);
-            if (!selected) {
-                alert('Please select an answer');
-                return;
-            }
-            
-            const feedbackId = `feedback-q${questionNum}`;
-            const feedback = document.getElementById(feedbackId);
-            
-            if (selected.value === correctAnswer) {
-                feedback.textContent = '✅ Correct!';
-                feedback.style.color = '#28a745';
-            } else {
-                feedback.textContent = '❌ Try again';
-                feedback.style.color = '#dc3545';
-            }
-            feedback.style.display = 'block';
-        }
-
-        // Copy to clipboard functionality
-        function copyToClipboard(text, buttonElement) {
-            navigator.clipboard.writeText(text).then(() => {
-                showToast('Copied to clipboard!');
-                
-                // Visual feedback on button
-                const originalText = buttonElement.textContent;
-                buttonElement.textContent = '✓ Copied';
-                buttonElement.style.background = '#28a745';
-                
-                setTimeout(() => {
-                    buttonElement.textContent = originalText;
-                    buttonElement.style.background = '';
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy:', err);
-                showToast('Failed to copy');
-            });
-        }
-
-        // Show toast notification
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-
-        // Initialize on page load
-        window.onload = () => {
-            initGrid();
-        };
-    </script>
-
-
-    <!-- Navigation Context (return-to-path functionality) -->
-    <script src="/js/navigation-context.js"></script>
+<script src="/js/navigation-context.js"></script>
 <script src="/js/membership-gate.js"></script>
-</body></html>
+</body>
+</html>
