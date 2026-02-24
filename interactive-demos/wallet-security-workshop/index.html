@@ -616,6 +616,55 @@
     .cfg-k { color: #f7931a; }
     .cfg-v { color: #87ceeb; }
     .cfg-t { color: #c792ea; }
+
+    /* Help Modal */
+    .help-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,0.78); z-index: 9999;
+        align-items: center; justify-content: center;
+    }
+    .help-overlay.open { display: flex; }
+    .help-box {
+        background: #1e2535; border: 2px solid var(--primary-orange);
+        border-radius: 14px; padding: 2rem; max-width: 540px; width: 92%;
+        position: relative; max-height: 80vh; overflow-y: auto;
+    }
+    .help-box h3 { color: var(--primary-orange); margin-bottom: 0.75rem; font-size: 1.1rem; }
+    .help-box p { color: var(--text-light); font-size: 0.93rem; line-height: 1.65; margin-bottom: 0.65rem; }
+    .help-box code { font-size: 0.82rem; background: rgba(255,255,255,0.07); padding: 0.1em 0.35em; border-radius: 4px; }
+    .help-example {
+        background: rgba(247,147,26,0.09); border-left: 3px solid var(--primary-orange);
+        padding: 0.8rem 1rem; border-radius: 0 8px 8px 0; margin: 0.7rem 0; font-size: 0.9rem;
+        line-height: 1.7; color: var(--text-light);
+    }
+    .help-example strong { color: var(--primary-orange); }
+    .help-warn-box {
+        background: rgba(244,67,54,0.12); border: 1px solid rgba(244,67,54,0.4);
+        padding: 0.7rem 1rem; border-radius: 8px; margin-top: 0.7rem;
+        font-size: 0.9rem; color: #ffb3ae; line-height: 1.6;
+    }
+    .help-close {
+        position: absolute; top: 0.7rem; right: 0.9rem;
+        background: none; border: none; color: var(--text-dim);
+        font-size: 1.5rem; cursor: pointer; line-height: 1; padding: 0;
+    }
+    .help-close:hover { color: var(--text-light); }
+    .help-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 17px; height: 17px; border-radius: 50%;
+        background: rgba(247,147,26,0.18); border: 1px solid rgba(247,147,26,0.45);
+        color: var(--primary-orange); font-size: 0.68rem; font-weight: 700;
+        cursor: pointer; margin-left: 0.3rem; vertical-align: middle;
+        transition: background 0.2s; flex-shrink: 0;
+    }
+    .help-btn:hover { background: rgba(247,147,26,0.38); }
+    .pair-status {
+        font-size: 0.82rem; padding: 0.42rem 0.75rem; border-radius: 7px;
+        margin-top: 0.45rem; display: none; line-height: 1.5;
+    }
+    .pair-status.ok   { display: block; background: rgba(76,175,80,0.14); color: #81c784; border: 1px solid rgba(76,175,80,0.32); }
+    .pair-status.warn { display: block; background: rgba(255,152,0,0.14); color: #ffb74d; border: 1px solid rgba(255,152,0,0.38); }
+    .pair-status.err  { display: block; background: rgba(244,67,54,0.14); color: #e57373; border: 1px solid rgba(244,67,54,0.32); }
     </style>
     <link rel="stylesheet" href="/css/icons.css">
     <link rel="stylesheet" href="/css/interactive-demos.css">
@@ -2237,6 +2286,190 @@ Multisig: 2-of-3</pre>
             updateSelectedWordsDisplay();
         }
 
+        // ===== HELP MODAL =====
+        const HELP_CONTENT = {
+            '2fa': {
+                title: '2FA — Two-Factor Authentication',
+                body: `<p>2FA adds a second layer of protection. Even if your password is stolen, the attacker still can't get in without your second factor.</p>
+                <div class="help-example"><strong>Security ranking (best → worst):</strong><br>
+                1. Hardware Key (YubiKey, Titan Key) — physical device, cannot be phished<br>
+                2. Authenticator App (Aegis, Google Authenticator, Raivo) — generates 6-digit codes<br>
+                3. Email 2FA — better than nothing<br>
+                4. SMS — avoid if possible (SIM swap attacks)</div>
+                <p><strong>Recommended:</strong> Use <strong>Aegis</strong> (Android) or <strong>Raivo OTP</strong> (iOS). When setting up, save the original QR code offline — that's your backup.</p>
+                <div class="help-warn-box">⚠ SMS 2FA can be bypassed via SIM swap: a scammer calls your carrier, transfers your number to their phone, then resets all accounts. Exchanges like Coinbase and Kraken have been targeted this way.</div>`
+            },
+            'withdrawal-test': {
+                title: 'Why Test Withdrawals',
+                body: `<p>Before trusting any platform with large amounts, confirm you can actually move your Bitcoin out.</p>
+                <div class="help-example"><strong>How to test (takes 10 minutes):</strong><br>
+                1. Send a small amount ($10–$20) from the exchange to your own wallet address<br>
+                2. Confirm it arrives at the correct address in your wallet app<br>
+                3. Note the date — document this in your recovery plan<br><br>
+                <strong>Real example:</strong> On Coinbase, go to Send/Receive → Send → paste your Sparrow or Blue Wallet receive address → send $15 → verify arrival within ~10 minutes.</div>
+                <div class="help-warn-box">⚠ Some platforms (Venmo, PayPal) restrict or delay withdrawals. Others require KYC re-verification. Find out before you need to withdraw under pressure.</div>`
+            },
+            'backup-codes': {
+                title: '2FA Backup Codes',
+                body: `<p>When you set up 2FA on an exchange, you receive one-time backup codes — use these if you lose your phone.</p>
+                <div class="help-example"><strong>Best practice:</strong><br>
+                • Print them immediately, seal in an envelope, store with your other paper documents<br>
+                • Do NOT save as a phone screenshot, cloud note, or email draft<br>
+                • Treat them like a spare house key — secure but accessible to you</div>
+                <p><strong>Where to find them:</strong> On Coinbase: Settings → Security → 2-Step Verification → Backup codes. On Kraken: Security → Two-Factor Authentication → Recovery codes.</p>
+                <div class="help-warn-box">⚠ If you lose your phone AND your backup codes, account recovery can take weeks and requires identity verification. Some users have permanently lost access.</div>`
+            },
+            'auth-recovery': {
+                title: 'Authenticator App Recovery',
+                body: `<p>If your phone is lost or wiped, you need a way to restore your 6-digit code generator.</p>
+                <div class="help-example"><strong>Aegis (Android) — recommended:</strong><br>
+                Settings → Backups → Export encrypted backup. Store file + decryption password separately.<br><br>
+                <strong>Google Authenticator:</strong> Settings → Transfer accounts → Export. Screenshot the QR code and store offline.<br><br>
+                <strong>Authy:</strong> Enable "Allow Multi-Device" during setup for easy restore to a new phone.</div>
+                <p><strong>Best practice:</strong> When adding 2FA to any service, photograph or write down the original setup QR code / seed string. Store it securely offline. This lets you add it to any authenticator app from scratch.</p>`
+            },
+            'script-type': {
+                title: 'Script Types — What Kind of Bitcoin Address?',
+                body: `<p>The script type determines your address format and transaction fee cost. Different wallets default to different types.</p>
+                <div class="help-example"><strong>Native SegWit — p2wpkh</strong> → Address starts with <strong>bc1q...</strong><br>
+                Best for single-sig. Lowest fees. Default in Sparrow, Blue Wallet, Coldcard Mk4.<br><br>
+                <strong>Taproot — p2tr</strong> → Address starts with <strong>bc1p...</strong><br>
+                Newest standard. Better privacy. Use in Sparrow Taproot mode or Coldcard latest firmware.<br><br>
+                <strong>SegWit Wrapped — p2sh-p2wpkh</strong> → Address starts with <strong>3...</strong><br>
+                Older SegWit format. Higher fees than Native SegWit. Used by some older wallets.<br><br>
+                <strong>Multisig SegWit — p2wsh</strong> → Address starts with <strong>bc1q...</strong> (longer)<br>
+                Required for multisig setups (2-of-3). Needs m/48' derivation path.<br><br>
+                <strong>Legacy — p2pkh</strong> → Address starts with <strong>1...</strong><br>
+                Original Bitcoin format. Highest fees. Only use if required for compatibility.</div>
+                <p><strong>Recommendation:</strong> Native SegWit (p2wpkh) for single-sig. Multisig SegWit (p2wsh) for multisig.</p>`
+            },
+            'deriv-path': {
+                title: 'Derivation Paths — Where Are Your Keys?',
+                body: `<p>Your 12 or 24 seed words can generate billions of different wallets. The derivation path specifies which wallet to use.</p>
+                <div class="help-example"><strong>Standard paths and what they produce:</strong><br>
+                m/44'/0'/0' → Legacy (1...) addresses — BIP44<br>
+                m/49'/0'/0' → SegWit Wrapped (3...) — BIP49<br>
+                m/84'/0'/0' → Native SegWit (bc1q...) — BIP84 — most common today<br>
+                m/86'/0'/0' → Taproot (bc1p...) — BIP86 — newest<br>
+                m/48'/0'/0'/2' → Multisig Native SegWit — BIP48<br>
+                m/48'/0'/0'/3' → Multisig Taproot — BIP48</div>
+                <p>The same 12/24 words with the wrong path appears as an empty wallet — your funds are safe, you just need to use the correct path. This is why recording it is essential.</p>
+                <div class="help-warn-box">⚠ If you restore in Sparrow and see no balance, check the derivation path. Try m/84' if you originally used Native SegWit. Most hardware wallets default to m/84' for single-sig.</div>`
+            },
+            'passphrase': {
+                title: 'Passphrase — The 25th Word',
+                body: `<p>An optional BIP39 passphrase creates an entirely different wallet from the same seed words. Think of it as a second password layered on top of your seed.</p>
+                <div class="help-example"><strong>How it works:</strong><br>
+                • Your 24 words alone → <strong>Wallet A</strong> (keep a small decoy amount here)<br>
+                • Your 24 words + passphrase "horse$Battery7" → <strong>Wallet B</strong> (your real savings)<br><br>
+                <strong>Wallets that support it:</strong> Coldcard, Trezor Model T/Safe 3, Sparrow Wallet, Blue Wallet (advanced), Electrum</div>
+                <p><strong>Plausible deniability:</strong> If you're forced to reveal your seed, an attacker only finds Wallet A. Your real funds in Wallet B remain hidden.</p>
+                <div class="help-warn-box">⚠ CRITICAL: Forget the passphrase = lose the Bitcoin. It cannot be recovered. Store it separately from your seed phrase — never together. Consider stamping it on a separate metal plate.</div>`
+            },
+            'seed-location': {
+                title: 'Seed Phrase Storage Best Practices',
+                body: `<p>Your 12 or 24 seed words are the master key. Anyone who finds them can take your Bitcoin.</p>
+                <div class="help-example"><strong>Storage ranked best → worst:</strong><br>
+                ✓ Metal plate (Cryptosteel, SteelWallet, OneKey KeyTag) — fireproof + waterproof<br>
+                ✓ Laminated paper in a fireproof safe — fine for smaller amounts<br>
+                ✗ Unprotected paper — burns, degrades, gets wet<br>
+                ✗ Phone notes, cloud, email, Dropbox — one breach = total loss<br>
+                ✗ Photo on your phone — if phone is stolen or iCloud is hacked, funds gone</div>
+                <p><strong>Geographic separation:</strong> Keep copies in two different physical locations (home safe + trusted family safe deposit box). One disaster can't destroy both.</p>
+                <p><strong>Rule:</strong> Never store your seed and passphrase together. They are two separate keys — separated, neither is useful alone.</p>`
+            },
+            'descriptor': {
+                title: 'Output Descriptors — Critical for Multisig',
+                body: `<p>An output descriptor precisely describes your wallet's key structure. For single-sig, it's optional but helpful. For multisig, it is essential for recovery.</p>
+                <div class="help-example"><strong>Single-sig example (Sparrow Native SegWit):</strong><br>
+                <code>wpkh([a1b2c3d4/84'/0'/0']xpub6Ebb...)</code><br><br>
+                <strong>2-of-3 multisig example:</strong><br>
+                <code>wsh(multi(2,[a1b2c3/48'/0'/0'/2']xpub..., [d4e5f6/48'/0'/0'/2']xpub..., [g7h8i9/48'/0'/0'/2']xpub...))</code></div>
+                <p><strong>How to export in Sparrow:</strong> File → Export Wallet → save the .json file. Store it alongside (not with) your seed backups.</p>
+                <div class="help-warn-box">⚠ For multisig: WITHOUT the descriptor, you cannot reconstruct the wallet even with ALL seed phrases. The descriptor records which exact keys form the quorum. Treat it as a third key.</div>`
+            },
+            'restore-test': {
+                title: 'Testing Your Backup — Restore Test',
+                body: `<p>The only way to confirm your backup works is to actually test it before you need it in an emergency.</p>
+                <div class="help-example"><strong>Safe hardware wallet test (takes ~15 min):</strong><br>
+                1. Note your wallet's first receive address (the bc1q... or bc1p... shown in your wallet app)<br>
+                2. Wipe the device: Settings → Factory Reset / Wipe Device<br>
+                3. Choose "Restore from seed" and enter your 12/24 words<br>
+                4. Check that the same first receive address appears — if it matches, backup is valid ✓<br><br>
+                <strong>Coldcard shortcut:</strong> Advanced → Seed Tools → Verify Seed — checks without wiping.</div>
+                <p><strong>Recommended frequency:</strong> Once a year, after any hardware upgrade, or after moving to a new home.</p>`
+            },
+            'multisig-policy': {
+                title: 'Multisig Policies — M-of-N Explained',
+                body: `<p>Multisig requires M signatures from N total keys to authorize any transaction. This eliminates single points of failure.</p>
+                <div class="help-example"><strong>Common configurations:</strong><br>
+                <strong>2-of-3:</strong> 3 keys exist, any 2 are needed. Lose 1 key — still fine. Attacker needs 2 different devices — much harder.<br><br>
+                <strong>3-of-5:</strong> 5 keys, 3 required. Better for institutional or large amounts.<br><br>
+                <strong>2-of-2:</strong> Both keys always required. Maximum control, but lose one = lose access forever.</div>
+                <p><strong>Recommended setup:</strong> 2-of-3 with Coldcard (home) + Trezor (office or safe deposit box) + Jade (trusted family or collaborative custodian)</p>
+                <p><strong>Coordinator software:</strong> Sparrow Wallet (desktop, free) or Nunchuk (mobile-friendly) to create and manage the multisig wallet.</p>`
+            },
+            'collab-custody': {
+                title: 'Collaborative Custody',
+                body: `<p>A company holds one key in your multisig setup while you hold the others. You never give up majority control.</p>
+                <div class="help-example"><strong>Services:</strong><br>
+                <strong>Unchained Capital:</strong> You hold 2 keys, they hold 1. Requires ID verification. Cannot steal from you — ever.<br><br>
+                <strong>Casa:</strong> Multiple tiers. Mobile-first. Designed for easy recovery if you lose one of your keys.<br><br>
+                <strong>Theya:</strong> Simple 2-of-3, beginner-friendly guided setup. Good starting point.</div>
+                <p>Unlike an exchange, you always retain majority signing power. The company's key assists with inheritance or key recovery — not with day-to-day spending.</p>
+                <div class="help-warn-box">⚠ This is NOT the same as keeping Bitcoin on an exchange. With collaborative custody, the company cannot unilaterally move your funds. Choose a company with a strong reputation and transparent key management.</div>`
+            },
+            'metal-backup': {
+                title: 'Metal Seed Backups',
+                body: `<p>Paper burns at ~450°F. Metal survives 2,000°F+ and is waterproof. For any meaningful amount of Bitcoin, metal is the right storage medium.</p>
+                <div class="help-example"><strong>Popular options:</strong><br>
+                <strong>Cryptosteel Capsule:</strong> Stainless steel tiles you arrange manually. ~$80. Very robust.<br>
+                <strong>SteelWallet:</strong> Compact plate + letter punch. ~$30. DIY.<br>
+                <strong>OneKey KeyTag:</strong> Laser-engraved. ~$25. Budget option.<br>
+                <strong>DIY:</strong> Stainless steel sheet + alphabet stamps from hardware store. ~$15.</div>
+                <p><strong>Tip:</strong> You only need the first 4 letters of each BIP39 word — every word in the official wordlist is uniquely identified by its first 4 characters. Saves space on your plate.</p>`
+            },
+            'wallet-type': {
+                title: 'Single-Sig vs Multisig',
+                body: `<p>Single signature: one seed phrase controls everything. Simple, but one point of failure — one stolen seed means all funds lost.</p>
+                <p>Multisig: M keys from N total must sign every transaction. No single seed or device theft is sufficient to steal funds.</p>
+                <div class="help-example"><strong>Single-sig is best when:</strong><br>
+                • You're learning Bitcoin for the first time<br>
+                • Amount is under ~$10,000<br>
+                • You want simple setup (Coldcard standalone, Blue Wallet)<br><br>
+                <strong>Multisig is best when:</strong><br>
+                • Amount exceeds $25,000+<br>
+                • You're planning inheritance<br>
+                • You have 2+ hardware devices (Sparrow + 3 devices)</div>
+                <p><strong>Start with single-sig.</strong> Master seed backup and restore testing first. Upgrade to multisig once comfortable.</p>`
+            },
+            'geographic-sep': {
+                title: 'Geographic Separation',
+                body: `<p>All backups in one location means one fire, flood, or burglary can eliminate everything.</p>
+                <div class="help-example"><strong>Example 2-location setup:</strong><br>
+                • Home safe: Seed copy + hardware wallet<br>
+                • Trusted family / safe deposit box: Second seed copy<br><br>
+                <strong>3-location multisig example:</strong><br>
+                • Home: Key 1 (Coldcard)<br>
+                • Safe deposit box: Key 2 (Trezor)<br>
+                • Collaborative custodian: Key 3 (Unchained)</div>
+                <div class="help-warn-box">⚠ Never store your passphrase and seed phrase at the same location. If found together, both are compromised. Separated, finding one alone gives the attacker nothing useful.</div>`
+            }
+        };
+
+        function showHelp(key) {
+            const content = HELP_CONTENT[key];
+            if (!content) return;
+            document.getElementById('helpModalContent').innerHTML = '<h3>' + content.title + '</h3>' + content.body;
+            document.getElementById('helpOverlay').classList.add('open');
+        }
+
+        function closeHelp() {
+            document.getElementById('helpOverlay').classList.remove('open');
+        }
+
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeHelp(); });
+
         // ===== RECOVERY PLAN =====
         const rpCounters = { exchange: 0, software: 0, hardware: 0 };
 
@@ -2265,10 +2498,10 @@ Multisig: 2-of-3</pre>
                         <input type="text" placeholder="e.g. personal@email.com" oninput="rpUpdateProgress()" />
                     </div>
                     <div class="rp-field">
-                        <label>2FA Method</label>
+                        <label>2FA Method <button class="help-btn" onclick="showHelp('2fa')" title="What is 2FA?">?</button></label>
                         <select onchange="rpUpdateProgress()">
                             <option value="">— select —</option>
-                            <option>Authenticator App (Aegis, Google Auth, Authy)</option>
+                            <option>Authenticator App (Aegis, Google Auth, Raivo)</option>
                             <option>Hardware Key (YubiKey, Titan)</option>
                             <option>SMS — not recommended</option>
                             <option>Email 2FA</option>
@@ -2276,7 +2509,7 @@ Multisig: 2-of-3</pre>
                         </select>
                     </div>
                     <div class="rp-field">
-                        <label>Withdrawal Address Tested</label>
+                        <label>Withdrawal Address Tested <button class="help-btn" onclick="showHelp('withdrawal-test')" title="Why test withdrawals?">?</button></label>
                         <label class="rp-check" style="margin-top:0.4rem;">
                             <input type="checkbox" onchange="rpUpdateProgress()" />
                             <span>Confirmed successful withdrawal to self-custody</span>
@@ -2285,11 +2518,11 @@ Multisig: 2-of-3</pre>
                 </div>
                 <div class="rp-grid-2" style="margin-top:0.25rem;">
                     <div class="rp-field">
-                        <label>2FA Backup Codes Stored At</label>
-                        <input type="text" placeholder="Location of backup codes" oninput="rpUpdateProgress()" />
+                        <label>2FA Backup Codes Stored At <button class="help-btn" onclick="showHelp('backup-codes')" title="About backup codes">?</button></label>
+                        <input type="text" placeholder="Location of backup codes (e.g. home safe, sealed envelope)" oninput="rpUpdateProgress()" />
                     </div>
                     <div class="rp-field">
-                        <label>Authenticator Recovery Seed At</label>
+                        <label>Authenticator Recovery Seed At <button class="help-btn" onclick="showHelp('auth-recovery')" title="How to back up your authenticator">?</button></label>
                         <input type="text" placeholder="Location of authenticator backup" oninput="rpUpdateProgress()" />
                     </div>
                 </div>
@@ -2322,15 +2555,15 @@ Multisig: 2-of-3</pre>
                         </div>
                     </div>
                     <div class="rp-field">
-                        <label>Wallet Type</label>
+                        <label>Wallet Type <button class="help-btn" onclick="showHelp('wallet-type')" title="Single-sig vs Multisig">?</button></label>
                         <select onchange="rpToggleDesc(this,'rpsw-desc-${id}'); rpUpdateProgress()">
                             <option value="single">Single Signature</option>
                             <option value="multi">Multisig</option>
                         </select>
                     </div>
                     <div class="rp-field">
-                        <label>Script Type</label>
-                        <select onchange="rpUpdateProgress()">
+                        <label>Script Type <button class="help-btn" onclick="showHelp('script-type')" title="What is a script type?">?</button></label>
+                        <select id="rpsw-script-${id}" onchange="rpCheckPairById('sw','${id}'); rpUpdateProgress()">
                             <option value="">— select —</option>
                             <option>Native SegWit — p2wpkh (bc1q...)</option>
                             <option>Taproot — p2tr (bc1p...)</option>
@@ -2340,8 +2573,8 @@ Multisig: 2-of-3</pre>
                         </select>
                     </div>
                     <div class="rp-field">
-                        <label>Derivation Path</label>
-                        <select onchange="rpOther(this,'rpsw-path-${id}'); rpUpdateProgress()">
+                        <label>Derivation Path <button class="help-btn" onclick="showHelp('deriv-path')" title="What is a derivation path?">?</button></label>
+                        <select id="rpsw-pathsel-${id}" onchange="rpCheckPairById('sw','${id}'); rpOther(this,'rpsw-pathother-${id}'); rpUpdateProgress()">
                             <option value="">— select —</option>
                             <option>m/84'/0'/0' — Native SegWit (default)</option>
                             <option>m/86'/0'/0' — Taproot</option>
@@ -2351,14 +2584,15 @@ Multisig: 2-of-3</pre>
                             <option>m/44'/0'/0' — Legacy</option>
                             <option value="other">Custom</option>
                         </select>
-                        <div class="rp-conditional" id="rpsw-path-${id}">
+                        <div class="rp-conditional" id="rpsw-pathother-${id}">
                             <input type="text" placeholder="e.g. m/84'/0'/0'" oninput="rpUpdateProgress()" />
                         </div>
+                        <div class="pair-status" id="rpsw-pair-${id}"></div>
                     </div>
                 </div>
                 <label class="rp-check" style="margin:0.5rem 0;">
                     <input type="checkbox" onchange="rpToggleCheck(this,'rpsw-pass-${id}'); rpUpdateProgress()" />
-                    <span>Passphrase (25th word) used</span>
+                    <span>Passphrase (25th word) used <button class="help-btn" onclick="showHelp('passphrase')" title="What is a passphrase?">?</button></span>
                 </label>
                 <div class="rp-conditional" id="rpsw-pass-${id}">
                     <div class="rp-field"><label>Passphrase Stored At (location only)</label>
@@ -2366,11 +2600,11 @@ Multisig: 2-of-3</pre>
                     </div>
                 </div>
                 <div class="rp-field" style="margin-top:0.5rem;">
-                    <label>Seed Phrase Stored At (location only)</label>
-                    <input type="text" placeholder="Physical location of seed backup" oninput="rpUpdateProgress()" />
+                    <label>Seed Phrase Stored At <button class="help-btn" onclick="showHelp('seed-location')" title="Seed storage best practices">?</button></label>
+                    <input type="text" placeholder="Physical location of seed backup (e.g. home safe, metal plate)" oninput="rpUpdateProgress()" />
                 </div>
                 <div class="rp-conditional" id="rpsw-desc-${id}">
-                    <div class="rp-field"><label>Wallet Descriptor / Output Descriptor Stored At</label>
+                    <div class="rp-field"><label>Wallet Descriptor / Output Descriptor Stored At <button class="help-btn" onclick="showHelp('descriptor')" title="What is an output descriptor?">?</button></label>
                         <input type="text" placeholder="Required for multisig recovery — location of descriptor file" oninput="rpUpdateProgress()" />
                     </div>
                 </div>
@@ -2400,15 +2634,15 @@ Multisig: 2-of-3</pre>
                         </div>
                     </div>
                     <div class="rp-field">
-                        <label>Used As</label>
+                        <label>Used As <button class="help-btn" onclick="showHelp('wallet-type')" title="Single-sig vs Multisig">?</button></label>
                         <select onchange="rpToggleDesc(this,'rphw-desc-${id}'); rpUpdateProgress()">
                             <option value="single">Single Signature — standalone</option>
                             <option value="multi">Multisig cosigner</option>
                         </select>
                     </div>
                     <div class="rp-field">
-                        <label>Script Type</label>
-                        <select onchange="rpUpdateProgress()">
+                        <label>Script Type <button class="help-btn" onclick="showHelp('script-type')" title="What is a script type?">?</button></label>
+                        <select id="rphw-script-${id}" onchange="rpCheckPairById('hw','${id}'); rpUpdateProgress()">
                             <option value="">— select —</option>
                             <option>Native SegWit — p2wpkh (bc1q...)</option>
                             <option>Taproot — p2tr (bc1p...)</option>
@@ -2417,8 +2651,8 @@ Multisig: 2-of-3</pre>
                         </select>
                     </div>
                     <div class="rp-field">
-                        <label>Derivation Path</label>
-                        <select onchange="rpOther(this,'rphw-path-${id}'); rpUpdateProgress()">
+                        <label>Derivation Path <button class="help-btn" onclick="showHelp('deriv-path')" title="What is a derivation path?">?</button></label>
+                        <select id="rphw-pathsel-${id}" onchange="rpCheckPairById('hw','${id}'); rpOther(this,'rphw-pathother-${id}'); rpUpdateProgress()">
                             <option value="">— select —</option>
                             <option>m/84'/0'/0' — Native SegWit</option>
                             <option>m/86'/0'/0' — Taproot</option>
@@ -2427,34 +2661,35 @@ Multisig: 2-of-3</pre>
                             <option>m/44'/0'/0' — Legacy</option>
                             <option value="other">Custom</option>
                         </select>
-                        <div class="rp-conditional" id="rphw-path-${id}">
+                        <div class="rp-conditional" id="rphw-pathother-${id}">
                             <input type="text" placeholder="e.g. m/48'/0'/0'/2'" oninput="rpUpdateProgress()" />
                         </div>
+                        <div class="pair-status" id="rphw-pair-${id}"></div>
                     </div>
                 </div>
                 <div class="rp-grid-2" style="margin-top:0.5rem;">
                     <div>
                         <label class="rp-check">
                             <input type="checkbox" onchange="rpToggleCheck(this,'rphw-pass-${id}'); rpUpdateProgress()" />
-                            <span>Passphrase used</span>
+                            <span>Passphrase used <button class="help-btn" onclick="showHelp('passphrase')" title="What is a passphrase?">?</button></span>
                         </label>
                         <div class="rp-conditional" id="rphw-pass-${id}">
                             <div class="rp-field"><label>Passphrase Stored At</label>
-                                <input type="text" placeholder="Location only — never the passphrase" oninput="rpUpdateProgress()" />
+                                <input type="text" placeholder="Location only — never the passphrase itself" oninput="rpUpdateProgress()" />
                             </div>
                         </div>
                     </div>
                     <div class="rp-field">
-                        <label>Last Restore Test Date</label>
+                        <label>Last Restore Test Date <button class="help-btn" onclick="showHelp('restore-test')" title="How to test your backup">?</button></label>
                         <input type="date" oninput="rpUpdateProgress()" />
                     </div>
                 </div>
                 <div class="rp-field" style="margin-top:0.25rem;">
-                    <label>Seed Phrase Stored At (location only)</label>
-                    <input type="text" placeholder="Physical location of seed backup" oninput="rpUpdateProgress()" />
+                    <label>Seed Phrase Stored At <button class="help-btn" onclick="showHelp('seed-location')" title="Seed storage best practices">?</button></label>
+                    <input type="text" placeholder="Physical location of seed backup (e.g. fireproof safe, metal plate)" oninput="rpUpdateProgress()" />
                 </div>
                 <div class="rp-conditional" id="rphw-desc-${id}">
-                    <div class="rp-field"><label>Wallet Descriptor / Wallet File Stored At</label>
+                    <div class="rp-field"><label>Wallet Descriptor / Wallet File Stored At <button class="help-btn" onclick="showHelp('descriptor')" title="What is an output descriptor?">?</button></label>
                         <input type="text" placeholder="Required for multisig — location of descriptor file" oninput="rpUpdateProgress()" />
                     </div>
                 </div>
@@ -2498,6 +2733,41 @@ Multisig: 2-of-3</pre>
         function rpShowConditionalSelect(sel, targetId) {
             const el = document.getElementById(targetId);
             if (el) el.style.display = (sel.value && sel.value !== '') ? 'block' : 'none';
+            rpUpdateProgress();
+        }
+
+        function getPairResult(scriptVal, pathVal) {
+            if (!scriptVal || !pathVal || pathVal === 'other' || pathVal === 'custom') return null;
+            const s = scriptVal.toLowerCase();
+            const p = pathVal;
+            let scriptKey = null;
+            if (s.includes('p2wpkh') && !s.includes('p2sh')) scriptKey = 'p2wpkh';
+            else if (s.includes('p2tr') || s.includes('taproot') && !s.includes('multisig')) scriptKey = 'p2tr';
+            else if (s.includes('p2sh-p2wpkh') || s.includes('segwit wrapped') || s.includes('wrapped')) scriptKey = 'p2sh-p2wpkh';
+            else if (s.includes('p2wsh') || s.includes('multisig segwit') || s.includes('multisig taproot') || s.includes('multisig')) scriptKey = 'p2wsh';
+            else if (s.includes('p2pkh') || s.includes('legacy')) scriptKey = 'p2pkh';
+            if (!scriptKey) return null;
+            const expectedPrefix = { p2wpkh: "m/84'", p2tr: "m/86'", 'p2sh-p2wpkh': "m/49'", p2wsh: "m/48'", p2pkh: "m/44'" };
+            const correctPath   = { p2wpkh: "m/84'/0'/0'", p2tr: "m/86'/0'/0'", 'p2sh-p2wpkh': "m/49'/0'/0'", p2wsh: "m/48'/0'/0'/2' or /3'", p2pkh: "m/44'/0'/0'" };
+            const friendlyName  = { p2wpkh: 'Native SegWit (p2wpkh)', p2tr: 'Taproot (p2tr)', 'p2sh-p2wpkh': 'SegWit Wrapped (p2sh-p2wpkh)', p2wsh: 'Multisig (p2wsh)', p2pkh: 'Legacy (p2pkh)' };
+            const addrExample   = { p2wpkh: 'bc1q... addresses — used by Sparrow & Coldcard by default.', p2tr: 'bc1p... addresses — newest standard.', 'p2sh-p2wpkh': '3... addresses — older SegWit format.', p2wsh: 'multisig bc1q... addresses.', p2pkh: '1... addresses — highest fees.' };
+            if (p.startsWith(expectedPrefix[scriptKey])) {
+                return { cls: 'ok', msg: '✓ Correct pairing. Produces ' + addrExample[scriptKey] };
+            }
+            return {
+                cls: 'err',
+                msg: '⚠ Mismatch: ' + friendlyName[scriptKey] + ' requires ' + correctPath[scriptKey] + '. Wrong path = wrong addresses on restore. Click ? above for details.'
+            };
+        }
+
+        function rpCheckPairById(prefix, id) {
+            const scriptSel  = document.getElementById('rp' + prefix + '-script-' + id);
+            const pathSel    = document.getElementById('rp' + prefix + '-pathsel-' + id);
+            const statusDiv  = document.getElementById('rp' + prefix + '-pair-' + id);
+            if (!scriptSel || !pathSel || !statusDiv) return;
+            const result = getPairResult(scriptSel.value, pathSel.value);
+            statusDiv.className = 'pair-status';
+            if (result) { statusDiv.classList.add(result.cls); statusDiv.textContent = result.msg; }
             rpUpdateProgress();
         }
 
@@ -2639,4 +2909,12 @@ Multisig: 2-of-3</pre>
     <!-- AI Tutor -->
     <script src="/js/tutor-loader.js"></script>
 <script src="/js/membership-gate.js"></script>
+
+<!-- Help Modal -->
+<div class="help-overlay" id="helpOverlay" onclick="if(event.target===this)closeHelp()">
+    <div class="help-box" id="helpBox">
+        <button class="help-close" onclick="closeHelp()" aria-label="Close">×</button>
+        <div id="helpModalContent"></div>
+    </div>
+</div>
 </body></html>
