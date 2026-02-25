@@ -822,6 +822,327 @@
                 }
             ],
             reflection: 'You have a working Sparrow setup verified against the official download, connected to the network, with a backed-up seed phrase, and have completed your first send and receive on a test network. Switch to mainnet (File → Preferences → Server → Mainnet) when you\'re ready to use real Bitcoin.'
+        },
+
+        'verify-download': {
+            id: 'verify-download',
+            icon: '🔏',
+            title: 'Verify a Bitcoin Software Download',
+            subtitle: 'Confirm authenticity using GPG signatures and SHA256 hashes',
+            duration: '15 min',
+            difficulty: 'beginner',
+            network: 'mainnet',
+            tools: ['Terminal / Command Prompt', 'GPG'],
+            steps: [
+                {
+                    title: 'Download Sparrow Wallet + signature files',
+                    content: 'Every serious Bitcoin software release includes a SHA256 checksum and a GPG signature. You should verify both before running anything.',
+                    instructions: [
+                        'Go to sparrowwallet.com/download',
+                        'Download the installer for your OS',
+                        'Also download the SHA256 manifest file (e.g. sparrow-2.x.x-manifest.txt)',
+                        'Download the manifest signature file (.asc extension)'
+                    ],
+                    links: [
+                        { label: 'Sparrow Wallet Downloads', url: 'https://sparrowwallet.com/download/' }
+                    ],
+                    verify: 'I have three files: the installer, manifest.txt, and manifest.txt.asc'
+                },
+                {
+                    title: 'Verify the SHA256 checksum',
+                    content: 'The checksum proves the file was not corrupted or tampered with during download.',
+                    instructions: [
+                        'Open Terminal (macOS/Linux) or PowerShell (Windows)',
+                        'macOS/Linux: <code>sha256sum Sparrow-2.x.x.dmg</code>',
+                        'Windows: <code>Get-FileHash Sparrow-2.x.x.exe -Algorithm SHA256</code>',
+                        'Compare the output to the matching line in manifest.txt — they must match exactly'
+                    ],
+                    warn: 'If the hashes don\'t match, the file was corrupted or tampered with. Delete it and download again.',
+                    verify: 'The SHA256 hash in my terminal matches the manifest exactly'
+                },
+                {
+                    title: 'Import the developer\'s GPG key',
+                    content: 'GPG signatures prove the manifest was signed by Craig Raw (Sparrow\'s developer) — not just anyone who got hold of the file.',
+                    instructions: [
+                        'Install GPG if needed: gpg4win.org (Windows) or brew install gnupg (macOS)',
+                        'Import Craig\'s key: <code>gpg --keyserver keyserver.ubuntu.com --recv-keys D4D0D3202FC06849A257B38DE94618334C674B40</code>',
+                        'You should see: "key D4D...imported"'
+                    ],
+                    links: [
+                        { label: 'GPG4Win (Windows)', url: 'https://www.gpg4win.org/' }
+                    ],
+                    verify: 'gpg --list-keys shows Craig Raw\'s key'
+                },
+                {
+                    title: 'Verify the manifest signature',
+                    content: 'Now verify the manifest was actually signed by the real developer.',
+                    instructions: [
+                        'Run: <code>gpg --verify sparrow-2.x.x-manifest.txt.asc sparrow-2.x.x-manifest.txt</code>',
+                        'Look for: "Good signature from Craig Raw"',
+                        'Ignore "WARNING: This key is not certified" — this is normal unless you have personally signed their key'
+                    ],
+                    warn: 'If you see "BAD signature" — do not install the software. Download fresh copies.',
+                    verify: 'I see "Good signature from Craig Raw" in the GPG output'
+                }
+            ],
+            reflection: 'You now know how to verify any signed Bitcoin software release. This skill protects you from supply chain attacks where malware is injected into software distributions. Always verify before running Bitcoin software with real funds.'
+        },
+
+        'cold-storage-setup': {
+            id: 'cold-storage-setup',
+            icon: '🧊',
+            title: 'Set Up Cold Storage with Sparrow',
+            subtitle: 'Create an air-gapped signing wallet and a watch-only companion',
+            duration: '30 min',
+            difficulty: 'intermediate',
+            network: 'signet',
+            tools: ['Sparrow Wallet', 'Second computer or phone (optional)'],
+            steps: [
+                {
+                    title: 'Understand the cold storage model',
+                    content: 'Cold storage separates your private keys from any internet-connected device. The "cold" wallet signs transactions offline. The "watch-only" wallet sees your balance and builds transactions — but never touches keys.',
+                    info: 'You need two Sparrow installs: one connected (watch-only), one air-gapped (signing). For this lab, we simulate both on the same machine.',
+                    verify: 'I understand: watch-only wallet cannot spend, signing wallet never goes online'
+                },
+                {
+                    title: 'Create the signing wallet (simulate air-gap)',
+                    content: 'In real cold storage, this step happens on an offline computer that never connects to the internet.',
+                    instructions: [
+                        'In Sparrow, go to File → New Wallet',
+                        'Name it "Cold Storage - Signing"',
+                        'Choose "New or Imported Software Wallet"',
+                        'Generate a new 12-word or 24-word seed phrase',
+                        'Write it down on paper — do NOT save it digitally'
+                    ],
+                    warn: 'In a real setup, you would disconnect internet before this step and never reconnect that machine.',
+                    verify: 'I have a new wallet with a backed-up seed phrase'
+                },
+                {
+                    title: 'Export the xpub (extended public key)',
+                    content: 'The xpub lets you create a watch-only wallet without exposing any private keys.',
+                    instructions: [
+                        'In your signing wallet, go to Settings',
+                        'Find the "Master Public Key (xpub/zpub)" section',
+                        'Copy the zpub (or xpub) — this is NOT sensitive, it only reveals addresses',
+                        'Note the derivation path shown (e.g. m/84\'/0\'/0\')'
+                    ],
+                    info: 'The xpub lets anyone derive all your receiving addresses — so treat it as semi-private. It cannot spend funds.',
+                    verify: 'I have copied my zpub and noted the derivation path'
+                },
+                {
+                    title: 'Create the watch-only wallet',
+                    content: 'This wallet lives on your internet-connected machine and monitors the blockchain.',
+                    instructions: [
+                        'Go to File → New Wallet',
+                        'Name it "Cold Storage - Watch Only"',
+                        'Choose "Watch Only Wallet"',
+                        'Paste your zpub from the previous step',
+                        'Match the script type to your derivation path (m/84\' = Native SegWit / bc1q)'
+                    ],
+                    verify: 'Watch-only wallet shows my addresses and is connected to signet'
+                },
+                {
+                    title: 'Simulate a PSBT signing round trip',
+                    content: 'To spend from cold storage, you build a PSBT on the watch-only wallet and sign it on the cold wallet.',
+                    instructions: [
+                        'In watch-only wallet: go to Send, enter a signet address, set amount',
+                        'Click Create Transaction — this creates a PSBT (unsigned)',
+                        'Save the PSBT file (File → Save Transaction)',
+                        'Open the signing wallet, go to File → Open Transaction',
+                        'Load the PSBT, review the outputs, click Sign',
+                        'Save the signed PSBT, bring it back to the watch-only wallet',
+                        'In watch-only wallet: load signed PSBT → Broadcast'
+                    ],
+                    tip: 'In real cold storage, you transfer the PSBT via SD card or QR code — never via internet.',
+                    verify: 'I successfully completed a PSBT round trip and broadcast the transaction on signet'
+                }
+            ],
+            reflection: 'You have simulated professional cold storage — the same model used to secure millions in Bitcoin. The key insight: private keys never touch the internet. Every spend requires a deliberate, physical signing step.'
+        },
+
+        'coin-control': {
+            id: 'coin-control',
+            icon: '🎛️',
+            title: 'Master Coin Control for Privacy',
+            subtitle: 'Select which UTXOs to spend and avoid leaking your transaction history',
+            duration: '20 min',
+            difficulty: 'intermediate',
+            network: 'signet',
+            tools: ['Sparrow Wallet'],
+            steps: [
+                {
+                    title: 'Why coin control matters for privacy',
+                    content: 'Every Bitcoin transaction reveals which UTXOs you combined. If you mix a "known" UTXO (e.g. from a KYC exchange) with an anonymous one, you reveal they belong to the same wallet.',
+                    info: 'Chain analysis firms like Chainalysis build graphs of UTXO ownership. Coin control lets you avoid accidentally merging unrelated transaction histories.',
+                    verify: 'I understand why combining UTXOs leaks privacy'
+                },
+                {
+                    title: 'Fund your signet wallet with multiple UTXOs',
+                    content: 'Get a few transactions so you have multiple UTXOs to work with.',
+                    instructions: [
+                        'Generate 3 different receiving addresses in Sparrow (each click on "Get Next Address")',
+                        'Send signet coins to each address from the faucet',
+                        'Wait for confirmations — you now have 3 separate UTXOs'
+                    ],
+                    links: [
+                        { label: 'Signet Faucet (bitcoinfaucet.uo1.net)', url: 'https://bitcoinfaucet.uo1.net/' }
+                    ],
+                    verify: 'I have at least 3 UTXOs shown in the UTXOs tab'
+                },
+                {
+                    title: 'Enable coin control and select specific UTXOs',
+                    content: 'Instead of letting Sparrow automatically select inputs, you choose exactly which coins to spend.',
+                    instructions: [
+                        'Go to the Send tab',
+                        'Enter a destination address and amount',
+                        'Click "Coin Control" (top of Send tab, or in the UTXO selector)',
+                        'Manually check only ONE specific UTXO to use as input',
+                        'Proceed to build the transaction'
+                    ],
+                    tip: 'The "privacy" indicator in Sparrow will show you a score based on your UTXO selection.',
+                    verify: 'Transaction preview shows only the UTXOs I selected as inputs'
+                },
+                {
+                    title: 'Inspect the transaction graph on mempool.space',
+                    content: 'After broadcasting, use the block explorer to see exactly what information is visible to observers.',
+                    instructions: [
+                        'Broadcast the transaction on signet',
+                        'Copy the TXID',
+                        'Open mempool.space/signet and paste the TXID',
+                        'Click "Show inputs and outputs graph"',
+                        'Note: observers can see all your input UTXOs and their prior history'
+                    ],
+                    links: [
+                        { label: 'Mempool.space Signet Explorer', url: 'https://mempool.space/signet' }
+                    ],
+                    verify: 'I can trace where my input UTXOs came from in the explorer'
+                }
+            ],
+            reflection: 'Coin control is one of the most underused privacy tools available to Bitcoin users. In high-stakes situations (protecting business revenue, inheritance planning, avoiding surveillance), knowing which coins to combine — and which to keep separate — is essential.'
+        },
+
+        'lightning-routing': {
+            id: 'lightning-routing',
+            icon: '🔀',
+            title: 'Understand Lightning Routing',
+            subtitle: 'See how payments hop across nodes on the Lightning Network',
+            duration: '15 min',
+            difficulty: 'intermediate',
+            network: 'mainnet',
+            tools: ['amboss.space (browser)', 'mempool.space/lightning (browser)'],
+            steps: [
+                {
+                    title: 'Open the Lightning Network graph',
+                    content: 'The Lightning Network is a graph of payment channels. Payments route through multiple hops between nodes.',
+                    instructions: [
+                        'Open amboss.space in your browser',
+                        'You\'ll see a map of Lightning nodes and channels',
+                        'Look for well-connected hub nodes — these route most traffic'
+                    ],
+                    links: [
+                        { label: 'Amboss Lightning Explorer', url: 'https://amboss.space' },
+                        { label: 'Mempool Lightning Graph', url: 'https://mempool.space/lightning' }
+                    ],
+                    verify: 'I can see the Lightning Network graph with nodes and channels'
+                },
+                {
+                    title: 'Find a specific node and its channels',
+                    content: 'Each node has a public key, alias, and capacity. Large routing nodes have many channels and high liquidity.',
+                    instructions: [
+                        'Search for "ACINQ" on amboss.space — this is the company behind Phoenix Wallet',
+                        'Click the node to see its channels, capacity, and fees',
+                        'Note: capacity is public, but payment direction is private'
+                    ],
+                    info: 'Lightning privacy: the routing path is onion-encrypted. Intermediate nodes only know the previous and next hop, not the full payment path.',
+                    verify: 'I found a major routing node and can see its channel count and total capacity'
+                },
+                {
+                    title: 'Simulate a route manually',
+                    content: 'Try to trace a payment path from node A to node B through intermediaries.',
+                    instructions: [
+                        'Pick two nodes that are not directly connected',
+                        'Try to find a path between them (by following channel connections)',
+                        'Count the hops — shorter = lower fees and faster',
+                        'Note: the protocol finds routes automatically using Dijkstra-style algorithms'
+                    ],
+                    tip: 'Most consumer payments are 3–5 hops. Phoenix and Mutiny handle routing automatically.',
+                    verify: 'I traced a multi-hop path between two nodes on the graph'
+                },
+                {
+                    title: 'Check channel fees and liquidity',
+                    content: 'Each channel has a fee policy: base fee (sat) + proportional fee (ppm = parts per million). Liquidity direction determines which way payments can flow.',
+                    instructions: [
+                        'On amboss.space, open a channel between two nodes',
+                        'Check both nodes\' fee policies',
+                        'Note the capacity vs. the estimated local/remote balance',
+                        'Inbound liquidity = others can pay you through this channel'
+                    ],
+                    verify: 'I can explain the difference between inbound and outbound liquidity for a channel'
+                }
+            ],
+            reflection: 'Lightning\'s routing is elegant: trust-minimized, onion-encrypted, and economically incentivized. Node operators earn routing fees for providing liquidity. Understanding this helps you choose better Lightning wallets and make informed decisions about opening channels.'
+        },
+
+        'inheritance-drill': {
+            id: 'inheritance-drill',
+            icon: '📜',
+            title: 'Bitcoin Inheritance Drill',
+            subtitle: 'Test whether someone else could recover your bitcoin using only your documentation',
+            duration: '25 min',
+            difficulty: 'advanced',
+            network: 'signet',
+            tools: ['Sparrow Wallet', 'Paper and pen'],
+            steps: [
+                {
+                    title: 'Create a test inheritance package',
+                    content: 'Imagine you can no longer access your own wallet. Would someone else be able to recover your bitcoin from your documentation alone?',
+                    instructions: [
+                        'Set up a small signet wallet in Sparrow (12-word seed)',
+                        'Write down: seed phrase, script type (e.g. Native SegWit), derivation path (e.g. m/84\'/0\'/0\')',
+                        'Write down: the first receiving address (to verify recovery is correct)',
+                        'Optional: add a BIP39 passphrase — write it separately from the seed'
+                    ],
+                    info: 'Real inheritance packages should be split across trusted individuals: seed phrase with one person, passphrase with another, recovery instructions with a third.',
+                    verify: 'I have a paper document with seed phrase, script type, derivation path, and verification address'
+                },
+                {
+                    title: 'Close the wallet completely',
+                    content: 'To simulate inheritance recovery, remove access to the original wallet.',
+                    instructions: [
+                        'In Sparrow, go to File → Delete Wallet',
+                        'Confirm deletion',
+                        'The wallet file is now gone — you can only recover from paper'
+                    ],
+                    warn: 'Only do this with your signet test wallet — never delete a mainnet wallet without a tested backup.',
+                    verify: 'The test wallet no longer appears in Sparrow'
+                },
+                {
+                    title: 'Recover the wallet from paper only',
+                    content: 'Now recover the wallet using only the written documentation — exactly as an heir would.',
+                    instructions: [
+                        'In Sparrow: File → New Wallet → New or Imported Software Wallet',
+                        'Choose "Mnemonic Words (BIP39)"',
+                        'Enter the 12 words from your paper',
+                        'Enter the passphrase if you used one',
+                        'Set the script type to match your notes',
+                        'Verify the derivation path matches'
+                    ],
+                    tip: 'If you made an error in your documentation, now is when you\'d find out — on signet, not with real funds.',
+                    verify: 'The recovered wallet shows the same first address I wrote down'
+                },
+                {
+                    title: 'Send funds back to yourself',
+                    content: 'Confirm the recovery is complete by spending from the recovered wallet.',
+                    instructions: [
+                        'In the recovered wallet, go to the Receive tab',
+                        'Confirm the address matches your notes',
+                        'Send a small amount to a new address in the same wallet',
+                        'This proves you control the keys'
+                    ],
+                    verify: 'I successfully sent from the recovered wallet — inheritance drill complete'
+                }
+            ],
+            reflection: 'Most Bitcoin inheritance failures happen not because the backup was lost, but because the documentation was incomplete or ambiguous. The script type and derivation path are as critical as the seed phrase. If your documentation didn\'t include them, your heir would recover the right keys but look at the wrong addresses.'
         }
 
     };

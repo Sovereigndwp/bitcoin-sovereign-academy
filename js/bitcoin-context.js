@@ -18,6 +18,20 @@
 
     const API_BASE = 'https://mempool.space/api';
 
+    // ── Safe string helpers ───────────────────────────────────
+
+    // Sanitize any value before injecting into innerHTML
+    function safeNum(val) {
+        const n = Number(val);
+        if (!isFinite(n)) return '—';
+        return n.toLocaleString();
+    }
+
+    function safeInt(val) {
+        const n = parseInt(val, 10);
+        return isFinite(n) ? n : 0;
+    }
+
     // ── Fetch helpers ─────────────────────────────────────────
 
     async function fetchJSON(url) {
@@ -33,13 +47,14 @@
                 fetchJSON(API_BASE + '/mempool'),
                 fetchJSON(API_BASE + '/blocks/tip/height'),
             ]);
+            // Coerce all API values to safe numbers — prevents any string injection
             return {
-                blockHeight: blockTip,
-                fastFee: fees.fastestFee,
-                hourFee: fees.hourFee,
-                econFee: fees.economyFee,
-                mempoolCount: mempoolInfo.count,
-                mempoolVsize: Math.round(mempoolInfo.vsize / 1e6 * 10) / 10, // MB
+                blockHeight: safeInt(blockTip),
+                fastFee: safeInt(fees.fastestFee),
+                hourFee: safeInt(fees.hourFee),
+                econFee: safeInt(fees.economyFee),
+                mempoolCount: safeInt(mempoolInfo.count),
+                mempoolVsize: Math.round(safeInt(mempoolInfo.vsize) / 1e6 * 10) / 10,
                 error: null,
             };
         } catch (e) {
@@ -103,18 +118,18 @@
         container.innerHTML = `
             <span class="ctx-item" title="Current Bitcoin block height">
                 <span class="ctx-icon">⛏</span>
-                Block <strong>#${blockHeight.toLocaleString()}</strong>
+                Block <strong>#${safeNum(blockHeight)}</strong>
             </span>
             <span class="ctx-sep">·</span>
             <span class="ctx-item ${fl.cls}" title="Recommended fee to confirm within ~1 hour">
                 <span class="ctx-icon">⚡</span>
-                Fees: <strong>${hourFee} sat/vB</strong>
+                Fees: <strong>${safeNum(hourFee)} sat/vB</strong>
                 <span class="ctx-sub">${fl.text}</span>
             </span>
             <span class="ctx-sep">·</span>
             <span class="ctx-item" title="Unconfirmed transactions in mempool">
                 <span class="ctx-icon">⏳</span>
-                Mempool: <strong>${mempoolCount.toLocaleString()} txs</strong>
+                Mempool: <strong>${safeNum(mempoolCount)} txs</strong>
                 <span class="ctx-sub">${mempoolVsize} MB</span>
             </span>
             <span class="ctx-sep">·</span>
