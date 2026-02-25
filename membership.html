@@ -445,14 +445,17 @@
                 </button>
             </div>
 
-            <!-- Apprentice (Sats Deposit) -->
+            <!-- Apprentice (Sats Deposit or Fiat) -->
             <div class="pricing-card featured">
                 <span class="badge">Earn While You Learn</span>
                 <div class="tier-icon">⚡</div>
                 <h3>Apprentice</h3>
                 <p class="tagline">Skin in the game</p>
                 <div class="price">50,000 sats</div>
-                <p class="price-detail">~$25 deposit</p>
+                <p class="price-detail" style="display:flex;align-items:center;gap:0.5rem;">
+                    ~$25 deposit
+                    <span style="background:rgba(247,147,26,0.15);border:1px solid rgba(247,147,26,0.4);border-radius:6px;padding:2px 8px;font-size:0.8rem;color:var(--accent);">or $25 USD card</span>
+                </p>
                 <div class="highlight">
                     ✨ Complete modules → Earn up to <strong>40,000 sats</strong> back (80%)
                 </div>
@@ -517,28 +520,61 @@
     <div class="modal-overlay" id="payment-modal">
         <div class="modal">
             <button class="modal-close" onclick="closeModal()">×</button>
-            <h2>⚡ Apprentice Deposit</h2>
-            <p class="subtitle">Scan with any Lightning wallet to deposit 50,000 sats</p>
+            <h2>Apprentice Access</h2>
+            <p class="subtitle">Choose how you'd like to pay</p>
 
-            <div class="qr-container">
-                <img id="qr-code" src="" alt="Lightning Invoice QR Code">
+            <!-- Payment method tabs -->
+            <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;background:var(--bg);border-radius:10px;padding:4px;">
+                <button id="tab-lightning" onclick="switchPaymentTab('lightning')"
+                    style="flex:1;padding:0.6rem;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:0.9rem;background:var(--accent);color:#000;transition:all 0.2s;">
+                    ⚡ Lightning
+                </button>
+                <button id="tab-card" onclick="switchPaymentTab('card')"
+                    style="flex:1;padding:0.6rem;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:0.9rem;background:transparent;color:var(--muted);transition:all 0.2s;">
+                    💳 Card ($25)
+                </button>
             </div>
 
-            <div class="invoice-box" id="invoice-text">
-                Generating invoice...
+            <!-- Lightning tab -->
+            <div id="pane-lightning">
+                <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1rem;">Scan with any Lightning wallet to deposit 50,000 sats</p>
+
+                <div class="qr-container">
+                    <img id="qr-code" src="" alt="Lightning Invoice QR Code">
+                </div>
+
+                <div class="invoice-box" id="invoice-text">
+                    Generating invoice...
+                </div>
+
+                <button class="copy-btn" onclick="copyInvoice()">
+                    📋 Copy Invoice
+                </button>
+
+                <div class="payment-status waiting" id="payment-status">
+                    <span class="timer" id="timer">Waiting for payment...</span>
+                </div>
+
+                <div class="confirm-manual">
+                    <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 0.5rem;">Already paid?</p>
+                    <button onclick="confirmPaymentManually()">I've Completed Payment</button>
+                </div>
             </div>
 
-            <button class="copy-btn" onclick="copyInvoice()">
-                📋 Copy Invoice
-            </button>
-
-            <div class="payment-status waiting" id="payment-status">
-                <span class="timer" id="timer">Waiting for payment...</span>
-            </div>
-
-            <div class="confirm-manual">
-                <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 0.5rem;">Already paid?</p>
-                <button onclick="confirmPaymentManually()">I've Completed Payment</button>
+            <!-- Card tab -->
+            <div id="pane-card" style="display:none;">
+                <div style="text-align:center;padding:1.5rem 0;">
+                    <div style="font-size:3rem;margin-bottom:1rem;">💳</div>
+                    <div style="font-size:2.5rem;font-weight:800;color:var(--accent);margin-bottom:0.25rem;">$25 USD</div>
+                    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem;">Fixed price — one-time payment via Stripe.<br>No subscription. Cancel anytime.</p>
+                    <div style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:8px;padding:1rem;margin-bottom:1.5rem;font-size:0.85rem;color:#4CAF50;">
+                        ✨ Same benefits as the Lightning path — complete modules to earn sats back
+                    </div>
+                    <button class="btn-primary" onclick="payByCard()" style="margin-bottom:0.75rem;">
+                        Pay $25 with Card
+                    </button>
+                    <p style="color:var(--muted);font-size:0.8rem;">Secured by Stripe. Your card details never touch our servers.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -691,6 +727,22 @@
                 closeModal();
                 updateMembershipUI();
             }, 3000);
+        }
+
+        function switchPaymentTab(tab) {
+            const isLightning = tab === 'lightning';
+            document.getElementById('pane-lightning').style.display = isLightning ? '' : 'none';
+            document.getElementById('pane-card').style.display = isLightning ? 'none' : '';
+            document.getElementById('tab-lightning').style.background = isLightning ? 'var(--accent)' : 'transparent';
+            document.getElementById('tab-lightning').style.color = isLightning ? '#000' : 'var(--muted)';
+            document.getElementById('tab-card').style.background = isLightning ? 'transparent' : 'var(--accent)';
+            document.getElementById('tab-card').style.color = isLightning ? 'var(--muted)' : '#000';
+        }
+
+        function payByCard() {
+            if (window.stripeCheckout) {
+                window.stripeCheckout.purchaseApprentice();
+            }
         }
 
         function openSovereignCheckout() {

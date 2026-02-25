@@ -15,19 +15,22 @@
     'use strict';
 
     const CONFIG = {
-        // Replace with your Stripe Payment Link
+        // Sovereign tier — $399 one-time
         // Create at: https://dashboard.stripe.com/payment-links
         stripePaymentLink: 'https://buy.stripe.com/9B63cu7m47Wd9rVdc21oI00',
-        
-        // Price in cents for verification
         sovereignPriceUSD: 39900, // $399.00
-        
+
+        // Apprentice tier — $25 fixed fiat alternative to 50,000 sats
+        // Create a separate $25 Payment Link at: https://dashboard.stripe.com/payment-links
+        stripeApprenticePaymentLink: 'https://buy.stripe.com/XXXXXXXX', // TODO: set your $25 Payment Link
+        apprenticePriceUSD: 2500, // $25.00
+
         // Success redirect URL (where Stripe sends after payment)
         successUrl: '/membership-success.html',
-        
+
         // Cancel redirect URL
         cancelUrl: '/membership.html',
-        
+
         // LocalStorage keys
         storageKeys: {
             membership: 'bsa-membership',
@@ -45,6 +48,28 @@
     class StripeCheckout {
         constructor() {
             this.checkForSuccessfulPayment();
+        }
+
+        /**
+         * Redirect to Stripe Checkout for Apprentice tier ($25 fiat)
+         */
+        purchaseApprentice() {
+            if (CONFIG.stripeApprenticePaymentLink.includes('XXXXXXXX')) {
+                alert('Apprentice card payment not configured yet.\n\n1. Create a $25 Payment Link at dashboard.stripe.com/payment-links\n2. Update stripeApprenticePaymentLink in js/stripe-checkout.js');
+                return;
+            }
+
+            const clientReferenceId = 'bsa_apprentice_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+            localStorage.setItem(CONFIG.storageKeys.stripeSession, JSON.stringify({
+                referenceId: clientReferenceId,
+                tier: 'apprentice',
+                initiated: Date.now()
+            }));
+
+            const url = new URL(CONFIG.stripeApprenticePaymentLink);
+            url.searchParams.set('client_reference_id', clientReferenceId);
+            window.location.href = url.toString();
         }
 
         /**
@@ -81,19 +106,23 @@
         }
 
         /**
-         * Handle successful payment return
+         * Handle successful payment return from Stripe
          */
         handleSuccessfulPayment() {
             const storedSession = localStorage.getItem(CONFIG.storageKeys.stripeSession);
-            
+
             if (storedSession) {
                 const session = JSON.parse(storedSession);
-                
+
                 // Verify session is recent (within 1 hour)
                 if (Date.now() - session.initiated < 3600000) {
-                    this.activateSovereignMembership(session.referenceId);
+                    if (session.tier === 'apprentice') {
+                        this.activateApprenticeMembership(session.referenceId);
+                    } else {
+                        this.activateSovereignMembership(session.referenceId);
+                    }
                 }
-                
+
                 // Clean up
                 localStorage.removeItem(CONFIG.storageKeys.stripeSession);
             }
@@ -101,6 +130,29 @@
             // Clean URL
             const cleanUrl = window.location.pathname;
             window.history.replaceState({}, document.title, cleanUrl);
+        }
+
+        /**
+         * Activate Apprentice membership (paid via Stripe fiat)
+         */
+        activateApprenticeMembership(referenceId = null) {
+            const membership = {
+                tier: 'apprentice',
+                activated: Date.now(),
+                method: 'stripe',
+                referenceId: referenceId,
+                verified: false
+            };
+
+            localStorage.setItem(CONFIG.storageKeys.membership, JSON.stringify(membership));
+
+            if (window.bsaAnalytics) {
+                window.bsaAnalytics.trackStripeSuccess(referenceId);
+                window.bsaAnalytics.trackMembershipSet('apprentice', 'stripe');
+            }
+
+            window.dispatchEvent(new CustomEvent('membershipChanged', { detail: membership }));
+            return membership;
         }
 
         /**

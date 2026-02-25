@@ -47,16 +47,13 @@
         }
 
         /**
-         * Initialize the service (lazy load the library)
+         * Initialize the service
          */
         async init() {
             if (this.initialized) return;
-
-            // Load Alby lightning-tools from CDN
-            if (!window.lightningTools) {
-                await this.loadScript('https://unpkg.com/@getalby/lightning-tools@5/dist/index.browser.js');
-            }
-
+            
+            // No external libraries needed - using our backend API
+            console.log('[Lightning] Payment service initialized');
             this.initialized = true;
         }
 
@@ -120,32 +117,42 @@
          * Create invoice for Apprentice deposit
          */
         async createApprenticeInvoice() {
-            await this.init();
-
             try {
-                // Create LightningAddress instance
-                const LightningAddress = window.lightningTools?.LightningAddress || window.LightningAddress;
-                
-                if (!LightningAddress) {
-                    throw new Error('Lightning tools not loaded');
-                }
+                console.log('[Lightning] Creating invoice via Alby Hub API...');
 
-                this.ln = new LightningAddress(CONFIG.lightningAddress);
-                await this.ln.fetch();
-
-                // Request invoice
-                const invoice = await this.ln.requestInvoice({
-                    satoshi: CONFIG.apprenticeDeposit,
-                    comment: `BSA Apprentice Deposit - ${Date.now()}`
+                // Call our backend API to create invoice
+                const response = await fetch('/api/lightning/create-invoice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        amount: CONFIG.apprenticeDeposit,
+                        description: `BSA Apprentice Deposit - ${Date.now()}`,
+                        expirySeconds: CONFIG.invoiceExpiry
+                    })
                 });
 
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to create invoice');
+                }
+
+                const invoiceData = await response.json();
+
                 this.currentInvoice = {
-                    paymentRequest: invoice.paymentRequest,
-                    paymentHash: invoice.paymentHash,
-                    satoshi: CONFIG.apprenticeDeposit,
+                    paymentRequest: invoiceData.paymentRequest,
+                    paymentHash: invoiceData.paymentHash,
+                    satoshi: invoiceData.amount,
                     created: Date.now(),
-                    expires: Date.now() + (CONFIG.invoiceExpiry * 1000)
+                    expires: new Date(invoiceData.expiresAt).getTime(),
+                    qrCode: invoiceData.qrCode
                 };
+
+                console.log('[Lightning] Invoice created successfully:', {
+                    paymentHash: this.currentInvoice.paymentHash,
+                    amount: this.currentInvoice.satoshi
+                });
 
                 return this.currentInvoice;
 
@@ -349,11 +356,9 @@
         }
 
         /**
-         * Generate QR code data URL for invoice
+         * Generate QR code URL for invoice
          */
         async generateQRCode(paymentRequest) {
-            // Use a simple QR library or canvas
-            // For now, return a URL that can be used with QR services
             return `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(paymentRequest)}`;
         }
     }
