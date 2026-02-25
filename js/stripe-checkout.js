@@ -22,7 +22,7 @@
 
         // Apprentice tier — $25 fixed fiat alternative to 50,000 sats
         // Create a separate $25 Payment Link at: https://dashboard.stripe.com/payment-links
-        stripeApprenticePaymentLink: 'https://buy.stripe.com/XXXXXXXX', // TODO: set your $25 Payment Link
+        stripeApprenticePaymentLink: 'https://buy.stripe.com/test_eVqbJ09uh3Dk0vC1aAcEw00',
         apprenticePriceUSD: 2500, // $25.00
 
         // Success redirect URL (where Stripe sends after payment)
