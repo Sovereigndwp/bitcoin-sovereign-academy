@@ -13,6 +13,10 @@
         storageKey: 'bsa-analytics-events',
         sessionKey: 'bsa-session',
         maxStoredEvents: 500,
+        // Server-side tracking endpoint
+        trackEndpoint: '/api/track',
+        // Flush interval (ms) for batching server-side events
+        flushIntervalMs: 10000,
         // Enable debug logging
         debug: false
     };
@@ -21,7 +25,9 @@
         constructor() {
             this.sessionId = this.getOrCreateSession();
             this.queue = [];
+            this.serverQueue = [];
             this.initialized = false;
+            this._flushTimer = null;
         }
 
         /**
@@ -34,6 +40,14 @@
             this.track('page_view', {
                 path: window.location.pathname,
                 referrer: document.referrer || 'direct'
+            });
+
+            // Start periodic server flush
+            this._flushTimer = setInterval(() => this.flushToServer(), CONFIG.flushIntervalMs);
+
+            // Flush on page unload
+            window.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'hidden') this.flushToServer();
             });
 
             this.initialized = true;
@@ -63,11 +77,21 @@
                 timestamp: Date.now(),
                 sessionId: this.sessionId,
                 path: window.location.pathname,
+                referrer: document.referrer || '',
+                props: properties,
                 ...properties
             };
 
-            // Store locally
+            // Store locally (fallback)
             this.storeEvent(event);
+
+            // Queue for server-side persistence
+            this.serverQueue.push(event);
+
+            // Flush immediately for revenue/conversion events
+            if (['stripe_success', 'lightning_success', 'tip_success', 'email_capture'].includes(eventName)) {
+                this.flushToServer();
+            }
 
             // Dispatch custom event for real-time listeners
             window.dispatchEvent(new CustomEvent('bsa:analytics', { detail: event }));
@@ -182,6 +206,38 @@
             ]);
 
             return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        }
+
+        /**
+         * Flush queued events to server
+         */
+        flushToServer() {
+            if (this.serverQueue.length === 0) return;
+
+            const batch = this.serverQueue.splice(0, 25);
+
+            try {
+                const payload = JSON.stringify({ events: batch });
+                // Use sendBeacon for reliability on page unload, fetch otherwise
+                if (document.visibilityState === 'hidden' && navigator.sendBeacon) {
+                    navigator.sendBeacon(CONFIG.trackEndpoint, new Blob([payload], { type: 'application/json' }));
+                } else {
+                    fetch(CONFIG.trackEndpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payload,
+                        keepalive: true
+                    }).catch(() => {
+                        // Re-queue on failure
+                        this.serverQueue.unshift(...batch);
+                    });
+                }
+                this.log('Flushed', batch.length, 'events to server');
+            } catch (e) {
+                // Re-queue on error
+                this.serverQueue.unshift(...batch);
+                this.log('Flush failed:', e);
+            }
         }
 
         /**

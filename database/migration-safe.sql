@@ -385,12 +385,54 @@ COMMENT ON TABLE promo_codes IS 'Promotional discount codes';
 COMMENT ON TABLE promo_code_usage IS 'Promo code redemption history';
 
 -- ============================================
+-- 18) ANALYTICS EVENTS TABLE (anonymous, no user FK)
+-- ============================================
+-- Unlike usage_events (which requires a user_id), this table
+-- captures anonymous frontend events for funnel analytics.
+
+CREATE TABLE IF NOT EXISTS analytics_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  session_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  page_path TEXT,
+  referrer TEXT,
+  props JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_analytics_events_type ON analytics_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_session ON analytics_events(session_id);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_created ON analytics_events(created_at);
+
+COMMENT ON TABLE analytics_events IS 'Anonymous frontend analytics events (page views, conversions, etc.)';
+
+-- ============================================
+-- 19) EMAIL SUBSCRIBERS TABLE
+-- ============================================
+-- Persists email captures server-side so they survive browser clears.
+
+CREATE TABLE IF NOT EXISTS email_subscribers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT UNIQUE NOT NULL,
+  source TEXT,
+  page TEXT,
+  subscribed_at TIMESTAMPTZ DEFAULT NOW(),
+  unsubscribed_at TIMESTAMPTZ,
+  status TEXT DEFAULT 'active'
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_subs_status ON email_subscribers(status);
+CREATE INDEX IF NOT EXISTS idx_email_subs_email ON email_subscribers(email);
+
+COMMENT ON TABLE email_subscribers IS 'Newsletter email captures from frontend forms';
+
+-- ============================================
 -- DONE! Verify with:
 -- SELECT table_name FROM information_schema.tables
 -- WHERE table_schema = 'public' ORDER BY table_name;
 -- ============================================
--- Expected tables (10):
---   devices, entitlements, promo_code_usage, promo_codes,
---   purchases, sessions, subscriptions, usage_events,
---   users, webhook_events
+-- Expected tables (12):
+--   analytics_events, devices, email_subscribers, entitlements,
+--   promo_code_usage, promo_codes, purchases, sessions,
+--   subscriptions, usage_events, users, webhook_events
 -- ============================================

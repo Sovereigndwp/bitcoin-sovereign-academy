@@ -16,6 +16,9 @@
         // Substack URL for form submission (optional - leave blank for local-only)
         substackUrl: 'https://btcdalia.substack.com/subscribe',
         
+        // Server-side subscribe endpoint
+        subscribeEndpoint: '/api/subscribe',
+        
         // Storage key for captured emails
         storageKey: 'bsa-email-captures',
         
@@ -289,8 +292,11 @@
                 return;
             }
 
-            // Store locally
+            // Store locally (fallback)
             this.storeEmail(email, source);
+
+            // Persist to server (Supabase) — this is the durable copy
+            this.persistToServer(email, source);
 
             // Track analytics
             if (window.bsaAnalytics) {
@@ -404,6 +410,28 @@
             const count = this.getStoredEmails().length;
             console.log(`[EmailCapture] ${count} emails captured`);
             return count;
+        }
+
+        /**
+         * Persist email to server (Supabase via API)
+         */
+        persistToServer(email, source) {
+            try {
+                fetch(CONFIG.subscribeEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        source: source,
+                        page: window.location.pathname
+                    }),
+                    keepalive: true
+                }).catch(e => {
+                    console.warn('[EmailCapture] Server persist failed:', e);
+                });
+            } catch (e) {
+                console.warn('[EmailCapture] Server persist error:', e);
+            }
         }
 
         /**
