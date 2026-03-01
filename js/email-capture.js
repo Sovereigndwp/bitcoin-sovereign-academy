@@ -29,7 +29,7 @@
         modalDelay: 0,
         
         // Show on exit intent (desktop only)
-        exitIntent: false
+        exitIntent: true
     };
 
     class EmailCapture {
@@ -457,6 +457,30 @@
         }
 
         /**
+         * Initialize exit-intent detection (desktop only)
+         */
+        initExitIntent() {
+            if (!CONFIG.exitIntent || this.hasSubmitted) return;
+            // Only on desktop (no reliable exit intent on mobile)
+            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) return;
+
+            let fired = false;
+            document.addEventListener('mouseout', (e) => {
+                if (fired) return;
+                // Trigger when mouse leaves through the top of the viewport
+                if (e.clientY <= 0 && e.relatedTarget === null) {
+                    fired = true;
+                    this.showModal({
+                        title: '🎓 Before You Go...',
+                        subtitle: 'Get weekly Bitcoin insights and new demo announcements. Join thousands learning Bitcoin the right way.',
+                        buttonText: 'Yes, Keep Me Updated',
+                        source: 'exit_intent'
+                    });
+                }
+            });
+        }
+
+        /**
          * Auto-inject into placeholder elements
          */
         autoInject() {
@@ -475,11 +499,15 @@
     // Create singleton
     const emailCapture = new EmailCapture();
 
-    // Auto-inject on DOM ready
+    // Auto-init on DOM ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => emailCapture.autoInject());
+        document.addEventListener('DOMContentLoaded', () => {
+            emailCapture.autoInject();
+            emailCapture.initExitIntent();
+        });
     } else {
         emailCapture.autoInject();
+        emailCapture.initExitIntent();
     }
 
     // Expose globally
