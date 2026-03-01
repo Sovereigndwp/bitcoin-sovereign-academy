@@ -24,9 +24,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (provider === 'stripe') {
       const Stripe = (await import('stripe')).default;
-      const stripe = new Stripe(process.env.STRIPE_SECRET || '', {
-        apiVersion: '2025-02-24.acacia' as any,
-      });
+      const stripeKey = process.env.STRIPE_SECRET;
+      if (!stripeKey) {
+        return res.status(500).json({ error: 'Stripe not configured' });
+      }
+      const stripe = new Stripe(stripeKey);
 
       // Validate items against catalog
       const { validateCartItems, calculatePricing } = await import('./pricing');
