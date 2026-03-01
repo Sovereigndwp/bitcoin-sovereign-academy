@@ -1,4 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
+import Stripe from 'stripe';
+import { validateCartItems, calculatePricing } from './pricing';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || '*');
@@ -23,15 +25,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (provider === 'stripe') {
-      const Stripe = (await import('stripe')).default;
       const stripeKey = process.env.STRIPE_SECRET;
       if (!stripeKey) {
         return res.status(500).json({ error: 'Stripe not configured' });
       }
       const stripe = new Stripe(stripeKey);
-
-      // Validate items against catalog
-      const { validateCartItems, calculatePricing } = await import('./pricing');
       const validation = validateCartItems(items);
       if (!validation.valid) {
         return res.status(400).json({ error: `Invalid cart: ${validation.errors.join(', ')}` });
