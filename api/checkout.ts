@@ -1,5 +1,4 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import Stripe from 'stripe';
 import { validateCartItems, calculatePricing } from './pricing';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -29,7 +28,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!stripeKey) {
         return res.status(500).json({ error: 'Stripe not configured' });
       }
-      const stripe = new Stripe(stripeKey);
+
+      let stripe: any;
+      try {
+        const StripeModule = await import('stripe');
+        const Stripe = StripeModule.default || StripeModule;
+        stripe = new Stripe(stripeKey);
+      } catch (importErr: any) {
+        console.error('Stripe import failed:', importErr);
+        return res.status(500).json({ error: 'Stripe module unavailable', detail: importErr.message });
+      }
+
       const validation = validateCartItems(items);
       if (!validation.valid) {
         return res.status(400).json({ error: `Invalid cart: ${validation.errors.join(', ')}` });
