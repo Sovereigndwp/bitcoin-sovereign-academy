@@ -14,7 +14,7 @@
 
     const CONFIG = {
         // Substack URL for form submission (optional - leave blank for local-only)
-        substackUrl: 'https://btcdalia.substack.com/subscribe',
+substackUrl: 'https://sovereigndwp.substack.com/subscribe',
         
         // Server-side subscribe endpoint
         subscribeEndpoint: '/api/subscribe',

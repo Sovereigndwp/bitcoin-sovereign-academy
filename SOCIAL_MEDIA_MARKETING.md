@@ -648,7 +648,7 @@ Currently free to preview. Premium launching soon.
 
 Follow along:
 Twitter: @dalia_platt
-Substack: btcdalia.substack.com
+Substack: sovereigndwp.substack.com
 Website: https://bitcoinsovereign.academy
 ```
 
