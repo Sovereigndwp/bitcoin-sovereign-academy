@@ -14,7 +14,7 @@
 
     const CONFIG = {
         // Substack URL for form submission (optional - leave blank for local-only)
-substackUrl: 'https://sovereigndwp.substack.com/subscribe',
+substackUrl: '',
         
         // Server-side subscribe endpoint
         subscribeEndpoint: '/api/subscribe',
