@@ -8,6 +8,7 @@
  */
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
+import { sendWelcomeEmail } from './email';
 
 // Simple rate limit (5 signups per IP per hour)
 const ipCounts: Map<string, { count: number; reset: number }> = new Map();
@@ -86,6 +87,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (err) {
     console.error('[subscribe] Supabase error:', err);
   }
+
+  // Send welcome email (fire-and-forget — don't block response)
+  sendWelcomeEmail(cleanEmail, String(source || '')).catch(err => {
+    console.error('[subscribe] Welcome email failed:', err);
+  });
 
   return res.status(200).json({ success: true });
 }

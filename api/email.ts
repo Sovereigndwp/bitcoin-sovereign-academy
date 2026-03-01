@@ -303,17 +303,50 @@ export async function sendAccessTokenEmail(data: AccessTokenEmailData): Promise<
 /**
  * Send welcome email for new users
  */
-export async function sendWelcomeEmail(email: string): Promise<boolean> {
+export async function sendWelcomeEmail(email: string, source?: string): Promise<boolean> {
   const template: EmailTemplate = {
     to: email,
-    subject: '👋 Welcome to Bitcoin Sovereign Academy',
+    subject: '⚡ Welcome to Bitcoin Sovereign Academy',
     html: `
-      <h1>Welcome to Bitcoin Sovereign Academy!</h1>
-      <p>We're excited to have you on your Bitcoin learning journey.</p>
-      <p>Explore our free content and when you're ready, unlock full access to all learning paths.</p>
-      <a href="https://bitcoinsovereign.academy">Start Exploring</a>
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f0f0f;color:#e0e0e0;">
+  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
+
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="display:inline-block;width:56px;height:56px;background:#f7931a;border-radius:50%;line-height:56px;font-size:28px;font-weight:800;color:#0f0f0f;margin-bottom:16px;">B</div>
+      <h1 style="color:#f7931a;font-size:28px;margin:0;">Bitcoin Sovereign Academy</h1>
+    </div>
+
+    <div style="background:#1a1a1a;border:2px solid rgba(247,147,26,0.3);border-radius:16px;padding:32px;margin-bottom:24px;">
+      <h2 style="color:#e0e0e0;font-size:22px;margin:0 0 16px;">Welcome! You're in. 🎉</h2>
+      <p style="font-size:16px;line-height:1.7;color:#b3b3b3;margin:0 0 24px;">
+        Thanks for subscribing. You'll get Bitcoin insights, new demo announcements, and learning tips — no spam, no hype.
+      </p>
+
+      <h3 style="color:#f7931a;font-size:16px;margin:0 0 12px;">Start here:</h3>
+      <div style="margin-bottom:24px;">
+        <a href="https://bitcoinsovereign.academy/start/" style="display:block;padding:12px 16px;background:rgba(247,147,26,0.1);border:1px solid rgba(247,147,26,0.3);border-radius:8px;color:#f7931a;text-decoration:none;font-weight:600;margin-bottom:8px;">🎯 Take the 2-minute quiz — get your personalized path</a>
+        <a href="https://bitcoinsovereign.academy/interactive-demos/" style="display:block;padding:12px 16px;background:rgba(247,147,26,0.1);border:1px solid rgba(247,147,26,0.3);border-radius:8px;color:#f7931a;text-decoration:none;font-weight:600;margin-bottom:8px;">🛠️ Jump into 44 interactive demos</a>
+        <a href="https://bitcoinsovereign.academy/deep-dives/" style="display:block;padding:12px 16px;background:rgba(247,147,26,0.1);border:1px solid rgba(247,147,26,0.3);border-radius:8px;color:#f7931a;text-decoration:none;font-weight:600;">🎓 Explore deep dives on Bitcoin philosophy</a>
+      </div>
+
+      <div style="text-align:center;">
+        <a href="https://bitcoinsovereign.academy" style="display:inline-block;background:linear-gradient(135deg,#f7931a,#ffb347);color:#000;text-decoration:none;font-weight:700;font-size:16px;padding:14px 32px;border-radius:10px;">Start Learning →</a>
+      </div>
+    </div>
+
+    <div style="text-align:center;padding:24px 0;color:#666;font-size:12px;">
+      <p style="margin:0 0 8px;">© 2025 Bitcoin Sovereign Academy</p>
+      <p style="margin:0;">Learn Bitcoin. Achieve Sovereignty.</p>
+    </div>
+
+  </div>
+</body>
+</html>
     `,
-    text: 'Welcome to Bitcoin Sovereign Academy! Start your learning journey at https://bitcoinsovereign.academy'
+    text: `Welcome to Bitcoin Sovereign Academy!\n\nThanks for subscribing. Here's how to get started:\n\n1. Take the quiz: https://bitcoinsovereign.academy/start/\n2. Try 44 interactive demos: https://bitcoinsovereign.academy/interactive-demos/\n3. Explore deep dives: https://bitcoinsovereign.academy/deep-dives/\n\nNo spam, no hype — just Bitcoin education.\n\nbitcoinsovereign.academy`
   };
 
   return await sendEmail(template);
