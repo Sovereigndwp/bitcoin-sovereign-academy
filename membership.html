@@ -556,11 +556,12 @@
                 <p class="tagline">Skin in the game</p>
                 <div class="price">50,000 sats</div>
                 <p class="price-detail" style="display:flex;align-items:center;gap:0.5rem;">
-                    ~$25 deposit
-                    <span style="background:rgba(247,147,26,0.15);border:1px solid rgba(247,147,26,0.4);border-radius:6px;padding:2px 8px;font-size:0.8rem;color:var(--accent);">or $25 USD card</span>
+                    ~<span id="fiat-price-label">$…</span> deposit
+                    <span style="background:rgba(247,147,26,0.15);border:1px solid rgba(247,147,26,0.4);border-radius:6px;padding:2px 8px;font-size:0.8rem;color:var(--accent);">or <span id="fiat-card-label">$…</span> USD card</span>
                 </p>
                 <div class="highlight">
-                    ✨ Complete modules → Earn up to <strong>40,000 sats</strong> back (80%)
+                    ✨ Pay with <strong>Lightning</strong> → Earn up to <strong>40,000 sats</strong> back (80%)<br>
+                    <span style="font-size:0.82rem;color:var(--muted);">Fiat card payments grant full access but do not include sats earn-back.</span>
                 </div>
                 <ul>
                     <li><span class="check">✓</span> Everything in Explorer</li>
@@ -689,7 +690,7 @@
                 </button>
                 <button id="tab-card" onclick="switchPaymentTab('card')"
                     style="flex:1;padding:0.6rem;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:0.9rem;background:transparent;color:var(--muted);transition:all 0.2s;">
-                    💳 Card ($25)
+                    💳 Card ($…)
                 </button>
             </div>
 
@@ -723,13 +724,14 @@
             <div id="pane-card" style="display:none;">
                 <div style="text-align:center;padding:1.5rem 0;">
                     <div style="font-size:3rem;margin-bottom:1rem;">💳</div>
-                    <div style="font-size:2.5rem;font-weight:800;color:var(--accent);margin-bottom:0.25rem;">$25 USD</div>
-                    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem;">Fixed price — one-time payment via Stripe.<br>No subscription. Cancel anytime.</p>
-                    <div style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:8px;padding:1rem;margin-bottom:1.5rem;font-size:0.85rem;color:#4CAF50;">
-                        ✨ Same benefits as the Lightning path — complete modules to earn sats back
+                    <div style="font-size:2.5rem;font-weight:800;color:var(--accent);margin-bottom:0.25rem;"><span id="card-price-display">$…</span> USD</div>
+                    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:0.5rem;">Live price of 50,000 sats — one-time payment via Stripe.</p>
+                    <p style="color:var(--muted);font-size:0.8rem;margin-bottom:1.5rem;">Price locks when you click pay.</p>
+                    <div style="background:rgba(247,147,26,0.08);border:1px solid rgba(247,147,26,0.3);border-radius:8px;padding:1rem;margin-bottom:1.5rem;font-size:0.85rem;color:var(--accent);">
+                        ⚠️ Fiat card payments grant <strong>full Apprentice access</strong> but <strong>do not</strong> include the sats earn-back rewards. Pay with Lightning to earn up to 80% back.
                     </div>
-                    <button class="btn-primary" onclick="payByCard()" style="margin-bottom:0.75rem;">
-                        Pay $25 with Card
+                    <button class="btn-primary" id="btn-pay-card" onclick="payByCard()" style="margin-bottom:0.75rem;">
+                        Pay <span id="card-btn-price">$…</span> with Card
                     </button>
                     <p style="color:var(--muted);font-size:0.8rem;">Secured by Stripe. Your card details never touch our servers.</p>
                 </div>
@@ -742,9 +744,47 @@
     <script src="/js/lightning-payment.js"></script>
     <script src="/js/stripe-checkout.js"></script>
     <script>
+        // === Live BTC price state ===
+        let liveFiatCents = null; // locked-in price in cents when user clicks pay
+        let liveFiatDisplay = '…';
+
+        async function fetchLiveFiatPrice() {
+            try {
+                const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+                const data = await res.json();
+                const btcUsd = data.bitcoin.usd;
+                const usd = (50000 / 1e8) * btcUsd;
+                liveFiatCents = Math.round(usd * 100);
+                liveFiatDisplay = '$' + Math.round(usd);
+                updateFiatPriceUI();
+            } catch (e) {
+                console.error('[Price] Failed to fetch BTC price:', e);
+                liveFiatDisplay = '~$25';
+                liveFiatCents = 2500; // fallback
+                updateFiatPriceUI();
+            }
+        }
+
+        function updateFiatPriceUI() {
+            const els = [
+                document.getElementById('fiat-price-label'),
+                document.getElementById('fiat-card-label'),
+                document.getElementById('card-price-display'),
+                document.getElementById('card-btn-price'),
+            ];
+            els.forEach(el => { if (el) el.textContent = liveFiatDisplay; });
+
+            // Update card tab button label
+            const tabCard = document.getElementById('tab-card');
+            if (tabCard) tabCard.textContent = '💳 Card (' + liveFiatDisplay + ')';
+        }
+
         // Check membership status on load
         document.addEventListener('DOMContentLoaded', function() {
             updateMembershipUI();
+            fetchLiveFiatPrice();
+            // Refresh price every 60 seconds
+            setInterval(fetchLiveFiatPrice, 60000);
         });
 
         // Listen for membership changes
@@ -764,13 +804,20 @@
                 apprenticeBtn.disabled = true;
                 apprenticeBtn.style.opacity = '0.6';
 
-                // Update progress
-                const progress = window.lightningPayment.getRefundProgress();
-                if (progress) {
-                    document.getElementById('earned-sats').textContent = `${progress.earnedSats.toLocaleString()} sats earned`;
-                    document.getElementById('progress-fill').style.width = `${progress.percentComplete}%`;
-                    document.getElementById('status-text').textContent = 
-                        `${progress.completedModules}/${progress.totalModules} modules • ${progress.remainingToEarn.toLocaleString()} sats to earn`;
+                if (membership.method === 'stripe') {
+                    // Fiat payers: no earn-back
+                    document.getElementById('status-text').textContent = 'Full access — paid with card';
+                    document.getElementById('earned-sats').textContent = '';
+                    document.getElementById('progress-fill').parentElement.style.display = 'none';
+                } else {
+                    // Lightning payers: show earn-back progress
+                    const progress = window.lightningPayment.getRefundProgress();
+                    if (progress) {
+                        document.getElementById('earned-sats').textContent = `${progress.earnedSats.toLocaleString()} sats earned`;
+                        document.getElementById('progress-fill').style.width = `${progress.percentComplete}%`;
+                        document.getElementById('status-text').textContent = 
+                            `${progress.completedModules}/${progress.totalModules} modules • ${progress.remainingToEarn.toLocaleString()} sats to earn`;
+                    }
                 }
             } else if (membership.tier === 'sovereign') {
                 banner.classList.add('active');
@@ -900,8 +947,14 @@
 
         function payByCard() {
             if (window.bsaAnalytics) window.bsaAnalytics.trackMembershipClick('apprentice', 'card');
+            if (!liveFiatCents || liveFiatCents < 100) {
+                alert('Still loading the live price. Please wait a moment and try again.');
+                return;
+            }
+            // Lock in the price at click time
+            const lockedCents = liveFiatCents;
             if (window.stripeCheckout) {
-                window.stripeCheckout.purchaseApprentice();
+                window.stripeCheckout.purchaseApprentice(lockedCents);
             }
         }
 

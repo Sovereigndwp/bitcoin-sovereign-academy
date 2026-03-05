@@ -20,10 +20,10 @@
         stripePaymentLink: 'https://buy.stripe.com/9B63cu7m47Wd9rVdc21oI00',
         sovereignPriceUSD: 39900, // $399.00
 
-        // Apprentice tier — $25 fixed fiat alternative to 50,000 sats
-        // Create a separate $25 Payment Link at: https://dashboard.stripe.com/payment-links
-        stripeApprenticePaymentLink: 'https://buy.stripe.com/test_eVqbJ09uh3Dk0vC1aAcEw00',
-        apprenticePriceUSD: 2500, // $25.00
+        // Apprentice tier — dynamic fiat price based on live BTC rate
+        // Uses /api/apprentice-checkout to create a Stripe Session with the locked-in price
+        apprenticeCheckoutApi: '/api/apprentice-checkout',
+        apprenticeSats: 50000,
 
         // Success redirect URL (where Stripe sends after payment)
         successUrl: '/membership-success.html',
@@ -51,25 +51,47 @@
         }
 
         /**
-         * Redirect to Stripe Checkout for Apprentice tier ($25 fiat)
+         * Redirect to Stripe Checkout for Apprentice tier (dynamic fiat price).
+         * @param {number} priceCents — the locked-in USD price in cents
          */
-        purchaseApprentice() {
-            if (CONFIG.stripeApprenticePaymentLink.includes('XXXXXXXX')) {
-                alert('Apprentice card payment not configured yet.\n\n1. Create a $25 Payment Link at dashboard.stripe.com/payment-links\n2. Update stripeApprenticePaymentLink in js/stripe-checkout.js');
+        async purchaseApprentice(priceCents) {
+            if (!priceCents || priceCents < 100) {
+                alert('Unable to determine fiat price. Please refresh the page.');
                 return;
             }
 
-            const clientReferenceId = 'bsa_apprentice_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-
             localStorage.setItem(CONFIG.storageKeys.stripeSession, JSON.stringify({
-                referenceId: clientReferenceId,
+                referenceId: 'bsa_apprentice_' + Date.now(),
                 tier: 'apprentice',
                 initiated: Date.now()
             }));
 
-            const url = new URL(CONFIG.stripeApprenticePaymentLink);
-            url.searchParams.set('client_reference_id', clientReferenceId);
-            window.location.href = url.toString();
+            try {
+                const body = { priceCents };
+                const refCode = localStorage.getItem('bsa-referral-code');
+                if (refCode) body.referralCode = refCode;
+
+                const res = await fetch(CONFIG.apprenticeCheckoutApi, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'Checkout failed');
+                }
+
+                const { url } = await res.json();
+                if (url) {
+                    window.location.href = url;
+                } else {
+                    throw new Error('No checkout URL returned');
+                }
+            } catch (err) {
+                console.error('[Stripe] Apprentice checkout error:', err);
+                alert('Payment error: ' + err.message);
+            }
         }
 
         /**

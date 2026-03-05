@@ -183,7 +183,7 @@
             '<div class="module-unlock-benefits">',
             '  <h4>Earn While You Learn:</h4>',
             '  <ul>',
-            '    <li><span class="benefit-icon">⚡</span> Deposit 50,000 sats (~$25) — earn up to 80% back</li>',
+            '    <li><span class="benefit-icon">⚡</span> Deposit 50,000 sats — earn up to 80% back via Lightning</li>',
             '    <li><span class="benefit-icon">✓</span> Complete this module + 94 more across all paths</li>',
             '    <li><span class="benefit-icon">✓</span> Unlimited AI Tutor access</li>',
             '    <li><span class="benefit-icon">✓</span> Completion certificates & progress tracking</li>',
@@ -205,7 +205,7 @@
 
             '<div class="module-pricing">',
             '  <span class="price">50,000 sats</span>',
-            '  <span class="price-detail">~$25 deposit · Earn 80% back by completing modules</span>',
+            '  <span class="price-detail">Deposit via Lightning · Earn 80% back by completing modules</span>',
             '</div>',
 
             '<button type="button" class="module-lock-cta">⚡ Deposit & Start Earning</button>',
