@@ -313,7 +313,7 @@
          * Go to pricing page
          */
         goToPricing() {
-            window.location.href = '/pricing.html';
+            window.location.href = '/membership.html';
         },
 
         /**

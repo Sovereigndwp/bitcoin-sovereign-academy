@@ -411,3 +411,49 @@ COMMENT ON TABLE usage_events IS 'Content usage tracking for analytics';
 COMMENT ON TABLE webhook_events IS 'Webhook event log for debugging';
 COMMENT ON TABLE promo_codes IS 'Promotional discount codes';
 COMMENT ON TABLE promo_code_usage IS 'Promo code redemption history';
+
+-- ============================================
+-- Referrals Table (Sats Referral Program)
+-- ============================================
+
+CREATE TABLE referrals (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  referrer_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  referral_code VARCHAR(20) UNIQUE NOT NULL,
+  referred_email VARCHAR(255),
+  referred_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  referred_tier VARCHAR(50),               -- 'apprentice' or 'sovereign'
+  reward_sats INTEGER NOT NULL DEFAULT 0,  -- sats earned for this referral
+  status VARCHAR(50) DEFAULT 'pending',    -- 'pending', 'converted', 'rewarded', 'expired'
+  converted_at TIMESTAMP,
+  rewarded_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_referrals_referrer ON referrals(referrer_user_id);
+CREATE INDEX idx_referrals_code ON referrals(referral_code);
+CREATE INDEX idx_referrals_status ON referrals(status);
+CREATE INDEX idx_referrals_referred_email ON referrals(referred_email);
+
+CREATE TRIGGER update_referrals_updated_at BEFORE UPDATE ON referrals
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- RLS for referrals
+ALTER TABLE referrals ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY referrals_select_own ON referrals
+  FOR SELECT
+  USING (auth.uid() = referrer_user_id);
+
+-- Referral stats view
+CREATE VIEW referral_stats AS
+SELECT
+  referrer_user_id,
+  COUNT(*) AS total_referrals,
+  COUNT(CASE WHEN status = 'converted' OR status = 'rewarded' THEN 1 END) AS conversions,
+  SUM(CASE WHEN status = 'rewarded' THEN reward_sats ELSE 0 END) AS total_sats_earned
+FROM referrals
+GROUP BY referrer_user_id;
+
+COMMENT ON TABLE referrals IS 'Referral program tracking with sats rewards';

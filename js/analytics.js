@@ -297,6 +297,22 @@
         trackModuleComplete(moduleId) {
             this.track('module_complete', { moduleId });
         }
+
+        trackGateCTAClick(path) {
+            this.track('gate_cta_click', { path });
+        }
+
+        trackBridgeView(bridgeId) {
+            this.track('bridge_view', { bridgeId });
+        }
+
+        trackBridgeCTAClick(bridge, destination) {
+            this.track('bridge_cta_click', { bridge, destination });
+        }
+
+        trackReferralShare(method) {
+            this.track('referral_share', { method });
+        }
     }
 
     // Create singleton

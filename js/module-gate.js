@@ -102,7 +102,7 @@
                 <h4>You're about to reach the paywall</h4>
                 <p>This is the last free section. Ready to continue your Bitcoin journey?</p>
                 <div class="paywall-warning-cta">
-                    <a href="/#unlock" class="btn-primary-small">Unlock Full Access</a>
+                    <a href="/membership.html" class="btn-primary-small">Unlock Full Access</a>
                     <span class="paywall-warning-or">or</span>
                     <a href="#" class="paywall-warning-continue">Continue reading anyway →</a>
                 </div>
@@ -144,6 +144,9 @@
             addPaywallWarning(sections[limit - 1]);
         }
 
+        // Track gate view in analytics
+        if (window.bsaAnalytics) window.bsaAnalytics.trackGateView(pathName);
+
         const lockedSections = sections.slice(limit);
         if (!lockedSections.length) {
             return;
@@ -178,35 +181,35 @@
             `<p class="module-lock-subtitle">You have completed ${limit} free sections. ${remainingSections} more sections await in this module.</p>`,
 
             '<div class="module-unlock-benefits">',
-            '  <h4>What You Will Get:</h4>',
+            '  <h4>Earn While You Learn:</h4>',
             '  <ul>',
+            '    <li><span class="benefit-icon">⚡</span> Deposit 50,000 sats (~$25) — earn up to 80% back</li>',
             '    <li><span class="benefit-icon">✓</span> Complete this module + 94 more across all paths</li>',
-            '    <li><span class="benefit-icon">✓</span> Interactive demos & Bitcoin simulations</li>',
-            '    <li><span class="benefit-icon">✓</span> Progress tracking & achievement badges</li>',
-            '    <li><span class="benefit-icon">✓</span> Lifetime access with free updates</li>',
+            '    <li><span class="benefit-icon">✓</span> Unlimited AI Tutor access</li>',
+            '    <li><span class="benefit-icon">✓</span> Completion certificates & progress tracking</li>',
             '  </ul>',
             '</div>',
 
             '<div class="module-social-proof">',
             '  <div class="testimonial-short">',
             '    <div class="stars">⭐⭐⭐⭐⭐</div>',
-            '    <p>"Best Bitcoin course I\'ve taken. Worth every satoshi!"</p>',
-            '    <span class="author">— Sarah K., Curious Path Graduate</span>',
+            '    <p>"Depositing sats and earning them back completely changed my motivation."</p>',
+            '    <span class="author">— Apprentice Member</span>',
             '  </div>',
             '  <div class="enrollment-stats">',
-            '    <span class="stat">2,847 students enrolled</span>',
+            '    <span class="stat">44+ interactive demos</span>',
             '    <span class="stat-separator">•</span>',
-            '    <span class="stat">4.9/5 rating</span>',
+            '    <span class="stat">8 learning paths</span>',
             '  </div>',
             '</div>',
 
             '<div class="module-pricing">',
-            '  <span class="price">$297</span>',
-            '  <span class="price-detail">One-time payment · Lifetime access</span>',
+            '  <span class="price">50,000 sats</span>',
+            '  <span class="price-detail">~$25 deposit · Earn 80% back by completing modules</span>',
             '</div>',
 
-            '<button type="button" class="module-lock-cta">Unlock Full Access</button>',
-            '<small>Already enrolled? <a href="#" class="module-lock-login">Sign in to continue</a></small>'
+            '<button type="button" class="module-lock-cta">⚡ Deposit & Start Earning</button>',
+            '<small>Or get <a href="/membership.html" style="color:#9333ea;">Sovereign lifetime access</a> · Already enrolled? <a href="#" class="module-lock-login">Sign in</a></small>'
         ].join('');
 
         lockedWrapper.appendChild(innerWrapper);
@@ -221,14 +224,15 @@
         // CTA button
         const ctaButton = overlay.querySelector('.module-lock-cta');
         ctaButton.addEventListener('click', () => {
-            window.location.href = '/#unlock';
+            if (window.bsaAnalytics) window.bsaAnalytics.track('gate_cta_click', { path: pathName });
+            window.location.href = '/membership.html';
         });
 
         // Login link
         const loginLink = overlay.querySelector('.module-lock-login');
         loginLink.addEventListener('click', event => {
             event.preventDefault();
-            window.location.href = '/#login';
+            window.location.href = '/account.html';
         });
     }
 

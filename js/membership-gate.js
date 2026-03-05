@@ -32,7 +32,7 @@
             '/community/',
             '/membership.html',
             '/membership-success.html',
-            '/pricing.html'
+            '/membership.html'
         ],
 
         // Demo pages that are free (first few in each path)
