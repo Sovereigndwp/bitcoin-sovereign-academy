@@ -29,7 +29,18 @@ async function stripePost(endpoint: string, body: Record<string, string>, apiKey
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || '*');
+  // Guard against invalid ALLOWED_ORIGIN values (e.g. comma-separated list/newlines)
+  // which can throw "Invalid character in header content" and crash before try/catch.
+  const rawAllowedOrigin = process.env.ALLOWED_ORIGIN;
+  const safeAllowedOrigin =
+    rawAllowedOrigin && !rawAllowedOrigin.includes(',') && !rawAllowedOrigin.includes('\n')
+      ? rawAllowedOrigin.trim()
+      : '*';
+  try {
+    res.setHeader('Access-Control-Allow-Origin', safeAllowedOrigin || '*');
+  } catch {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
