@@ -21,8 +21,7 @@ class NavigationContextManager {
             'pragmatist': 'The Pragmatist Path',
             'builder': 'The Builder Path',
             'sovereign': 'The Sovereign Path',
-            'skeptic': 'The Skeptic Path',
-            'observer': 'The Observer Path'
+            'skeptic': 'The Skeptic Path'
         };
         
         this.demoStartTime = null;

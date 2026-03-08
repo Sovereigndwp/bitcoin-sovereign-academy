@@ -30,8 +30,7 @@ class ProgressManager {
             sovereign: { stages: 4, modulesPerStage: 3, totalModules: 12 },
             principled: { stages: 5, modulesPerStage: 3, totalModules: 15 },
             hurried: { stages: 3, modulesPerStage: [3, 3, 1], totalModules: 7 },
-            pragmatist: { stages: 2, modulesPerStage: [3, 1], totalModules: 4 },
-            observer: { stages: 1, modulesPerStage: [3], totalModules: 3 }
+            pragmatist: { stages: 2, modulesPerStage: [3, 1], totalModules: 4 }
         };
 
         // Legacy storage keys to migrate from
@@ -743,8 +742,7 @@ class ProgressManager {
                 sovereign: this._createPathStructure(),
                 principled: this._createPathStructure(),
                 hurried: this._createPathStructure(),
-                pragmatist: this._createPathStructure(),
-                observer: this._createPathStructure()
+                pragmatist: this._createPathStructure()
             },
             global: {
                 fullAccess: false,

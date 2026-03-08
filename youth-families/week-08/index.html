@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 8: College Financial Planning | Youth & Families Program</title>
+    <meta name="description" content="College cost calculator, FAFSA walkthrough, and scholarship strategies for teens and families.">
+    <style>
+        :root {
+            --primary-green: #10b981;
+            --primary-orange: #f7931a;
+            --dark-bg: #0a1f1a;
+            --card-bg: #1a3a2e;
+            --border-color: #2a5a4e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #9ca3af;
+            --text-dim: #6b7280;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--dark-bg); color: var(--text-primary); line-height: 1.6; padding: 2rem 1rem;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--primary-green); text-decoration: none; margin-bottom: 2rem; font-weight: 600; transition: transform 0.2s; }
+        .back-link:hover { transform: translateX(-4px); }
+        .header { text-align: center; margin-bottom: 3rem; }
+        .week-title { font-size: 2.5rem; color: var(--primary-green); margin-bottom: 0.5rem; }
+        .week-subtitle { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 2rem; }
+        .intro-section, .section-card { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .intro-section { margin-bottom: 3rem; }
+        .section-title { font-size: 1.5rem; color: var(--primary-green); margin-bottom: 1rem; }
+        .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 1.5rem 0; }
+        .form-label { display: block; font-weight: 600; color: var(--primary-green); margin-bottom: 0.5rem; font-size: 0.95rem; }
+        .form-input, .form-select { width: 100%; padding: 0.75rem; background: var(--dark-bg); border: 2px solid var(--border-color); border-radius: 0.5rem; color: var(--text-primary); font-size: 1rem; font-family: 'Courier New', monospace; }
+        .form-input:focus, .form-select:focus { outline: none; border-color: var(--primary-green); }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-help { font-size: 0.85rem; color: var(--text-dim); margin-top: 0.25rem; }
+        .result-panel { background: var(--dark-bg); border: 2px solid var(--primary-green); border-radius: 1rem; padding: 2rem; }
+        .result-row { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--border-color); }
+        .result-label { color: var(--text-secondary); }
+        .result-value { color: var(--text-primary); font-weight: 700; font-family: 'Courier New', monospace; }
+        .result-total { font-size: 1.5rem; color: var(--primary-green); font-weight: 800; }
+        .comparison-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin: 1.5rem 0; }
+        .college-card { background: var(--dark-bg); border: 2px solid var(--border-color); border-radius: 0.75rem; padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .college-card:hover { border-color: var(--primary-green); transform: translateY(-2px); }
+        .college-card.selected { border-color: var(--primary-green); box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+        .college-emoji { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .college-name { font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; }
+        .college-cost { font-size: 1.3rem; color: var(--primary-orange); font-family: 'Courier New', monospace; font-weight: 700; }
+        .college-note { font-size: 0.85rem; color: var(--text-dim); margin-top: 0.5rem; }
+        .fafsa-steps { list-style: none; counter-reset: step; margin: 1.5rem 0; }
+        .fafsa-step { background: var(--dark-bg); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1rem; border-left: 4px solid var(--primary-green); counter-increment: step; position: relative; padding-left: 4rem; }
+        .fafsa-step::before { content: counter(step); position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); background: var(--primary-green); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .fafsa-title { font-weight: 700; color: var(--primary-green); margin-bottom: 0.25rem; }
+        .fafsa-desc { font-size: 0.9rem; color: var(--text-secondary); }
+        .scholarship-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 1.5rem 0; }
+        .scholarship-card { background: var(--dark-bg); border: 2px solid var(--border-color); border-radius: 0.75rem; padding: 1.5rem; }
+        .scholarship-type { font-weight: 700; color: var(--primary-green); font-size: 1.1rem; margin-bottom: 0.75rem; }
+        .scholarship-detail { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 1rem; }
+        .btn-primary { background: var(--primary-green); color: white; width: 100%; }
+        .btn-primary:hover { background: #059669; transform: translateY(-2px); }
+        .tip-box { background: rgba(245, 158, 11, 0.1); border: 2px solid var(--warning); border-radius: 0.75rem; padding: 1.5rem; margin-top: 2rem; }
+        .tip-title { color: var(--warning); font-weight: 700; margin-bottom: 0.5rem; }
+        .next-week { background: var(--card-bg); border: 2px solid var(--primary-green); border-radius: 1rem; padding: 2rem; text-align: center; margin-top: 2rem; }
+        .next-week h3 { color: var(--primary-green); margin-bottom: 1rem; }
+        @media (max-width: 768px) { .calc-grid { grid-template-columns: 1fr; } .comparison-cards { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 480px) { .comparison-cards { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Back to Program</a>
+        <div class="header">
+            <h1 class="week-title">Week 8: College Financial Planning</h1>
+            <p class="week-subtitle">Understanding College Costs, FAFSA, and Scholarship Strategies</p>
+        </div>
+
+        <div class="intro-section">
+            <h2 style="color: var(--primary-green); margin-bottom: 1rem;">🎓 The True Cost of College</h2>
+            <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 1rem;">
+                College is one of the biggest financial decisions of your life. The sticker price isn't what most people pay — 
+                but you need to understand the full picture to make smart choices. This week, you'll learn to compare real costs, 
+                navigate financial aid, and find money that doesn't need to be paid back.
+            </p>
+            <div style="background: rgba(245, 158, 11, 0.1); border: 2px solid var(--warning); border-radius: 0.5rem; padding: 1rem; text-align: center;">
+                <strong style="color: var(--warning);">Key Insight:</strong>
+                <span style="color: var(--text-secondary);"> The average student graduates with $37,000 in debt. But with planning, many students graduate debt-free or close to it.</span>
+            </div>
+        </div>
+
+        <!-- Section 1: College Type Comparison -->
+        <div class="section-card">
+            <h2 class="section-title">🏫 Compare College Types</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Click each option to load its costs into the calculator below.</p>
+            <div class="comparison-cards">
+                <div class="college-card" onclick="selectCollege('community')">
+                    <div class="college-emoji">📚</div>
+                    <div class="college-name">Community College</div>
+                    <div class="college-cost">$3,800/yr</div>
+                    <div class="college-note">Tuition only • Live at home</div>
+                </div>
+                <div class="college-card" onclick="selectCollege('stateIn')">
+                    <div class="college-emoji">🏛️</div>
+                    <div class="college-name">State University (In-State)</div>
+                    <div class="college-cost">$11,000/yr</div>
+                    <div class="college-note">Tuition only • Dorms extra</div>
+                </div>
+                <div class="college-card" onclick="selectCollege('stateOut')">
+                    <div class="college-emoji">✈️</div>
+                    <div class="college-name">State University (Out-of-State)</div>
+                    <div class="college-cost">$23,000/yr</div>
+                    <div class="college-note">Tuition only • Dorms extra</div>
+                </div>
+                <div class="college-card" onclick="selectCollege('private')">
+                    <div class="college-emoji">🏰</div>
+                    <div class="college-name">Private University</div>
+                    <div class="college-cost">$42,000/yr</div>
+                    <div class="college-note">Tuition only • Often includes aid</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Cost Calculator -->
+        <div class="section-card">
+            <h2 class="section-title">🧮 College Cost Calculator</h2>
+            <div class="calc-grid">
+                <div>
+                    <div class="form-group">
+                        <label class="form-label" for="tuition">Annual Tuition</label>
+                        <input type="number" id="tuition" class="form-input" value="11000" min="0" step="500">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="room-board">Room & Board (per year)</label>
+                        <input type="number" id="room-board" class="form-input" value="12000" min="0" step="500">
+                        <div class="form-help">$0 if living at home</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="books">Books & Supplies</label>
+                        <input type="number" id="books" class="form-input" value="1200" min="0" step="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="personal">Personal Expenses</label>
+                        <input type="number" id="personal" class="form-input" value="2400" min="0" step="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="years">Years to Complete</label>
+                        <select id="years" class="form-select">
+                            <option value="2">2 years (Associate's)</option>
+                            <option value="4" selected>4 years (Bachelor's)</option>
+                            <option value="5">5 years</option>
+                            <option value="6">6 years</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="grants">Grants & Scholarships (per year)</label>
+                        <input type="number" id="grants" class="form-input" value="0" min="0" step="500">
+                        <div class="form-help">Free money — doesn't need to be paid back</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="calculateCost()">Calculate Total Cost</button>
+                </div>
+
+                <div class="result-panel">
+                    <h3 style="color: var(--primary-green); margin-bottom: 1rem;">Cost Breakdown</h3>
+                    <div class="result-row">
+                        <span class="result-label">Tuition (total)</span>
+                        <span class="result-value" id="r-tuition">$44,000</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Room & Board (total)</span>
+                        <span class="result-value" id="r-room">$48,000</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Books & Supplies</span>
+                        <span class="result-value" id="r-books">$4,800</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Personal Expenses</span>
+                        <span class="result-value" id="r-personal">$9,600</span>
+                    </div>
+                    <div class="result-row" style="border-top: 2px solid var(--primary-green); padding-top: 1rem;">
+                        <span class="result-label" style="font-weight: 700;">Total Sticker Price</span>
+                        <span class="result-value result-total" id="r-total">$106,400</span>
+                    </div>
+                    <div class="result-row" style="background: rgba(16, 185, 129, 0.1); border-radius: 0.5rem; padding: 0.75rem; margin-top: 0.5rem;">
+                        <span class="result-label" style="color: var(--success);">Minus Grants/Scholarships</span>
+                        <span class="result-value" style="color: var(--success);" id="r-grants">-$0</span>
+                    </div>
+                    <div class="result-row" style="border-top: 2px solid var(--primary-orange); padding-top: 1rem;">
+                        <span class="result-label" style="font-weight: 700; color: var(--primary-orange);">Your Actual Cost</span>
+                        <span class="result-value" style="color: var(--primary-orange); font-size: 1.5rem;" id="r-actual">$106,400</span>
+                    </div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: var(--card-bg); border-radius: 0.5rem;">
+                        <p style="color: var(--text-dim); font-size: 0.85rem;">Monthly loan payment (10-year repayment at 5.5%):</p>
+                        <p style="color: var(--error); font-size: 1.3rem; font-weight: 700; font-family: 'Courier New', monospace;" id="r-monthly">$1,154/mo</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: FAFSA Guide -->
+        <div class="section-card">
+            <h2 class="section-title">📋 FAFSA Step-by-Step</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                The FAFSA (Free Application for Federal Student Aid) is your gateway to grants, loans, and work-study. 
+                Even if you think you won't qualify, <strong>always file it</strong> — many scholarships require it.
+            </p>
+            <ol class="fafsa-steps">
+                <li class="fafsa-step">
+                    <div class="fafsa-title">Create an FSA ID</div>
+                    <div class="fafsa-desc">Both student AND a parent need one. Go to studentaid.gov. This is your login and electronic signature.</div>
+                </li>
+                <li class="fafsa-step">
+                    <div class="fafsa-title">Gather Documents</div>
+                    <div class="fafsa-desc">Social Security numbers, tax returns, W-2s, bank statements, and investment records for student and parents.</div>
+                </li>
+                <li class="fafsa-step">
+                    <div class="fafsa-title">File Early (Opens October 1)</div>
+                    <div class="fafsa-desc">Some aid is first-come, first-served. File as soon as possible after October 1 each year.</div>
+                </li>
+                <li class="fafsa-step">
+                    <div class="fafsa-title">Use IRS Data Retrieval</div>
+                    <div class="fafsa-desc">The FAFSA can pull your tax data directly from the IRS. Faster, more accurate, fewer errors.</div>
+                </li>
+                <li class="fafsa-step">
+                    <div class="fafsa-title">List Up to 20 Schools</div>
+                    <div class="fafsa-desc">Add every school you're considering. They'll each receive your financial information and create an aid package.</div>
+                </li>
+                <li class="fafsa-step">
+                    <div class="fafsa-title">Compare Award Letters</div>
+                    <div class="fafsa-desc">Each school sends different aid packages. Compare the NET cost (after grants) — not the sticker price.</div>
+                </li>
+            </ol>
+        </div>
+
+        <!-- Section 4: Scholarship Strategies -->
+        <div class="section-card">
+            <h2 class="section-title">🏆 Scholarship Strategy Guide</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Scholarships are free money. Here's where to find them and how to maximize your chances.</p>
+            <div class="scholarship-grid">
+                <div class="scholarship-card">
+                    <div class="scholarship-type">🏫 Institutional Scholarships</div>
+                    <div class="scholarship-detail"><strong>Where:</strong> Directly from the college you're applying to</div>
+                    <div class="scholarship-detail"><strong>Amount:</strong> $1,000 - Full tuition</div>
+                    <div class="scholarship-detail"><strong>Tip:</strong> Many are automatic based on GPA/test scores. Apply to schools where you're in the top 25% of applicants.</div>
+                </div>
+                <div class="scholarship-card">
+                    <div class="scholarship-type">🏢 Local/Community</div>
+                    <div class="scholarship-detail"><strong>Where:</strong> Rotary clubs, local businesses, community foundations</div>
+                    <div class="scholarship-detail"><strong>Amount:</strong> $500 - $5,000</div>
+                    <div class="scholarship-detail"><strong>Tip:</strong> Fewer applicants = better odds. Check your school counselor's office and local library.</div>
+                </div>
+                <div class="scholarship-card">
+                    <div class="scholarship-type">🌐 National Competitions</div>
+                    <div class="scholarship-detail"><strong>Where:</strong> Large organizations, corporations, nonprofits</div>
+                    <div class="scholarship-detail"><strong>Amount:</strong> $1,000 - $50,000+</div>
+                    <div class="scholarship-detail"><strong>Tip:</strong> Very competitive. Focus on niche scholarships matching your specific background or interests.</div>
+                </div>
+                <div class="scholarship-card">
+                    <div class="scholarship-type">💡 Essay-Based</div>
+                    <div class="scholarship-detail"><strong>Where:</strong> Various organizations with essay prompts</div>
+                    <div class="scholarship-detail"><strong>Amount:</strong> $250 - $10,000</div>
+                    <div class="scholarship-detail"><strong>Tip:</strong> Write one strong essay and adapt it for multiple applications. Authentic stories beat polished clichés.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tip-box">
+            <div class="tip-title">💡 The 2+2 Strategy: Save Thousands</div>
+            <div style="color: var(--text-secondary);">
+                <p style="margin-bottom: 0.75rem;">Start at community college for 2 years, then transfer to a 4-year university. You get the same degree for significantly less:</p>
+                <ul style="margin-left: 1.5rem;">
+                    <li><strong>Community College (2 years):</strong> ~$7,600 total</li>
+                    <li><strong>State University (2 years):</strong> ~$22,000 total</li>
+                    <li><strong>Total with 2+2:</strong> ~$29,600 vs ~$44,000 for 4 years at state school</li>
+                    <li><strong>Savings:</strong> $14,400+ (and your degree says the same school name)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="next-week">
+            <h3>🎯 Ready for Week 9?</h3>
+            <p style="color: var(--text-secondary);">Next week: Teen Independence Preparation — real-world budgeting for your first apartment!</p>
+            <a href="../week-09/" class="btn btn-primary" style="text-decoration: none; margin-top: 1rem; display: inline-block; width: auto;">Continue to Week 9</a>
+        </div>
+    </div>
+
+    <script>
+        const collegeData = {
+            community: { tuition: 3800, room: 0, name: 'Community College' },
+            stateIn: { tuition: 11000, room: 12000, name: 'State University (In-State)' },
+            stateOut: { tuition: 23000, room: 12000, name: 'State University (Out-of-State)' },
+            private: { tuition: 42000, room: 14000, name: 'Private University' }
+        };
+
+        function selectCollege(type) {
+            const data = collegeData[type];
+            document.getElementById('tuition').value = data.tuition;
+            document.getElementById('room-board').value = data.room;
+            if (type === 'community') {
+                document.getElementById('years').value = '2';
+            } else {
+                document.getElementById('years').value = '4';
+            }
+            document.querySelectorAll('.college-card').forEach(c => c.classList.remove('selected'));
+            event.target.closest('.college-card').classList.add('selected');
+            calculateCost();
+        }
+
+        function calculateCost() {
+            const tuition = parseFloat(document.getElementById('tuition').value) || 0;
+            const room = parseFloat(document.getElementById('room-board').value) || 0;
+            const books = parseFloat(document.getElementById('books').value) || 0;
+            const personal = parseFloat(document.getElementById('personal').value) || 0;
+            const years = parseInt(document.getElementById('years').value);
+            const grants = parseFloat(document.getElementById('grants').value) || 0;
+
+            const totalTuition = tuition * years;
+            const totalRoom = room * years;
+            const totalBooks = books * years;
+            const totalPersonal = personal * years;
+            const totalGrants = grants * years;
+            const stickerPrice = totalTuition + totalRoom + totalBooks + totalPersonal;
+            const actualCost = Math.max(0, stickerPrice - totalGrants);
+
+            document.getElementById('r-tuition').textContent = '$' + totalTuition.toLocaleString();
+            document.getElementById('r-room').textContent = '$' + totalRoom.toLocaleString();
+            document.getElementById('r-books').textContent = '$' + totalBooks.toLocaleString();
+            document.getElementById('r-personal').textContent = '$' + totalPersonal.toLocaleString();
+            document.getElementById('r-total').textContent = '$' + stickerPrice.toLocaleString();
+            document.getElementById('r-grants').textContent = '-$' + totalGrants.toLocaleString();
+            document.getElementById('r-actual').textContent = '$' + actualCost.toLocaleString();
+
+            // Calculate monthly loan payment (10-year, 5.5% interest)
+            const r = 0.055 / 12;
+            const n = 120;
+            const monthly = actualCost > 0 ? actualCost * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : 0;
+            document.getElementById('r-monthly').textContent = '$' + Math.round(monthly).toLocaleString() + '/mo';
+
+            markWeekCompleted();
+        }
+
+        function markWeekCompleted() {
+            const progress = JSON.parse(localStorage.getItem('yf-progress') || '[]');
+            if (!progress.includes(8)) {
+                progress.push(8);
+                localStorage.setItem('yf-progress', JSON.stringify(progress));
+            }
+        }
+
+        // Calculate on load
+        calculateCost();
+    </script>
+</body>
+</html>

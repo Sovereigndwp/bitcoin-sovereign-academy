@@ -28,7 +28,6 @@
         '/paths/pragmatist/stage-1/module-1.html',
         '/paths/principled/stage-1/module-1.html',
         '/paths/sovereign/stage-1/module-1.html',
-        '/paths/observer/stage-1/module-1.html',
         '/paths/hurried/stage-1/module-1.html'
     ]);
 

@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 6: Smart Spending Habits | Youth & Families Program</title>
+    <meta name="description" content="Learn to avoid impulse buying, audit subscriptions, and develop smart spending habits for teens and families.">
+    <style>
+        :root {
+            --primary-green: #10b981;
+            --primary-orange: #f7931a;
+            --dark-bg: #0a1f1a;
+            --card-bg: #1a3a2e;
+            --border-color: #2a5a4e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #9ca3af;
+            --text-dim: #6b7280;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-green);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .back-link:hover { transform: translateX(-4px); }
+
+        .header { text-align: center; margin-bottom: 3rem; }
+
+        .week-title {
+            font-size: 2.5rem;
+            color: var(--primary-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .week-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .intro-section {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+
+        .impulse-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .impulse-card {
+            background: var(--dark-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .impulse-card:hover {
+            border-color: var(--primary-green);
+            transform: translateY(-2px);
+        }
+        .impulse-card.revealed { border-color: var(--warning); }
+
+        .impulse-emoji { font-size: 2rem; margin-bottom: 0.5rem; }
+        .impulse-title { color: var(--text-primary); font-weight: 700; margin-bottom: 0.5rem; }
+        .impulse-trap { color: var(--error); font-size: 0.9rem; display: none; margin-top: 0.5rem; }
+        .impulse-card.revealed .impulse-trap { display: block; }
+        .impulse-defense { color: var(--success); font-size: 0.9rem; display: none; margin-top: 0.5rem; }
+        .impulse-card.revealed .impulse-defense { display: block; }
+
+        .rule-tracker {
+            background: var(--dark-bg);
+            border: 2px solid var(--primary-green);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .rule-input-group {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 1rem;
+            align-items: end;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--primary-green);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+        }
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary-green);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+        .btn-primary { background: var(--primary-green); color: white; }
+        .btn-primary:hover { background: #059669; transform: translateY(-2px); }
+        .btn-warning { background: var(--warning); color: #000; }
+        .btn-warning:hover { background: #d97706; transform: translateY(-2px); }
+        .btn-danger { background: var(--error); color: white; }
+        .btn-danger:hover { background: #dc2626; }
+
+        .wishlist-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--card-bg);
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid var(--warning);
+        }
+        .wishlist-item.decided-buy { border-left-color: var(--success); }
+        .wishlist-item.decided-skip { border-left-color: var(--error); opacity: 0.6; }
+
+        .wishlist-info { flex: 1; }
+        .wishlist-name { font-weight: 600; color: var(--text-primary); }
+        .wishlist-cost { color: var(--primary-orange); font-family: 'Courier New', monospace; font-size: 0.9rem; }
+        .wishlist-timer { color: var(--warning); font-size: 0.85rem; margin-top: 0.25rem; }
+        .wishlist-actions { display: flex; gap: 0.5rem; }
+
+        .sub-audit {
+            margin: 1.5rem 0;
+        }
+
+        .sub-item {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            gap: 1rem;
+            align-items: center;
+            padding: 1rem;
+            background: var(--dark-bg);
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sub-name { color: var(--text-primary); font-weight: 600; }
+        .sub-cost { color: var(--primary-orange); font-family: 'Courier New', monospace; font-weight: 700; }
+        .sub-frequency { color: var(--text-dim); font-size: 0.85rem; }
+
+        .sub-verdict {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .sub-keep { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .sub-cancel { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+        .sub-review { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+
+        .audit-summary {
+            background: var(--card-bg);
+            border: 2px solid var(--primary-green);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .summary-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-green);
+            font-family: 'Courier New', monospace;
+        }
+
+        .lifestyle-section {
+            background: var(--dark-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .lifestyle-slider {
+            width: 100%;
+            margin: 1rem 0;
+            accent-color: var(--primary-green);
+        }
+
+        .lifestyle-result {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .lifestyle-stat {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .lifestyle-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+        }
+
+        .tip-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 2px solid var(--warning);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        .tip-title { color: var(--warning); font-weight: 700; margin-bottom: 0.5rem; }
+
+        .next-week {
+            background: var(--card-bg);
+            border: 2px solid var(--primary-green);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+        }
+        .next-week h3 { color: var(--primary-green); margin-bottom: 1rem; }
+
+        @media (max-width: 768px) {
+            .impulse-grid { grid-template-columns: 1fr; }
+            .rule-input-group { grid-template-columns: 1fr; }
+            .sub-item { grid-template-columns: 1fr; gap: 0.5rem; }
+            .lifestyle-result { grid-template-columns: 1fr; }
+            .wishlist-item { flex-direction: column; gap: 1rem; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Back to Program</a>
+
+        <div class="header">
+            <h1 class="week-title">Week 6: Smart Spending Habits</h1>
+            <p class="week-subtitle">Impulse Buying Awareness, Subscription Audits, and Lifestyle Inflation</p>
+        </div>
+
+        <div class="intro-section">
+            <h2 style="color: var(--primary-green); margin-bottom: 1rem;">🛒 Why Smart Spending Matters</h2>
+            <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 1rem;">
+                Earning money is only half the equation. The other half? Not letting it disappear on things you don't actually need.
+                Companies spend billions engineering ways to make you spend impulsively. This week, you learn their tricks — and how to beat them.
+            </p>
+            <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid var(--error); border-radius: 0.5rem; padding: 1rem; text-align: center;">
+                <strong style="color: var(--error);">Did You Know?</strong>
+                <span style="color: var(--text-secondary);"> The average American spells $5,400/year on impulse purchases. That's $450/month that could be invested or saved.</span>
+            </div>
+        </div>
+
+        <!-- Section 1: Impulse Buying Traps -->
+        <div class="section-card">
+            <h2 class="section-title">🎯 Spot the Impulse Trap</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Click each card to reveal the marketing trick and your defense strategy.</p>
+
+            <div class="impulse-grid">
+                <div class="impulse-card" onclick="revealTrap(this)">
+                    <div class="impulse-emoji">⏰</div>
+                    <div class="impulse-title">Limited Time Offer!</div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">"Sale ends in 2 hours! 70% off!"</p>
+                    <div class="impulse-trap">🚨 <strong>The Trap:</strong> False urgency. Most "limited" sales repeat constantly. They want you to panic-buy before thinking.</div>
+                    <div class="impulse-defense">🛡️ <strong>Defense:</strong> Screenshot it and check back in a week. If the deal is real, it'll come back. If not, you saved money.</div>
+                </div>
+
+                <div class="impulse-card" onclick="revealTrap(this)">
+                    <div class="impulse-emoji">🆓</div>
+                    <div class="impulse-title">Free Shipping at $50!</div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">"You're $12 away from free shipping!"</p>
+                    <div class="impulse-trap">🚨 <strong>The Trap:</strong> Spending $12 to "save" $5 on shipping means you spent $7 more than necessary.</div>
+                    <div class="impulse-defense">🛡️ <strong>Defense:</strong> Do the math. Is the item you'd add actually worth it, or are you paying $12 to save $5?</div>
+                </div>
+
+                <div class="impulse-card" onclick="revealTrap(this)">
+                    <div class="impulse-emoji">👥</div>
+                    <div class="impulse-title">Everyone's Buying This!</div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">"23 people bought this in the last hour!"</p>
+                    <div class="impulse-trap">🚨 <strong>The Trap:</strong> Social proof pressure. Just because others buy something doesn't mean it's right for your budget.</div>
+                    <div class="impulse-defense">🛡️ <strong>Defense:</strong> Ask: "Would I buy this if nobody else was?" Your financial goals aren't the same as strangers'.</div>
+                </div>
+
+                <div class="impulse-card" onclick="revealTrap(this)">
+                    <div class="impulse-emoji">💎</div>
+                    <div class="impulse-title">Premium Upgrade Available!</div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">"For just $3 more, get the deluxe version!"</p>
+                    <div class="impulse-trap">🚨 <strong>The Trap:</strong> Anchoring. "$3 more" sounds tiny, but it's how small upgrades add up to big overspending.</div>
+                    <div class="impulse-defense">🛡️ <strong>Defense:</strong> Calculate the annual cost. "$3 more" weekly = $156/year. Still worth it?</div>
+                </div>
+
+                <div class="impulse-card" onclick="revealTrap(this)">
+                    <div class="impulse-emoji">📱</div>
+                    <div class="impulse-title">In-App Purchase</div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">"Buy 500 gems for just $4.99!"</p>
+                    <div class="impulse-trap">🚨 <strong>The Trap:</strong> Virtual currency obscures real cost. You think in "gems" not dollars. Many teens spend $50-100/month this way.</div>
+                    <div class="impulse-defense">🛡️ <strong>Defense:</strong> Convert to hours of work. If you earn $15/hr, that's 20 minutes of work for digital items that disappear.</div>
+                </div>
+
+                <div class="impulse-card" onclick="revealTrap(this)">
+                    <div class="impulse-emoji">🏷️</div>
+                    <div class="impulse-title">Buy One Get One 50% Off!</div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">"Amazing deal - stock up now!"</p>
+                    <div class="impulse-trap">🚨 <strong>The Trap:</strong> You only needed one. The "deal" made you spend 150% instead of 100%. You spent more, not less.</div>
+                    <div class="impulse-defense">🛡️ <strong>Defense:</strong> Only use BOGO deals for things already on your list. A deal on something you don't need isn't a deal.</div>
+                </div>
+            </div>
+
+            <div id="trap-score" style="text-align: center; margin-top: 1rem; display: none;">
+                <p style="color: var(--primary-green); font-size: 1.2rem; font-weight: 700;">
+                    You've uncovered <span id="traps-found">0</span>/6 marketing traps!
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 2: 24-Hour Rule Tracker -->
+        <div class="section-card">
+            <h2 class="section-title">⏳ The 24-Hour Rule Tracker</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Before buying something non-essential, add it here and wait 24 hours. You'll be surprised how many items you skip after sleeping on it.
+            </p>
+
+            <div class="rule-tracker">
+                <h3 style="color: var(--primary-green); margin-bottom: 1rem;">Add a Want</h3>
+                <div class="rule-input-group">
+                    <div>
+                        <label class="form-label" for="want-name">What do you want to buy?</label>
+                        <input type="text" id="want-name" class="form-input" placeholder="e.g., New headphones">
+                    </div>
+                    <div>
+                        <label class="form-label" for="want-cost">Cost</label>
+                        <input type="number" id="want-cost" class="form-input" placeholder="49.99" min="0" step="0.01">
+                    </div>
+                    <div>
+                        <button class="btn btn-warning" onclick="addToWishlist()" style="margin-top: 1.5rem;">Add to List</button>
+                    </div>
+                </div>
+
+                <div id="wishlist-container">
+                    <p id="wishlist-empty" style="color: var(--text-dim); text-align: center; padding: 2rem;">
+                        Your 24-hour list is empty. Add something you're tempted to buy!
+                    </p>
+                </div>
+
+                <div class="audit-summary" id="rule-summary" style="display: none;">
+                    <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">Money saved by waiting:</p>
+                    <div class="summary-number" id="money-saved">$0</div>
+                    <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.5rem;">Items you decided to skip after 24 hours</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Subscription Audit -->
+        <div class="section-card">
+            <h2 class="section-title">📊 Subscription Audit Tool</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Subscriptions are sneaky — small monthly charges that add up fast. Let's audit common teen subscriptions and see the true annual cost.
+            </p>
+
+            <div class="sub-audit">
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">Click the verdict for each subscription to categorize it:</p>
+
+                <div class="sub-item">
+                    <div class="sub-name">🎵 Music Streaming</div>
+                    <div class="sub-cost">$10.99</div>
+                    <div class="sub-frequency">/month</div>
+                    <span class="sub-verdict sub-review" onclick="cycleVerdict(this)" data-cost="10.99">Review</span>
+                </div>
+
+                <div class="sub-item">
+                    <div class="sub-name">🎬 Video Streaming</div>
+                    <div class="sub-cost">$15.49</div>
+                    <div class="sub-frequency">/month</div>
+                    <span class="sub-verdict sub-review" onclick="cycleVerdict(this)" data-cost="15.49">Review</span>
+                </div>
+
+                <div class="sub-item">
+                    <div class="sub-name">🎮 Gaming Service</div>
+                    <div class="sub-cost">$14.99</div>
+                    <div class="sub-frequency">/month</div>
+                    <span class="sub-verdict sub-review" onclick="cycleVerdict(this)" data-cost="14.99">Review</span>
+                </div>
+
+                <div class="sub-item">
+                    <div class="sub-name">☁️ Cloud Storage</div>
+                    <div class="sub-cost">$2.99</div>
+                    <div class="sub-frequency">/month</div>
+                    <span class="sub-verdict sub-review" onclick="cycleVerdict(this)" data-cost="2.99">Review</span>
+                </div>
+
+                <div class="sub-item">
+                    <div class="sub-name">📰 News/Magazine App</div>
+                    <div class="sub-cost">$9.99</div>
+                    <div class="sub-frequency">/month</div>
+                    <span class="sub-verdict sub-review" onclick="cycleVerdict(this)" data-cost="9.99">Review</span>
+                </div>
+
+                <div class="sub-item">
+                    <div class="sub-name">🏋️ Fitness App</div>
+                    <div class="sub-cost">$12.99</div>
+                    <div class="sub-frequency">/month</div>
+                    <span class="sub-verdict sub-review" onclick="cycleVerdict(this)" data-cost="12.99">Review</span>
+                </div>
+            </div>
+
+            <div class="audit-summary">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                    <div>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem;">Total Monthly</p>
+                        <div class="summary-number" id="sub-monthly" style="font-size: 1.8rem;">$67.44</div>
+                    </div>
+                    <div>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem;">Total Annual</p>
+                        <div class="summary-number" id="sub-annual" style="font-size: 1.8rem;">$809.28</div>
+                    </div>
+                    <div>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem;">You'd Cancel</p>
+                        <div class="summary-number" id="sub-savings" style="font-size: 1.8rem; color: var(--error);">$0</div>
+                    </div>
+                </div>
+                <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 1rem;">Click each verdict to cycle: Review → Keep → Cancel</p>
+            </div>
+        </div>
+
+        <!-- Section 4: Lifestyle Inflation -->
+        <div class="section-card">
+            <h2 class="section-title">📈 Lifestyle Inflation Simulator</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Lifestyle inflation means spending more as you earn more — so you never actually get ahead. 
+                See what happens when your spending grows with your income vs. keeping it flat.
+            </p>
+
+            <div class="lifestyle-section">
+                <div>
+                    <label class="form-label">Starting Monthly Income: $2,000</label>
+                    <label class="form-label" for="raise-pct">Annual Raise: <span id="raise-display">5%</span></label>
+                    <input type="range" id="raise-pct" class="lifestyle-slider" min="0" max="20" value="5" oninput="simulateLifestyle()">
+                </div>
+                <div style="margin-top: 1rem;">
+                    <label class="form-label" for="inflate-pct">Spending Increase per Raise: <span id="inflate-display">80%</span></label>
+                    <input type="range" id="inflate-pct" class="lifestyle-slider" min="0" max="100" value="80" oninput="simulateLifestyle()">
+                    <p style="color: var(--text-dim); font-size: 0.85rem;">If you get a $100 raise, this is how much extra you spend. 80% = you spend $80 more and save $20.</p>
+                </div>
+
+                <div class="lifestyle-result" id="lifestyle-result">
+                    <div class="lifestyle-stat">
+                        <p style="color: var(--text-secondary); font-size: 0.85rem;">After 5 Years — Inflated Lifestyle</p>
+                        <div class="lifestyle-value" style="color: var(--error);" id="inflated-savings">$0</div>
+                        <p style="color: var(--text-dim); font-size: 0.8rem;">Total saved</p>
+                    </div>
+                    <div class="lifestyle-stat">
+                        <p style="color: var(--text-secondary); font-size: 0.85rem;">After 5 Years — Smart Spending</p>
+                        <div class="lifestyle-value" style="color: var(--success);" id="smart-savings">$0</div>
+                        <p style="color: var(--text-dim); font-size: 0.8rem;">Total saved (keep spending flat)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tip-box">
+            <div class="tip-title">💡 The 3-Question Spending Filter</div>
+            <div style="color: var(--text-secondary);">
+                Before any purchase, ask yourself:
+                <ol style="margin: 1rem 0 0 1.5rem;">
+                    <li><strong>Do I need this, or do I just want it right now?</strong> — Needs are non-negotiable. Wants can wait.</li>
+                    <li><strong>How many hours of work does this cost?</strong> — Convert the price to work hours at your wage. Is it worth that much of your time?</li>
+                    <li><strong>Will this matter in 30 days?</strong> — If not, it's probably not worth buying today.</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="next-week" style="margin-top: 2rem;">
+            <h3>🎯 Ready for Week 7?</h3>
+            <p style="color: var(--text-secondary);">Next week we'll learn about banking, digital payments, and keeping your money safe!</p>
+            <a href="../week-07/" class="btn btn-primary" style="text-decoration: none; margin-top: 1rem; display: inline-block;">Continue to Week 7</a>
+        </div>
+    </div>
+
+    <script>
+        let trapsFound = 0;
+        let wishlist = [];
+        let savedTotal = 0;
+
+        function revealTrap(card) {
+            if (!card.classList.contains('revealed')) {
+                card.classList.add('revealed');
+                trapsFound++;
+                const scoreEl = document.getElementById('trap-score');
+                scoreEl.style.display = 'block';
+                document.getElementById('traps-found').textContent = trapsFound;
+                if (trapsFound === 6) markWeekCompleted();
+            }
+        }
+
+        function addToWishlist() {
+            const name = document.getElementById('want-name').value.trim();
+            const cost = parseFloat(document.getElementById('want-cost').value);
+            if (!name || !cost || cost <= 0) return;
+
+            const item = { name, cost, addedAt: Date.now(), id: Date.now() };
+            wishlist.push(item);
+            renderWishlist();
+
+            document.getElementById('want-name').value = '';
+            document.getElementById('want-cost').value = '';
+        }
+
+        function renderWishlist() {
+            const container = document.getElementById('wishlist-container');
+            const empty = document.getElementById('wishlist-empty');
+            
+            if (wishlist.length === 0) {
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            let html = '';
+            wishlist.forEach(item => {
+                const elapsed = Date.now() - item.addedAt;
+                const hoursLeft = Math.max(0, 24 - (elapsed / (1000 * 60 * 60)));
+                const ready = hoursLeft <= 0;
+                const timerText = ready ? '✅ 24 hours passed! Decision time.' : `⏳ ${Math.ceil(hoursLeft)} hours remaining`;
+                const decidedClass = item.decided === 'buy' ? 'decided-buy' : item.decided === 'skip' ? 'decided-skip' : '';
+
+                html += `
+                    <div class="wishlist-item ${decidedClass}">
+                        <div class="wishlist-info">
+                            <div class="wishlist-name">${item.name}</div>
+                            <div class="wishlist-cost">$${item.cost.toFixed(2)}</div>
+                            <div class="wishlist-timer">${item.decided ? (item.decided === 'buy' ? '✅ Decided to buy' : '❌ Decided to skip — saved!') : timerText}</div>
+                        </div>
+                        ${!item.decided ? `
+                        <div class="wishlist-actions">
+                            <button class="btn btn-primary" onclick="decideItem(${item.id}, 'buy')" style="padding: 0.5rem 1rem; font-size: 0.85rem;" ${!ready ? 'disabled style="opacity:0.5;padding:0.5rem 1rem;font-size:0.85rem;"' : ''}>Buy It</button>
+                            <button class="btn btn-danger" onclick="decideItem(${item.id}, 'skip')" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Skip It</button>
+                        </div>` : ''}
+                    </div>`;
+            });
+            container.innerHTML = html;
+            updateSavings();
+        }
+
+        function decideItem(id, decision) {
+            const item = wishlist.find(i => i.id === id);
+            if (item) {
+                item.decided = decision;
+                if (decision === 'skip') savedTotal += item.cost;
+                renderWishlist();
+            }
+        }
+
+        function updateSavings() {
+            const summary = document.getElementById('rule-summary');
+            if (wishlist.some(i => i.decided)) {
+                summary.style.display = 'block';
+                document.getElementById('money-saved').textContent = `$${savedTotal.toFixed(2)}`;
+            }
+        }
+
+        // Subscription audit
+        function cycleVerdict(el) {
+            const states = ['Review', 'Keep', 'Cancel'];
+            const classes = ['sub-review', 'sub-keep', 'sub-cancel'];
+            const currentIdx = states.indexOf(el.textContent);
+            const nextIdx = (currentIdx + 1) % 3;
+
+            el.textContent = states[nextIdx];
+            el.className = 'sub-verdict ' + classes[nextIdx];
+            updateSubTotals();
+        }
+
+        function updateSubTotals() {
+            const verdicts = document.querySelectorAll('.sub-verdict');
+            let cancelTotal = 0;
+            verdicts.forEach(v => {
+                if (v.textContent === 'Cancel') {
+                    cancelTotal += parseFloat(v.dataset.cost);
+                }
+            });
+            document.getElementById('sub-savings').textContent = `$${(cancelTotal * 12).toFixed(0)}/yr`;
+        }
+
+        // Lifestyle inflation simulator
+        function simulateLifestyle() {
+            const raisePct = parseInt(document.getElementById('raise-pct').value) / 100;
+            const inflatePct = parseInt(document.getElementById('inflate-pct').value) / 100;
+
+            document.getElementById('raise-display').textContent = (raisePct * 100).toFixed(0) + '%';
+            document.getElementById('inflate-display').textContent = (inflatePct * 100).toFixed(0) + '%';
+
+            let income = 2000;
+            let inflatedSpending = 1800; // Start spending 90% of income
+            let smartSpending = 1800;
+            let inflatedSaved = 0;
+            let smartSaved = 0;
+
+            for (let year = 0; year < 5; year++) {
+                for (let month = 0; month < 12; month++) {
+                    inflatedSaved += (income - inflatedSpending);
+                    smartSaved += (income - smartSpending);
+                }
+                const raise = income * raisePct;
+                income += raise;
+                inflatedSpending += raise * inflatePct;
+                // Smart: spending stays flat
+            }
+
+            document.getElementById('inflated-savings').textContent = `$${Math.round(inflatedSaved).toLocaleString()}`;
+            document.getElementById('smart-savings').textContent = `$${Math.round(smartSaved).toLocaleString()}`;
+        }
+
+        function markWeekCompleted() {
+            const progress = JSON.parse(localStorage.getItem('yf-progress') || '[]');
+            if (!progress.includes(6)) {
+                progress.push(6);
+                localStorage.setItem('yf-progress', JSON.stringify(progress));
+            }
+        }
+
+        // Init
+        simulateLifestyle();
+    </script>
+</body>
+</html>

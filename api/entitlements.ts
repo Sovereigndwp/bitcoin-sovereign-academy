@@ -255,11 +255,6 @@ function getModulesForPath(pathId: string): string[] {
       'pragmatist-business-adoption',
       'pragmatist-tax-compliance',
       'pragmatist-treasury-management'
-    ],
-    'observer': [
-      'observer-bitcoin-overview',
-      'observer-use-cases',
-      'observer-getting-started'
     ]
   };
 

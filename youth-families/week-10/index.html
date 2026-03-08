@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 10: Family Financial Planning | Youth & Families Program</title>
+    <meta name="description" content="Capstone week bringing families together for collaborative financial goal-setting, emergency planning, and building multi-generational wealth.">
+    <style>
+        :root {
+            --primary-green: #10b981; --primary-orange: #f7931a; --dark-bg: #0a1f1a;
+            --card-bg: #1a3a2e; --border-color: #2a5a4e; --text-primary: #e0e0e0;
+            --text-secondary: #9ca3af; --text-dim: #6b7280; --success: #10b981;
+            --warning: #f59e0b; --error: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--dark-bg); color: var(--text-primary); line-height: 1.6; padding: 2rem 1rem; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--primary-green); text-decoration: none; margin-bottom: 2rem; font-weight: 600; transition: transform 0.2s; }
+        .back-link:hover { transform: translateX(-4px); }
+        .header { text-align: center; margin-bottom: 3rem; }
+        .week-title { font-size: 2.5rem; color: var(--primary-green); margin-bottom: 0.5rem; }
+        .week-subtitle { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 2rem; }
+        .intro-section, .section-card { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .intro-section { margin-bottom: 3rem; }
+        .section-title { font-size: 1.5rem; color: var(--primary-green); margin-bottom: 1rem; }
+        .form-label { display: block; font-weight: 600; color: var(--primary-green); margin-bottom: 0.5rem; font-size: 0.95rem; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 0.75rem; background: var(--dark-bg); border: 2px solid var(--border-color); border-radius: 0.5rem; color: var(--text-primary); font-size: 1rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .form-textarea { min-height: 80px; resize: vertical; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--primary-green); }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-help { font-size: 0.85rem; color: var(--text-dim); margin-top: 0.25rem; }
+        .goal-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 1.5rem 0; }
+        .goal-card { background: var(--dark-bg); border: 2px solid var(--border-color); border-radius: 0.75rem; padding: 1.5rem; }
+        .goal-timeframe { font-size: 0.85rem; color: var(--primary-green); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
+        .goal-title { font-weight: 700; color: var(--text-primary); font-size: 1.1rem; margin-bottom: 0.75rem; }
+        .goal-inputs { list-style: none; }
+        .goal-input-item { margin-bottom: 0.75rem; }
+        .goal-input-label { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.25rem; }
+        .emergency-scenario { background: var(--dark-bg); border: 2px solid var(--border-color); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1rem; cursor: pointer; transition: all 0.3s; }
+        .emergency-scenario:hover { border-color: var(--warning); }
+        .emergency-scenario.revealed { border-color: var(--primary-green); }
+        .scenario-header { display: flex; justify-content: space-between; align-items: center; }
+        .scenario-title { font-weight: 700; color: var(--text-primary); }
+        .scenario-cost { color: var(--error); font-family: 'Courier New', monospace; font-weight: 700; }
+        .scenario-plan { display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); }
+        .emergency-scenario.revealed .scenario-plan { display: block; }
+        .wealth-timeline { position: relative; padding-left: 3rem; margin: 1.5rem 0; }
+        .wealth-timeline::before { content: ''; position: absolute; left: 1rem; top: 0; bottom: 0; width: 3px; background: linear-gradient(to bottom, var(--primary-green), var(--primary-orange)); }
+        .timeline-item { position: relative; margin-bottom: 2rem; }
+        .timeline-item::before { content: ''; position: absolute; left: -2.35rem; top: 0.5rem; width: 14px; height: 14px; border-radius: 50%; background: var(--primary-green); border: 3px solid var(--dark-bg); }
+        .timeline-age { font-size: 0.85rem; color: var(--primary-green); font-weight: 700; }
+        .timeline-action { font-weight: 600; color: var(--text-primary); margin: 0.25rem 0; }
+        .timeline-detail { font-size: 0.9rem; color: var(--text-secondary); }
+        .review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+        .review-card { background: var(--dark-bg); border: 2px solid var(--border-color); border-radius: 0.75rem; padding: 1.25rem; text-align: center; }
+        .review-week { font-size: 0.85rem; color: var(--primary-green); font-weight: 700; }
+        .review-topic { font-weight: 600; color: var(--text-primary); font-size: 0.95rem; margin: 0.5rem 0; }
+        .review-key { font-size: 0.85rem; color: var(--text-dim); }
+        .certificate { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(247, 147, 26, 0.1)); border: 3px solid var(--primary-green); border-radius: 1.5rem; padding: 3rem; text-align: center; margin: 2rem 0; }
+        .certificate-icon { font-size: 4rem; margin-bottom: 1rem; }
+        .certificate-title { font-size: 2rem; color: var(--primary-green); font-weight: 800; margin-bottom: 0.5rem; }
+        .certificate-subtitle { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 1.5rem; }
+        .certificate-name { font-size: 1.5rem; color: var(--primary-orange); font-weight: 700; font-style: italic; margin-bottom: 1rem; }
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 1rem; }
+        .btn-primary { background: var(--primary-green); color: white; }
+        .btn-primary:hover { background: #059669; transform: translateY(-2px); }
+        .btn-secondary { background: transparent; color: var(--primary-green); border: 2px solid var(--primary-green); }
+        .btn-secondary:hover { background: var(--primary-green); color: white; }
+        .tip-box { background: rgba(245, 158, 11, 0.1); border: 2px solid var(--warning); border-radius: 0.75rem; padding: 1.5rem; margin-top: 2rem; }
+        .tip-title { color: var(--warning); font-weight: 700; margin-bottom: 0.5rem; }
+        .completion-section { background: var(--card-bg); border: 2px solid var(--primary-green); border-radius: 1rem; padding: 2rem; text-align: center; margin-top: 2rem; }
+        .completion-section h3 { color: var(--primary-green); margin-bottom: 1rem; }
+        @media (max-width: 768px) { .goal-cards { grid-template-columns: 1fr; } .review-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Back to Program</a>
+        <div class="header">
+            <h1 class="week-title">Week 10: Family Financial Planning</h1>
+            <p class="week-subtitle">Collaborative Goal-Setting, Emergency Planning, and Building Multi-Generational Wealth</p>
+        </div>
+
+        <div class="intro-section">
+            <h2 style="color: var(--primary-green); margin-bottom: 1rem;">👨‍👩‍👧‍👦 Bringing It All Together</h2>
+            <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 1rem;">
+                This is the capstone week. Everything you've learned over the past 9 weeks comes together in a family conversation. 
+                Financial planning works best when everyone is on the same page. This week, sit down together and create a shared plan.
+            </p>
+            <div style="background: rgba(16, 185, 129, 0.1); border: 2px solid var(--success); border-radius: 0.5rem; padding: 1rem; text-align: center;">
+                <strong style="color: var(--success);">Family Activity:</strong>
+                <span style="color: var(--text-secondary);"> Set aside 1 hour this week for a family financial meeting. Use the tools below as your agenda.</span>
+            </div>
+        </div>
+
+        <!-- Section 1: 10-Week Review -->
+        <div class="section-card">
+            <h2 class="section-title">📋 10-Week Skill Review</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Here's everything you've learned. Which skills do you feel strongest about?</p>
+            <div class="review-grid">
+                <div class="review-card"><div class="review-week">Week 1</div><div class="review-topic">Money Basics</div><div class="review-key">Needs vs Wants</div></div>
+                <div class="review-card"><div class="review-week">Week 2</div><div class="review-topic">Money Flows</div><div class="review-key">Budgeting</div></div>
+                <div class="review-card"><div class="review-week">Week 3</div><div class="review-topic">Saving</div><div class="review-key">Goal Setting</div></div>
+                <div class="review-card"><div class="review-week">Week 4</div><div class="review-topic">Emergency Fund</div><div class="review-key">Safety Nets</div></div>
+                <div class="review-card"><div class="review-week">Week 5</div><div class="review-topic">Paychecks</div><div class="review-key">Taxes & Net Pay</div></div>
+                <div class="review-card"><div class="review-week">Week 6</div><div class="review-topic">Smart Spending</div><div class="review-key">Impulse Control</div></div>
+                <div class="review-card"><div class="review-week">Week 7</div><div class="review-topic">Banking</div><div class="review-key">Digital Safety</div></div>
+                <div class="review-card"><div class="review-week">Week 8</div><div class="review-topic">College Planning</div><div class="review-key">FAFSA & Aid</div></div>
+                <div class="review-card"><div class="review-week">Week 9</div><div class="review-topic">Independence</div><div class="review-key">Real-World Costs</div></div>
+                <div class="review-card" style="border-color: var(--primary-green);"><div class="review-week">Week 10</div><div class="review-topic">Family Plan</div><div class="review-key">This Week!</div></div>
+            </div>
+        </div>
+
+        <!-- Section 2: Family Goal-Setting -->
+        <div class="section-card">
+            <h2 class="section-title">🎯 Family Goal-Setting Worksheet</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Fill this out together as a family. Write down specific, measurable goals with deadlines.
+            </p>
+
+            <div class="goal-cards">
+                <div class="goal-card">
+                    <div class="goal-timeframe">Short-Term (1-6 months)</div>
+                    <div class="goal-title">Quick Wins</div>
+                    <div class="goal-inputs">
+                        <div class="goal-input-item">
+                            <div class="goal-input-label">Goal 1:</div>
+                            <input type="text" class="form-input goal-field" placeholder="e.g., Save $500 emergency fund">
+                        </div>
+                        <div class="goal-input-item">
+                            <div class="goal-input-label">Goal 2:</div>
+                            <input type="text" class="form-input goal-field" placeholder="e.g., Cancel 2 unused subscriptions">
+                        </div>
+                        <div class="goal-input-item">
+                            <div class="goal-input-label">Target Date:</div>
+                            <input type="date" class="form-input goal-field">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="goal-card">
+                    <div class="goal-timeframe">Medium-Term (6-24 months)</div>
+                    <div class="goal-title">Building Momentum</div>
+                    <div class="goal-inputs">
+                        <div class="goal-input-item">
+                            <div class="goal-input-label">Goal 1:</div>
+                            <input type="text" class="form-input goal-field" placeholder="e.g., Save 3 months emergency fund">
+                        </div>
+                        <div class="goal-input-item">
+                            <div class="goal-input-label">Goal 2:</div>
+                            <input type="text" class="form-input goal-field" placeholder="e.g., Open first investment account">
+                        </div>
+                        <div class="goal-input-item">
+                            <div class="goal-input-label">Target Date:</div>
+                            <input type="date" class="form-input goal-field">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="goal-card">
+                    <div class="goal-timeframe">Long-Term (2-10 years)</div>
+                    <div class="goal-title">Life-Changing Goals</div>
+                    <div class="goal-inputs">
+                        <div class="goal-input-item">
+                            <div class="goal-input-label">Goal 1:</div>
+                            <input type="text" class="form-input goal-field" placeholder="e.g., Graduate college debt-free">
+                        </div>
+                        <div class="goal-input-item">
+                            <div class="goal-input-label">Goal 2:</div>
+                            <input type="text" class="form-input goal-field" placeholder="e.g., Save for first home down payment">
+                        </div>
+                        <div class="goal-input-item">
+                            <div class="goal-input-label">Target Date:</div>
+                            <input type="date" class="form-input goal-field">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveGoals()" style="width: 100%; margin-top: 1rem;">Save Family Goals</button>
+            <p id="save-confirmation" style="color: var(--success); text-align: center; margin-top: 0.5rem; display: none;">✅ Goals saved to your browser!</p>
+        </div>
+
+        <!-- Section 3: Emergency Planning -->
+        <div class="section-card">
+            <h2 class="section-title">🚨 Family Emergency Scenarios</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Click each scenario to reveal the typical cost and discuss your family's plan.</p>
+
+            <div class="emergency-scenario" onclick="revealScenario(this)">
+                <div class="scenario-header">
+                    <span class="scenario-title">🚗 Car Breaks Down</span>
+                    <span class="scenario-cost">$500 - $3,000</span>
+                </div>
+                <div class="scenario-plan">
+                    <p style="color: var(--text-secondary); margin-bottom: 0.5rem;"><strong>Discussion:</strong> How would your family handle this? Do you have the cash, or would you need a payment plan?</p>
+                    <textarea class="form-textarea goal-field" placeholder="Our family plan: ..."></textarea>
+                </div>
+            </div>
+
+            <div class="emergency-scenario" onclick="revealScenario(this)">
+                <div class="scenario-header">
+                    <span class="scenario-title">🏥 Medical Emergency</span>
+                    <span class="scenario-cost">$1,000 - $10,000+</span>
+                </div>
+                <div class="scenario-plan">
+                    <p style="color: var(--text-secondary); margin-bottom: 0.5rem;"><strong>Discussion:</strong> Does your family have health insurance? What's the deductible? Where would the money come from?</p>
+                    <textarea class="form-textarea goal-field" placeholder="Our family plan: ..."></textarea>
+                </div>
+            </div>
+
+            <div class="emergency-scenario" onclick="revealScenario(this)">
+                <div class="scenario-header">
+                    <span class="scenario-title">💼 Job Loss</span>
+                    <span class="scenario-cost">3-6 months expenses</span>
+                </div>
+                <div class="scenario-plan">
+                    <p style="color: var(--text-secondary); margin-bottom: 0.5rem;"><strong>Discussion:</strong> How many months could your family survive without the primary income? What expenses could be cut immediately?</p>
+                    <textarea class="form-textarea goal-field" placeholder="Our family plan: ..."></textarea>
+                </div>
+            </div>
+
+            <div class="emergency-scenario" onclick="revealScenario(this)">
+                <div class="scenario-header">
+                    <span class="scenario-title">🏠 Appliance Failure</span>
+                    <span class="scenario-cost">$300 - $2,000</span>
+                </div>
+                <div class="scenario-plan">
+                    <p style="color: var(--text-secondary); margin-bottom: 0.5rem;"><strong>Discussion:</strong> Washer, fridge, or AC breaks. Repair or replace? Do you have a home warranty or savings for this?</p>
+                    <textarea class="form-textarea goal-field" placeholder="Our family plan: ..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Wealth Timeline -->
+        <div class="section-card">
+            <h2 class="section-title">📈 Multi-Generational Wealth Building</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Small, consistent actions compound over decades. Here's a realistic timeline for building family wealth.</p>
+
+            <div class="wealth-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-age">Age 16-18</div>
+                    <div class="timeline-action">Start earning and saving</div>
+                    <div class="timeline-detail">First job, first bank account, save 20% of every paycheck. Build the habit now.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-age">Age 18-22</div>
+                    <div class="timeline-action">Minimize debt, start investing</div>
+                    <div class="timeline-detail">Graduate with minimal student loans. Open a Roth IRA. Even $50/month grows to $100K+ by retirement.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-age">Age 22-30</div>
+                    <div class="timeline-action">Build emergency fund + invest aggressively</div>
+                    <div class="timeline-detail">6 months emergency fund. Max out employer 401K match (it's free money). Time is your biggest advantage.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-age">Age 30-40</div>
+                    <div class="timeline-action">Build assets, avoid lifestyle inflation</div>
+                    <div class="timeline-detail">Home ownership if it makes sense. Continue investing. Your early investments are now compounding significantly.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-age">Age 40-60</div>
+                    <div class="timeline-action">Accelerate wealth building</div>
+                    <div class="timeline-detail">Peak earning years. Maximize retirement contributions. Start planning estate and legacy.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-age">Age 60+</div>
+                    <div class="timeline-action">Enjoy financial freedom, teach the next generation</div>
+                    <div class="timeline-detail">Financial independence. Pass knowledge and wealth to children and grandchildren. Break the cycle of financial stress.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Completion Certificate -->
+        <div class="certificate" id="certificate">
+            <div class="certificate-icon">🏆</div>
+            <div class="certificate-title">Program Complete!</div>
+            <div class="certificate-subtitle">Youth & Families Financial Literacy Program</div>
+            <div class="form-group" style="max-width: 400px; margin: 0 auto;">
+                <input type="text" id="student-name" class="form-input" placeholder="Enter your name" style="text-align: center; font-size: 1.2rem;">
+            </div>
+            <div class="certificate-name" id="display-name"></div>
+            <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 1.5rem;">
+                Has completed 10 weeks of financial literacy education covering budgeting, saving, banking, college planning, and family financial planning.
+            </p>
+            <button class="btn btn-primary" onclick="generateCertificate()">Generate My Certificate</button>
+        </div>
+
+        <div class="tip-box">
+            <div class="tip-title">💡 Keep the Conversation Going</div>
+            <div style="color: var(--text-secondary);">
+                Financial literacy isn't a one-time course — it's a lifelong practice. Here's how to keep building:
+                <ul style="margin: 0.75rem 0 0 1.5rem;">
+                    <li><strong>Monthly family check-ins</strong> — review the budget, celebrate wins, adjust goals</li>
+                    <li><strong>Share financial wins</strong> — tell the family when you save money or avoid a bad purchase</li>
+                    <li><strong>Learn together</strong> — explore <a href="https://financiallysovereign.academy" style="color: var(--primary-green);">Financially Sovereign Academy</a> for advanced topics</li>
+                    <li><strong>Teach someone else</strong> — the best way to learn is to teach a friend or younger sibling</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="completion-section">
+            <h3>🎉 Congratulations!</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">You've completed the 10-week Youth & Families Financial Literacy Program.</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="../" class="btn btn-primary" style="text-decoration: none;">Back to Program Hub</a>
+                <a href="https://bitcoinsovereign.academy" class="btn btn-secondary" style="text-decoration: none;">Explore Bitcoin Academy</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function revealScenario(el) {
+            el.classList.toggle('revealed');
+        }
+
+        function saveGoals() {
+            const fields = document.querySelectorAll('.goal-field');
+            const goals = [];
+            fields.forEach(f => goals.push(f.value));
+            localStorage.setItem('yf-family-goals', JSON.stringify(goals));
+            document.getElementById('save-confirmation').style.display = 'block';
+            setTimeout(() => { document.getElementById('save-confirmation').style.display = 'none'; }, 3000);
+            markWeekCompleted();
+        }
+
+        function generateCertificate() {
+            const name = document.getElementById('student-name').value.trim();
+            if (!name) {
+                document.getElementById('student-name').style.borderColor = 'var(--error)';
+                return;
+            }
+            document.getElementById('display-name').textContent = name;
+            document.getElementById('student-name').style.borderColor = 'var(--success)';
+            markWeekCompleted();
+        }
+
+        // Load saved goals
+        window.addEventListener('load', () => {
+            const saved = JSON.parse(localStorage.getItem('yf-family-goals') || '[]');
+            if (saved.length) {
+                const fields = document.querySelectorAll('.goal-field');
+                saved.forEach((val, i) => { if (fields[i]) fields[i].value = val; });
+            }
+        });
+
+        function markWeekCompleted() {
+            const progress = JSON.parse(localStorage.getItem('yf-progress') || '[]');
+            if (!progress.includes(10)) {
+                progress.push(10);
+                localStorage.setItem('yf-progress', JSON.stringify(progress));
+            }
+        }
+    </script>
+</body>
+</html>

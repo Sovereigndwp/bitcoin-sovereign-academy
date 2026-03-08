@@ -1,0 +1,203 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multisig Security Guide — Eliminate Single Points of Failure | Sovereign Tools</title>
+    <meta name="description" content="How Bitcoin multisig works, why it's the gold standard for security, common configurations (2-of-3, 3-of-5), and practical setup guidance.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; min-height: 100vh; color: #e0e0e0; line-height: 1.6; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: #f7931a; text-decoration: none; margin-bottom: 2rem; font-weight: 600; }
+        .back-link:hover { color: #D4AF37; }
+        .header { text-align: center; padding: 40px 20px; margin-bottom: 40px; }
+        .header h1 { font-size: 2.5rem; margin-bottom: 15px; background: linear-gradient(135deg, #f7931a, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .header p { font-size: 1.1rem; color: #999; max-width: 700px; margin: 0 auto; }
+        .section { background: rgba(255,255,255,0.05); border-radius: 15px; margin-bottom: 25px; overflow: hidden; border: 1px solid rgba(247, 147, 26, 0.25); }
+        .section-header { background: linear-gradient(135deg, #f7931a, #D4AF37); color: black; padding: 20px 30px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; font-weight: bold; }
+        .section-header:hover { background: linear-gradient(135deg, #ffa726, #FFD700); }
+        .section-icon { font-size: 1.5rem; }
+        .section-body { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; }
+        .section-body.active { max-height: 10000px; }
+        .section-inner { padding: 30px; }
+        .insight-box { background: rgba(247, 147, 26, 0.1); border: 2px solid #f7931a; border-radius: 10px; padding: 20px; margin: 20px 0; }
+        .problem-box { background: rgba(220, 53, 69, 0.1); border: 2px solid #dc3545; border-radius: 10px; padding: 20px; margin: 20px 0; }
+        .solution-box { background: rgba(40, 167, 69, 0.1); border: 2px solid #28a745; border-radius: 10px; padding: 20px; margin: 20px 0; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 20px 0; }
+        .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(247, 147, 26, 0.25); border-radius: 12px; padding: 20px; }
+        .card h4 { color: #f7931a; margin-bottom: 10px; }
+        /* Key visualization */
+        .key-viz { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
+        .key-slot { width: 80px; height: 100px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; transition: all 0.3s; border: 2px solid #555; background: rgba(255,255,255,0.03); }
+        .key-slot.active { border-color: #28a745; background: rgba(40, 167, 69, 0.15); box-shadow: 0 0 15px rgba(40, 167, 69, 0.3); }
+        .key-slot .key-label { font-size: 0.7rem; color: #999; margin-top: 5px; }
+        .config-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin: 20px 0; }
+        .config-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(247, 147, 26, 0.25); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .config-card:hover { border-color: #f7931a; }
+        .config-card.selected { border-color: #28a745; background: rgba(40, 167, 69, 0.1); }
+        .config-name { font-size: 1.3rem; font-weight: 800; color: #f7931a; margin-bottom: 5px; }
+        .config-desc { font-size: 0.85rem; color: #999; }
+        .btn { background: linear-gradient(135deg, #f7931a, #D4AF37); color: black; border: none; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-size: 1rem; font-weight: 700; transition: all 0.3s; margin: 5px; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(247, 147, 26, 0.4); }
+        @media (max-width: 768px) { .header h1 { font-size: 1.8rem; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="./" class="back-link">← Back to Sovereign Tools</a>
+        <div class="header">
+            <h1>Multisig Security Guide</h1>
+            <p>A single key is a single point of failure. Multisig requires multiple keys to authorize a transaction — eliminating the risk that one lost, stolen, or compromised key can destroy your Bitcoin.</p>
+        </div>
+
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(0)">
+                <span>🔑 What Is Multisig?</span>
+                <span class="section-icon" id="icon-0">▼</span>
+            </div>
+            <div class="section-body" id="body-0">
+                <div class="section-inner">
+                    <p style="margin-bottom: 15px;"><strong>Multisig</strong> (multi-signature) requires M-of-N keys to authorize a Bitcoin transaction. For example, a 2-of-3 setup means you have 3 keys but only need any 2 to spend. This means you can lose one key and still access your Bitcoin.</p>
+
+                    <div style="text-align: center; margin: 25px 0;">
+                        <p style="margin-bottom: 15px; color: #f7931a; font-weight: 700;">Interactive: Click keys to "sign" a 2-of-3 transaction</p>
+                        <div class="key-viz">
+                            <div class="key-slot" id="key-0" onclick="toggleKey(0)">
+                                🔑
+                                <span class="key-label">Key 1</span>
+                            </div>
+                            <div class="key-slot" id="key-1" onclick="toggleKey(1)">
+                                🔑
+                                <span class="key-label">Key 2</span>
+                            </div>
+                            <div class="key-slot" id="key-2" onclick="toggleKey(2)">
+                                🔑
+                                <span class="key-label">Key 3</span>
+                            </div>
+                        </div>
+                        <p id="ms-status" style="margin-top: 15px; font-weight: 700; font-size: 1.1rem;">Select 2 keys to authorize the transaction</p>
+                    </div>
+
+                    <div class="problem-box">
+                        <h4 style="color: #dc3545; margin-bottom: 10px;">Single-Key Risks</h4>
+                        <p>With a standard single-key wallet, one failure destroys everything: lost seed phrase, stolen hardware wallet, house fire, $5 wrench attack. Multisig eliminates all of these as catastrophic risks.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(1)">
+                <span>⚙️ Common Configurations</span>
+                <span class="section-icon" id="icon-1">▼</span>
+            </div>
+            <div class="section-body" id="body-1">
+                <div class="section-inner">
+                    <div class="config-cards">
+                        <div class="config-card" onclick="showConfig('2of3')">
+                            <div class="config-name">2-of-3</div>
+                            <div class="config-desc">Most popular. Lose 1 key, still safe. Great for personal savings.</div>
+                        </div>
+                        <div class="config-card" onclick="showConfig('3of5')">
+                            <div class="config-name">3-of-5</div>
+                            <div class="config-desc">Higher redundancy. Lose 2 keys, still safe. Great for large amounts.</div>
+                        </div>
+                        <div class="config-card" onclick="showConfig('2of2')">
+                            <div class="config-name">2-of-2</div>
+                            <div class="config-desc">Both keys required. No redundancy but prevents single-party spending. Good for shared accounts.</div>
+                        </div>
+                    </div>
+                    <div id="config-detail" style="display: none; margin-top: 20px; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid rgba(247, 147, 26, 0.25);"></div>
+
+                    <div class="solution-box" style="margin-top: 20px;">
+                        <h4 style="color: #28a745; margin-bottom: 10px;">Recommended Tools</h4>
+                        <ul style="padding-left: 20px;">
+                            <li style="margin-bottom: 8px;"><strong>Sparrow Wallet</strong> — Excellent desktop multisig with full coin control</li>
+                            <li style="margin-bottom: 8px;"><strong>Nunchuk</strong> — Mobile-friendly multisig with collaborative features</li>
+                            <li style="margin-bottom: 8px;"><strong>Caravan (Unchained)</strong> — Open-source multisig coordination tool</li>
+                            <li><strong>Hardware wallets:</strong> Use different brands (Coldcard, Trezor, Ledger) for each key to avoid single-vendor risk</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(2)">
+                <span>🛡️ Best Practices</span>
+                <span class="section-icon" id="icon-2">▼</span>
+            </div>
+            <div class="section-body" id="body-2">
+                <div class="section-inner">
+                    <div class="cards">
+                        <div class="card">
+                            <h4>📍 Geographic Distribution</h4>
+                            <p style="font-size: 0.95rem;">Store keys in different physical locations. A fire, flood, or burglary at one location shouldn't compromise your entire setup.</p>
+                        </div>
+                        <div class="card">
+                            <h4>🔧 Vendor Diversity</h4>
+                            <p style="font-size: 0.95rem;">Use different hardware wallet brands for each key. A vulnerability in one brand doesn't compromise your security.</p>
+                        </div>
+                        <div class="card">
+                            <h4>📋 Test Your Recovery</h4>
+                            <p style="font-size: 0.95rem;">Regularly verify you can reconstruct your multisig and sign a transaction. Don't wait for an emergency to discover a problem.</p>
+                        </div>
+                        <div class="card">
+                            <h4>📝 Document Everything</h4>
+                            <p style="font-size: 0.95rem;">Store the wallet configuration file (not the keys!) so you can reconstruct the multisig. Without it, even having all keys isn't enough.</p>
+                        </div>
+                    </div>
+
+                    <div class="insight-box">
+                        <h4 style="color: #f7931a; margin-bottom: 10px;">The Security Mindset</h4>
+                        <p style="font-size: 1.05rem;">Multisig isn't just a technical feature — it's a philosophy of eliminating single points of failure. 
+                        The same principle applies to all of Bitcoin: no single miner, no single node, no single developer can compromise the system. 
+                        <strong>Multisig extends this philosophy to your personal security: no single key, no single location, no single point of failure.</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSection(idx) {
+            const body = document.getElementById('body-' + idx);
+            const icon = document.getElementById('icon-' + idx);
+            body.classList.toggle('active');
+            icon.textContent = body.classList.contains('active') ? '▲' : '▼';
+        }
+
+        let activeKeys = new Set();
+        function toggleKey(idx) {
+            const el = document.getElementById('key-' + idx);
+            if (activeKeys.has(idx)) {
+                activeKeys.delete(idx);
+                el.classList.remove('active');
+            } else {
+                activeKeys.add(idx);
+                el.classList.add('active');
+            }
+            const status = document.getElementById('ms-status');
+            if (activeKeys.size >= 2) {
+                status.textContent = '✅ Transaction authorized! (2 of 3 keys signed)';
+                status.style.color = '#28a745';
+            } else {
+                status.textContent = `${activeKeys.size}/2 keys selected — need ${2 - activeKeys.size} more`;
+                status.style.color = '#f7931a';
+            }
+        }
+
+        const configs = {
+            '2of3': '<h4 style="color: #f7931a; margin-bottom: 10px;">2-of-3 Multisig</h4><p><strong>Setup:</strong> 3 hardware wallets, each stored in a different location (home safe, bank vault, trusted family member).</p><p style="margin-top: 10px;"><strong>To spend:</strong> Bring any 2 devices together and sign.</p><p style="margin-top: 10px;"><strong>If you lose 1 key:</strong> You can still spend with the other 2. Replace the lost key at your leisure.</p><p style="margin-top: 10px; color: #28a745;"><strong>Best for:</strong> Personal savings, long-term holding, inheritance planning.</p>',
+            '3of5': '<h4 style="color: #f7931a; margin-bottom: 10px;">3-of-5 Multisig</h4><p><strong>Setup:</strong> 5 keys distributed across multiple locations and possibly trusted parties.</p><p style="margin-top: 10px;"><strong>To spend:</strong> Coordinate 3 of the 5 keyholders.</p><p style="margin-top: 10px;"><strong>If you lose 2 keys:</strong> Still safe. Maximum redundancy.</p><p style="margin-top: 10px; color: #28a745;"><strong>Best for:</strong> Business treasury, high-value storage, organizational funds.</p>',
+            '2of2': '<h4 style="color: #f7931a; margin-bottom: 10px;">2-of-2 Multisig</h4><p><strong>Setup:</strong> 2 keys, both required. Often one mobile + one hardware wallet.</p><p style="margin-top: 10px;"><strong>To spend:</strong> Both keys must sign. Neither party can spend alone.</p><p style="margin-top: 10px; color: #dc3545;"><strong>Warning:</strong> If you lose either key, funds are locked forever. Always have a recovery plan.</p><p style="margin-top: 10px; color: #28a745;"><strong>Best for:</strong> Joint accounts, business partnerships, collaborative custody.</p>'
+        };
+
+        function showConfig(key) {
+            document.getElementById('config-detail').innerHTML = configs[key];
+            document.getElementById('config-detail').style.display = 'block';
+            document.querySelectorAll('.config-card').forEach(c => c.classList.remove('selected'));
+            event.target.closest('.config-card').classList.add('selected');
+        }
+    </script>
+</body>
+</html>
