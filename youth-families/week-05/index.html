@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 5: First Paycheck Literacy | Youth & Families Program</title>
+    <meta name="description" content="Interactive paycheck calculator helping teens understand gross vs net pay, taxes, and deductions.">
+    <style>
+        :root {
+            --primary-green: #10b981;
+            --primary-orange: #f7931a;
+            --dark-bg: #0a1f1a;
+            --card-bg: #1a3a2e;
+            --border-color: #2a5a4e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #9ca3af;
+            --text-dim: #6b7280;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-green);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .back-link:hover {
+            transform: translateX(-4px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .week-title {
+            font-size: 2.5rem;
+            color: var(--primary-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .week-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .intro-section {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-panel {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .results-panel {
+            background: var(--dark-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--primary-green);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--dark-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--dark-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-green);
+        }
+
+        .form-help {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-top: 0.25rem;
+        }
+
+        .paycheck-visual {
+            background: var(--card-bg);
+            border: 2px solid var(--primary-green);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .paycheck-title {
+            font-size: 1.5rem;
+            color: var(--primary-green);
+            margin-bottom: 1.5rem;
+        }
+
+        .gross-pay {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-green);
+            font-family: 'Courier New', monospace;
+            margin-bottom: 1rem;
+        }
+
+        .gross-label {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .deductions-list {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .deduction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--dark-bg);
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .deduction-label {
+            color: var(--text-secondary);
+        }
+
+        .deduction-amount {
+            color: var(--error);
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        .net-pay {
+            border-top: 3px solid var(--primary-green);
+            padding-top: 1.5rem;
+        }
+
+        .net-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--success);
+            font-family: 'Courier New', monospace;
+            margin-bottom: 0.5rem;
+        }
+
+        .net-label {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .explanation-section {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .explanation-title {
+            font-size: 1.5rem;
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+
+        .explanation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .explanation-card {
+            background: var(--dark-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+
+        .explanation-card h3 {
+            color: var(--primary-green);
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .explanation-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .tip-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 2px solid var(--warning);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tip-title {
+            color: var(--warning);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-green);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .scenarios-section {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .scenarios-title {
+            font-size: 1.5rem;
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+
+        .scenario-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .scenario-btn {
+            background: var(--dark-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .scenario-btn:hover {
+            border-color: var(--primary-green);
+        }
+
+        .scenario-btn.active {
+            border-color: var(--primary-green);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .scenario-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .scenario-wage {
+            color: var(--primary-green);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .next-week {
+            background: var(--card-bg);
+            border: 2px solid var(--primary-green);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .next-week h3 {
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Back to Program</a>
+        
+        <div class="header">
+            <h1 class="week-title">Week 5: First Paycheck Literacy</h1>
+            <p class="week-subtitle">Understanding Gross vs Net Pay, Taxes, and Deductions</p>
+        </div>
+
+        <div class="intro-section">
+            <h2 style="color: var(--primary-green); margin-bottom: 1rem;">💰 Your First Paycheck Reality Check</h2>
+            <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 1rem;">
+                Got your first job? Congratulations! But here's what nobody tells you: your first paycheck will be smaller than you expect. 
+                Let's break down exactly what happens to your money before it reaches your bank account.
+            </p>
+            <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid var(--error); border-radius: 0.5rem; padding: 1rem; text-align: center;">
+                <strong style="color: var(--error);">Reality Check:</strong>
+                <span style="color: var(--text-secondary);"> If your job pays $15/hour and you work 20 hours, you won't get $300. You'll get around $230-250 after taxes and deductions!</span>
+            </div>
+        </div>
+
+        <div class="calculator-grid">
+            <div class="input-panel">
+                <h2 style="color: var(--primary-green); margin-bottom: 1.5rem;">📊 Paycheck Calculator</h2>
+                
+                <div class="form-group">
+                    <label class="form-label" for="hourly-wage">Hourly Wage</label>
+                    <input type="number" id="hourly-wage" class="form-input" placeholder="15.00" min="0" step="0.25" value="15">
+                    <div class="form-help">Your pay per hour (before taxes)</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="hours-worked">Hours per Week</label>
+                    <input type="number" id="hours-worked" class="form-input" placeholder="20" min="0" max="40" value="20">
+                    <div class="form-help">Most teen jobs are part-time (15-25 hours)</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="pay-frequency">Pay Frequency</label>
+                    <select id="pay-frequency" class="form-select">
+                        <option value="weekly">Weekly (every week)</option>
+                        <option value="biweekly" selected>Bi-weekly (every 2 weeks)</option>
+                        <option value="semimonthly">Semi-monthly (twice a month)</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                    <div class="form-help">How often you get paid</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="state">State</label>
+                    <select id="state" class="form-select">
+                        <option value="no-tax">No State Tax (TX, FL, WA, etc.)</option>
+                        <option value="low-tax" selected>Low Tax State (< 5%)</option>
+                        <option value="medium-tax">Medium Tax State (5-7%)</option>
+                        <option value="high-tax">High Tax State (> 7%)</option>
+                    </select>
+                    <div class="form-help">Affects your state income tax</div>
+                </div>
+
+                <button class="btn btn-primary" onclick="calculatePaycheck()">Calculate My Paycheck</button>
+            </div>
+
+            <div class="results-panel">
+                <div class="paycheck-visual">
+                    <h3 class="paycheck-title">Your Paycheck Breakdown</h3>
+                    
+                    <div class="gross-pay" id="gross-amount">$300</div>
+                    <div class="gross-label">Gross Pay (before deductions)</div>
+
+                    <ul class="deductions-list" id="deductions-list">
+                        <li class="deduction-item">
+                            <span class="deduction-label">Federal Income Tax</span>
+                            <span class="deduction-amount" id="federal-tax">-$30</span>
+                        </li>
+                        <li class="deduction-item">
+                            <span class="deduction-label">Social Security (6.2%)</span>
+                            <span class="deduction-amount" id="social-security">-$18.60</span>
+                        </li>
+                        <li class="deduction-item">
+                            <span class="deduction-label">Medicare (1.45%)</span>
+                            <span class="deduction-amount" id="medicare">-$4.35</span>
+                        </li>
+                        <li class="deduction-item">
+                            <span class="deduction-label">State Income Tax</span>
+                            <span class="deduction-amount" id="state-tax">-$12</span>
+                        </li>
+                    </ul>
+
+                    <div class="net-pay">
+                        <div class="net-amount" id="net-amount">$235</div>
+                        <div class="net-label">Take-Home Pay (what you actually get)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="scenarios-section">
+            <h2 class="scenarios-title">🎯 Try Common Teen Job Scenarios</h2>
+            <div class="scenario-buttons">
+                <div class="scenario-btn" onclick="loadScenario('fast-food')">
+                    <div class="scenario-name">Fast Food Worker</div>
+                    <div class="scenario-wage">$12/hour, 15 hours</div>
+                </div>
+                <div class="scenario-btn" onclick="loadScenario('retail')">
+                    <div class="scenario-name">Retail Associate</div>
+                    <div class="scenario-wage">$14/hour, 20 hours</div>
+                </div>
+                <div class="scenario-btn" onclick="loadScenario('lifeguard')">
+                    <div class="scenario-name">Lifeguard</div>
+                    <div class="scenario-wage">$16/hour, 25 hours</div>
+                </div>
+                <div class="scenario-btn" onclick="loadScenario('tutor')">
+                    <div class="scenario-name">Tutoring</div>
+                    <div class="scenario-wage">$20/hour, 10 hours</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="explanation-section">
+            <h2 class="explanation-title">🤔 What Are All These Deductions?</h2>
+            <div class="explanation-grid">
+                <div class="explanation-card">
+                    <h3>💼 Federal Income Tax</h3>
+                    <p>Money that goes to the federal government for things like military, national parks, and government services. The amount depends on how much you earn.</p>
+                </div>
+                
+                <div class="explanation-card">
+                    <h3>👴 Social Security (6.2%)</h3>
+                    <p>This money goes into a fund that will pay you when you retire (65+). Think of it as forced retirement savings that you'll get back later in life.</p>
+                </div>
+                
+                <div class="explanation-card">
+                    <h3>🏥 Medicare (1.45%)</h3>
+                    <p>Healthcare program for people 65 and older. You're paying into a system that will help cover your medical costs when you're a senior.</p>
+                </div>
+                
+                <div class="explanation-card">
+                    <h3>🏛️ State Income Tax</h3>
+                    <p>Money for your state government (varies by state). Some states like Texas and Florida have no state income tax, while others like California have higher rates.</p>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <div class="tip-title">💡 First Job Tips</div>
+                <div style="color: var(--text-secondary);">
+                    <strong>Save your first pay stub!</strong> It shows you exactly how taxes work. 
+                    Many teens are shocked by the difference between gross and net pay - now you're prepared!
+                </div>
+            </div>
+        </div>
+
+        <div class="next-week">
+            <h3>🎯 Ready for Week 6?</h3>
+            <p>Next week we'll learn smart spending habits and how to avoid money traps!</p>
+            <a href="../week-06/" class="btn btn-primary" style="text-decoration: none; margin-top: 1rem; display: inline-block;">Continue to Week 6</a>
+        </div>
+    </div>
+
+    <script>
+        const scenarios = {
+            'fast-food': { wage: 12, hours: 15, name: 'Fast Food Worker' },
+            'retail': { wage: 14, hours: 20, name: 'Retail Associate' },
+            'lifeguard': { wage: 16, hours: 25, name: 'Lifeguard' },
+            'tutor': { wage: 20, hours: 10, name: 'Tutoring' }
+        };
+
+        function loadScenario(scenarioKey) {
+            const scenario = scenarios[scenarioKey];
+            document.getElementById('hourly-wage').value = scenario.wage;
+            document.getElementById('hours-worked').value = scenario.hours;
+            
+            // Update active button
+            document.querySelectorAll('.scenario-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.scenario-btn').classList.add('active');
+            
+            calculatePaycheck();
+        }
+
+        function calculatePaycheck() {
+            const hourlyWage = parseFloat(document.getElementById('hourly-wage').value) || 15;
+            const hoursWorked = parseFloat(document.getElementById('hours-worked').value) || 20;
+            const payFrequency = document.getElementById('pay-frequency').value;
+            const stateType = document.getElementById('state').value;
+
+            // Calculate periods per year
+            const periodsPerYear = {
+                'weekly': 52,
+                'biweekly': 26,
+                'semimonthly': 24,
+                'monthly': 12
+            };
+
+            const weeksPerPeriod = {
+                'weekly': 1,
+                'biweekly': 2,
+                'semimonthly': 52/24,
+                'monthly': 52/12
+            };
+
+            // Calculate gross pay for this pay period
+            const grossPay = hourlyWage * hoursWorked * weeksPerPeriod[payFrequency];
+            
+            // Calculate annual salary for tax purposes
+            const annualSalary = hourlyWage * hoursWorked * 52;
+
+            // Federal tax (simplified - using rough brackets)
+            let federalRate = 0.10; // 10% for most teen incomes
+            if (annualSalary > 40000) federalRate = 0.12;
+            else if (annualSalary < 12000) federalRate = 0.07; // Lower for very part-time
+
+            // State tax rates
+            const stateRates = {
+                'no-tax': 0,
+                'low-tax': 0.03,
+                'medium-tax': 0.06,
+                'high-tax': 0.09
+            };
+
+            // Calculate deductions
+            const federalTax = grossPay * federalRate;
+            const socialSecurity = grossPay * 0.062;
+            const medicare = grossPay * 0.0145;
+            const stateTax = grossPay * stateRates[stateType];
+
+            const totalDeductions = federalTax + socialSecurity + medicare + stateTax;
+            const netPay = grossPay - totalDeductions;
+
+            // Update display
+            document.getElementById('gross-amount').textContent = `$${grossPay.toFixed(0)}`;
+            document.getElementById('federal-tax').textContent = `-$${federalTax.toFixed(2)}`;
+            document.getElementById('social-security').textContent = `-$${socialSecurity.toFixed(2)}`;
+            document.getElementById('medicare').textContent = `-$${medicare.toFixed(2)}`;
+            document.getElementById('state-tax').textContent = `-$${stateTax.toFixed(2)}`;
+            document.getElementById('net-amount').textContent = `$${netPay.toFixed(0)}`;
+
+            // Mark week as completed
+            markWeekCompleted();
+        }
+
+        function markWeekCompleted() {
+            const progress = JSON.parse(localStorage.getItem('yf-progress') || '[]');
+            if (!progress.includes(5)) {
+                progress.push(5);
+                localStorage.setItem('yf-progress', JSON.stringify(progress));
+            }
+        }
+
+        // Auto-calculate on input changes
+        document.getElementById('hourly-wage').addEventListener('input', calculatePaycheck);
+        document.getElementById('hours-worked').addEventListener('input', calculatePaycheck);
+        document.getElementById('pay-frequency').addEventListener('change', calculatePaycheck);
+        document.getElementById('state').addEventListener('change', calculatePaycheck);
+
+        // Calculate on page load
+        window.addEventListener('load', calculatePaycheck);
+    </script>
+</body>
+</html>

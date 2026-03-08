@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 1: Understanding Money Basics | Youth & Families Program</title>
+    <meta name="description" content="Interactive money decision game helping teens understand needs vs wants and opportunity cost.">
+    <style>
+        :root {
+            --primary-green: #10b981;
+            --primary-orange: #f7931a;
+            --dark-bg: #0a1f1a;
+            --card-bg: #1a3a2e;
+            --border-color: #2a5a4e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #9ca3af;
+            --text-dim: #6b7280;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-green);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            transform: translateX(-4px);
+            transition: transform 0.2s;
+        }
+
+        .week-title {
+            font-size: 2.5rem;
+            color: var(--primary-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .week-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .game-container {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .money-display {
+            background: var(--dark-bg);
+            border: 2px solid var(--primary-green);
+            border-radius: 0.5rem;
+            padding: 1rem 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-green);
+            font-family: 'Courier New', monospace;
+        }
+
+        .scenario-card {
+            background: var(--dark-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .scenario-title {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .scenario-description {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .choices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .choice-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .choice-card:hover {
+            border-color: var(--primary-green);
+            transform: translateY(-2px);
+        }
+
+        .choice-card.selected {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .choice-item {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .choice-cost {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            font-family: 'Courier New', monospace;
+            margin-bottom: 0.5rem;
+        }
+
+        .choice-type {
+            font-size: 0.85rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-weight: 600;
+        }
+
+        .choice-type.need {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .choice-type.want {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .choice-description {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .game-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary-green);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            background: var(--text-dim);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary-green);
+            border: 2px solid var(--primary-green);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-green);
+            color: white;
+        }
+
+        .results-card {
+            background: var(--dark-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .results-card.show {
+            display: block;
+        }
+
+        .result-summary {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .result-title {
+            font-size: 1.8rem;
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-green);
+            font-family: 'Courier New', monospace;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .reflection-section {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .reflection-title {
+            font-size: 1.5rem;
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+
+        .reflection-questions {
+            list-style: none;
+        }
+
+        .reflection-questions li {
+            background: var(--dark-bg);
+            border-left: 4px solid var(--primary-green);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.25rem;
+        }
+
+        .question {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .question-help {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            background: var(--dark-bg);
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-green), var(--primary-orange));
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .scenario-counter {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .next-week {
+            background: var(--card-bg);
+            border: 2px solid var(--primary-green);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .next-week h3 {
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .choices-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .game-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Back to Program</a>
+        
+        <div class="header">
+            <h1 class="week-title">Week 1: Understanding Money Basics</h1>
+            <p class="week-subtitle">The Choice Game - Making Smart Money Decisions</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+
+        <div class="game-container">
+            <div class="game-header">
+                <div class="money-display" id="money-display">Budget: $100</div>
+                <div class="scenario-counter" id="scenario-counter">Scenario 1 of 5</div>
+            </div>
+
+            <div class="scenario-card" id="scenario-card">
+                <h2 class="scenario-title" id="scenario-title">Getting Ready for School</h2>
+                <p class="scenario-description" id="scenario-description">
+                    It's back-to-school season and you have $100 to spend. You need some items for school, 
+                    but there are also some things you want. What will you choose?
+                </p>
+
+                <div class="choices-grid" id="choices-grid">
+                    <!-- Choices will be populated by JavaScript -->
+                </div>
+
+                <div class="game-buttons">
+                    <button class="btn btn-primary" id="confirm-choice" onclick="confirmChoice()" disabled>
+                        Confirm Choice
+                    </button>
+                    <button class="btn btn-secondary" onclick="skipScenario()">
+                        Skip This One
+                    </button>
+                </div>
+            </div>
+
+            <div class="results-card" id="results-card">
+                <div class="result-summary">
+                    <h2 class="result-title">Great Job!</h2>
+                    <p id="result-message"></p>
+                </div>
+
+                <div class="result-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-spent">$0</div>
+                        <div class="stat-label">Total Spent</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="money-left">$100</div>
+                        <div class="stat-label">Money Left</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="needs-bought">0</div>
+                        <div class="stat-label">Needs Bought</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="wants-bought">0</div>
+                        <div class="stat-label">Wants Bought</div>
+                    </div>
+                </div>
+
+                <div class="game-buttons">
+                    <button class="btn btn-primary" onclick="nextScenario()">
+                        Next Scenario
+                    </button>
+                    <button class="btn btn-secondary" onclick="restartGame()">
+                        Start Over
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="reflection-section">
+            <h2 class="reflection-title">💭 Think About It</h2>
+            <ul class="reflection-questions">
+                <li>
+                    <div class="question">What's the difference between something you need and something you want?</div>
+                    <div class="question-help">Think about what happens if you don't get it. Needs are required for basic life, wants make life more enjoyable.</div>
+                </li>
+                <li>
+                    <div class="question">How did having limited money change your decisions?</div>
+                    <div class="question-help">This is called "opportunity cost" - choosing one thing means giving up something else.</div>
+                </li>
+                <li>
+                    <div class="question">What strategies did you use to make tough choices?</div>
+                    <div class="question-help">Maybe you prioritized needs first, or looked for the best value, or saved money for later scenarios.</div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="next-week">
+            <h3>🎯 Ready for Week 2?</h3>
+            <p>Next week we'll learn how money flows in and out with budgeting basics!</p>
+            <a href="../week-02/" class="btn btn-primary" style="text-decoration: none; margin-top: 1rem; display: inline-block;">Continue to Week 2</a>
+        </div>
+    </div>
+
+    <script>
+        let currentScenario = 0;
+        let budget = 100;
+        let totalSpent = 0;
+        let needsBought = 0;
+        let wantsBought = 0;
+        let selectedChoice = null;
+
+        const scenarios = [
+            {
+                title: "Getting Ready for School",
+                description: "It's back-to-school season and you have $100 to spend. You need some items for school, but there are also some things you want. What will you choose?",
+                choices: [
+                    { item: "Notebooks & Pens", cost: 25, type: "need", description: "Essential for taking notes in class" },
+                    { item: "New Sneakers", cost: 80, type: "want", description: "Cool shoes everyone is wearing" },
+                    { item: "Lunch Money", cost: 30, type: "need", description: "Food for the week at school" },
+                    { item: "Gaming Headset", cost: 60, type: "want", description: "For playing games with friends" }
+                ]
+            },
+            {
+                title: "Weekend Plans",
+                description: "Your friends are making plans for the weekend. You have some money left - what sounds good?",
+                choices: [
+                    { item: "Movie with Friends", cost: 15, type: "want", description: "New superhero movie everyone's talking about" },
+                    { item: "Save the Money", cost: 0, type: "need", description: "Keep it for something important later" },
+                    { item: "Concert Ticket", cost: 45, type: "want", description: "Your favorite artist is performing" },
+                    { item: "Phone Bill", cost: 35, type: "need", description: "Keep your phone service active" }
+                ]
+            },
+            {
+                title: "Transportation Emergency",
+                description: "Your bike tire is flat and you need to get to your part-time job. What's your solution?",
+                choices: [
+                    { item: "Bus Pass", cost: 20, type: "need", description: "Public transportation for the week" },
+                    { item: "Uber Ride", cost: 25, type: "want", description: "Convenient but expensive" },
+                    { item: "New Bike Tire", cost: 30, type: "need", description: "Fix your bike properly" },
+                    { item: "Walk & Save Money", cost: 0, type: "need", description: "Free but takes time" }
+                ]
+            },
+            {
+                title: "Special Occasion",
+                description: "Your best friend's birthday is coming up and there's also a school fundraiser. How do you spend?",
+                choices: [
+                    { item: "Birthday Gift", cost: 25, type: "want", description: "Something thoughtful for your friend" },
+                    { item: "Fundraiser Donation", cost: 10, type: "want", description: "Support your school's cause" },
+                    { item: "Both Gift & Donation", cost: 35, type: "want", description: "Support both causes" },
+                    { item: "Homemade Gift", cost: 5, type: "need", description: "Creative and budget-friendly" }
+                ]
+            },
+            {
+                title: "Future Planning",
+                description: "You're doing well with your money! Time to think ahead - what's your priority?",
+                choices: [
+                    { item: "Save for College", cost: 50, type: "need", description: "Start building your future fund" },
+                    { item: "New Video Game", cost: 40, type: "want", description: "The sequel you've been waiting for" },
+                    { item: "Emergency Fund", cost: 30, type: "need", description: "Money for unexpected expenses" },
+                    { item: "Treat Yourself", cost: 20, type: "want", description: "You've earned something fun" }
+                ]
+            }
+        ];
+
+        function startGame() {
+            currentScenario = 0;
+            budget = 100;
+            totalSpent = 0;
+            needsBought = 0;
+            wantsBought = 0;
+            loadScenario();
+        }
+
+        function loadScenario() {
+            if (currentScenario >= scenarios.length) {
+                showFinalResults();
+                return;
+            }
+
+            const scenario = scenarios[currentScenario];
+            document.getElementById('scenario-title').textContent = scenario.title;
+            document.getElementById('scenario-description').textContent = scenario.description;
+            document.getElementById('scenario-counter').textContent = `Scenario ${currentScenario + 1} of ${scenarios.length}`;
+            document.getElementById('money-display').textContent = `Budget: $${budget}`;
+            
+            // Update progress
+            const progress = ((currentScenario) / scenarios.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+
+            // Clear previous choices
+            const choicesGrid = document.getElementById('choices-grid');
+            choicesGrid.innerHTML = '';
+            selectedChoice = null;
+            document.getElementById('confirm-choice').disabled = true;
+
+            // Create choice cards
+            scenario.choices.forEach((choice, index) => {
+                const canAfford = choice.cost <= budget;
+                const choiceCard = document.createElement('div');
+                choiceCard.className = `choice-card ${!canAfford ? 'disabled' : ''}`;
+                choiceCard.style.opacity = canAfford ? '1' : '0.5';
+                
+                if (canAfford) {
+                    choiceCard.onclick = () => selectChoice(index);
+                }
+
+                choiceCard.innerHTML = `
+                    <div class="choice-item">${choice.item}</div>
+                    <div class="choice-cost">$${choice.cost}</div>
+                    <div class="choice-type ${choice.type}">${choice.type.toUpperCase()}</div>
+                    <div class="choice-description">${choice.description}</div>
+                    ${!canAfford ? '<div style="color: var(--error); font-size: 0.8rem; margin-top: 0.5rem;">Can\'t afford</div>' : ''}
+                `;
+
+                choicesGrid.appendChild(choiceCard);
+            });
+
+            // Hide results card
+            document.getElementById('results-card').classList.remove('show');
+        }
+
+        function selectChoice(choiceIndex) {
+            // Remove previous selection
+            document.querySelectorAll('.choice-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Add selection to clicked card
+            document.querySelectorAll('.choice-card')[choiceIndex].classList.add('selected');
+            
+            selectedChoice = choiceIndex;
+            document.getElementById('confirm-choice').disabled = false;
+        }
+
+        function confirmChoice() {
+            if (selectedChoice === null) return;
+
+            const scenario = scenarios[currentScenario];
+            const choice = scenario.choices[selectedChoice];
+
+            // Update budget and stats
+            budget -= choice.cost;
+            totalSpent += choice.cost;
+            
+            if (choice.type === 'need') {
+                needsBought++;
+            } else {
+                wantsBought++;
+            }
+
+            // Show results
+            showChoiceResult(choice);
+        }
+
+        function showChoiceResult(choice) {
+            document.getElementById('results-card').classList.add('show');
+            
+            let message = `You chose: ${choice.item} for $${choice.cost}. `;
+            if (choice.type === 'need') {
+                message += "Great choice - you prioritized something important!";
+            } else {
+                message += "Nice! You decided to treat yourself.";
+            }
+
+            document.getElementById('result-message').textContent = message;
+            document.getElementById('total-spent').textContent = `$${totalSpent}`;
+            document.getElementById('money-left').textContent = `$${budget}`;
+            document.getElementById('needs-bought').textContent = needsBought;
+            document.getElementById('wants-bought').textContent = wantsBought;
+        }
+
+        function nextScenario() {
+            currentScenario++;
+            loadScenario();
+        }
+
+        function skipScenario() {
+            currentScenario++;
+            loadScenario();
+        }
+
+        function showFinalResults() {
+            document.getElementById('scenario-card').style.display = 'none';
+            document.getElementById('results-card').classList.add('show');
+            document.getElementById('progress-fill').style.width = '100%';
+
+            let finalMessage = `Game Complete! You spent $${totalSpent} and have $${budget} left. `;
+            if (needsBought >= wantsBought) {
+                finalMessage += "You did a great job prioritizing your needs!";
+            } else {
+                finalMessage += "You enjoyed some wants - that's okay too, as long as needs are covered!";
+            }
+
+            document.getElementById('result-message').textContent = finalMessage;
+            document.querySelector('.result-title').textContent = "Game Complete! 🎉";
+            
+            // Hide next scenario button, show restart
+            const buttons = document.querySelector('#results-card .game-buttons');
+            buttons.innerHTML = `
+                <button class="btn btn-primary" onclick="restartGame()">Play Again</button>
+                <a href="../week-02/" class="btn btn-secondary" style="text-decoration: none;">Continue to Week 2</a>
+            `;
+
+            // Mark week as completed
+            markWeekCompleted(1);
+        }
+
+        function restartGame() {
+            document.getElementById('scenario-card').style.display = 'block';
+            startGame();
+        }
+
+        function markWeekCompleted(weekNumber) {
+            const progress = JSON.parse(localStorage.getItem('yf-progress') || '[]');
+            if (!progress.includes(weekNumber)) {
+                progress.push(weekNumber);
+                localStorage.setItem('yf-progress', JSON.stringify(progress));
+            }
+        }
+
+        // Start the game when page loads
+        window.addEventListener('load', startGame);
+    </script>
+</body>
+</html>
