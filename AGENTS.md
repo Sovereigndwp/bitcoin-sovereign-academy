@@ -188,6 +188,10 @@ Use interaction to reveal the concept.
 
 Do not rely on long explanatory text to carry the lesson.
 
+## Verifiable Content
+
+Never fabricate statistics, data points, percentages, dollar figures, or claims in published content. Every quantitative claim must be traceable to a named, verifiable source. Add source attribution where stats are displayed.
+
 ## Quality Control
 
-Before finalizing, check for: repetition, weak structure, generic wording, unnecessary jargon, style drift, visual clutter, and unclear next step.
+Before finalizing, check for: repetition, weak structure, generic wording, unnecessary jargon, style drift, visual clutter, unclear next step, and unverified claims.
