@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 8: Mis metas de ahorro | Ruta de Estabilidad y Crecimiento</title>
+    <meta name="description" content="Planificador de metas de ahorro para trabajadores colombianos. Define tus metas, calcula cuánto ahorrar por mes y construye el hábito del autoahorro.">
+    <style>
+        :root {
+            --primary: #f7931a;
+            --dark: #1a1a1a;
+            --dark2: #2d2d2d;
+            --light: #e0e0e0;
+            --dim: #b3b3b3;
+            --green: #4caf50;
+            --red: #ef4444;
+            --yellow: #fcd116;
+            --blue: #3b82f6;
+            --grad: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--dark); color:var(--light); line-height:1.6; padding:1rem; }
+
+        .container { max-width:1000px; margin:0 auto; }
+        .back-link { display:inline-flex; align-items:center; gap:0.5rem; color:var(--primary); text-decoration:none; margin-bottom:2rem; font-weight:600; transition:transform 0.2s; }
+        .back-link:hover { transform:translateX(-4px); }
+        .header { text-align:center; margin-bottom:3rem; }
+        .week-badge { display:inline-block; background:rgba(247,147,26,0.15); border:1px solid var(--primary); border-radius:2rem; padding:0.3rem 1rem; font-size:0.85rem; color:var(--primary); margin-bottom:1rem; }
+        .week-title { font-size:2.4rem; color:var(--primary); margin-bottom:0.5rem; }
+        .week-subtitle { font-size:1.1rem; color:var(--dim); }
+
+        .section { margin-bottom:3rem; }
+        .section-card { background:var(--dark2); border:2px solid rgba(247,147,26,0.2); border-radius:1rem; padding:2rem; }
+        .section-title { font-size:1.5rem; color:var(--primary); margin-bottom:0.75rem; }
+        .section-text { color:var(--dim); font-size:1rem; line-height:1.8; margin-bottom:1.25rem; }
+
+        /* Income input */
+        .income-bar { background:var(--dark); border:2px solid rgba(247,147,26,0.2); border-radius:0.75rem; padding:1.25rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:2rem; }
+        .income-label { color:var(--light); font-weight:600; font-size:0.95rem; }
+        .income-input { background:var(--dark2); border:2px solid rgba(247,147,26,0.3); border-radius:0.5rem; color:var(--light); padding:0.6rem 0.75rem; font-family:'Courier New',monospace; font-size:1rem; width:180px; }
+        .income-input:focus { outline:none; border-color:var(--primary); }
+        .income-hint { color:var(--dim); font-size:0.85rem; }
+
+        /* Goals */
+        .goals-container { display:grid; gap:1.5rem; }
+        .goal-card { background:var(--dark); border:2px solid rgba(247,147,26,0.15); border-radius:1rem; padding:1.5rem; }
+        .goal-header { display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem; }
+        .goal-icon-selector { display:flex; gap:0.4rem; flex-wrap:wrap; }
+        .goal-icon-btn { background:var(--dark2); border:2px solid rgba(247,147,26,0.15); border-radius:0.5rem; padding:0.4rem 0.6rem; cursor:pointer; font-size:1.2rem; transition:all 0.2s; }
+        .goal-icon-btn.active { border-color:var(--primary); background:rgba(247,147,26,0.1); }
+        .goal-num { font-size:0.75rem; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.05em; }
+        .goal-inputs { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem; }
+        .g-label { display:block; color:var(--light); font-size:0.85rem; font-weight:600; margin-bottom:0.35rem; }
+        .g-input { width:100%; padding:0.65rem; background:var(--dark2); border:2px solid rgba(247,147,26,0.2); border-radius:0.5rem; color:var(--light); font-family:'Courier New',monospace; font-size:0.95rem; }
+        .g-input:focus { outline:none; border-color:var(--primary); }
+        .g-input-text { width:100%; padding:0.65rem; background:var(--dark2); border:2px solid rgba(247,147,26,0.2); border-radius:0.5rem; color:var(--light); font-size:0.95rem; }
+        .g-input-text:focus { outline:none; border-color:var(--primary); }
+        .g-select { width:100%; padding:0.65rem; background:var(--dark2); border:2px solid rgba(247,147,26,0.2); border-radius:0.5rem; color:var(--light); font-size:0.9rem; }
+
+        .goal-result { background:rgba(247,147,26,0.06); border:1px solid rgba(247,147,26,0.25); border-radius:0.75rem; padding:1.25rem; display:none; }
+        .goal-result.visible { display:block; }
+        .goal-result-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; margin-bottom:0.75rem; }
+        .goal-stat { text-align:center; }
+        .goal-stat-val { font-family:'Courier New',monospace; font-weight:700; font-size:1.2rem; color:var(--primary); }
+        .goal-stat-lbl { font-size:0.75rem; color:var(--dim); margin-top:0.15rem; }
+        .goal-progress { height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; margin-top:0.75rem; }
+        .goal-progress-fill { height:100%; background:var(--grad); border-radius:4px; transition:width 0.5s; }
+        .goal-timeline-label { font-size:0.8rem; color:var(--dim); margin-top:0.5rem; }
+
+        .calc-btn { background:var(--grad); color:white; border:none; border-radius:0.75rem; padding:0.85rem 1.5rem; font-weight:700; font-size:0.95rem; cursor:pointer; transition:all 0.3s; width:100%; margin-top:0.5rem; }
+        .calc-btn:hover { transform:translateY(-2px); }
+
+        /* Summary panel */
+        .summary-panel { background:linear-gradient(135deg,rgba(247,147,26,0.1),rgba(76,175,80,0.05)); border:2px solid var(--primary); border-radius:1rem; padding:2rem; }
+        .summary-title { font-size:1.3rem; color:var(--primary); margin-bottom:1.25rem; font-weight:700; }
+        .summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+        .summary-stat { background:var(--dark); border:1px solid rgba(247,147,26,0.2); border-radius:0.75rem; padding:1.25rem; text-align:center; }
+        .summary-val { font-size:1.8rem; font-weight:900; font-family:'Courier New',monospace; }
+        .summary-val.good { color:var(--green); }
+        .summary-val.warn { color:var(--yellow); }
+        .summary-val.bad { color:var(--red); }
+        .summary-lbl { font-size:0.8rem; color:var(--dim); margin-top:0.25rem; }
+        .summary-advice { background:var(--dark); border-left:4px solid var(--primary); padding:1.25rem; border-radius:0.25rem 0.75rem 0.75rem 0.25rem; color:var(--dim); font-size:0.95rem; line-height:1.7; }
+
+        /* Autoahorro */
+        .autoahorro-grid { display:grid; gap:1rem; margin-top:1.5rem; }
+        .autoahorro-item { background:var(--dark); border-left:4px solid var(--green); border-radius:0.25rem 0.75rem 0.75rem 0.25rem; padding:1.25rem; }
+        .autoahorro-title { font-weight:700; color:var(--green); margin-bottom:0.25rem; }
+        .autoahorro-desc { font-size:0.9rem; color:var(--dim); line-height:1.6; }
+
+        /* Natillera */
+        .natillera-card { background:var(--dark); border:2px solid rgba(252,209,22,0.3); border-radius:1rem; padding:1.75rem; margin-top:1.5rem; }
+        .natillera-title { color:var(--yellow); font-weight:700; font-size:1.1rem; margin-bottom:0.75rem; }
+        .natillera-inputs { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin:1rem 0; }
+        .natillera-result { background:rgba(252,209,22,0.08); border:1px solid rgba(252,209,22,0.3); border-radius:0.75rem; padding:1.25rem; text-align:center; margin-top:1rem; display:none; }
+        .natillera-result.visible { display:block; }
+        .natillera-big { font-size:2rem; font-weight:900; font-family:'Courier New',monospace; color:var(--yellow); }
+        .natillera-sub { font-size:0.85rem; color:var(--dim); margin-top:0.25rem; }
+
+        .tip-box { background:rgba(252,209,22,0.08); border:2px solid rgba(252,209,22,0.4); border-radius:0.75rem; padding:1.25rem; margin:1.5rem 0; }
+        .tip-header { color:var(--yellow); font-weight:700; margin-bottom:0.4rem; }
+        .tip-text { color:var(--dim); font-size:0.9rem; }
+
+        .next-week { background:var(--dark2); border:2px solid var(--primary); border-radius:1rem; padding:2rem; text-align:center; }
+        .next-week h3 { color:var(--primary); margin-bottom:0.75rem; }
+        .next-week p { color:var(--dim); margin-bottom:1.5rem; }
+        .btn { padding:0.9rem 2rem; border:none; border-radius:0.75rem; font-weight:700; font-size:1rem; cursor:pointer; transition:all 0.3s; text-decoration:none; display:inline-block; }
+        .btn-primary { background:var(--grad); color:white; }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(247,147,26,0.4); }
+
+        @media (max-width:768px) {
+            .week-title { font-size:1.8rem; }
+            .goal-inputs { grid-template-columns:1fr; }
+            .goal-result-grid { grid-template-columns:1fr; }
+            .income-bar { flex-direction:column; align-items:flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Volver al Programa</a>
+
+        <div class="header">
+            <div class="week-badge">Semana 8 de 10</div>
+            <h1 class="week-title">Mis metas de ahorro</h1>
+            <p class="week-subtitle">Ahorra con propósito, no con lo que sobra</p>
+        </div>
+
+        <!-- INTRO -->
+        <div class="section">
+            <div class="section-card">
+                <h2 class="section-title">🎯 La diferencia entre soñar y planear</h2>
+                <p class="section-text">
+                    "Algún día voy a ahorrar" no es un plan. "Necesito $2.000.000 para diciembre y 
+                    si aparto $230.000 al mes lo logro" sí lo es. 
+                    La diferencia entre el que guarda y el que no, no es el ingreso. 
+                    Es si tiene una meta concreta o no.
+                </p>
+                <p class="section-text">
+                    Esta semana defines hasta 3 metas de ahorro reales, calculas exactamente cuánto guardar cada mes, 
+                    y aprendes el truco del <strong style="color:var(--primary);">autoahorro</strong>: pagarte a ti mismo primero.
+                </p>
+            </div>
+        </div>
+
+        <!-- GOALS PLANNER -->
+        <div class="section">
+            <div class="section-card">
+                <h2 class="section-title">🧮 Planificador de metas</h2>
+                <p class="section-text">Primero, dinos cuánto tienes disponible para ahorrar cada mes:</p>
+
+                <div class="income-bar">
+                    <span class="income-label">Mi ingreso neto mensual:</span>
+                    <input type="number" id="monthly-income" class="income-input" value="1500000" oninput="updateSummary()">
+                    <span class="income-hint">Lo que recibes después de deducciones</span>
+                </div>
+
+                <div class="goals-container" id="goals-container">
+                    <!-- filled by JS -->
+                </div>
+
+                <div style="margin-top:1.5rem;" id="summary-section" style="display:none;">
+                    <h3 style="color:var(--primary); margin-bottom:1.25rem; font-size:1.2rem;">📊 Resumen de tu plan de ahorro</h3>
+                    <div class="summary-panel">
+                        <div class="summary-grid">
+                            <div class="summary-stat">
+                                <div class="summary-val" id="sum-total-monthly">$0</div>
+                                <div class="summary-lbl">Total a ahorrar por mes</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-val" id="sum-pct">0%</div>
+                                <div class="summary-lbl">% del ingreso mensual</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-val" id="sum-remaining">$0</div>
+                                <div class="summary-lbl">Para gastos del mes</div>
+                            </div>
+                        </div>
+                        <div class="summary-advice" id="summary-advice"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AUTOAHORRO -->
+        <div class="section">
+            <div class="section-card">
+                <h2 class="section-title">⚡ El truco del autoahorro: págarte primero</h2>
+                <p class="section-text">
+                    La mayoría ahorra "lo que sobra". Ese dinero casi nunca sobra. 
+                    El autoahorro funciona al revés: el mismo día que llega el sueldo, 
+                    el dinero de ahorro se separa automáticamente antes de gastar.
+                </p>
+
+                <div class="autoahorro-grid">
+                    <div class="autoahorro-item">
+                        <div class="autoahorro-title">Opción 1: Nequi Bolsillos</div>
+                        <div class="autoahorro-desc">
+                            Crea un "bolsillo" en Nequi con el nombre de tu meta (ej: "Vacaciones"). 
+                            Cada quincena, transfiere el monto planificado. El dinero está en tu cuenta 
+                            pero separado visualmente — menos tentación de gastarlo.
+                        </div>
+                    </div>
+                    <div class="autoahorro-item">
+                        <div class="autoahorro-title">Opción 2: Cuenta de ahorros separada</div>
+                        <div class="autoahorro-desc">
+                            Abre una segunda cuenta de ahorros (en otro banco si quieres). 
+                            El mismo día que recibes el pago, transfiere tu cuota de ahorro. 
+                            La separación física reduce el gasto impulsivo.
+                        </div>
+                    </div>
+                    <div class="autoahorro-item">
+                        <div class="autoahorro-title">Opción 3: Débito automático o "sobrecito"</div>
+                        <div class="autoahorro-desc">
+                            Muchos bancos permiten programar una transferencia automática cada mes. 
+                            Si eres de los que "olvidas" ahorrar, que el sistema lo haga por ti. 
+                            Lo que no ves, no gastas.
+                        </div>
+                    </div>
+                    <div class="autoahorro-item">
+                        <div class="autoahorro-title">Opción 4: La natillera del trabajo</div>
+                        <div class="autoahorro-desc">
+                            Un grupo de compañeros ahorra el mismo monto cada mes. Cada mes un miembro 
+                            recibe el total acumulado. Sin intereses, con comunidad. 
+                            El compromiso social hace que nadie falle.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NATILLERA SIMULATOR -->
+                <div class="natillera-card">
+                    <div class="natillera-title">🫂 Simulador de Natillera</div>
+                    <p style="color:var(--dim); font-size:0.9rem; margin-bottom:0.75rem;">
+                        ¿Cuánto le llegaría a cada persona si organizan una natillera en el trabajo?
+                    </p>
+                    <div class="natillera-inputs">
+                        <div>
+                            <label style="display:block; color:var(--light); font-size:0.85rem; font-weight:600; margin-bottom:0.35rem;">Número de participantes</label>
+                            <input type="number" id="nat-people" class="g-input" value="10" min="2" max="30" oninput="calcNatillera()">
+                        </div>
+                        <div>
+                            <label style="display:block; color:var(--light); font-size:0.85rem; font-weight:600; margin-bottom:0.35rem;">Aporte mensual por persona ($)</label>
+                            <input type="number" id="nat-amount" class="g-input" value="100000" min="0" oninput="calcNatillera()">
+                        </div>
+                    </div>
+                    <div class="natillera-result" id="natillera-result">
+                        <div class="natillera-big" id="nat-total">$0</div>
+                        <div class="natillera-sub" id="nat-desc"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tip-box">
+            <div class="tip-header">💡 La regla del 10%</div>
+            <div class="tip-text">
+                Si no sabes por dónde empezar: aparta el 10% de cada pago, sin falta, antes de cualquier gasto. 
+                Con $1.500.000 al mes, son $150.000. En un año: $1.800.000. 
+                No es un sacrificio, es el mínimo de respeto hacia tu yo futuro.
+            </div>
+        </div>
+
+        <div class="next-week">
+            <h3>🎯 Siguiente: Semana 9</h3>
+            <p>Con las metas claras, ahora construimos tu historial crediticio — tu reputación financiera en Colombia.</p>
+            <a href="../semana-9/" class="btn btn-primary" style="text-decoration:none; margin-top:0.5rem; display:inline-block;">Continuar a Semana 9 →</a>
+        </div>
+    </div>
+
+    <script>
+        function fmt(n) {
+            return new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', minimumFractionDigits:0 }).format(n);
+        }
+
+        const goalIcons = ['🏖️','📱','🏠','🎓','🚗','💍','🛒','🐣','✈️','💻'];
+        const goalPresets = [
+            { name: 'Meta 1 — Vacaciones', icon: '🏖️', amount: 1500000, months: 12 },
+            { name: 'Meta 2 — Celular nuevo', icon: '📱', amount: 800000, months: 6 },
+            { name: 'Meta 3 — Fondo de inicio', icon: '💡', amount: 3000000, months: 18 },
+        ];
+
+        function buildGoals() {
+            const container = document.getElementById('goals-container');
+            goalPresets.forEach((preset, gi) => {
+                const div = document.createElement('div');
+                div.className = 'goal-card';
+                div.id = `goal-${gi}`;
+                div.innerHTML = `
+                    <div class="goal-header">
+                        <span class="goal-num">Meta ${gi + 1}</span>
+                        <div class="goal-icon-selector">
+                            ${goalIcons.map(icon => `
+                                <button class="goal-icon-btn ${icon === preset.icon ? 'active' : ''}" 
+                                    onclick="setIcon(${gi}, '${icon}', this)">${icon}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="goal-inputs">
+                        <div style="grid-column:1/-1">
+                            <label class="g-label">Nombre de la meta</label>
+                            <input type="text" class="g-input-text g-name" value="${preset.name}" oninput="updateSummary()">
+                        </div>
+                        <div>
+                            <label class="g-label">Cuánto necesitas ($)</label>
+                            <input type="number" class="g-input g-amount" value="${preset.amount}" min="0" oninput="calcGoal(${gi})">
+                        </div>
+                        <div>
+                            <label class="g-label">En cuántos meses</label>
+                            <input type="number" class="g-input g-months" value="${preset.months}" min="1" max="120" oninput="calcGoal(${gi})">
+                        </div>
+                        <div>
+                            <label class="g-label">¿Cuánto tienes ya ahorrado?</label>
+                            <input type="number" class="g-input g-saved" value="0" min="0" oninput="calcGoal(${gi})">
+                        </div>
+                        <div>
+                            <label class="g-label">Prioridad</label>
+                            <select class="g-select g-priority" onchange="updateSummary()">
+                                <option value="1">Alta — la más importante</option>
+                                <option value="2">Media</option>
+                                <option value="3">Baja — si sobra capacidad</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="calc-btn" onclick="calcGoal(${gi})">Calcular cuota de ahorro →</button>
+                    <div class="goal-result" id="goal-result-${gi}">
+                        <div class="goal-result-grid">
+                            <div class="goal-stat">
+                                <div class="goal-stat-val" id="gr-monthly-${gi}">$0</div>
+                                <div class="goal-stat-lbl">Por mes</div>
+                            </div>
+                            <div class="goal-stat">
+                                <div class="goal-stat-val" id="gr-months-${gi}">0</div>
+                                <div class="goal-stat-lbl">Meses para lograrla</div>
+                            </div>
+                            <div class="goal-stat">
+                                <div class="goal-stat-val" id="gr-total-${gi}">$0</div>
+                                <div class="goal-stat-lbl">Total a reunir</div>
+                            </div>
+                        </div>
+                        <div class="goal-progress"><div class="goal-progress-fill" id="gr-progress-${gi}" style="width:0%"></div></div>
+                        <div class="goal-timeline-label" id="gr-label-${gi}"></div>
+                    </div>
+                `;
+                container.appendChild(div);
+                calcGoal(gi);
+            });
+        }
+
+        function setIcon(gi, icon, btn) {
+            btn.closest('.goal-icon-selector').querySelectorAll('.goal-icon-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function calcGoal(gi) {
+            const card = document.getElementById(`goal-${gi}`);
+            const amount = parseFloat(card.querySelector('.g-amount').value) || 0;
+            const months = parseFloat(card.querySelector('.g-months').value) || 1;
+            const saved = parseFloat(card.querySelector('.g-saved').value) || 0;
+
+            const needed = Math.max(0, amount - saved);
+            const monthlyNeeded = Math.ceil(needed / months);
+            const progressPct = Math.min(100, (saved / amount) * 100);
+
+            document.getElementById(`gr-monthly-${gi}`).textContent = fmt(monthlyNeeded);
+            document.getElementById(`gr-months-${gi}`).textContent = months;
+            document.getElementById(`gr-total-${gi}`).textContent = fmt(needed);
+            document.getElementById(`gr-progress-${gi}`).style.width = progressPct + '%';
+
+            const now = new Date();
+            const target = new Date(now.getFullYear(), now.getMonth() + months, 1);
+            const month = target.toLocaleString('es-CO', { month:'long', year:'numeric' });
+            document.getElementById(`gr-label-${gi}`).textContent = 
+                saved >= amount ? '✅ ¡Meta alcanzada!' : `Meta para: ${month}${saved > 0 ? ` · Ya tienes ${Math.round(progressPct)}%` : ''}`;
+
+            document.getElementById(`goal-result-${gi}`).classList.add('visible');
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const income = parseFloat(document.getElementById('monthly-income').value) || 0;
+            let totalMonthly = 0;
+
+            for (let gi = 0; gi < 3; gi++) {
+                const card = document.getElementById(`goal-${gi}`);
+                if (!card) continue;
+                const amount = parseFloat(card.querySelector('.g-amount').value) || 0;
+                const months = parseFloat(card.querySelector('.g-months').value) || 1;
+                const saved = parseFloat(card.querySelector('.g-saved').value) || 0;
+                const needed = Math.max(0, amount - saved);
+                totalMonthly += Math.ceil(needed / months);
+            }
+
+            const remaining = income - totalMonthly;
+            const pct = income > 0 ? Math.round((totalMonthly / income) * 100) : 0;
+
+            document.getElementById('sum-total-monthly').textContent = fmt(totalMonthly);
+            document.getElementById('sum-total-monthly').className = 'summary-val ' + (pct > 40 ? 'bad' : pct > 20 ? 'warn' : 'good');
+            document.getElementById('sum-pct').textContent = pct + '%';
+            document.getElementById('sum-pct').className = 'summary-val ' + (pct > 40 ? 'bad' : pct > 20 ? 'warn' : 'good');
+            document.getElementById('sum-remaining').textContent = fmt(remaining);
+            document.getElementById('sum-remaining').className = 'summary-val ' + (remaining < 0 ? 'bad' : remaining < income * 0.5 ? 'warn' : 'good');
+
+            let advice = '';
+            if (remaining < 0) {
+                advice = `⚠️ Tus metas suman más de lo que ingresas. Extiende los plazos, reduce algunas metas, o prioriza solo las más importantes primero.`;
+            } else if (pct > 30) {
+                advice = `Estás destinando mucho al ahorro — asegúrate que el ingreso restante (${fmt(remaining)}) cubra realmente tus gastos fijos. Si es posible, ¡excelente disciplina!`;
+            } else if (pct >= 10) {
+                advice = `¡Buen balance! Estás ahorrando el ${pct}% de tu ingreso con propósito definido. Si puedes aumentar esto gradualmente, mejor. El siguiente paso es automatizar estas transferencias.`;
+            } else if (pct > 0) {
+                advice = `Estás ahorrando el ${pct}% de tu ingreso. Es un comienzo. Intenta llegar al 10–15% cuando puedas. Cada meta que defines hace el ahorro más fácil de sostener.`;
+            } else {
+                advice = `Define al menos una meta y calcula tu cuota mensual para ver el resumen.`;
+            }
+            document.getElementById('summary-advice').textContent = advice;
+            document.getElementById('summary-section').style.display = 'block';
+        }
+
+        function calcNatillera() {
+            const people = parseInt(document.getElementById('nat-people').value) || 10;
+            const amount = parseFloat(document.getElementById('nat-amount').value) || 100000;
+            const total = people * amount;
+            document.getElementById('nat-total').textContent = fmt(total);
+            document.getElementById('nat-desc').textContent = 
+                `Cada mes, una persona recibe ${fmt(total)} — su turno llega cada ${people} meses. 
+                Cada participante aporta ${fmt(amount)}/mes.`;
+            document.getElementById('natillera-result').classList.add('visible');
+        }
+
+        buildGoals();
+        calcNatillera();
+    </script>
+</body>
+</html>

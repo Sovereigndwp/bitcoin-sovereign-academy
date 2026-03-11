@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 5: La inflación como vecina real | Ruta de Estabilidad y Crecimiento</title>
+    <meta name="description" content="Entiende la inflación con ejemplos reales colombianos. Calculadora de erosión del ahorro. Qué hacer para proteger tu dinero.">
+    <style>
+        :root {
+            --primary: #f7931a;
+            --dark: #1a1a1a;
+            --dark2: #2d2d2d;
+            --light: #e0e0e0;
+            --dim: #b3b3b3;
+            --green: #4caf50;
+            --red: #ef4444;
+            --yellow: #fcd116;
+            --blue: #3b82f6;
+            --grad: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--dark); color:var(--light); line-height:1.6; padding:1rem; }
+
+        .container { max-width:1000px; margin:0 auto; }
+        .back-link { display:inline-flex; align-items:center; gap:0.5rem; color:var(--primary); text-decoration:none; margin-bottom:2rem; font-weight:600; transition:transform 0.2s; }
+        .back-link:hover { transform:translateX(-4px); }
+        .header { text-align:center; margin-bottom:3rem; }
+        .week-badge { display:inline-block; background:rgba(247,147,26,0.15); border:1px solid var(--primary); border-radius:2rem; padding:0.3rem 1rem; font-size:0.85rem; color:var(--primary); margin-bottom:1rem; }
+        .week-title { font-size:2.4rem; color:var(--primary); margin-bottom:0.5rem; }
+        .week-subtitle { font-size:1.1rem; color:var(--dim); }
+
+        .section { margin-bottom:3rem; }
+        .section-card { background:var(--dark2); border:2px solid rgba(247,147,26,0.2); border-radius:1rem; padding:2rem; }
+        .section-title { font-size:1.5rem; color:var(--primary); margin-bottom:0.75rem; }
+        .section-text { color:var(--dim); font-size:1rem; line-height:1.8; margin-bottom:1.25rem; }
+
+        /* Price comparison */
+        .price-grid { display:grid; gap:1rem; margin-top:1.5rem; }
+        .price-row { background:var(--dark); border:1px solid rgba(247,147,26,0.15); border-radius:0.75rem; padding:1.25rem; }
+        .price-row-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem; }
+        .price-item-name { font-weight:600; color:var(--light); }
+        .price-diff-badge { background:rgba(239,68,68,0.15); color:var(--red); font-size:0.8rem; font-weight:700; padding:0.2rem 0.6rem; border-radius:1rem; }
+        .price-bars { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+        .price-bar-group { }
+        .price-bar-label { font-size:0.75rem; color:var(--dim); margin-bottom:0.35rem; display:flex; justify-content:space-between; align-items:center; }
+        .price-bar-label span { font-family:'Courier New',monospace; font-weight:700; }
+        .price-bar-track { background:rgba(255,255,255,0.05); border-radius:0.25rem; height:10px; overflow:hidden; }
+        .price-bar-fill { height:100%; border-radius:0.25rem; transition:width 0.8s ease; }
+        .price-bar-fill.old { background:var(--blue); }
+        .price-bar-fill.new { background:var(--red); }
+
+        /* Year selector */
+        .year-selector { display:flex; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+        .year-btn { background:var(--dark); border:2px solid rgba(247,147,26,0.2); border-radius:0.5rem; color:var(--dim); padding:0.5rem 1.25rem; cursor:pointer; font-size:0.9rem; transition:all 0.2s; }
+        .year-btn.active { border-color:var(--primary); color:var(--primary); background:rgba(247,147,26,0.08); }
+        .year-btn:hover { border-color:rgba(247,147,26,0.5); color:var(--light); }
+
+        /* Inflation chart */
+        .inflation-chart { display:grid; grid-template-columns:repeat(7, 1fr); gap:0.4rem; align-items:end; height:140px; margin:1.5rem 0; }
+        .chart-bar-wrap { display:flex; flex-direction:column; align-items:center; }
+        .chart-bar { width:100%; border-radius:0.25rem 0.25rem 0 0; transition:height 0.5s ease; min-height:4px; }
+        .chart-bar.low { background:var(--green); }
+        .chart-bar.mid { background:var(--yellow); }
+        .chart-bar.high { background:var(--red); }
+        .chart-year { font-size:0.65rem; color:var(--dim); margin-top:0.25rem; text-align:center; }
+        .chart-val { font-size:0.65rem; color:var(--light); font-weight:700; margin-bottom:0.25rem; text-align:center; }
+
+        /* Erosion calculator */
+        .erosion-calc { background:var(--dark); border:2px solid rgba(247,147,26,0.15); border-radius:1rem; padding:1.75rem; }
+        .erosion-inputs { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+        .e-label { display:block; color:var(--light); font-weight:600; font-size:0.9rem; margin-bottom:0.4rem; }
+        .e-hint { font-size:0.75rem; color:var(--dim); margin-top:0.25rem; }
+        .e-input { width:100%; padding:0.7rem; background:var(--dark2); border:2px solid rgba(247,147,26,0.25); border-radius:0.5rem; color:var(--light); font-size:1rem; font-family:'Courier New',monospace; }
+        .e-input:focus { outline:none; border-color:var(--primary); }
+        .e-select { width:100%; padding:0.7rem; background:var(--dark2); border:2px solid rgba(247,147,26,0.25); border-radius:0.5rem; color:var(--light); font-size:0.95rem; }
+        .calc-btn { background:var(--grad); color:white; border:none; border-radius:0.75rem; padding:0.85rem 2rem; font-weight:700; font-size:1rem; cursor:pointer; transition:all 0.3s; width:100%; }
+        .calc-btn:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(247,147,26,0.4); }
+
+        .erosion-result { display:none; margin-top:1.5rem; }
+        .erosion-result.visible { display:block; }
+        .erosion-result-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:1.5rem; }
+        .erosion-stat { background:var(--dark2); border:1px solid rgba(247,147,26,0.2); border-radius:0.75rem; padding:1.25rem; text-align:center; }
+        .erosion-stat-val { font-size:1.6rem; font-weight:900; font-family:'Courier New',monospace; }
+        .erosion-stat-label { font-size:0.8rem; color:var(--dim); margin-top:0.25rem; }
+        .erosion-stat.lost .erosion-stat-val { color:var(--red); }
+        .erosion-stat.left .erosion-stat-val { color:var(--yellow); }
+        .erosion-stat.annual .erosion-stat-val { color:var(--primary); }
+
+        /* Comparison scenarios */
+        .scenarios-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-top:1.5rem; }
+        .scenario-card { background:var(--dark); border:2px solid; border-radius:0.75rem; padding:1.25rem; }
+        .scenario-card.bad { border-color:rgba(239,68,68,0.4); }
+        .scenario-card.ok { border-color:rgba(252,209,22,0.4); }
+        .scenario-card.good { border-color:rgba(76,175,80,0.4); }
+        .scenario-icon { font-size:1.8rem; margin-bottom:0.5rem; }
+        .scenario-name { font-weight:700; margin-bottom:0.25rem; }
+        .scenario-card.bad .scenario-name { color:var(--red); }
+        .scenario-card.ok .scenario-name { color:var(--yellow); }
+        .scenario-card.good .scenario-name { color:var(--green); }
+        .scenario-rate { font-family:'Courier New',monospace; font-size:0.85rem; color:var(--dim); margin-bottom:0.5rem; }
+        .scenario-result { font-size:0.85rem; color:var(--dim); line-height:1.6; }
+
+        /* Action steps */
+        .actions-grid { display:grid; gap:1rem; margin-top:1.5rem; }
+        .action-item { background:var(--dark); border-left:4px solid var(--primary); border-radius:0.25rem 0.75rem 0.75rem 0.25rem; padding:1.25rem; }
+        .action-num { font-size:0.75rem; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.25rem; }
+        .action-title { font-weight:700; color:var(--light); margin-bottom:0.35rem; }
+        .action-desc { font-size:0.9rem; color:var(--dim); line-height:1.6; }
+        .action-highlight { color:var(--primary); font-weight:600; }
+
+        /* BTC callout */
+        .btc-callout { background:linear-gradient(135deg, rgba(247,147,26,0.1), rgba(247,147,26,0.03)); border:2px solid rgba(247,147,26,0.4); border-radius:1rem; padding:1.75rem; margin-top:1.5rem; }
+        .btc-callout-title { color:var(--primary); font-weight:700; font-size:1.1rem; margin-bottom:0.5rem; }
+        .btc-callout-text { color:var(--dim); font-size:0.9rem; line-height:1.7; }
+
+        .tip-box { background:rgba(252,209,22,0.08); border:2px solid rgba(252,209,22,0.4); border-radius:0.75rem; padding:1.25rem; margin:1.5rem 0; }
+        .tip-header { color:var(--yellow); font-weight:700; margin-bottom:0.4rem; }
+        .tip-text { color:var(--dim); font-size:0.9rem; }
+
+        .next-week { background:var(--dark2); border:2px solid var(--primary); border-radius:1rem; padding:2rem; text-align:center; }
+        .next-week h3 { color:var(--primary); margin-bottom:0.75rem; }
+        .next-week p { color:var(--dim); margin-bottom:1.5rem; }
+        .btn { padding:0.9rem 2rem; border:none; border-radius:0.75rem; font-weight:700; font-size:1rem; cursor:pointer; transition:all 0.3s; text-decoration:none; display:inline-block; }
+        .btn-primary { background:var(--grad); color:white; }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(247,147,26,0.4); }
+
+        @media (max-width:768px) {
+            .week-title { font-size:1.8rem; }
+            .price-bars { grid-template-columns:1fr; }
+            .erosion-inputs { grid-template-columns:1fr; }
+            .inflation-chart { grid-template-columns:repeat(7,1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Volver al Programa</a>
+
+        <div class="header">
+            <div class="week-badge">Semana 5 de 10</div>
+            <h1 class="week-title">La inflación como vecina real</h1>
+            <p class="week-subtitle">Por qué tu plata vale menos cada año, y qué hacer al respecto</p>
+        </div>
+
+        <!-- INTRO -->
+        <div class="section">
+            <div class="section-card">
+                <h2 class="section-title">🧅 La inflación no aparece en tu cuenta, pero la sientes en la tienda</h2>
+                <p class="section-text">
+                    La inflación no es un concepto de economía. Es la razón por la que $200.000 en mercado alcanzaban más hace 3 años que hoy. 
+                    Es por eso que el sueldo mínimo sube cada enero. Es por eso que guardar todo el dinero bajo el colchón 
+                    o en la cuenta de ahorros es, sin saberlo, perder dinero lentamente.
+                </p>
+                <p class="section-text">
+                    En Colombia, la inflación ha sido especialmente fuerte entre 2021 y 2023. 
+                    Estos son los datos reales:
+                </p>
+
+                <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+                    <div style="color:var(--dim); font-size:0.85rem; display:flex; align-items:center; gap:0.4rem;"><span style="background:var(--green); width:12px; height:12px; border-radius:2px; display:inline-block;"></span> Bajo (0–5%)</div>
+                    <div style="color:var(--dim); font-size:0.85rem; display:flex; align-items:center; gap:0.4rem;"><span style="background:var(--yellow); width:12px; height:12px; border-radius:2px; display:inline-block;"></span> Moderado (5–10%)</div>
+                    <div style="color:var(--dim); font-size:0.85rem; display:flex; align-items:center; gap:0.4rem;"><span style="background:var(--red); width:12px; height:12px; border-radius:2px; display:inline-block;"></span> Alto (>10%)</div>
+                </div>
+                <div class="inflation-chart" id="inflation-chart">
+                    <!-- filled by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- PRICE COMPARISON -->
+        <div class="section">
+            <div class="section-card">
+                <h2 class="section-title">🛒 Lo que comprabas antes vs. lo que compras hoy</h2>
+                <p class="section-text">
+                    Compara precios reales aproximados en Colombia. Selecciona el año de referencia:
+                </p>
+
+                <div class="year-selector">
+                    <button class="year-btn" onclick="setYear(2019)">vs. 2019</button>
+                    <button class="year-btn active" onclick="setYear(2021)">vs. 2021</button>
+                    <button class="year-btn" onclick="setYear(2022)">vs. 2022</button>
+                </div>
+
+                <div class="price-grid" id="price-grid">
+                    <!-- filled by JS -->
+                </div>
+
+                <p style="color:var(--dim); font-size:0.8rem; margin-top:1rem;">* Precios ilustrativos basados en tendencias del IPC Colombia. Los precios varían por ciudad y establecimiento.</p>
+            </div>
+        </div>
+
+        <!-- SAVINGS EROSION CALCULATOR -->
+        <div class="section">
+            <div class="section-card">
+                <h2 class="section-title">🧮 ¿Cuánto poder pierde tu ahorro?</h2>
+                <p class="section-text">
+                    Si guardas dinero en efectivo o en una cuenta de ahorros con rendimiento menor a la inflación, 
+                    cada año puedes comprar menos con ese dinero. Calcula cuánto:
+                </p>
+
+                <div class="erosion-calc">
+                    <div class="erosion-inputs">
+                        <div>
+                            <label class="e-label" for="erosion-amount">Dinero guardado ($):</label>
+                            <input type="number" id="erosion-amount" class="e-input" value="2000000" min="0" placeholder="2000000">
+                        </div>
+                        <div>
+                            <label class="e-label" for="erosion-years">Por cuántos años:</label>
+                            <input type="number" id="erosion-years" class="e-input" value="5" min="1" max="30" placeholder="5">
+                        </div>
+                        <div>
+                            <label class="e-label" for="erosion-inflation">Tasa de inflación anual:</label>
+                            <select id="erosion-inflation" class="e-select">
+                                <option value="4">4% — Meta actual Banco de la República</option>
+                                <option value="6" selected>6% — Promedio histórico Colombia</option>
+                                <option value="9">9% — Inflación alta (como 2022-2023)</option>
+                                <option value="13">13% — Pico inflación 2022</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="e-label" for="erosion-interest">Rendimiento de la cuenta (% anual):</label>
+                            <select id="erosion-interest" class="e-select">
+                                <option value="0">0% — Efectivo / debajo del colchón</option>
+                                <option value="2" selected>2% — Cuenta de ahorros típica</option>
+                                <option value="4">4% — CDT bajo</option>
+                                <option value="7">7% — CDT competitivo</option>
+                                <option value="10">10% — CDT alta o fondo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="calc-btn" onclick="calculateErosion()">Ver pérdida de poder adquisitivo →</button>
+
+                    <div class="erosion-result" id="erosion-result">
+                        <div class="erosion-result-grid">
+                            <div class="erosion-stat lost">
+                                <div class="erosion-stat-val" id="erosion-lost">$0</div>
+                                <div class="erosion-stat-label">Poder adquisitivo perdido</div>
+                            </div>
+                            <div class="erosion-stat left">
+                                <div class="erosion-stat-val" id="erosion-real-val">$0</div>
+                                <div class="erosion-stat-label">Valor real al final (pesos de hoy)</div>
+                            </div>
+                            <div class="erosion-stat annual">
+                                <div class="erosion-stat-val" id="erosion-diff">0%</div>
+                                <div class="erosion-stat-label">Pérdida anual neta</div>
+                            </div>
+                        </div>
+                        <div id="erosion-message" style="background:var(--dark2); border:1px solid rgba(247,147,26,0.2); border-radius:0.75rem; padding:1.25rem; color:var(--dim); font-size:0.95rem; line-height:1.7;"></div>
+                    </div>
+                </div>
+
+                <!-- WHERE TO KEEP -->
+                <h3 style="color:var(--primary); margin-top:2rem; margin-bottom:1rem;">¿Dónde guarda sus ahorros la gente? ¿Y qué rinde realmente?</h3>
+                <div class="scenarios-grid">
+                    <div class="scenario-card bad">
+                        <div class="scenario-icon">💵</div>
+                        <div class="scenario-name">Efectivo en casa</div>
+                        <div class="scenario-rate">Rendimiento: 0%</div>
+                        <div class="scenario-result">Con inflación de 6%, pierdes el 6% de poder adquisitivo cada año. Además, no está asegurado.</div>
+                    </div>
+                    <div class="scenario-card bad">
+                        <div class="scenario-icon">🏦</div>
+                        <div class="scenario-name">Cuenta de ahorros</div>
+                        <div class="scenario-rate">Rendimiento: ~2% anual</div>
+                        <div class="scenario-result">Con inflación al 6%, pierdes ~4% real cada año. Mejor que el colchón, pero sigue perdiendo valor.</div>
+                    </div>
+                    <div class="scenario-card ok">
+                        <div class="scenario-icon">📄</div>
+                        <div class="scenario-name">CDT (banco)</div>
+                        <div class="scenario-rate">Rendimiento: 6–10% anual</div>
+                        <div class="scenario-result">Cerca o por encima de la inflación. El capital queda fijo un tiempo. Buen ancla para ahorros de emergencia.</div>
+                    </div>
+                    <div class="scenario-card good">
+                        <div class="scenario-icon">₿</div>
+                        <div class="scenario-name">Bitcoin (largo plazo)</div>
+                        <div class="scenario-rate">Rendimiento histórico: variable</div>
+                        <div class="scenario-result">Su oferta es fija: solo existirán 21 millones. En semanas 11–12 exploramos esto en profundidad.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WHAT TO DO -->
+        <div class="section">
+            <div class="section-card">
+                <h2 class="section-title">✅ Lo que puedes hacer ahora mismo</h2>
+                <p class="section-text">No necesitas ser experto en finanzas para proteger tu dinero de la inflación. Empieza con esto:</p>
+
+                <div class="actions-grid">
+                    <div class="action-item">
+                        <div class="action-num">Acción 1</div>
+                        <div class="action-title">Mueve el dinero que no necesitas pronto a un CDT</div>
+                        <div class="action-desc">
+                            Si tienes dinero en cuenta de ahorros que no usarás en 6–12 meses, un <span class="action-highlight">CDT</span> 
+                            en cualquier banco o cooperativa puede darte 6–10% anual. 
+                            En Bancolombia, Davivienda, Nequi Bolsillos, o tu cooperativa empresarial lo puedes abrir desde $100.000.
+                        </div>
+                    </div>
+                    <div class="action-item">
+                        <div class="action-num">Acción 2</div>
+                        <div class="action-title">No dejes efectivo guardado más de lo necesario</div>
+                        <div class="action-desc">
+                            Guarda en efectivo solo lo necesario para gastos de la semana. 
+                            El resto, en una cuenta o CDT. El efectivo no rinde y puede perderse o robarse.
+                        </div>
+                    </div>
+                    <div class="action-item">
+                        <div class="action-num">Acción 3</div>
+                        <div class="action-title">Usa el SMMLV como ancla de referencia</div>
+                        <div class="action-desc">
+                            El salario mínimo sube cada enero para compensar la inflación del año anterior. 
+                            Si tu salario no sube al menos con la inflación, en términos reales ganas menos. 
+                            Conocer la inflación te da poder para negociar.
+                        </div>
+                    </div>
+                    <div class="action-item">
+                        <div class="action-num">Acción 4</div>
+                        <div class="action-title">Revisa el costo real de tus deudas vs la inflación</div>
+                        <div class="action-desc">
+                            Una deuda al 20% mensual (gota a gota) te destruye aunque la inflación sea alta. 
+                            Una deuda al 1% mensual puede ser razonable si inviertes ese dinero a mayor rendimiento.
+                            La inflación no "ayuda" a pagar deudas de consumo.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btc-callout">
+                    <div class="btc-callout-title">₿ ¿Por qué Bitcoin como reserva de valor? (Vista previa)</div>
+                    <div class="btc-callout-text">
+                        El peso colombiano perdió más del 30% de su valor frente al dólar en los últimos 5 años. 
+                        Bitcoin tiene una oferta fija — no lo puede imprimir ningún banco ni gobierno. 
+                        En las semanas 11 y 12 (módulo opcional), exploramos cómo funciona y si tiene sentido 
+                        como herramienta de ahorro de largo plazo.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TIP -->
+        <div class="tip-box">
+            <div class="tip-header">💡 Para recordar</div>
+            <div class="tip-text">
+                La inflación no es algo que solo le pasa a los pobres o a los ricos. Le pasa a todos. 
+                La diferencia está en quién actúa. Mantener tu dinero en efectivo o en cuenta de ahorros 
+                sin rendimiento real es perder en silencio cada año.
+            </div>
+        </div>
+
+        <div class="next-week">
+            <h3>🎯 Siguiente: Semana 6</h3>
+            <p>Con la inflación clara, ahora aprendemos a proteger lo que ganas de estafas y trampas financieras.</p>
+            <a href="../semana-6/" class="btn btn-primary" style="text-decoration:none; margin-top:0.5rem; display:inline-block;">Continuar a Semana 6 →</a>
+        </div>
+    </div>
+
+    <script>
+        function fmt(n) {
+            return new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', minimumFractionDigits:0 }).format(n);
+        }
+
+        // ---------- INFLATION CHART ----------
+        const inflationData = [
+            { year: '2018', rate: 3.2 },
+            { year: '2019', rate: 3.8 },
+            { year: '2020', rate: 1.6 },
+            { year: '2021', rate: 5.6 },
+            { year: '2022', rate: 13.1 },
+            { year: '2023', rate: 9.3 },
+            { year: '2024', rate: 5.3 },
+        ];
+        const maxRate = 14;
+
+        function buildChart() {
+            const chart = document.getElementById('inflation-chart');
+            chart.innerHTML = '';
+            inflationData.forEach(d => {
+                const heightPct = (d.rate / maxRate) * 100;
+                const colorClass = d.rate > 10 ? 'high' : d.rate > 5 ? 'mid' : 'low';
+                const wrap = document.createElement('div');
+                wrap.className = 'chart-bar-wrap';
+                wrap.innerHTML = `
+                    <div class="chart-val">${d.rate}%</div>
+                    <div class="chart-bar ${colorClass}" style="height:${heightPct}%;"></div>
+                    <div class="chart-year">${d.year}</div>
+                `;
+                chart.appendChild(wrap);
+            });
+        }
+
+        // ---------- PRICE COMPARISON ----------
+        const priceItems = [
+            {
+                name: 'Galón de leche',
+                emoji: '🥛',
+                prices: { 2019: 2900, 2021: 3200, 2022: 3600, 2025: 4500 },
+            },
+            {
+                name: 'Kilo de arroz (seco)',
+                emoji: '🌾',
+                prices: { 2019: 2400, 2021: 2700, 2022: 3200, 2025: 4000 },
+            },
+            {
+                name: 'Almuerzo del día (corriente)',
+                emoji: '🍱',
+                prices: { 2019: 8000, 2021: 9000, 2022: 11000, 2025: 14000 },
+            },
+            {
+                name: 'Pasaje SITP (Bogotá)',
+                emoji: '🚌',
+                prices: { 2019: 2300, 2021: 2600, 2022: 2800, 2025: 3300 },
+            },
+            {
+                name: 'Kilo de pollo',
+                emoji: '🍗',
+                prices: { 2019: 7000, 2021: 8000, 2022: 10000, 2025: 12500 },
+            },
+            {
+                name: 'Tubo de pasta dental',
+                emoji: '🪥',
+                prices: { 2019: 5500, 2021: 6000, 2022: 7500, 2025: 9500 },
+            },
+        ];
+
+        let selectedYear = 2021;
+
+        function setYear(year) {
+            selectedYear = year;
+            document.querySelectorAll('.year-btn').forEach(b => {
+                b.classList.toggle('active', parseInt(b.textContent.replace('vs. ', '')) === year);
+            });
+            renderPrices();
+        }
+
+        function renderPrices() {
+            const grid = document.getElementById('price-grid');
+            const maxPrice = Math.max(...priceItems.map(p => p.prices[2025]));
+
+            grid.innerHTML = '';
+            priceItems.forEach(item => {
+                const old = item.prices[selectedYear];
+                const now = item.prices[2025];
+                const change = ((now - old) / old * 100).toFixed(0);
+                const oldWidthPct = (old / maxPrice) * 100;
+                const nowWidthPct = (now / maxPrice) * 100;
+
+                grid.innerHTML += `
+                    <div class="price-row">
+                        <div class="price-row-header">
+                            <span class="price-item-name">${item.emoji} ${item.name}</span>
+                            <span class="price-diff-badge">+${change}%</span>
+                        </div>
+                        <div class="price-bars">
+                            <div class="price-bar-group">
+                                <div class="price-bar-label">
+                                    <span style="color:var(--dim)">${selectedYear}</span>
+                                    <span style="color:var(--blue)">${fmt(old)}</span>
+                                </div>
+                                <div class="price-bar-track">
+                                    <div class="price-bar-fill old" style="width:${oldWidthPct}%"></div>
+                                </div>
+                            </div>
+                            <div class="price-bar-group">
+                                <div class="price-bar-label">
+                                    <span style="color:var(--dim)">2024–25</span>
+                                    <span style="color:var(--red)">${fmt(now)}</span>
+                                </div>
+                                <div class="price-bar-track">
+                                    <div class="price-bar-fill new" style="width:${nowWidthPct}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // ---------- EROSION CALCULATOR ----------
+        function calculateErosion() {
+            const amount = parseFloat(document.getElementById('erosion-amount').value) || 2000000;
+            const years = parseFloat(document.getElementById('erosion-years').value) || 5;
+            const inflation = parseFloat(document.getElementById('erosion-inflation').value) / 100;
+            const interest = parseFloat(document.getElementById('erosion-interest').value) / 100;
+
+            // Future nominal value (with interest)
+            const futureNominal = amount * Math.pow(1 + interest, years);
+            // Real purchasing power in today's pesos
+            const realValue = futureNominal / Math.pow(1 + inflation, years);
+            const lostPower = amount - realValue;
+            const annualNetLoss = ((inflation - interest) * 100).toFixed(1);
+
+            document.getElementById('erosion-lost').textContent = lostPower > 0 ? fmt(lostPower) : '+' + fmt(Math.abs(lostPower));
+            document.getElementById('erosion-real-val').textContent = fmt(realValue);
+            document.getElementById('erosion-diff').textContent = (inflation > interest ? '-' : '+') + Math.abs(annualNetLoss) + '%';
+
+            let msg = '';
+            const netRate = interest - inflation;
+            if (netRate < -5) {
+                msg = `⚠️ Con esta combinación, en ${years} años tu ahorro de ${fmt(amount)} solo compraría lo que hoy compras con ${fmt(realValue)}. 
+                Perderías ${fmt(lostPower)} de poder adquisitivo. 
+                El dinero "está" ahí, pero puede comprar mucho menos.`;
+            } else if (netRate < 0) {
+                msg = `Tu dinero sigue en cuenta, pero en términos reales vale menos. 
+                Perderías ${fmt(lostPower)} de poder adquisitivo en ${years} años. 
+                Considera un CDT o instrumento que rinda más que la inflación.`;
+            } else if (netRate < 2) {
+                msg = `Estás ligeramente por encima de la inflación. Tu ahorro mantiene o gana un poco de valor real. 
+                Buen punto de partida — sigue buscando opciones que mejoren ese margen.`;
+            } else {
+                msg = `¡Bien! Estás ganando por encima de la inflación. Tu ahorro de ${fmt(amount)} 
+                valdrá en términos reales ${fmt(realValue)} en ${years} años. 
+                Cada punto porcentual sobre la inflación es una victoria pequeña pero compuesta.`;
+            }
+
+            document.getElementById('erosion-message').textContent = msg;
+            document.getElementById('erosion-result').classList.add('visible');
+        }
+
+        // Init
+        buildChart();
+        renderPrices();
+        calculateErosion();
+    </script>
+</body>
+</html>

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 10: Hacer crecer mi dinero | Ruta de Estabilidad y Crecimiento</title>
+    <meta name="description" content="Simulador de crecimiento de ahorros para trabajadores colombianos. Cuenta de ahorros vs CDT vs inflación. Próximos pasos y módulo Bitcoin opcional.">
+    <style>
+        :root {
+            --primary: #f7931a;
+            --dark: #1a1a1a;
+            --dark2: #2d2d2d;
+            --light: #e0e0e0;
+            --dim: #b3b3b3;
+            --green: #4caf50;
+            --red: #ef4444;
+            --yellow: #fcd116;
+            --blue: #3b82f6;
+            --grad: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--dark); color:var(--light); line-height:1.6; padding:1rem; }
+
+        .container { max-width:1000px; margin:0 auto; }
+        .back-link { display:inline-flex; align-items:center; gap:0.5rem; color:var(--primary); text-decoration:none; margin-bottom:2rem; font-weight:600; transition:transform 0.2s; }
+        .back-link:hover { transform:translateX(-4px); }
+
+        /* Graduation header */
+        .header { text-align:center; margin-bottom:3rem; }
+        .graduation-banner { background:linear-gradient(135deg, rgba(247,147,26,0.15), rgba(252,209,22,0.08)); border:2px solid var(--primary); border-radius:1.25rem; padding:2.5rem 2rem; margin-bottom:2rem; }
+        .grad-emoji { font-size:3.5rem; margin-bottom:0.75rem; }
+        .week-badge { display:inline-block; background:rgba(247,147,26,0.15); border:1px solid var(--primary); border-radius:2rem; padding:0.3rem 1rem; font-size:0.85rem; color:var(--primary); margin-bottom:1rem; }
+        .week-title { font-size:2.4rem; color:var(--primary); margin-bottom:0.5rem; }
+        .week-subtitle { font-size:1.1rem; color:var(--dim); }
+        .grad-subtitle { font-size:1rem; color:var(--dim); max-width:600px; margin:0.75rem auto 0; }
+
+        .section { margin-bottom:3rem; }
+        .section-card { background:var(--dark2); border:2px solid rgba(247,147,26,0.2); border-radius:1rem; padding:2rem; }
+        .section-title { font-size:1.5rem; color:var(--primary); margin-bottom:0.75rem; }
+        .section-text { color:var(--dim); font-size:1rem; line-height:1.8; margin-bottom:1.25rem; }
+
+        /* Journey recap */
+        .journey-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-top:1.5rem; }
+        .journey-item { background:var(--dark); border:1px solid rgba(247,147,26,0.15); border-radius:0.75rem; padding:1rem; text-align:center; }
+        .journey-week { font-size:0.7rem; color:var(--primary); font-weight:700; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.3rem; }
+        .journey-icon { font-size:1.5rem; margin-bottom:0.3rem; }
+        .journey-title { font-size:0.85rem; color:var(--light); font-weight:600; }
+
+        /* Growth simulator */
+        .simulator-inputs { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+        .s-label { display:block; color:var(--light); font-weight:600; font-size:0.9rem; margin-bottom:0.4rem; }
+        .s-input { width:100%; padding:0.7rem; background:var(--dark); border:2px solid rgba(247,147,26,0.25); border-radius:0.5rem; color:var(--light); font-size:1rem; font-family:'Courier New',monospace; }
+        .s-input:focus { outline:none; border-color:var(--primary); }
+        .s-select { width:100%; padding:0.7rem; background:var(--dark); border:2px solid rgba(247,147,26,0.25); border-radius:0.5rem; color:var(--light); font-size:0.9rem; }
+        .calc-btn { background:var(--grad); color:white; border:none; border-radius:0.75rem; padding:0.85rem 2rem; font-weight:700; font-size:1rem; cursor:pointer; transition:all 0.3s; width:100%; }
+        .calc-btn:hover { transform:translateY(-2px); }
+
+        /* Comparison results */
+        .comparison-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-top:1.5rem; display:none; }
+        .comparison-grid.visible { display:grid; }
+        .compare-card { border:2px solid; border-radius:1rem; padding:1.5rem; text-align:center; }
+        .compare-card.bad { border-color:rgba(239,68,68,0.5); background:rgba(239,68,68,0.04); }
+        .compare-card.ok { border-color:rgba(252,209,22,0.5); background:rgba(252,209,22,0.04); }
+        .compare-card.good { border-color:rgba(76,175,80,0.5); background:rgba(76,175,80,0.04); }
+        .compare-card.btc { border-color:rgba(247,147,26,0.5); background:rgba(247,147,26,0.04); }
+        .compare-icon { font-size:1.8rem; margin-bottom:0.5rem; }
+        .compare-name { font-weight:700; margin-bottom:0.25rem; }
+        .compare-card.bad .compare-name { color:var(--red); }
+        .compare-card.ok .compare-name { color:var(--yellow); }
+        .compare-card.good .compare-name { color:var(--green); }
+        .compare-card.btc .compare-name { color:var(--primary); }
+        .compare-rate { font-size:0.8rem; color:var(--dim); margin-bottom:1rem; font-family:'Courier New',monospace; }
+        .compare-final { font-size:1.5rem; font-weight:900; font-family:'Courier New',monospace; margin-bottom:0.25rem; }
+        .compare-card.bad .compare-final { color:var(--red); }
+        .compare-card.ok .compare-final { color:var(--yellow); }
+        .compare-card.good .compare-final { color:var(--green); }
+        .compare-card.btc .compare-final { color:var(--primary); }
+        .compare-label { font-size:0.75rem; color:var(--dim); }
+        .compare-real { font-size:0.8rem; margin-top:0.5rem; }
+
+        /* Chart bars */
+        .chart-container { margin-top:1.5rem; }
+        .chart-year-row { display:flex; align-items:center; gap:0.75rem; margin-bottom:0.5rem; }
+        .chart-year-label { width:40px; font-size:0.75rem; color:var(--dim); text-align:right; flex-shrink:0; }
+        .chart-bars { flex:1; display:grid; gap:0.2rem; }
+        .chart-bar-item { display:flex; align-items:center; gap:0.5rem; }
+        .chart-bar-fill { height:18px; border-radius:2px; transition:width 0.8s ease; min-width:4px; }
+        .chart-bar-val { font-size:0.7rem; font-family:'Courier New',monospace; color:var(--dim); white-space:nowrap; }
+
+        /* Options comparison table */
+        .options-table { width:100%; border-collapse:collapse; margin-top:1.25rem; }
+        .options-table th { text-align:left; color:var(--dim); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; padding:0.5rem; border-bottom:1px solid rgba(247,147,26,0.2); }
+        .options-table td { padding:0.75rem 0.5rem; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.9rem; vertical-align:top; }
+        .options-table tr:last-child td { border-bottom:none; }
+        .opt-name { color:var(--light); font-weight:600; }
+        .opt-return { font-family:'Courier New',monospace; font-weight:700; }
+        .opt-return.low { color:var(--red); }
+        .opt-return.mid { color:var(--yellow); }
+        .opt-return.high { color:var(--green); }
+        .opt-liquidity { font-size:0.8rem; color:var(--dim); }
+        .opt-min { font-family:'Courier New',monospace; font-size:0.85rem; color:var(--primary); }
+
+        /* Bitcoin bridge */
+        .btc-bridge { background:linear-gradient(135deg, rgba(247,147,26,0.12), rgba(247,147,26,0.04)); border:2px solid rgba(247,147,26,0.5); border-radius:1.25rem; padding:2.5rem; text-align:center; }
+        .btc-icon-big { font-size:3rem; margin-bottom:1rem; }
+        .btc-bridge-title { font-size:1.5rem; font-weight:700; color:var(--primary); margin-bottom:1rem; }
+        .btc-bridge-text { color:var(--dim); max-width:600px; margin:0 auto 1.5rem; line-height:1.8; }
+        .btc-callouts { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin:1.5rem 0; }
+        .btc-callout-item { background:rgba(247,147,26,0.08); border:1px solid rgba(247,147,26,0.25); border-radius:0.75rem; padding:1rem; text-align:center; }
+        .btc-callout-stat { font-size:1.5rem; font-weight:900; color:var(--primary); font-family:'Courier New',monospace; }
+        .btc-callout-desc { font-size:0.8rem; color:var(--dim); margin-top:0.25rem; }
+
+        /* Completion */
+        .completion { background:linear-gradient(135deg, rgba(76,175,80,0.12), rgba(247,147,26,0.05)); border:2px solid var(--green); border-radius:1.25rem; padding:2.5rem; text-align:center; }
+        .completion-icon { font-size:3rem; margin-bottom:1rem; }
+        .completion-title { font-size:1.8rem; font-weight:700; color:var(--green); margin-bottom:0.75rem; }
+        .completion-text { color:var(--dim); margin-bottom:2rem; line-height:1.8; }
+        .completion-recap { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:0.75rem; margin:1.5rem 0; }
+        .recap-item { background:rgba(76,175,80,0.08); border:1px solid rgba(76,175,80,0.2); border-radius:0.75rem; padding:0.75rem; }
+        .recap-check { color:var(--green); font-size:0.85rem; font-weight:700; margin-bottom:0.2rem; }
+        .recap-text { font-size:0.8rem; color:var(--dim); }
+
+        .tip-box { background:rgba(252,209,22,0.08); border:2px solid rgba(252,209,22,0.4); border-radius:0.75rem; padding:1.25rem; margin:1.5rem 0; }
+        .tip-header { color:var(--yellow); font-weight:700; margin-bottom:0.4rem; }
+        .tip-text { color:var(--dim); font-size:0.9rem; }
+
+        .btn { padding:0.9rem 2rem; border:none; border-radius:0.75rem; font-weight:700; font-size:1rem; cursor:pointer; transition:all 0.3s; text-decoration:none; display:inline-block; }
+        .btn-primary { background:var(--grad); color:white; }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(247,147,26,0.4); }
+        .btn-outline { background:transparent; color:var(--primary); border:2px solid var(--primary); }
+        .btn-outline:hover { background:rgba(247,147,26,0.1); }
+
+        @media (max-width:768px) {
+            .week-title { font-size:1.8rem; }
+            .simulator-inputs { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Volver al Programa</a>
+
+        <!-- GRADUATION HEADER -->
+        <div class="header">
+            <div class="graduation-banner">
+                <div class="grad-emoji">🎓</div>
+                <div class="week-badge">Semana 10 de 10 — Última semana</div>
+                <h1 class="week-title">Hacer crecer mi dinero</h1>
+                <p class="grad-subtitle">
+                    Estabilidad construida. Ahora aprendemos la diferencia entre guardar dinero y ponerlo a trabajar.
+                </p>
+            </div>
+        </div>
+
+        <!-- JOURNEY RECAP -->
+        <div class="section">
+            <div class="section-card">
+                <h2 class="section-title">🗺️ Lo que recorriste en 10 semanas</h2>
+                <p class="section-text">Cada semana construiste una pieza de tu base financiera. Aquí está el mapa:</p>
+                <div class="journey-grid">
+                    <div class="journey-item"><div class="journey-week">S1</div><div class="journey-icon">💰</div><div class="journey-title">Presupuesto real</div></div>
+                    <div class="journey-item"><div class="journey-week">S2</div><div class="journey-icon">🧾</div><div class="journey-title">Mi recibo de pago</div></div>
+                    <div class="journey-item"><div class="journey-week">S3</div><div class="journey-icon">🔗</div><div class="journey-title">Deuda sin drama</div></div>
+                    <div class="journey-item"><div class="journey-week">S4</div><div class="journey-icon">🛡️</div><div class="journey-title">Fondo de emergencia</div></div>
+                    <div class="journey-item"><div class="journey-week">S5</div><div class="journey-icon">📈</div><div class="journey-title">La inflación</div></div>
+                    <div class="journey-item"><div class="journey-week">S6</div><div class="journey-icon">🔒</div><div class="journey-title">Estafas y trampas</div></div>
+                    <div class="journey-item"><div class="journey-week">S7</div><div class="journey-icon">📱</div><div class="journey-title">Banco digital</div></div>
+                    <div class="journey-item"><div class="journey-week">S8</div><div class="journey-icon">🎯</div><div class="journey-title">Metas de ahorro</div></div>
+                    <div class="journey-item"><div class="journey-week">S9</div><div class="journey-icon">📋</div><div class="journey-title">Historial crediticio</div></div>
+                    <div class="journey-item" style="border-color:var(--primary);"><div class="journey-week" style="color:var(--yellow)">S10</div><div class="journey-icon">🌱</div><div class="journey-title">Hacer crecer</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GROWTH SIMULATOR -->
+        <div class="section">
+            <div class="section-card">
+                <h2 class="section-title">🌱 Simulador de crecimiento de ahorros</h2>
+                <p class="section-text">
+                    Hay una diferencia enorme entre dejar el dinero quieto y ponerlo a trabajar. 
+                    Esta calculadora te muestra lo que pasa con tu dinero según dónde lo guardes, 
+                    ajustado por inflación para que veas el valor real.
+                </p>
+
+                <div class="simulator-inputs">
+                    <div>
+                        <label class="s-label" for="sim-initial">Dinero inicial a guardar ($):</label>
+                        <input type="number" id="sim-initial" class="s-input" value="2000000" min="0">
+                    </div>
+                    <div>
+                        <label class="s-label" for="sim-monthly">Ahorro mensual adicional ($):</label>
+                        <input type="number" id="sim-monthly" class="s-input" value="150000" min="0">
+                    </div>
+                    <div>
+                        <label class="s-label" for="sim-years">Por cuántos años:</label>
+                        <input type="number" id="sim-years" class="s-input" value="5" min="1" max="30">
+                    </div>
+                    <div>
+                        <label class="s-label" for="sim-inflation">Inflación anual esperada:</label>
+                        <select id="sim-inflation" class="s-select">
+                            <option value="4">4% — Meta Banco de la República</option>
+                            <option value="6" selected>6% — Promedio histórico</option>
+                            <option value="9">9% — Inflación alta</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="calc-btn" onclick="runSimulation()">Comparar opciones →</button>
+
+                <div class="comparison-grid" id="comparison-grid">
+                    <div class="compare-card bad">
+                        <div class="compare-icon">💵</div>
+                        <div class="compare-name">Efectivo</div>
+                        <div class="compare-rate">0% anual</div>
+                        <div class="compare-final" id="cmp-cash">$0</div>
+                        <div class="compare-label">Valor nominal</div>
+                        <div class="compare-real" id="cmp-cash-real" style="color:var(--red)"></div>
+                    </div>
+                    <div class="compare-card bad">
+                        <div class="compare-icon">🏦</div>
+                        <div class="compare-name">Cuenta de ahorros</div>
+                        <div class="compare-rate">~2% anual</div>
+                        <div class="compare-final" id="cmp-savings">$0</div>
+                        <div class="compare-label">Valor nominal</div>
+                        <div class="compare-real" id="cmp-savings-real" style="color:var(--yellow)"></div>
+                    </div>
+                    <div class="compare-card ok">
+                        <div class="compare-icon">📄</div>
+                        <div class="compare-name">CDT</div>
+                        <div class="compare-rate" id="cmp-cdt-rate">~8% anual</div>
+                        <div class="compare-final" id="cmp-cdt">$0</div>
+                        <div class="compare-label">Valor nominal</div>
+                        <div class="compare-real" id="cmp-cdt-real" style="color:var(--green)"></div>
+                    </div>
+                    <div class="compare-card good">
+                        <div class="compare-icon">📊</div>
+                        <div class="compare-name">Fondo inversión</div>
+                        <div class="compare-rate">~12% anual</div>
+                        <div class="compare-final" id="cmp-fund">$0</div>
+                        <div class="compare-label">Valor nominal</div>
+                        <div class="compare-real" id="cmp-fund-real" style="color:var(--green)"></div>
+                    </div>
+                </div>
+
+                <div id="simulation-message" style="display:none; margin-top:1.5rem; background:var(--dark); border:1px solid rgba(247,147,26,0.2); border-radius:0.75rem; padding:1.25rem; color:var(--dim); font-size:0.95rem; line-height:1.7;"></div>
+            </div>
+        </div>
+
+        <!-- OPTIONS TABLE -->
+        <div class="section">
+            <div class="section-card">
+                <h2 class="section-title">📊 Comparativa de opciones en Colombia</h2>
+                <p class="section-text">Un mapa de las opciones más comunes, ordenadas por rendimiento. Cada una tiene su lugar según cuándo necesitas el dinero.</p>
+                <table class="options-table">
+                    <thead>
+                        <tr>
+                            <th>Opción</th>
+                            <th>Rendimiento aprox.</th>
+                            <th>Liquidez</th>
+                            <th>Mínimo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="opt-name">Cuenta de ahorros</td>
+                            <td class="opt-return low">1–3% anual</td>
+                            <td class="opt-liquidity">Inmediata</td>
+                            <td class="opt-min">$0</td>
+                        </tr>
+                        <tr>
+                            <td class="opt-name">Nequi Bolsillos</td>
+                            <td class="opt-return low">~2% anual</td>
+                            <td class="opt-liquidity">Inmediata</td>
+                            <td class="opt-min">$1.000</td>
+                        </tr>
+                        <tr>
+                            <td class="opt-name">CDT (banco)</td>
+                            <td class="opt-return mid">6–10% anual</td>
+                            <td class="opt-liquidity">Al vencimiento (30–365 días)</td>
+                            <td class="opt-min">$100.000</td>
+                        </tr>
+                        <tr>
+                            <td class="opt-name">CDT cooperativa</td>
+                            <td class="opt-return mid">8–12% anual</td>
+                            <td class="opt-liquidity">Al vencimiento</td>
+                            <td class="opt-min">$50.000</td>
+                        </tr>
+                        <tr>
+                            <td class="opt-name">Fondos de inversión colectiva</td>
+                            <td class="opt-return high">8–15% anual</td>
+                            <td class="opt-liquidity">Variable (días a meses)</td>
+                            <td class="opt-min">$10.000–$100.000</td>
+                        </tr>
+                        <tr>
+                            <td class="opt-name">Bitcoin (largo plazo)</td>
+                            <td class="opt-return high" style="color:var(--primary);">Variable — históricamente positivo a 4+ años</td>
+                            <td class="opt-liquidity">Alta (mercado 24/7)</td>
+                            <td class="opt-min">Fraccionable</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="tip-box" style="margin-top:1.5rem;">
+                    <div class="tip-header">💡 Regla general</div>
+                    <div class="tip-text">
+                        Dinero que necesitas en menos de 3 meses → cuenta de ahorros o Nequi.<br>
+                        Dinero que no necesitas en 6–12 meses → CDT.<br>
+                        Dinero que puedes dejar 3+ años y no necesitas → fondos o Bitcoin (módulo opcional).
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BITCOIN BRIDGE -->
+        <div class="section">
+            <div class="btc-bridge">
+                <div class="btc-icon-big">₿</div>
+                <div class="btc-bridge-title">¿Y Bitcoin para ahorrar a largo plazo?</div>
+                <div class="btc-bridge-text">
+                    Existe una razón por la que personas en países con alta inflación — Argentina, Venezuela, Colombia — 
+                    empezaron a guardar parte de su ahorro en Bitcoin. No es especulación. 
+                    Es porque el peso pierde valor, y Bitcoin tiene una oferta fija que ningún banco puede imprimir.
+                </div>
+                <div class="btc-callouts">
+                    <div class="btc-callout-item">
+                        <div class="btc-callout-stat">21M</div>
+                        <div class="btc-callout-desc">Máximo de bitcoins que existirán. Nadie puede imprimir más.</div>
+                    </div>
+                    <div class="btc-callout-item">
+                        <div class="btc-callout-stat">4 años</div>
+                        <div class="btc-callout-desc">El horizonte mínimo recomendado si lo usas como ahorro.</div>
+                    </div>
+                    <div class="btc-callout-item">
+                        <div class="btc-callout-stat">No todo</div>
+                        <div class="btc-callout-desc">Solo considera Bitcoin con dinero que no necesitas en el corto plazo.</div>
+                    </div>
+                </div>
+                <p style="color:var(--dim); font-size:0.9rem; margin-bottom:1.5rem;">
+                    Las semanas 11 y 12 son un módulo opcional donde exploramos Bitcoin en detalle: 
+                    qué es, cómo funciona, cómo se guarda, y si tiene sentido para ti.
+                </p>
+                <a href="../../semana-11/" class="btn btn-primary" style="text-decoration:none; margin-right:1rem;">Explorar módulo Bitcoin →</a>
+                <a href="../" class="btn btn-outline" style="text-decoration:none; margin-top:0.5rem; display:inline-block;">Volver al programa</a>
+            </div>
+        </div>
+
+        <!-- COMPLETION CARD -->
+        <div class="section">
+            <div class="completion">
+                <div class="completion-icon">🏆</div>
+                <div class="completion-title">Completaste la Ruta de Estabilidad</div>
+                <div class="completion-text">
+                    En 10 semanas pasaste de presupuesto a crecimiento. 
+                    Ahora tienes herramientas que la mayoría de personas no aprendió en años. 
+                    Lo más difícil no fue aprender — fue decidir empezar.
+                </div>
+                <div class="completion-recap">
+                    <div class="recap-item"><div class="recap-check">✅</div><div class="recap-text">Presupuesto claro</div></div>
+                    <div class="recap-item"><div class="recap-check">✅</div><div class="recap-text">Entiendes tu pago</div></div>
+                    <div class="recap-item"><div class="recap-check">✅</div><div class="recap-text">Deudas bajo control</div></div>
+                    <div class="recap-item"><div class="recap-check">✅</div><div class="recap-text">Fondo de emergencia</div></div>
+                    <div class="recap-item"><div class="recap-check">✅</div><div class="recap-text">Inflación entendida</div></div>
+                    <div class="recap-item"><div class="recap-check">✅</div><div class="recap-text">Protegido de estafas</div></div>
+                    <div class="recap-item"><div class="recap-check">✅</div><div class="recap-text">Banco digital activo</div></div>
+                    <div class="recap-item"><div class="recap-check">✅</div><div class="recap-text">Metas definidas</div></div>
+                    <div class="recap-item"><div class="recap-check">✅</div><div class="recap-text">Historial construido</div></div>
+                    <div class="recap-item"><div class="recap-check">✅</div><div class="recap-text">Dinero creciendo</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function fmt(n) {
+            return new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', minimumFractionDigits:0 }).format(Math.round(n));
+        }
+
+        function fmtReal(n) {
+            return new Intl.NumberFormat('es-CO', { minimumFractionDigits:0 }).format(Math.round(n));
+        }
+
+        function growthCalc(initial, monthly, years, annualRate) {
+            let balance = initial;
+            for (let y = 0; y < years; y++) {
+                balance = balance * (1 + annualRate) + monthly * 12 * (1 + annualRate / 2);
+            }
+            return balance;
+        }
+
+        function realValue(nominal, inflation, years) {
+            return nominal / Math.pow(1 + inflation, years);
+        }
+
+        function runSimulation() {
+            const initial = parseFloat(document.getElementById('sim-initial').value) || 2000000;
+            const monthly = parseFloat(document.getElementById('sim-monthly').value) || 150000;
+            const years = parseFloat(document.getElementById('sim-years').value) || 5;
+            const inflation = parseFloat(document.getElementById('sim-inflation').value) / 100;
+
+            const rates = { cash: 0, savings: 0.02, cdt: 0.08, fund: 0.12 };
+            const ids = ['cash', 'savings', 'cdt', 'fund'];
+
+            const results = {};
+            ids.forEach(id => {
+                const nominal = growthCalc(initial, monthly, years, rates[id]);
+                const real = realValue(nominal, inflation, years);
+                results[id] = { nominal, real };
+                document.getElementById(`cmp-${id}`).textContent = fmt(nominal);
+                const realDiff = real - initial - monthly * 12 * years;
+                document.getElementById(`cmp-${id}-real`).textContent =
+                    `Valor real hoy: ${fmt(real)} (${realDiff >= 0 ? '+' : ''}${fmt(realDiff)})`;
+            });
+
+            const cdtRate = `~${8}% anual`;
+            document.getElementById('cmp-cdt-rate').textContent = cdtRate;
+            document.getElementById('comparison-grid').classList.add('visible');
+
+            const totalContributed = initial + monthly * 12 * years;
+            const cdtNominal = results.cdt.nominal;
+            const cashNominal = results.cash.nominal;
+            const diff = cdtNominal - cashNominal;
+
+            document.getElementById('simulation-message').style.display = 'block';
+            document.getElementById('simulation-message').innerHTML =
+                `Con ${fmt(initial)} inicial + ${fmt(monthly)}/mes durante ${years} años, 
+                la diferencia entre dejar el dinero en efectivo y ponerlo en un CDT es 
+                <strong style="color:var(--primary)">${fmt(diff)}</strong> más. 
+                En términos reales (ajustado por inflación de ${(inflation*100).toFixed(0)}%), 
+                el efectivo pierde ${fmt(initial + monthly*12*years - results.cash.real)} de poder adquisitivo, 
+                mientras el CDT ${results.cdt.real > totalContributed ? 'gana' : 'pierde menos'} valor real.`;
+        }
+
+        runSimulation();
+    </script>
+</body>
+</html>
