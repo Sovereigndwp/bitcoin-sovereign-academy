@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El experimento de las dos economías | Ruta de Estabilidad y Crecimiento</title>
+    <meta name="description" content="Simulación interactiva: dos comunidades, las mismas condiciones iniciales, decisiones distintas. Descubre cómo diferentes decisiones económicas afectan la estabilidad a largo plazo.">
+    <style>
+        :root {
+            --primary: #f7931a;
+            --dark: #1a1a1a;
+            --dark2: #2d2d2d;
+            --light: #e0e0e0;
+            --dim: #b3b3b3;
+            --green: #4caf50;
+            --red: #ef4444;
+            --yellow: #fcd116;
+            --blue: #3b82f6;
+            --grad: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--dark); color:var(--light); line-height:1.6; padding:1rem; }
+        .container { max-width:900px; margin:0 auto; }
+
+        .back-link { display:inline-flex; align-items:center; gap:0.5rem; color:var(--primary); text-decoration:none; margin-bottom:1.5rem; font-weight:600; transition:transform 0.2s; }
+        .back-link:hover { transform:translateX(-4px); }
+
+        /* Header */
+        .page-header { text-align:center; margin-bottom:2rem; }
+        .badge-sim { display:inline-block; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.4); border-radius:2rem; padding:0.3rem 1rem; font-size:0.8rem; color:var(--blue); margin-bottom:1rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+        .page-title { font-size:clamp(1.6rem,4vw,2.2rem); color:var(--primary); margin-bottom:0.5rem; }
+        .page-sub { color:var(--dim); font-size:0.97rem; max-width:620px; margin:0 auto; }
+
+        /* Round indicator */
+        .rounds-track { display:flex; align-items:center; justify-content:center; gap:0.4rem; margin:2rem 0; flex-wrap:wrap; }
+        .rnd { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; border:2px solid; transition:all 0.3s; }
+        .rnd.idle { border-color:rgba(255,255,255,0.12); color:var(--dim); }
+        .rnd.active { border-color:var(--primary); color:var(--primary); background:rgba(247,147,26,0.12); }
+        .rnd.done { border-color:var(--green); color:var(--green); background:rgba(76,175,80,0.1); }
+        .rnd-sep { color:rgba(255,255,255,0.15); font-size:0.8rem; }
+        .rnd-label { font-size:0.75rem; color:var(--dim); text-align:center; margin-top:0.25rem; }
+
+        /* Community cards */
+        .communities { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.5rem 0; }
+        .community-card { background:var(--dark2); border:2px solid; border-radius:1rem; padding:1.25rem; }
+        .community-card.com-a { border-color:rgba(252,209,22,0.35); }
+        .community-card.com-b { border-color:rgba(59,130,246,0.35); }
+        .com-header { display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem; }
+        .com-icon { font-size:1.5rem; }
+        .com-name { font-weight:700; font-size:1rem; }
+        .com-a .com-name { color:var(--yellow); }
+        .com-b .com-name { color:var(--blue); }
+        .stat-row { display:flex; justify-content:space-between; align-items:center; padding:0.45rem 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+        .stat-row:last-child { border-bottom:none; }
+        .stat-name { font-size:0.82rem; color:var(--dim); }
+        .stat-val { font-size:0.88rem; font-weight:700; font-family:'Courier New',monospace; }
+        .stat-val.good { color:var(--green); }
+        .stat-val.warn { color:var(--yellow); }
+        .stat-val.bad { color:var(--red); }
+
+        /* Round content panels */
+        .round-panel { display:none; }
+        .round-panel.active { display:block; }
+        .panel-card { background:var(--dark2); border:2px solid rgba(247,147,26,0.2); border-radius:1rem; padding:1.75rem; margin-bottom:1.5rem; }
+        .panel-title { font-size:1.3rem; color:var(--primary); font-weight:700; margin-bottom:0.75rem; }
+        .panel-text { color:var(--dim); font-size:0.95rem; line-height:1.75; margin-bottom:1rem; }
+        .panel-text:last-child { margin-bottom:0; }
+
+        /* Choice buttons */
+        .choices-label { color:var(--light); font-weight:600; font-size:0.9rem; margin-bottom:0.75rem; }
+        .choices-label .com-tag { display:inline-block; font-size:0.75rem; font-weight:700; padding:0.1rem 0.5rem; border-radius:1rem; margin-left:0.4rem; }
+        .choices-label .tag-a { background:rgba(252,209,22,0.15); color:var(--yellow); }
+        .choices-label .tag-b { background:rgba(59,130,246,0.15); color:var(--blue); }
+        .choice-grid { display:grid; gap:0.6rem; margin-bottom:1.5rem; }
+        .choice-btn { background:var(--dark); border:2px solid rgba(247,147,26,0.15); border-radius:0.75rem; padding:1rem 1.25rem; cursor:pointer; text-align:left; transition:all 0.2s; color:var(--light); font-size:0.9rem; line-height:1.5; }
+        .choice-btn:hover { border-color:rgba(247,147,26,0.45); }
+        .choice-btn.selected { border-color:var(--primary); background:rgba(247,147,26,0.07); }
+        .choice-btn.selected-a { border-color:var(--yellow); background:rgba(252,209,22,0.06); }
+        .choice-btn.selected-b { border-color:var(--blue); background:rgba(59,130,246,0.06); }
+        .choice-title { font-weight:700; color:var(--primary); margin-bottom:0.25rem; }
+        .choice-btn.selected-a .choice-title { color:var(--yellow); }
+        .choice-btn.selected-b .choice-title { color:var(--blue); }
+        .choice-desc { font-size:0.82rem; color:var(--dim); }
+
+        /* CTA button */
+        .btn-next { background:var(--grad); color:white; border:none; border-radius:50px; padding:0.9rem 2.2rem; font-weight:700; font-size:0.95rem; cursor:pointer; transition:all 0.3s; display:inline-block; margin-top:1rem; }
+        .btn-next:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(247,147,26,0.4); }
+        .btn-next:disabled { background:rgba(179,179,179,0.2); color:rgba(179,179,179,0.5); cursor:not-allowed; transform:none; box-shadow:none; }
+
+        /* Shock banner */
+        .shock-banner { background:rgba(239,68,68,0.08); border:2px solid rgba(239,68,68,0.35); border-radius:0.75rem; padding:1.25rem; margin:1.25rem 0; }
+        .shock-title { color:var(--red); font-weight:700; margin-bottom:0.4rem; }
+        .shock-text { color:var(--dim); font-size:0.9rem; line-height:1.6; }
+
+        /* Outcome comparison */
+        .outcome-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.5rem 0; }
+        .outcome-card { border:2px solid; border-radius:1rem; padding:1.5rem; }
+        .outcome-card.com-a { border-color:rgba(252,209,22,0.35); }
+        .outcome-card.com-b { border-color:rgba(59,130,246,0.35); }
+        .outcome-name { font-weight:700; margin-bottom:1rem; }
+        .outcome-card.com-a .outcome-name { color:var(--yellow); }
+        .outcome-card.com-b .outcome-name { color:var(--blue); }
+        .outcome-stat { margin-bottom:0.6rem; }
+        .outcome-stat-label { font-size:0.75rem; color:var(--dim); margin-bottom:0.15rem; }
+        .outcome-bar-track { background:rgba(255,255,255,0.06); border-radius:4px; height:8px; overflow:hidden; }
+        .outcome-bar-fill { height:100%; border-radius:4px; transition:width 0.8s ease; }
+
+        /* Reflection */
+        .reflection-section { background:rgba(247,147,26,0.04); border:1px solid rgba(247,147,26,0.15); border-radius:1rem; padding:1.75rem; margin-top:2rem; }
+        .reflection-title { color:var(--primary); font-weight:700; font-size:1.1rem; margin-bottom:1rem; }
+        .reflection-q { padding:0.85rem 0; border-bottom:1px solid rgba(247,147,26,0.1); }
+        .reflection-q:last-child { border-bottom:none; padding-bottom:0; }
+        .reflection-q-text { color:var(--light); font-size:0.93rem; margin-bottom:0.35rem; font-weight:600; }
+        .reflection-q-hint { color:var(--dim); font-size:0.85rem; line-height:1.6; }
+
+        .next-program { background:var(--dark2); border:2px solid var(--primary); border-radius:1rem; padding:1.75rem; margin-top:2rem; text-align:center; }
+        .next-program h3 { color:var(--primary); margin-bottom:0.6rem; }
+        .next-program p { color:var(--dim); font-size:0.9rem; margin-bottom:1.25rem; }
+
+        @media (max-width:600px) {
+            .communities { grid-template-columns:1fr; }
+            .outcome-grid { grid-template-columns:1fr; }
+            .rounds-track { gap:0.25rem; }
+            .rnd { width:30px; height:30px; font-size:0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Volver al Programa</a>
+
+        <div class="page-header">
+            <div class="badge-sim">Simulación interactiva</div>
+            <h1 class="page-title">El experimento de las dos economías</h1>
+            <p class="page-sub">Dos comunidades empiezan en las mismas condiciones. Cada una toma decisiones distintas. Observa qué pasa con el tiempo.</p>
+        </div>
+
+        <!-- Round tracker -->
+        <div class="rounds-track" id="rounds-track">
+            <div>
+                <div class="rnd active" id="dot-1">1</div>
+                <div class="rnd-label">Inicio</div>
+            </div>
+            <div class="rnd-sep">›</div>
+            <div>
+                <div class="rnd idle" id="dot-2">2</div>
+                <div class="rnd-label">Decisiones</div>
+            </div>
+            <div class="rnd-sep">›</div>
+            <div>
+                <div class="rnd idle" id="dot-3">3</div>
+                <div class="rnd-label">El choque</div>
+            </div>
+            <div class="rnd-sep">›</div>
+            <div>
+                <div class="rnd idle" id="dot-4">4</div>
+                <div class="rnd-label">5 años después</div>
+            </div>
+        </div>
+
+        <!-- Community stats panel -->
+        <div class="communities" id="stats-panel">
+            <div class="community-card com-a">
+                <div class="com-header">
+                    <span class="com-icon">🏘️</span>
+                    <span class="com-name">Comunidad A</span>
+                </div>
+                <div class="stat-row"><span class="stat-name">Poder adquisitivo</span><span class="stat-val good" id="a-poder">100</span></div>
+                <div class="stat-row"><span class="stat-name">Estabilidad laboral</span><span class="stat-val good" id="a-empleo">80%</span></div>
+                <div class="stat-row"><span class="stat-name">Nivel de precios</span><span class="stat-val good" id="a-precios">100</span></div>
+                <div class="stat-row"><span class="stat-name">Ahorro promedio</span><span class="stat-val good" id="a-ahorro">$200.000</span></div>
+            </div>
+            <div class="community-card com-b">
+                <div class="com-header">
+                    <span class="com-icon">🏘️</span>
+                    <span class="com-name">Comunidad B</span>
+                </div>
+                <div class="stat-row"><span class="stat-name">Poder adquisitivo</span><span class="stat-val good" id="b-poder">100</span></div>
+                <div class="stat-row"><span class="stat-name">Estabilidad laboral</span><span class="stat-val good" id="b-empleo">80%</span></div>
+                <div class="stat-row"><span class="stat-name">Nivel de precios</span><span class="stat-val good" id="b-precios">100</span></div>
+                <div class="stat-row"><span class="stat-name">Ahorro promedio</span><span class="stat-val good" id="b-ahorro">$200.000</span></div>
+            </div>
+        </div>
+
+        <!-- ===== RONDA 1 ===== -->
+        <div class="round-panel active" id="panel-1">
+            <div class="panel-card">
+                <div class="panel-title">🌱 Ronda 1: Situación inicial</div>
+                <p class="panel-text">Dos comunidades comienzan con exactamente los mismos recursos, el mismo nivel de vida y las mismas condiciones económicas.</p>
+                <p class="panel-text">Una tiene tendencia a responder a los problemas del corto plazo con apoyos rápidos y expansión del gasto. La otra tiende a preferir la estabilidad, el ahorro y la inversión en capacidades.</p>
+                <p class="panel-text">Ambas enfrentan el mismo entorno: un año de inflación moderada del 7% y precios de proveedores que están subiendo.</p>
+                <div style="text-align:center; margin-top:1.5rem;">
+                    <button class="btn-next" onclick="goRound(2)">Ver las primeras decisiones →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== RONDA 2 ===== -->
+        <div class="round-panel" id="panel-2">
+            <div class="panel-card">
+                <div class="panel-title">⚙️ Ronda 2: Primeras decisiones</div>
+                <p class="panel-text">Los precios básicos subieron un 7% este año. Los trabajadores piden mejoras. Cada comunidad debe decidir cómo responder.</p>
+                <p class="panel-text">Elige una opción para cada comunidad. Pueden elegir la misma o diferente.</p>
+            </div>
+
+            <!-- Choices for Community A -->
+            <div class="panel-card">
+                <div class="choices-label">¿Qué hace la <span class="com-tag tag-a">Comunidad A</span>?</div>
+                <div class="choice-grid" id="choices-a">
+                    <button class="choice-btn" onclick="choose('a', 'expansivo', this)">
+                        <div class="choice-title">Opción 1: Aumento alto de salarios + apoyos a precios</div>
+                        <div class="choice-desc">Salarios suben 20%. Se crean subsidios para mantener bajos los precios de los bienes básicos. La gente se siente mejor en el corto plazo.</div>
+                    </button>
+                    <button class="choice-btn" onclick="choose('a', 'estable', this)">
+                        <div class="choice-title">Opción 2: Aumento moderado + fomento del ahorro</div>
+                        <div class="choice-desc">Salarios suben 9%. Se crean incentivos para ahorrar y para capacitarse. Los precios se ajustan gradualmente. Crecimiento más lento pero más sólido.</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Choices for Community B -->
+            <div class="panel-card">
+                <div class="choices-label">¿Qué hace la <span class="com-tag tag-b">Comunidad B</span>?</div>
+                <div class="choice-grid" id="choices-b">
+                    <button class="choice-btn" onclick="choose('b', 'expansivo', this)">
+                        <div class="choice-title">Opción 1: Aumento alto de salarios + apoyos a precios</div>
+                        <div class="choice-desc">Salarios suben 20%. Se crean subsidios para mantener bajos los precios de los bienes básicos. La gente se siente mejor en el corto plazo.</div>
+                    </button>
+                    <button class="choice-btn" onclick="choose('b', 'estable', this)">
+                        <div class="choice-title">Opción 2: Aumento moderado + fomento del ahorro</div>
+                        <div class="choice-desc">Salarios suben 9%. Se crean incentivos para ahorrar y para capacitarse. Los precios se ajustan gradualmente. Crecimiento más lento pero más sólido.</div>
+                    </button>
+                </div>
+            </div>
+
+            <div style="text-align:center;">
+                <button class="btn-next" id="btn-r2" onclick="applyRound2()" disabled>Ver qué pasó →</button>
+            </div>
+        </div>
+
+        <!-- ===== RONDA 3 ===== -->
+        <div class="round-panel" id="panel-3">
+            <div class="panel-card">
+                <div class="panel-title">⚡ Ronda 3: El choque externo</div>
+                <div class="shock-banner">
+                    <div class="shock-title">📦 Interrupción de cadena de suministros</div>
+                    <div class="shock-text">Los costos de proveedores internacionales suben un 18% de forma inesperada. El precio de la energía también sube. Ambas comunidades sienten el golpe al mismo tiempo.</div>
+                </div>
+                <p class="panel-text">El impacto no es igual para las dos: depende del colchón que cada una construyó en la ronda anterior. Ahora deben decidir cómo responder al choque.</p>
+            </div>
+
+            <div class="panel-card">
+                <div class="choices-label">¿Cómo responde la <span class="com-tag tag-a">Comunidad A</span>?</div>
+                <div class="choice-grid" id="choices-a3">
+                    <button class="choice-btn" onclick="choose3('a', 'subsidios', this)">
+                        <div class="choice-title">Opción 1: Más apoyos directos para proteger los precios</div>
+                        <div class="choice-desc">Se aumentan los subsidios para que la gente no sienta el impacto inmediato. El costo se pospone.</div>
+                    </button>
+                    <button class="choice-btn" onclick="choose3('a', 'ahorros', this)">
+                        <div class="choice-title">Opción 2: Usar los ahorros disponibles para absorber el golpe</div>
+                        <div class="choice-desc">Se usan los recursos acumulados para amortiguar el aumento de precios de forma gradual y sostenible.</div>
+                    </button>
+                    <button class="choice-btn" onclick="choose3('a', 'ajuste', this)">
+                        <div class="choice-title">Opción 3: Ajustar precios y gastos, mantener la estabilidad</div>
+                        <div class="choice-desc">Precios se ajustan honestamente. El impacto se siente ahora, pero se evita un problema mayor después.</div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <div class="choices-label">¿Cómo responde la <span class="com-tag tag-b">Comunidad B</span>?</div>
+                <div class="choice-grid" id="choices-b3">
+                    <button class="choice-btn" onclick="choose3('b', 'subsidios', this)">
+                        <div class="choice-title">Opción 1: Más apoyos directos para proteger los precios</div>
+                        <div class="choice-desc">Se aumentan los subsidios para que la gente no sienta el impacto inmediato. El costo se pospone.</div>
+                    </button>
+                    <button class="choice-btn" onclick="choose3('b', 'ahorros', this)">
+                        <div class="choice-title">Opción 2: Usar los ahorros disponibles para absorber el golpe</div>
+                        <div class="choice-desc">Se usan los recursos acumulados para amortiguar el aumento de precios de forma gradual y sostenible.</div>
+                    </button>
+                    <button class="choice-btn" onclick="choose3('b', 'ajuste', this)">
+                        <div class="choice-title">Opción 3: Ajustar precios y gastos, mantener la estabilidad</div>
+                        <div class="choice-desc">Precios se ajustan honestamente. El impacto se siente ahora, pero se evita un problema mayor después.</div>
+                    </button>
+                </div>
+            </div>
+
+            <div style="text-align:center;">
+                <button class="btn-next" id="btn-r3" onclick="applyRound3()" disabled>Ver los resultados a 5 años →</button>
+            </div>
+        </div>
+
+        <!-- ===== RONDA 4 ===== -->
+        <div class="round-panel" id="panel-4">
+            <div class="panel-card">
+                <div class="panel-title">📅 Ronda 4: Cinco años después</div>
+                <p class="panel-text" id="r4-intro">Han pasado cinco años. Los efectos acumulados de las decisiones de ambas comunidades son visibles ahora. Compara los resultados.</p>
+            </div>
+
+            <div class="outcome-grid">
+                <div class="outcome-card com-a">
+                    <div class="outcome-name">🏘️ Comunidad A — <span id="r4-a-label"></span></div>
+                    <div class="outcome-stat">
+                        <div class="outcome-stat-label">Poder adquisitivo</div>
+                        <div class="outcome-bar-track"><div class="outcome-bar-fill" id="bar-a-poder" style="background:var(--yellow);"></div></div>
+                        <div class="stat-val" id="r4-a-poder" style="font-size:0.85rem; margin-top:0.3rem;"></div>
+                    </div>
+                    <div class="outcome-stat">
+                        <div class="outcome-stat-label">Estabilidad laboral</div>
+                        <div class="outcome-bar-track"><div class="outcome-bar-fill" id="bar-a-empleo" style="background:var(--yellow);"></div></div>
+                        <div class="stat-val" id="r4-a-empleo" style="font-size:0.85rem; margin-top:0.3rem;"></div>
+                    </div>
+                    <div class="outcome-stat">
+                        <div class="outcome-stat-label">Nivel de precios</div>
+                        <div class="outcome-bar-track"><div class="outcome-bar-fill" id="bar-a-precios" style="background:var(--red);"></div></div>
+                        <div class="stat-val" id="r4-a-precios" style="font-size:0.85rem; margin-top:0.3rem;"></div>
+                    </div>
+                    <div class="outcome-stat">
+                        <div class="outcome-stat-label">Ahorro promedio</div>
+                        <div class="outcome-bar-track"><div class="outcome-bar-fill" id="bar-a-ahorro" style="background:var(--yellow);"></div></div>
+                        <div class="stat-val" id="r4-a-ahorro" style="font-size:0.85rem; margin-top:0.3rem;"></div>
+                    </div>
+                    <div id="r4-a-nota" style="margin-top:1rem; font-size:0.82rem; color:var(--dim); line-height:1.6; background:var(--dark); border-radius:0.5rem; padding:0.75rem;"></div>
+                </div>
+                <div class="outcome-card com-b">
+                    <div class="outcome-name">🏘️ Comunidad B — <span id="r4-b-label"></span></div>
+                    <div class="outcome-stat">
+                        <div class="outcome-stat-label">Poder adquisitivo</div>
+                        <div class="outcome-bar-track"><div class="outcome-bar-fill" id="bar-b-poder" style="background:var(--blue);"></div></div>
+                        <div class="stat-val" id="r4-b-poder" style="font-size:0.85rem; margin-top:0.3rem;"></div>
+                    </div>
+                    <div class="outcome-stat">
+                        <div class="outcome-stat-label">Estabilidad laboral</div>
+                        <div class="outcome-bar-track"><div class="outcome-bar-fill" id="bar-b-empleo" style="background:var(--blue);"></div></div>
+                        <div class="stat-val" id="r4-b-empleo" style="font-size:0.85rem; margin-top:0.3rem;"></div>
+                    </div>
+                    <div class="outcome-stat">
+                        <div class="outcome-stat-label">Nivel de precios</div>
+                        <div class="outcome-bar-track"><div class="outcome-bar-fill" id="bar-b-precios" style="background:var(--blue);"></div></div>
+                        <div class="stat-val" id="r4-b-precios" style="font-size:0.85rem; margin-top:0.3rem;"></div>
+                    </div>
+                    <div class="outcome-stat">
+                        <div class="outcome-stat-label">Ahorro promedio</div>
+                        <div class="outcome-bar-track"><div class="outcome-bar-fill" id="bar-b-ahorro" style="background:var(--blue);"></div></div>
+                        <div class="stat-val" id="r4-b-ahorro" style="font-size:0.85rem; margin-top:0.3rem;"></div>
+                    </div>
+                    <div id="r4-b-nota" style="margin-top:1rem; font-size:0.82rem; color:var(--dim); line-height:1.6; background:var(--dark); border-radius:0.5rem; padding:0.75rem;"></div>
+                </div>
+            </div>
+
+            <!-- Reflexión final -->
+            <div class="reflection-section">
+                <div class="reflection-title">🤔 Preguntas para reflexionar</div>
+                <div class="reflection-q">
+                    <div class="reflection-q-text">¿Qué comunidad se volvió más estable con el tiempo?</div>
+                    <div class="reflection-q-hint">Observa no solo el resultado final, sino la dirección de cada indicador. ¿Cuál sigue mejorando? ¿Cuál tiene más fragilidad acumulada?</div>
+                </div>
+                <div class="reflection-q">
+                    <div class="reflection-q-text">¿Qué decisiones ayudaron a crear mayor resiliencia económica?</div>
+                    <div class="reflection-q-hint">¿El ahorro, las habilidades, la estabilidad de precios? ¿Cuándo se empezaron a ver los efectos de cada decisión?</div>
+                </div>
+                <div class="reflection-q">
+                    <div class="reflection-q-text">¿Cómo se conecta esto con tus propias decisiones financieras?</div>
+                    <div class="reflection-q-hint">Piensa en las decisiones de las semanas anteriores: presupuesto, ahorro de emergencia, deuda, inflación. ¿En cuál camino están tus hábitos actuales?</div>
+                </div>
+            </div>
+
+            <div class="next-program">
+                <h3>🎯 Volver al programa</h3>
+                <p>Puedes repetir la simulación cambiando las decisiones de cada ronda para ver distintos resultados.</p>
+                <button class="btn-next" onclick="restart()" style="margin-right:0.75rem; background:transparent; color:var(--primary); border:2px solid var(--primary); box-shadow:none;">Repetir simulación</button>
+                <a href="../" class="btn-next" style="text-decoration:none; display:inline-block; margin-top:0.5rem;">Volver al programa →</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function fmt(n) {
+            return '$' + n.toLocaleString('es-CO');
+        }
+
+        // State
+        const state = {
+            round: 1,
+            a2: null, b2: null,
+            a3: null, b3: null
+        };
+
+        // Stats reference (displayed in the top panel)
+        const statsDisplay = {
+            a: { poder: 100, empleo: 80, precios: 100, ahorro: 200000 },
+            b: { poder: 100, empleo: 80, precios: 100, ahorro: 200000 }
+        };
+
+        // Outcome matrix for Round 4
+        // Key: r2choice + '_' + r3choice
+        const outcomes = {
+            // Expansivo R2 → various R3 responses
+            expansivo_subsidios: { poder: 82, empleo: 74, precios: 155, ahorro: 60000,
+                label: 'Ciclo de expansión',
+                nota: 'Los apoyos sucesivos impidieron los ajustes necesarios. Los precios siguieron subiendo y el ahorro se agotó.' },
+            expansivo_ahorros:   { poder: 90, empleo: 77, precios: 138, ahorro: 90000,
+                label: 'Expansión con ajuste tardío',
+                nota: 'El choque se absorbió parcialmente con los pocos ahorros disponibles, pero los precios ya estaban altos desde la ronda anterior.' },
+            expansivo_ajuste:    { poder: 93, empleo: 76, precios: 130, ahorro: 115000,
+                label: 'Corrección dolorosa',
+                nota: 'El ajuste fue tardío y difícil. Hay estabilidad, pero con precios más altos que los de la otra opción.' },
+            // Estable R2 → various R3 responses
+            estable_subsidios:   { poder: 100, empleo: 81, precios: 122, ahorro: 190000,
+                label: 'Base estable, ajuste parcial',
+                nota: 'La base era sólida, pero los subsidios al choque consumieron parte de los ahorros acumulados. Estable pero pudo ser mejor.' },
+            estable_ahorros:     { poder: 108, empleo: 84, precios: 116, ahorro: 230000,
+                label: 'Resiliencia con ahorros',
+                nota: 'Los ahorros construidos en la ronda anterior absorbieron el choque sin necesitar endeudamiento ni inflación adicional.' },
+            estable_ajuste:      { poder: 112, empleo: 86, precios: 112, ahorro: 265000,
+                label: 'Estabilidad a largo plazo',
+                nota: 'Ajuste honesto y rápido. Los precios son los más bajos de todos los escenarios y el ahorro creció de forma sostenida.' }
+        };
+
+        function updateStatDisplay(com, stats) {
+            const pEl = document.getElementById(com + '-poder');
+            const eEl = document.getElementById(com + '-empleo');
+            const prEl = document.getElementById(com + '-precios');
+            const aEl = document.getElementById(com + '-ahorro');
+
+            pEl.textContent = stats.poder;
+            eEl.textContent = stats.empleo + '%';
+            prEl.textContent = stats.precios;
+            aEl.textContent = fmt(stats.ahorro);
+
+            // Color coding
+            const classify = (val, base, goodDir) => {
+                const diff = val - base;
+                if (goodDir === 'up') return diff > 5 ? 'good' : diff < -5 ? 'bad' : 'warn';
+                return diff < 5 ? 'good' : diff > 15 ? 'bad' : 'warn';
+            };
+            pEl.className = 'stat-val ' + classify(stats.poder, 100, 'up');
+            eEl.className = 'stat-val ' + classify(stats.empleo, 80, 'up');
+            prEl.className = 'stat-val ' + classify(stats.precios, 100, 'down');
+            aEl.className = 'stat-val ' + (stats.ahorro >= 200000 ? 'good' : stats.ahorro >= 130000 ? 'warn' : 'bad');
+        }
+
+        function setRoundDots(n) {
+            for (let i = 1; i <= 4; i++) {
+                const dot = document.getElementById('dot-' + i);
+                dot.className = 'rnd ' + (i < n ? 'done' : i === n ? 'active' : 'idle');
+            }
+        }
+
+        function goRound(n) {
+            document.getElementById('panel-' + state.round).classList.remove('active');
+            state.round = n;
+            document.getElementById('panel-' + n).classList.add('active');
+            setRoundDots(n);
+            window.scrollTo({ top: document.querySelector('.rounds-track').offsetTop - 20, behavior: 'smooth' });
+        }
+
+        function choose(com, decision, btn) {
+            const container = document.getElementById('choices-' + com);
+            container.querySelectorAll('.choice-btn').forEach(b => {
+                b.classList.remove('selected-a', 'selected-b');
+            });
+            btn.classList.add('selected-' + com);
+            state[com + '2'] = decision;
+            if (state.a2 && state.b2) {
+                document.getElementById('btn-r2').disabled = false;
+            }
+        }
+
+        function choose3(com, decision, btn) {
+            const container = document.getElementById('choices-' + com + '3');
+            container.querySelectorAll('.choice-btn').forEach(b => {
+                b.classList.remove('selected-a', 'selected-b');
+            });
+            btn.classList.add('selected-' + com);
+            state[com + '3'] = decision;
+            if (state.a3 && state.b3) {
+                document.getElementById('btn-r3').disabled = false;
+            }
+        }
+
+        function applyRound2() {
+            // Update stats after R2 decisions
+            const r2Stats = {
+                expansivo: { poder: 108, empleo: 85, precios: 119, ahorro: 145000 },
+                estable:   { poder: 103, empleo: 82, precios: 107, ahorro: 268000 }
+            };
+            statsDisplay.a = { ...r2Stats[state.a2] };
+            statsDisplay.b = { ...r2Stats[state.b2] };
+            updateStatDisplay('a', statsDisplay.a);
+            updateStatDisplay('b', statsDisplay.b);
+            goRound(3);
+        }
+
+        function applyRound3() {
+            goRound(4);
+            buildOutcomes();
+        }
+
+        function barWidth(val, max) {
+            return Math.min(100, Math.round((val / max) * 100)) + '%';
+        }
+
+        function buildOutcomes() {
+            const aKey = state.a2 + '_' + state.a3;
+            const bKey = state.b2 + '_' + state.b3;
+            const aOut = outcomes[aKey];
+            const bOut = outcomes[bKey];
+
+            // Update top stats panel with final values
+            updateStatDisplay('a', { poder: aOut.poder, empleo: aOut.empleo, precios: aOut.precios, ahorro: aOut.ahorro });
+            updateStatDisplay('b', { poder: bOut.poder, empleo: bOut.empleo, precios: bOut.precios, ahorro: bOut.ahorro });
+
+            // Labels
+            document.getElementById('r4-a-label').textContent = aOut.label;
+            document.getElementById('r4-b-label').textContent = bOut.label;
+
+            // Fill A outcome bars
+            document.getElementById('r4-a-poder').textContent = 'Índice: ' + aOut.poder + ' / 100';
+            document.getElementById('bar-a-poder').style.width = barWidth(aOut.poder, 115);
+            document.getElementById('bar-a-poder').style.background = aOut.poder >= 100 ? 'var(--green)' : aOut.poder >= 90 ? 'var(--yellow)' : 'var(--red)';
+
+            document.getElementById('r4-a-empleo').textContent = aOut.empleo + '% de empleos estables';
+            document.getElementById('bar-a-empleo').style.width = barWidth(aOut.empleo, 90);
+            document.getElementById('bar-a-empleo').style.background = aOut.empleo >= 83 ? 'var(--green)' : aOut.empleo >= 77 ? 'var(--yellow)' : 'var(--red)';
+
+            document.getElementById('r4-a-precios').textContent = 'Índice: ' + aOut.precios + ' (base 100)';
+            document.getElementById('bar-a-precios').style.width = barWidth(aOut.precios, 160);
+            document.getElementById('bar-a-precios').style.background = aOut.precios <= 118 ? 'var(--green)' : aOut.precios <= 135 ? 'var(--yellow)' : 'var(--red)';
+
+            document.getElementById('r4-a-ahorro').textContent = fmt(aOut.ahorro) + ' por trabajador';
+            document.getElementById('bar-a-ahorro').style.width = barWidth(aOut.ahorro, 270000);
+            document.getElementById('bar-a-ahorro').style.background = aOut.ahorro >= 200000 ? 'var(--green)' : aOut.ahorro >= 130000 ? 'var(--yellow)' : 'var(--red)';
+
+            document.getElementById('r4-a-nota').textContent = aOut.nota;
+
+            // Fill B outcome bars
+            document.getElementById('r4-b-poder').textContent = 'Índice: ' + bOut.poder + ' / 100';
+            document.getElementById('bar-b-poder').style.width = barWidth(bOut.poder, 115);
+            document.getElementById('bar-b-poder').style.background = bOut.poder >= 100 ? 'var(--green)' : bOut.poder >= 90 ? 'var(--yellow)' : 'var(--red)';
+
+            document.getElementById('r4-b-empleo').textContent = bOut.empleo + '% de empleos estables';
+            document.getElementById('bar-b-empleo').style.width = barWidth(bOut.empleo, 90);
+            document.getElementById('bar-b-empleo').style.background = bOut.empleo >= 83 ? 'var(--green)' : bOut.empleo >= 77 ? 'var(--yellow)' : 'var(--red)';
+
+            document.getElementById('r4-b-precios').textContent = 'Índice: ' + bOut.precios + ' (base 100)';
+            document.getElementById('bar-b-precios').style.width = barWidth(bOut.precios, 160);
+            document.getElementById('bar-b-precios').style.background = bOut.precios <= 118 ? 'var(--green)' : bOut.precios <= 135 ? 'var(--yellow)' : 'var(--red)';
+
+            document.getElementById('r4-b-ahorro').textContent = fmt(bOut.ahorro) + ' por trabajador';
+            document.getElementById('bar-b-ahorro').style.width = barWidth(bOut.ahorro, 270000);
+            document.getElementById('bar-b-ahorro').style.background = bOut.ahorro >= 200000 ? 'var(--green)' : bOut.ahorro >= 130000 ? 'var(--yellow)' : 'var(--red)';
+
+            document.getElementById('r4-b-nota').textContent = bOut.nota;
+        }
+
+        function restart() {
+            state.round = 1;
+            state.a2 = null; state.b2 = null;
+            state.a3 = null; state.b3 = null;
+
+            // Reset stats
+            statsDisplay.a = { poder: 100, empleo: 80, precios: 100, ahorro: 200000 };
+            statsDisplay.b = { poder: 100, empleo: 80, precios: 100, ahorro: 200000 };
+            updateStatDisplay('a', statsDisplay.a);
+            updateStatDisplay('b', statsDisplay.b);
+
+            // Reset buttons
+            document.getElementById('btn-r2').disabled = true;
+            document.getElementById('btn-r3').disabled = true;
+            document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected-a', 'selected-b'));
+
+            document.querySelectorAll('.round-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('panel-1').classList.add('active');
+            setRoundDots(1);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Init
+        updateStatDisplay('a', statsDisplay.a);
+        updateStatDisplay('b', statsDisplay.b);
+    </script>
+</body>
+</html>
