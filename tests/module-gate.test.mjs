@@ -38,6 +38,7 @@ async function createDom(moduleRelativePath, options = {}) {
         dom.window.localStorage.setItem('bsa_full_access', 'yes');
     }
 
+    dom.window.BSA_CONFIG = { ENABLE_MODULE_GATING: true };
     dom.window.eval(moduleGateSource);
     dom.window.document.dispatchEvent(new dom.window.Event('DOMContentLoaded', { bubbles: true }));
 
