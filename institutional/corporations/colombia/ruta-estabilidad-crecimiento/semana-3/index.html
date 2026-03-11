@@ -326,6 +326,7 @@
                 </div>
 
                 <button class="compare-btn" onclick="simulatePayoff()">Comparar métodos de pago →</button>
+                <div id="sim-error" style="display:none; margin-top:0.75rem; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.4); border-radius:0.5rem; padding:0.75rem 1rem; color:var(--red); font-size:0.9rem;"></div>
 
                 <div class="results-section" id="results-section">
                     <div class="methods-grid">
@@ -404,6 +405,7 @@
                 </div>
 
                 <button class="eval-btn" onclick="evaluateDebt()">Evaluar esta deuda</button>
+                <div id="eval-error" style="display:none; margin-top:0.75rem; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.4); border-radius:0.5rem; padding:0.75rem 1rem; color:var(--red); font-size:0.9rem;">Completa los campos de tasa, monto y plazo para evaluar.</div>
 
                 <div class="eval-result" id="eval-result">
                     <div class="eval-verdict" id="eval-verdict"></div>
@@ -575,10 +577,13 @@
 
         function simulatePayoff() {
             const debts = getDebts();
+            const errEl = document.getElementById('sim-error');
             if (debts.length === 0) {
-                alert('Agrega al menos una deuda para simular.');
+                errEl.textContent = 'Agrega al menos una deuda con saldo y tasa para simular.';
+                errEl.style.display = 'block';
                 return;
             }
+            errEl.style.display = 'none';
             const budget = parseFloat(document.getElementById('monthly-budget').value) || 400000;
 
             const avalancheSortFn = (a, b) => b.rate - a.rate;
@@ -622,9 +627,10 @@
             const months = parseFloat(document.getElementById('eval-months').value);
 
             if (!rate || !amount || !months) {
-                alert('Completa todos los campos para evaluar.');
+                document.getElementById('eval-error').style.display = 'block';
                 return;
             }
+            document.getElementById('eval-error').style.display = 'none';
 
             const totalInterest = amount * rate / 100 * months;
             const monthlyPayment = (amount * (rate/100) * Math.pow(1 + rate/100, months)) / (Math.pow(1 + rate/100, months) - 1);
