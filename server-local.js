@@ -613,32 +613,47 @@ app.use((req, res, next) => {
   if (req.path.startsWith('/api/')) {
     return next();
   }
-  
+
   let filePath = path.join(__dirname, req.path);
-  
-  // Default to index.html for directory requests
+
+  // Default to index.html for directory requests (trailing slash)
   if (req.path.endsWith('/')) {
     filePath = path.join(filePath, 'index.html');
   }
-  
-  // Check if file exists
-  if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-    const ext = path.extname(filePath);
+
+  function sendStatic(fp) {
+    const ext = path.extname(fp);
     const mimeType = mimeTypes[ext] || 'application/octet-stream';
-    
     res.setHeader('Content-Type', mimeType);
-    
-    // Add caching headers for production
     if (process.env.NODE_ENV === 'production') {
       res.setHeader('Cache-Control', 'public, max-age=3600');
     }
-    
-    res.sendFile(filePath);
-  } else {
-    // Log 404s for debugging
-    console.warn(`⚠️ 404: ${req.path}`);
-    next();
+    res.sendFile(fp);
   }
+
+  // Check if file exists as-is
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+    sendStatic(filePath);
+    return;
+  }
+
+  // Clean URL: try adding .html extension (matches Vercel cleanUrls)
+  const htmlPath = filePath + '.html';
+  if (fs.existsSync(htmlPath) && fs.statSync(htmlPath).isFile()) {
+    sendStatic(htmlPath);
+    return;
+  }
+
+  // Clean URL: try directory index.html (e.g. /programa-colombia/semana-1)
+  const indexPath = path.join(filePath, 'index.html');
+  if (fs.existsSync(indexPath) && fs.statSync(indexPath).isFile()) {
+    sendStatic(indexPath);
+    return;
+  }
+
+  // Log 404s for debugging
+  console.warn(`\u26a0\ufe0f 404: ${req.path}`);
+  next();
 });
 
 // Serve index.html for client-side routing
