@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 2: Entender mi pago sin adivinar | Ruta de Estabilidad y Crecimiento</title>
+    <meta name="description" content="Decodificador de recibo de pago para trabajadores colombianos. Entiende deducciones, impuestos y cálculos de dinero real disponible.">
+    <style>
+        :root {
+            --primary: #f7931a;
+            --dark: #1a1a1a;
+            --dark2: #2d2d2d;
+            --light: #e0e0e0;
+            --dim: #b3b3b3;
+            --green: #4caf50;
+            --red: #ef4444;
+            --yellow: #fcd116;
+            --grad: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--dark); color:var(--light); line-height:1.6; padding:1rem; }
+
+        .container { max-width:1200px; margin:0 auto; }
+        .back-link { display:inline-flex; align-items:center; gap:0.5rem; color:var(--primary); text-decoration:none; margin-bottom:2rem; font-weight:600; transition:transform 0.2s; }
+        .back-link:hover { transform:translateX(-4px); }
+        
+        .header { text-align:center; margin-bottom:3rem; }
+        .week-title { font-size:2.5rem; color:var(--primary); margin-bottom:0.5rem; }
+        .week-subtitle { font-size:1.2rem; color:var(--dim); margin-bottom:2rem; }
+        
+        .intro-section { background:var(--dark2); border:2px solid rgba(247,147,26,0.2); border-radius:1rem; padding:2rem; margin-bottom:3rem; }
+        .intro-title { font-size:1.8rem; color:var(--primary); margin-bottom:1rem; }
+        .intro-text { color:var(--dim); font-size:1.1rem; margin-bottom:2rem; }
+        
+        .comparison-section { background:linear-gradient(135deg,rgba(247,147,26,0.1) 0%,rgba(76,175,80,0.1) 100%); border:2px solid var(--primary); border-radius:1rem; padding:3rem 2rem; margin:3rem 0; }
+        .comp-title { font-size:2rem; color:var(--primary); margin-bottom:1rem; text-align:center; }
+        .comp-description { color:var(--dim); font-size:1.1rem; margin-bottom:2rem; text-align:center; max-width:600px; margin-left:auto; margin-right:auto; }
+        
+        .employment-types { display:grid; grid-template-columns:repeat(auto-fit,minmax(350px,1fr)); gap:2rem; margin-top:2rem; }
+        .employment-card { background:var(--dark); border:2px solid rgba(247,147,26,0.15); border-radius:1rem; padding:2rem; transition:all 0.3s; }
+        .employment-card:hover { border-color:var(--primary); transform:translateY(-2px); }
+        .employment-title { color:var(--primary); font-size:1.3rem; font-weight:700; margin-bottom:1rem; text-align:center; }
+        .employment-features { list-style:none; margin-bottom:1.5rem; }
+        .employment-features li { color:var(--dim); padding:0.5rem 0; position:relative; padding-left:1.5rem; }
+        .employment-features li::before { content:'•'; position:absolute; left:0; color:var(--primary); font-weight:bold; }
+        
+        .calculator-section { background:var(--dark2); border:2px solid rgba(247,147,26,0.15); border-radius:1rem; padding:2rem; margin:2rem 0; }
+        .calc-title { font-size:1.8rem; color:var(--primary); margin-bottom:1rem; text-align:center; }
+        .calc-description { color:var(--dim); font-size:1rem; margin-bottom:2rem; text-align:center; }
+        
+        .calc-input-section { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:2rem; margin-bottom:2rem; }
+        .calc-input-group { }
+        .calc-label { display:block; color:var(--light); font-weight:600; margin-bottom:0.5rem; }
+        .calc-input { width:100%; padding:0.75rem; background:var(--dark); border:2px solid rgba(247,147,26,0.3); border-radius:0.5rem; color:var(--light); font-size:1rem; font-family:'Courier New',monospace; }
+        .calc-input:focus { outline:none; border-color:var(--primary); }
+        .calc-select { width:100%; padding:0.75rem; background:var(--dark); border:2px solid rgba(247,147,26,0.3); border-radius:0.5rem; color:var(--light); font-size:1rem; }
+        
+        .paycheck-breakdown { background:var(--dark); border:2px solid var(--primary); border-radius:1rem; padding:2rem; margin-top:2rem; }
+        .breakdown-title { color:var(--primary); font-size:1.5rem; margin-bottom:1.5rem; text-align:center; }
+        .breakdown-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1rem; }
+        .breakdown-item { background:var(--dark2); border:1px solid rgba(247,147,26,0.2); border-radius:0.5rem; padding:1.5rem; }
+        .breakdown-label { color:var(--dim); font-size:0.9rem; margin-bottom:0.5rem; }
+        .breakdown-amount { color:var(--primary); font-size:1.3rem; font-weight:700; font-family:'Courier New',monospace; }
+        .breakdown-percentage { color:var(--dim); font-size:0.8rem; margin-top:0.25rem; }
+        
+        .final-result { background:linear-gradient(135deg,rgba(76,175,80,0.2) 0%,rgba(247,147,26,0.1) 100%); border:3px solid var(--green); border-radius:1rem; padding:2rem; margin-top:2rem; text-align:center; }
+        .final-amount { color:var(--green); font-size:3rem; font-weight:900; font-family:'Courier New',monospace; margin-bottom:0.5rem; }
+        .final-label { color:var(--light); font-size:1.2rem; font-weight:600; margin-bottom:1rem; }
+        .final-note { color:var(--dim); font-size:0.9rem; }
+        
+        .deduction-explanation { background:var(--dark2); border:2px solid rgba(247,147,26,0.15); border-radius:1rem; padding:2rem; margin:2rem 0; }
+        .explanation-title { font-size:1.5rem; color:var(--primary); margin-bottom:1rem; }
+        .deduction-grid { display:grid; gap:1rem; margin-top:1rem; }
+        .deduction-item { background:var(--dark); border-left:4px solid var(--primary); padding:1rem; border-radius:0.25rem; }
+        .deduction-name { color:var(--primary); font-weight:600; margin-bottom:0.5rem; }
+        .deduction-description { color:var(--dim); font-size:0.9rem; }
+        
+        .tip-box { background:rgba(252,209,22,0.1); border:2px solid var(--yellow); border-radius:0.75rem; padding:1.5rem; margin:2rem 0; }
+        .tip-header { color:var(--yellow); font-weight:700; margin-bottom:0.5rem; display:flex; align-items:center; gap:0.5rem; }
+        
+        .next-week { background:var(--dark2); border:2px solid var(--primary); border-radius:1rem; padding:2rem; margin-top:2rem; text-align:center; }
+        .next-week h3 { color:var(--primary); margin-bottom:1rem; }
+        
+        .btn { padding:1rem 2rem; border:none; border-radius:0.75rem; font-weight:700; font-size:1.1rem; cursor:pointer; transition:all 0.3s; text-decoration:none; display:inline-block; }
+        .btn-primary { background:var(--grad); color:white; }
+        .btn-primary:hover { background:#e6830e; transform:translateY(-2px); }
+        
+        @media (max-width:768px) {
+            .calc-input-section { grid-template-columns:1fr; }
+            .breakdown-grid { grid-template-columns:1fr; }
+            .final-amount { font-size:2.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Volver al Programa</a>
+        
+        <div class="header">
+            <h1 class="week-title">Semana 2: Entender mi pago sin adivinar</h1>
+            <p class="week-subtitle">Decodifica tu recibo de pago como un experto</p>
+        </div>
+
+        <div class="intro-section">
+            <h2 class="intro-title">🧾 Tu recibo de pago explicado</h2>
+            <p class="intro-text">
+                ¿Alguna vez has mirado tu recibo de pago y pensado "¿dónde se fue toda mi plata?"? 
+                No eres el único. Entre impuestos, descuentos, y deducciones, puede ser confuso entender 
+                cuánto dinero realmente tienes disponible cada mes. Esta semana aprenderás a leer 
+                tu recibo línea por línea.
+            </p>
+        </div>
+
+        <div class="comparison-section">
+            <h2 class="comp-title">💼 Tipos de Empleo en Colombia</h2>
+            <p class="comp-description">
+                Tu tipo de empleo afecta significativamente cuánto dinero llevas a casa. 
+                Entiende las diferencias entre empleo formal e informal.
+            </p>
+
+            <div class="employment-types">
+                <div class="employment-card">
+                    <h3 class="employment-title">🏢 Empleo Formal</h3>
+                    <ul class="employment-features">
+                        <li>Contrato escrito con prestaciones</li>
+                        <li>Afiliación a EPS y ARL</li>
+                        <li>Aportes a pensión automáticos</li>
+                        <li>Prima, cesantías, vacaciones</li>
+                        <li>Descuentos de impuestos si aplica</li>
+                        <li>Mayor estabilidad laboral</li>
+                    </ul>
+                </div>
+                
+                <div class="employment-card">
+                    <h3 class="employment-title">🚶 Empleo Informal</h3>
+                    <ul class="employment-features">
+                        <li>Sin contrato o prestaciones</li>
+                        <li>Pago por días o servicios</li>
+                        <li>Sin afiliación automática a EPS</li>
+                        <li>Sin aportes a pensión</li>
+                        <li>Ingresos variables mes a mes</li>
+                        <li>Responsabilidad propia de seguridad social</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="calculator-section">
+            <h2 class="calc-title">🧮 Calculadora de Dinero Real Disponible</h2>
+            <p class="calc-description">
+                Ingresa tu información salarial y descubre cuánto dinero realmente tienes disponible cada mes.
+            </p>
+
+            <div class="calc-input-section">
+                <div class="calc-input-group">
+                    <label class="calc-label" for="employment-type">Tipo de empleo:</label>
+                    <select id="employment-type" class="calc-select" onchange="calculateTakeHome()">
+                        <option value="formal">Empleado formal con contrato</option>
+                        <option value="informal">Trabajador informal/independiente</option>
+                    </select>
+                </div>
+                
+                <div class="calc-input-group">
+                    <label class="calc-label" for="gross-salary">Salario bruto mensual (pesos):</label>
+                    <input type="number" id="gross-salary" class="calc-input" placeholder="1500000" min="0" oninput="calculateTakeHome()">
+                </div>
+                
+                <div class="calc-input-group" id="formal-options">
+                    <label class="calc-label" for="salary-range">Rango salarial:</label>
+                    <select id="salary-range" class="calc-select" onchange="calculateTakeHome()">
+                        <option value="low">Menos de 4 SMMLV (≤$5.200.000)</option>
+                        <option value="mid">Entre 4-8 SMMLV ($5.200.000-$10.400.000)</option>
+                        <option value="high">Más de 8 SMMLV (>$10.400.000)</option>
+                    </select>
+                </div>
+                
+                <div class="calc-input-group">
+                    <label class="calc-label" for="other-deductions">Otros descuentos mensuales:</label>
+                    <input type="number" id="other-deductions" class="calc-input" placeholder="50000" min="0" oninput="calculateTakeHome()">
+                    <small style="color:var(--dim); font-size:0.8rem;">Cooperativa, préstamos, seguros adicionales, etc.</small>
+                </div>
+            </div>
+
+            <div class="paycheck-breakdown" id="breakdown-section" style="display:none;">
+                <h3 class="breakdown-title">💰 Desglose de tu Pago</h3>
+                <div class="breakdown-grid" id="breakdown-grid">
+                    <!-- Se llenará con JavaScript -->
+                </div>
+                
+                <div class="final-result">
+                    <div class="final-amount" id="final-amount">$0</div>
+                    <div class="final-label">Dinero Real Disponible</div>
+                    <div class="final-note">Este es el dinero que realmente puedes gastar o ahorrar cada mes</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="deduction-explanation">
+            <h2 class="explanation-title">📋 ¿Qué significan estas deducciones?</h2>
+            
+            <div class="deduction-grid">
+                <div class="deduction-item">
+                    <div class="deduction-name">Salud (EPS) - 4%</div>
+                    <div class="deduction-description">
+                        Tu contribución al sistema de salud. Te da derecho a servicios médicos básicos.
+                    </div>
+                </div>
+                
+                <div class="deduction-item">
+                    <div class="deduction-name">Pensión - 4%</div>
+                    <div class="deduction-description">
+                        Ahorro obligatorio para tu jubilación. El empleador aporta 12% adicional.
+                    </div>
+                </div>
+                
+                <div class="deduction-item">
+                    <div class="deduction-name">Retención en la Fuente</div>
+                    <div class="deduction-description">
+                        Anticipo del impuesto de renta. Solo aplica si ganas más de cierto monto.
+                    </div>
+                </div>
+                
+                <div class="deduction-item">
+                    <div class="deduction-name">Prestaciones Sociales</div>
+                    <div class="deduction-description">
+                        Prima, cesantías, vacaciones. No se descuentan del salario - son adicionales.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tip-box">
+            <div class="tip-header">
+                💡 Para Trabajadores Informales
+            </div>
+            <div style="color: var(--dim);">
+                Si trabajas informalmente, tu "salario neto" es casi igual al bruto, pero debes 
+                considerar que NO tienes prestaciones. Reserva al menos 15% de tus ingresos 
+                para emergencias y gastos de salud.
+            </div>
+        </div>
+
+        <div class="tip-box">
+            <div class="tip-header">
+                🔍 Revisa tu Recibo Mensualmente
+            </div>
+            <div style="color: var(--dim);">
+                Siempre revisa que las cifras coincidan con lo acordado. Errores en nómina 
+                son más comunes de lo que piensas, y detectarlos temprano te ahorra problemas.
+            </div>
+        </div>
+
+        <div class="next-week">
+            <h3>🎯 ¿Listo para la Semana 3?</h3>
+            <p>La próxima semana aprenderemos sobre deuda sin drama - cómo manejarla inteligentemente!</p>
+            <a href="../semana-3/" class="btn btn-primary" style="text-decoration: none; margin-top: 1rem; display: inline-block;">Continuar a Semana 3</a>
+        </div>
+    </div>
+
+    <script>
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function calculateTakeHome() {
+            const employmentType = document.getElementById('employment-type').value;
+            const grossSalary = parseFloat(document.getElementById('gross-salary').value) || 0;
+            const salaryRange = document.getElementById('salary-range').value;
+            const otherDeductions = parseFloat(document.getElementById('other-deductions').value) || 0;
+
+            if (grossSalary === 0) {
+                document.getElementById('breakdown-section').style.display = 'none';
+                return;
+            }
+
+            let healthContribution = 0;
+            let pensionContribution = 0;
+            let retentionTax = 0;
+            let totalDeductions = otherDeductions;
+
+            if (employmentType === 'formal') {
+                // Aportes obligatorios para empleados formales
+                healthContribution = grossSalary * 0.04; // 4% salud
+                pensionContribution = grossSalary * 0.04; // 4% pensión
+                
+                // Retención en la fuente según rango salarial
+                const smmlv = 1300000; // Salario mínimo 2026 (aproximado)
+                
+                if (salaryRange === 'low') {
+                    retentionTax = 0; // No hay retención
+                } else if (salaryRange === 'mid') {
+                    // Retención aproximada para rangos medios
+                    retentionTax = Math.max(0, (grossSalary - (4 * smmlv)) * 0.05);
+                } else if (salaryRange === 'high') {
+                    // Retención aproximada para rangos altos
+                    retentionTax = Math.max(0, (grossSalary - (4 * smmlv)) * 0.10);
+                }
+                
+                totalDeductions = healthContribution + pensionContribution + retentionTax + otherDeductions;
+                
+                // Mostrar opciones formales
+                document.getElementById('formal-options').style.display = 'block';
+            } else {
+                // Trabajador informal - sin deducciones automáticas
+                totalDeductions = otherDeductions;
+                document.getElementById('formal-options').style.display = 'none';
+            }
+
+            const netSalary = grossSalary - totalDeductions;
+
+            // Mostrar desglose
+            const breakdownGrid = document.getElementById('breakdown-grid');
+            breakdownGrid.innerHTML = '';
+
+            // Salario bruto
+            breakdownGrid.innerHTML += `
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Salario Bruto</div>
+                    <div class="breakdown-amount">${formatMoney(grossSalary)}</div>
+                    <div class="breakdown-percentage">100%</div>
+                </div>
+            `;
+
+            if (employmentType === 'formal') {
+                // Desglose para empleados formales
+                breakdownGrid.innerHTML += `
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">Salud (EPS)</div>
+                        <div class="breakdown-amount">-${formatMoney(healthContribution)}</div>
+                        <div class="breakdown-percentage">-4%</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">Pensión</div>
+                        <div class="breakdown-amount">-${formatMoney(pensionContribution)}</div>
+                        <div class="breakdown-percentage">-4%</div>
+                    </div>
+                `;
+                
+                if (retentionTax > 0) {
+                    breakdownGrid.innerHTML += `
+                        <div class="breakdown-item">
+                            <div class="breakdown-label">Retención en la Fuente</div>
+                            <div class="breakdown-amount">-${formatMoney(retentionTax)}</div>
+                            <div class="breakdown-percentage">-${((retentionTax/grossSalary)*100).toFixed(1)}%</div>
+                        </div>
+                    `;
+                }
+            } else {
+                // Mensaje para informales
+                breakdownGrid.innerHTML += `
+                    <div class="breakdown-item" style="grid-column: 1 / -1;">
+                        <div class="breakdown-label">Trabajador Informal</div>
+                        <div class="breakdown-amount">Sin deducciones automáticas</div>
+                        <div class="breakdown-percentage" style="color:var(--yellow);">⚠️ Sin prestaciones sociales</div>
+                    </div>
+                `;
+            }
+
+            if (otherDeductions > 0) {
+                breakdownGrid.innerHTML += `
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">Otros Descuentos</div>
+                        <div class="breakdown-amount">-${formatMoney(otherDeductions)}</div>
+                        <div class="breakdown-percentage">-${((otherDeductions/grossSalary)*100).toFixed(1)}%</div>
+                    </div>
+                `;
+            }
+
+            // Mostrar resultado final
+            document.getElementById('final-amount').textContent = formatMoney(netSalary);
+            document.getElementById('breakdown-section').style.display = 'block';
+
+            // Agregar recomendación específica
+            const finalNote = document.querySelector('.final-note');
+            if (employmentType === 'formal') {
+                finalNote.textContent = `Este es tu dinero disponible. Recuerda que también recibes prestaciones sociales (prima, cesantías) que no aparecen aquí.`;
+            } else {
+                finalNote.textContent = `Como trabajador informal, considera reservar 15% adicional para emergencias y gastos de salud ya que no tienes prestaciones.`;
+            }
+        }
+
+        // Calcular automáticamente con valores por defecto
+        window.onload = function() {
+            document.getElementById('gross-salary').value = '1500000';
+            document.getElementById('other-deductions').value = '50000';
+            calculateTakeHome();
+        };
+    </script>
+</body>
+</html>

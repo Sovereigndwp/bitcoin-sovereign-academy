@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 1: Dónde se va mi dinero | Ruta de Estabilidad y Crecimiento</title>
+    <meta name="description" content="Juego interactivo de decisiones para entender dónde se va tu dinero. Herramienta práctica para trabajadores colombianos.">
+    <style>
+        :root {
+            --primary: #f7931a;
+            --dark: #1a1a1a;
+            --dark2: #2d2d2d;
+            --light: #e0e0e0;
+            --dim: #b3b3b3;
+            --green: #4caf50;
+            --red: #ef4444;
+            --yellow: #fcd116;
+            --grad: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
+            --colombia-blue: #003893;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--dark); color:var(--light); line-height:1.6; padding:1rem; }
+
+        .container { max-width:1000px; margin:0 auto; }
+        
+        .back-link { display:inline-flex; align-items:center; gap:0.5rem; color:var(--primary); text-decoration:none; margin-bottom:2rem; font-weight:600; transition:transform 0.2s; }
+        .back-link:hover { transform:translateX(-4px); }
+        
+        .header { text-align:center; margin-bottom:3rem; }
+        .week-title { font-size:2.5rem; color:var(--primary); margin-bottom:0.5rem; }
+        .week-subtitle { font-size:1.2rem; color:var(--dim); margin-bottom:2rem; }
+        
+        .progress-bar { background:var(--dark2); height:8px; border-radius:4px; margin-bottom:2rem; overflow:hidden; }
+        .progress-fill { height:100%; background:var(--grad); border-radius:4px; transition:width 0.3s; }
+        
+        .game-container { background:var(--dark2); border:2px solid rgba(247,147,26,0.2); border-radius:1rem; padding:2rem; margin-bottom:2rem; }
+        .game-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; flex-wrap:wrap; gap:1rem; }
+        
+        .money-display { background:var(--dark); border:2px solid var(--primary); border-radius:0.5rem; padding:1rem 1.5rem; font-size:1.5rem; font-weight:700; color:var(--primary); font-family:'Courier New',monospace; }
+        .scenario-counter { color:var(--dim); font-size:0.9rem; }
+        
+        .scenario-card { background:var(--dark); border:2px solid rgba(247,147,26,0.15); border-radius:0.75rem; padding:2rem; margin-bottom:2rem; text-align:center; }
+        .scenario-title { font-size:1.5rem; color:var(--light); margin-bottom:1rem; }
+        .scenario-description { color:var(--dim); margin-bottom:2rem; font-size:1.1rem; }
+        
+        .choices-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1rem; margin-bottom:2rem; }
+        .choice-card { background:var(--dark2); border:2px solid rgba(247,147,26,0.15); border-radius:0.75rem; padding:1.5rem; cursor:pointer; transition:all 0.3s; text-align:center; }
+        .choice-card:hover { border-color:var(--primary); transform:translateY(-2px); }
+        .choice-card.selected { border-color:var(--primary); box-shadow:0 0 20px rgba(247,147,26,0.3); }
+        .choice-card.disabled { opacity:0.5; cursor:not-allowed; }
+        
+        .choice-item { font-size:1.1rem; font-weight:600; color:var(--light); margin-bottom:0.5rem; }
+        .choice-cost { font-size:1.3rem; font-weight:700; color:var(--primary); font-family:'Courier New',monospace; margin-bottom:0.5rem; }
+        .choice-type { font-size:0.85rem; padding:0.25rem 0.5rem; border-radius:1rem; font-weight:600; }
+        .choice-type.necesario { background:rgba(76,175,80,0.2); color:var(--green); }
+        .choice-type.deseo { background:rgba(252,209,22,0.2); color:var(--yellow); }
+        .choice-description { color:var(--dim); font-size:0.9rem; margin-top:0.5rem; }
+        
+        .game-buttons { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+        .btn { padding:0.75rem 1.5rem; border:none; border-radius:0.5rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+        .btn-primary { background:var(--grad); color:white; }
+        .btn-primary:hover { background:#e6830e; transform:translateY(-2px); }
+        .btn-primary:disabled { background:var(--dim); cursor:not-allowed; transform:none; }
+        .btn-secondary { background:transparent; color:var(--primary); border:2px solid var(--primary); }
+        .btn-secondary:hover { background:var(--primary); color:white; }
+        
+        .results-card { background:var(--dark); border:2px solid rgba(247,147,26,0.15); border-radius:0.75rem; padding:2rem; margin-top:2rem; display:none; }
+        .results-card.show { display:block; }
+        .result-summary { text-align:center; margin-bottom:2rem; }
+        .result-title { font-size:1.8rem; color:var(--primary); margin-bottom:1rem; }
+        
+        .result-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1rem; margin-bottom:2rem; }
+        .stat-card { background:var(--dark2); border:2px solid rgba(247,147,26,0.15); border-radius:0.5rem; padding:1rem; text-align:center; }
+        .stat-value { font-size:1.8rem; font-weight:700; color:var(--primary); font-family:'Courier New',monospace; }
+        .stat-label { font-size:0.85rem; color:var(--dim); margin-top:0.25rem; }
+        
+        .reflection-section { background:var(--dark2); border:2px solid rgba(247,147,26,0.15); border-radius:1rem; padding:2rem; margin-top:2rem; }
+        .reflection-title { font-size:1.5rem; color:var(--primary); margin-bottom:1rem; }
+        .reflection-questions { list-style:none; }
+        .reflection-questions li { background:var(--dark); border-left:4px solid var(--primary); padding:1rem; margin-bottom:1rem; border-radius:0.25rem; }
+        .question { font-weight:600; color:var(--light); margin-bottom:0.5rem; }
+        .question-help { color:var(--dim); font-size:0.9rem; }
+        
+        .next-week { background:var(--dark2); border:2px solid var(--primary); border-radius:1rem; padding:2rem; margin-top:2rem; text-align:center; }
+        .next-week h3 { color:var(--primary); margin-bottom:1rem; }
+        
+        @media (max-width:768px) {
+            .choices-grid { grid-template-columns:1fr; }
+            .game-header { flex-direction:column; text-align:center; }
+            .game-buttons { flex-direction:column; align-items:center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Volver al Programa</a>
+        
+        <div class="header">
+            <h1 class="week-title">Semana 1: Dónde se va mi dinero</h1>
+            <p class="week-subtitle">Juego de Decisiones - Descubre tus patrones de gasto</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+
+        <div class="game-container">
+            <div class="game-header">
+                <div class="money-display" id="money-display">Presupuesto: $500.000</div>
+                <div class="scenario-counter" id="scenario-counter">Escenario 1 de 5</div>
+            </div>
+
+            <div class="scenario-card" id="scenario-card">
+                <h2 class="scenario-title" id="scenario-title">Primera Quincena del Mes</h2>
+                <p class="scenario-description" id="scenario-description">
+                    Acabas de recibir tu pago y tienes $500.000 para los próximos 15 días. 
+                    Necesitas cubrir gastos básicos, pero también hay cosas que te llaman la atención. ¿Qué eliges?
+                </p>
+
+                <div class="choices-grid" id="choices-grid">
+                    <!-- Las opciones se llenarán con JavaScript -->
+                </div>
+
+                <div class="game-buttons">
+                    <button type="button" class="btn btn-primary" id="confirm-choice" onclick="confirmChoice()" disabled>
+                        Confirmar Elección
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="skipScenario()">
+                        Saltar Este
+                    </button>
+                </div>
+            </div>
+
+            <div class="results-card" id="results-card">
+                <div class="result-summary">
+                    <h2 class="result-title">¡Buen trabajo!</h2>
+                    <p id="result-message"></p>
+                </div>
+
+                <div class="result-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-spent">$0</div>
+                        <div class="stat-label">Total Gastado</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="money-left">$500.000</div>
+                        <div class="stat-label">Dinero Restante</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="needs-bought">0</div>
+                        <div class="stat-label">Necesidades Cubiertas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="wants-bought">0</div>
+                        <div class="stat-label">Deseos Comprados</div>
+                    </div>
+                </div>
+
+                <div class="game-buttons">
+                    <button class="btn btn-primary" onclick="nextScenario()">
+                        Siguiente Escenario
+                    </button>
+                    <button class="btn btn-secondary" onclick="restartGame()">
+                        Empezar de Nuevo
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="reflection-section">
+            <h2 class="reflection-title">💭 Reflexiona</h2>
+            <ul class="reflection-questions">
+                <li>
+                    <div class="question">¿Cuál es la diferencia entre algo que necesitas y algo que deseas?</div>
+                    <div class="question-help">Piensa en qué pasa si no lo consigues. Las necesidades son básicas para vivir, los deseos hacen la vida más agradable.</div>
+                </li>
+                <li>
+                    <div class="question">¿Cómo cambió tener dinero limitado tus decisiones?</div>
+                    <div class="question-help">Esto se llama "costo de oportunidad" - elegir una cosa significa renunciar a otra.</div>
+                </li>
+                <li>
+                    <div class="question">¿Qué estrategias usaste para tomar decisiones difíciles?</div>
+                    <div class="question-help">Tal vez priorizaste necesidades primero, buscaste mejor valor, o guardaste dinero para después.</div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="next-week">
+            <h3>🎯 ¿Listo para la Semana 2?</h3>
+            <p>La próxima semana aprenderemos a entender tu recibo de pago sin adivinar!</p>
+            <a href="../semana-2/" class="btn btn-primary" style="text-decoration: none; margin-top: 1rem; display: inline-block;">Continuar a Semana 2</a>
+        </div>
+    </div>
+
+    <script>
+        let currentScenario = 0;
+        let budget = 500000;
+        let totalSpent = 0;
+        let needsBought = 0;
+        let wantsBought = 0;
+        let selectedChoice = null;
+
+        const scenarios = [
+            {
+                title: "Primera Quincena del Mes",
+                description: "Acabas de recibir tu pago y tienes $500.000 para los próximos 15 días. Necesitas cubrir gastos básicos, pero también hay cosas que te llaman la atención. ¿Qué eliges?",
+                choices: [
+                    { item: "Mercado de la Casa", cost: 180000, type: "necesario", description: "Comida básica para 15 días" },
+                    { item: "Zapatos Nuevos", cost: 250000, type: "deseo", description: "Los que viste en el centro comercial" },
+                    { item: "Transporte al Trabajo", cost: 80000, type: "necesario", description: "Pasajes para ir y volver del trabajo" },
+                    { item: "Salida con Amigos", cost: 120000, type: "deseo", description: "Cena y tragos el fin de semana" }
+                ]
+            },
+            {
+                title: "Emergencia Familiar",
+                description: "Tu mamá necesita medicamentos y te pidió ayuda. También hay cosas para tu casa que necesitas. ¿Cómo distribuyes tu dinero?",
+                choices: [
+                    { item: "Medicamentos para Mamá", cost: 150000, type: "necesario", description: "Medicinas que necesita urgente" },
+                    { item: "Nuevo Celular", cost: 300000, type: "deseo", description: "El tuyo se está dañando" },
+                    { item: "Pago de Servicios", cost: 120000, type: "necesario", description: "Luz, agua y gas de tu casa" },
+                    { item: "Ropa de Trabajo", cost: 80000, type: "necesario", description: "Uniforme nuevo que necesitas" }
+                ]
+            },
+            {
+                title: "Oportunidad de Capacitación",
+                description: "Te ofrecieron un curso que puede ayudarte en el trabajo, pero cuesta dinero. También tienes otros gastos pendientes.",
+                choices: [
+                    { item: "Curso de Capacitación", cost: 200000, type: "necesario", description: "Puede ayudarte a crecer en el trabajo" },
+                    { item: "Salir a Comer Afuera", cost: 60000, type: "deseo", description: "No has cocinado en días" },
+                    { item: "Ahorro para Emergencias", cost: 100000, type: "necesario", description: "Guardar para imprevistos" },
+                    { item: "Regalos Familiares", cost: 80000, type: "deseo", description: "Cumpleaños de tu hermana" }
+                ]
+            },
+            {
+                title: "Fin de Año se Acerca",
+                description: "Diciembre está llegando y necesitas planificar. Hay gastos navideños y también cosas importantes para enero.",
+                choices: [
+                    { item: "Regalos de Navidad", cost: 150000, type: "deseo", description: "Para familia y amigos cercanos" },
+                    { item: "Matrícula de Estudio", cost: 200000, type: "necesario", description: "Curso nocturno para el próximo año" },
+                    { item: "Ropa Nueva", cost: 180000, type: "deseo", description: "Para las fiestas navideñas" },
+                    { item: "Fondo para Enero", cost: 120000, type: "necesario", description: "Enero siempre es difícil" }
+                ]
+            },
+            {
+                title: "Decisión de Futuro",
+                description: "Has manejado bien tu dinero estos meses. Ahora puedes pensar en el futuro. ¿Qué es más importante?",
+                choices: [
+                    { item: "Inversión Pequeña", cost: 300000, type: "necesario", description: "Empezar a hacer crecer tu dinero" },
+                    { item: "Vacaciones Familiares", cost: 400000, type: "deseo", description: "Un fin de semana con la familia" },
+                    { item: "Colchón de Seguridad", cost: 250000, type: "necesario", description: "Dinero para 6 meses de emergencias" },
+                    { item: "Electrodoméstico Nuevo", cost: 350000, type: "deseo", description: "Licuadora que necesita la casa" }
+                ]
+            }
+        ];
+
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function startGame() {
+            currentScenario = 0;
+            budget = 500000;
+            totalSpent = 0;
+            needsBought = 0;
+            wantsBought = 0;
+            loadScenario();
+        }
+
+        function loadScenario() {
+            if (currentScenario >= scenarios.length) {
+                showFinalResults();
+                return;
+            }
+
+            const scenario = scenarios[currentScenario];
+            document.getElementById('scenario-title').textContent = scenario.title;
+            document.getElementById('scenario-description').textContent = scenario.description;
+            document.getElementById('scenario-counter').textContent = `Escenario ${currentScenario + 1} de ${scenarios.length}`;
+            document.getElementById('money-display').textContent = `Presupuesto: ${formatMoney(budget)}`;
+            
+            // Actualizar progreso
+            const progress = ((currentScenario) / scenarios.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+
+            // Limpiar opciones anteriores
+            const choicesGrid = document.getElementById('choices-grid');
+            choicesGrid.innerHTML = '';
+            selectedChoice = null;
+            document.getElementById('confirm-choice').disabled = true;
+
+            // Crear tarjetas de opciones
+            scenario.choices.forEach((choice, index) => {
+                const canAfford = choice.cost <= budget;
+                const choiceCard = document.createElement('div');
+                choiceCard.className = `choice-card ${!canAfford ? 'disabled' : ''}`;
+                choiceCard.style.opacity = canAfford ? '1' : '0.5';
+                
+                if (canAfford) {
+                    choiceCard.onclick = () => selectChoice(index);
+                }
+
+                choiceCard.innerHTML = `
+                    <div class="choice-item">${choice.item}</div>
+                    <div class="choice-cost">${formatMoney(choice.cost)}</div>
+                    <div class="choice-type ${choice.type}">${choice.type.toUpperCase()}</div>
+                    <div class="choice-description">${choice.description}</div>
+                    ${!canAfford ? '<div style="color: var(--red); font-size: 0.8rem; margin-top: 0.5rem;">No puedes pagarlo</div>' : ''}
+                `;
+
+                choicesGrid.appendChild(choiceCard);
+            });
+
+            // Ocultar tarjeta de resultados
+            document.getElementById('results-card').classList.remove('show');
+        }
+
+        function selectChoice(choiceIndex) {
+            // Remover selección anterior
+            document.querySelectorAll('.choice-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Agregar selección a la tarjeta clickeada
+            document.querySelectorAll('.choice-card')[choiceIndex].classList.add('selected');
+            
+            selectedChoice = choiceIndex;
+            document.getElementById('confirm-choice').disabled = false;
+        }
+
+        function confirmChoice() {
+            if (selectedChoice === null) return;
+
+            const choice = scenarios[currentScenario].choices[selectedChoice];
+            budget -= choice.cost;
+            totalSpent += choice.cost;
+
+            if (choice.type === 'necesario') {
+                needsBought++;
+            } else {
+                wantsBought++;
+            }
+
+            showScenarioResult(choice);
+        }
+
+        function showScenarioResult(choice) {
+            const resultMessage = document.getElementById('result-message');
+            
+            let message = `Compraste: ${choice.item} por ${formatMoney(choice.cost)}. `;
+            
+            if (choice.type === 'necesario') {
+                message += "¡Buena decisión! Priorizaste algo necesario.";
+            } else {
+                if (budget < 50000) {
+                    message += "Ten cuidado - te queda poco dinero para necesidades básicas.";
+                } else {
+                    message += "Está bien darse gustos, pero siempre cubre primero lo necesario.";
+                }
+            }
+            
+            resultMessage.textContent = message;
+
+            // Actualizar estadísticas
+            document.getElementById('total-spent').textContent = formatMoney(totalSpent);
+            document.getElementById('money-left').textContent = formatMoney(budget);
+            document.getElementById('needs-bought').textContent = needsBought;
+            document.getElementById('wants-bought').textContent = wantsBought;
+
+            // Mostrar resultados
+            document.getElementById('results-card').classList.add('show');
+        }
+
+        function nextScenario() {
+            currentScenario++;
+            loadScenario();
+        }
+
+        function skipScenario() {
+            currentScenario++;
+            loadScenario();
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function showFinalResults() {
+            document.getElementById('scenario-card').style.display = 'none';
+            
+            let finalMessage = `¡Completaste todos los escenarios! `;
+            
+            const needsRatio = needsBought / (needsBought + wantsBought);
+            
+            if (needsRatio >= 0.7) {
+                finalMessage += "Excelente control - priorizaste bien las necesidades.";
+            } else if (needsRatio >= 0.5) {
+                finalMessage += "Buen equilibrio entre necesidades y deseos.";
+            } else {
+                finalMessage += "Podrías mejorar priorizando más las necesidades básicas.";
+            }
+            
+            if (budget < 50000) {
+                finalMessage += " Te quedaste con poco dinero para emergencias.";
+            } else {
+                finalMessage += ` Te quedaron ${formatMoney(budget)} - ¡buen manejo!`;
+            }
+
+            document.getElementById('result-message').textContent = finalMessage;
+            document.getElementById('results-card').classList.add('show');
+            
+            // Actualizar progreso al 100%
+            document.getElementById('progress-fill').style.width = '100%';
+        }
+
+        // Iniciar el juego al cargar la página
+        window.onload = function() {
+            startGame();
+        };
+    </script>
+</body>
+</html>

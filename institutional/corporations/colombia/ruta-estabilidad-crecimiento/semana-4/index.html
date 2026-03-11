@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 4: Mi primer colchón de emergencia | Ruta de Estabilidad y Crecimiento</title>
+    <meta name="description" content="Calculadora de fondo de emergencia y simulador de crisis para trabajadores colombianos. Construye tu primera defensa contra imprevistos.">
+    <style>
+        :root {
+            --primary: #f7931a;
+            --dark: #1a1a1a;
+            --dark2: #2d2d2d;
+            --light: #e0e0e0;
+            --dim: #b3b3b3;
+            --green: #4caf50;
+            --red: #ef4444;
+            --yellow: #fcd116;
+            --grad: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--dark); color:var(--light); line-height:1.6; padding:1rem; }
+
+        .container { max-width:1000px; margin:0 auto; }
+        .back-link { display:inline-flex; align-items:center; gap:0.5rem; color:var(--primary); text-decoration:none; margin-bottom:2rem; font-weight:600; transition:transform 0.2s; }
+        .back-link:hover { transform:translateX(-4px); }
+        
+        .header { text-align:center; margin-bottom:3rem; }
+        .week-title { font-size:2.5rem; color:var(--primary); margin-bottom:0.5rem; }
+        .week-subtitle { font-size:1.2rem; color:var(--dim); margin-bottom:2rem; }
+        
+        .intro-section { background:var(--dark2); border:2px solid rgba(247,147,26,0.2); border-radius:1rem; padding:2rem; margin-bottom:3rem; }
+        .intro-title { font-size:1.8rem; color:var(--primary); margin-bottom:1rem; }
+        .intro-text { color:var(--dim); font-size:1.1rem; margin-bottom:2rem; }
+        
+        .examples-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin:2rem 0; }
+        .example-card { background:var(--dark); border:2px solid rgba(247,147,26,0.15); border-radius:0.5rem; padding:1rem; text-align:center; transition:all 0.3s; }
+        .example-card:hover { border-color:var(--primary); }
+        .example-emoji { font-size:2rem; margin-bottom:0.5rem; }
+        .example-title { color:var(--primary); font-size:0.9rem; font-weight:600; margin-bottom:0.25rem; }
+        .example-cost { color:var(--primary); font-family:'Courier New',monospace; font-weight:600; }
+        
+        .calculator-section { background:linear-gradient(135deg,rgba(247,147,26,0.1) 0%,rgba(76,175,80,0.1) 100%); border:2px solid var(--primary); border-radius:1rem; padding:3rem 2rem; text-align:center; margin:3rem 0; }
+        .calc-title { font-size:2rem; color:var(--primary); margin-bottom:1rem; }
+        .calc-description { color:var(--dim); font-size:1.1rem; margin-bottom:2rem; max-width:600px; margin-left:auto; margin-right:auto; }
+        
+        .calculator { background:var(--dark); border:2px solid rgba(247,147,26,0.15); border-radius:1rem; padding:2rem; margin:2rem 0; }
+        .calc-input-group { margin-bottom:1.5rem; }
+        .calc-label { display:block; color:var(--light); font-weight:600; margin-bottom:0.5rem; }
+        .calc-input { width:100%; padding:0.75rem; background:var(--dark2); border:2px solid rgba(247,147,26,0.3); border-radius:0.5rem; color:var(--light); font-size:1rem; font-family:'Courier New',monospace; }
+        .calc-input:focus { outline:none; border-color:var(--primary); }
+        
+        .calc-result { background:var(--dark2); border:2px solid var(--primary); border-radius:0.75rem; padding:2rem; margin-top:2rem; text-align:center; }
+        .result-amount { font-size:2.5rem; font-weight:700; color:var(--primary); font-family:'Courier New',monospace; margin-bottom:0.5rem; }
+        .result-label { color:var(--dim); font-size:1.1rem; margin-bottom:1rem; }
+        .result-breakdown { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1rem; margin-top:1rem; }
+        .breakdown-item { background:var(--dark); padding:1rem; border-radius:0.5rem; }
+        .breakdown-value { font-size:1.3rem; font-weight:700; color:var(--primary); font-family:'Courier New',monospace; }
+        .breakdown-label { font-size:0.85rem; color:var(--dim); margin-top:0.25rem; }
+        
+        .scenarios-section { background:var(--dark2); border:2px solid rgba(247,147,26,0.15); border-radius:1rem; padding:2rem; margin:2rem 0; }
+        .scenarios-title { font-size:1.5rem; color:var(--primary); margin-bottom:1rem; }
+        .scenario-grid { display:grid; gap:1rem; margin-top:1rem; }
+        .scenario-card { background:var(--dark); border:2px solid rgba(247,147,26,0.15); border-radius:0.75rem; padding:1.5rem; cursor:pointer; transition:all 0.3s; }
+        .scenario-card:hover { border-color:var(--primary); transform:translateY(-2px); }
+        .scenario-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
+        .scenario-title { color:var(--light); font-weight:600; }
+        .scenario-cost { color:var(--red); font-family:'Courier New',monospace; font-weight:700; }
+        .scenario-description { color:var(--dim); font-size:0.9rem; margin-bottom:1rem; }
+        .scenario-impact { padding:1rem; border-radius:0.5rem; font-size:0.85rem; margin-top:1rem; }
+        .impact-good { background:rgba(76,175,80,0.2); color:var(--green); }
+        .impact-bad { background:rgba(239,68,68,0.2); color:var(--red); }
+        
+        .stages-section { background:var(--dark2); border:2px solid rgba(247,147,26,0.15); border-radius:1rem; padding:2rem; margin:2rem 0; }
+        .stages-title { font-size:1.5rem; color:var(--primary); margin-bottom:1rem; }
+        .stage { background:var(--dark); border-left:4px solid var(--primary); padding:1rem; margin-bottom:1rem; border-radius:0.25rem; }
+        .stage-name { font-weight:600; color:var(--primary); margin-bottom:0.25rem; }
+        .stage-description { color:var(--dim); font-size:0.95rem; }
+        
+        .btn { padding:1rem 2rem; border:none; border-radius:0.75rem; font-weight:700; font-size:1.1rem; cursor:pointer; transition:all 0.3s; text-decoration:none; display:inline-block; }
+        .btn-primary { background:var(--grad); color:white; }
+        .btn-primary:hover { background:#e6830e; transform:translateY(-2px); box-shadow:0 8px 25px rgba(247,147,26,0.4); }
+        .btn-secondary { background:transparent; color:var(--primary); border:2px solid var(--primary); margin-left:1rem; }
+        .btn-secondary:hover { background:var(--primary); color:white; }
+        
+        .next-week { background:var(--dark2); border:2px solid var(--primary); border-radius:1rem; padding:2rem; margin-top:2rem; text-align:center; }
+        .next-week h3 { color:var(--primary); margin-bottom:1rem; }
+        
+        .tip-box { background:rgba(252,209,22,0.1); border:2px solid var(--yellow); border-radius:0.75rem; padding:1.5rem; margin:2rem 0; }
+        .tip-header { color:var(--yellow); font-weight:700; margin-bottom:0.5rem; display:flex; align-items:center; gap:0.5rem; }
+        
+        @media (max-width:768px) {
+            .btn-secondary { margin-left:0; margin-top:1rem; display:block; }
+            .calc-result { padding:1.5rem; }
+            .result-breakdown { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Volver al Programa</a>
+        
+        <div class="header">
+            <h1 class="week-title">Semana 4: Mi primer colchón de emergencia</h1>
+            <p class="week-subtitle">Tu primera defensa contra imprevistos</p>
+        </div>
+
+        <div class="intro-section">
+            <h2 class="intro-title">🛡️ Cuando la vida pasa</h2>
+            <p class="intro-text">
+                Se te daña el celular. La moto no arranca. Te enfermas y pierdes días de trabajo. 
+                La vida está llena de sorpresas, y la mayoría cuestan dinero. Un fondo de emergencia 
+                es tu colchón financiero - dinero guardado específicamente para gastos inesperados.
+            </p>
+
+            <div class="examples-grid">
+                <div class="example-card">
+                    <div class="example-emoji">📱</div>
+                    <div class="example-title">Celular Dañado</div>
+                    <div class="example-cost">$200.000-500.000</div>
+                </div>
+                <div class="example-card">
+                    <div class="example-emoji">🏥</div>
+                    <div class="example-title">Médico de Urgencias</div>
+                    <div class="example-cost">$150.000-400.000</div>
+                </div>
+                <div class="example-card">
+                    <div class="example-emoji">🏠</div>
+                    <div class="example-title">Daño en Casa</div>
+                    <div class="example-cost">$300.000-800.000</div>
+                </div>
+                <div class="example-card">
+                    <div class="example-emoji">💼</div>
+                    <div class="example-title">Trabajo Perdido</div>
+                    <div class="example-cost">Gastos mensuales</div>
+                </div>
+            </div>
+
+            <p style="color: var(--dim); font-size: 0.9rem; text-align: center; margin-top: 1rem;">
+                Sin un fondo de emergencia, estas situaciones te obligan a pedir prestado o endeudarte.
+            </p>
+        </div>
+
+        <div class="calculator-section">
+            <h2 class="calc-title">🧮 Calcula tu Meta de Emergencia</h2>
+            <p class="calc-description">
+                Usa nuestra calculadora para determinar exactamente cuánto deberías ahorrar para emergencias.
+                Aprende la diferencia entre fondos básicos y completos.
+            </p>
+
+            <div class="calculator">
+                <div class="calc-input-group">
+                    <label class="calc-label" for="monthly-income">Tu ingreso mensual (pesos):</label>
+                    <input type="number" id="monthly-income" class="calc-input" placeholder="1500000" min="0" oninput="calculateEmergencyFund()">
+                </div>
+                
+                <div class="calc-input-group">
+                    <label class="calc-label" for="monthly-expenses">Gastos básicos mensuales (comida, transporte, servicios):</label>
+                    <input type="number" id="monthly-expenses" class="calc-input" placeholder="900000" min="0" oninput="calculateEmergencyFund()">
+                </div>
+                
+                <div class="calc-input-group">
+                    <label class="calc-label" for="job-stability">¿Qué tan estable es tu trabajo?</label>
+                    <select id="job-stability" class="calc-input" onchange="calculateEmergencyFund()">
+                        <option value="stable">Muy estable (empleado formal)</option>
+                        <option value="moderate">Moderadamente estable (contrato fijo)</option>
+                        <option value="unstable">Inestable (trabajo por días, informal)</option>
+                    </select>
+                </div>
+
+                <div class="calc-result" id="calc-result" style="display:none;">
+                    <div class="result-amount" id="result-amount">$0</div>
+                    <div class="result-label">Meta de fondo de emergencia</div>
+                    
+                    <div class="result-breakdown">
+                        <div class="breakdown-item">
+                            <div class="breakdown-value" id="starter-fund">$0</div>
+                            <div class="breakdown-label">Fondo inicial (Etapa 1)</div>
+                        </div>
+                        <div class="breakdown-item">
+                            <div class="breakdown-value" id="basic-fund">$0</div>
+                            <div class="breakdown-label">Fondo básico (Etapa 2)</div>
+                        </div>
+                        <div class="breakdown-item">
+                            <div class="breakdown-value" id="full-fund">$0</div>
+                            <div class="breakdown-label">Fondo completo (Etapa 3)</div>
+                        </div>
+                    </div>
+                    
+                    <div id="recommendation" style="margin-top:1rem; padding:1rem; background:var(--dark2); border-radius:0.5rem; color:var(--dim);"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="scenarios-section">
+            <h2 class="scenarios-title">🎭 Simulador de Crisis</h2>
+            <p style="color: var(--dim); margin-bottom: 1.5rem;">
+                Haz clic en cada escenario para ver cómo te afectaría con y sin fondo de emergencia:
+            </p>
+            
+            <div class="scenario-grid">
+                <div class="scenario-card" onclick="toggleScenario(this, 'phone')">
+                    <div class="scenario-header">
+                        <span class="scenario-title">📱 Se te daña el celular</span>
+                        <span class="scenario-cost">$400.000</span>
+                    </div>
+                    <div class="scenario-description">
+                        Tu celular se cayó y la pantalla se rompió. Necesitas repararlo para trabajar.
+                    </div>
+                    <div class="scenario-impact" style="display:none;"></div>
+                </div>
+                
+                <div class="scenario-card" onclick="toggleScenario(this, 'medical')">
+                    <div class="scenario-header">
+                        <span class="scenario-title">🏥 Emergencia médica</span>
+                        <span class="scenario-cost">$600.000</span>
+                    </div>
+                    <div class="scenario-description">
+                        Tu mamá se enfermó y necesita medicamentos caros que no cubre el seguro.
+                    </div>
+                    <div class="scenario-impact" style="display:none;"></div>
+                </div>
+                
+                <div class="scenario-card" onclick="toggleScenario(this, 'job')">
+                    <div class="scenario-header">
+                        <span class="scenario-title">💼 Perdiste el trabajo</span>
+                        <span class="scenario-cost">1 mes de gastos</span>
+                    </div>
+                    <div class="scenario-description">
+                        Te despidieron inesperadamente. Necesitas tiempo para encontrar otro trabajo.
+                    </div>
+                    <div class="scenario-impact" style="display:none;"></div>
+                </div>
+                
+                <div class="scenario-card" onclick="toggleScenario(this, 'home')">
+                    <div class="scenario-header">
+                        <span class="scenario-title">🏠 Daño en tu casa</span>
+                        <span class="scenario-cost">$800.000</span>
+                    </div>
+                    <div class="scenario-description">
+                        Se rompió una tubería y dañó parte de tu casa. Necesitas reparación urgente.
+                    </div>
+                    <div class="scenario-impact" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stages-section">
+            <h2 class="stages-title">📊 Etapas del Fondo de Emergencia</h2>
+            <p style="color: var(--dim); margin-bottom: 2rem;">
+                No te abrumes pensando en "6 meses de gastos". Empieza pequeño y ve creciendo:
+            </p>
+
+            <div class="stage">
+                <div class="stage-name">Etapa 1: $200.000 Fondo Inicial</div>
+                <div class="stage-description">
+                    Cubre la mayoría de emergencias menores como reparaciones menores o gastos médicos básicos. 
+                    Esta es tu primera meta - alcanzable e inmediatamente útil.
+                </div>
+            </div>
+
+            <div class="stage">
+                <div class="stage-name">Etapa 2: $500.000 Colchón Básico</div>
+                <div class="stage-description">
+                    Maneja sorpresas más grandes y te da tranquilidad real. Muchos expertos financieros 
+                    recomiendan esto como el mínimo fondo de emergencia para todos.
+                </div>
+            </div>
+
+            <div class="stage">
+                <div class="stage-name">Etapa 3: 1 Mes de Gastos Básicos</div>
+                <div class="stage-description">
+                    Si perdieras el trabajo o no pudieras trabajar, esto cubre tus gastos esenciales 
+                    (arriendo, comida, servicios, transporte) por un mes completo.
+                </div>
+            </div>
+
+            <div class="stage">
+                <div class="stage-name">Etapa 4: 3-6 Meses de Gastos</div>
+                <div class="stage-description">
+                    El fondo de emergencia "estándar de oro". Te da tiempo para encontrar nuevo empleo 
+                    o manejar cambios importantes de vida sin estrés financiero.
+                </div>
+            </div>
+        </div>
+
+        <div class="tip-box">
+            <div class="tip-header">
+                💡 Para Trabajadores Informales
+            </div>
+            <div style="color: var(--dim);">
+                Si tu trabajo es inestable o por días, tu fondo de emergencia es aún más importante. 
+                Empieza con $100.000 si es necesario. El hábito de ahorrar para emergencias 
+                es más importante que la cantidad exacta.
+            </div>
+        </div>
+
+        <div class="next-week">
+            <h3>🎯 ¿Listo para la Semana 5?</h3>
+            <p>La próxima semana aprenderemos sobre la inflación explicada como persona normal!</p>
+            <a href="../semana-5/" class="btn btn-primary" style="text-decoration: none; margin-top: 1rem; display: inline-block;">Continuar a Semana 5</a>
+        </div>
+    </div>
+
+    <script>
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function calculateEmergencyFund() {
+            const income = parseFloat(document.getElementById('monthly-income').value) || 0;
+            const expenses = parseFloat(document.getElementById('monthly-expenses').value) || 0;
+            const stability = document.getElementById('job-stability').value;
+
+            if (income === 0 || expenses === 0) {
+                document.getElementById('calc-result').style.display = 'none';
+                return;
+            }
+
+            // Calcular diferentes niveles según estabilidad laboral
+            let multiplier;
+            let recommendation;
+            
+            switch(stability) {
+                case 'stable':
+                    multiplier = 3;
+                    recommendation = "Con trabajo estable, 3 meses de gastos es suficiente. Enfócate primero en el fondo básico.";
+                    break;
+                case 'moderate':
+                    multiplier = 4;
+                    recommendation = "Con trabajo moderadamente estable, apunta a 4 meses. Prioriza llegar a 1 mes primero.";
+                    break;
+                case 'unstable':
+                    multiplier = 6;
+                    recommendation = "Con trabajo inestable, necesitas un colchón más grande. Empieza con $200.000 y ve creciendo.";
+                    break;
+            }
+
+            const starterFund = 200000;
+            const basicFund = 500000;
+            const fullFund = expenses * multiplier;
+
+            // Mostrar resultados
+            document.getElementById('result-amount').textContent = formatMoney(fullFund);
+            document.getElementById('starter-fund').textContent = formatMoney(starterFund);
+            document.getElementById('basic-fund').textContent = formatMoney(basicFund);
+            document.getElementById('full-fund').textContent = formatMoney(fullFund);
+            document.getElementById('recommendation').textContent = recommendation;
+            
+            document.getElementById('calc-result').style.display = 'block';
+        }
+
+        function toggleScenario(card, type) {
+            const impact = card.querySelector('.scenario-impact');
+            const isVisible = impact.style.display === 'block';
+            
+            if (isVisible) {
+                impact.style.display = 'none';
+                return;
+            }
+
+            const expenses = parseFloat(document.getElementById('monthly-expenses').value) || 900000;
+            let impactText = '';
+            let impactClass = '';
+
+            switch(type) {
+                case 'phone':
+                    if (expenses * 0.5 >= 400000) { // Si tienen fondo básico
+                        impactText = "✅ Con fondo de emergencia: Usas $400.000 de tus ahorros y sigues tranquilo. En 2-3 meses ya lo repones.";
+                        impactClass = 'impact-good';
+                    } else {
+                        impactText = "❌ Sin fondo: Tienes que pedir prestado, usar tarjeta de crédito o pedirle a la familia. Te estresan las deudas.";
+                        impactClass = 'impact-bad';
+                    }
+                    break;
+                    
+                case 'medical':
+                    if (expenses * 0.8 >= 600000) {
+                        impactText = "✅ Con fondo: Puedes ayudar a tu mamá inmediatamente sin comprometer tus gastos básicos.";
+                        impactClass = 'impact-good';
+                    } else {
+                        impactText = "❌ Sin fondo: Tienes que elegir entre ayudar a tu mamá o cubrir tus propios gastos. Estrés familiar.";
+                        impactClass = 'impact-bad';
+                    }
+                    break;
+                    
+                case 'job':
+                    if (expenses * 2 >= expenses) {
+                        impactText = `✅ Con fondo: Tienes ${Math.floor(expenses * 2 / expenses)} meses para buscar trabajo tranquilo, sin aceptar lo primero que aparezca.`;
+                        impactClass = 'impact-good';
+                    } else {
+                        impactText = "❌ Sin fondo: Pánico inmediato. Aceptas cualquier trabajo, pides prestado, o dependes de otros.";
+                        impactClass = 'impact-bad';
+                    }
+                    break;
+                    
+                case 'home':
+                    if (expenses * 1.0 >= 800000) {
+                        impactText = "✅ Con fondo: Arreglas el problema rápido antes de que empeore. Tu casa sigue siendo habitable.";
+                        impactClass = 'impact-good';
+                    } else {
+                        impactText = "❌ Sin fondo: Vives con el daño por meses, buscando de dónde sacar plata. El problema empeora.";
+                        impactClass = 'impact-bad';
+                    }
+                    break;
+            }
+
+            impact.textContent = impactText;
+            impact.className = `scenario-impact ${impactClass}`;
+            impact.style.display = 'block';
+        }
+
+        // Calcular automáticamente con valores por defecto
+        window.onload = function() {
+            document.getElementById('monthly-income').value = '1500000';
+            document.getElementById('monthly-expenses').value = '900000';
+            calculateEmergencyFund();
+        };
+    </script>
+</body>
+</html>
