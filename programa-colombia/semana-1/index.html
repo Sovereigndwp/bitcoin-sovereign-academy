@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semana 1: Dónde se va mi dinero | Ruta de Estabilidad y Crecimiento</title>
-    <meta name="description" content="Simulación práctica de quincena: distribuye $1.000.000 entre necesidades, gusticos y ahorro para notar qué aprieta más una quincena en Colombia.">
+    <meta name="description" content="Simulación práctica de quincena en Colombia: distribuye $1.000.000 entre necesidades, deudas, deseos y ahorro para ver cómo la quincena se aprieta en tiempo real.">
     <link rel="stylesheet" href="../lesson-structure.css">
     <style>
         :root {
@@ -13,175 +13,750 @@
             --dark2: #2d2d2d;
             --light: #e0e0e0;
             --dim: #b3b3b3;
-            --red: #ef4444;
+            --pressure: #CE1126;
             --yellow: #fcd116;
+            --orange: #fb923c;
+            --green: #2ecc71;
             --grad: #FCD116;
         }
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--dark); color:var(--light); line-height:1.6; padding:1rem; }
-        .container { max-width:820px; margin:0 auto; }
-
-        /* Back link */
-        .back-link { display:inline-flex; align-items:center; gap:0.5rem; color:var(--primary); text-decoration:none; margin-bottom:1.5rem; font-weight:600; }
-        .back-link:hover { opacity:0.8; }
-
-        /* Page header */
-        .page-header { margin-bottom:1.5rem; }
-        .page-header h1 { font-size:clamp(1.6rem,4vw,2.2rem); color:var(--primary); margin-bottom:0.35rem; }
-        .page-header p { color:var(--dim); font-size:0.97rem; }
-
-        /* Step indicator */
-        .steps { display:flex; align-items:center; gap:0.5rem; margin-bottom:2rem; font-size:0.82rem; }
-        .step { padding:0.35rem 0.85rem; border-radius:20px; font-weight:600; color:var(--dim); background:rgba(255,255,255,0.04); transition:all 0.3s; }
-        .step.active { background:rgba(252,209,22,0.15); color:var(--primary); }
-        .step.done { background:rgba(252,209,22,0.15); color:var(--yellow); }
-        .step-sep { color:rgba(255,255,255,0.15); }
-
-        /* Phase containers */
-        .phase { display:none; }
-        .phase.active { display:block; }
-
-        /* ---- PHASE 1: ALLOCATION ---- */
-        .budget-sticky { position:sticky; top:0; z-index:50; background:rgba(26,26,26,0.97); backdrop-filter:blur(8px); padding:0.85rem 0 0.75rem; border-bottom:1px solid rgba(252,209,22,0.15); margin-bottom:1.5rem; }
-        .budget-row { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:0.5rem; }
-        .b-label { font-size:0.75rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.15rem; }
-        .b-num { font-size:1.35rem; font-weight:800; font-family:'Courier New',monospace; }
-        .b-num.remaining { color:var(--primary); }
-        .b-num.spent { color:var(--dim); }
-        .bar-track { height:6px; background:rgba(252,209,22,0.1); border-radius:3px; }
-        .bar-fill { height:6px; border-radius:3px; background:var(--grad); transition:width 0.2s, background 0.2s; }
-
-        .intro-note { color:var(--dim); font-size:0.9rem; margin-bottom:1.5rem; line-height:1.6; }
-
-        .section-label { font-size:0.74rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--dim); padding:0.4rem 0 0.3rem; border-bottom:1px solid rgba(255,255,255,0.06); margin:1.25rem 0 0.75rem; }
-        .section-label.needs-lbl { color:rgba(252,209,22,0.8); border-bottom-color:rgba(252,209,22,0.12); }
-        .section-label.wants-lbl { color:rgba(252,209,22,0.8); border-bottom-color:rgba(252,209,22,0.12); }
-        .section-label.savings-lbl { color:rgba(252,209,22,1); border-bottom-color:rgba(252,209,22,0.2); }
-
-        /* Item cards */
-        .item-card { display:flex; align-items:center; gap:0.9rem; padding:0.9rem 1rem; background:var(--dark2); border:2px solid rgba(252,209,22,0.1); border-radius:12px; cursor:pointer; transition:border-color 0.15s, background 0.15s; margin-bottom:0.6rem; user-select:none; }
-        .item-card:hover { border-color:rgba(252,209,22,0.3); }
-        .item-card.selected { border-color:var(--primary); background:rgba(252,209,22,0.05); }
-        .item-card.savings { border-color:rgba(252,209,22,0.2); }
-        .item-card.savings.selected { border-color:var(--yellow); background:rgba(252,209,22,0.05); }
-        .item-card.cant-afford { opacity:0.38; cursor:not-allowed; }
-        .item-card.flash-no { animation:flashNo 0.35s ease; }
-        @keyframes flashNo { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
-
-        .item-icon { font-size:1.4rem; flex-shrink:0; width:32px; text-align:center; }
-        .item-body { flex:1; min-width:0; }
-        .item-name { font-size:0.94rem; font-weight:700; color:var(--light); }
-        .item-desc { font-size:0.8rem; color:var(--dim); margin-top:0.1rem; }
-        .item-badge { display:inline-block; font-size:0.68rem; font-weight:700; padding:0.15rem 0.45rem; border-radius:8px; margin-top:0.25rem; }
-        .badge-need { background:rgba(252,209,22,0.18); color:var(--yellow); }
-        .badge-want { background:rgba(252,209,22,0.18); color:var(--yellow); }
-        .badge-save { background:rgba(252,209,22,0.18); color:var(--yellow); }
-        .item-cost { font-size:1.05rem; font-weight:800; font-family:'Courier New',monospace; color:var(--primary); white-space:nowrap; flex-shrink:0; }
-        .item-card.savings .item-cost { color:var(--yellow); }
-        .checkbox { width:20px; height:20px; border-radius:50%; border:2px solid rgba(252,209,22,0.3); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
-        .item-card.selected .checkbox { background:var(--primary); border-color:var(--primary); }
-        .item-card.savings.selected .checkbox { background:var(--yellow); border-color:var(--yellow); }
-        .checkmark { display:none; color:white; font-size:0.72rem; font-weight:900; }
-        .item-card.selected .checkmark { display:block; }
-        .savings-note { background:rgba(252,209,22,0.06); border:1px solid rgba(252,209,22,0.2); border-radius:10px; padding:0.75rem 1rem; font-size:0.84rem; color:#FDE68A; margin-bottom:0.6rem; line-height:1.5; }
-
-        /* ---- PHASE PREDICT ---- */
-        .predict-option { display:flex; align-items:center; gap:0.85rem; padding:0.9rem 1rem; background:var(--dark2); border:2px solid rgba(252,209,22,0.12); border-radius:12px; cursor:pointer; transition:border-color 0.15s, background 0.15s; margin-bottom:0.6rem; user-select:none; font-size:0.94rem; color:var(--light); }
-        .predict-option:hover { border-color:rgba(252,209,22,0.3); }
-        .predict-option.selected { border-color:var(--primary); background:rgba(252,209,22,0.05); }
-        .predict-dot { width:20px; height:20px; border-radius:50%; border:2px solid rgba(252,209,22,0.3); flex-shrink:0; transition:all 0.15s; }
-        .predict-option.selected .predict-dot { background:var(--primary); border-color:var(--primary); box-shadow:0 0 0 3px rgba(252,209,22,0.15); }
-
-        .over-budget { display:none; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3); border-radius:10px; padding:0.7rem 1rem; font-size:0.88rem; font-weight:700; color:var(--red); text-align:center; margin:1rem 0; }
-        .over-budget.show { display:block; }
-
-        /* Buttons */
-        .btn { padding:0.85rem 2rem; border:none; border-radius:50px; font-weight:700; cursor:pointer; font-size:0.95rem; transition:all 0.2s; }
-        .btn-primary { background:var(--grad); color:#1a1a1a; box-shadow:0 4px 15px rgba(252,209,22,0.3); }
-        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(252,209,22,0.5); }
-        .btn-primary:disabled { background:rgba(179,179,179,0.15); color:rgba(179,179,179,0.5); cursor:not-allowed; box-shadow:none; transform:none; }
-        .btn-ghost { background:transparent; color:var(--primary); border:2px solid rgba(252,209,22,0.4); }
-        .btn-ghost:hover { background:rgba(252,209,22,0.08); }
-        .phase-cta { text-align:center; margin:2rem 0 0.5rem; }
-        .phase-cta-note { text-align:center; color:var(--dim); font-size:0.8rem; margin-top:0.6rem; }
-
-        /* ---- PHASE 2: CONSEQUENCES ---- */
-        .breakdown-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.85rem; margin:1.25rem 0 1.75rem; }
-        .bk-card { background:var(--dark2); border-radius:12px; padding:1rem; text-align:center; border:1px solid rgba(252,209,22,0.08); }
-        .bk-val { font-size:1.25rem; font-weight:800; font-family:'Courier New',monospace; }
-        .bk-lbl { font-size:0.75rem; color:var(--dim); margin-top:0.2rem; }
-
-        .consequence-list { list-style:none; display:flex; flex-direction:column; gap:0.75rem; margin:0.5rem 0 1.5rem; }
-        .cq { padding:1rem 1.1rem; border-radius:12px; font-size:0.91rem; line-height:1.55; }
-        .cq-title { font-weight:700; margin-bottom:0.3rem; }
-        .cq.danger { background:rgba(239,68,68,0.07); border-left:4px solid var(--red); }
-        .cq.danger .cq-title { color:#ff8a80; }
-        .cq.warning { background:rgba(252,209,22,0.07); border-left:4px solid var(--yellow); }
-        .cq.warning .cq-title { color:var(--yellow); }
-        .cq.positive { background:rgba(252,209,22,0.07); border-left:4px solid var(--yellow); }
-        .cq.positive .cq-title { color:#FDE68A; }
-        .cq.insight { background:rgba(252,209,22,0.05); border-left:4px solid var(--primary); }
-        .cq.insight .cq-title { color:var(--primary); }
-
-        .emergency-box { background:rgba(239,68,68,0.05); border:2px solid rgba(239,68,68,0.22); border-radius:14px; padding:1.4rem; margin:1.5rem 0; }
-        .emg-title { font-size:1rem; font-weight:700; color:#ff8a80; margin-bottom:0.75rem; }
-        .emg-scenario { font-size:0.92rem; color:var(--light); margin-bottom:1rem; line-height:1.55; }
-        .emg-result { padding:0.8rem 1rem; border-radius:10px; font-weight:600; font-size:0.91rem; }
-        .emg-ok { background:rgba(252,209,22,0.12); color:#FDE68A; }
-        .emg-tight { background:rgba(252,209,22,0.12); color:var(--yellow); }
-        .emg-bad { background:rgba(239,68,68,0.12); color:#ff8a80; }
-
-        .save-prompt { background:rgba(252,209,22,0.05); border:1px solid rgba(252,209,22,0.2); border-radius:12px; padding:1.1rem 1.25rem; margin:0.75rem 0 1.5rem; font-size:0.9rem; color:#FDE68A; line-height:1.55; }
-        .save-prompt strong { display:block; margin-bottom:0.3rem; }
-
-        /* ---- PHASE 3: REFLECTION ---- */
-        .refl-list { list-style:none; display:flex; flex-direction:column; gap:1rem; margin:1rem 0 1.5rem; }
-        .refl-item { background:var(--dark2); border:1px solid rgba(252,209,22,0.1); border-radius:14px; padding:1.35rem; }
-        .refl-q { font-weight:700; color:var(--light); font-size:0.97rem; margin-bottom:0.4rem; line-height:1.4; }
-        .refl-hint { color:var(--dim); font-size:0.87rem; line-height:1.55; }
-        .refl-hint strong { color:var(--primary); font-weight:600; }
-
-        .retry-box { background:rgba(252,209,22,0.04); border-radius:12px; padding:1.25rem; text-align:center; margin:1.5rem 0; }
-        .retry-box p { color:var(--dim); font-size:0.88rem; margin-bottom:1rem; }
-
-        .next-week { background:var(--dark2); border:2px solid var(--primary); border-radius:14px; padding:1.75rem; margin-top:1.5rem; text-align:center; }
-        .next-week h3 { color:var(--primary); margin-bottom:0.6rem; font-size:1.1rem; }
-        .next-week p { color:var(--dim); font-size:0.9rem; margin-bottom:1.25rem; }
-
-        .section-title { font-size:1.2rem; font-weight:700; color:var(--light); margin-bottom:0.3rem; }
-        .section-sub { color:var(--dim); font-size:0.88rem; margin-bottom:1.25rem; }
-
-        /* Realidad económica + Reflexión rápida */
-        .re-box { background:rgba(59,130,246,0.07); border:2px solid rgba(59,130,246,0.3); border-left:4px solid #3b82f6; border-radius:0.75rem; padding:1.5rem; margin:2rem 0; }
-        .re-label { color:#3b82f6; font-weight:700; font-size:1rem; margin-bottom:0.75rem; }
-        .re-text { color:var(--dim); font-size:0.93rem; line-height:1.75; margin-bottom:0.75rem; }
-        .re-question { background:rgba(59,130,246,0.08); border-radius:0.5rem; padding:0.9rem; margin-top:0.75rem; }
-        .re-q-label { color:var(--light); font-size:0.85rem; font-weight:600; margin-bottom:0.3rem; }
-        .re-q-text { color:var(--dim); font-size:0.9rem; font-style:italic; line-height:1.6; }
-        .reflexion-box { background:rgba(252,209,22,0.05); border:1px solid rgba(252,209,22,0.2); border-left:3px solid var(--primary); border-radius:0.75rem; padding:1.25rem; margin-bottom:1.5rem; }
-        .reflexion-title { color:var(--primary); font-weight:700; font-size:0.95rem; margin-bottom:0.5rem; }
-        .reflexion-q { background:rgba(252,209,22,0.07); border-radius:0.5rem; padding:0.85rem; margin-top:0.75rem; }
-
-        /* Intro collapsible */
-        .intro-details { margin-bottom:0.75rem; }
-        .intro-details summary { cursor:pointer; color:var(--primary); font-size:0.85rem; font-weight:600; list-style:none; display:inline-flex; align-items:center; gap:0.4rem; user-select:none; padding:0.25rem 0; }
-        .intro-details summary::-webkit-details-marker { display:none; }
-        .toggle-arrow { display:inline-block; transition:transform 0.2s; }
-        .intro-details[open] .toggle-arrow { transform:rotate(90deg); }
-
-        /* Cards grid (needs + wants sections) */
-        .cards-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:0.55rem; }
-        .cards-grid .item-card { margin-bottom:0; }
-        .cards-grid .item-cost { font-size:0.92rem; }
-        .cards-grid .item-icon { font-size:1.2rem; width:26px; }
-
-        @media (max-width:600px) {
-            .breakdown-grid { grid-template-columns:1fr 1fr; }
-            .steps { font-size:0.75rem; gap:0.3rem; }
-            .item-icon { font-size:1.2rem; width:26px; }
-            .cards-grid { grid-template-columns:1fr; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--dark);
+            color: var(--light);
+            line-height: 1.6;
+            padding: 1rem;
         }
-        body::before { content:""; display:block; height:3px; background:linear-gradient(90deg, #FCD116, #003893 50%, #CE1126); }
+        body::before {
+            content: "";
+            display: block;
+            height: 3px;
+            background: linear-gradient(90deg, #FCD116, #003893 50%, #CE1126);
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        .back-link:hover {
+            opacity: 0.82;
+        }
+        .page-header {
+            margin-bottom: 1.5rem;
+        }
+        .page-header h1 {
+            font-size: clamp(1.7rem, 4vw, 2.3rem);
+            color: var(--primary);
+            margin-bottom: 0.35rem;
+        }
+        .page-header p {
+            color: var(--dim);
+            font-size: 0.98rem;
+        }
+        .step-overview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            margin: 0 0 2rem;
+        }
+        .overview-step {
+            padding: 0.45rem 0.9rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.04);
+            color: var(--dim);
+            font-size: 0.83rem;
+            font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s ease;
+        }
+        .overview-step.current {
+            background: rgba(252,209,22,0.12);
+            border-color: rgba(252,209,22,0.28);
+            color: var(--primary);
+        }
+        .overview-step.done {
+            background: rgba(252,209,22,0.08);
+            border-color: rgba(252,209,22,0.18);
+            color: #FDE68A;
+        }
+        .simulation-shell {
+            margin: 1.5rem 0 1rem;
+        }
+        .budget-shell {
+            position: sticky;
+            top: 0;
+            z-index: 35;
+            margin: 0 0 1.5rem;
+            padding: 1rem;
+            border-radius: 1rem;
+            background: rgba(26,26,26,0.96);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(252,209,22,0.16);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+        }
+        .budget-headline {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 1rem;
+            margin-bottom: 0.85rem;
+        }
+        .budget-title {
+            color: var(--light);
+            font-size: 1.03rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+        .budget-copy {
+            color: var(--dim);
+            font-size: 0.86rem;
+            line-height: 1.55;
+            max-width: 38rem;
+        }
+        .budget-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.75rem;
+        }
+        .budget-card {
+            background: var(--dark2);
+            border: 1px solid rgba(252,209,22,0.12);
+            border-radius: 0.9rem;
+            padding: 0.95rem 1rem;
+        }
+        .metric-label {
+            color: var(--dim);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.28rem;
+        }
+        .metric-value {
+            font-size: 1.28rem;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            color: var(--light);
+            transition: color 0.2s ease;
+        }
+        .meter-wrap {
+            margin-top: 0.85rem;
+        }
+        .meter-track {
+            height: 10px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .meter-fill {
+            height: 100%;
+            width: 100%;
+            border-radius: 999px;
+            background: var(--green);
+            transition: width 0.2s ease, background 0.2s ease;
+        }
+        .meter-scale {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-top: 0.45rem;
+            color: var(--dim);
+            font-size: 0.72rem;
+        }
+        .meter-note {
+            margin-top: 0.7rem;
+            color: var(--dim);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .flow-stack {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .flow-section {
+            background: var(--dark2);
+            border: 2px solid rgba(252,209,22,0.12);
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+        .flow-section.is-open {
+            border-color: rgba(252,209,22,0.28);
+        }
+        .flow-toggle {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: inherit;
+            padding: 1rem 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            text-align: left;
+            cursor: pointer;
+        }
+        .flow-toggle:hover {
+            background: rgba(255,255,255,0.02);
+        }
+        .flow-toggle:focus-visible {
+            outline: 2px solid rgba(252,209,22,0.55);
+            outline-offset: -2px;
+        }
+        .flow-toggle-main {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            min-width: 0;
+            flex: 1;
+        }
+        .flow-state {
+            width: 1.2rem;
+            flex-shrink: 0;
+            color: var(--primary);
+            font-weight: 800;
+            padding-top: 0.05rem;
+        }
+        .flow-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 0.12rem;
+            min-width: 0;
+        }
+        .flow-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--light);
+        }
+        .flow-helper {
+            font-size: 0.82rem;
+            color: var(--dim);
+        }
+        .flow-chevron {
+            color: var(--primary);
+            font-size: 0.85rem;
+            transition: transform 0.26s ease;
+            flex-shrink: 0;
+        }
+        .flow-section.is-open .flow-chevron {
+            transform: rotate(90deg);
+        }
+        .flow-panel {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            padding: 0 1.1rem;
+            transition: max-height 0.26s ease, opacity 0.26s ease, padding 0.26s ease;
+        }
+        .flow-section.is-open .flow-panel {
+            opacity: 1;
+            padding: 0 1.1rem 1.1rem;
+        }
+        .flow-panel-inner {
+            padding-top: 0.35rem;
+        }
+        .intro-note {
+            color: var(--dim);
+            font-size: 0.92rem;
+            margin-bottom: 1.35rem;
+            line-height: 1.65;
+        }
+        .section-title {
+            font-size: 1.18rem;
+            font-weight: 700;
+            color: var(--light);
+            margin-bottom: 0.3rem;
+        }
+        .section-sub {
+            color: var(--dim);
+            font-size: 0.88rem;
+            line-height: 1.55;
+            margin-bottom: 1.15rem;
+        }
+        .section-label {
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--dim);
+            padding: 0.4rem 0 0.3rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            margin: 1.25rem 0 0.75rem;
+        }
+        .section-label.needs-lbl,
+        .section-label.wants-lbl,
+        .section-label.savings-lbl {
+            color: rgba(252,209,22,0.9);
+            border-bottom-color: rgba(252,209,22,0.16);
+        }
+        .section-label.pressure-lbl {
+            color: rgba(206,17,38,0.95);
+            border-bottom-color: rgba(206,17,38,0.2);
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.55rem;
+        }
+        .cards-grid--single {
+            grid-template-columns: 1fr;
+        }
+        .item-card {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.9rem 1rem;
+            background: rgba(255,255,255,0.02);
+            border: 2px solid rgba(252,209,22,0.1);
+            border-radius: 0.9rem;
+            cursor: pointer;
+            user-select: none;
+            transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+        }
+        .item-card:hover {
+            border-color: rgba(252,209,22,0.28);
+            transform: translateY(-1px);
+        }
+        .item-card.selected {
+            border-color: var(--primary);
+            background: rgba(252,209,22,0.05);
+        }
+        .item-card.debt {
+            border-color: rgba(206,17,38,0.22);
+        }
+        .item-card.debt.selected {
+            border-color: rgba(206,17,38,0.85);
+            background: rgba(206,17,38,0.08);
+        }
+        .item-card.savings {
+            border-color: rgba(252,209,22,0.22);
+        }
+        .item-card.savings.selected {
+            border-color: #FDE68A;
+            background: rgba(252,209,22,0.08);
+        }
+        .item-card.cant-afford {
+            opacity: 0.38;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .item-card.flash-no {
+            animation: flashNo 0.35s ease;
+        }
+        @keyframes flashNo {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .item-icon {
+            width: 30px;
+            text-align: center;
+            flex-shrink: 0;
+            font-size: 1.22rem;
+        }
+        .item-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .item-name {
+            color: var(--light);
+            font-size: 0.94rem;
+            font-weight: 700;
+        }
+        .item-desc {
+            color: var(--dim);
+            font-size: 0.81rem;
+            margin-top: 0.12rem;
+            line-height: 1.45;
+        }
+        .item-badge {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 0.14rem 0.45rem;
+            border-radius: 999px;
+            margin-top: 0.28rem;
+        }
+        .badge-need,
+        .badge-want,
+        .badge-save {
+            background: rgba(252,209,22,0.18);
+            color: #FDE68A;
+        }
+        .badge-debt {
+            background: rgba(206,17,38,0.16);
+            color: #ffb4bd;
+        }
+        .item-cost {
+            font-size: 1rem;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            color: var(--primary);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .item-card.debt .item-cost {
+            color: #ffb4bd;
+        }
+        .item-card.savings .item-cost {
+            color: #FDE68A;
+        }
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(252,209,22,0.3);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+        .item-card.selected .checkbox {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        .item-card.debt.selected .checkbox {
+            background: var(--pressure);
+            border-color: var(--pressure);
+        }
+        .item-card.savings.selected .checkbox {
+            background: #FDE68A;
+            border-color: #FDE68A;
+        }
+        .checkmark {
+            display: none;
+            color: white;
+            font-size: 0.72rem;
+            font-weight: 900;
+        }
+        .item-card.savings.selected .checkmark {
+            color: var(--dark);
+        }
+        .item-card.selected .checkmark {
+            display: block;
+        }
+        .savings-note {
+            background: rgba(252,209,22,0.06);
+            border: 1px solid rgba(252,209,22,0.2);
+            border-radius: 0.75rem;
+            padding: 0.8rem 1rem;
+            color: #FDE68A;
+            font-size: 0.85rem;
+            line-height: 1.55;
+            margin-bottom: 0.7rem;
+        }
+        .over-budget {
+            display: none;
+            background: rgba(206,17,38,0.1);
+            border: 1px solid rgba(206,17,38,0.32);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #ffb4bd;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        .over-budget.show {
+            display: block;
+        }
+        .btn {
+            padding: 0.85rem 2rem;
+            border: none;
+            border-radius: 999px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+        .btn-primary {
+            background: var(--grad);
+            color: #1a1a1a;
+            box-shadow: 0 4px 15px rgba(252,209,22,0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(252,209,22,0.42);
+        }
+        .btn-primary:disabled {
+            background: rgba(179,179,179,0.15);
+            color: rgba(179,179,179,0.5);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid rgba(252,209,22,0.35);
+        }
+        .btn-ghost:hover {
+            background: rgba(252,209,22,0.08);
+        }
+        .phase-cta {
+            text-align: center;
+            margin: 1.75rem 0 0.25rem;
+        }
+        .phase-cta-note {
+            text-align: center;
+            color: var(--dim);
+            font-size: 0.82rem;
+            margin-top: 0.7rem;
+            line-height: 1.55;
+        }
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.75rem;
+            margin: 1.25rem 0 1.5rem;
+        }
+        .bk-card {
+            background: rgba(255,255,255,0.02);
+            border-radius: 0.85rem;
+            padding: 0.95rem;
+            text-align: center;
+            border: 1px solid rgba(252,209,22,0.08);
+        }
+        .bk-val {
+            font-size: 1.12rem;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            color: var(--light);
+        }
+        .bk-val.need { color: #FDE68A; }
+        .bk-val.want { color: var(--yellow); }
+        .bk-val.debt { color: #ffb4bd; }
+        .bk-val.save { color: #d8ffe9; }
+        .bk-lbl {
+            margin-top: 0.2rem;
+            color: var(--dim);
+            font-size: 0.74rem;
+        }
+        .event-card {
+            background: rgba(206,17,38,0.06);
+            border: 1px solid rgba(206,17,38,0.26);
+            border-radius: 1rem;
+            padding: 1.2rem;
+            margin: 1.35rem 0 1.5rem;
+        }
+        .event-kicker {
+            display: inline-block;
+            margin-bottom: 0.5rem;
+            color: #ffb4bd;
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .event-title {
+            color: var(--light);
+            font-size: 1.08rem;
+            margin-bottom: 0.45rem;
+        }
+        .event-text {
+            color: var(--dim);
+            font-size: 0.92rem;
+            line-height: 1.62;
+        }
+        .event-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.7rem;
+            margin: 1rem 0;
+        }
+        .event-stat {
+            background: rgba(0,0,0,0.18);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 0.8rem;
+            padding: 0.9rem;
+        }
+        .event-val {
+            font-size: 1rem;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            color: var(--light);
+        }
+        .event-val.cost {
+            color: #ffb4bd;
+        }
+        .event-lbl {
+            margin-top: 0.22rem;
+            color: var(--dim);
+            font-size: 0.74rem;
+        }
+        .event-result {
+            padding: 0.95rem 1rem;
+            border-radius: 0.8rem;
+            font-size: 0.9rem;
+            line-height: 1.55;
+            font-weight: 600;
+        }
+        .event-result.good {
+            background: rgba(46,204,113,0.12);
+            color: #d8ffe9;
+        }
+        .event-result.tight {
+            background: rgba(252,209,22,0.12);
+            color: #FDE68A;
+        }
+        .event-result.bad {
+            background: rgba(206,17,38,0.12);
+            color: #ffb4bd;
+        }
+        .consequence-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin: 0.5rem 0 0;
+        }
+        .cq {
+            padding: 1rem 1.05rem;
+            border-radius: 0.85rem;
+            font-size: 0.91rem;
+            line-height: 1.55;
+        }
+        .cq-title {
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+        .cq.danger {
+            background: rgba(206,17,38,0.08);
+            border-left: 4px solid var(--pressure);
+        }
+        .cq.danger .cq-title {
+            color: #ffb4bd;
+        }
+        .cq.warning {
+            background: rgba(252,209,22,0.08);
+            border-left: 4px solid var(--yellow);
+        }
+        .cq.warning .cq-title {
+            color: var(--yellow);
+        }
+        .cq.positive {
+            background: rgba(46,204,113,0.1);
+            border-left: 4px solid var(--green);
+        }
+        .cq.positive .cq-title {
+            color: #d8ffe9;
+        }
+        .cq.insight {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid var(--primary);
+        }
+        .cq.insight .cq-title {
+            color: var(--primary);
+        }
+        .refl-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            margin: 1rem 0 1.5rem;
+        }
+        .refl-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(252,209,22,0.1);
+            border-radius: 0.95rem;
+            padding: 1.2rem;
+        }
+        .refl-q {
+            font-size: 0.97rem;
+            font-weight: 700;
+            color: var(--light);
+            margin-bottom: 0.35rem;
+            line-height: 1.45;
+        }
+        .refl-hint {
+            font-size: 0.87rem;
+            color: var(--dim);
+            line-height: 1.55;
+        }
+        .retry-box {
+            background: rgba(252,209,22,0.04);
+            border-radius: 0.85rem;
+            padding: 1.25rem;
+            text-align: center;
+            margin: 1.5rem 0;
+        }
+        .retry-box p {
+            color: var(--dim);
+            font-size: 0.88rem;
+            margin-bottom: 1rem;
+        }
+        .next-week {
+            background: var(--dark2);
+            border: 2px solid var(--primary);
+            border-radius: 1rem;
+            padding: 1.6rem;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        .next-week h3 {
+            color: var(--primary);
+            margin-bottom: 0.55rem;
+            font-size: 1.08rem;
+        }
+        .next-week p {
+            color: var(--dim);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.55;
+        }
+        @media (max-width: 760px) {
+            .budget-grid,
+            .breakdown-grid,
+            .event-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .budget-grid .budget-card:first-child {
+                grid-column: 1 / -1;
+            }
+        }
+        @media (max-width: 620px) {
+            .cards-grid,
+            .cards-grid--single,
+            .budget-grid,
+            .breakdown-grid,
+            .event-grid {
+                grid-template-columns: 1fr;
+            }
+            .budget-shell {
+                padding: 0.9rem;
+            }
+            .flow-toggle,
+            .flow-panel,
+            .flow-section.is-open .flow-panel {
+                padding-left: 0.95rem;
+                padding-right: 0.95rem;
+            }
+            .flow-toggle {
+                padding-top: 0.95rem;
+                padding-bottom: 0.95rem;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .meter-fill,
+            .flow-panel,
+            .flow-chevron,
+            .item-card,
+            .btn,
+            .metric-value {
+                transition: none;
+            }
+            html {
+                scroll-behavior: auto;
+            }
+        }
     </style>
 </head>
 <body>
@@ -193,12 +768,10 @@
             <p class="program-lesson-text program-lesson-spacer-top">La primera semana abre la ruta con una simulación sencilla para ver cómo una quincena se reparte entre lo urgente, lo que provoca gastar y lo que podría darte un poco más de aire después.</p>
         </div>
 
-        <div class="steps">
-            <div class="step active" id="step-1">1 · Distribuir</div>
-            <div class="step-sep">›</div>
-            <div class="step" id="step-2">2 · Consecuencias</div>
-            <div class="step-sep">›</div>
-            <div class="step" id="step-3">3 · Reflexionar</div>
+        <div class="step-overview" aria-label="Etapas del ejercicio">
+            <div class="overview-step current" id="overview-distribute">• Distribuir</div>
+            <div class="overview-step" id="overview-consequences">2 · Consecuencias</div>
+            <div class="overview-step" id="overview-reflect">3 · Reflexionar</div>
         </div>
 
         <div class="program-lesson-section">
@@ -210,7 +783,7 @@
 
         <div class="program-lesson-section program-lesson-section--callout">
             <div class="program-lesson-callout-title">Idea clave de la semana</div>
-            <div class="program-lesson-callout-text">Antes de cambiar tus números, conviene mirar con claridad qué decisiones te dejan más ajustado y cuáles te dan un poco más de margen.</div>
+            <div class="program-lesson-callout-text">El primer paso no es cambiar tus gastos. Es ver con claridad a dónde se está yendo tu dinero.</div>
         </div>
 
         <div class="program-lesson-section program-lesson-section--soft">
@@ -220,330 +793,360 @@
             <p class="program-lesson-text">Verlas juntas ayuda a distinguir qué sostiene tu quincena, qué puede esperar un poco y qué conviene separar para no quedar en cero ante cualquier sorpresa.</p>
         </div>
 
-        <details class="intro-details program-lesson-section program-lesson-section--soft">
-            <summary><span class="toggle-arrow">▸</span>&ensp;Hagamos un ejercicio</summary>
-            <p class="program-lesson-text">Para este ejercicio usaremos un ejemplo hipotético.</p>
-            <p class="program-lesson-text">Imagina que una persona recibió <strong style="color:var(--primary);">$1.000.000</strong> como pago de su quincena. Ese dinero tiene que alcanzar para los próximos 15 días.</p>
-            <p class="program-lesson-text">No hay respuestas perfectas. La idea es observar cómo decides entre necesidades, gusticos y algo de protección para más adelante.</p>
-        </details>
+        <div class="program-lesson-section program-lesson-section--soft simulation-shell">
+            <div class="program-lesson-kicker">Simulación de una quincena</div>
+            <h2 class="program-lesson-title program-lesson-title--small">Así se aprieta una quincena cuando muchos gastos llegan juntos</h2>
+            <p class="program-lesson-text">Para este ejercicio usaremos un ejemplo hipotético. Imagina que una persona recibió <strong>$1.000.000</strong> como pago de su quincena y tiene que decidir qué cubrir primero en los próximos 15 días.</p>
+        </div>
 
-        <!-- ======== PHASE 1: ALLOCATION ======== -->
-        <div class="phase active" id="phase-1">
+        <div class="budget-shell" aria-live="polite">
+            <div class="budget-headline">
+                <div>
+                    <div class="budget-title">Disponible inicial, te queda y comprometido</div>
+                    <div class="budget-copy">La idea no es acertar. Es ver cómo la quincena se va cerrando cuando sumas necesidades, gastos que se antojan, deuda y un posible imprevisto.</div>
+                </div>
+            </div>
+            <div class="budget-grid">
+                <div class="budget-card">
+                    <div class="metric-label">Disponible inicial</div>
+                    <div class="metric-value" id="initial-value">$1.000.000</div>
+                </div>
+                <div class="budget-card">
+                    <div class="metric-label">Te queda</div>
+                    <div class="metric-value" id="remaining-value">$1.000.000</div>
+                </div>
+                <div class="budget-card">
+                    <div class="metric-label">Comprometido</div>
+                    <div class="metric-value" id="spent-value">$0</div>
+                </div>
+            </div>
+            <div class="meter-wrap">
+                <div class="meter-track"><div class="meter-fill" id="remaining-fill"></div></div>
+                <div class="meter-scale">
+                    <span>Más aire</span>
+                    <span>Presión media</span>
+                    <span>Casi en cero</span>
+                </div>
+                <div class="meter-note" id="remaining-note">Todavía hay bastante aire, pero la quincena ya empezó a moverse.</div>
+            </div>
+        </div>
 
-            <div class="budget-sticky">
-                <div class="budget-row">
-                    <div>
-                        <div class="b-label">Disponible</div>
-                        <div class="b-num remaining" id="b-remaining">$1.000.000</div>
+        <div class="flow-stack">
+            <section class="flow-section is-open" id="section-distribute">
+                <button type="button" class="flow-toggle" id="toggle-distribute" aria-expanded="true" aria-controls="panel-distribute" onclick="handleSectionToggle('distribute')">
+                    <span class="flow-toggle-main">
+                        <span class="flow-state" id="flow-state-distribute">•</span>
+                        <span class="flow-copy">
+                            <span class="flow-title">Distribuir</span>
+                            <span class="flow-helper" id="flow-helper-distribute">Ver tus decisiones</span>
+                        </span>
+                    </span>
+                    <span class="flow-chevron">▸</span>
+                </button>
+                <div class="flow-panel" id="panel-distribute" role="region" aria-labelledby="toggle-distribute" aria-hidden="false">
+                    <div class="flow-panel-inner">
+                        <p class="intro-note">Selecciona lo que pagarías en esta quincena. No te alcanza para todo, así que tendrás que priorizar.</p>
+
+                        <div class="section-label needs-lbl">Necesidades</div>
+                        <div class="cards-grid">
+                            <div class="item-card" id="card-mercado" onclick="toggle('mercado')">
+                                <div class="item-icon">🛒</div>
+                                <div class="item-body">
+                                    <div class="item-name">Aporte a mercado de la casa</div>
+                                    <div class="item-desc">Comida y básicos compartidos para estos 15 días.</div>
+                                    <span class="item-badge badge-need">NECESIDAD</span>
+                                </div>
+                                <div class="item-cost">$280.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                            <div class="item-card" id="card-transporte" onclick="toggle('transporte')">
+                                <div class="item-icon">🚌</div>
+                                <div class="item-body">
+                                    <div class="item-name">Transporte de 10 días de trabajo</div>
+                                    <div class="item-desc">Pasajes para ir y volver durante 10 días laborales.</div>
+                                    <span class="item-badge badge-need">NECESIDAD</span>
+                                </div>
+                                <div class="item-cost">$80.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                            <div class="item-card" id="card-celular" onclick="toggle('celular')">
+                                <div class="item-icon">📱</div>
+                                <div class="item-body">
+                                    <div class="item-name">Recarga o plan básico del celular</div>
+                                    <div class="item-desc">Recarga o plan para llamadas, datos y mensajes.</div>
+                                    <span class="item-badge badge-need">NECESIDAD</span>
+                                </div>
+                                <div class="item-cost">$25.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                            <div class="item-card" id="card-servicios" onclick="toggle('servicios')">
+                                <div class="item-icon">💡</div>
+                                <div class="item-body">
+                                    <div class="item-name">Aporte a servicios del hogar</div>
+                                    <div class="item-desc">Parte que te toca poner para luz, agua, gas o internet.</div>
+                                    <span class="item-badge badge-need">NECESIDAD</span>
+                                </div>
+                                <div class="item-cost">$120.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                            <div class="item-card" id="card-almuerzos" onclick="toggle('almuerzos')">
+                                <div class="item-icon">🍛</div>
+                                <div class="item-body">
+                                    <div class="item-name">Almuerzos fuera de casa por 5 días</div>
+                                    <div class="item-desc">Cinco días en los que toca resolver comida por fuera.</div>
+                                    <span class="item-badge badge-need">NECESIDAD</span>
+                                </div>
+                                <div class="item-cost">$85.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                            <div class="item-card" id="card-aseo" onclick="toggle('aseo')">
+                                <div class="item-icon">🧴</div>
+                                <div class="item-body">
+                                    <div class="item-name">Aseo personal básico</div>
+                                    <div class="item-desc">Jabón, desodorante, papel y otros básicos.</div>
+                                    <span class="item-badge badge-need">NECESIDAD</span>
+                                </div>
+                                <div class="item-cost">$35.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                            <div class="item-card" id="card-salud" onclick="toggle('salud')">
+                                <div class="item-icon">💊</div>
+                                <div class="item-body">
+                                    <div class="item-name">Medicina o gasto de salud inesperado</div>
+                                    <div class="item-desc">Algo que apareció y no conviene dejar para después.</div>
+                                    <span class="item-badge badge-need">NECESIDAD</span>
+                                </div>
+                                <div class="item-cost">$45.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                        </div>
+
+                        <div class="section-label wants-lbl">Deseos y gusticos</div>
+                        <div class="cards-grid">
+                            <div class="item-card" id="card-impulsos" onclick="toggle('impulsos')">
+                                <div class="item-icon">☕</div>
+                                <div class="item-body">
+                                    <div class="item-name">Café, snacks y pequeños gastos por impulso</div>
+                                    <div class="item-desc">Compras pequeñas que parecen livianas cuando se hacen.</div>
+                                    <span class="item-badge badge-want">DESEO</span>
+                                </div>
+                                <div class="item-cost">$40.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                            <div class="item-card" id="card-entretenimiento" onclick="toggle('entretenimiento')">
+                                <div class="item-icon">🎬</div>
+                                <div class="item-body">
+                                    <div class="item-name">Plataforma de streaming o app de entretenimiento</div>
+                                    <div class="item-desc">Suscripción o app que sigues pagando cada mes.</div>
+                                    <span class="item-badge badge-want">DESEO</span>
+                                </div>
+                                <div class="item-cost">$22.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                            <div class="item-card" id="card-domicilio" onclick="toggle('domicilio')">
+                                <div class="item-icon">🛵</div>
+                                <div class="item-body">
+                                    <div class="item-name">Pedido a domicilio un fin de semana</div>
+                                    <div class="item-desc">Un gusto práctico cuando no quieres cocinar.</div>
+                                    <span class="item-badge badge-want">DESEO</span>
+                                </div>
+                                <div class="item-cost">$35.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                            <div class="item-card" id="card-salida" onclick="toggle('salida')">
+                                <div class="item-icon">🍔</div>
+                                <div class="item-body">
+                                    <div class="item-name">Salida sencilla o antojos del fin de semana</div>
+                                    <div class="item-desc">Plan corto, antojos o una salida sin mucho lujo.</div>
+                                    <span class="item-badge badge-want">DESEO</span>
+                                </div>
+                                <div class="item-cost">$60.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                            <div class="item-card" id="card-regalo" onclick="toggle('regalo')">
+                                <div class="item-icon">🎁</div>
+                                <div class="item-body">
+                                    <div class="item-name">Regalo o gasto social no planeado</div>
+                                    <div class="item-desc">Cumpleaños, aporte o compromiso que salió de repente.</div>
+                                    <span class="item-badge badge-want">DESEO</span>
+                                </div>
+                                <div class="item-cost">$50.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                            <div class="item-card" id="card-ropa" onclick="toggle('ropa')">
+                                <div class="item-icon">👕</div>
+                                <div class="item-body">
+                                    <div class="item-name">Ropa o accesorio no urgente</div>
+                                    <div class="item-desc">Algo que te gustó, pero no hace falta ya.</div>
+                                    <span class="item-badge badge-want">DESEO</span>
+                                </div>
+                                <div class="item-cost">$90.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                        </div>
+
+                        <div class="section-label pressure-lbl">Deudas y presión financiera</div>
+                        <div class="cards-grid cards-grid--single">
+                            <div class="item-card debt" id="card-gota" onclick="toggle('gota')">
+                                <div class="item-icon">🧾</div>
+                                <div class="item-body">
+                                    <div class="item-name">Cuota de préstamo informal (gota a gota)</div>
+                                    <div class="item-desc">Préstamo tomado hace unas semanas que exige pagos frecuentes.</div>
+                                    <span class="item-badge badge-debt">DEUDA</span>
+                                </div>
+                                <div class="item-cost">$120.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                        </div>
+
+                        <div class="section-label savings-lbl">Ahorro / colchón</div>
+                        <div class="savings-note">Aunque sea poco, separar algo hoy puede darte aire más adelante.</div>
+                        <div class="cards-grid">
+                            <div class="item-card savings" id="card-ahorro50" onclick="toggle('ahorro50')">
+                                <div class="item-icon">🏦</div>
+                                <div class="item-body">
+                                    <div class="item-name">Guardar un poco para imprevistos</div>
+                                    <div class="item-desc">Separar algo hoy para no quedar sin nada después.</div>
+                                    <span class="item-badge badge-save">AHORRO</span>
+                                </div>
+                                <div class="item-cost">$50.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                            <div class="item-card savings" id="card-ahorro100" onclick="toggle('ahorro100')">
+                                <div class="item-icon">🛟</div>
+                                <div class="item-body">
+                                    <div class="item-name">Guardar un poco más para no quedar en cero</div>
+                                    <div class="item-desc">Dejar un colchón más claro para el resto de la quincena.</div>
+                                    <span class="item-badge badge-save">AHORRO</span>
+                                </div>
+                                <div class="item-cost">$100.000</div>
+                                <div class="checkbox"><span class="checkmark">✓</span></div>
+                            </div>
+                        </div>
+
+                        <div class="over-budget" id="over-budget">⚠️ Te pasaste de $1.000.000. Desmarca algo para continuar.</div>
+
+                        <div class="phase-cta">
+                            <button class="btn btn-primary" id="btn-to-consequences" onclick="goToConsequences()">Ver consecuencias →</button>
+                            <p class="phase-cta-note">Puedes elegir cualquier combinación, incluso no pagar nada. Lo importante no es acertar, sino observar qué ocurre con cada decisión.</p>
+                        </div>
                     </div>
-                    <div style="text-align:right">
-                        <div class="b-label">Comprometido</div>
-                        <div class="b-num spent" id="b-spent">$0</div>
+                </div>
+            </section>
+
+            <section class="flow-section" id="section-consequences">
+                <button type="button" class="flow-toggle" id="toggle-consequences" aria-expanded="false" aria-controls="panel-consequences" onclick="handleSectionToggle('consequences')">
+                    <span class="flow-toggle-main">
+                        <span class="flow-state" id="flow-state-consequences">2</span>
+                        <span class="flow-copy">
+                            <span class="flow-title">Consecuencias</span>
+                            <span class="flow-helper" id="flow-helper-consequences">Ver qué pasó con la quincena</span>
+                        </span>
+                    </span>
+                    <span class="flow-chevron">▸</span>
+                </button>
+                <div class="flow-panel" id="panel-consequences" role="region" aria-labelledby="toggle-consequences" aria-hidden="true">
+                    <div class="flow-panel-inner">
+                        <div class="section-title">Lo que muestra el ejercicio</div>
+                        <div class="section-sub">Aquí lo importante es notar qué sostuvo la quincena, qué le quitó margen y qué cambió cuando apareció un gasto inesperado.</div>
+
+                        <div class="breakdown-grid">
+                            <div class="bk-card"><div class="bk-val need" id="bk-needs">$0</div><div class="bk-lbl">Necesidades</div></div>
+                            <div class="bk-card"><div class="bk-val want" id="bk-wants">$0</div><div class="bk-lbl">Deseos</div></div>
+                            <div class="bk-card"><div class="bk-val debt" id="bk-debt">$0</div><div class="bk-lbl">Deudas</div></div>
+                            <div class="bk-card"><div class="bk-val save" id="bk-saved">$0</div><div class="bk-lbl">Ahorro</div></div>
+                        </div>
+
+                        <div class="event-card" id="event-card">
+                            <div class="event-kicker">Imprevisto de la quincena</div>
+                            <h3 class="event-title">Reparación urgente del celular</h3>
+                            <p class="event-text">Cuando parece que el plan ya estaba hecho, aparece un gasto que no estaba previsto. Arreglar el celular cuesta <strong>$180.000</strong> y no conviene dejarlo pasar si dependes de él para comunicarte o hacer trámites.</p>
+                            <div class="event-grid">
+                                <div class="event-stat">
+                                    <div class="event-val" id="event-before">$0</div>
+                                    <div class="event-lbl">Te quedaba antes</div>
+                                </div>
+                                <div class="event-stat">
+                                    <div class="event-val cost" id="event-cost">-$180.000</div>
+                                    <div class="event-lbl">Imprevisto</div>
+                                </div>
+                                <div class="event-stat">
+                                    <div class="event-val" id="event-after">$0</div>
+                                    <div class="event-lbl">Te quedaría después</div>
+                                </div>
+                            </div>
+                            <div class="event-result" id="event-result"></div>
+                        </div>
+
+                        <div class="section-title">Lo que esto significa</div>
+                        <ul class="consequence-list" id="consequence-list"></ul>
+
+                        <div class="phase-cta">
+                            <button class="btn btn-primary" onclick="goToReflection()">Pasar a reflexionar →</button>
+                        </div>
                     </div>
                 </div>
-                <div class="bar-track"><div class="bar-fill" id="bar-fill" style="width:0%"></div></div>
-            </div>
+            </section>
 
-            <p class="intro-note">Selecciona lo que pagarías en esta quincena. No te alcanza para todo, así que tendrás que priorizar.</p>
+            <section class="flow-section" id="section-reflect">
+                <button type="button" class="flow-toggle" id="toggle-reflect" aria-expanded="false" aria-controls="panel-reflect" onclick="handleSectionToggle('reflect')">
+                    <span class="flow-toggle-main">
+                        <span class="flow-state" id="flow-state-reflect">3</span>
+                        <span class="flow-copy">
+                            <span class="flow-title">Reflexionar</span>
+                            <span class="flow-helper" id="flow-helper-reflect">Mirar lo que te mostró el ejercicio</span>
+                        </span>
+                    </span>
+                    <span class="flow-chevron">▸</span>
+                </button>
+                <div class="flow-panel" id="panel-reflect" role="region" aria-labelledby="toggle-reflect" aria-hidden="true">
+                    <div class="flow-panel-inner">
+                        <div class="program-lesson-section program-lesson-section--soft">
+                            <div class="program-lesson-kicker">Un pequeño paso práctico</div>
+                            <h2 class="program-lesson-title program-lesson-title--small">Haz una lista corta antes de tu próxima quincena</h2>
+                            <p class="program-lesson-text">Antes de que llegue tu próximo pago, separa mentalmente tres grupos: lo que no se puede mover, lo que sí podrías ajustar y una cantidad pequeña que te gustaría dejar como colchón. Tener eso claro antes de gastar cambia mucho la sensación de apuro.</p>
+                        </div>
 
-            <div class="section-label needs-lbl">Necesidades</div>
+                        <div class="section-title">Antes de seguir</div>
+                        <div class="section-sub">No hay respuestas perfectas. El valor del ejercicio está en ver algo que a veces pasa desapercibido hasta que la quincena se aprieta.</div>
 
-            <div class="cards-grid">
+                        <ul class="refl-list" id="refl-list"></ul>
 
-            <div class="item-card" id="card-mercado" onclick="toggle('mercado')">
-                <div class="item-icon">🛒</div>
-                <div class="item-body">
-                    <div class="item-name">Aporte a mercado de la casa</div>
-                    <div class="item-desc">Comida y básicos compartidos para estos 15 días</div>
-                    <span class="item-badge badge-need">NECESIDAD</span>
+                        <div class="program-lesson-section program-lesson-section--soft">
+                            <div class="program-lesson-kicker">Realidad económica</div>
+                            <p class="program-lesson-text">En una quincena real, mercado, transporte, servicios, deuda, celular y salud pueden apretar al mismo tiempo. Por eso muchas veces la sensación no es que estés gastando “de más”, sino que casi todo ya llega compitiendo por el mismo dinero.</p>
+                            <p class="program-lesson-text">Mirar la quincena completa ayuda a decidir mejor qué se paga primero, qué puede esperar y cuánto conviene separar para no quedar sin aire cuando aparezca algo inesperado.</p>
+                        </div>
+
+                        <div class="retry-box">
+                            <p>¿Cómo cambia la historia si distribuyes distinto?</p>
+                            <button class="btn btn-ghost" onclick="resetSimulation()">Volver a distribuir</button>
+                        </div>
+
+                        <div class="next-week">
+                            <h3>Lo que sigue</h3>
+                            <p>En la Semana 2 vas a mirar tu pago con más claridad. Después de ver en qué se va la quincena, el siguiente paso es entender cuánto entra realmente y por qué.</p>
+                            <a href="../semana-2/" class="btn btn-primary" style="text-decoration:none; display:inline-block;">Continuar a Semana 2 →</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="item-cost">$280.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            <div class="item-card" id="card-transporte" onclick="toggle('transporte')">
-                <div class="item-icon">🚌</div>
-                <div class="item-body">
-                    <div class="item-name">Transporte de 10 días de trabajo</div>
-                    <div class="item-desc">Pasajes para ir y volver durante 10 días laborales</div>
-                    <span class="item-badge badge-need">NECESIDAD</span>
-                </div>
-                <div class="item-cost">$80.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            <div class="item-card" id="card-celular" onclick="toggle('celular')">
-                <div class="item-icon">📱</div>
-                <div class="item-body">
-                    <div class="item-name">Recarga o plan básico del celular</div>
-                    <div class="item-desc">Recarga o plan para llamadas, datos y mensajes</div>
-                    <span class="item-badge badge-need">NECESIDAD</span>
-                </div>
-                <div class="item-cost">$25.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            <div class="item-card" id="card-servicios" onclick="toggle('servicios')">
-                <div class="item-icon">💡</div>
-                <div class="item-body">
-                    <div class="item-name">Aporte a servicios del hogar</div>
-                    <div class="item-desc">Parte que te toca poner para luz, agua, gas o internet</div>
-                    <span class="item-badge badge-need">NECESIDAD</span>
-                </div>
-                <div class="item-cost">$120.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            <div class="item-card" id="card-almuerzos" onclick="toggle('almuerzos')">
-                <div class="item-icon">🍛</div>
-                <div class="item-body">
-                    <div class="item-name">Almuerzos fuera de casa por 5 días</div>
-                    <div class="item-desc">Cinco días en los que toca resolver comida por fuera</div>
-                    <span class="item-badge badge-need">NECESIDAD</span>
-                </div>
-                <div class="item-cost">$85.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            <div class="item-card" id="card-aseo" onclick="toggle('aseo')">
-                <div class="item-icon">🧴</div>
-                <div class="item-body">
-                    <div class="item-name">Aseo personal básico</div>
-                    <div class="item-desc">Jabón, desodorante, papel y otros básicos</div>
-                    <span class="item-badge badge-need">NECESIDAD</span>
-                </div>
-                <div class="item-cost">$35.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            <div class="item-card" id="card-salud" onclick="toggle('salud')">
-                <div class="item-icon">💊</div>
-                <div class="item-body">
-                    <div class="item-name">Medicina o gasto de salud inesperado</div>
-                    <div class="item-desc">Algo que apareció y no conviene dejar para después</div>
-                    <span class="item-badge badge-need">NECESIDAD</span>
-                </div>
-                <div class="item-cost">$45.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            </div><!-- /cards-grid needs -->
-
-            <div class="section-label wants-lbl" style="margin-top:1.5rem">Deseos y gusticos</div>
-
-            <div class="cards-grid">
-
-            <div class="item-card" id="card-domicilio" onclick="toggle('domicilio')">
-                <div class="item-icon">🛵</div>
-                <div class="item-body">
-                    <div class="item-name">Pedido a domicilio un fin de semana</div>
-                    <div class="item-desc">Un gusto práctico cuando no quieres cocinar</div>
-                    <span class="item-badge badge-want">DESEO</span>
-                </div>
-                <div class="item-cost">$35.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            <div class="item-card" id="card-salida" onclick="toggle('salida')">
-                <div class="item-icon">🍔</div>
-                <div class="item-body">
-                    <div class="item-name">Salida sencilla o antojos del fin de semana</div>
-                    <div class="item-desc">Plan corto, antojos o una salida sin mucho lujo</div>
-                    <span class="item-badge badge-want">DESEO</span>
-                </div>
-                <div class="item-cost">$60.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            <div class="item-card" id="card-entretenimiento" onclick="toggle('entretenimiento')">
-                <div class="item-icon">🎬</div>
-                <div class="item-body">
-                    <div class="item-name">Plataforma de streaming o app de entretenimiento</div>
-                    <div class="item-desc">Suscripción o app que sigues pagando cada mes</div>
-                    <span class="item-badge badge-want">DESEO</span>
-                </div>
-                <div class="item-cost">$22.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            <div class="item-card" id="card-ropa" onclick="toggle('ropa')">
-                <div class="item-icon">👕</div>
-                <div class="item-body">
-                    <div class="item-name">Ropa o accesorio no urgente</div>
-                    <div class="item-desc">Algo que te gustó, pero no hace falta ya</div>
-                    <span class="item-badge badge-want">DESEO</span>
-                </div>
-                <div class="item-cost">$90.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            <div class="item-card" id="card-impulsos" onclick="toggle('impulsos')">
-                <div class="item-icon">☕</div>
-                <div class="item-body">
-                    <div class="item-name">Café, snacks y pequeños gastos por impulso</div>
-                    <div class="item-desc">Cafés, paquetes y compras pequeñas del camino</div>
-                    <span class="item-badge badge-want">DESEO</span>
-                </div>
-                <div class="item-cost">$40.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            <div class="item-card" id="card-regalo" onclick="toggle('regalo')">
-                <div class="item-icon">🎁</div>
-                <div class="item-body">
-                    <div class="item-name">Regalo o gasto social no planeado</div>
-                    <div class="item-desc">Cumpleaños, aporte o compromiso que salió de repente</div>
-                    <span class="item-badge badge-want">DESEO</span>
-                </div>
-                <div class="item-cost">$50.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            </div><!-- /cards-grid wants -->
-
-            <div class="section-label savings-lbl" style="margin-top:1.5rem">💰 Ahorro / colchón</div>
-            <div class="savings-note">Aunque sea poco, separar algo hoy puede darte aire más adelante.</div>
-
-            <div class="item-card savings" id="card-ahorro50" onclick="toggle('ahorro50')">
-                <div class="item-icon">🏦</div>
-                <div class="item-body">
-                    <div class="item-name">Guardar un poco para imprevistos</div>
-                    <div class="item-desc">Separar algo hoy para respirar un poco después</div>
-                    <span class="item-badge badge-save">AHORRO</span>
-                </div>
-                <div class="item-cost">$50.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            <div class="item-card savings" id="card-ahorro100" onclick="toggle('ahorro100')">
-                <div class="item-icon">🛟</div>
-                <div class="item-body">
-                    <div class="item-name">Guardar un poco más para no quedar en cero</div>
-                    <div class="item-desc">Dejar un colchón más claro para el resto de la quincena</div>
-                    <span class="item-badge badge-save">AHORRO</span>
-                </div>
-                <div class="item-cost">$100.000</div>
-                <div class="checkbox"><span class="checkmark">✓</span></div>
-            </div>
-
-            <div class="over-budget" id="over-budget">⚠️ Te pasaste de $1.000.000. Desmarca algo para continuar.</div>
-
-            <div class="phase-cta">
-                <button class="btn btn-primary" id="btn-p1" onclick="goPredict()" disabled>Ver qué pasa con estas decisiones →</button>
-                <p class="phase-cta-note">Puedes seleccionar cualquier combinación — incluso nada. Todo muestra algo.</p>
-            </div>
+            </section>
         </div>
-
-        <!-- ======== PHASE PREDICT ======== -->
-        <div class="phase" id="phase-predict">
-            <div class="section-title">Tu predicción</div>
-            <div class="section-sub">Antes de ver el resultado del ejercicio, piensa por un momento.</div>
-
-            <p style="color:var(--light); font-size:0.97rem; margin:1rem 0 1.25rem; line-height:1.6;">¿Qué crees que descubrirás al mirar cómo distribuiste el dinero?</p>
-
-            <div class="predict-option" data-value="all-good" onclick="selectPrediction(this)">
-                <div class="predict-dot"></div>
-                <span>Logré cubrir todo sin problema</span>
-            </div>
-            <div class="predict-option" data-value="tight" onclick="selectPrediction(this)">
-                <div class="predict-dot"></div>
-                <span>El dinero quedó muy justo</span>
-            </div>
-            <div class="predict-option" data-value="surprise" onclick="selectPrediction(this)">
-                <div class="predict-dot"></div>
-                <span>Algunas categorías se llevaron mucho más de lo que esperaba</span>
-            </div>
-            <div class="predict-option" data-value="shortage" onclick="selectPrediction(this)">
-                <div class="predict-dot"></div>
-                <span>Probablemente faltaría dinero</span>
-            </div>
-
-            <div class="phase-cta" style="margin-top:1.5rem;">
-                <button class="btn btn-primary" id="btn-predict" onclick="goPhase2()" disabled>Ahora veamos qué ocurrió →</button>
-            </div>
-        </div>
-
-        <!-- ======== PHASE 2: CONSEQUENCES ======== -->
-        <div class="phase" id="phase-2">
-            <div class="section-title">Lo que muestra el ejercicio</div>
-            <div class="section-sub">Aquí no importa si quedó “bien” o “mal”. Lo valioso es notar qué decisiones dejaron margen y cuáles dejaron la quincena más frágil.</div>
-
-            <div class="breakdown-grid">
-                <div class="bk-card"><div class="bk-val" id="bk-needs" style="color:var(--yellow)">$0</div><div class="bk-lbl">Necesidades</div></div>
-                <div class="bk-card"><div class="bk-val" id="bk-wants" style="color:var(--yellow)">$0</div><div class="bk-lbl">Deseos</div></div>
-                <div class="bk-card"><div class="bk-val" id="bk-saved" style="color:#FDE68A">$0</div><div class="bk-lbl">Margen</div></div>
-            </div>
-
-            <div class="section-title">Lo que esto significa</div>
-            <ul class="consequence-list" id="consequence-list"></ul>
-
-            <div class="emergency-box">
-                <div class="emg-title">⚡ Un imprevisto antes de la siguiente quincena</div>
-                <div class="emg-scenario" id="emg-scenario"></div>
-                <div class="emg-result" id="emg-result"></div>
-            </div>
-
-            <div class="save-prompt" id="save-prompt" style="display:none">
-                <strong>¿Qué habría cambiado separando algo?</strong>
-                Con $50.000 apartados, este golpe no empieza desde cero. Con $100.000, la quincena ya tendría un colchón mucho más claro.
-            </div>
-
-            <div class="phase-cta">
-                <button class="btn btn-primary" onclick="goPhase3()">Reflexionar sobre esto →</button>
-            </div>
-        </div>
-
-        <!-- ======== PHASE 3: REFLECTION ======== -->
-        <div class="phase" id="phase-3">
-            <div class="program-lesson-section program-lesson-section--soft">
-                <div class="program-lesson-kicker">Un pequeño paso práctico</div>
-                <h2 class="program-lesson-title program-lesson-title--small">Haz una lista corta antes de tu próxima quincena</h2>
-                <p class="program-lesson-text">Antes de que llegue tu próximo pago, escribe tres grupos: lo que no se puede mover, lo que sí puedes ajustar y una cantidad pequeña que te gustaría separar para emergencias. Tener esa lista antes de gastar cambia mucho la sensación de apuro.</p>
-            </div>
-
-            <div class="section-title">Antes de seguir</div>
-            <div class="section-sub">No hay respuestas perfectas. El objetivo es que notes algo que antes no habías notado.</div>
-
-            <!-- Reflexión rápida -->
-            <div class="reflexion-box">
-                <div class="reflexion-title">Reflexión rápida</div>
-                <p style="color:var(--dim); font-size:0.9rem; line-height:1.7; margin-bottom:0;">Muchas personas sienten que su plata se va sin haber hecho una compra enorme. A veces no es un solo gasto: es la suma entre lo básico, un par de decisiones pequeñas y uno que otro imprevisto que aparece en mal momento.</p>
-                <div class="reflexion-q">
-                    <div style="color:var(--light); font-size:0.85rem; font-weight:600; margin-bottom:0.3rem;">Pregunta para pensar:</div>
-                    <div style="color:var(--dim); font-size:0.9rem; font-style:italic;">¿Qué tipo de gasto sientes que te desordena más una quincena: uno grande o varios pequeños?</div>
-                </div>
-            </div>
-
-            <ul class="refl-list" id="refl-list"></ul>
-
-            <!-- Realidad económica -->
-            <div class="re-box">
-                <div class="re-label">💡 Realidad económica</div>
-                <p class="re-text">En una quincena real, mercado, transporte, servicios, celular y salud pueden apretar al mismo tiempo. Por eso muchas veces la sensación no es que estés gastando “de más”, sino que casi todo ya llega comprometido.</p>
-                <p class="re-text">Mirar la quincena completa ayuda a decidir mejor qué se paga primero, qué puede esperar y cuánto conviene separar para no quedar sin aire.</p>
-                <div class="re-question">
-                    <div class="re-q-label">Pregunta para pensar:</div>
-                    <div class="re-q-text">Si una quincena ya llega apretada solo con lo básico, ¿qué gasto pequeño suele ser el primero en desordenarla todavía más?</div>
-                </div>
-            </div>
-
-            <div class="retry-box">
-                <p>¿Cómo quedaría si distribuyes diferente?</p>
-                <button class="btn btn-ghost" onclick="restart()">Volver a distribuir</button>
-            </div>
-
-            <div class="next-week">
-                <h3>Lo que sigue</h3>
-                <p>En la Semana 2 vas a mirar tu pago con más claridad. Después de ver en qué se va la quincena, el siguiente paso es entender cuánto entra realmente y por qué.</p>
-                <a href="../semana-2/" class="btn btn-primary" style="text-decoration:none; display:inline-block;">Continuar a Semana 2 →</a>
-            </div>
-        </div>
-
     </div>
 
     <script>
         const BUDGET = 1000000;
-
+        const SECTION_ORDER = ['distribute', 'consequences', 'reflect'];
+        const SECTION_TITLES = {
+            distribute: 'Distribuir',
+            consequences: 'Consecuencias',
+            reflect: 'Reflexionar'
+        };
+        const SECTION_HELPERS = {
+            distribute: 'Ver tus decisiones',
+            consequences: 'Ver qué pasó con la quincena',
+            reflect: 'Mirar lo que te mostró el ejercicio'
+        };
         const ITEMS = {
             mercado:         { cost: 280000, cat: 'need' },
             transporte:      { cost: 80000,  cat: 'need' },
@@ -552,67 +1155,124 @@
             almuerzos:       { cost: 85000,  cat: 'need' },
             aseo:            { cost: 35000,  cat: 'need' },
             salud:           { cost: 45000,  cat: 'need' },
+            impulsos:        { cost: 40000,  cat: 'want' },
+            entretenimiento: { cost: 22000,  cat: 'want' },
             domicilio:       { cost: 35000,  cat: 'want' },
             salida:          { cost: 60000,  cat: 'want' },
-            entretenimiento: { cost: 22000,  cat: 'want' },
-            ropa:            { cost: 90000,  cat: 'want' },
-            impulsos:        { cost: 40000,  cat: 'want' },
             regalo:          { cost: 50000,  cat: 'want' },
+            ropa:            { cost: 90000,  cat: 'want' },
+            gota:            { cost: 120000, cat: 'debt' },
             ahorro50:        { cost: 50000,  cat: 'save' },
             ahorro100:       { cost: 100000, cat: 'save' }
         };
-
         const NEED_IDS = ['mercado', 'transporte', 'celular', 'servicios', 'almuerzos', 'aseo', 'salud'];
-        const WANT_IDS = ['domicilio', 'salida', 'entretenimiento', 'ropa', 'impulsos', 'regalo'];
+        const WANT_IDS = ['impulsos', 'entretenimiento', 'domicilio', 'salida', 'regalo', 'ropa'];
+        const SMALL_WANT_IDS = ['impulsos', 'entretenimiento', 'domicilio'];
+        const SAVE_IDS = ['ahorro50', 'ahorro100'];
+        const EVENT = {
+            title: 'Reparación urgente del celular',
+            cost: 180000,
+            description: 'Cuando el celular falla en medio de la quincena, la presión aparece de inmediato.'
+        };
 
         const selected = new Set();
+        const visitedSections = new Set(['distribute']);
+        let currentSection = 'distribute';
 
-        function fmt(n) {
-            return '$' + n.toLocaleString('es-CO');
+        function fmt(value) {
+            const rounded = Math.round(value);
+            const abs = Math.abs(rounded);
+            return `${rounded < 0 ? '-$' : '$'}${abs.toLocaleString('es-CO')}`;
         }
 
         function spent() {
-            let t = 0;
-            selected.forEach(id => t += ITEMS[id].cost);
-            return t;
+            let total = 0;
+            selected.forEach(id => {
+                total += ITEMS[id].cost;
+            });
+            return total;
         }
 
         function spentByCat(cat) {
-            let t = 0;
-            selected.forEach(id => { if (ITEMS[id].cat === cat) t += ITEMS[id].cost; });
-            return t;
+            let total = 0;
+            selected.forEach(id => {
+                if (ITEMS[id].cat === cat) total += ITEMS[id].cost;
+            });
+            return total;
+        }
+
+        function countSelected(ids) {
+            return ids.filter(id => selected.has(id)).length;
+        }
+
+        function remaining() {
+            return BUDGET - spent();
+        }
+
+        function getRemainingTone(value) {
+            if (value > 600000) {
+                return {
+                    color: 'var(--green)',
+                    note: 'Todavía hay bastante aire, pero la quincena ya empezó a moverse.'
+                };
+            }
+            if (value >= 300000) {
+                return {
+                    color: 'var(--yellow)',
+                    note: 'La quincena sigue manejable, pero los compromisos ya se sienten.'
+                };
+            }
+            if (value >= 100000) {
+                return {
+                    color: 'var(--orange)',
+                    note: 'El margen ya está corto. Un gasto extra cambia bastante el panorama.'
+                };
+            }
+            return {
+                color: 'var(--pressure)',
+                note: 'Quedas casi sin colchón. Cualquier sorpresa aprieta de inmediato.'
+            };
+        }
+
+        function flashNo(card) {
+            card.classList.add('flash-no');
+            card.addEventListener('animationend', () => card.classList.remove('flash-no'), { once: true });
         }
 
         function updateBudget() {
-            const s = spent();
-            const r = BUDGET - s;
-            const pct = Math.min(100, (s / BUDGET) * 100);
+            const totalSpent = spent();
+            const totalRemaining = remaining();
+            const remainingPct = Math.max(0, Math.min(100, (totalRemaining / BUDGET) * 100));
+            const tone = getRemainingTone(totalRemaining);
 
-            document.getElementById('b-remaining').textContent = fmt(r);
-            document.getElementById('b-spent').textContent = fmt(s);
+            document.getElementById('initial-value').textContent = fmt(BUDGET);
+            document.getElementById('remaining-value').textContent = fmt(totalRemaining);
+            document.getElementById('spent-value').textContent = fmt(totalSpent);
+            document.getElementById('remaining-value').style.color = tone.color;
+            document.getElementById('remaining-fill').style.width = `${remainingPct}%`;
+            document.getElementById('remaining-fill').style.background = tone.color;
+            document.getElementById('remaining-note').textContent = tone.note;
+            document.getElementById('over-budget').classList.toggle('show', totalRemaining < 0);
+            document.getElementById('btn-to-consequences').disabled = totalRemaining < 0;
 
-            const bar = document.getElementById('bar-fill');
-            bar.style.width = pct + '%';
-            bar.style.background = r < 0 ? 'var(--red)' : pct > 85 ? '#ff9800' : 'var(--grad)';
-
-            document.getElementById('over-budget').classList.toggle('show', r < 0);
-            document.getElementById('btn-p1').disabled = r < 0;
-
-            // Grey out items that would exceed budget
             Object.keys(ITEMS).forEach(id => {
-                if (!selected.has(id)) {
-                    document.getElementById('card-' + id).classList.toggle('cant-afford', s + ITEMS[id].cost > BUDGET);
+                const card = document.getElementById(`card-${id}`);
+                if (!card) return;
+                if (selected.has(id)) {
+                    card.classList.remove('cant-afford');
+                } else {
+                    card.classList.toggle('cant-afford', totalSpent + ITEMS[id].cost > BUDGET);
                 }
             });
         }
 
         function toggle(id) {
-            const card = document.getElementById('card-' + id);
+            const card = document.getElementById(`card-${id}`);
             if (!selected.has(id) && spent() + ITEMS[id].cost > BUDGET) {
-                card.classList.add('flash-no');
-                card.addEventListener('animationend', () => card.classList.remove('flash-no'), { once: true });
+                flashNo(card);
                 return;
             }
+
             if (selected.has(id)) {
                 selected.delete(id);
                 card.classList.remove('selected');
@@ -620,250 +1280,330 @@
                 selected.add(id);
                 card.classList.add('selected');
             }
+
             updateBudget();
         }
 
-        function goPhase2() {
-            const needsTotal  = spentByCat('need');
-            const wantsTotal  = spentByCat('want');
-            const savedTotal  = spentByCat('save');
-            const remaining   = BUDGET - spent();
-            const buffer      = savedTotal + remaining;
-            const missingNeeds = NEED_IDS.filter(id => !selected.has(id));
-            const wantsCount = WANT_IDS.filter(id => selected.has(id)).length;
+        function setPanelState(section, isOpen) {
+            const wrapper = document.getElementById(`section-${section}`);
+            const toggleButton = document.getElementById(`toggle-${section}`);
+            const panel = document.getElementById(`panel-${section}`);
 
-            document.getElementById('bk-needs').textContent = fmt(needsTotal);
-            document.getElementById('bk-wants').textContent = fmt(wantsTotal);
-            document.getElementById('bk-saved').textContent = fmt(buffer);
+            wrapper.classList.toggle('is-open', isOpen);
+            toggleButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            panel.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+        }
 
-            const cqs = [];
+        function refreshPanels() {
+            SECTION_ORDER.forEach(section => {
+                const wrapper = document.getElementById(`section-${section}`);
+                const panel = document.getElementById(`panel-${section}`);
+                panel.style.maxHeight = wrapper.classList.contains('is-open') ? `${panel.scrollHeight + 24}px` : '0px';
+            });
+        }
 
-            if (missingNeeds.length === 0) {
-                cqs.push({
-                    type: 'positive',
-                    title: 'Lo básico quedó cubierto.',
-                    text: 'Mercado, transporte, celular, servicios, almuerzos, aseo y salud quedaron contemplados. Eso no resuelve todo, pero sí baja bastante la presión de estos 15 días.'
+        function renderHeaderStates() {
+            SECTION_ORDER.forEach((section, index) => {
+                const title = SECTION_TITLES[section];
+                const flowState = document.getElementById(`flow-state-${section}`);
+                const helper = document.getElementById(`flow-helper-${section}`);
+                const overview = document.getElementById(`overview-${section}`);
+                const wrapper = document.getElementById(`section-${section}`);
+
+                helper.textContent = SECTION_HELPERS[section];
+
+                if (currentSection === section) {
+                    flowState.textContent = '•';
+                    overview.textContent = `• ${title}`;
+                    overview.className = 'overview-step current';
+                } else if (visitedSections.has(section)) {
+                    flowState.textContent = '✓';
+                    overview.textContent = `✓ ${title}`;
+                    overview.className = 'overview-step done';
+                } else {
+                    flowState.textContent = `${index + 1}`;
+                    overview.textContent = `${index + 1} · ${title}`;
+                    overview.className = 'overview-step';
+                }
+
+                wrapper.classList.toggle('is-complete', visitedSections.has(section) && currentSection !== section);
+            });
+        }
+
+        function openSection(section, shouldScroll = true) {
+            currentSection = section;
+            visitedSections.add(section);
+            SECTION_ORDER.forEach(name => setPanelState(name, name === section));
+            renderHeaderStates();
+            refreshPanels();
+
+            if (shouldScroll) {
+                requestAnimationFrame(() => {
+                    document.getElementById(`section-${section}`).scrollIntoView({ behavior: 'smooth', block: 'start' });
                 });
-            } else if (missingNeeds.length >= 3) {
-                cqs.push({
+            }
+        }
+
+        function buildData() {
+            const needsTotal = spentByCat('need');
+            const wantsTotal = spentByCat('want');
+            const debtTotal = spentByCat('debt');
+            const savedTotal = spentByCat('save');
+            const remainingBeforeEvent = remaining();
+            const remainingAfterEvent = remainingBeforeEvent - EVENT.cost;
+            const missingNeeds = NEED_IDS.filter(id => !selected.has(id));
+            const wantsCount = countSelected(WANT_IDS);
+            const smallWantCount = countSelected(SMALL_WANT_IDS);
+
+            return {
+                needsTotal,
+                wantsTotal,
+                debtTotal,
+                savedTotal,
+                remainingBeforeEvent,
+                remainingAfterEvent,
+                missingNeeds,
+                wantsCount,
+                smallWantCount
+            };
+        }
+
+        function renderConsequences() {
+            const data = buildData();
+            const consequences = [];
+
+            document.getElementById('bk-needs').textContent = fmt(data.needsTotal);
+            document.getElementById('bk-wants').textContent = fmt(data.wantsTotal);
+            document.getElementById('bk-debt').textContent = fmt(data.debtTotal);
+            document.getElementById('bk-saved').textContent = fmt(data.savedTotal);
+
+            if (data.missingNeeds.length === 0) {
+                consequences.push({
+                    type: 'positive',
+                    title: 'Lo básico ya tiene un orden.',
+                    text: 'Mercado, transporte, celular, servicios, almuerzos, aseo y salud quedaron dentro del plan de esta quincena.'
+                });
+            } else if (data.missingNeeds.length >= 3) {
+                consequences.push({
                     type: 'danger',
-                    title: 'Varias necesidades quedaron por fuera.',
-                    text: 'Cuando varios gastos básicos compiten al mismo tiempo, la presión suele moverse a la casa, al trabajo o al siguiente cobro.'
+                    title: 'Varias necesidades quedaron apretadas al mismo tiempo.',
+                    text: 'Cuando varios gastos básicos quedan por fuera, la presión suele moverse a la casa, al trabajo o a la siguiente quincena.'
                 });
             }
 
             if (!selected.has('mercado')) {
-                cqs.push({
+                consequences.push({
                     type: 'danger',
-                    title: 'La presión del mercado no desaparece.',
-                    text: 'Dejar por fuera el aporte a mercado puede aliviar hoy, pero traslada presión inmediata a la casa.'
+                    title: 'El mercado no desaparece por dejarlo quieto.',
+                    text: 'Dejar por fuera el mercado puede aliviar hoy, pero traslada presión inmediata a la casa.'
                 });
             }
 
             if (!selected.has('transporte')) {
-                cqs.push({
+                consequences.push({
                     type: 'danger',
-                    title: 'Los días de trabajo se aprietan.',
+                    title: 'Los días de trabajo se complican.',
                     text: 'Sin transporte, sostener los días de trabajo se vuelve mucho más difícil.'
                 });
             }
 
             if (!selected.has('celular')) {
-                cqs.push({
+                consequences.push({
                     type: 'warning',
                     title: 'Ese gasto pequeño no siempre es opcional.',
-                    text: 'Ahorrarte la recarga o el plan puede parecer menor, pero también complica comunicación, trabajo y trámites.'
-                });
-            }
-
-            if (!selected.has('servicios')) {
-                cqs.push({
-                    type: 'warning',
-                    title: 'Los servicios se patean, no se borran.',
-                    text: 'No aportar a servicios puede dar aire hoy, pero el siguiente cobro llega con más presión en la casa.'
+                    text: 'Ahorrarte este gasto puede parecer pequeño, pero también puede complicar comunicación, trabajo y trámites.'
                 });
             }
 
             if (!selected.has('salud')) {
-                cqs.push({
+                consequences.push({
                     type: 'warning',
                     title: 'La salud se vuelve más cara cuando se aplaza.',
                     text: 'Cuando no hay espacio para salud o medicina, cualquier molestia se vuelve más costosa.'
                 });
             }
 
-            if (wantsCount > 0 && savedTotal === 0) {
-                cqs.push({
+            if (selected.has('gota')) {
+                consequences.push({
+                    type: 'warning',
+                    title: 'La deuda informal también compite con lo básico.',
+                    text: 'Esta cuota no se siente opcional. Por eso la deuda puede quitarle espacio a lo básico.'
+                });
+            } else {
+                consequences.push({
+                    type: 'warning',
+                    title: 'Esa presión no se fue del todo.',
+                    text: 'Dejar esta cuota pendiente puede traer más presión después.'
+                });
+            }
+
+            if (data.savedTotal === 0) {
+                consequences.push({
                     type: 'warning',
                     title: 'La quincena alcanzó para hoy, pero quedó sin defensa.',
-                    text: 'Los gastos que se sintieron pequeños dejaron la quincena sin colchón.'
+                    text: 'Cuando no se aparta nada, cualquier sorpresa llega directo contra el margen que quedaba.'
+                });
+            } else {
+                consequences.push({
+                    type: 'positive',
+                    title: 'Hubo un colchón, aunque fuera pequeño.',
+                    text: 'Separar algo, aunque no sea mucho, te da más margen si aparece un imprevisto.'
                 });
             }
 
-            if (wantsTotal >= 120000 && missingNeeds.length > 0) {
-                cqs.push({
+            if (data.smallWantCount >= 2) {
+                consequences.push({
+                    type: 'insight',
+                    title: 'Las compras pequeñas también pesan.',
+                    text: 'No fue un gasto grande el que apretó tu quincena. Fueron varias decisiones pequeñas que parecían inofensivas cuando las tomaste.'
+                });
+            } else if (data.wantsCount >= 3 && data.missingNeeds.length > 0) {
+                consequences.push({
                     type: 'warning',
-                    title: 'La quincena se apretó por varios frentes.',
+                    title: 'La quincena se fue cerrando por varias esquinas.',
                     text: 'No fue un gran gasto el que apretó la quincena. Fueron varias decisiones pequeñas compitiendo al mismo tiempo.'
                 });
-            } else if (wantsTotal >= 120000) {
-                cqs.push({
-                    type: 'insight',
-                    title: fmt(wantsTotal) + ' en gusticos y gastos sociales.',
-                    text: 'Algunos sí dan descanso o conexión. El punto es ver cuánto espacio ocuparon dentro de una quincena apretada.'
+            }
+
+            if (data.remainingAfterEvent < 0 && data.savedTotal === 0) {
+                consequences.push({
+                    type: 'danger',
+                    title: 'El imprevisto cambió el panorama de inmediato.',
+                    text: 'Un gasto inesperado no avisa. Cuando no había colchón, todo se apretó más.'
+                });
+            } else if (data.remainingAfterEvent < 0 && data.savedTotal > 0) {
+                consequences.push({
+                    type: 'warning',
+                    title: 'El ahorro amortiguó una parte del golpe.',
+                    text: 'El colchón no hizo desaparecer el problema, pero sí evitó que la presión llegara desde cero.'
                 });
             }
 
-            if (savedTotal > 0) {
-                cqs.push({
-                    type: 'positive',
-                    title: 'Separaste un colchón.',
-                    text: savedTotal >= 100000
-                        ? 'Separar ' + fmt(savedTotal) + ' te da más margen si aparece un imprevisto y evita terminar la quincena en cero.'
-                        : 'Separar algo, aunque no sea mucho, te da más margen si aparece un imprevisto.'
-                });
-            } else if (remaining > 0) {
-                cqs.push({
-                    type: 'insight',
-                    title: fmt(remaining) + ' todavía sin asignar.',
-                    text: 'Si no decides por adelantado para qué sirve ese margen, suele irse en compras pequeñas sin que se note.'
-                });
-            }
+            document.getElementById('consequence-list').innerHTML = consequences.map(item => `
+                <li class="cq ${item.type}">
+                    <div class="cq-title">${item.title}</div>
+                    ${item.text}
+                </li>
+            `).join('');
 
-            const list = document.getElementById('consequence-list');
-            list.innerHTML = cqs.map(c =>
-                `<li class="cq ${c.type}"><div class="cq-title">${c.title}</div>${c.text}</li>`
-            ).join('');
+            document.getElementById('event-before').textContent = fmt(data.remainingBeforeEvent);
+            document.getElementById('event-after').textContent = fmt(data.remainingAfterEvent);
+            document.getElementById('event-after').style.color = data.remainingAfterEvent >= 0 ? 'var(--light)' : 'var(--pressure)';
 
-            const emgAmount = 90000;
-            document.getElementById('emg-scenario').textContent =
-                'Faltando cuatro días para la siguiente quincena, aparece un gasto inesperado de $90.000 entre una medicina, un transporte extra y una vuelta urgente. Toca resolverlo hoy. ¿Con qué margen cuentas?';
-
-            const emgEl = document.getElementById('emg-result');
-            if (buffer >= emgAmount) {
-                emgEl.className = 'emg-result emg-ok';
-                emgEl.textContent = '✓ Sí lo cubres. Tienes ' + fmt(buffer) + ' de margen. El golpe aprieta, pero no te obliga a correr detrás de otra deuda.';
-            } else if (buffer >= 40000) {
-                emgEl.className = 'emg-result emg-tight';
-                emgEl.textContent = '⚡ Tienes ' + fmt(buffer) + ' de margen. Alcanzas una parte, pero el resto te deja ajustado o te empuja a pedir ayuda.';
+            const eventResult = document.getElementById('event-result');
+            if (data.remainingAfterEvent >= 0 && data.savedTotal > 0) {
+                eventResult.className = 'event-result good';
+                eventResult.textContent = 'Había un pequeño colchón. El golpe molesta, pero no te deja inmediatamente contra la pared.';
+            } else if (data.remainingAfterEvent >= 0) {
+                eventResult.className = 'event-result tight';
+                eventResult.textContent = 'Todavía lo cubres, pero la quincena se encoge de inmediato. El margen ya no se siente igual.';
+            } else if (data.savedTotal > 0) {
+                eventResult.className = 'event-result tight';
+                eventResult.textContent = 'El ahorro amortiguó una parte, pero el imprevisto igual deja la quincena muy corta.';
             } else {
-                emgEl.className = 'emg-result emg-bad';
-                emgEl.textContent = '✗ Solo tienes ' + fmt(buffer) + ' de margen. No alcanza. Tocará aplazar otra cosa, pedir ayuda o endeudarte.';
+                eventResult.className = 'event-result bad';
+                eventResult.textContent = 'El imprevisto supera lo que te quedaba. Ahora toca mover otra decisión o buscar cómo cubrir la diferencia.';
             }
 
-            const savePrompt = document.getElementById('save-prompt');
-            if (savedTotal === 0 && buffer < emgAmount) {
-                savePrompt.innerHTML = '<strong>¿Qué habría cambiado separando algo?</strong> Con $50.000 apartados, este golpe no empieza desde cero. Con $100.000, la quincena ya tendría un colchón mucho más claro.';
-                savePrompt.style.display = 'block';
-            } else if (savedTotal === 50000 && buffer < emgAmount) {
-                savePrompt.innerHTML = '<strong>Ya diste un primer paso.</strong> Separar $50.000 ya te dio algo de aire. Con $100.000, el margen sería todavía más estable para un imprevisto como este.';
-                savePrompt.style.display = 'block';
-            } else {
-                savePrompt.style.display = 'none';
+            refreshPanels();
+        }
+
+        function renderReflection() {
+            const data = buildData();
+            const prompts = [
+                {
+                    q: '¿Qué pagaste primero y por qué?',
+                    hint: 'Eso suele mostrar dónde sentiste más presión en la quincena.'
+                },
+                {
+                    q: data.missingNeeds.length > 0
+                        ? '¿Qué dejaste por fuera que luego te hizo falta?'
+                        : '¿Qué necesidad te costó más sostener aunque sabías que hacía falta?',
+                    hint: data.missingNeeds.length > 0
+                        ? 'A veces lo que se aplaza vuelve más rápido de lo que parecía.'
+                        : 'No todo pesa igual cuando muchos gastos llegan al mismo tiempo.'
+                },
+                {
+                    q: data.wantsCount > 0
+                        ? '¿Hubo algún gasto pequeño que, sumado con otros, te apretó más de lo que pensabas?'
+                        : '¿Qué deseo decidiste dejar por fuera para cuidar más la quincena?',
+                    hint: data.wantsCount > 0
+                        ? 'A veces la presión no viene de una sola compra, sino de varias decisiones chicas.'
+                        : 'Lo que dejas por fuera también muestra qué estabas tratando de proteger.'
+                },
+                {
+                    q: data.savedTotal > 0
+                        ? '¿Qué cambió cuando separaste algo para imprevistos?'
+                        : '¿Qué habría cambiado si separabas algo para imprevistos?',
+                    hint: data.savedTotal > 0
+                        ? 'Aunque sea poco, tener un colchón cambia la sensación con la que termina la quincena.'
+                        : 'No siempre resuelve todo, pero sí cambia desde dónde se enfrenta un golpe inesperado.'
+                },
+                {
+                    q: '¿Qué te sorprendió de tus propias decisiones?',
+                    hint: 'A veces la sorpresa está en ver lo rápido que se llena la quincena con cosas que parecían pequeñas.'
+                }
+            ];
+
+            document.getElementById('refl-list').innerHTML = prompts.map(prompt => `
+                <li class="refl-item">
+                    <div class="refl-q">${prompt.q}</div>
+                    <div class="refl-hint">${prompt.hint}</div>
+                </li>
+            `).join('');
+
+            refreshPanels();
+        }
+
+        function handleSectionToggle(section) {
+            if (section === 'consequences') {
+                renderConsequences();
             }
-
-            setPhase(2);
-        }
-
-        function goPhase3() {
-            const missingNeeds = NEED_IDS.filter(id => !selected.has(id));
-            const wantsCount = WANT_IDS.filter(id => selected.has(id)).length;
-            const savedTotal = spentByCat('save');
-            const qs = [];
-
-            qs.push({
-                q: '¿Qué pagaste primero y por qué?',
-                hint: missingNeeds.length === 0
-                    ? 'Eso suele mostrar qué te da más calma durante la quincena.'
-                    : 'Lo primero que eliges dice mucho sobre dónde sientes más presión.'
-            });
-
-            qs.push({
-                q: missingNeeds.length > 0
-                    ? '¿Qué dejaste por fuera que luego te hizo falta?'
-                    : '¿Qué necesidad te costó más incluir aunque sabías que hacía falta?',
-                hint: missingNeeds.length > 0
-                    ? 'A veces lo que se aplaza vuelve más rápido de lo que parecía.'
-                    : 'No todas las necesidades pesan igual cuando la quincena ya viene apretada.'
-            });
-
-            qs.push({
-                q: wantsCount > 0
-                    ? '¿Hubo algún gasto pequeño que, sumado con otros, te apretó más de lo que pensabas?'
-                    : '¿Qué gustico dejaste por fuera para que la quincena respirara un poco más?',
-                hint: wantsCount > 0
-                    ? 'Muchas veces la presión no viene de una sola compra, sino de varias decisiones chicas.'
-                    : 'Lo que dejas por fuera también muestra qué estabas tratando de proteger.'
-            });
-
-            qs.push({
-                q: savedTotal > 0
-                    ? '¿Qué cambió cuando separaste algo para imprevistos?'
-                    : '¿Qué habría cambiado si separabas aunque fuera $50.000 para imprevistos?',
-                hint: savedTotal > 0
-                    ? 'Aunque sea poco, tener un colchón cambia la sensación con la que terminas la quincena.'
-                    : 'No siempre resuelve todo, pero sí cambia desde dónde enfrentas un gasto inesperado.'
-            });
-
-            qs.push({
-                q: '¿Qué te sorprendió de tus propias decisiones?',
-                hint: wantsCount > 0
-                    ? 'A veces uno descubre que ciertos gusticos pesan más de lo que imaginaba dentro del total.'
-                    : 'A veces la sorpresa está en ver lo rápido que se llena la quincena solo con lo básico.'
-            });
-
-            const list = document.getElementById('refl-list');
-            list.innerHTML = qs.map(q =>
-                `<li class="refl-item"><div class="refl-q">${q.q}</div><div class="refl-hint">${q.hint}</div></li>`
-            ).join('');
-
-            setPhase(3);
-        }
-
-        let userPrediction = null;
-
-        function selectPrediction(el) {
-            document.querySelectorAll('.predict-option').forEach(o => o.classList.remove('selected'));
-            el.classList.add('selected');
-            userPrediction = el.dataset.value;
-            document.getElementById('btn-predict').disabled = false;
-        }
-
-        function goPredict() {
-            setPhase('predict');
-        }
-
-        function setPhase(n) {
-            document.getElementById('phase-1').classList.toggle('active', n === 1);
-            document.getElementById('phase-predict').classList.toggle('active', n === 'predict');
-            document.getElementById('phase-2').classList.toggle('active', n === 2);
-            document.getElementById('phase-3').classList.toggle('active', n === 3);
-
-            const step1 = document.getElementById('step-1');
-            const step2 = document.getElementById('step-2');
-            const step3 = document.getElementById('step-3');
-            if (n === 1) {
-                step1.className = 'step active'; step2.className = 'step'; step3.className = 'step';
-            } else if (n === 'predict' || n === 2) {
-                step1.className = 'step done'; step2.className = 'step active'; step3.className = 'step';
-            } else {
-                step1.className = 'step done'; step2.className = 'step done'; step3.className = 'step active';
+            if (section === 'reflect') {
+                renderConsequences();
+                renderReflection();
             }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            openSection(section, true);
         }
 
-        function restart() {
+        function goToConsequences() {
+            renderConsequences();
+            openSection('consequences', true);
+        }
+
+        function goToReflection() {
+            renderConsequences();
+            renderReflection();
+            openSection('reflect', true);
+        }
+
+        function resetSimulation() {
             selected.clear();
-            userPrediction = null;
-            document.querySelectorAll('.item-card').forEach(c => c.classList.remove('selected', 'cant-afford'));
-            document.querySelectorAll('.predict-option').forEach(o => o.classList.remove('selected'));
-            document.getElementById('btn-predict').disabled = true;
-            document.getElementById('save-prompt').style.display = 'none';
+            document.querySelectorAll('.item-card').forEach(card => card.classList.remove('selected', 'cant-afford'));
+            document.getElementById('consequence-list').innerHTML = '';
+            document.getElementById('refl-list').innerHTML = '';
+            document.getElementById('bk-needs').textContent = '$0';
+            document.getElementById('bk-wants').textContent = '$0';
+            document.getElementById('bk-debt').textContent = '$0';
+            document.getElementById('bk-saved').textContent = '$0';
+            document.getElementById('event-before').textContent = '$0';
+            document.getElementById('event-after').textContent = '$0';
+            document.getElementById('event-after').style.color = 'var(--light)';
+            document.getElementById('event-result').className = 'event-result tight';
+            document.getElementById('event-result').textContent = 'Cuando veas tus consecuencias, aquí aparecerá qué tanto cambia la quincena con un gasto inesperado.';
+            visitedSections.clear();
+            visitedSections.add('distribute');
             updateBudget();
-            setPhase(1);
+            openSection('distribute', true);
         }
 
+        window.addEventListener('resize', refreshPanels);
+
+        document.getElementById('event-cost').textContent = `-${fmt(EVENT.cost).replace('$', '$')}`;
+        document.getElementById('event-result').className = 'event-result tight';
+        document.getElementById('event-result').textContent = 'Cuando veas tus consecuencias, aquí aparecerá qué tanto cambia la quincena con un gasto inesperado.';
         updateBudget();
+        openSection('distribute', false);
     </script>
     <script src="../program-state.js"></script>
 </body>
