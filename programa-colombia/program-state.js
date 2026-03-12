@@ -6,7 +6,7 @@
     const COMPLETE_RATIO = 0.82;
     const WEEK_LABELS = [
         'Presupuesto real',
-        'Mi recibo de pago',
+        'Mi comprobante de nómina',
         'Deuda sin drama',
         'Fondo de emergencia',
         'La inflación',
