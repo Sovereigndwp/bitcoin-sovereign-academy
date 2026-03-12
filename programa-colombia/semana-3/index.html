@@ -4,266 +4,279 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semana 3: Deuda sin drama | Ruta de Estabilidad y Crecimiento</title>
-    <meta name="description" content="Simulador de pago de deudas para trabajadores colombianos. Compara métodos avalancha y bola de nieve. Aprende a identificar trampas como el gota a gota.">
+    <meta name="description" content="Aprende a distinguir deudas manejables de trampas financieras. Calculadora gota a gota y simulador de pago de deudas para trabajadores colombianos.">
     <style>
         :root {
-            --primary: #FCD116;
-            --dark: #1a1a1a;
-            --dark2: #2d2d2d;
-            --light: #e0e0e0;
-            --dim: #b3b3b3;
-            --red: #ef4444;
-            --yellow: #fcd116;
-            --blue: #3b82f6;
-            --grad: #FCD116;
+            --primary: #FCD116; --dark: #1a1a1a; --dark2: #2d2d2d;
+            --light: #e0e0e0; --dim: #b3b3b3; --red: #ef4444;
+            --yellow: #fcd116; --blue: #3b82f6; --grad: #FCD116;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--dark); color:var(--light); line-height:1.6; padding:1rem; }
-
-        .container { max-width:1000px; margin:0 auto; }
+        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--dark); color:var(--light); line-height:1.6; padding:1rem; }
+        .container { max-width:820px; margin:0 auto; }
         .back-link { display:inline-flex; align-items:center; gap:0.5rem; color:var(--primary); text-decoration:none; margin-bottom:2rem; font-weight:600; transition:transform 0.2s; }
         .back-link:hover { transform:translateX(-4px); }
-
-        .header { text-align:center; margin-bottom:3rem; }
+        .header { text-align:center; margin-bottom:2.5rem; }
         .week-badge { display:inline-block; background:rgba(252,209,22,0.15); border:1px solid var(--primary); border-radius:2rem; padding:0.3rem 1rem; font-size:0.85rem; color:var(--primary); margin-bottom:1rem; }
-        .week-title { font-size:2.4rem; color:var(--primary); margin-bottom:0.5rem; }
-        .week-subtitle { font-size:1.1rem; color:var(--dim); }
-
-        /* Sections */
-        .section { margin-bottom:3rem; }
-
-        /* Intro */
-        .intro-card { background:var(--dark2); border:2px solid rgba(252,209,22,0.2); border-radius:1rem; padding:2rem; }
-        .intro-title { font-size:1.5rem; color:var(--primary); margin-bottom:1rem; }
-        .intro-text { color:var(--dim); font-size:1.05rem; line-height:1.8; margin-bottom:1.5rem; }
-        .debt-types { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-top:1.5rem; }
-        .debt-type-card { background:var(--dark); border:1px solid; border-radius:0.75rem; padding:1rem; text-align:center; }
-        .debt-type-card.good { border-color:var(--yellow); }
-        .debt-type-card.yellow { border-color:var(--yellow); }
-        .debt-type-card.bad { border-color:var(--red); }
-        .debt-type-card.danger { border-color:#ff0000; background:rgba(255,0,0,0.05); }
-        .debt-type-label { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; font-weight:700; margin-bottom:0.5rem; }
-        .debt-type-card.good .debt-type-label { color:var(--yellow); }
+        .week-title { font-size:2.2rem; color:var(--primary); margin-bottom:0.5rem; }
+        .week-subtitle { font-size:1rem; color:var(--dim); }
+        .section { margin-bottom:2.5rem; }
+        .intro-card { background:var(--dark2); border:2px solid rgba(252,209,22,0.2); border-radius:1rem; padding:1.75rem; }
+        .intro-title { font-size:1.35rem; color:var(--primary); margin-bottom:0.75rem; }
+        .intro-text { color:var(--dim); font-size:0.97rem; line-height:1.8; }
+        .intro-text + .intro-text { margin-top:0.65rem; }
+        .section-heading { font-size:1.15rem; font-weight:700; color:var(--light); margin-bottom:0.5rem; }
+        .section-body { color:var(--dim); font-size:0.97rem; line-height:1.8; }
+        .section-body + .section-body { margin-top:0.6rem; }
+        .debt-types { display:grid; grid-template-columns:repeat(auto-fit, minmax(165px, 1fr)); gap:0.85rem; }
+        .debt-type-card { background:var(--dark2); border:1px solid; border-radius:0.75rem; padding:1rem; text-align:center; }
+        .debt-type-card.good   { border-color:rgba(252,209,22,0.5); }
+        .debt-type-card.yellow { border-color:rgba(252,209,22,0.4); }
+        .debt-type-card.bad    { border-color:rgba(239,68,68,0.5); }
+        .debt-type-card.danger { border-color:#ff4444; background:rgba(255,0,0,0.04); }
+        .debt-type-label { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em; font-weight:700; margin-bottom:0.4rem; }
+        .debt-type-card.good   .debt-type-label { color:var(--yellow); }
         .debt-type-card.yellow .debt-type-label { color:var(--yellow); }
-        .debt-type-card.bad .debt-type-label { color:var(--red); }
+        .debt-type-card.bad    .debt-type-label { color:var(--red); }
         .debt-type-card.danger .debt-type-label { color:#ff4444; }
-        .debt-type-name { font-weight:700; color:var(--light); margin-bottom:0.25rem; }
-        .debt-type-rate { font-size:0.85rem; color:var(--dim); }
-
-        /* Gota a gota danger */
-        .danger-section { background:linear-gradient(135deg, rgba(255,0,0,0.12), rgba(26,26,26,0.95)); border:2px solid #ff4444; border-radius:1rem; padding:2rem; margin-bottom:3rem; }
-        .danger-title { font-size:1.5rem; color:#ff4444; margin-bottom:1rem; display:flex; align-items:center; gap:0.75rem; }
-        .danger-text { color:var(--dim); margin-bottom:1.5rem; }
-        .gota-simulator { background:var(--dark); border:1px solid rgba(255,68,68,0.3); border-radius:0.75rem; padding:1.5rem; }
-        .gota-sim-title { color:#ff4444; font-weight:700; margin-bottom:1rem; }
+        .debt-type-name { font-weight:700; color:var(--light); font-size:0.93rem; margin-bottom:0.2rem; }
+        .debt-type-rate { font-size:0.82rem; color:var(--dim); }
+        .danger-section { background:rgba(239,68,68,0.04); border:2px solid rgba(239,68,68,0.3); border-radius:1rem; padding:1.75rem; }
+        .danger-title { font-size:1.15rem; color:#ff4444; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.6rem; font-weight:700; }
+        .danger-text { color:var(--dim); font-size:0.97rem; line-height:1.8; }
+        .danger-text + .danger-text { margin-top:0.6rem; }
+        .story-card { background:var(--dark2); border:1px solid rgba(239,68,68,0.2); border-left:4px solid var(--red); border-radius:0 0.875rem 0.875rem 0; padding:1.75rem; }
+        .story-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--dim); margin-bottom:1.1rem; }
+        .story-p { color:var(--light); font-size:0.98rem; line-height:1.9; margin-bottom:0.6rem; }
+        .story-quote { background:rgba(239,68,68,0.08); border-radius:0.5rem; padding:1rem 1.25rem; margin:1.1rem 0; font-style:italic; color:#ff8888; font-size:1.02rem; line-height:1.7; }
+        .story-bridge { color:var(--dim); font-size:0.95rem; margin-top:1.1rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.06); line-height:1.75; }
+        .tool-context { color:var(--dim); font-size:0.95rem; line-height:1.8; margin-bottom:1.25rem; padding:0.9rem 1.1rem; background:rgba(252,209,22,0.04); border-left:3px solid rgba(252,209,22,0.3); border-radius:0 0.5rem 0.5rem 0; }
+        .gota-simulator { background:var(--dark2); border:2px solid rgba(239,68,68,0.25); border-radius:1rem; padding:1.75rem; }
+        .gota-sim-title { color:#ff4444; font-weight:700; font-size:1.1rem; margin-bottom:0.4rem; }
+        .gota-sim-sub { color:var(--dim); font-size:0.85rem; margin-bottom:1.25rem; }
         .gota-inputs { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
-        .gota-label { display:block; color:var(--light); font-size:0.9rem; font-weight:600; margin-bottom:0.4rem; }
-        .gota-input { width:100%; padding:0.65rem; background:var(--dark2); border:2px solid rgba(255,68,68,0.3); border-radius:0.5rem; color:var(--light); font-size:1rem; font-family:'Courier New',monospace; }
+        .gota-label { display:block; color:var(--light); font-size:0.88rem; font-weight:600; margin-bottom:0.4rem; }
+        .gota-input { width:100%; padding:0.65rem; background:var(--dark); border:2px solid rgba(255,68,68,0.3); border-radius:0.5rem; color:var(--light); font-size:1rem; font-family:'Courier New',monospace; }
         .gota-input:focus { outline:none; border-color:#ff4444; }
-        .gota-result { background:rgba(255,0,0,0.08); border:2px solid #ff4444; border-radius:0.75rem; padding:1.5rem; text-align:center; }
-        .gota-number { font-size:2.5rem; font-weight:900; color:#ff4444; font-family:'Courier New',monospace; }
-        .gota-caption { color:var(--dim); font-size:0.9rem; margin-top:0.5rem; }
-        .gota-breakdown { display:grid; grid-template-columns:repeat(3, 1fr); gap:0.75rem; margin-top:1rem; }
-        .gota-stat { background:rgba(255,0,0,0.05); border:1px solid rgba(255,68,68,0.2); border-radius:0.5rem; padding:0.75rem; text-align:center; }
-        .gota-stat-val { font-weight:700; color:#ff4444; font-family:'Courier New',monospace; font-size:1.1rem; }
-        .gota-stat-lbl { font-size:0.75rem; color:var(--dim); margin-top:0.25rem; }
-
-        /* Debt simulator */
-        .simulator { background:var(--dark2); border:2px solid rgba(252,209,22,0.2); border-radius:1rem; padding:2rem; }
-        .sim-title { font-size:1.5rem; color:var(--primary); margin-bottom:0.5rem; }
-        .sim-desc { color:var(--dim); margin-bottom:2rem; font-size:0.95rem; }
-
-        .debt-table { width:100%; border-collapse:collapse; margin-bottom:1.5rem; }
-        .debt-table th { text-align:left; color:var(--dim); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; padding:0.5rem; border-bottom:1px solid rgba(252,209,22,0.2); }
-        .debt-table td { padding:0.5rem; vertical-align:center; }
+        .gota-result { background:rgba(255,0,0,0.06); border:1px solid rgba(239,68,68,0.25); border-radius:0.75rem; padding:1.25rem; text-align:center; }
+        .gota-number { font-size:2.2rem; font-weight:900; color:#ff4444; font-family:'Courier New',monospace; }
+        .gota-caption { color:var(--dim); font-size:0.85rem; margin-top:0.35rem; }
+        .gota-breakdown { display:grid; grid-template-columns:repeat(3,1fr); gap:0.6rem; margin-top:1rem; }
+        .gota-stat { background:rgba(255,0,0,0.05); border:1px solid rgba(255,68,68,0.15); border-radius:0.5rem; padding:0.65rem; text-align:center; }
+        .gota-stat-val { font-weight:700; color:#ff4444; font-family:'Courier New',monospace; font-size:1rem; }
+        .gota-stat-lbl { font-size:0.72rem; color:var(--dim); margin-top:0.2rem; }
+        .gota-message { margin-top:0.9rem; font-size:0.88rem; color:#ff8888; line-height:1.6; }
+        .tip-box { background:rgba(252,209,22,0.05); border:1px solid rgba(252,209,22,0.2); border-radius:0.75rem; padding:1.1rem 1.2rem; margin-top:1.25rem; }
+        .tip-header { color:var(--yellow); font-weight:700; font-size:0.9rem; margin-bottom:0.35rem; }
+        .tip-text { color:var(--dim); font-size:0.88rem; line-height:1.7; }
+        .simulator { background:var(--dark2); border:2px solid rgba(252,209,22,0.2); border-radius:1rem; padding:1.75rem; }
+        .sim-title { font-size:1.2rem; color:var(--primary); margin-bottom:0.4rem; }
+        .sim-desc { color:var(--dim); margin-bottom:1.5rem; font-size:0.92rem; }
+        .debt-table { width:100%; border-collapse:collapse; margin-bottom:1.25rem; }
+        .debt-table th { text-align:left; color:var(--dim); font-size:0.77rem; text-transform:uppercase; letter-spacing:0.05em; padding:0.5rem; border-bottom:1px solid rgba(252,209,22,0.2); }
+        .debt-table td { padding:0.5rem; vertical-align:middle; }
         .debt-table tr:not(:last-child) td { border-bottom:1px solid rgba(255,255,255,0.05); }
-
-        .debt-name-input, .debt-number-input { background:var(--dark); border:1px solid rgba(252,209,22,0.25); border-radius:0.4rem; color:var(--light); padding:0.5rem 0.6rem; font-family:'Courier New',monospace; font-size:0.9rem; width:100%; }
+        .debt-name-input, .debt-number-input { background:var(--dark); border:1px solid rgba(252,209,22,0.25); border-radius:0.4rem; color:var(--light); padding:0.5rem 0.55rem; font-family:'Courier New',monospace; font-size:0.88rem; width:100%; }
         .debt-name-input { font-family:inherit; }
         .debt-name-input:focus, .debt-number-input:focus { outline:none; border-color:var(--primary); }
-        .rate-badge { display:inline-block; font-size:0.7rem; font-weight:700; padding:0.2rem 0.4rem; border-radius:0.25rem; margin-left:0.3rem; vertical-align:middle; }
-        .rate-good { background:rgba(252,209,22,0.2); color:var(--yellow); }
+        .rate-badge { display:inline-block; font-size:0.68rem; font-weight:700; padding:0.15rem 0.4rem; border-radius:0.25rem; margin-left:0.25rem; vertical-align:middle; }
+        .rate-good    { background:rgba(252,209,22,0.2); color:var(--yellow); }
         .rate-caution { background:rgba(252,209,22,0.2); color:var(--yellow); }
-        .rate-danger { background:rgba(239,68,68,0.2); color:var(--red); }
-        .rate-trap { background:rgba(255,0,0,0.2); color:#ff4444; }
-
-        .add-debt-btn { background:transparent; border:1px dashed rgba(252,209,22,0.4); color:var(--primary); padding:0.6rem 1.2rem; border-radius:0.5rem; cursor:pointer; font-size:0.9rem; transition:all 0.2s; }
+        .rate-danger  { background:rgba(239,68,68,0.2); color:var(--red); }
+        .rate-trap    { background:rgba(255,0,0,0.2); color:#ff4444; }
+        .add-debt-btn { background:transparent; border:1px dashed rgba(252,209,22,0.4); color:var(--primary); padding:0.55rem 1.1rem; border-radius:0.5rem; cursor:pointer; font-size:0.88rem; transition:all 0.2s; }
         .add-debt-btn:hover { border-color:var(--primary); background:rgba(252,209,22,0.08); }
-        .remove-debt-btn { background:transparent; border:none; color:var(--red); font-size:1.1rem; cursor:pointer; padding:0.2rem 0.5rem; border-radius:0.3rem; transition:background 0.2s; }
+        .remove-debt-btn { background:transparent; border:none; color:var(--red); font-size:1rem; cursor:pointer; padding:0.2rem 0.4rem; border-radius:0.3rem; transition:background 0.2s; }
         .remove-debt-btn:hover { background:rgba(239,68,68,0.15); }
-
-        .monthly-payment-row { background:rgba(252,209,22,0.05); border:1px solid rgba(252,209,22,0.2); border-radius:0.5rem; padding:1rem 1.5rem; margin:1.5rem 0; display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
-        .payment-label { color:var(--light); font-weight:600; }
-        .payment-input { background:var(--dark); border:2px solid rgba(252,209,22,0.3); border-radius:0.5rem; color:var(--light); padding:0.6rem 0.75rem; font-family:'Courier New',monospace; font-size:1rem; width:180px; }
+        .monthly-payment-row { background:rgba(252,209,22,0.05); border:1px solid rgba(252,209,22,0.2); border-radius:0.5rem; padding:0.9rem 1.2rem; margin:1.25rem 0; display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+        .payment-label { color:var(--light); font-weight:600; font-size:0.93rem; }
+        .payment-input { background:var(--dark); border:2px solid rgba(252,209,22,0.3); border-radius:0.5rem; color:var(--light); padding:0.55rem 0.7rem; font-family:'Courier New',monospace; font-size:1rem; width:160px; }
         .payment-input:focus { outline:none; border-color:var(--primary); }
-        .payment-hint { color:var(--dim); font-size:0.85rem; }
-
-        .compare-btn { background:var(--grad); color:white; border:none; border-radius:0.75rem; padding:0.9rem 2rem; font-weight:700; font-size:1rem; cursor:pointer; transition:all 0.3s; width:100%; margin-top:1rem; }
-        .compare-btn:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(252,209,22,0.4); }
-
-        /* Results */
-        .results-section { display:none; margin-top:2rem; }
+        .payment-hint { color:var(--dim); font-size:0.82rem; }
+        .compare-btn { background:var(--grad); color:#1a1a1a; border:none; border-radius:0.75rem; padding:0.85rem 2rem; font-weight:700; font-size:0.95rem; cursor:pointer; transition:all 0.3s; width:100%; margin-top:0.75rem; }
+        .compare-btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(252,209,22,0.35); }
+        .err-box { display:none; margin-top:0.75rem; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3); border-radius:0.5rem; padding:0.7rem 1rem; color:var(--red); font-size:0.88rem; }
+        .results-section { display:none; margin-top:1.75rem; }
         .results-section.visible { display:block; }
-
-        .methods-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem; }
-        .method-card { background:var(--dark); border:2px solid rgba(252,209,22,0.2); border-radius:1rem; padding:1.5rem; }
+        .methods-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem; }
+        .method-card { background:var(--dark); border:2px solid rgba(252,209,22,0.15); border-radius:0.875rem; padding:1.25rem; }
         .method-card.winner { border-color:var(--yellow); }
-        .method-name { font-size:1.2rem; font-weight:700; margin-bottom:0.25rem; }
-        .method-desc { font-size:0.85rem; color:var(--dim); margin-bottom:1.5rem; }
-        .method-stat { margin-bottom:1rem; }
-        .method-stat-label { font-size:0.8rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.04em; }
-        .method-stat-value { font-size:1.6rem; font-weight:700; font-family:'Courier New',monospace; }
+        .method-name { font-size:1.05rem; font-weight:700; margin-bottom:0.2rem; }
+        .method-desc { font-size:0.82rem; color:var(--dim); margin-bottom:1.1rem; }
+        .method-stat { margin-bottom:0.85rem; }
+        .method-stat-label { font-size:0.77rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.04em; }
+        .method-stat-value { font-size:1.4rem; font-weight:700; font-family:'Courier New',monospace; }
         .avalanche-card .method-name { color:var(--blue); }
         .avalanche-card .method-stat-value { color:var(--blue); }
         .snowball-card .method-name { color:var(--yellow); }
         .snowball-card .method-stat-value { color:var(--yellow); }
-        .winner-badge { display:inline-block; background:rgba(252,209,22,0.2); color:var(--yellow); border:1px solid var(--yellow); border-radius:1rem; padding:0.2rem 0.75rem; font-size:0.75rem; font-weight:700; margin-left:0.5rem; }
-
-        .payoff-order { background:var(--dark2); border:1px solid rgba(252,209,22,0.2); border-radius:0.75rem; padding:1.25rem; margin-top:1rem; }
-        .payoff-order-title { font-size:0.9rem; font-weight:700; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.75rem; }
-        .payoff-step { display:flex; align-items:center; gap:0.75rem; margin-bottom:0.5rem; }
-        .step-num { background:rgba(252,209,22,0.15); color:var(--primary); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; flex-shrink:0; }
-        .step-name { flex:1; font-size:0.9rem; }
-        .step-rate { font-family:'Courier New',monospace; font-size:0.8rem; }
-
-        .savings-banner { background:linear-gradient(135deg,rgba(252,209,22,0.15),rgba(252,209,22,0.05)); border:2px solid var(--yellow); border-radius:0.75rem; padding:1.25rem; text-align:center; margin-top:1.5rem; }
-        .savings-title { color:var(--yellow); font-weight:700; margin-bottom:0.25rem; }
-        .savings-amount { font-size:2rem; font-weight:900; font-family:'Courier New',monospace; color:var(--yellow); }
-        .savings-caption { color:var(--dim); font-size:0.85rem; }
-
-        /* Debt evaluator */
-        .evaluator { background:var(--dark2); border:2px solid rgba(252,209,22,0.15); border-radius:1rem; padding:2rem; }
-        .eval-title { font-size:1.5rem; color:var(--primary); margin-bottom:0.5rem; }
-        .eval-desc { color:var(--dim); margin-bottom:1.5rem; font-size:0.95rem; }
-        .eval-inputs { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
-        .eval-label { display:block; color:var(--light); font-weight:600; font-size:0.9rem; margin-bottom:0.4rem; }
-        .eval-input { width:100%; padding:0.7rem; background:var(--dark); border:2px solid rgba(252,209,22,0.25); border-radius:0.5rem; color:var(--light); font-size:1rem; font-family:'Courier New',monospace; }
-        .eval-input:focus { outline:none; border-color:var(--primary); }
-        .eval-input-select { width:100%; padding:0.7rem; background:var(--dark); border:2px solid rgba(252,209,22,0.25); border-radius:0.5rem; color:var(--light); font-size:0.95rem; }
-        .eval-btn { background:var(--grad); color:white; border:none; border-radius:0.75rem; padding:0.85rem 2rem; font-weight:700; font-size:1rem; cursor:pointer; transition:all 0.3s; width:100%; }
-        .eval-btn:hover { transform:translateY(-2px); }
-        .eval-result { display:none; margin-top:1.5rem; border-radius:0.75rem; padding:1.5rem; }
-        .eval-result.green { background:rgba(252,209,22,0.12); border:2px solid var(--yellow); }
-        .eval-result.yellow { background:rgba(252,209,22,0.1); border:2px solid var(--yellow); }
-        .eval-result.red { background:rgba(239,68,68,0.12); border:2px solid var(--red); }
-        .eval-result.danger { background:rgba(255,0,0,0.12); border:2px solid #ff4444; }
-        .eval-verdict { font-size:1.5rem; font-weight:700; margin-bottom:0.5rem; }
-        .eval-result.green .eval-verdict { color:var(--yellow); }
-        .eval-result.yellow .eval-verdict { color:var(--yellow); }
-        .eval-result.red .eval-verdict { color:var(--red); }
-        .eval-result.danger .eval-verdict { color:#ff4444; }
-        .eval-advice { color:var(--dim); line-height:1.7; }
-
-        /* Reflection */
-        .reflection { background:linear-gradient(135deg,rgba(252,209,22,0.1),rgba(252,209,22,0.05)); border:2px solid var(--primary); border-radius:1rem; padding:2rem; }
-        .reflection-title { font-size:1.3rem; color:var(--primary); margin-bottom:1.5rem; }
-        .reflection-q { margin-bottom:1.5rem; }
-        .reflection-q-text { color:var(--light); font-weight:600; margin-bottom:0.5rem; }
-        .reflection-input { width:100%; padding:0.75rem; background:var(--dark); border:2px solid rgba(252,209,22,0.2); border-radius:0.5rem; color:var(--light); font-family:inherit; font-size:0.95rem; resize:vertical; min-height:80px; }
+        .winner-badge { display:inline-block; background:rgba(252,209,22,0.2); color:var(--yellow); border:1px solid var(--yellow); border-radius:1rem; padding:0.15rem 0.6rem; font-size:0.7rem; font-weight:700; margin-left:0.4rem; }
+        .payoff-order { background:var(--dark2); border:1px solid rgba(252,209,22,0.15); border-radius:0.6rem; padding:0.9rem; margin-top:0.75rem; }
+        .payoff-order-title { font-size:0.8rem; font-weight:700; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem; }
+        .payoff-step { display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem; }
+        .step-num { background:rgba(252,209,22,0.15); color:var(--primary); border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:700; flex-shrink:0; }
+        .step-name { flex:1; font-size:0.87rem; }
+        .step-rate { font-family:'Courier New',monospace; font-size:0.78rem; }
+        .savings-banner { background:rgba(252,209,22,0.07); border:2px solid rgba(252,209,22,0.35); border-radius:0.75rem; padding:1.1rem; text-align:center; margin-top:1.1rem; }
+        .savings-title { color:var(--yellow); font-weight:700; font-size:0.88rem; margin-bottom:0.2rem; }
+        .savings-amount { font-size:1.75rem; font-weight:900; font-family:'Courier New',monospace; color:var(--yellow); }
+        .savings-caption { color:var(--dim); font-size:0.82rem; margin-top:0.2rem; }
+        .reflection { background:rgba(252,209,22,0.04); border:2px solid rgba(252,209,22,0.2); border-radius:1rem; padding:1.75rem; }
+        .reflection-title { font-size:1.1rem; color:var(--primary); font-weight:700; margin-bottom:1.25rem; }
+        .reflection-q { margin-bottom:1.35rem; }
+        .reflection-q-text { color:var(--light); font-weight:600; font-size:0.95rem; margin-bottom:0.45rem; }
+        .reflection-input { width:100%; padding:0.7rem; background:var(--dark); border:2px solid rgba(252,209,22,0.2); border-radius:0.5rem; color:var(--light); font-family:inherit; font-size:0.92rem; resize:vertical; min-height:72px; }
         .reflection-input:focus { outline:none; border-color:var(--primary); }
-
-        /* Next week */
-        .next-week { background:var(--dark2); border:2px solid var(--primary); border-radius:1rem; padding:2rem; text-align:center; }
-        .next-week h3 { color:var(--primary); margin-bottom:0.75rem; }
-        .next-week p { color:var(--dim); margin-bottom:1.5rem; }
-
-        .btn { padding:0.9rem 2rem; border:none; border-radius:0.75rem; font-weight:700; font-size:1rem; cursor:pointer; transition:all 0.3s; text-decoration:none; display:inline-block; }
+        .next-week { background:var(--dark2); border:2px solid var(--primary); border-radius:1rem; padding:1.75rem; text-align:center; }
+        .next-week h3 { color:var(--primary); margin-bottom:0.6rem; font-size:1.1rem; }
+        .next-week p { color:var(--dim); margin-bottom:1.25rem; font-size:0.95rem; }
+        .btn { padding:0.85rem 1.75rem; border:none; border-radius:0.75rem; font-weight:700; font-size:0.95rem; cursor:pointer; transition:all 0.3s; text-decoration:none; display:inline-block; }
         .btn-primary { background:var(--grad); color:#1a1a1a; }
-        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(252,209,22,0.4); }
-
-        .tip-box { background:rgba(252,209,22,0.08); border:2px solid rgba(252,209,22,0.4); border-radius:0.75rem; padding:1.25rem; margin:1.5rem 0; }
-        .tip-header { color:var(--yellow); font-weight:700; margin-bottom:0.4rem; }
-        .tip-text { color:var(--dim); font-size:0.9rem; }
-
-        @media (max-width:768px) {
-            .week-title { font-size:1.8rem; }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(252,209,22,0.4); }
+        @media (max-width:600px) {
+            .week-title { font-size:1.75rem; }
             .debt-types { grid-template-columns:1fr 1fr; }
             .gota-inputs { grid-template-columns:1fr; }
             .methods-grid { grid-template-columns:1fr; }
-            .eval-inputs { grid-template-columns:1fr; }
-            .gota-breakdown { grid-template-columns:1fr; }
-            .debt-table { font-size:0.85rem; }
+            .gota-breakdown { grid-template-columns:1fr 1fr; }
+            .debt-table { font-size:0.82rem; }
         }
         body::before { content:""; display:block; height:3px; background:linear-gradient(90deg, #FCD116, #003893 50%, #CE1126); }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="../" class="back-link">← Volver al Programa</a>
+        <a href="../" class="back-link">&#8592; Volver al Programa</a>
 
         <div class="header">
             <div class="week-badge">Semana 3 de 10</div>
             <h1 class="week-title">Deuda sin drama</h1>
-            <p class="week-subtitle">Entiende lo que debes, ordena el caos, y sal más rápido</p>
+            <p class="week-subtitle">Entiende lo que debes, identifica las trampas, y sal m&#225;s r&#225;pido</p>
         </div>
 
-        <!-- INTRO -->
+        <!-- 1. INTRO -->
         <div class="section">
             <div class="intro-card">
-                <h2 class="intro-title">💡 La deuda no es el problema. El tipo de deuda sí lo es.</h2>
+                <h2 class="intro-title">&#128161; Tener deudas no es el problema.</h2>
                 <p class="intro-text">
-                    En Colombia, hay deudas que te ayudan a avanzar y deudas que te tienen trabajando para el prestamista. 
-                    La diferencia está en la tasa. Una deuda al 1% mensual es manejable. Una al 20% mensual (como el gota a gota) 
-                    es una trampa que te puede hundir aunque trabajes muy duro.
+                    En Colombia, como en cualquier pa&#237;s, la deuda es una herramienta. Muchas personas usan cr&#233;ditos
+                    para atender una urgencia m&#233;dica, arreglar algo esencial, o sostener un negocio. Eso es completamente v&#225;lido.
                 </p>
-                <p class="intro-text">Esta semana vas a:</p>
-                <ul style="color:var(--dim); padding-left:1.5rem; margin-bottom:1.5rem;">
-                    <li>Ver el costo real del gota a gota y otras deudas caras</li>
-                    <li>Simular cuánto pagas en intereses según el orden en que saldes tus deudas</li>
-                    <li>Evaluar si una deuda que estás considerando vale la pena</li>
-                </ul>
+                <p class="intro-text">
+                    El problema no es la deuda. El problema es el <strong style="color:var(--primary);">costo</strong> de
+                    la deuda. Hay tipos de cr&#233;dito que pueden salirte muy caro sin que lo notes desde el principio,
+                    especialmente cuando el acceso a bancos formales no es sencillo.
+                </p>
+            </div>
+        </div>
 
-                <div class="debt-types">
-                    <div class="debt-type-card good">
-                        <div class="debt-type-label">✅ Bien manejable</div>
-                        <div class="debt-type-name">Libranza / Fondo</div>
-                        <div class="debt-type-rate">0.8% – 1.4% mensual</div>
-                    </div>
-                    <div class="debt-type-card yellow">
-                        <div class="debt-type-label">⚠️ Con cuidado</div>
-                        <div class="debt-type-name">Tarjeta de crédito</div>
-                        <div class="debt-type-rate">2% – 2.8% mensual</div>
-                    </div>
-                    <div class="debt-type-card bad">
-                        <div class="debt-type-label">🚨 Costoso</div>
-                        <div class="debt-type-name">Crédito informal</div>
-                        <div class="debt-type-rate">5% – 12% mensual</div>
-                    </div>
-                    <div class="debt-type-card danger">
-                        <div class="debt-type-label">☠️ TRAMPA</div>
-                        <div class="debt-type-name">Gota a gota</div>
-                        <div class="debt-type-rate">20% – 50% mensual</div>
-                    </div>
+        <!-- 2. LA TASA MENSUAL -->
+        <div class="section">
+            <h2 class="section-heading">El n&#250;mero que importa: la tasa mensual</h2>
+            <p class="section-body">
+                Cuando alguien ofrece un cr&#233;dito, el dato m&#225;s importante no es el plazo ni el nombre del producto:
+                es la <strong style="color:var(--primary);">tasa mensual</strong>. Es el porcentaje que se paga
+                cada mes sobre lo que se debe.
+            </p>
+            <p class="section-body">
+                Una tasa del 1% mensual y una del 20% mensual suenan similares, pero la diferencia en lo que
+                se termina pagando puede ser enorme. La siguiente tabla lo muestra de forma directa.
+            </p>
+        </div>
+
+        <!-- 3. TABLA DE COMPARACI&#211;N -->
+        <div class="section">
+            <div class="debt-types">
+                <div class="debt-type-card good">
+                    <div class="debt-type-label">&#9989; Manejable</div>
+                    <div class="debt-type-name">Libranza / Fondo</div>
+                    <div class="debt-type-rate">0.8% &#8211; 1.4% mensual</div>
+                </div>
+                <div class="debt-type-card yellow">
+                    <div class="debt-type-label">&#9888;&#65039; Con cuidado</div>
+                    <div class="debt-type-name">Tarjeta de cr&#233;dito</div>
+                    <div class="debt-type-rate">2% &#8211; 2.8% mensual</div>
+                </div>
+                <div class="debt-type-card bad">
+                    <div class="debt-type-label">&#128680; Costoso</div>
+                    <div class="debt-type-name">Cr&#233;dito informal</div>
+                    <div class="debt-type-rate">5% &#8211; 12% mensual</div>
+                </div>
+                <div class="debt-type-card danger">
+                    <div class="debt-type-label">&#9760;&#65039; Trampa</div>
+                    <div class="debt-type-name">Gota a gota</div>
+                    <div class="debt-type-rate">20% &#8211; 50%+ mensual</div>
                 </div>
             </div>
         </div>
 
-        <!-- GOTA A GOTA DANGER ZONE -->
-        <div class="danger-section">
-            <h2 class="danger-title">☠️ El gota a gota: lo más caro que existe</h2>
-            <p class="danger-text">
-                El gota a gota es un préstamo informal donde un "gota" cobra cobros diarios o semanales. 
-                La frase "cobro 5 sobre 10" significa: te presto $100.000 y me devuelves $150.000 en 30 días — 
-                eso es el <strong style="color:#ff4444;">50% mensual</strong>. 
-                Simula cuánto pagarías realmente:
-            </p>
+        <!-- 4. EL GOTA A GOTA -->
+        <div class="section">
+            <div class="danger-section">
+                <h2 class="danger-title">&#9888;&#65039; El gota a gota: qu&#233; es y c&#243;mo funciona</h2>
+                <p class="danger-text">
+                    El gota a gota es un sistema de pr&#233;stamo informal en el que el prestamista cobra cuotas
+                    diarias o semanales. Es muy conocido en Colombia, especialmente en zonas donde acceder
+                    a un banco formal implica muchos tr&#225;mites o no es una opci&#243;n cercana.
+                </p>
+                <p class="danger-text">
+                    Parece r&#225;pido y sin complicaciones. Pero las tasas que maneja est&#225;n entre las m&#225;s altas que
+                    existen &#8212; y es com&#250;n que la persona que pide prestado no las entienda del todo al momento
+                    de recibir el dinero.
+                </p>
+                <p class="danger-text">
+                    Una frase que suele escucharse es <strong style="color:#ff8888;">"cobro 5 sobre 10"</strong> o
+                    <strong style="color:#ff8888;">"del 5 por 10"</strong>. Eso significa: por cada $10.000 que te prestan,
+                    devuelves $15.000. Eso es el 50% mensual.
+                </p>
+            </div>
+        </div>
 
+        <!-- 5. HISTORIA DE ANDR&#201;S -->
+        <div class="section">
+            <div class="story-card">
+                <div class="story-label">Historia corta</div>
+                <p class="story-p">Imagina a Andr&#233;s.</p>
+                <p class="story-p">
+                    Andr&#233;s trabaja todos los d&#237;as y necesita $500.000 para arreglar una moto que usa para trabajar.
+                </p>
+                <p class="story-p">Va al banco.<br>Le piden papeles que no tiene.</p>
+                <p class="story-p">Entonces aparece otra opci&#243;n.</p>
+                <p class="story-p">Un prestamista le dice:</p>
+                <div class="story-quote">
+                    &#8220;No te preocupes. Te presto hoy mismo. Solo devuelves 5 sobre 10.&#8221;
+                </div>
+                <p class="story-p">Andr&#233;s recibe $500.000.</p>
+                <p class="story-p">Parece manejable.</p>
+                <div class="story-bridge">
+                    Pero ahora veamos qu&#233; significa realmente ese <em>&#8220;5 sobre 10&#8221;</em> &#8212; con n&#250;meros exactos.
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. CALCULADORA GOTA A GOTA -->
+        <div class="section">
+            <p class="tool-context">
+                La calculadora de abajo usa los n&#250;meros de Andr&#233;s como punto de partida. Puedes cambiar el monto
+                y la tasa para ver c&#243;mo cambia el costo total. El objetivo es que esos n&#250;meros dejen de
+                parecer abstractos.
+            </p>
             <div class="gota-simulator">
-                <div class="gota-sim-title">Calculadora de trampa gota a gota</div>
-                <p style="color:var(--dim); font-size:0.85rem; margin-bottom:1rem;">Ingresa los valores de tu situación. Los resultados son una simulación educativa.</p>
+                <div class="gota-sim-title">Calculadora: el costo real del gota a gota</div>
+                <p class="gota-sim-sub">Los resultados son una simulaci&#243;n educativa basada en inter&#233;s simple mensual.</p>
                 <div class="gota-inputs">
                     <div>
-                        <label class="gota-label" for="gota-amount">¿Cuánto necesitas prestado?</label>
-                        <input type="number" id="gota-amount" class="gota-input" value="500000" min="0" oninput="calcGota()">
+                        <label class="gota-label" for="gota-amount">Monto prestado ($)</label>
+                        <input type="number" id="gota-amount" class="gota-input" value="500000" min="0" max="100000000" oninput="calcGota()">
                     </div>
                     <div>
-                        <label class="gota-label" for="gota-rate">Tasa mensual (%):</label>
-                        <input type="number" id="gota-rate" class="gota-input" value="20" min="1" max="100" step="1" oninput="calcGota()">
+                        <label class="gota-label" for="gota-rate">Tasa mensual (%)</label>
+                        <input type="number" id="gota-rate" class="gota-input" value="50" min="1" max="200" step="1" oninput="calcGota()">
                     </div>
                 </div>
                 <div class="gota-result" id="gota-result">
                     <div class="gota-number" id="gota-total">$0</div>
-                    <div class="gota-caption">total que devolverías después de 6 meses</div>
+                    <div class="gota-caption">total que devolver&#237;as despu&#233;s de 6 meses</div>
                     <div class="gota-breakdown">
                         <div class="gota-stat">
                             <div class="gota-stat-val" id="gota-interest">$0</div>
@@ -271,37 +284,36 @@
                         </div>
                         <div class="gota-stat">
                             <div class="gota-stat-val" id="gota-monthly">$0</div>
-                            <div class="gota-stat-lbl">Interés mensual</div>
+                            <div class="gota-stat-lbl">Inter&#233;s por mes</div>
                         </div>
                         <div class="gota-stat">
                             <div class="gota-stat-val" id="gota-annual">0%</div>
                             <div class="gota-stat-lbl">Tasa efectiva anual</div>
                         </div>
                     </div>
-                    <div id="gota-message" style="margin-top:1rem; font-size:0.9rem; color:#ff8888;"></div>
+                    <div class="gota-message" id="gota-message"></div>
                 </div>
-            </div>
-
-            <div class="tip-box" style="margin-top:1.5rem; border-color:rgba(255,68,68,0.4); background:rgba(255,0,0,0.05);">
-                <div class="tip-header" style="color:#ff4444;">⚠️ Otras trampas de crédito informal en Colombia</div>
-                <div class="tip-text">
-                    <strong style="color:var(--light);">Pagaré en blanco:</strong> Cuando firmas un documento sin cifras. El prestamista puede escribir cualquier monto.
-                    Nunca firmes un pagaré en blanco — es una trampa legal.<br><br>
-                    <strong style="color:var(--light);">Prendas de celular o cédula:</strong> Dejar tu cédula o celular como "garantía" es ilegal y peligroso.<br><br>
-                    <strong style="color:var(--light);">Pirámides de ahorro ("natilleras" informales):</strong> Las natilleras entre amigos pueden funcionar, 
-                    pero las organizadas por desconocidos con "rendimientos" son pirámides.
+                <div class="tip-box" style="border-color:rgba(255,68,68,0.2); background:rgba(255,0,0,0.03);">
+                    <div class="tip-header" style="color:#ff4444;">&#9888;&#65039; Otras situaciones que es &#250;til conocer</div>
+                    <div class="tip-text">
+                        <strong style="color:var(--light);">Pagar&#233; en blanco:</strong> Firmar un documento sin cifras le permite al prestamista escribir cualquier monto despu&#233;s. Puede tener consecuencias legales serias.<br><br>
+                        <strong style="color:var(--light);">Prenda de c&#233;dula o celular:</strong> Dejar la c&#233;dula o el celular como &#8220;garant&#237;a&#8221; es ilegal en Colombia.<br><br>
+                        <strong style="color:var(--light);">Natilleras informales:</strong> Las natilleras entre personas conocidas suelen funcionar bien. Las organizadas por desconocidos con &#8220;rendimientos garantizados&#8221; son otro tipo de riesgo.
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- DEBT SIMULATOR -->
+        <!-- 7. SIMULADOR DE PAGO DE DEUDAS -->
         <div class="section">
+            <p class="tool-context">
+                Es com&#250;n tener m&#225;s de una deuda al mismo tiempo &#8212; una tarjeta, un cr&#233;dito del fondo,
+                algo pendiente. El orden en que se pagan puede marcar una diferencia real en el total
+                de intereses. Esta simulaci&#243;n muestra dos estrategias y cu&#225;l funciona mejor seg&#250;n los datos que ingreses.
+            </p>
             <div class="simulator">
-                <h2 class="sim-title">🧮 Simulador de pago de deudas</h2>
-                <p class="sim-desc">
-                    Ingresa tus deudas actuales. Te mostraremos cuánto pagas en intereses según dos métodos 
-                    y cuál te ahorra más dinero.
-                </p>
+                <h2 class="sim-title">&#129518; Simulador de pago de deudas</h2>
+                <p class="sim-desc">Ingresa tus deudas actuales. Compara dos m&#233;todos y ve cu&#225;l te ahorra m&#225;s en intereses.</p>
 
                 <table class="debt-table" id="debt-table">
                     <thead>
@@ -309,33 +321,31 @@
                             <th>Deuda</th>
                             <th>Saldo ($)</th>
                             <th>Tasa mensual (%)</th>
-                            <th>Pago mínimo ($)</th>
+                            <th>Pago m&#237;nimo ($)</th>
                             <th></th>
                         </tr>
                     </thead>
-                    <tbody id="debt-rows">
-                        <!-- filled by JS -->
-                    </tbody>
+                    <tbody id="debt-rows"></tbody>
                 </table>
 
                 <button class="add-debt-btn" onclick="addDebtRow()">+ Agregar deuda</button>
 
                 <div class="monthly-payment-row">
-                    <span class="payment-label">Pago mensual total disponible:</span>
-                    <input type="number" id="monthly-budget" class="payment-input" placeholder="400000" value="400000">
+                    <span class="payment-label">Presupuesto mensual para deudas:</span>
+                    <input type="number" id="monthly-budget" class="payment-input" placeholder="350000" value="350000">
                     <span class="payment-hint">Lo que puedes destinar a deudas cada mes</span>
                 </div>
 
-                <button class="compare-btn" onclick="simulatePayoff()">Comparar métodos de pago →</button>
-                <div id="sim-error" style="display:none; margin-top:0.75rem; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.4); border-radius:0.5rem; padding:0.75rem 1rem; color:var(--red); font-size:0.9rem;"></div>
+                <button class="compare-btn" onclick="simulatePayoff()">Comparar m&#233;todos de pago &#8594;</button>
+                <div class="err-box" id="sim-error"></div>
 
                 <div class="results-section" id="results-section">
                     <div class="methods-grid">
                         <div class="method-card avalanche-card" id="avalanche-card">
-                            <div class="method-name">⚡ Método Avalancha</div>
-                            <div class="method-desc">Primero la deuda con mayor tasa de interés. Matemáticamente óptimo.</div>
+                            <div class="method-name">&#9889; Avalancha</div>
+                            <div class="method-desc">Primero la deuda con mayor tasa. Matem&#225;ticamente &#243;ptimo.</div>
                             <div class="method-stat">
-                                <div class="method-stat-label">Total de intereses pagados</div>
+                                <div class="method-stat-label">Total de intereses</div>
                                 <div class="method-stat-value" id="avalanche-interest">$0</div>
                             </div>
                             <div class="method-stat">
@@ -344,12 +354,11 @@
                             </div>
                             <div class="payoff-order" id="avalanche-order"></div>
                         </div>
-
                         <div class="method-card snowball-card" id="snowball-card">
-                            <div class="method-name">⛄ Método Bola de nieve</div>
-                            <div class="method-desc">Primero la deuda más pequeña. Gana impulso psicológico rápido.</div>
+                            <div class="method-name">&#9924; Bola de nieve</div>
+                            <div class="method-desc">Primero la deuda m&#225;s peque&#241;a. Genera impulso r&#225;pido.</div>
                             <div class="method-stat">
-                                <div class="method-stat-label">Total de intereses pagados</div>
+                                <div class="method-stat-label">Total de intereses</div>
                                 <div class="method-stat-value" id="snowball-interest">$0</div>
                             </div>
                             <div class="method-stat">
@@ -359,9 +368,8 @@
                             <div class="payoff-order" id="snowball-order"></div>
                         </div>
                     </div>
-
                     <div class="savings-banner" id="savings-banner">
-                        <div class="savings-title">💚 Diferencia entre métodos</div>
+                        <div class="savings-title">Diferencia entre m&#233;todos</div>
                         <div class="savings-amount" id="savings-amount">$0</div>
                         <div class="savings-caption" id="savings-caption"></div>
                     </div>
@@ -369,310 +377,247 @@
             </div>
         </div>
 
-        <!-- DEBT EVALUATOR -->
-        <div class="section">
-            <div class="evaluator">
-                <h2 class="eval-title">🔍 ¿Vale la pena esta deuda?</h2>
-                <p class="eval-desc">
-                    Antes de tomar cualquier crédito nuevo, evalúa si tiene sentido para tu situación. 
-                    Ingresa los datos de la oferta:
-                </p>
-
-                <div class="eval-inputs">
-                    <div>
-                        <label class="eval-label" for="eval-purpose">¿Para qué es el crédito?</label>
-                        <select id="eval-purpose" class="eval-input-select">
-                            <option value="emergency">Emergencia real (salud, trabajo)</option>
-                            <option value="education">Educación / formación</option>
-                            <option value="asset">Comprar algo que produce ingreso</option>
-                            <option value="home">Mejoras necesarias en vivienda</option>
-                            <option value="consolidate">Pagar otra deuda más cara</option>
-                            <option value="want">Algo que quiero pero no necesito urgente</option>
-                            <option value="event">Fiesta, viaje, regalo</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="eval-label" for="eval-rate">Tasa mensual ofrecida (%):</label>
-                        <input type="number" id="eval-rate" class="eval-input" placeholder="Ej: 2.5" min="0" step="0.1">
-                    </div>
-                    <div>
-                        <label class="eval-label" for="eval-amount">Monto ($):</label>
-                        <input type="number" id="eval-amount" class="eval-input" placeholder="Ej: 1000000" min="0">
-                    </div>
-                    <div>
-                        <label class="eval-label" for="eval-months">Plazo (meses):</label>
-                        <input type="number" id="eval-months" class="eval-input" placeholder="Ej: 12" min="1">
-                    </div>
-                </div>
-
-                <button class="eval-btn" onclick="evaluateDebt()">Evaluar esta deuda</button>
-                <div id="eval-error" style="display:none; margin-top:0.75rem; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.4); border-radius:0.5rem; padding:0.75rem 1rem; color:var(--red); font-size:0.9rem;">Completa los campos de tasa, monto y plazo para evaluar.</div>
-
-                <div class="eval-result" id="eval-result">
-                    <div class="eval-verdict" id="eval-verdict"></div>
-                    <div class="eval-advice" id="eval-advice"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- REFLECTION -->
+        <!-- 8. REFLEXI&#211;N -->
         <div class="section">
             <div class="reflection">
-                <h3 class="reflection-title">🪞 Para llevar: 3 preguntas antes de terminar</h3>
-
+                <h3 class="reflection-title">&#129710; Para pensar antes de cerrar</h3>
                 <div class="reflection-q">
-                    <div class="reflection-q-text">¿Cuál es tu deuda más cara ahora mismo? (tipo y tasa aproximada)</div>
-                    <textarea class="reflection-input" placeholder="Ej: Tengo una deuda con el gota a gota de $800.000 que me cobran 20% mensual..."></textarea>
+                    <div class="reflection-q-text">&#191;Cu&#225;l es la deuda que m&#225;s te est&#225; costando en este momento?</div>
+                    <textarea class="reflection-input" placeholder="Puedes describir el tipo de deuda y el monto aproximado..."></textarea>
                 </div>
-
                 <div class="reflection-q">
-                    <div class="reflection-q-text">Si tuvieras $200.000 extra este mes, ¿a qué deuda se los aplicarías primero?</div>
-                    <textarea class="reflection-input" placeholder="Ej: Se los pondría al gota a gota porque es lo más caro..."></textarea>
+                    <div class="reflection-q-text">Si tuvieras $100.000 extra este mes, &#191;a cu&#225;l deuda se los aplicar&#237;as primero? &#191;Por qu&#233; esa?</div>
+                    <textarea class="reflection-input" placeholder="Piensa en cu&#225;l te costar&#237;a m&#225;s dejar crecer..."></textarea>
                 </div>
-
-                <div class="reflection-q">
-                    <div class="reflection-q-text">¿Hay algo que estás pensando financiar a crédito próximamente? ¿Cuál es la tasa?</div>
-                    <textarea class="reflection-input" placeholder="Ej: Estaba pensando en comprar un televisor a cuotas, pero no sé la tasa real..."></textarea>
+                <div class="reflection-q" style="margin-bottom:0;">
+                    <div class="reflection-q-text">&#191;Hay algo que est&#225;s pensando pagar a cuotas pr&#243;ximamente? &#191;Sabes cu&#225;l es la tasa mensual?</div>
+                    <textarea class="reflection-input" placeholder="A veces vale la pena pedir ese dato antes de firmar..."></textarea>
                 </div>
             </div>
         </div>
 
+        <!-- 9. SIGUIENTE SEMANA -->
         <div class="next-week">
-            <h3>🎯 Siguiente: Semana 4</h3>
-            <p>Con las deudas más claras, ahora construimos tu primera defensa: el colchón de emergencia.</p>
-            <a href="../semana-4/" class="btn btn-primary" style="text-decoration:none; margin-top:0.5rem; display:inline-block;">Continuar a Semana 4 →</a>
+            <h3>&#127919; Siguiente: Semana 4</h3>
+            <p>Con las deudas m&#225;s claras, la pr&#243;xima semana construyes tu primera defensa real: el colch&#243;n de emergencia.</p>
+            <a href="../semana-4/" class="btn btn-primary" style="text-decoration:none; display:inline-block; margin-top:0.25rem;">Continuar a Semana 4 &#8594;</a>
         </div>
     </div>
 
     <script>
         function fmt(n) {
-            return new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', minimumFractionDigits:0 }).format(n);
+            if (!isFinite(n) || isNaN(n)) return '$\u2014';
+            return new Intl.NumberFormat('es-CO', {
+                style:'currency', currency:'COP', minimumFractionDigits:0
+            }).format(Math.round(n));
         }
 
         // ---------- GOTA A GOTA ----------
         function calcGota() {
-            const amount = parseFloat(document.getElementById('gota-amount').value) || 500000;
-            const rate = parseFloat(document.getElementById('gota-rate').value) / 100 || 0.20;
+            const rawAmount = parseFloat(document.getElementById('gota-amount').value);
+            const rawRate   = parseFloat(document.getElementById('gota-rate').value);
+            const amount = isNaN(rawAmount) ? 500000 : Math.min(Math.max(rawAmount, 0), 100000000);
+            const rate   = isNaN(rawRate)   ? 0.50   : Math.min(Math.max(rawRate, 0), 200) / 100;
             const months = 6;
-            const totalInterest = amount * rate * months;
-            const total = amount + totalInterest;
-            const annualRate = ((1 + rate) ** 12 - 1) * 100;
 
-            document.getElementById('gota-total').textContent = fmt(total);
+            const monthlyInterest = amount * rate;
+            const totalInterest   = monthlyInterest * months;
+            const total           = amount + totalInterest;
+
+            const annualRateRaw = ((1 + rate) ** 12 - 1) * 100;
+            const annualDisplay = annualRateRaw >= 10000
+                ? 'm\u00e1s de ' + Math.round(annualRateRaw / 1000) + '.000%'
+                : annualRateRaw.toFixed(0) + '%';
+
+            document.getElementById('gota-total').textContent   = fmt(total);
             document.getElementById('gota-interest').textContent = fmt(totalInterest);
-            document.getElementById('gota-monthly').textContent = fmt(amount * rate);
-            document.getElementById('gota-annual').textContent = annualRate.toFixed(0) + '%';
+            document.getElementById('gota-monthly').textContent  = fmt(monthlyInterest);
+            document.getElementById('gota-annual').textContent   = annualDisplay;
 
-            const ratio = totalInterest / amount;
+            const ratio = totalInterest / (amount || 1);
             let msg = '';
-            if (ratio >= 1) msg = `Por cada $1 que pediste, pagas $${(1 + ratio).toFixed(1)} en total. Trabajas para el prestamista.`;
-            else if (ratio >= 0.5) msg = `Pagas ${(ratio * 100).toFixed(0)}% del valor prestado solo en intereses.`;
-            else msg = `Cada mes, los intereses consumen ${(rate * 100).toFixed(0)}% del capital — más de lo que produce casi cualquier inversión.`;
+            if (ratio >= 2)        msg = 'Por cada ' + fmt(100000) + ' que pediste, terminar\u00edas devolviendo ' + fmt((1 + ratio) * 100000) + ' en total.';
+            else if (ratio >= 1)   msg = 'Pagar\u00edas el doble de lo que pediste \u2014 la mitad es solo intereses.';
+            else if (ratio >= 0.5) msg = 'Pagar\u00edas ' + (ratio * 100).toFixed(0) + '% del valor prestado solo en intereses.';
+            else                   msg = 'Cada mes, los intereses consumen ' + (rate * 100).toFixed(0) + '% del capital prestado.';
             document.getElementById('gota-message').textContent = msg;
         }
 
         // ---------- DEBT TABLE ----------
         const defaultDebts = [
-            { name: 'Gota a gota', balance: 500000, rate: 20, min: 150000 },
-            { name: 'Tarjeta de crédito', balance: 1200000, rate: 2.5, min: 80000 },
-            { name: 'Crédito de libranza', balance: 3000000, rate: 1.2, min: 180000 },
+            { name: 'Tarjeta de cr\u00e9dito', balance: 800000,  rate: 2.5, min: 80000  },
+            { name: 'Cr\u00e9dito de consumo',  balance: 1500000, rate: 1.8, min: 120000 },
+            { name: 'Libranza / fondo',     balance: 2000000, rate: 1.2, min: 150000 },
         ];
 
         function getRateBadge(rate) {
-            if (rate < 2) return `<span class="rate-badge rate-good">buena</span>`;
-            if (rate < 5) return `<span class="rate-badge rate-caution">cuidado</span>`;
-            if (rate < 15) return `<span class="rate-badge rate-danger">costosa</span>`;
-            return `<span class="rate-badge rate-trap">☠️ trampa</span>`;
+            if (rate < 2)  return '<span class="rate-badge rate-good">buena</span>';
+            if (rate < 5)  return '<span class="rate-badge rate-caution">cuidado</span>';
+            if (rate < 15) return '<span class="rate-badge rate-danger">costosa</span>';
+            return '<span class="rate-badge rate-trap">\u2620\ufe0f trampa</span>';
         }
 
-        function addDebtRow(debt = { name: '', balance: '', rate: '', min: '' }) {
+        function addDebtRow(debt = { name:'', balance:'', rate:'', min:'' }) {
             const tbody = document.getElementById('debt-rows');
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><input type="text" class="debt-name-input d-name" placeholder="Nombre deuda" value="${debt.name}"></td>
-                <td><input type="number" class="debt-number-input d-balance" placeholder="0" min="0" value="${debt.balance}" oninput="updateBadge(this)"></td>
-                <td>
-                    <input type="number" class="debt-number-input d-rate" placeholder="0.0" min="0" step="0.1" value="${debt.rate}" oninput="updateBadge(this)" style="width:80px;">
-                    <span class="rate-badge-cell"></span>
-                </td>
-                <td><input type="number" class="debt-number-input d-min" placeholder="0" min="0" value="${debt.min}"></td>
-                <td><button class="remove-debt-btn" onclick="this.closest('tr').remove()">✕</button></td>
-            `;
+            const tr    = document.createElement('tr');
+            tr.innerHTML =
+                '<td><input type="text"   class="debt-name-input d-name"    placeholder="Nombre" value="' + debt.name + '"></td>' +
+                '<td><input type="number" class="debt-number-input d-balance" placeholder="0" min="0" value="' + debt.balance + '" oninput="updateBadge(this)"></td>' +
+                '<td><input type="number" class="debt-number-input d-rate" placeholder="0.0" min="0" step="0.1" value="' + debt.rate + '" oninput="updateBadge(this)" style="width:72px;"><span class="rate-badge-cell"></span></td>' +
+                '<td><input type="number" class="debt-number-input d-min" placeholder="0" min="0" value="' + debt.min + '"></td>' +
+                '<td><button class="remove-debt-btn" onclick="this.closest(\'tr\').remove()">\u2715</button></td>';
             tbody.appendChild(tr);
-            const rateInput = tr.querySelector('.d-rate');
-            updateBadge(rateInput);
+            updateBadge(tr.querySelector('.d-rate'));
         }
 
         function updateBadge(input) {
-            const tr = input.closest('tr');
-            const rateInput = tr.querySelector('.d-rate');
+            const tr        = input.closest('tr');
             const badgeCell = tr.querySelector('.rate-badge-cell');
-            const rate = parseFloat(rateInput.value) || 0;
+            const rate      = parseFloat(tr.querySelector('.d-rate').value) || 0;
             badgeCell.innerHTML = rate > 0 ? getRateBadge(rate) : '';
         }
 
         function getDebts() {
-            const rows = document.querySelectorAll('#debt-rows tr');
             const debts = [];
-            rows.forEach(row => {
-                const name = row.querySelector('.d-name').value.trim() || 'Deuda';
+            document.querySelectorAll('#debt-rows tr').forEach(row => {
+                const name    = row.querySelector('.d-name').value.trim() || 'Deuda';
                 const balance = parseFloat(row.querySelector('.d-balance').value) || 0;
-                const rate = parseFloat(row.querySelector('.d-rate').value) / 100 || 0;
-                const min = parseFloat(row.querySelector('.d-min').value) || 0;
+                const rate    = parseFloat(row.querySelector('.d-rate').value) / 100 || 0;
+                const min     = parseFloat(row.querySelector('.d-min').value) || 0;
                 if (balance > 0 && rate > 0) debts.push({ name, balance, rate, min });
             });
             return debts;
         }
 
-        // ---------- PAYOFF SIMULATION ----------
+        // ---------- PAYOFF SIMULATION (overflow-safe) ----------
         function simulateDebts(debts, budget, sortFn) {
-            let remaining = debts.map(d => ({ ...d }));
-            remaining.sort(sortFn);
-            let totalInterest = 0;
-            let months = 0;
-            const maxMonths = 600;
+            const MAX_MONTHS  = 240;
+            const BALANCE_CAP = 500000000;
 
-            while (remaining.some(d => d.balance > 0) && months < maxMonths) {
+            let remaining = debts.map(d => ({ ...d, balance: Math.min(d.balance, BALANCE_CAP) }));
+            remaining.sort(sortFn);
+
+            let totalInterest = 0;
+            let months        = 0;
+
+            while (remaining.some(d => d.balance > 10) && months < MAX_MONTHS) {
                 months++;
                 let extra = budget;
 
                 remaining.forEach(d => {
-                    if (d.balance <= 0) return;
+                    if (d.balance <= 10) { d.balance = 0; return; }
                     const interest = d.balance * d.rate;
-                    totalInterest += interest;
-                    d.balance += interest;
+                    d.balance      = Math.min(d.balance + interest, BALANCE_CAP);
+                    totalInterest  = Math.min(totalInterest + interest, BALANCE_CAP);
                 });
 
                 remaining.forEach(d => {
-                    if (d.balance <= 0) return;
+                    if (d.balance <= 0 || extra <= 0) return;
                     const pay = Math.min(d.min, d.balance, extra);
-                    d.balance -= pay;
-                    extra -= pay;
-                    if (d.balance < 0) d.balance = 0;
+                    d.balance = Math.max(0, d.balance - pay);
+                    extra    -= pay;
                 });
 
-                // Apply extra to priority debt
                 for (let i = 0; i < remaining.length && extra > 0; i++) {
                     if (remaining[i].balance <= 0) continue;
                     const pay = Math.min(extra, remaining[i].balance);
-                    remaining[i].balance -= pay;
+                    remaining[i].balance = Math.max(0, remaining[i].balance - pay);
                     extra -= pay;
                 }
+
+                if (months === 12) {
+                    const totalBal   = remaining.reduce((s, d) => s + d.balance, 0);
+                    const initialBal = debts.reduce((s, d) => s + d.balance, 0);
+                    if (totalBal > initialBal) return { totalInterest, months: -1 };
+                }
             }
-            return { totalInterest, months };
+
+            return { totalInterest, months: months < MAX_MONTHS ? months : -1 };
         }
 
-        function renderPayoffOrder(containerId, debts, sortFn, labelFn) {
-            const ordered = [...debts].sort(sortFn);
+        function renderPayoffOrder(containerId, debts, sortFn) {
+            const ordered   = [...debts].sort(sortFn);
             const container = document.getElementById(containerId);
-            container.innerHTML = `<div class="payoff-order-title">Orden de pago</div>`;
+            container.innerHTML = '<div class="payoff-order-title">Orden de pago</div>';
             ordered.forEach((d, i) => {
-                container.innerHTML += `
-                    <div class="payoff-step">
-                        <span class="step-num">${i + 1}</span>
-                        <span class="step-name">${d.name}</span>
-                        <span class="step-rate" style="color:${d.rate > 0.05 ? 'var(--red)' : d.rate > 0.02 ? 'var(--yellow)' : 'var(--yellow)'}">${(d.rate*100).toFixed(1)}%/mes</span>
-                    </div>`;
+                const color = d.rate > 0.05 ? 'var(--red)' : 'var(--yellow)';
+                container.innerHTML +=
+                    '<div class="payoff-step">' +
+                    '<span class="step-num">' + (i + 1) + '</span>' +
+                    '<span class="step-name">' + d.name + '</span>' +
+                    '<span class="step-rate" style="color:' + color + '">' + (d.rate * 100).toFixed(1) + '%/mes</span>' +
+                    '</div>';
             });
         }
 
         function simulatePayoff() {
             const debts = getDebts();
             const errEl = document.getElementById('sim-error');
+            errEl.style.display = 'none';
+
             if (debts.length === 0) {
-                errEl.textContent = 'Agrega al menos una deuda con saldo y tasa para simular.';
+                errEl.textContent   = 'Agrega al menos una deuda con saldo y tasa para simular.';
                 errEl.style.display = 'block';
                 return;
             }
-            errEl.style.display = 'none';
-            const budget = parseFloat(document.getElementById('monthly-budget').value) || 400000;
+
+            const budget   = parseFloat(document.getElementById('monthly-budget').value) || 350000;
+            const totalMin = debts.reduce((s, d) => s + d.min, 0);
+
+            if (budget < totalMin) {
+                errEl.textContent   = 'El presupuesto (' + fmt(budget) + ') es menor que la suma de pagos m\u00ednimos (' + fmt(totalMin) + '). Aumenta el presupuesto o ajusta los pagos m\u00ednimos.';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            const totalMonthlyInterest = debts.reduce((s, d) => s + d.balance * d.rate, 0);
+            if (budget <= totalMonthlyInterest) {
+                errEl.textContent   = 'Con este presupuesto, los intereses (' + fmt(totalMonthlyInterest) + '/mes) crecen m\u00e1s r\u00e1pido de lo que se puede pagar. Aumenta el presupuesto mensual o reduce las deudas m\u00e1s costosas.';
+                errEl.style.display = 'block';
+                return;
+            }
 
             const avalancheSortFn = (a, b) => b.rate - a.rate;
-            const snowballSortFn = (a, b) => a.balance - b.balance;
+            const snowballSortFn  = (a, b) => a.balance - b.balance;
 
             const av = simulateDebts(debts, budget, avalancheSortFn);
             const sb = simulateDebts(debts, budget, snowballSortFn);
 
-            document.getElementById('avalanche-interest').textContent = fmt(av.totalInterest);
-            document.getElementById('avalanche-months').textContent = av.months < 600 ? av.months + ' meses' : 'No alcanza';
-            document.getElementById('snowball-interest').textContent = fmt(sb.totalInterest);
-            document.getElementById('snowball-months').textContent = sb.months < 600 ? sb.months + ' meses' : 'No alcanza';
+            document.getElementById('avalanche-interest').textContent = av.months === -1 ? '\u2014' : fmt(av.totalInterest);
+            document.getElementById('avalanche-months').textContent   = av.months === -1 ? 'No converge' : av.months + ' meses';
+            document.getElementById('snowball-interest').textContent  = sb.months === -1 ? '\u2014' : fmt(sb.totalInterest);
+            document.getElementById('snowball-months').textContent    = sb.months === -1 ? 'No converge' : sb.months + ' meses';
 
             renderPayoffOrder('avalanche-order', debts, avalancheSortFn);
-            renderPayoffOrder('snowball-order', debts, snowballSortFn);
+            renderPayoffOrder('snowball-order',  debts, snowballSortFn);
 
-            const diff = Math.abs(av.totalInterest - sb.totalInterest);
-            document.getElementById('savings-amount').textContent = fmt(diff);
+            const avCard = document.getElementById('avalanche-card');
+            const sbCard = document.getElementById('snowball-card');
 
-            if (av.totalInterest <= sb.totalInterest) {
-                document.getElementById('avalanche-card').classList.add('winner');
-                document.getElementById('snowball-card').classList.remove('winner');
-                document.getElementById('savings-caption').textContent = `El método Avalancha te ahorra ${fmt(diff)} en intereses vs. Bola de nieve.`;
-                document.getElementById('avalanche-card').querySelector('.method-name').innerHTML = '⚡ Método Avalancha <span class="winner-badge">Ganador</span>';
+            if (av.months !== -1 && sb.months !== -1) {
+                const diff = Math.abs(av.totalInterest - sb.totalInterest);
+                document.getElementById('savings-amount').textContent  = fmt(diff);
+                document.getElementById('savings-banner').style.display = 'block';
+
+                if (av.totalInterest <= sb.totalInterest) {
+                    avCard.classList.add('winner');    sbCard.classList.remove('winner');
+                    avCard.querySelector('.method-name').innerHTML  = '\u26a1 Avalancha <span class="winner-badge">Ganador</span>';
+                    sbCard.querySelector('.method-name').textContent = '\u26c4 Bola de nieve';
+                    document.getElementById('savings-caption').textContent = 'El m\u00e9todo Avalancha te ahorra ' + fmt(diff) + ' en intereses.';
+                } else {
+                    sbCard.classList.add('winner');    avCard.classList.remove('winner');
+                    sbCard.querySelector('.method-name').innerHTML  = '\u26c4 Bola de nieve <span class="winner-badge">Ganador</span>';
+                    avCard.querySelector('.method-name').textContent = '\u26a1 Avalancha';
+                    document.getElementById('savings-caption').textContent = 'El m\u00e9todo Bola de nieve te ahorra ' + fmt(diff) + ' en intereses.';
+                }
             } else {
-                document.getElementById('snowball-card').classList.add('winner');
-                document.getElementById('avalanche-card').classList.remove('winner');
-                document.getElementById('savings-caption').textContent = `El método Bola de nieve te ahorra ${fmt(diff)} en intereses vs. Avalancha en este caso.`;
-                document.getElementById('snowball-card').querySelector('.method-name').innerHTML = '⛄ Método Bola de nieve <span class="winner-badge">Ganador</span>';
+                document.getElementById('savings-banner').style.display = 'none';
             }
 
             document.getElementById('results-section').classList.add('visible');
             document.getElementById('results-section').scrollIntoView({ behavior:'smooth', block:'nearest' });
         }
 
-        // ---------- DEBT EVALUATOR ----------
-        function evaluateDebt() {
-            const purpose = document.getElementById('eval-purpose').value;
-            const rate = parseFloat(document.getElementById('eval-rate').value);
-            const amount = parseFloat(document.getElementById('eval-amount').value);
-            const months = parseFloat(document.getElementById('eval-months').value);
-
-            if (!rate || !amount || !months) {
-                document.getElementById('eval-error').style.display = 'block';
-                return;
-            }
-            document.getElementById('eval-error').style.display = 'none';
-
-            const totalInterest = amount * rate / 100 * months;
-            const monthlyPayment = (amount * (rate/100) * Math.pow(1 + rate/100, months)) / (Math.pow(1 + rate/100, months) - 1);
-
-            const el = document.getElementById('eval-result');
-            const verdict = document.getElementById('eval-verdict');
-            const advice = document.getElementById('eval-advice');
-
-            el.className = 'eval-result';
-            el.style.display = 'block';
-
-            const badPurpose = ['want', 'event'].includes(purpose);
-            const urgentPurpose = ['emergency'].includes(purpose);
-
-            if (rate >= 15) {
-                el.classList.add('danger');
-                verdict.textContent = '☠️ Trampa financiera — no tomes esta deuda';
-                advice.innerHTML = `Esta tasa (${rate}% mensual = ${((Math.pow(1+rate/100,12)-1)*100).toFixed(0)}% anual) está en zona de gota a gota. 
-                Pagarías ${fmt(totalInterest)} solo en intereses sobre un préstamo de ${fmt(amount)}. 
-                Busca alternativas: cooperativa, libranza, o habla con recursos humanos de tu empresa.`;
-            } else if (rate >= 5) {
-                el.classList.add('red');
-                verdict.textContent = '🚨 Muy costoso — evalúa bien antes de decidir';
-                advice.innerHTML = `Al ${rate}% mensual, pagarías ${fmt(totalInterest)} en intereses en ${months} meses. 
-                Cuota mensual aproximada: ${fmt(monthlyPayment)}. 
-                ${badPurpose ? 'Además, el propósito no es urgente — considera esperar y ahorrar primero.' : 'Solo considera si es estrictamente necesario y no hay alternativas más baratas.'}`;
-            } else if (rate >= 2) {
-                el.classList.add('yellow');
-                verdict.textContent = badPurpose ? '⚠️ Propósito cuestionable con tasa moderada' : '⚠️ Manejable si es necesario';
-                advice.innerHTML = `La tasa es moderada (${rate}% mensual). Pagarías ${fmt(totalInterest)} en intereses. Cuota: ${fmt(monthlyPayment)}/mes. 
-                ${badPurpose ? '<br><strong>El propósito no es urgente.</strong> ¿Puedes ahorrar primero y evitar los intereses?' : '<br>Si el propósito es real y tienes cómo pagar la cuota, es manejable.'}`;
-            } else {
-                el.classList.add('green');
-                verdict.textContent = urgentPurpose ? '✅ Tasa razonable para una emergencia real' : '✅ Tasa razonable — evalúa si necesitas el dinero';
-                advice.innerHTML = `Al ${rate}% mensual pagarías ${fmt(totalInterest)} en intereses — es una de las tasas más bajas disponibles en Colombia. 
-                Cuota mensual: ${fmt(monthlyPayment)}. 
-                ${badPurpose ? '<br>Recuerda: aunque la tasa es baja, endeudarse para gastos no esenciales sigue restando libertad financiera.' : '<br>Si el flujo mensual te alcanza, esta deuda es manejable.'}`;
-            }
-        }
-
-        // Init
         defaultDebts.forEach(d => addDebtRow(d));
         calcGota();
     </script>
