@@ -367,11 +367,11 @@
         <!-- 7. SIMULADOR DE PAGO DE DEUDAS -->
         <div class="section">
             <p class="tool-context">
-                Este ejercicio parte de una idea simple: primero cubres los pagos m&#237;nimos. La comparaci&#243;n empieza con el dinero que queda despu&#233;s de eso. A veces la diferencia entre m&#233;todos tarda en verse, pero se vuelve m&#225;s clara cuando una cuota se libera y ese margen empieza a moverse.
+                Este ejercicio parte de una idea simple: primero cubres los pagos mínimos. La comparación empieza con el dinero que queda después de eso. En los primeros meses, cuando los saldos están altos, una parte importante del pago se va en intereses. La diferencia entre métodos se vuelve más clara cuando una cuota se libera y ese margen empieza a moverse.
             </p>
             <div class="simulator">
                 <h2 class="sim-title">&#129518; Simulador de pago de deudas</h2>
-                <p class="sim-desc">Ingresa tus deudas, sus pagos m&#237;nimos y tu presupuesto mensual. Ver&#225;s cu&#225;nto se va en m&#237;nimos, cu&#225;nto extra queda y c&#243;mo cambian avalancha y bola de nieve mes a mes.</p>
+                <p class="sim-desc">Ingresa tus deudas, sus pagos mínimos y tu presupuesto mensual. Verás cuánto se va en mínimos, cuánto extra queda, cuál es la prioridad real del pago extra y cómo cambian avalancha y bola de nieve mes a mes.</p>
 
                 <table class="debt-table" id="debt-table">
                     <thead>
@@ -425,6 +425,7 @@
                             <div class="method-focus">
                                 <div class="method-focus-label">Prioridad del pago extra</div>
                                 <div class="method-focus-text">El dinero adicional se dirige a la deuda con mayor tasa mensual mientras las otras siguen en m&#237;nimo.</div>
+                                <div class="method-focus-text" id="avalanche-priority"></div>
                             </div>
                             <div class="method-stat">
                                 <div class="method-stat-label">Total de intereses</div>
@@ -442,6 +443,7 @@
                             <div class="method-focus">
                                 <div class="method-focus-label">Prioridad del pago extra</div>
                                 <div class="method-focus-text">El dinero adicional se dirige a la deuda con menor saldo mientras las otras siguen en m&#237;nimo.</div>
+                                <div class="method-focus-text" id="snowball-priority"></div>
                             </div>
                             <div class="method-stat">
                                 <div class="method-stat-label">Total de intereses</div>
@@ -461,7 +463,7 @@
                     </div>
                     <div class="comparison-section" id="comparison-section">
                         <div class="comparison-heading">C&#243;mo cambia con el paso de los meses</div>
-                        <div class="comparison-sub">Aqu&#237; se ve mejor la pel&#237;cula completa: qu&#233; pasa al comienzo, cu&#225;ndo se libera una cuota y en qu&#233; momento la diferencia se empieza a notar m&#225;s.</div>
+                        <div class="comparison-sub">Aquí se ve mejor la película completa: qué pasa al comienzo, cuánto se va en intereses mientras los saldos siguen altos, cuándo se libera una cuota y en qué momento la diferencia se empieza a notar más.</div>
                         <div class="timeline-highlights" id="timeline-highlights"></div>
                         <details class="timeline-details">
                             <summary>Ver comparaci&#243;n mes a mes completa</summary>
@@ -656,9 +658,49 @@
             return debts.filter(debt => debt.balance > PAYOFF_EPSILON);
         }
 
-        function recordPayoff(payoffOrder, debt, month) {
-            if (payoffOrder.some(item => item.id === debt.id)) return;
-            payoffOrder.push({ id: debt.id, name: debt.name, rate: debt.rate, month });
+        function sortByMethod(items, method) {
+            const compareByMethod = getMethodComparator(method);
+            return [...items].sort((a, b) => compareByMethod(
+                {
+                    ...a,
+                    balance: a.startingBalance ?? a.balance,
+                    min: a.min ?? 0
+                },
+                {
+                    ...b,
+                    balance: b.startingBalance ?? b.balance,
+                    min: b.min ?? 0
+                }
+            ));
+        }
+
+        function buildStrategyOrder(debts, method) {
+            return sortByMethod(
+                debts.map((debt, index) => ({
+                    ...debt,
+                    id: debt.id ?? index,
+                    startingBalance: debt.startingBalance ?? debt.balance
+                })),
+                method
+            );
+        }
+
+        function queuePayoff(payoffEvents, debt, month) {
+            if (payoffEvents.some(item => item.id === debt.id)) return;
+            payoffEvents.push({
+                id: debt.id,
+                name: debt.name,
+                rate: debt.rate,
+                min: debt.min,
+                month,
+                startingBalance: debt.startingBalance ?? debt.balance
+            });
+        }
+
+        function getNextTarget(remaining, method) {
+            const active = getActiveDebts(remaining);
+            if (!active.length) return null;
+            return sortByMethod(active, method)[0];
         }
 
         function roundBudget(value) {
@@ -704,6 +746,9 @@
                 extraPaid: 0,
                 extraTargets: [],
                 completed: [],
+                completedDetails: [],
+                rolledMinimum: 0,
+                nextTarget: '',
                 carriedForward: true
             };
         }
@@ -723,6 +768,9 @@
             lines.push(formatExtraTargets(entry.extraTargets, entry.extraPaid));
             if (entry.completed.length) {
                 lines.push('Se cancela: ' + entry.completed.join(', '));
+                if (entry.nextTarget) {
+                    lines.push('Siguiente foco: ' + entry.nextTarget);
+                }
             } else if (entry.carriedForward && entry.remainingBalance <= PAYOFF_EPSILON) {
                 lines.push('Ya no queda saldo pendiente.');
             }
@@ -753,19 +801,21 @@
 
         function getHighlightMonths(av, sb) {
             const maxMonths = Math.max(av.history.length, sb.history.length);
+            const snowballFreedom = sb.history.find(entry => entry.completed.length)?.month;
             const firstFreedom = [av.history, sb.history]
                 .map(history => history.find(entry => entry.completed.length))
                 .filter(Boolean)
                 .map(entry => entry.month)
                 .sort((a, b) => a - b)[0];
             const midpoint = maxMonths > 4 ? Math.ceil(maxMonths / 2) : null;
-            const months = [1, firstFreedom, midpoint, maxMonths]
+            const months = [1, firstFreedom, snowballFreedom, midpoint, maxMonths]
                 .filter(month => month && month >= 1 && month <= maxMonths);
             return [...new Set(months)];
         }
 
         function getHighlightTitle(month, highlightMonths, av, sb) {
             const maxMonths = Math.max(av.history.length, sb.history.length);
+            const snowballFreedom = sb.history.find(entry => entry.completed.length);
             const firstFreedom = [av.history, sb.history]
                 .map(history => history.find(entry => entry.completed.length))
                 .filter(Boolean)
@@ -774,6 +824,7 @@
 
             if (month === 1) return 'Mes 1: as\u00ed arranca la comparaci\u00f3n';
             if (month === maxMonths) return 'Mes ' + month + ': cierre del ejercicio';
+            if (snowballFreedom && month === snowballFreedom.month) return 'Mes ' + month + ': empieza el efecto bola de nieve';
             if (firstFreedom === month) return 'Mes ' + month + ': se libera la primera cuota';
             return 'Mes ' + month + ': la brecha ya se empieza a notar';
         }
@@ -786,27 +837,46 @@
 
             let note = '';
             if (extra <= PAYOFF_EPSILON) {
-                note = 'Con este presupuesto casi todo se va en pagos m\u00ednimos. Por eso los dos m\u00e9todos pueden verse muy parecidos al comienzo.';
+                note = 'Con este presupuesto casi todo se va en pagos mínimos y en intereses. Por eso los dos métodos pueden verse muy parecidos al comienzo.';
             } else if (extra < 100000) {
-                note = 'Aqu\u00ed ya hay un margen peque\u00f1o para decidir. La diferencia suele aparecer cuando una cuota termina y ese extra se multiplica.';
+                note = 'Aquí ya hay un margen pequeño para decidir. Al comienzo buena parte del pago sigue absorbiéndola el interés, y la diferencia suele aparecer cuando una cuota termina y ese extra se multiplica.';
             } else {
-                note = 'Aqu\u00ed ya hay un margen real para decidir a qu\u00e9 deuda enviar el extra. Eso hace m\u00e1s visible la diferencia entre los dos caminos.';
+                note = 'Aquí ya hay un margen real para decidir a qué deuda enviar el extra. Eso hace más visible la diferencia entre los dos caminos, sobre todo después de liberar una cuota.';
             }
 
             document.getElementById('budget-note').textContent = note;
         }
 
-        function renderPayoffOrder(containerId, result, debts, method) {
+        function renderMethodPriority(containerId, debts, method) {
+            const ordered = buildStrategyOrder(debts, method);
+            const label = method === 'avalanche'
+                ? 'Con estos datos, el extra sigue esta prioridad: '
+                : 'Con estos datos, el extra sigue esta prioridad: ';
+            document.getElementById(containerId).textContent = label + ordered.map(debt => debt.name).join(' → ');
+        }
+
+        function renderPayoffOrder(containerId, result, method) {
             const compareByMethod = getMethodComparator(method);
-            const ordered = result.payoffOrder.length > 0
-                ? result.payoffOrder
-                : debts.map((debt, id) => ({ ...debt, id })).sort(compareByMethod);
+            const ordered = [...result.payoffOrder].sort((a, b) => {
+                if (a.month !== b.month) return a.month - b.month;
+                return compareByMethod(
+                    { ...a, balance: a.startingBalance, min: a.min ?? 0 },
+                    { ...b, balance: b.startingBalance, min: b.min ?? 0 }
+                );
+            });
             const container = document.getElementById(containerId);
 
             container.innerHTML = '<div class="payoff-order-title">Orden final de cancelaci\u00f3n</div>';
+            container.innerHTML += '<div class="payoff-note">Este orden sale de la simulación real. La prioridad del extra sigue la estrategia, pero el cierre final también depende de los mínimos y de cuándo una cuota se libera.</div>';
 
             if (!result.hadInitialExtra) {
                 container.innerHTML += '<div class="payoff-note">Al comienzo solo alcanza para cubrir m\u00ednimos. La diferencia entre m\u00e9todos aparece cuando se libera una cuota.</div>';
+            }
+            if (!ordered.length) {
+                container.innerHTML += '<div class="payoff-note">' + (result.months === -1
+                    ? 'Con este presupuesto no se alcanza a cancelar todo el conjunto, así que no hay un orden final completo.'
+                    : 'Todavía no aparece una cancelación completa con estos datos.') + '</div>';
+                return;
             }
 
             ordered.forEach((debt, i) => {
@@ -815,9 +885,35 @@
                     '<div class="payoff-step">' +
                     '<span class="step-num">' + (i + 1) + '</span>' +
                     '<span class="step-name">' + debt.name + '</span>' +
-                    '<span class="step-rate" style="color:' + color + '">' + (debt.rate * 100).toFixed(1) + '%/mes</span>' +
+                    '<span class="step-rate" style="color:' + color + '">' + (debt.rate * 100).toFixed(1) + '%/mes &middot; Mes ' + debt.month + '</span>' +
                     '</div>';
             });
+        }
+
+        function buildMethodLessonNote(entry, method) {
+            if (entry.month === 1) {
+                return 'Con saldos altos, al comienzo una parte grande del pago se va en intereses.';
+            }
+
+            if (!entry.completedDetails || !entry.completedDetails.length) {
+                return '';
+            }
+
+            const completedNames = entry.completedDetails.map(item => item.name).join(', ');
+
+            if (!entry.nextTarget) {
+                return 'Con esta cancelación ya no queda otra deuda pendiente.';
+            }
+
+            if (entry.rolledMinimum > PAYOFF_EPSILON) {
+                if (method === 'snowball') {
+                    return 'Al cancelar ' + completedNames + ', se liberan ' + fmt(entry.rolledMinimum) + ' de mínimo. Desde el próximo mes se suman a ' + entry.nextTarget + ': ese es el efecto bola de nieve.';
+                }
+
+                return 'Al cancelar ' + completedNames + ', se liberan ' + fmt(entry.rolledMinimum) + ' que desde el próximo mes se dirigen a ' + entry.nextTarget + '.';
+            }
+
+            return '';
         }
 
         function renderTimelineComparison(av, sb) {
@@ -838,6 +934,8 @@
             highlightsContainer.innerHTML = highlightMonths.map(month => {
                 const avEntry = getHistoryEntry(av.history, month);
                 const sbEntry = getHistoryEntry(sb.history, month);
+                const avLessonNote = buildMethodLessonNote(avEntry, 'avalanche');
+                const sbLessonNote = buildMethodLessonNote(sbEntry, 'snowball');
                 return (
                     '<div class="timeline-card">' +
                         '<div class="timeline-card-header">' + getHighlightTitle(month, highlightMonths, av, sb) + '</div>' +
@@ -847,12 +945,14 @@
                                 '<div class="timeline-method-stat">Saldo restante: <strong>' + fmt(avEntry.remainingBalance) + '</strong></div>' +
                                 '<div class="timeline-method-stat">Intereses acumulados: <strong>' + fmt(avEntry.cumulativeInterest) + '</strong></div>' +
                                 '<div class="timeline-method-stat">Extra de este mes: ' + formatTimelineNote(avEntry) + '</div>' +
+                                (avLessonNote ? '<div class="timeline-method-stat">' + avLessonNote + '</div>' : '') +
                             '</div>' +
                             '<div class="timeline-method snowball">' +
                                 '<div class="timeline-method-name">\u26c4 Bola de nieve</div>' +
                                 '<div class="timeline-method-stat">Saldo restante: <strong>' + fmt(sbEntry.remainingBalance) + '</strong></div>' +
                                 '<div class="timeline-method-stat">Intereses acumulados: <strong>' + fmt(sbEntry.cumulativeInterest) + '</strong></div>' +
                                 '<div class="timeline-method-stat">Extra de este mes: ' + formatTimelineNote(sbEntry) + '</div>' +
+                                (sbLessonNote ? '<div class="timeline-method-stat">' + sbLessonNote + '</div>' : '') +
                             '</div>' +
                         '</div>' +
                         '<div class="timeline-gap">' + buildGapSummary(avEntry, sbEntry) + '</div>' +
@@ -883,7 +983,6 @@
         function simulateDebts(debts, budget, method) {
             const MAX_MONTHS  = 240;
             const BALANCE_CAP = 500000000;
-            const compareByMethod = getMethodComparator(method);
             const totalMin = debts.reduce((sum, debt) => sum + debt.min, 0);
             const startingInterest = debts.reduce((sum, debt) => sum + debt.balance * debt.rate, 0);
             const initialTotalBalance = debts.reduce((sum, debt) => sum + debt.balance, 0);
@@ -891,6 +990,7 @@
             let remaining = debts.map((debt, id) => ({
                 ...debt,
                 id,
+                startingBalance: debt.balance,
                 balance: Math.min(debt.balance, BALANCE_CAP)
             }));
 
@@ -907,6 +1007,7 @@
                 let extraPaidThisMonth = 0;
                 const extraTargets = [];
                 const completedThisMonth = [];
+                const payoffEventsThisMonth = [];
 
                 remaining.forEach(debt => {
                     if (debt.balance <= PAYOFF_EPSILON) {
@@ -932,13 +1033,12 @@
 
                     if (debt.balance <= PAYOFF_EPSILON) {
                         debt.balance = 0;
-                        if (!completedThisMonth.includes(debt.name)) completedThisMonth.push(debt.name);
-                        recordPayoff(payoffOrder, debt, months);
+                        queuePayoff(payoffEventsThisMonth, debt, months);
                     }
                 });
 
                 while (remainingBudget > PAYOFF_EPSILON && getActiveDebts(remaining).length > 0) {
-                    const target = [...getActiveDebts(remaining)].sort(compareByMethod)[0];
+                    const target = getNextTarget(remaining, method);
                     const pay = Math.min(remainingBudget, target.balance);
                     if (pay <= PAYOFF_EPSILON) break;
 
@@ -955,10 +1055,17 @@
 
                     if (target.balance <= PAYOFF_EPSILON) {
                         target.balance = 0;
-                        if (!completedThisMonth.includes(target.name)) completedThisMonth.push(target.name);
-                        recordPayoff(payoffOrder, target, months);
+                        queuePayoff(payoffEventsThisMonth, target, months);
                     }
                 }
+
+                sortByMethod(payoffEventsThisMonth, method).forEach(item => {
+                    payoffOrder.push(item);
+                    completedThisMonth.push(item.name);
+                });
+
+                const rolledMinimum = payoffEventsThisMonth.reduce((sum, debt) => sum + debt.min, 0);
+                const nextTarget = getNextTarget(remaining, method);
 
                 const totalBalance = remaining.reduce((sum, debt) => sum + debt.balance, 0);
                 history.push({
@@ -970,6 +1077,9 @@
                     extraPaid: extraPaidThisMonth,
                     extraTargets,
                     completed: completedThisMonth,
+                    completedDetails: payoffEventsThisMonth.map(item => ({ id: item.id, name: item.name, min: item.min })),
+                    rolledMinimum,
+                    nextTarget: nextTarget ? nextTarget.name : '',
                     carriedForward: false
                 });
 
@@ -1037,8 +1147,10 @@
             document.getElementById('avalanche-months').textContent   = av.months === -1 ? 'No converge' : av.months + ' meses';
             document.getElementById('snowball-interest').textContent  = sb.months === -1 ? '\u2014' : fmt(sb.totalInterest);
             document.getElementById('snowball-months').textContent    = sb.months === -1 ? 'No converge' : sb.months + ' meses';
-
-            renderPayoffOrder('avalanche-order', av, debts, 'avalanche');
+            renderMethodPriority('avalanche-priority', debts, 'avalanche');
+            renderMethodPriority('snowball-priority', debts, 'snowball');
+            renderPayoffOrder('avalanche-order', av, 'avalanche');
+            renderPayoffOrder('snowball-order',  sb, 'snowball');
             renderPayoffOrder('snowball-order',  sb, debts, 'snowball');
             renderTimelineComparison(av, sb);
 
@@ -1056,7 +1168,11 @@
             if (av.months !== -1 && sb.months !== -1) {
                 const diff = Math.abs(av.totalInterest - sb.totalInterest);
                 const monthsDiff = Math.abs(av.months - sb.months);
-
+                savingsAmount.textContent = diff > RESULT_TIE_EPSILON
+                    ? fmt(diff)
+                    : monthsDiff > 0
+                        ? monthsDiff + ' mes' + (monthsDiff === 1 ? '' : 'es')
+                        : fmt(diff);
                 savingsAmount.textContent = fmt(diff);
                 savingsBanner.style.display = 'block';
 
@@ -1064,16 +1180,16 @@
                     savingsCaption.textContent = 'Con estos datos, ambos m\u00e9todos terminan pr\u00e1cticamente igual en intereses y tiempo.';
                 } else if (diff > RESULT_TIE_EPSILON ? av.totalInterest < sb.totalInterest : av.months < sb.months) {
                     avCard.classList.add('winner');
-                    avCard.querySelector('.method-name').innerHTML = '\u26a1 Avalancha <span class="winner-badge">Ganador</span>';
+                    avCard.querySelector('.method-name').innerHTML = '⚡ Avalancha <span class="winner-badge">' + (diff > RESULT_TIE_EPSILON ? 'Menor interés total' : 'Menos meses') + '</span>';
                     savingsCaption.textContent = diff > RESULT_TIE_EPSILON
-                        ? 'El m\u00e9todo Avalancha te ahorra ' + fmt(diff) + ' en intereses.'
-                        : 'Con intereses casi iguales, el m\u00e9todo Avalancha termina ' + monthsDiff + ' mes' + (monthsDiff === 1 ? '' : 'es') + ' antes.';
+                        ? 'En este escenario, Avalancha termina con ' + fmt(diff) + ' menos en intereses.'
+                        : 'Con intereses casi iguales, Avalancha termina ' + monthsDiff + ' mes' + (monthsDiff === 1 ? '' : 'es') + ' antes.';
                 } else {
                     sbCard.classList.add('winner');
-                    sbCard.querySelector('.method-name').innerHTML = '\u26c4 Bola de nieve <span class="winner-badge">Ganador</span>';
+                    sbCard.querySelector('.method-name').innerHTML = '⛄ Bola de nieve <span class="winner-badge">' + (diff > RESULT_TIE_EPSILON ? 'Menor interés total' : 'Menos meses') + '</span>';
                     savingsCaption.textContent = diff > RESULT_TIE_EPSILON
-                        ? 'El m\u00e9todo Bola de nieve te ahorra ' + fmt(diff) + ' en intereses.'
-                        : 'Con intereses casi iguales, el m\u00e9todo Bola de nieve termina ' + monthsDiff + ' mes' + (monthsDiff === 1 ? '' : 'es') + ' antes.';
+                        ? 'En este escenario, Bola de nieve termina con ' + fmt(diff) + ' menos en intereses.'
+                        : 'Con intereses casi iguales, Bola de nieve termina ' + monthsDiff + ' mes' + (monthsDiff === 1 ? '' : 'es') + ' antes.';
                 }
             } else {
                 savingsBanner.style.display = 'none';
