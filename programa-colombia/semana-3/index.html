@@ -114,6 +114,7 @@
         .winner-badge { display:inline-block; background:rgba(252,209,22,0.2); color:var(--yellow); border:1px solid var(--yellow); border-radius:1rem; padding:0.15rem 0.6rem; font-size:0.7rem; font-weight:700; margin-left:0.4rem; }
         .payoff-order { background:var(--dark2); border:1px solid rgba(252,209,22,0.15); border-radius:0.6rem; padding:0.9rem; margin-top:0.75rem; }
         .payoff-order-title { font-size:0.8rem; font-weight:700; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem; }
+        .payoff-note { font-size:0.78rem; color:var(--dim); line-height:1.5; margin-bottom:0.65rem; }
         .payoff-step { display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem; }
         .step-num { background:rgba(252,209,22,0.15); color:var(--primary); border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:700; flex-shrink:0; }
         .step-name { flex:1; font-size:0.87rem; }
@@ -543,63 +544,133 @@
             return debts;
         }
 
+        const PAYOFF_EPSILON     = 0.01;
+        const RESULT_TIE_EPSILON = 1;
+
+        function getMethodComparator(method) {
+            return (a, b) => {
+                if (method === 'avalanche') {
+                    if (Math.abs(b.rate - a.rate) > 1e-9) return b.rate - a.rate;
+                    if (Math.abs(a.balance - b.balance) > PAYOFF_EPSILON) return a.balance - b.balance;
+                    if (Math.abs(b.min - a.min) > PAYOFF_EPSILON) return b.min - a.min;
+                    return a.id - b.id;
+                }
+
+                if (Math.abs(a.balance - b.balance) > PAYOFF_EPSILON) return a.balance - b.balance;
+                if (Math.abs(b.rate - a.rate) > 1e-9) return b.rate - a.rate;
+                if (Math.abs(b.min - a.min) > PAYOFF_EPSILON) return b.min - a.min;
+                return a.id - b.id;
+            };
+        }
+
+        function getActiveDebts(debts) {
+            return debts.filter(d => d.balance > PAYOFF_EPSILON);
+        }
+
+        function recordPayoff(payoffOrder, debt) {
+            if (payoffOrder.some(item => item.id === debt.id)) return;
+            payoffOrder.push({ id: debt.id, name: debt.name, rate: debt.rate });
+        }
+
         // ---------- PAYOFF SIMULATION (overflow-safe) ----------
-        function simulateDebts(debts, budget, sortFn) {
+        function simulateDebts(debts, budget, method) {
             const MAX_MONTHS  = 240;
             const BALANCE_CAP = 500000000;
+            const compareByMethod = getMethodComparator(method);
+            const totalMin = debts.reduce((sum, debt) => sum + debt.min, 0);
+            const initialTotalBalance = debts.reduce((sum, debt) => sum + debt.balance, 0);
 
-            let remaining = debts.map(d => ({ ...d, balance: Math.min(d.balance, BALANCE_CAP) }));
-            remaining.sort(sortFn);
+            let remaining = debts.map((debt, id) => ({
+                ...debt,
+                id,
+                balance: Math.min(debt.balance, BALANCE_CAP)
+            }));
 
             let totalInterest = 0;
             let months        = 0;
+            const payoffOrder = [];
 
-            while (remaining.some(d => d.balance > 10) && months < MAX_MONTHS) {
+            while (getActiveDebts(remaining).length > 0 && months < MAX_MONTHS) {
                 months++;
-                let extra = budget;
+                let remainingBudget = budget;
 
-                remaining.forEach(d => {
-                    if (d.balance <= 10) { d.balance = 0; return; }
-                    const interest = d.balance * d.rate;
-                    d.balance      = Math.min(d.balance + interest, BALANCE_CAP);
+                remaining.forEach(debt => {
+                    if (debt.balance <= PAYOFF_EPSILON) {
+                        debt.balance = 0;
+                        return;
+                    }
+
+                    const interest = debt.balance * debt.rate;
+                    debt.balance   = Math.min(debt.balance + interest, BALANCE_CAP);
                     totalInterest  = Math.min(totalInterest + interest, BALANCE_CAP);
                 });
 
-                remaining.forEach(d => {
-                    if (d.balance <= 0 || extra <= 0) return;
-                    const pay = Math.min(d.min, d.balance, extra);
-                    d.balance = Math.max(0, d.balance - pay);
-                    extra    -= pay;
+                remaining.forEach(debt => {
+                    if (debt.balance <= PAYOFF_EPSILON || remainingBudget <= 0) return;
+
+                    const pay = Math.min(debt.min, debt.balance, remainingBudget);
+                    debt.balance = Math.max(0, debt.balance - pay);
+                    remainingBudget -= pay;
+
+                    if (debt.balance <= PAYOFF_EPSILON) {
+                        debt.balance = 0;
+                        recordPayoff(payoffOrder, debt);
+                    }
                 });
 
-                for (let i = 0; i < remaining.length && extra > 0; i++) {
-                    if (remaining[i].balance <= 0) continue;
-                    const pay = Math.min(extra, remaining[i].balance);
-                    remaining[i].balance = Math.max(0, remaining[i].balance - pay);
-                    extra -= pay;
+                while (remainingBudget > PAYOFF_EPSILON && getActiveDebts(remaining).length > 0) {
+                    const target = [...getActiveDebts(remaining)].sort(compareByMethod)[0];
+                    const pay = Math.min(remainingBudget, target.balance);
+                    target.balance = Math.max(0, target.balance - pay);
+                    remainingBudget -= pay;
+
+                    if (target.balance <= PAYOFF_EPSILON) {
+                        target.balance = 0;
+                        recordPayoff(payoffOrder, target);
+                    }
                 }
 
                 if (months === 12) {
-                    const totalBal   = remaining.reduce((s, d) => s + d.balance, 0);
-                    const initialBal = debts.reduce((s, d) => s + d.balance, 0);
-                    if (totalBal > initialBal) return { totalInterest, months: -1 };
+                    const totalBal = remaining.reduce((sum, debt) => sum + debt.balance, 0);
+                    if (totalBal > initialTotalBalance + PAYOFF_EPSILON) {
+                        return {
+                            totalInterest,
+                            months: -1,
+                            payoffOrder,
+                            hadInitialExtra: budget - totalMin > PAYOFF_EPSILON
+                        };
+                    }
                 }
             }
 
-            return { totalInterest, months: months < MAX_MONTHS ? months : -1 };
+            return {
+                totalInterest,
+                months: months < MAX_MONTHS ? months : -1,
+                payoffOrder,
+                hadInitialExtra: budget - totalMin > PAYOFF_EPSILON
+            };
         }
 
-        function renderPayoffOrder(containerId, debts, sortFn) {
-            const ordered   = [...debts].sort(sortFn);
+        function renderPayoffOrder(containerId, result, debts, method) {
+            const compareByMethod = getMethodComparator(method);
+            const ordered = result.payoffOrder.length > 0
+                ? result.payoffOrder
+                : debts.map((debt, id) => ({ ...debt, id })).sort(compareByMethod);
             const container = document.getElementById(containerId);
-            container.innerHTML = '<div class="payoff-order-title">Orden de pago</div>';
-            ordered.forEach((d, i) => {
-                const color = d.rate > 0.05 ? 'var(--red)' : 'var(--yellow)';
+
+            container.innerHTML = '<div class="payoff-order-title">Orden estimado de cancelación</div>';
+
+            if (!result.hadInitialExtra) {
+                container.innerHTML += '<div class="payoff-note">Al comienzo solo alcanza para cubrir mínimos. La diferencia entre métodos aparece cuando se libera una cuota.</div>';
+            }
+
+            ordered.forEach((debt, i) => {
+                const color = debt.rate > 0.05 ? 'var(--red)' : 'var(--yellow)';
                 container.innerHTML +=
                     '<div class="payoff-step">' +
                     '<span class="step-num">' + (i + 1) + '</span>' +
-                    '<span class="step-name">' + d.name + '</span>' +
-                    '<span class="step-rate" style="color:' + color + '">' + (d.rate * 100).toFixed(1) + '%/mes</span>' +
+                    '<span class="step-name">' + debt.name + '</span>' +
+                    '<span class="step-rate" style="color:' + color + '">' + (debt.rate * 100).toFixed(1) + '%/mes</span>' +
                     '</div>';
             });
         }
@@ -616,56 +687,67 @@
             }
 
             const budget   = parseFloat(document.getElementById('monthly-budget').value) || 350000;
-            const totalMin = debts.reduce((s, d) => s + d.min, 0);
+            const totalMin = debts.reduce((sum, debt) => sum + debt.min, 0);
 
             if (budget < totalMin) {
-                errEl.textContent   = 'El presupuesto (' + fmt(budget) + ') es menor que la suma de pagos m\u00ednimos (' + fmt(totalMin) + '). Aumenta el presupuesto o ajusta los pagos m\u00ednimos.';
+                errEl.textContent   = 'El presupuesto (' + fmt(budget) + ') es menor que la suma de pagos mínimos (' + fmt(totalMin) + '). Aumenta el presupuesto o ajusta los pagos mínimos.';
                 errEl.style.display = 'block';
                 return;
             }
 
-            const totalMonthlyInterest = debts.reduce((s, d) => s + d.balance * d.rate, 0);
+            const totalMonthlyInterest = debts.reduce((sum, debt) => sum + debt.balance * debt.rate, 0);
             if (budget <= totalMonthlyInterest) {
-                errEl.textContent   = 'Con este presupuesto, los intereses (' + fmt(totalMonthlyInterest) + '/mes) crecen m\u00e1s r\u00e1pido de lo que se puede pagar. Aumenta el presupuesto mensual o reduce las deudas m\u00e1s costosas.';
+                errEl.textContent   = 'Con este presupuesto, los intereses (' + fmt(totalMonthlyInterest) + '/mes) crecen más rápido de lo que se puede pagar. Aumenta el presupuesto mensual o reduce las deudas más costosas.';
                 errEl.style.display = 'block';
                 return;
             }
 
-            const avalancheSortFn = (a, b) => b.rate - a.rate;
-            const snowballSortFn  = (a, b) => a.balance - b.balance;
+            const av = simulateDebts(debts, budget, 'avalanche');
+            const sb = simulateDebts(debts, budget, 'snowball');
 
-            const av = simulateDebts(debts, budget, avalancheSortFn);
-            const sb = simulateDebts(debts, budget, snowballSortFn);
-
-            document.getElementById('avalanche-interest').textContent = av.months === -1 ? '\u2014' : fmt(av.totalInterest);
+            document.getElementById('avalanche-interest').textContent = av.months === -1 ? '—' : fmt(av.totalInterest);
             document.getElementById('avalanche-months').textContent   = av.months === -1 ? 'No converge' : av.months + ' meses';
-            document.getElementById('snowball-interest').textContent  = sb.months === -1 ? '\u2014' : fmt(sb.totalInterest);
+            document.getElementById('snowball-interest').textContent  = sb.months === -1 ? '—' : fmt(sb.totalInterest);
             document.getElementById('snowball-months').textContent    = sb.months === -1 ? 'No converge' : sb.months + ' meses';
 
-            renderPayoffOrder('avalanche-order', debts, avalancheSortFn);
-            renderPayoffOrder('snowball-order',  debts, snowballSortFn);
+            renderPayoffOrder('avalanche-order', av, debts, 'avalanche');
+            renderPayoffOrder('snowball-order',  sb, debts, 'snowball');
 
             const avCard = document.getElementById('avalanche-card');
             const sbCard = document.getElementById('snowball-card');
+            const savingsBanner = document.getElementById('savings-banner');
+            const savingsAmount = document.getElementById('savings-amount');
+            const savingsCaption = document.getElementById('savings-caption');
+
+            avCard.classList.remove('winner');
+            sbCard.classList.remove('winner');
+            avCard.querySelector('.method-name').textContent = '⚡ Avalancha';
+            sbCard.querySelector('.method-name').textContent = '⛄ Bola de nieve';
 
             if (av.months !== -1 && sb.months !== -1) {
                 const diff = Math.abs(av.totalInterest - sb.totalInterest);
-                document.getElementById('savings-amount').textContent  = fmt(diff);
-                document.getElementById('savings-banner').style.display = 'block';
+                const monthsDiff = Math.abs(av.months - sb.months);
 
-                if (av.totalInterest <= sb.totalInterest) {
-                    avCard.classList.add('winner');    sbCard.classList.remove('winner');
-                    avCard.querySelector('.method-name').innerHTML  = '\u26a1 Avalancha <span class="winner-badge">Ganador</span>';
-                    sbCard.querySelector('.method-name').textContent = '\u26c4 Bola de nieve';
-                    document.getElementById('savings-caption').textContent = 'El m\u00e9todo Avalancha te ahorra ' + fmt(diff) + ' en intereses.';
+                savingsAmount.textContent = fmt(diff);
+                savingsBanner.style.display = 'block';
+
+                if (diff <= RESULT_TIE_EPSILON && monthsDiff === 0) {
+                    savingsCaption.textContent = 'Con estos datos, ambos métodos terminan prácticamente igual en intereses y tiempo.';
+                } else if (diff > RESULT_TIE_EPSILON ? av.totalInterest < sb.totalInterest : av.months < sb.months) {
+                    avCard.classList.add('winner');
+                    avCard.querySelector('.method-name').innerHTML = '⚡ Avalancha <span class="winner-badge">Ganador</span>';
+                    savingsCaption.textContent = diff > RESULT_TIE_EPSILON
+                        ? 'El método Avalancha te ahorra ' + fmt(diff) + ' en intereses.'
+                        : 'Con intereses casi iguales, el método Avalancha termina ' + monthsDiff + ' mes' + (monthsDiff === 1 ? '' : 'es') + ' antes.';
                 } else {
-                    sbCard.classList.add('winner');    avCard.classList.remove('winner');
-                    sbCard.querySelector('.method-name').innerHTML  = '\u26c4 Bola de nieve <span class="winner-badge">Ganador</span>';
-                    avCard.querySelector('.method-name').textContent = '\u26a1 Avalancha';
-                    document.getElementById('savings-caption').textContent = 'El m\u00e9todo Bola de nieve te ahorra ' + fmt(diff) + ' en intereses.';
+                    sbCard.classList.add('winner');
+                    sbCard.querySelector('.method-name').innerHTML = '⛄ Bola de nieve <span class="winner-badge">Ganador</span>';
+                    savingsCaption.textContent = diff > RESULT_TIE_EPSILON
+                        ? 'El método Bola de nieve te ahorra ' + fmt(diff) + ' en intereses.'
+                        : 'Con intereses casi iguales, el método Bola de nieve termina ' + monthsDiff + ' mes' + (monthsDiff === 1 ? '' : 'es') + ' antes.';
                 }
             } else {
-                document.getElementById('savings-banner').style.display = 'none';
+                savingsBanner.style.display = 'none';
             }
 
             document.getElementById('results-section').classList.add('visible');
