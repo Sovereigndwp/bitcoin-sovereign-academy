@@ -1,4 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
+import { appendLiteralQueryParam, resolveAllowedRedirectUrl, setCorsHeaders } from './lib/origin';
 
 /**
  * POST /api/apprentice-checkout
@@ -44,18 +45,13 @@ async function stripePost(endpoint: string, body: Record<string, string>, apiKey
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    const origin = process.env.ALLOWED_ORIGIN;
-    const safeOrigin =
-        origin && !origin.includes(',') && !origin.includes('\n') ? origin.trim() : '*';
-    try { res.setHeader('Access-Control-Allow-Origin', safeOrigin); } catch { res.setHeader('Access-Control-Allow-Origin', '*'); }
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    setCorsHeaders(req, res, 'POST, OPTIONS', 'Content-Type');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'POST required' });
 
     try {
-        const { priceCents } = req.body || {};
+        const { priceCents, successUrl: requestedSuccessUrl, cancelUrl: requestedCancelUrl } = req.body || {};
 
         if (!priceCents || typeof priceCents !== 'number' || priceCents < 100) {
             return res.status(400).json({ error: 'priceCents is required (integer, >= 100)' });
@@ -81,8 +77,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const priceUSD = (priceCents / 100).toFixed(2);
-        const successUrl = `${req.headers.origin || 'https://bitcoinsovereign.academy'}/membership.html?payment_success=1&session_id={CHECKOUT_SESSION_ID}`;
-        const cancelUrl = `${req.headers.origin || 'https://bitcoinsovereign.academy'}/membership.html`;
+        const successUrl = appendLiteralQueryParam(
+            resolveAllowedRedirectUrl(requestedSuccessUrl, '/membership.html?payment_success=1', req),
+            'session_id',
+            '{CHECKOUT_SESSION_ID}'
+        );
+        const cancelUrl = resolveAllowedRedirectUrl(requestedCancelUrl, '/membership.html', req);
 
         const params: Record<string, string> = {
             mode: 'payment',
@@ -98,6 +98,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             'metadata[method]': 'fiat',
             'metadata[satsEquivalent]': String(SATS_DEPOSIT),
             'metadata[btcUsdRate]': String(btcUsd),
+            'metadata[source]': 'apprentice-checkout',
         };
 
         // Pass referral code if present

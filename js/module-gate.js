@@ -11,13 +11,7 @@
         return; // Bypass all gating logic
     }
 
-    const storageKey = 'bsa_full_access';
-    const previewParam = 'unlock';
     const previewLimit = window.BSA_CONFIG?.FREE_MODULES_LIMIT || 2;
-
-    // Preview mode for investors/demos
-    const previewKey = 'UILpVhRGw62d0jPe9GPk';  // Secure key - share only with trusted parties
-    const previewStorageKey = 'bsa_preview_mode';
 
     const pathName = normalizePath(window.location.pathname);
 
@@ -46,32 +40,9 @@
         return;
     }
 
-    const params = new URLSearchParams(window.location.search);
-    const unlockParam = params.get(previewParam);
-    const previewParam_value = params.get('preview');
+    clearLegacyAccessState();
 
-    // Check for preview mode
-    if (previewParam_value === previewKey) {
-        sessionStorage.setItem(previewStorageKey, 'active');
-        showPreviewBanner();
-        return; // Bypass all gating in preview mode
-    } else if (previewParam_value === 'reset') {
-        sessionStorage.removeItem(previewStorageKey);
-    }
-
-    // If preview mode is active, bypass gating
-    if (sessionStorage.getItem(previewStorageKey) === 'active') {
-        showPreviewBanner();
-        return;
-    }
-
-    if (unlockParam === 'true') {
-        localStorage.setItem(storageKey, 'yes');
-    } else if (unlockParam === 'reset') {
-        localStorage.removeItem(storageKey);
-    }
-
-    if (localStorage.getItem(storageKey) === 'yes') {
+    if (hasTrustedAccess()) {
         return;
     }
 
@@ -88,6 +59,58 @@
             return '/' + path;
         }
         return path;
+    }
+
+    function hasTrustedAccess() {
+        if (window.BSASubdomainAccess?.hasFullAccess?.()) {
+            return true;
+        }
+
+        return isDevelopmentHost() || hasValidAccessToken();
+    }
+
+    function isDevelopmentHost() {
+        const hostname = window.location.hostname.toLowerCase();
+        return hostname === 'localhost' ||
+            hostname === '127.0.0.1' ||
+            hostname === '0.0.0.0' ||
+            hostname.endsWith('.localhost') ||
+            hostname.endsWith('.vercel.app');
+    }
+
+    function hasValidAccessToken() {
+        const token = localStorage.getItem('bsa_access_token') ||
+            localStorage.getItem('bsa_jwt_token');
+
+        if (!token) {
+            return false;
+        }
+
+        try {
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                return false;
+            }
+
+            const normalizedPayload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const paddedPayload = normalizedPayload + '='.repeat((4 - normalizedPayload.length % 4) % 4);
+            const payload = JSON.parse(atob(paddedPayload));
+
+            if (payload.exp && payload.exp * 1000 < Date.now()) {
+                localStorage.removeItem('bsa_access_token');
+                localStorage.removeItem('bsa_jwt_token');
+                return false;
+            }
+
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    function clearLegacyAccessState() {
+        localStorage.removeItem('bsa_full_access');
+        sessionStorage.removeItem('bsa_preview_mode');
     }
 
     function addPaywallWarning(lastFreeSection) {
@@ -532,48 +555,26 @@
         document.head.appendChild(style);
     }
 
-    function showPreviewBanner() {
-        window.addEventListener('DOMContentLoaded', () => {
-            // Check if banner already exists
-            if (document.getElementById('preview-mode-banner')) {
-                return;
-            }
-
-            // Create banner
-            const banner = document.createElement('div');
-            banner.id = 'preview-mode-banner';
-            banner.innerHTML = `
-                <div style="background: linear-gradient(135deg, #f7931a, #ffb347); color: #121212; padding: 0.75rem 1.5rem; text-align: center; font-weight: 600; position: fixed; top: 0; left: 0; right: 0; z-index: 10000; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-                    <span style="font-size: 1.1rem;">👁️ Preview Mode Active</span>
-                    <span style="margin: 0 1rem; opacity: 0.7;">|</span>
-                    <span style="font-size: 0.9rem;">All content unlocked for viewing</span>
-                    <button onclick="sessionStorage.removeItem('bsa_preview_mode'); location.reload();" style="margin-left: 1.5rem; background: rgba(18,18,18,0.8); color: white; border: none; padding: 0.4rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Exit Preview</button>
-                </div>
-            `;
-
-            document.body.insertBefore(banner, document.body.firstChild);
-
-            // Add padding to body to account for banner
-            document.body.style.paddingTop = '60px';
-        });
-    }
 
     window.BSAModuleGate = {
         unlock() {
-            localStorage.setItem(storageKey, 'yes');
-            window.location.reload();
+            console.warn('[Module Gate] unlock() is disabled. Use a valid access token or a development host.');
+            return false;
         },
         reset() {
-            localStorage.removeItem(storageKey);
+            clearLegacyAccessState();
             window.location.reload();
         },
-        enablePreview() {
-            sessionStorage.setItem(previewStorageKey, 'active');
-            window.location.reload();
-        },
-        disablePreview() {
-            sessionStorage.removeItem(previewStorageKey);
-            window.location.reload();
+        getStatus() {
+            const trustedAccess = hasTrustedAccess();
+            return {
+                path: pathName,
+                hasTrustedAccess: trustedAccess,
+                hasValidToken: hasValidAccessToken(),
+                isDevelopmentHost: isDevelopmentHost(),
+                isAlwaysOpen: alwaysOpen.has(pathName),
+                gatingApplies: !trustedAccess && !alwaysOpen.has(pathName)
+            };
         }
     };
 })();

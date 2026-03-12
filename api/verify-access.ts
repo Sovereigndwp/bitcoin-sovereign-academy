@@ -1,12 +1,11 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { verifyAccessToken, hasModuleAccess, hasPathAccess } from './entitlements';
+import { setCorsHeaders } from './lib/origin';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    setCorsHeaders(req, res, 'POST,OPTIONS', 'Content-Type, Authorization');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
@@ -28,10 +27,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         // Verify JWT signature and expiration
         const entitlement = verifyAccessToken(token);
+        const hasWildcardAccess = entitlement.modules.includes('*') || entitlement.paths.includes('*');
 
         // If specific module access is requested
         if (moduleId) {
-            const hasAccess = await hasModuleAccess(entitlement.email, moduleId);
+            const hasAccess = hasWildcardAccess ||
+                entitlement.modules.includes(moduleId) ||
+                await hasModuleAccess(entitlement.email, moduleId);
             if (!hasAccess) {
                 return res.status(403).json({
                     authorized: false,
@@ -42,7 +44,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // If specific path access is requested
         if (pathId) {
-            const hasAccess = await hasPathAccess(entitlement.email, pathId);
+            const hasAccess = hasWildcardAccess ||
+                entitlement.paths.includes(pathId) ||
+                await hasPathAccess(entitlement.email, pathId);
             if (!hasAccess) {
                 return res.status(403).json({
                     authorized: false,

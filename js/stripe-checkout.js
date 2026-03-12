@@ -1,47 +1,29 @@
 /**
  * Stripe Checkout Integration
- * Handles Sovereign tier ($399) payments
- * 
- * Setup:
- * 1. Create Stripe account at stripe.com
- * 2. Create a Payment Link for $399 (one-time)
- * 3. Add success_url parameter: ?session_id={CHECKOUT_SESSION_ID}
- * 4. Update STRIPE_PAYMENT_LINK below with your link
- * 
- * When BTCPay pays for itself, you can add it as an alternative
+ * Handles Apprentice and Sovereign card payments with server-side verification.
  */
 
 (function() {
     'use strict';
 
     const CONFIG = {
-        // Sovereign tier — $399 one-time
-        // Create at: https://dashboard.stripe.com/payment-links
-        stripePaymentLink: 'https://buy.stripe.com/9B63cu7m47Wd9rVdc21oI00',
+        // Legacy field kept so older page checks do not throw.
+        stripePaymentLink: '',
         sovereignPriceUSD: 39900, // $399.00
-
-        // Apprentice tier — dynamic fiat price based on live BTC rate
-        // Uses /api/apprentice-checkout to create a Stripe Session with the locked-in price
+        sovereignCheckoutApi: '/api/sovereign-checkout',
         apprenticeCheckoutApi: '/api/apprentice-checkout',
         apprenticeSats: 50000,
-
-        // Success redirect URL (where Stripe sends after payment)
+        verifySessionApi: '/api/verify-stripe-session',
         successUrl: '/membership-success.html',
-
-        // Cancel redirect URL
         cancelUrl: '/membership.html',
-
-        // LocalStorage keys
         storageKeys: {
             membership: 'bsa-membership',
             stripeSession: 'bsa-stripe-session'
         },
-
-        // BTCPay Server config (for when you're ready)
         btcpay: {
             enabled: false,
-            storeId: '', // Your BTCPay store ID
-            serverUrl: '', // e.g., 'https://btcpay.yourdomain.com'
+            storeId: '',
+            serverUrl: '',
         }
     };
 
@@ -50,24 +32,42 @@
             this.checkForSuccessfulPayment();
         }
 
-        /**
-         * Redirect to Stripe Checkout for Apprentice tier (dynamic fiat price).
-         * @param {number} priceCents — the locked-in USD price in cents
-         */
+        storePendingSession(session) {
+            const existing = this.getPendingSession() || {};
+            localStorage.setItem(CONFIG.storageKeys.stripeSession, JSON.stringify({
+                ...existing,
+                ...session,
+                initiated: existing.initiated || Date.now()
+            }));
+        }
+
+        getPendingSession() {
+            try {
+                const stored = localStorage.getItem(CONFIG.storageKeys.stripeSession);
+                return stored ? JSON.parse(stored) : null;
+            } catch {
+                return null;
+            }
+        }
+
+        clearPendingSession() {
+            localStorage.removeItem(CONFIG.storageKeys.stripeSession);
+        }
+
         async purchaseApprentice(priceCents) {
             if (!priceCents || priceCents < 100) {
                 alert('Unable to determine fiat price. Please refresh the page.');
                 return;
             }
 
-            localStorage.setItem(CONFIG.storageKeys.stripeSession, JSON.stringify({
-                referenceId: 'bsa_apprentice_' + Date.now(),
-                tier: 'apprentice',
-                initiated: Date.now()
-            }));
+            this.storePendingSession({ expectedTier: 'apprentice' });
 
             try {
-                const body = { priceCents };
+                const body = {
+                    priceCents,
+                    successUrl: window.location.origin + '/membership.html?payment_success=1',
+                    cancelUrl: window.location.origin + CONFIG.cancelUrl
+                };
                 const refCode = localStorage.getItem('bsa-referral-code');
                 if (refCode) body.referralCode = refCode;
 
@@ -82,130 +82,220 @@
                     throw new Error(err.error || 'Checkout failed');
                 }
 
-                const { url } = await res.json();
-                if (url) {
-                    window.location.href = url;
-                } else {
+                const { sessionId, url } = await res.json();
+                this.storePendingSession({ expectedTier: 'apprentice', sessionId });
+
+                if (!url) {
                     throw new Error('No checkout URL returned');
                 }
+
+                window.location.href = url;
             } catch (err) {
+                this.clearPendingSession();
                 console.error('[Stripe] Apprentice checkout error:', err);
                 alert('Payment error: ' + err.message);
             }
         }
 
-        /**
-         * Redirect to Stripe Checkout for Sovereign tier
-         */
-        purchaseSovereign() {
-            // Generate a simple client reference ID
-            const clientReferenceId = 'bsa_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            
-            // Store reference for verification on return
-            localStorage.setItem(CONFIG.storageKeys.stripeSession, JSON.stringify({
-                referenceId: clientReferenceId,
-                initiated: Date.now()
-            }));
+        async purchaseSovereign() {
+            this.storePendingSession({ expectedTier: 'sovereign' });
 
-            // Build Stripe Payment Link URL with parameters
-            const url = new URL(CONFIG.stripePaymentLink);
-            url.searchParams.set('client_reference_id', clientReferenceId);
-            
-            // Redirect to Stripe
-            window.location.href = url.toString();
-        }
+            try {
+                const res = await fetch(CONFIG.sovereignCheckoutApi, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        successUrl: window.location.origin + CONFIG.successUrl,
+                        cancelUrl: window.location.origin + CONFIG.cancelUrl
+                    })
+                });
 
-        /**
-         * Check URL for successful payment return
-         */
-        checkForSuccessfulPayment() {
-            const urlParams = new URLSearchParams(window.location.search);
-            
-            // Check if returning from Stripe success
-            if (urlParams.has('payment_success') || urlParams.has('session_id')) {
-                this.handleSuccessfulPayment();
-            }
-        }
-
-        /**
-         * Handle successful payment return from Stripe
-         */
-        handleSuccessfulPayment() {
-            const storedSession = localStorage.getItem(CONFIG.storageKeys.stripeSession);
-
-            if (storedSession) {
-                const session = JSON.parse(storedSession);
-
-                // Verify session is recent (within 1 hour)
-                if (Date.now() - session.initiated < 3600000) {
-                    if (session.tier === 'apprentice') {
-                        this.activateApprenticeMembership(session.referenceId);
-                    } else {
-                        this.activateSovereignMembership(session.referenceId);
-                    }
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'Checkout failed');
                 }
 
-                // Clean up
-                localStorage.removeItem(CONFIG.storageKeys.stripeSession);
+                const { sessionId, url } = await res.json();
+                this.storePendingSession({ expectedTier: 'sovereign', sessionId });
+
+                if (!url) {
+                    throw new Error('No checkout URL returned');
+                }
+
+                window.location.href = url;
+            } catch (err) {
+                this.clearPendingSession();
+                console.error('[Stripe] Sovereign checkout error:', err);
+                alert('Payment error: ' + err.message);
+            }
+        }
+
+        checkForSuccessfulPayment() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('session_id');
+
+            if (sessionId) {
+                this.handleSuccessfulPayment(sessionId);
+                return;
             }
 
-            // Clean URL
+            if (urlParams.has('payment_success')) {
+                this.setVerificationState('error', 'We could not verify the Stripe session from the return URL.');
+                this.cleanReturnUrl();
+            }
+        }
+
+        async handleSuccessfulPayment(sessionId) {
+            if (!sessionId) {
+                this.setVerificationState('error', 'Missing Stripe session ID.');
+                return;
+            }
+
+            const pendingSession = this.getPendingSession();
+            const expectedTier = pendingSession?.expectedTier || this.inferExpectedTierFromPage();
+            this.setVerificationState('pending', 'Verifying your payment and unlocking access…');
+
+            try {
+                const response = await fetch(CONFIG.verifySessionApi, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId, expectedTier })
+                });
+
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.verified || !data.membership) {
+                    throw new Error(data.error || 'We could not verify this payment yet.');
+                }
+
+                const membership = this.activateVerifiedMembership(data.membership, data.accessToken);
+                this.clearPendingSession();
+                this.cleanReturnUrl();
+                this.setVerificationState(
+                    'success',
+                    membership.tier === 'sovereign'
+                        ? 'Payment verified. Sovereign access is now active.'
+                        : 'Payment verified. Apprentice access is now active.'
+                );
+            } catch (err) {
+                console.error('[Stripe] Verification error:', err);
+                this.setVerificationState('error', err.message || 'We could not verify this payment yet.');
+            }
+        }
+
+        inferExpectedTierFromPage() {
+            return window.location.pathname.endsWith('/membership-success.html') ||
+                window.location.pathname === '/membership-success.html'
+                ? 'sovereign'
+                : null;
+        }
+
+        activateVerifiedMembership(verifiedMembership, accessToken) {
+            const membership = {
+                tier: verifiedMembership.tier,
+                activated: verifiedMembership.activated
+                    ? new Date(verifiedMembership.activated).getTime()
+                    : Date.now(),
+                method: 'stripe',
+                referenceId: verifiedMembership.referenceId || null,
+                verified: true
+            };
+
+            localStorage.setItem(CONFIG.storageKeys.membership, JSON.stringify(membership));
+            if (accessToken) {
+                localStorage.setItem('bsa_access_token', accessToken);
+            }
+
+            if (window.bsaAnalytics) {
+                window.bsaAnalytics.trackStripeSuccess(membership.referenceId);
+                window.bsaAnalytics.trackMembershipSet(membership.tier, 'stripe');
+            }
+
+            window.dispatchEvent(new CustomEvent('membershipChanged', { detail: membership }));
+            return membership;
+        }
+
+        cleanReturnUrl() {
             const cleanUrl = window.location.pathname;
             window.history.replaceState({}, document.title, cleanUrl);
         }
 
-        /**
-         * Activate Apprentice membership (paid via Stripe fiat)
-         */
-        activateApprenticeMembership(referenceId = null) {
-            const membership = {
-                tier: 'apprentice',
-                activated: Date.now(),
-                method: 'stripe',
-                referenceId: referenceId,
-                verified: false
-            };
+        ensureStatusNode() {
+            this.injectStatusStyles();
 
-            localStorage.setItem(CONFIG.storageKeys.membership, JSON.stringify(membership));
-
-            if (window.bsaAnalytics) {
-                window.bsaAnalytics.trackStripeSuccess(referenceId);
-                window.bsaAnalytics.trackMembershipSet('apprentice', 'stripe');
+            const existingStatus = document.getElementById('stripe-verification-status');
+            if (existingStatus) {
+                return existingStatus;
             }
 
-            window.dispatchEvent(new CustomEvent('membershipChanged', { detail: membership }));
-            return membership;
-        }
+            let banner = document.getElementById('stripe-verification-banner');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'stripe-verification-banner';
+                banner.className = 'stripe-verification-banner pending';
 
-        /**
-         * Activate Sovereign membership
-         */
-        activateSovereignMembership(referenceId = null) {
-            const membership = {
-                tier: 'sovereign',
-                activated: Date.now(),
-                method: 'stripe',
-                referenceId: referenceId,
-                verified: false // Can be verified via webhook if you add a backend
-            };
-
-            localStorage.setItem(CONFIG.storageKeys.membership, JSON.stringify(membership));
-            
-            // Track analytics
-            if (window.bsaAnalytics) {
-                window.bsaAnalytics.trackStripeSuccess(referenceId);
-                window.bsaAnalytics.trackMembershipSet('sovereign', 'stripe');
+                const container = document.querySelector('main') || document.body;
+                container.insertBefore(banner, container.firstChild);
             }
-            
-            // Dispatch event for UI updates
-            window.dispatchEvent(new CustomEvent('membershipChanged', { detail: membership }));
 
-            return membership;
+            return banner;
         }
 
-        /**
-         * Get current membership
-         */
+        injectStatusStyles() {
+            if (document.getElementById('stripe-verification-styles')) {
+                return;
+            }
+
+            const styles = document.createElement('style');
+            styles.id = 'stripe-verification-styles';
+            styles.textContent = `
+                .stripe-verification-banner {
+                    max-width: 760px;
+                    margin: 1.5rem auto;
+                    padding: 0.9rem 1.1rem;
+                    border-radius: 12px;
+                    font-weight: 600;
+                    text-align: center;
+                }
+                .stripe-verification-banner.pending {
+                    background: rgba(247, 147, 26, 0.12);
+                    color: #f7931a;
+                    border: 1px solid rgba(247, 147, 26, 0.35);
+                }
+                .stripe-verification-banner.success {
+                    background: rgba(76, 175, 80, 0.12);
+                    color: #4caf50;
+                    border: 1px solid rgba(76, 175, 80, 0.35);
+                }
+                .stripe-verification-banner.error {
+                    background: rgba(239, 68, 68, 0.12);
+                    color: #f87171;
+                    border: 1px solid rgba(239, 68, 68, 0.35);
+                }
+                #stripe-verification-status[data-state="pending"] {
+                    color: var(--accent, #f7931a);
+                }
+                #stripe-verification-status[data-state="success"] {
+                    color: var(--success, #4CAF50);
+                }
+                #stripe-verification-status[data-state="error"] {
+                    color: #f87171;
+                }
+            `;
+            document.head.appendChild(styles);
+        }
+
+        setVerificationState(state, message) {
+            const statusNode = this.ensureStatusNode();
+            if (statusNode.id === 'stripe-verification-status') {
+                statusNode.dataset.state = state;
+                statusNode.textContent = message;
+                return;
+            }
+
+            statusNode.className = `stripe-verification-banner ${state}`;
+            statusNode.textContent = message;
+        }
+
         getMembership() {
             try {
                 const data = localStorage.getItem(CONFIG.storageKeys.membership);
@@ -215,19 +305,10 @@
             }
         }
 
-        /**
-         * Check if user has Sovereign access
-         */
         isSovereign() {
             return this.getMembership().tier === 'sovereign';
         }
 
-        // ===== BTCPay Server Integration (Future) =====
-
-        /**
-         * Purchase via BTCPay Server
-         * Enable this when BTCPay is set up
-         */
         async purchaseSovereignBTC() {
             if (!CONFIG.btcpay.enabled) {
                 console.warn('[Stripe] BTCPay not enabled. Use purchaseSovereign() instead.');
@@ -235,7 +316,6 @@
             }
 
             try {
-                // Create BTCPay invoice
                 const response = await fetch(`${CONFIG.btcpay.serverUrl}/api/v1/stores/${CONFIG.btcpay.storeId}/invoices`, {
                     method: 'POST',
                     headers: {
@@ -258,34 +338,25 @@
                 if (!response.ok) throw new Error('Failed to create BTCPay invoice');
 
                 const invoice = await response.json();
-                
-                // Store for verification
-                localStorage.setItem(CONFIG.storageKeys.stripeSession, JSON.stringify({
+                this.storePendingSession({
                     referenceId: invoice.id,
-                    initiated: Date.now(),
-                    method: 'btcpay'
-                }));
+                    method: 'btcpay',
+                    expectedTier: 'sovereign'
+                });
 
-                // Redirect to BTCPay checkout
                 window.location.href = invoice.checkoutLink;
 
             } catch (error) {
                 console.error('[BTCPay] Error:', error);
-                // Fallback to Stripe
                 this.purchaseSovereign();
             }
         }
 
-        /**
-         * Show payment method selector (when both are enabled)
-         */
         showPaymentOptions() {
             if (!CONFIG.btcpay.enabled) {
-                // Only Stripe available, go directly
                 return this.purchaseSovereign();
             }
 
-            // Return options for UI to display
             return {
                 stripe: {
                     label: 'Pay with Card',
@@ -301,16 +372,12 @@
         }
     }
 
-    // Create singleton
     const stripeCheckout = new StripeCheckout();
 
-    // Expose globally
     window.stripeCheckout = stripeCheckout;
     window.STRIPE_CONFIG = CONFIG;
 
-    // Export for module use
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = { StripeCheckout, CONFIG };
     }
-
 })();

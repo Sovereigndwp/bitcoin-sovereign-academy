@@ -48,6 +48,7 @@
     if (!isPathModule && !isAdvancedModule) {
         return;
     }
+    clearLegacyAccessState();
 
     // ============================================
     // Check subdomain access control
@@ -71,8 +72,10 @@
 
         // Fallback: check if we're on a member/preview subdomain directly
         const hostname = window.location.hostname.toLowerCase();
-        if (hostname.includes('learn.') || hostname.includes('preview.') ||
-            hostname === 'localhost') {
+        if (hasValidAccessToken() ||
+            hostname.includes('learn.') ||
+            hostname.includes('preview.') ||
+            isDevelopmentHost()) {
             console.log('✅ Access subdomain detected - bypassing module gate');
             return true;
         }
@@ -80,34 +83,6 @@
         return false;
     }
 
-    // ============================================
-    // Legacy parameter-based access (backwards compatibility)
-    // ============================================
-
-    const params = new URLSearchParams(window.location.search);
-    const unlockParam = params.get('unlock');
-    const previewParam = params.get('preview');
-    const storageKey = 'bsa_full_access';
-
-    if (unlockParam === 'true') {
-        localStorage.setItem(storageKey, 'yes');
-    } else if (unlockParam === 'reset') {
-        localStorage.removeItem(storageKey);
-    }
-
-    if (localStorage.getItem(storageKey) === 'yes') {
-        console.log('✅ Legacy unlock parameter detected');
-        return;
-    }
-
-    if (previewParam === 'demo2024' || previewParam === 'UILpVhRGw62d0jPe9GPk') {
-        console.log('✅ Legacy preview key detected');
-        return;
-    }
-
-    // ============================================
-    // Check subdomain access
-    // ============================================
 
     if (checkSubdomainAccess()) {
         return; // Bypass gating
@@ -140,6 +115,50 @@
             return '/' + path;
         }
         return path;
+    }
+
+    function isDevelopmentHost() {
+        const hostname = window.location.hostname.toLowerCase();
+        return hostname === 'localhost' ||
+            hostname === '127.0.0.1' ||
+            hostname === '0.0.0.0' ||
+            hostname.endsWith('.localhost') ||
+            hostname.endsWith('.vercel.app');
+    }
+
+    function hasValidAccessToken() {
+        const token = localStorage.getItem('bsa_access_token') ||
+            localStorage.getItem('bsa_jwt_token');
+
+        if (!token) {
+            return false;
+        }
+
+        try {
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                return false;
+            }
+
+            const normalizedPayload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const paddedPayload = normalizedPayload + '='.repeat((4 - normalizedPayload.length % 4) % 4);
+            const payload = JSON.parse(atob(paddedPayload));
+
+            if (payload.exp && payload.exp * 1000 < Date.now()) {
+                localStorage.removeItem('bsa_access_token');
+                localStorage.removeItem('bsa_jwt_token');
+                return false;
+            }
+
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    function clearLegacyAccessState() {
+        localStorage.removeItem('bsa_full_access');
+        sessionStorage.removeItem('bsa_preview_mode');
     }
 
     function lockEntireModule() {
@@ -571,12 +590,20 @@
 
     window.BSAModuleGate = {
         unlock() {
-            localStorage.setItem(storageKey, 'yes');
-            window.location.reload();
+            console.warn('[Module Gate] unlock() is disabled. Use a valid access token or a development host.');
+            return false;
         },
         reset() {
-            localStorage.removeItem(storageKey);
+            clearLegacyAccessState();
             window.location.reload();
+        },
+        getStatus() {
+            return {
+                path: pathName,
+                hasValidToken: hasValidAccessToken(),
+                isDevelopmentHost: isDevelopmentHost(),
+                hasSubdomainAccess: checkSubdomainAccess()
+            };
         }
     };
 })();

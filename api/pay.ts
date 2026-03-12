@@ -1,9 +1,8 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
+import { appendLiteralQueryParam, resolveAllowedRedirectUrl, setCorsHeaders } from './lib/origin';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  setCorsHeaders(req, res);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -16,9 +15,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { items, provider, email, successUrl, cancelUrl } = req.body || {};
 
-    if (!items || !provider || !email || !successUrl || !cancelUrl) {
+    if (!items || !provider || !email) {
       return res.status(400).json({
-        error: 'Missing required fields: items, provider, email, successUrl, cancelUrl'
+        error: 'Missing required fields: items, provider, email'
       });
     }
 
@@ -71,9 +70,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Build success URL with session ID
-    const successUrlWithSession = successUrl.includes('?')
-      ? `${successUrl}&session_id={CHECKOUT_SESSION_ID}`
-      : `${successUrl}?session_id={CHECKOUT_SESSION_ID}`;
+    const successUrlWithSession = appendLiteralQueryParam(
+      resolveAllowedRedirectUrl(successUrl, '/pricing.html?payment=success', req),
+      'session_id',
+      '{CHECKOUT_SESSION_ID}'
+    );
+    const cancelRedirectUrl = resolveAllowedRedirectUrl(cancelUrl, '/pricing.html?payment=cancelled', req);
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
@@ -81,7 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       line_items: lineItems,
       mode: 'payment',
       success_url: successUrlWithSession,
-      cancel_url: cancelUrl,
+      cancel_url: cancelRedirectUrl,
       customer_email: email,
       metadata: {
         email,

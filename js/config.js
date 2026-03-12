@@ -22,6 +22,7 @@
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
     const isPreviewDomain = hostname.includes('preview') || hostname.includes('demo');
     const isDevDomain = hostname.includes('dev') || hostname.includes('staging');
+    const allowDebugOverrides = isLocalhost || isPreviewDomain || isDevDomain;
 
     // Default configuration (PRODUCTION mode)
     const defaultConfig = {
@@ -88,11 +89,10 @@
     }
 
     // URL parameter overrides (highest priority)
-    if (modeParam && modePresets[modeParam]) {
+    if (allowDebugOverrides && modeParam && modePresets[modeParam]) {
         config = { ...config, ...modePresets[modeParam] };
     }
-
-    if (unlockParam === 'true' || unlockParam === '1') {
+    if (allowDebugOverrides && (unlockParam === 'true' || unlockParam === '1')) {
         config.FULL_ACCESS = true;
         config.ENABLE_MODULE_GATING = false;
         config.ENABLE_DEMO_LOCKS = false;
@@ -101,7 +101,7 @@
     // Manual override from localStorage (for testing)
     try {
         const manualOverride = localStorage.getItem('bsa_config_override');
-        if (manualOverride) {
+        if (allowDebugOverrides && manualOverride) {
             const override = JSON.parse(manualOverride);
             config = { ...config, ...override };
             if (config.DEBUG) {

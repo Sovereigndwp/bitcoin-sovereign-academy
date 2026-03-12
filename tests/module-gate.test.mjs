@@ -15,6 +15,7 @@ async function createDom(moduleRelativePath, options = {}) {
     const {
         unlockParam = null,
         preloadFullAccess = false,
+        preloadAccessToken = false,
         stripScripts = true
     } = options;
 
@@ -36,6 +37,13 @@ async function createDom(moduleRelativePath, options = {}) {
 
     if (preloadFullAccess) {
         dom.window.localStorage.setItem('bsa_full_access', 'yes');
+    }
+
+    if (preloadAccessToken) {
+        const payload = Buffer.from(JSON.stringify({
+            exp: Math.floor(Date.now() / 1000) + 3600
+        })).toString('base64url');
+        dom.window.localStorage.setItem('bsa_access_token', `header.${payload}.signature`);
     }
 
     dom.window.BSA_CONFIG = { ENABLE_MODULE_GATING: true };
@@ -64,19 +72,26 @@ test('gates follow-up modules after preview limit', async () => {
     );
 });
 
-test('respects unlock query parameter', async () => {
+test('does not accept the legacy unlock query parameter', async () => {
     const dom = await createDom('paths/curious/stage-1/module-2.html', { unlockParam: 'true' });
     const overlay = dom.window.document.querySelector('.module-lock-overlay');
-    assert.equal(overlay, null, 'Unlock parameter should bypass gating');
+    assert.ok(overlay, 'Legacy unlock parameter should not bypass gating');
 });
 
-test('respects stored full-access flag', async () => {
+test('does not accept the legacy stored full-access flag', async () => {
     const dom = await createDom('paths/curious/stage-1/module-2.html', { preloadFullAccess: true });
     const overlay = dom.window.document.querySelector('.module-lock-overlay');
-    assert.equal(overlay, null, 'Existing access flag should disable gating');
+    assert.ok(overlay, 'Legacy full-access storage should not bypass gating');
+    assert.equal(dom.window.localStorage.getItem('bsa_full_access'), null, 'Legacy full-access storage is cleared');
 });
 
-test('exposes helper API for manual toggling', async () => {
+test('respects a valid access token', async () => {
+    const dom = await createDom('paths/curious/stage-1/module-2.html', { preloadAccessToken: true });
+    const overlay = dom.window.document.querySelector('.module-lock-overlay');
+    assert.equal(overlay, null, 'A valid access token should bypass gating');
+});
+
+test('exposes helper API without restoring insecure unlocks', async () => {
     const dom = await createDom('paths/curious/stage-1/module-2.html', { stripScripts: false });
 
     assert.ok(dom.window.BSAModuleGate, 'Helper API is available on window');
@@ -91,14 +106,7 @@ test('exposes helper API for manual toggling', async () => {
             originalConsoleError(message, ...rest);
         };
 
-        try {
-            dom.window.BSAModuleGate.unlock();
-        } catch (error) {
-            if (!String(error?.message).includes('Not implemented')) {
-                throw error;
-            }
-        }
-        assert.equal(dom.window.localStorage.getItem('bsa_full_access'), 'yes', 'Unlock helper stores flag');
+        dom.window.localStorage.setItem('bsa_full_access', 'yes');
 
         try {
             dom.window.BSAModuleGate.reset();
@@ -108,6 +116,7 @@ test('exposes helper API for manual toggling', async () => {
             }
         }
         assert.equal(dom.window.localStorage.getItem('bsa_full_access'), null, 'Reset helper clears flag');
+        assert.equal(typeof dom.window.BSAModuleGate.getStatus, 'function', 'Helper API exposes status inspection');
     } finally {
         console.error = originalConsoleError;
     }

@@ -5,7 +5,6 @@
  * Features:
  * - Integrates with lightning-payment.js and stripe-checkout.js
  * - Shows upgrade modal when non-members access premium content
- * - Owner bypass with secret key
  * - Graceful degradation for free content
  */
 
@@ -13,14 +12,9 @@
     'use strict';
 
     const CONFIG = {
-        // Owner bypass - add ?owner=YOUR_SECRET to URL to get full access
-        // Change this to your own secret key
-        ownerSecret: 'dalia2024bsa',
-        
         // Storage keys
         storageKeys: {
-            membership: 'bsa-membership',
-            ownerMode: 'bsa-owner-mode'
+            membership: 'bsa-membership'
         },
 
         // Pages that are always free (no gating)
@@ -59,20 +53,18 @@
         constructor() {
             this.initialized = false;
             this.membership = null;
-            this.isOwner = false;
         }
 
         init() {
             if (this.initialized) return;
-            
-            // Check for owner bypass first
-            this.checkOwnerMode();
+
+            this.clearLegacyOwnerState();
             
             // Load membership status
             this.membership = this.getMembership();
             
             // Check if current page needs gating
-            if (!this.isOwner && this.shouldGatePage()) {
+            if (this.shouldGatePage()) {
                 this.applyGate();
             }
 
@@ -80,72 +72,55 @@
         }
 
         /**
-         * Check for owner mode via URL param or stored session
+         * Remove legacy owner-mode storage so it can no longer bypass gating.
          */
-        checkOwnerMode() {
-            const params = new URLSearchParams(window.location.search);
-            const ownerParam = params.get('owner');
-
-            // Activate owner mode
-            if (ownerParam === CONFIG.ownerSecret) {
-                sessionStorage.setItem(CONFIG.storageKeys.ownerMode, 'active');
-                this.isOwner = true;
-                this.showOwnerBadge();
-                // Clean URL
-                params.delete('owner');
-                const cleanUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
-                window.history.replaceState({}, '', cleanUrl);
-                return;
-            }
-
-            // Deactivate owner mode
-            if (ownerParam === 'exit') {
-                sessionStorage.removeItem(CONFIG.storageKeys.ownerMode);
-                this.isOwner = false;
-                params.delete('owner');
-                const cleanUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
-                window.history.replaceState({}, '', cleanUrl);
-                return;
-            }
-
-            // Check stored owner mode
-            this.isOwner = sessionStorage.getItem(CONFIG.storageKeys.ownerMode) === 'active';
-            if (this.isOwner) {
-                this.showOwnerBadge();
-            }
+        clearLegacyOwnerState() {
+            sessionStorage.removeItem('bsa-owner-mode');
         }
 
         /**
-         * Show owner badge in corner
+         * Development hosts keep unrestricted access for local work.
          */
-        showOwnerBadge() {
-            if (document.getElementById('owner-badge')) return;
-            
-            const badge = document.createElement('div');
-            badge.id = 'owner-badge';
-            badge.innerHTML = '👑 Owner Mode';
-            badge.style.cssText = `
-                position: fixed;
-                top: 10px;
-                left: 10px;
-                background: linear-gradient(135deg, #9333ea 0%, #a855f7 100%);
-                color: white;
-                padding: 6px 12px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 600;
-                z-index: 99999;
-                cursor: pointer;
-                box-shadow: 0 2px 10px rgba(147, 51, 234, 0.4);
-            `;
-            badge.title = 'Click to exit owner mode';
-            badge.addEventListener('click', () => {
-                if (confirm('Exit owner mode?')) {
-                    sessionStorage.removeItem(CONFIG.storageKeys.ownerMode);
-                    window.location.reload();
+        isDevelopmentMode() {
+            const hostname = window.location.hostname.toLowerCase();
+            return hostname === 'localhost' ||
+                hostname === '127.0.0.1' ||
+                hostname === '0.0.0.0' ||
+                hostname.endsWith('.localhost') ||
+                hostname.endsWith('.vercel.app');
+        }
+
+        /**
+         * Check for a signed access token issued by the server.
+         */
+        hasValidAccessToken() {
+            const token = localStorage.getItem('bsa_access_token') ||
+                localStorage.getItem('bsa_jwt_token');
+
+            if (!token) {
+                return false;
+            }
+
+            try {
+                const parts = token.split('.');
+                if (parts.length !== 3) {
+                    return false;
                 }
-            });
-            document.body.appendChild(badge);
+
+                const normalizedPayload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+                const paddedPayload = normalizedPayload + '='.repeat((4 - normalizedPayload.length % 4) % 4);
+                const payload = JSON.parse(atob(paddedPayload));
+
+                if (payload.exp && payload.exp * 1000 < Date.now()) {
+                    localStorage.removeItem('bsa_access_token');
+                    localStorage.removeItem('bsa_jwt_token');
+                    return false;
+                }
+
+                return true;
+            } catch {
+                return false;
+            }
         }
 
         /**
@@ -164,7 +139,7 @@
          * Check if user has premium access
          */
         hasPremiumAccess() {
-            if (this.isOwner) return true;
+            if (this.isDevelopmentMode() || this.hasValidAccessToken()) return true;
             const tier = this.membership?.tier;
             return tier === 'apprentice' || tier === 'sovereign';
         }
