@@ -93,6 +93,13 @@
         .trap-note.show { display:block; }
         .savings-note { background:rgba(252,209,22,0.06); border:1px solid rgba(252,209,22,0.2); border-radius:10px; padding:0.75rem 1rem; font-size:0.84rem; color:#FDE68A; margin-bottom:0.6rem; line-height:1.5; }
 
+        /* ---- PHASE PREDICT ---- */
+        .predict-option { display:flex; align-items:center; gap:0.85rem; padding:0.9rem 1rem; background:var(--dark2); border:2px solid rgba(252,209,22,0.12); border-radius:12px; cursor:pointer; transition:border-color 0.15s, background 0.15s; margin-bottom:0.6rem; user-select:none; font-size:0.94rem; color:var(--light); }
+        .predict-option:hover { border-color:rgba(252,209,22,0.3); }
+        .predict-option.selected { border-color:var(--primary); background:rgba(252,209,22,0.05); }
+        .predict-dot { width:20px; height:20px; border-radius:50%; border:2px solid rgba(252,209,22,0.3); flex-shrink:0; transition:all 0.15s; }
+        .predict-option.selected .predict-dot { background:var(--primary); border-color:var(--primary); box-shadow:0 0 0 3px rgba(252,209,22,0.15); }
+
         .over-budget { display:none; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3); border-radius:10px; padding:0.7rem 1rem; font-size:0.88rem; font-weight:700; color:var(--red); text-align:center; margin:1rem 0; }
         .over-budget.show { display:block; }
 
@@ -344,8 +351,37 @@
             <div class="over-budget" id="over-budget">⚠️ Te pasaste de $500,000. Desmarca algo para continuar.</div>
 
             <div class="phase-cta">
-                <button class="btn btn-primary" id="btn-p1" onclick="goPhase2()" disabled>Ver qué pasa con estas decisiones →</button>
+                <button class="btn btn-primary" id="btn-p1" onclick="goPredict()" disabled>Ver qué pasa con estas decisiones →</button>
                 <p class="phase-cta-note">Puedes seleccionar cualquier combinación — incluso nada. Todo muestra algo.</p>
+            </div>
+        </div>
+
+        <!-- ======== PHASE PREDICT ======== -->
+        <div class="phase" id="phase-predict">
+            <div class="section-title">Tu predicción</div>
+            <div class="section-sub">Antes de ver el resultado del ejercicio, piensa por un momento.</div>
+
+            <p style="color:var(--light); font-size:0.97rem; margin:1rem 0 1.25rem; line-height:1.6;">¿Qué crees que descubrirás al mirar cómo distribuiste el dinero?</p>
+
+            <div class="predict-option" data-value="all-good" onclick="selectPrediction(this)">
+                <div class="predict-dot"></div>
+                <span>Logré cubrir todo sin problema</span>
+            </div>
+            <div class="predict-option" data-value="tight" onclick="selectPrediction(this)">
+                <div class="predict-dot"></div>
+                <span>El dinero quedó muy justo</span>
+            </div>
+            <div class="predict-option" data-value="surprise" onclick="selectPrediction(this)">
+                <div class="predict-dot"></div>
+                <span>Algunas categorías se llevaron mucho más de lo que esperaba</span>
+            </div>
+            <div class="predict-option" data-value="shortage" onclick="selectPrediction(this)">
+                <div class="predict-dot"></div>
+                <span>Probablemente faltaría dinero</span>
+            </div>
+
+            <div class="phase-cta" style="margin-top:1.5rem;">
+                <button class="btn btn-primary" id="btn-predict" onclick="goPhase2()" disabled>Ahora veamos qué ocurrió →</button>
             </div>
         </div>
 
@@ -636,19 +672,44 @@
             setPhase(3);
         }
 
+        let userPrediction = null;
+
+        function selectPrediction(el) {
+            document.querySelectorAll('.predict-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            userPrediction = el.dataset.value;
+            document.getElementById('btn-predict').disabled = false;
+        }
+
+        function goPredict() {
+            setPhase('predict');
+        }
+
         function setPhase(n) {
-            [1,2,3].forEach(i => {
-                document.getElementById('phase-' + i).classList.toggle('active', i === n);
-                const s = document.getElementById('step-' + i);
-                s.classList.toggle('active', i === n);
-                s.classList.toggle('done', i < n);
-            });
+            document.getElementById('phase-1').classList.toggle('active', n === 1);
+            document.getElementById('phase-predict').classList.toggle('active', n === 'predict');
+            document.getElementById('phase-2').classList.toggle('active', n === 2);
+            document.getElementById('phase-3').classList.toggle('active', n === 3);
+
+            const step1 = document.getElementById('step-1');
+            const step2 = document.getElementById('step-2');
+            const step3 = document.getElementById('step-3');
+            if (n === 1) {
+                step1.className = 'step active'; step2.className = 'step'; step3.className = 'step';
+            } else if (n === 'predict' || n === 2) {
+                step1.className = 'step done'; step2.className = 'step active'; step3.className = 'step';
+            } else {
+                step1.className = 'step done'; step2.className = 'step done'; step3.className = 'step active';
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function restart() {
             selected.clear();
+            userPrediction = null;
             document.querySelectorAll('.item-card').forEach(c => c.classList.remove('selected', 'cant-afford'));
+            document.querySelectorAll('.predict-option').forEach(o => o.classList.remove('selected'));
+            document.getElementById('btn-predict').disabled = true;
             document.getElementById('trap-note').classList.remove('show');
             updateBudget();
             setPhase(1);
