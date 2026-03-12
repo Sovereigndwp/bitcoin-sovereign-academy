@@ -390,13 +390,12 @@
 
                 <div class="monthly-payment-row">
                     <span class="payment-label">Presupuesto mensual para deudas:</span>
-                    <input type="number" id="monthly-budget" class="payment-input" placeholder="500000" value="500000">
+                    <input type="number" id="monthly-budget" class="payment-input" placeholder="350000" value="350000">
                     <span class="payment-hint">Lo que puedes destinar a deudas cada mes</span>
                 </div>
                 <div class="budget-presets" aria-label="Presupuestos de ejemplo">
                     <button type="button" class="budget-preset-btn" onclick="setBudgetPreset('minimos')">Solo m&#237;nimos</button>
                     <button type="button" class="budget-preset-btn" onclick="setBudgetPreset('aire')">Un poco de extra</button>
-                    <button type="button" class="budget-preset-btn" onclick="setBudgetPreset('agresivo')">M&#225;s acelerado</button>
                 </div>
 
                 <button class="compare-btn" onclick="simulatePayoff()">Comparar m&#233;todos de pago &#8594;</button>
@@ -590,9 +589,9 @@
 
         // ---------- DEBT TABLE ----------
         const defaultDebts = [
-            { name: 'Tarjeta de cr\u00e9dito', balance: 8000000, rate: 2.5, min: 80000  },
-            { name: 'Cr\u00e9dito de consumo',  balance: 1500000, rate: 1.8, min: 120000 },
-            { name: 'Libranza / fondo',        balance: 2000000, rate: 1.2, min: 150000 },
+            { name: 'Tarjeta de cr\u00e9dito', balance: 8000000, rate: 2.1, min: 80000  },
+            { name: 'Cr\u00e9dito de consumo',  balance: 2000000, rate: 5.3, min: 200000 },
+            { name: 'Libranza / fondo',        balance: 50000, rate: 1.2, min: 0 },
         ];
 
         function getRateBadge(rate) {
@@ -602,17 +601,72 @@
             return '<span class="rate-badge rate-trap">\u2620\ufe0f trampa</span>';
         }
 
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         function addDebtRow(debt = { name:'', balance:'', rate:'', min:'' }) {
             const tbody = document.getElementById('debt-rows');
             const tr    = document.createElement('tr');
-            tr.innerHTML =
-                '<td><input type="text"   class="debt-name-input d-name"    placeholder="Nombre" value="' + debt.name + '"></td>' +
-                '<td><input type="number" class="debt-number-input d-balance" placeholder="0" min="0" value="' + debt.balance + '" oninput="updateBadge(this)"></td>' +
-                '<td><input type="number" class="debt-number-input d-rate" placeholder="0.0" min="0" step="0.1" value="' + debt.rate + '" oninput="updateBadge(this)" style="width:72px;"><span class="rate-badge-cell"></span></td>' +
-                '<td><input type="number" class="debt-number-input d-min" placeholder="0" min="0" value="' + debt.min + '"></td>' +
-                '<td><button class="remove-debt-btn" onclick="this.closest(\'tr\').remove()">\u2715</button></td>';
+
+            const nameCell = document.createElement('td');
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.className = 'debt-name-input d-name';
+            nameInput.placeholder = 'Nombre';
+            nameInput.value = debt.name;
+            nameCell.appendChild(nameInput);
+
+            const balanceCell = document.createElement('td');
+            const balanceInput = document.createElement('input');
+            balanceInput.type = 'number';
+            balanceInput.className = 'debt-number-input d-balance';
+            balanceInput.placeholder = '0';
+            balanceInput.min = '0';
+            balanceInput.value = String(debt.balance);
+            balanceInput.addEventListener('input', () => updateBadge(balanceInput));
+            balanceCell.appendChild(balanceInput);
+
+            const rateCell = document.createElement('td');
+            const rateInput = document.createElement('input');
+            rateInput.type = 'number';
+            rateInput.className = 'debt-number-input d-rate';
+            rateInput.placeholder = '0.0';
+            rateInput.min = '0';
+            rateInput.step = '0.1';
+            rateInput.value = String(debt.rate);
+            rateInput.style.width = '72px';
+            rateInput.addEventListener('input', () => updateBadge(rateInput));
+            const rateBadge = document.createElement('span');
+            rateBadge.className = 'rate-badge-cell';
+            rateCell.appendChild(rateInput);
+            rateCell.appendChild(rateBadge);
+
+            const minCell = document.createElement('td');
+            const minInput = document.createElement('input');
+            minInput.type = 'number';
+            minInput.className = 'debt-number-input d-min';
+            minInput.placeholder = '0';
+            minInput.min = '0';
+            minInput.value = String(debt.min);
+            minCell.appendChild(minInput);
+
+            const removeCell = document.createElement('td');
+            const removeButton = document.createElement('button');
+            removeButton.className = 'remove-debt-btn';
+            removeButton.type = 'button';
+            removeButton.textContent = '✕';
+            removeButton.addEventListener('click', () => tr.remove());
+            removeCell.appendChild(removeButton);
+
+            tr.append(nameCell, balanceCell, rateCell, minCell, removeCell);
             tbody.appendChild(tr);
-            updateBadge(tr.querySelector('.d-rate'));
+            updateBadge(rateInput);
         }
 
         function updateBadge(input) {
@@ -760,14 +814,14 @@
 
         function formatExtraTargets(extraTargets, extraPaid) {
             if (!extraTargets.length || extraPaid <= PAYOFF_EPSILON) return 'Solo m\u00ednimos';
-            return extraTargets.map(target => target.name + ' (' + fmt(target.amount) + ')').join(' + ');
+            return extraTargets.map(target => escapeHtml(target.name) + ' (' + fmt(target.amount) + ')').join(' + ');
         }
 
         function formatTimelineNote(entry) {
             const lines = [];
             lines.push(formatExtraTargets(entry.extraTargets, entry.extraPaid));
             if (entry.completed.length) {
-                lines.push('Se cancela: ' + entry.completed.join(', '));
+                lines.push('Se cancela: ' + entry.completed.map(name => escapeHtml(name)).join(', '));
                 if (entry.nextTarget) {
                     lines.push('Siguiente foco: ' + entry.nextTarget);
                 }
@@ -865,28 +919,55 @@
                 );
             });
             const container = document.getElementById(containerId);
+            container.innerHTML = '';
 
-            container.innerHTML = '<div class="payoff-order-title">Orden final de cancelaci\u00f3n</div>';
-            container.innerHTML += '<div class="payoff-note">Este orden sale de la simulación real. La prioridad del extra sigue la estrategia, pero el cierre final también depende de los mínimos y de cuándo una cuota se libera.</div>';
+            const title = document.createElement('div');
+            title.className = 'payoff-order-title';
+            title.textContent = 'Orden final de cancelación';
+            container.appendChild(title);
+
+            const note = document.createElement('div');
+            note.className = 'payoff-note';
+            note.textContent = 'Este orden sale de la simulación real. La prioridad del extra sigue la estrategia, pero el cierre final también depende de los mínimos y de cuándo una cuota se libera.';
+            container.appendChild(note);
 
             if (!result.hadInitialExtra) {
-                container.innerHTML += '<div class="payoff-note">Al comienzo solo alcanza para cubrir m\u00ednimos. La diferencia entre m\u00e9todos aparece cuando se libera una cuota.</div>';
+                const initialNote = document.createElement('div');
+                initialNote.className = 'payoff-note';
+                initialNote.textContent = 'Al comienzo solo alcanza para cubrir mínimos. La diferencia entre métodos aparece cuando se libera una cuota.';
+                container.appendChild(initialNote);
             }
             if (!ordered.length) {
-                container.innerHTML += '<div class="payoff-note">' + (result.months === -1
+                const emptyNote = document.createElement('div');
+                emptyNote.className = 'payoff-note';
+                emptyNote.textContent = result.months === -1
                     ? 'Con este presupuesto no se alcanza a cancelar todo el conjunto, así que no hay un orden final completo.'
-                    : 'Todavía no aparece una cancelación completa con estos datos.') + '</div>';
+                    : 'Todavía no aparece una cancelación completa con estos datos.';
+                container.appendChild(emptyNote);
                 return;
             }
 
             ordered.forEach((debt, i) => {
                 const color = debt.rate > 0.05 ? 'var(--red)' : 'var(--yellow)';
-                container.innerHTML +=
-                    '<div class="payoff-step">' +
-                    '<span class="step-num">' + (i + 1) + '</span>' +
-                    '<span class="step-name">' + debt.name + '</span>' +
-                    '<span class="step-rate" style="color:' + color + '">' + (debt.rate * 100).toFixed(1) + '%/mes &middot; Mes ' + debt.month + '</span>' +
-                    '</div>';
+
+                const step = document.createElement('div');
+                step.className = 'payoff-step';
+
+                const stepNumber = document.createElement('span');
+                stepNumber.className = 'step-num';
+                stepNumber.textContent = String(i + 1);
+
+                const stepName = document.createElement('span');
+                stepName.className = 'step-name';
+                stepName.textContent = debt.name;
+
+                const stepRate = document.createElement('span');
+                stepRate.className = 'step-rate';
+                stepRate.style.color = color;
+                stepRate.textContent = (debt.rate * 100).toFixed(1) + '%/mes · Mes ' + debt.month;
+
+                step.append(stepNumber, stepName, stepRate);
+                container.appendChild(step);
             });
         }
 
@@ -899,7 +980,7 @@
                 return '';
             }
 
-            const completedNames = entry.completedDetails.map(item => item.name).join(', ');
+            const completedNames = entry.completedDetails.map(item => escapeHtml(item.name)).join(', ');
 
             if (!entry.nextTarget) {
                 return 'Con esta cancelación ya no queda otra deuda pendiente.';
@@ -907,10 +988,10 @@
 
             if (entry.rolledMinimum > PAYOFF_EPSILON) {
                 if (method === 'snowball') {
-                    return 'Al cancelar ' + completedNames + ', se liberan ' + fmt(entry.rolledMinimum) + ' de mínimo. Desde el próximo mes se suman a ' + entry.nextTarget + ': ese es el efecto bola de nieve.';
+                    return 'Al cancelar ' + completedNames + ', se liberan ' + fmt(entry.rolledMinimum) + ' de mínimo. Desde el próximo mes se suman a ' + escapeHtml(entry.nextTarget) + ': ese es el efecto bola de nieve.';
                 }
 
-                return 'Al cancelar ' + completedNames + ', se liberan ' + fmt(entry.rolledMinimum) + ' que desde el próximo mes se dirigen a ' + entry.nextTarget + '.';
+                return 'Al cancelar ' + completedNames + ', se liberan ' + fmt(entry.rolledMinimum) + ' que desde el próximo mes se dirigen a ' + escapeHtml(entry.nextTarget) + '.';
             }
 
             return '';
@@ -1120,7 +1201,7 @@
                 return;
             }
 
-            const budget   = parseFloat(document.getElementById('monthly-budget').value) || 500000;
+            const budget   = parseFloat(document.getElementById('monthly-budget').value) || 350000;
             const totalMin = debts.reduce((sum, debt) => sum + debt.min, 0);
 
             if (budget < totalMin) {
@@ -1151,7 +1232,6 @@
             renderMethodPriority('snowball-priority', debts, 'snowball');
             renderPayoffOrder('avalanche-order', av, 'avalanche');
             renderPayoffOrder('snowball-order',  sb, 'snowball');
-            renderPayoffOrder('snowball-order',  sb, debts, 'snowball');
             renderTimelineComparison(av, sb);
 
             const avCard = document.getElementById('avalanche-card');
