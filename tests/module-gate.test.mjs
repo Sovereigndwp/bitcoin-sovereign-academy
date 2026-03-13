@@ -16,6 +16,7 @@ async function createDom(moduleRelativePath, options = {}) {
         unlockParam = null,
         preloadFullAccess = false,
         preloadAccessToken = false,
+        verifyAccessToken = preloadAccessToken,
         stripScripts = true
     } = options;
 
@@ -45,10 +46,18 @@ async function createDom(moduleRelativePath, options = {}) {
         })).toString('base64url');
         dom.window.localStorage.setItem('bsa_access_token', `header.${payload}.signature`);
     }
+    dom.window.fetch = async () => ({
+        ok: verifyAccessToken,
+        status: verifyAccessToken ? 200 : 401,
+        json: async () => verifyAccessToken
+            ? { authorized: true }
+            : { authorized: false, reason: 'Invalid or expired token' }
+    });
 
     dom.window.BSA_CONFIG = { ENABLE_MODULE_GATING: true };
     dom.window.eval(moduleGateSource);
     dom.window.document.dispatchEvent(new dom.window.Event('DOMContentLoaded', { bubbles: true }));
+    await new Promise(resolve => dom.window.setTimeout(resolve, 0));
 
     return dom;
 }

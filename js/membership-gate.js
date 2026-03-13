@@ -55,7 +55,7 @@
             this.membership = null;
         }
 
-        init() {
+        async init() {
             if (this.initialized) return;
 
             this.clearLegacyOwnerState();
@@ -64,7 +64,7 @@
             this.membership = this.getMembership();
             
             // Check if current page needs gating
-            if (this.shouldGatePage()) {
+            if (this.shouldGatePage() && !(await this.hasPremiumAccess())) {
                 this.applyGate();
             }
 
@@ -93,34 +93,101 @@
         /**
          * Check for a signed access token issued by the server.
          */
-        hasValidAccessToken() {
-            const token = localStorage.getItem('bsa_access_token') ||
-                localStorage.getItem('bsa_jwt_token');
-
-            if (!token) {
-                return false;
+        getAccessVerifier() {
+            if (window.BSAAccessVerifier) {
+                return window.BSAAccessVerifier;
             }
 
-            try {
-                const parts = token.split('.');
-                if (parts.length !== 3) {
-                    return false;
-                }
-
-                const normalizedPayload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-                const paddedPayload = normalizedPayload + '='.repeat((4 - normalizedPayload.length % 4) % 4);
-                const payload = JSON.parse(atob(paddedPayload));
-
-                if (payload.exp && payload.exp * 1000 < Date.now()) {
+            window.BSAAccessVerifier = {
+                getStoredToken() {
+                    return localStorage.getItem('bsa_access_token') ||
+                        localStorage.getItem('bsa_jwt_token');
+                },
+                clearStoredToken() {
                     localStorage.removeItem('bsa_access_token');
                     localStorage.removeItem('bsa_jwt_token');
-                    return false;
-                }
+                },
+                getPayload(token) {
+                    if (!token) {
+                        return null;
+                    }
 
-                return true;
-            } catch {
-                return false;
-            }
+                    try {
+                        const parts = token.split('.');
+                        if (parts.length !== 3) {
+                            return null;
+                        }
+
+                        const normalizedPayload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+                        const paddedPayload = normalizedPayload + '='.repeat((4 - normalizedPayload.length % 4) % 4);
+                        const payload = JSON.parse(atob(paddedPayload));
+
+                        if (payload.exp && payload.exp * 1000 < Date.now()) {
+                            this.clearStoredToken();
+                            return null;
+                        }
+
+                        return payload;
+                    } catch {
+                        return null;
+                    }
+                },
+                async verifyToken(token, body = {}) {
+                    if (!token || !this.getPayload(token)) {
+                        return false;
+                    }
+
+                    if (this.verifiedToken === token) {
+                        return true;
+                    }
+
+                    if (this.pendingVerification?.token === token) {
+                        return this.pendingVerification.promise;
+                    }
+
+                    const promise = fetch('/api/verify-access', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(body)
+                    })
+                        .then((response) => {
+                            if (!response.ok) {
+                                if (response.status === 401 || response.status === 403) {
+                                    this.clearStoredToken();
+                                }
+                                return false;
+                            }
+
+                            this.verifiedToken = token;
+                            return true;
+                        })
+                        .catch((error) => {
+                            console.warn('[Membership Gate] Token verification failed:', error);
+                            return false;
+                        })
+                        .finally(() => {
+                            if (this.pendingVerification?.token === token) {
+                                delete this.pendingVerification;
+                            }
+                        });
+
+                    this.pendingVerification = { token, promise };
+                    return promise;
+                },
+                async verifyStoredToken(body = {}) {
+                    return this.verifyToken(this.getStoredToken(), body);
+                }
+            };
+
+            return window.BSAAccessVerifier;
+        }
+
+        hasValidAccessToken() {
+            const token = this.getAccessVerifier().getStoredToken();
+            return Boolean(this.getAccessVerifier().getPayload(token));
         }
 
         /**
@@ -138,10 +205,12 @@
         /**
          * Check if user has premium access
          */
-        hasPremiumAccess() {
-            if (this.isDevelopmentMode() || this.hasValidAccessToken()) return true;
-            const tier = this.membership?.tier;
-            return tier === 'apprentice' || tier === 'sovereign';
+        async hasPremiumAccess() {
+            if (this.isDevelopmentMode() || window.BSASubdomainAccess?.hasFullAccess?.()) {
+                return true;
+            }
+
+            return this.getAccessVerifier().verifyStoredToken();
         }
 
         /**
@@ -169,7 +238,7 @@
             const isPremium = CONFIG.premiumPatterns.some(pattern => pattern.test(path));
             
             // If premium and no access, gate it
-            return isPremium && !this.hasPremiumAccess();
+            return isPremium;
         }
 
         /**

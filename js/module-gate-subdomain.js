@@ -54,7 +54,99 @@
     // Check subdomain access control
     // ============================================
 
-    function checkSubdomainAccess() {
+    function getAccessVerifier() {
+        if (window.BSAAccessVerifier) {
+            return window.BSAAccessVerifier;
+        }
+
+        window.BSAAccessVerifier = {
+            getStoredToken() {
+                return localStorage.getItem('bsa_access_token') ||
+                    localStorage.getItem('bsa_jwt_token');
+            },
+            clearStoredToken() {
+                localStorage.removeItem('bsa_access_token');
+                localStorage.removeItem('bsa_jwt_token');
+            },
+            getPayload(token) {
+                if (!token) {
+                    return null;
+                }
+
+                try {
+                    const parts = token.split('.');
+                    if (parts.length !== 3) {
+                        return null;
+                    }
+
+                    const normalizedPayload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+                    const paddedPayload = normalizedPayload + '='.repeat((4 - normalizedPayload.length % 4) % 4);
+                    const payload = JSON.parse(atob(paddedPayload));
+
+                    if (payload.exp && payload.exp * 1000 < Date.now()) {
+                        this.clearStoredToken();
+                        return null;
+                    }
+
+                    return payload;
+                } catch {
+                    return null;
+                }
+            },
+            async verifyToken(token, body = {}) {
+                if (!token || !this.getPayload(token)) {
+                    return false;
+                }
+
+                if (this.verifiedToken === token) {
+                    return true;
+                }
+
+                if (this.pendingVerification?.token === token) {
+                    return this.pendingVerification.promise;
+                }
+
+                const promise = fetch('/api/verify-access', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(body)
+                })
+                    .then((response) => {
+                        if (!response.ok) {
+                            if (response.status === 401 || response.status === 403) {
+                                this.clearStoredToken();
+                            }
+                            return false;
+                        }
+
+                        this.verifiedToken = token;
+                        return true;
+                    })
+                    .catch((error) => {
+                        console.warn('[Module Gate Subdomain] Token verification failed:', error);
+                        return false;
+                    })
+                    .finally(() => {
+                        if (this.pendingVerification?.token === token) {
+                            delete this.pendingVerification;
+                        }
+                    });
+
+                this.pendingVerification = { token, promise };
+                return promise;
+            },
+            async verifyStoredToken(body = {}) {
+                return this.verifyToken(this.getStoredToken(), body);
+            }
+        };
+
+        return window.BSAAccessVerifier;
+    }
+
+    async function checkSubdomainAccess() {
         // Wait for subdomain access control to initialize
         if (typeof window.BSASubdomainAccess !== 'undefined') {
             const accessLevel = window.BSASubdomainAccess.getAccessLevel();
@@ -72,20 +164,14 @@
 
         // Fallback: check if we're on a member/preview subdomain directly
         const hostname = window.location.hostname.toLowerCase();
-        if (hasValidAccessToken() ||
-            hostname.includes('learn.') ||
+        if (hostname.includes('learn.') ||
             hostname.includes('preview.') ||
             isDevelopmentHost()) {
             console.log('✅ Access subdomain detected - bypassing module gate');
             return true;
         }
-
+        return getAccessVerifier().verifyStoredToken();
         return false;
-    }
-
-
-    if (checkSubdomainAccess()) {
-        return; // Bypass gating
     }
 
     // ============================================
@@ -101,13 +187,7 @@
     // ============================================
 
     window.addEventListener('DOMContentLoaded', () => {
-        if (shouldLockEntireModule) {
-            // Lock the ENTIRE module (no preview sections)
-            lockEntireModule();
-        } else {
-            // Show first 2 sections, then gate (for Stage 1, Module 1)
-            applyGate(previewLimit);
-        }
+        void initializeGate();
     });
 
     function normalizePath(path) {
@@ -127,38 +207,25 @@
     }
 
     function hasValidAccessToken() {
-        const token = localStorage.getItem('bsa_access_token') ||
-            localStorage.getItem('bsa_jwt_token');
-
-        if (!token) {
-            return false;
-        }
-
-        try {
-            const parts = token.split('.');
-            if (parts.length !== 3) {
-                return false;
-            }
-
-            const normalizedPayload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-            const paddedPayload = normalizedPayload + '='.repeat((4 - normalizedPayload.length % 4) % 4);
-            const payload = JSON.parse(atob(paddedPayload));
-
-            if (payload.exp && payload.exp * 1000 < Date.now()) {
-                localStorage.removeItem('bsa_access_token');
-                localStorage.removeItem('bsa_jwt_token');
-                return false;
-            }
-
-            return true;
-        } catch {
-            return false;
-        }
+        const token = getAccessVerifier().getStoredToken();
+        return Boolean(getAccessVerifier().getPayload(token));
     }
 
     function clearLegacyAccessState() {
         localStorage.removeItem('bsa_full_access');
         sessionStorage.removeItem('bsa_preview_mode');
+    }
+
+    async function initializeGate() {
+        if (await checkSubdomainAccess()) {
+            return;
+        }
+
+        if (shouldLockEntireModule) {
+            lockEntireModule();
+        } else {
+            applyGate(previewLimit);
+        }
     }
 
     function lockEntireModule() {
@@ -600,9 +667,10 @@
         getStatus() {
             return {
                 path: pathName,
+                hasVerifiedToken: window.BSAAccessVerifier?.verifiedToken === getAccessVerifier().getStoredToken(),
                 hasValidToken: hasValidAccessToken(),
                 isDevelopmentHost: isDevelopmentHost(),
-                hasSubdomainAccess: checkSubdomainAccess()
+                hasSubdomainAccess: typeof window.BSASubdomainAccess !== 'undefined'
             };
         }
     };

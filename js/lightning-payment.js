@@ -233,19 +233,11 @@
          * User clicks "I've paid" and we trust + verify later
          */
         confirmPaymentManually(invoice) {
-            // Store the claim - can be verified later if you add a backend
-            const claim = {
-                paymentHash: invoice.paymentHash,
-                amount: invoice.satoshi,
-                claimedAt: Date.now(),
-                verified: false // Flag for future verification
+            console.warn('[Lightning] Manual confirmation is disabled until server verification exists.');
+            return {
+                success: false,
+                error: 'Manual confirmation is disabled until Lightning payments can be verified server-side.'
             };
-
-            localStorage.setItem(CONFIG.storageKeys.depositTx, JSON.stringify(claim));
-            this.setMembership('apprentice', claim);
-            this.stopPolling();
-
-            return { success: true, claim };
         }
 
         /**

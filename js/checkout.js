@@ -485,7 +485,96 @@
     // URL Parameter Handling
     // ============================================
 
-    function checkPaymentStatus() {
+    function getAccessVerifier() {
+        if (window.BSAAccessVerifier) {
+            return window.BSAAccessVerifier;
+        }
+
+        window.BSAAccessVerifier = {
+            getStoredToken() {
+                return localStorage.getItem('bsa_access_token') ||
+                    localStorage.getItem('bsa_jwt_token');
+            },
+            clearStoredToken() {
+                localStorage.removeItem('bsa_access_token');
+                localStorage.removeItem('bsa_jwt_token');
+            },
+            getPayload(token) {
+                if (!token) {
+                    return null;
+                }
+
+                try {
+                    const parts = token.split('.');
+                    if (parts.length !== 3) {
+                        return null;
+                    }
+
+                    const normalizedPayload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+                    const paddedPayload = normalizedPayload + '='.repeat((4 - normalizedPayload.length % 4) % 4);
+                    const payload = JSON.parse(atob(paddedPayload));
+
+                    if (payload.exp && payload.exp * 1000 < Date.now()) {
+                        this.clearStoredToken();
+                        return null;
+                    }
+
+                    return payload;
+                } catch {
+                    return null;
+                }
+            },
+            async verifyToken(token, body = {}) {
+                if (!token || !this.getPayload(token)) {
+                    return false;
+                }
+
+                if (this.verifiedToken === token) {
+                    return true;
+                }
+
+                if (this.pendingVerification?.token === token) {
+                    return this.pendingVerification.promise;
+                }
+
+                const promise = fetch('/api/verify-access', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(body)
+                })
+                    .then((response) => {
+                        if (!response.ok) {
+                            if (response.status === 401 || response.status === 403) {
+                                this.clearStoredToken();
+                            }
+                            return false;
+                        }
+
+                        this.verifiedToken = token;
+                        return true;
+                    })
+                    .catch((error) => {
+                        console.warn('[Checkout] Token verification failed:', error);
+                        return false;
+                    })
+                    .finally(() => {
+                        if (this.pendingVerification?.token === token) {
+                            delete this.pendingVerification;
+                        }
+                    });
+
+                this.pendingVerification = { token, promise };
+                return promise;
+            }
+        };
+
+        return window.BSAAccessVerifier;
+    }
+
+    async function checkPaymentStatus() {
         // SECURITY: Use safe URL parameter validation
         const getSafeURLParam = window.BSASecurity?.getSafeURLParam || ((name) => {
             const params = new URLSearchParams(window.location.search);
@@ -516,14 +605,17 @@
                     if (!isValidJWTFormat(token)) {
                         throw new Error('Invalid token format');
                     }
-                    
+
+                    const verified = await getAccessVerifier().verifyToken(token);
+                    if (!verified) {
+                        throw new Error('Token could not be verified');
+                    }
+
                     localStorage.setItem('bsa_access_token', token);
-                    console.log('✅ Access token saved from payment success');
+                    console.log('✅ Access token saved after server verification');
 
-                    // Show success with access granted message
-                    showSuccess('Payment successful! Access granted. Redirecting to your courses...');
+                    showSuccess('Payment successful! Access verified. Redirecting to your courses...');
 
-                    // Redirect to member area after 2 seconds
                     setTimeout(() => {
                         window.location.href = '/';
                     }, 2000);
@@ -542,7 +634,8 @@
         }
 
         // Check for cancellation
-        if (params.get('canceled') === 'true') {
+        const canceledParam = getSafeURLParam('canceled');
+        if (canceledParam === 'true') {
             showError('Payment was canceled. Your cart has been preserved.');
 
             // Clean URL

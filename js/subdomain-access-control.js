@@ -77,40 +77,103 @@
     // JWT Token Verification
     // ============================================
 
-    function hasValidAccessToken() {
-        try {
-            // Check for access token in localStorage
-            const token = localStorage.getItem('bsa_access_token') ||
-                         localStorage.getItem('bsa_jwt_token');
+    function getAccessVerifier() {
+        if (window.BSAAccessVerifier) {
+            return window.BSAAccessVerifier;
+        }
 
-            if (!token) {
-                return false;
-            }
-
-            // Basic JWT validation (check expiration)
-            const parts = token.split('.');
-            if (parts.length !== 3) {
-                console.warn('Invalid JWT format');
-                return false;
-            }
-
-            // Decode payload (base64url decode)
-            const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-
-            // Check expiration
-            if (payload.exp && payload.exp * 1000 < Date.now()) {
-                console.log('🔒 JWT token expired');
+        window.BSAAccessVerifier = {
+            getStoredToken() {
+                return localStorage.getItem('bsa_access_token') ||
+                    localStorage.getItem('bsa_jwt_token');
+            },
+            clearStoredToken() {
                 localStorage.removeItem('bsa_access_token');
                 localStorage.removeItem('bsa_jwt_token');
-                return false;
-            }
+            },
+            getPayload(token) {
+                if (!token) {
+                    return null;
+                }
 
-            console.log('✅ Valid JWT token found - granting member access');
-            return true;
-        } catch (e) {
-            console.warn('Error validating JWT:', e);
-            return false;
-        }
+                try {
+                    const parts = token.split('.');
+                    if (parts.length !== 3) {
+                        return null;
+                    }
+
+                    const normalizedPayload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+                    const paddedPayload = normalizedPayload + '='.repeat((4 - normalizedPayload.length % 4) % 4);
+                    const payload = JSON.parse(atob(paddedPayload));
+
+                    if (payload.exp && payload.exp * 1000 < Date.now()) {
+                        console.log('🔒 JWT token expired');
+                        this.clearStoredToken();
+                        return null;
+                    }
+
+                    return payload;
+                } catch (error) {
+                    console.warn('Error validating JWT:', error);
+                    return null;
+                }
+            },
+            async verifyToken(token, body = {}) {
+                if (!token || !this.getPayload(token)) {
+                    return false;
+                }
+
+                if (this.verifiedToken === token) {
+                    return true;
+                }
+
+                if (this.pendingVerification?.token === token) {
+                    return this.pendingVerification.promise;
+                }
+
+                const promise = fetch('/api/verify-access', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(body)
+                })
+                    .then((response) => {
+                        if (!response.ok) {
+                            if (response.status === 401 || response.status === 403) {
+                                this.clearStoredToken();
+                            }
+                            return false;
+                        }
+
+                        this.verifiedToken = token;
+                        return true;
+                    })
+                    .catch((error) => {
+                        console.warn('⚠️ Server token verification failed:', error);
+                        return false;
+                    })
+                    .finally(() => {
+                        if (this.pendingVerification?.token === token) {
+                            delete this.pendingVerification;
+                        }
+                    });
+
+                this.pendingVerification = { token, promise };
+                return promise;
+            },
+            async verifyStoredToken(body = {}) {
+                return this.verifyToken(this.getStoredToken(), body);
+            }
+        };
+
+        return window.BSAAccessVerifier;
+    }
+
+    function hasValidAccessToken() {
+        const token = getAccessVerifier().getStoredToken();
+        return Boolean(getAccessVerifier().getPayload(token));
     }
 
     // ============================================
@@ -127,11 +190,6 @@
             return CONFIG.accessLevels.DEV;
         }
 
-        // Check for valid JWT token (works on any subdomain)
-        if (hasValidAccessToken()) {
-            console.log('✅ Valid Access Token - Member Access Granted');
-            return CONFIG.accessLevels.MEMBER;
-        }
 
         // Member subdomain (paid access)
         if (hostname === CONFIG.domains.members || subdomain === 'learn') {
@@ -284,37 +342,18 @@
     // ============================================
 
     async function verifyWithServer() {
-        const token = localStorage.getItem('bsa_access_token');
+        const token = getAccessVerifier().getStoredToken();
         if (!token) return;
 
         try {
-            const response = await fetch('/api/verify-access', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    pathId: getSubdomain() === 'learn' ? undefined : undefined // Optional: send context
-                })
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                console.warn('⚠️ Server verification failed:', data.reason);
-                
-                // Server rejected the token - revoke access
-                localStorage.removeItem('bsa_access_token');
-                localStorage.removeItem('bsa_jwt_token');
-                
-                // Reload to enforce public access
-                window.location.reload();
-            } else {
+            const verified = await getAccessVerifier().verifyStoredToken();
+            if (verified) {
                 console.log('✅ Server verification passed');
+            } else {
+                console.warn('⚠️ Server verification failed - keeping public access until a verified token is present');
             }
         } catch (err) {
             console.error('Server verification error:', err);
-            // Don't revoke on network error, be lenient for now
         }
     }
 
@@ -355,7 +394,8 @@
                 console.log('🔒 Access token cleared');
                 window.location.reload();
             },
-            hasValidToken: hasValidAccessToken
+            hasValidToken: hasValidAccessToken,
+            verifyCurrentToken: verifyWithServer
         };
 
         console.log('🌐 Subdomain Access Control Initialized');

@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Successful! | Bitcoin Sovereign Academy</title>
+    <title>Payment Received | Bitcoin Sovereign Academy</title>
 
     <style>
         :root {
@@ -250,15 +250,15 @@
     <div class="success-container">
         <div class="success-icon">✓</div>
 
-        <h1>Payment Successful!</h1>
+        <h1>Payment Received</h1>
 
         <div class="product-name" id="product-name">
             Loading...
         </div>
 
         <p class="message">
-            Congratulations! Your payment has been confirmed and your content is being unlocked.
-            You now have lifetime access to your purchased tier.
+            We received your payment return link. Access is only granted after verification.
+            Check your email for your access instructions if your content is not available yet.
         </p>
 
         <div class="stats-grid">
@@ -303,7 +303,7 @@
         </a>
 
         <p class="loading-text" id="loading-text">
-            Verifying payment and unlocking content...
+            Checking your payment details...
         </p>
     </div>
 
@@ -373,45 +373,19 @@
             }
         }
 
-        // Verify payment with backend
+        // This page must never grant access by itself.
+        // Without a signed server verification response, it should fail closed.
         async function verifyPayment() {
+            const loadingText = document.getElementById('loading-text');
+            const continueBtn = document.getElementById('continue-btn');
             if (!orderId || !productId) {
                 console.error('Missing order or product information');
-                document.getElementById('loading-text').textContent = 'Error: Missing payment information';
+                loadingText.textContent = 'We could not verify this return link. Check your email for access instructions or contact support.';
+                continueBtn.textContent = 'Return to Home →';
                 return;
             }
-
-            try {
-                // In production, this would call the webhook/verify endpoint
-                // For now, we'll simulate success after a delay
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                // Store access in localStorage (simulated token)
-                const accessData = JSON.parse(localStorage.getItem('bsa_access') || '{}');
-
-                if (!accessData.purchases) {
-                    accessData.purchases = [];
-                }
-
-                accessData.purchases.push({
-                    orderId: orderId,
-                    product: productId,
-                    grantedAt: new Date().toISOString(),
-                    verified: true
-                });
-
-                localStorage.setItem('bsa_access', JSON.stringify(accessData));
-
-                // Update UI
-                document.getElementById('loading-text').textContent = '✓ Payment verified! You can now access your content.';
-                document.getElementById('continue-btn').style.display = 'inline-block';
-
-                // Trigger confetti
-                createConfetti();
-
-            } catch (error) {
-                console.error('Payment verification error:', error);
-                document.getElementById('loading-text').textContent = 'Error verifying payment. Please contact support.';
+            loadingText.textContent = `Payment received for ${PRODUCTS[productId]?.name || 'your purchase'}. This page does not unlock content on its own. Check your email for your access link or contact support with order reference ${orderId}.`;
+            continueBtn.textContent = 'Return to Home →';
             }
         }
 
