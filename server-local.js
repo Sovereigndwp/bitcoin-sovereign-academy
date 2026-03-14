@@ -613,11 +613,22 @@ app.use((req, res, next) => {
   if (req.path.startsWith('/api/')) {
     return next();
   }
+  let requestPath = req.path;
+  const colombiaWeekAliasMatch = requestPath.match(/^\/semana-([^/]+)(?:\/(.*))?$/);
 
-  let filePath = path.join(__dirname, req.path);
+  if (colombiaWeekAliasMatch) {
+    const [, week, rest = ''] = colombiaWeekAliasMatch;
+    requestPath = path.posix.join('/programa-colombia', `semana-${week}`, rest);
+
+    if (req.path.endsWith('/') && !requestPath.endsWith('/')) {
+      requestPath += '/';
+    }
+  }
+
+  let filePath = path.join(__dirname, requestPath);
 
   // Default to index.html for directory requests (trailing slash)
-  if (req.path.endsWith('/')) {
+  if (requestPath.endsWith('/')) {
     filePath = path.join(filePath, 'index.html');
   }
 
