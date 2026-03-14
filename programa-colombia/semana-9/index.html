@@ -238,24 +238,30 @@
             <div class="section-card">
                 <h2 class="section-title">Hagamos un ejercicio</h2>
                 <p class="section-text">Para este ejercicio usaremos un puntaje estimado e hipotético.</p>
-                <p class="section-text"><strong>El puntaje es solo una referencia. Lo importante es entender qué hábitos lo empujan.</strong></p>
+                <p class="section-text"><strong>No vamos a adivinar un puntaje exacto.</strong> Lo importante es ver qu&#233; se&#241;ales se ven m&#225;s fuertes hoy, cu&#225;les conviene revisar y cu&#225;les toman m&#225;s tiempo.</p>
 
                 <div class="score-display">
-                    <div class="score-kicker">Puntaje ilustrativo del ejercicio</div>
-                    <div class="score-bar">
-                        <div class="score-pointer" id="score-pointer">
-                            <div class="score-pointer-label" id="score-pointer-label"></div>
+                    <div class="score-kicker">Lectura del ejemplo</div>
+                    <div class="weight-grid">
+                        <div class="weight-card help">
+                            <div class="weight-label">Señales fuertes hoy</div>
+                            <div class="score-number" id="signal-strong">0 de 5</div>
+                            <div class="score-label">Lo que ya muestra una base más clara</div>
+                        </div>
+                        <div class="weight-card watch">
+                            <div class="weight-label">Señales por revisar</div>
+                            <div class="score-number" id="signal-review">0 de 5</div>
+                            <div class="score-label">Lo que conviene mirar primero</div>
+                        </div>
+                        <div class="weight-card review">
+                            <div class="weight-label">Lo que toma más tiempo</div>
+                            <div class="score-number" id="signal-time">En formación</div>
+                            <div class="score-label">Lo que mejora con continuidad, no de un día para otro</div>
                         </div>
                     </div>
-                    <div class="score-range">
-                        <span>150</span>
-                        <span>500</span>
-                        <span>700</span>
-                        <span>950</span>
-                    </div>
                     <div class="score-summary">
-                        <span class="score-number" id="score-number">--</span>
-                        <div class="score-label" id="score-category">Ajusta los factores para ver cómo cambia este ejemplo</div>
+                        <span class="score-number" id="next-focus-title">Ajusta los factores</span>
+                        <div class="score-label" id="next-focus-text">Cambia los selectores para ver qu&#233; se&#241;al conviene cuidar primero en este ejemplo.</div>
                     </div>
                 </div>
 
@@ -265,7 +271,7 @@
                             <span class="factor-name">Pagos a tiempo</span>
                             <span class="factor-weight">Se suele mirar mucho</span>
                         </div>
-                        <select class="factor-select" id="factor-payments" onchange="updateScore()">
+                        <select class="factor-select" id="factor-payments" onchange="updateSignals()">
                             <option value="100">Pagos siempre a tiempo</option>
                             <option value="70" selected>Alguna demora leve en el pasado</option>
                             <option value="45">Demoras repetidas</option>
@@ -280,7 +286,7 @@
                             <span class="factor-name">Uso del cupo</span>
                             <span class="factor-weight">Se suele mirar mucho</span>
                         </div>
-                        <select class="factor-select" id="factor-util" onchange="updateScore()">
+                        <select class="factor-select" id="factor-util" onchange="updateSignals()">
                             <option value="100">Uso una parte pequeña del cupo</option>
                             <option value="65" selected>Uso una parte media del cupo</option>
                             <option value="30">Uso una parte alta del cupo</option>
@@ -295,7 +301,7 @@
                             <span class="factor-name">Antigüedad del historial</span>
                             <span class="factor-weight">Ayuda a dar contexto</span>
                         </div>
-                        <select class="factor-select" id="factor-age" onchange="updateScore()">
+                        <select class="factor-select" id="factor-age" onchange="updateSignals()">
                             <option value="100">Más de 5 años visibles</option>
                             <option value="70" selected>Entre 2 y 5 años</option>
                             <option value="40">Entre 1 y 2 años</option>
@@ -310,7 +316,7 @@
                             <span class="factor-name">Consultas recientes</span>
                             <span class="factor-weight">Se suele mirar menos</span>
                         </div>
-                        <select class="factor-select" id="factor-inquiries" onchange="updateScore()">
+                        <select class="factor-select" id="factor-inquiries" onchange="updateSignals()">
                             <option value="100">0 o 1 consultas recientes</option>
                             <option value="70" selected>2 a 4 consultas recientes</option>
                             <option value="40">Muchas solicitudes en poco tiempo</option>
@@ -324,7 +330,7 @@
                             <span class="factor-name">Tipos de productos</span>
                             <span class="factor-weight">Suma contexto</span>
                         </div>
-                        <select class="factor-select" id="factor-products" onchange="updateScore()">
+                        <select class="factor-select" id="factor-products" onchange="updateSignals()">
                             <option value="100">Tengo más de un producto bien manejado</option>
                             <option value="60" selected>Tengo un solo producto visible</option>
                             <option value="20">No tengo productos activos visibles</option>
@@ -465,14 +471,6 @@
             return new Intl.NumberFormat('es-CO', { minimumFractionDigits:0 }).format(Math.round(n));
         }
 
-        const factorWeights = {
-            payments: 0.35,
-            util: 0.30,
-            age: 0.15,
-            inquiries: 0.10,
-            products: 0.10
-        };
-
         const factorImpacts = {
             payments: {
                 100: 'Los pagos a tiempo repetidos suelen ser la señal más fuerte.',
@@ -517,7 +515,30 @@
             0: 'var(--red)'
         };
 
-        function updateScore() {
+        const focusMessages = {
+            payments: {
+                title: 'Empieza por pagos a tiempo',
+                text: 'Si ya tienes un producto, sostener pagos puntuales por varios meses suele ser de lo primero que cambia la lectura del historial.'
+            },
+            util: {
+                title: 'Baja el uso del cupo',
+                text: 'No se trata de dejar de usar el cr&#233;dito por completo. Se trata de no vivir pegado al tope del cupo.'
+            },
+            inquiries: {
+                title: 'Frena nuevas solicitudes',
+                text: 'Comparar con calma suele ayudar m&#225;s que pedir varios productos seguidos en poco tiempo.'
+            },
+            products: {
+                title: 'Aclara y cuida lo que ya aparece',
+                text: 'A veces el primer paso no es abrir algo nuevo. Es entender bien qu&#233; producto ya est&#225; visible y manejarlo con continuidad.'
+            },
+            age: {
+                title: 'Dale tiempo a la continuidad',
+                text: 'La antig&#252;edad no se acelera de golpe. Lo que s&#237; puedes hacer es sostener buenos h&#225;bitos el tiempo suficiente para que se vean.'
+            }
+        };
+
+        function updateSignals() {
             const factors = {
                 payments: parseInt(document.getElementById('factor-payments').value, 10),
                 util: parseInt(document.getElementById('factor-util').value, 10),
@@ -526,10 +547,7 @@
                 products: parseInt(document.getElementById('factor-products').value, 10),
             };
 
-            let weightedScore = 0;
-            Object.keys(factorWeights).forEach((key) => {
-                weightedScore += factors[key] * factorWeights[key];
-
+            Object.keys(factors).forEach((key) => {
                 const bar = document.getElementById(`bar-${key}`);
                 if (bar) {
                     bar.style.width = factors[key] + '%';
@@ -543,38 +561,24 @@
                 }
             });
 
-            const score = Math.round(150 + (weightedScore / 100) * 800);
-            const pct = ((score - 150) / 800) * 100;
+            const strongCount = Object.values(factors).filter(value => value >= 70).length;
+            const reviewCount = Object.values(factors).filter(value => value < 50).length;
+            const orderedFocus = ['payments', 'util', 'inquiries', 'products', 'age'];
+            const nextFocusKey = orderedFocus.reduce((lowest, key) => factors[key] < factors[lowest] ? key : lowest, orderedFocus[0]);
+            const ageText = factors.age >= 70
+                ? 'Ya visible'
+                : factors.age >= 40
+                    ? 'En formaci&#243;n'
+                    : 'Muy reciente';
 
-            document.getElementById('score-number').textContent = fmt(score);
-            document.getElementById('score-pointer').style.left = Math.min(Math.max(pct, 2), 98) + '%';
-            document.getElementById('score-pointer-label').textContent = fmt(score);
-
-            let category = '';
-            let color = 'var(--yellow)';
-
-            if (score >= 800) {
-                category = 'Lectura ilustrativa: base muy sólida';
-                color = 'var(--green)';
-            } else if (score >= 680) {
-                category = 'Lectura ilustrativa: base buena';
-                color = 'var(--yellow)';
-            } else if (score >= 520) {
-                category = 'Lectura ilustrativa: base en desarrollo';
-                color = 'var(--yellow)';
-            } else if (score >= 350) {
-                category = 'Lectura ilustrativa: conviene revisar algunos factores';
-                color = 'var(--red)';
-            } else {
-                category = 'Lectura ilustrativa: conviene empezar por lo más visible';
-                color = 'var(--red)';
-            }
-
-            document.getElementById('score-number').style.color = color;
-            document.getElementById('score-category').textContent = category;
+            document.getElementById('signal-strong').textContent = strongCount + ' de 5';
+            document.getElementById('signal-review').textContent = reviewCount + ' de 5';
+            document.getElementById('signal-time').textContent = ageText;
+            document.getElementById('next-focus-title').textContent = focusMessages[nextFocusKey].title;
+            document.getElementById('next-focus-text').textContent = focusMessages[nextFocusKey].text;
         }
 
-        updateScore();
+        updateSignals();
     </script>
     <script src="../program-state.js"></script>
 </body>
