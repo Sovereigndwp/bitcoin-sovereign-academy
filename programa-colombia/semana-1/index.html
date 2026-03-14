@@ -121,9 +121,72 @@
             line-height: 1.55;
             max-width: 38rem;
         }
+        .scenario-panel {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(252,209,22,0.14);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .scenario-label {
+            color: var(--primary);
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.7rem;
+            margin-top: 0.75rem;
+        }
+        .scenario-btn {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 0.9rem;
+            background: rgba(255,255,255,0.02);
+            color: inherit;
+            padding: 0.95rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.3rem;
+            text-align: left;
+            cursor: pointer;
+            transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+        }
+        .scenario-btn:hover {
+            border-color: rgba(252,209,22,0.28);
+            transform: translateY(-1px);
+        }
+        .scenario-btn:focus-visible {
+            outline: 2px solid rgba(252,209,22,0.55);
+            outline-offset: 2px;
+        }
+        .scenario-btn.is-active {
+            border-color: rgba(252,209,22,0.55);
+            background: rgba(252,209,22,0.08);
+        }
+        .scenario-title {
+            color: var(--light);
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+        .scenario-copy {
+            color: var(--dim);
+            font-size: 0.84rem;
+            line-height: 1.5;
+        }
+        .scenario-note {
+            margin-top: 0.8rem;
+            color: #FDE68A;
+            font-size: 0.86rem;
+            line-height: 1.55;
+        }
         .budget-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 0.75rem;
         }
         .budget-card {
@@ -145,6 +208,12 @@
             font-family: 'Courier New', monospace;
             color: var(--light);
             transition: color 0.2s ease;
+        }
+        .metric-helper {
+            margin-top: 0.42rem;
+            color: var(--dim);
+            font-size: 0.77rem;
+            line-height: 1.5;
         }
         .meter-wrap {
             margin-top: 0.85rem;
@@ -713,16 +782,15 @@
             line-height: 1.55;
         }
         @media (max-width: 760px) {
+            .scenario-grid,
             .budget-grid,
             .breakdown-grid,
             .event-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
-            .budget-grid .budget-card:first-child {
-                grid-column: 1 / -1;
-            }
         }
         @media (max-width: 620px) {
+            .scenario-grid,
             .cards-grid,
             .cards-grid--single,
             .budget-grid,
@@ -768,15 +836,15 @@
             <p class="program-lesson-text program-lesson-spacer-top">La primera semana empieza con una simulación simple para ver qué pasa cuando una quincena tiene que alcanzar para todo.</p>
         </div>
 
-        <div class="step-overview" aria-label="Etapas del ejercicio">
+        <nav class="step-overview" aria-label="Etapas del ejercicio">
             <div class="overview-step current" id="overview-distribute">1 · Distribuir</div>
             <div class="overview-step" id="overview-consequences">2 · Consecuencias</div>
             <div class="overview-step" id="overview-reflect">3 · Reflexionar</div>
-        </div>
+        </nav>
 
         <div class="program-lesson-section">
             <div class="program-lesson-kicker">Una situación muy común</div>
-            <p class="program-lesson-text">A veces llega el pago y enseguida aparecen mercado, transporte, servicios, celular, almuerzos y algún gasto inesperado. Muchas veces no es desorden. Simplemente no alcanza para todo.</p>
+            <p class="program-lesson-text">A veces llega el pago y enseguida aparecen mercado, transporte, servicios, celular, almuerzos y algún gasto inesperado. Muchas veces no es que alguien esté gastando mal. Simplemente no alcanza para todo.</p>
             <p class="program-lesson-text">Esta semana te ayuda a ver qué eliges primero cuando varios gastos compiten por el mismo dinero.</p>
         </div>
 
@@ -792,28 +860,47 @@
         <div class="program-lesson-section program-lesson-section--soft simulation-shell">
             <div class="program-lesson-kicker">Simulación de una quincena</div>
             <h2 class="program-lesson-title program-lesson-title--small">Así se aprieta una quincena cuando muchos gastos llegan juntos</h2>
-            <p class="program-lesson-text">Para este ejercicio usaremos un ejemplo hipotético. Imagina que una persona recibió <strong>$1.000.000</strong> como pago de su quincena y tiene que decidir qué cubrir primero en los próximos 15 días.</p>
+            <p class="program-lesson-text">Para este ejercicio usaremos dos ejemplos hipotéticos. En ambos casos una persona recibe <strong>$1.000.000</strong>, pero una quincena arranca limpia y la otra ya llega corta porque una parte se fue antes de empezar.</p>
+            <section class="scenario-panel" aria-labelledby="scenario-label">
+                <div class="scenario-label" id="scenario-label">Elige una versión del ejercicio</div>
+                <div class="scenario-grid">
+                    <button type="button" class="scenario-btn is-active" id="scenario-base" aria-pressed="true" onclick="setScenario('base')">
+                        <span class="scenario-title">Quincena base</span>
+                        <span class="scenario-copy">Empieza desde cero y muestra cómo se va cerrando el margen con cada decisión.</span>
+                    </button>
+                    <button type="button" class="scenario-btn" id="scenario-short" aria-pressed="false" onclick="setScenario('short')">
+                        <span class="scenario-title">Quincena que ya empieza corta</span>
+                        <span class="scenario-copy">Antes de elegir estos gastos, una parte ya salió para compromisos previos.</span>
+                    </button>
+                </div>
+                <div class="scenario-note" id="scenario-note">Primero mira una quincena que arranca limpia. Sirve para ver cómo se aprieta incluso cuando todavía no venías con un faltante.</div>
+            </section>
         </div>
 
         <div class="budget-shell" aria-live="polite">
             <div class="budget-headline">
                 <div>
-                    <div class="budget-title">Disponible inicial, te queda y comprometido</div>
-                    <div class="budget-copy">La idea no es acertar. Es ver cómo la quincena se va cerrando cuando sumas necesidades, gastos que se antojan, deuda y un posible imprevisto.</div>
+                    <div class="budget-title">Cómo arranca esta quincena y cuánto margen queda</div>
+                    <div class="budget-copy" id="budget-copy">La idea no es acertar. Es ver cómo la quincena se va cerrando cuando sumas necesidades, gastos que se antojan, deuda y un posible imprevisto.</div>
                 </div>
             </div>
             <div class="budget-grid">
                 <div class="budget-card">
-                    <div class="metric-label">Disponible inicial</div>
+                    <div class="metric-label">Pago de la quincena</div>
                     <div class="metric-value" id="initial-value">$1.000.000</div>
                 </div>
                 <div class="budget-card">
-                    <div class="metric-label">Te queda</div>
-                    <div class="metric-value" id="remaining-value">$1.000.000</div>
+                    <div class="metric-label">Ya comprometido antes</div>
+                    <div class="metric-value" id="carryover-value">$0</div>
+                    <div class="metric-helper" id="carryover-note">Nada salió antes de empezar a decidir.</div>
                 </div>
                 <div class="budget-card">
-                    <div class="metric-label">Comprometido</div>
+                    <div class="metric-label">Lo elegiste aquí</div>
                     <div class="metric-value" id="spent-value">$0</div>
+                </div>
+                <div class="budget-card">
+                    <div class="metric-label">Te queda ahora</div>
+                    <div class="metric-value" id="remaining-value">$1.000.000</div>
                 </div>
             </div>
             <div class="meter-wrap">
@@ -841,7 +928,7 @@
                 </button>
                 <div class="flow-panel" id="panel-distribute" role="region" aria-labelledby="toggle-distribute" aria-hidden="false">
                     <div class="flow-panel-inner">
-                        <p class="intro-note">Selecciona lo que pagarías en esta quincena. No te alcanza para todo, así que tendrás que priorizar.</p>
+                        <p class="intro-note" id="intro-note">Selecciona lo que pagarías en esta quincena. No te alcanza para todo, así que tendrás que priorizar.</p>
 
                         <div class="section-label needs-lbl">Necesidades</div>
                         <div class="cards-grid">
@@ -1020,7 +1107,7 @@
                             </div>
                         </div>
 
-                        <div class="over-budget" id="over-budget">⚠️ Te pasaste de $1.000.000. Desmarca algo para continuar.</div>
+                        <div class="over-budget" id="over-budget">⚠️ Te pasaste del dinero disponible para este ejercicio. Desmarca algo para continuar.</div>
 
                         <div class="phase-cta">
                             <button class="btn btn-primary" id="btn-to-consequences" onclick="goToConsequences()">Ver consecuencias →</button>
@@ -1131,7 +1218,31 @@
     </div>
 
     <script>
-        const BUDGET = 1000000;
+        const SCENARIOS = {
+            base: {
+                income: 1000000,
+                carryover: 0,
+                available: 1000000,
+                allowShortfall: false,
+                note: 'Primero mira una quincena que arranca limpia. Sirve para ver cómo se aprieta incluso cuando todavía no venías con un faltante.',
+                intro: 'Selecciona lo que pagarías en esta quincena. No te alcanza para todo, así que tendrás que priorizar.',
+                budgetCopy: 'La idea no es acertar. Es ver cómo la quincena se va cerrando cuando sumas necesidades, gastos que se antojan, deuda y un posible imprevisto.',
+                carryoverNote: 'Nada salió antes de empezar a decidir.',
+                overBudget: '⚠️ Te pasaste del dinero disponible para este ejercicio. Desmarca algo para continuar.'
+            },
+            short: {
+                income: 1000000,
+                carryover: 380000,
+                available: 620000,
+                allowShortfall: true,
+                note: 'En esta versión, de la quincena ya salieron $380.000 para arriendo y una cuota atrasada. El punto no es “hacer magia”, sino ver qué deja la quincena corta cuando el margen ya venía apretado.',
+                intro: 'Selecciona lo que intentarías cubrir. Aquí sí puedes quedar en negativo: la idea es ver cuánto falta y qué presión aparece primero.',
+                budgetCopy: 'Aquí la quincena ya llega apretada antes de escoger mercado, transporte, celular o salud. Eso ayuda a separar falta de margen de mala priorización.',
+                carryoverNote: 'Antes de estos 15 días ya salieron $380.000 para arriendo y una cuota atrasada.',
+                overBudget: '⚠️ Aquí puedes seguir aunque quede faltando. La idea es medir el faltante real, no fingir que todo alcanza.'
+            }
+        };
+        const SCENARIO_ORDER = ['base', 'short'];
         const SECTION_ORDER = ['distribute', 'consequences', 'reflect'];
         const SECTION_TITLES = {
             distribute: 'Distribuir',
@@ -1165,6 +1276,7 @@
         const WANT_IDS = ['impulsos', 'entretenimiento', 'domicilio', 'salida', 'regalo', 'ropa'];
         const SMALL_WANT_IDS = ['impulsos', 'entretenimiento', 'domicilio'];
         const SAVE_IDS = ['ahorro50', 'ahorro100'];
+        const TOTAL_NEEDS_COST = NEED_IDS.reduce((total, id) => total + ITEMS[id].cost, 0);
         const EVENT = {
             title: 'Reparación urgente del celular',
             cost: 180000,
@@ -1174,6 +1286,11 @@
         const selected = new Set();
         const visitedSections = new Set(['distribute']);
         let currentSection = 'distribute';
+        let currentScenarioKey = 'base';
+
+        function getScenario() {
+            return SCENARIOS[currentScenarioKey];
+        }
 
         function fmt(value) {
             const rounded = Math.round(value);
@@ -1202,23 +1319,33 @@
         }
 
         function remaining() {
-            return BUDGET - spent();
+            return getScenario().available - spent();
         }
 
         function getRemainingTone(value) {
-            if (value > 600000) {
+            const scenario = getScenario();
+            if (value < 0) {
+                return {
+                    color: 'var(--pressure)',
+                    note: scenario.allowShortfall
+                        ? `Aquí ya faltan ${fmt(Math.abs(value))}. Eso no siempre significa “gastar mal”; a veces muestra que el margen de entrada ya venía corto.`
+                        : 'Te pasaste del dinero disponible para este ejercicio.'
+                };
+            }
+            const ratio = scenario.available > 0 ? value / scenario.available : 0;
+            if (ratio > 0.55) {
                 return {
                     color: 'var(--green)',
                     note: 'Todavía hay bastante aire, pero la quincena ya empezó a moverse.'
                 };
             }
-            if (value >= 300000) {
+            if (ratio >= 0.25) {
                 return {
                     color: 'var(--yellow)',
                     note: 'La quincena sigue manejable, pero los compromisos ya se sienten.'
                 };
             }
-            if (value >= 100000) {
+            if (ratio >= 0.08) {
                 return {
                     color: 'var(--orange)',
                     note: 'El margen ya está corto. Un gasto extra cambia bastante el panorama.'
@@ -1226,7 +1353,9 @@
             }
             return {
                 color: 'var(--pressure)',
-                note: 'Quedas casi sin colchón. Cualquier sorpresa aprieta de inmediato.'
+                note: scenario.allowShortfall
+                    ? 'Queda muy poco aire. Cualquier sorpresa deja la quincena todavía más corta.'
+                    : 'Quedas casi sin colchón. Cualquier sorpresa aprieta de inmediato.'
             };
         }
 
@@ -1234,37 +1363,60 @@
             card.classList.add('flash-no');
             card.addEventListener('animationend', () => card.classList.remove('flash-no'), { once: true });
         }
+        function syncScenarioUI() {
+            const scenario = getScenario();
+            document.getElementById('scenario-note').textContent = scenario.note;
+            document.getElementById('intro-note').textContent = scenario.intro;
+            document.getElementById('budget-copy').textContent = scenario.budgetCopy;
+
+            SCENARIO_ORDER.forEach(key => {
+                const button = document.getElementById(`scenario-${key}`);
+                const isActive = key === currentScenarioKey;
+                button.classList.toggle('is-active', isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+        }
 
         function updateBudget() {
+            const scenario = getScenario();
             const totalSpent = spent();
             const totalRemaining = remaining();
-            const remainingPct = Math.max(0, Math.min(100, (totalRemaining / BUDGET) * 100));
+            const remainingPct = Math.max(0, Math.min(100, (totalRemaining / scenario.available) * 100));
             const tone = getRemainingTone(totalRemaining);
+            const overBudget = document.getElementById('over-budget');
 
-            document.getElementById('initial-value').textContent = fmt(BUDGET);
+            document.getElementById('initial-value').textContent = fmt(scenario.income);
+            document.getElementById('carryover-value').textContent = fmt(scenario.carryover);
+            document.getElementById('carryover-note').textContent = scenario.carryoverNote;
             document.getElementById('remaining-value').textContent = fmt(totalRemaining);
             document.getElementById('spent-value').textContent = fmt(totalSpent);
             document.getElementById('remaining-value').style.color = tone.color;
             document.getElementById('remaining-fill').style.width = `${remainingPct}%`;
             document.getElementById('remaining-fill').style.background = tone.color;
             document.getElementById('remaining-note').textContent = tone.note;
-            document.getElementById('over-budget').classList.toggle('show', totalRemaining < 0);
-            document.getElementById('btn-to-consequences').disabled = totalRemaining < 0;
+            overBudget.textContent = totalRemaining < 0
+                ? `${scenario.overBudget} Hoy faltan ${fmt(Math.abs(totalRemaining))}.`
+                : scenario.overBudget;
+            overBudget.classList.toggle('show', totalRemaining < 0);
+            document.getElementById('btn-to-consequences').disabled = totalRemaining < 0 && !scenario.allowShortfall;
 
             Object.keys(ITEMS).forEach(id => {
                 const card = document.getElementById(`card-${id}`);
                 if (!card) return;
                 if (selected.has(id)) {
                     card.classList.remove('cant-afford');
+                } else if (scenario.allowShortfall) {
+                    card.classList.remove('cant-afford');
                 } else {
-                    card.classList.toggle('cant-afford', totalSpent + ITEMS[id].cost > BUDGET);
+                    card.classList.toggle('cant-afford', totalSpent + ITEMS[id].cost > scenario.available);
                 }
             });
         }
 
         function toggle(id) {
+            const scenario = getScenario();
             const card = document.getElementById(`card-${id}`);
-            if (!selected.has(id) && spent() + ITEMS[id].cost > BUDGET) {
+            if (!scenario.allowShortfall && !selected.has(id) && spent() + ITEMS[id].cost > scenario.available) {
                 flashNo(card);
                 return;
             }
@@ -1338,6 +1490,7 @@
         }
 
         function buildData() {
+            const scenario = getScenario();
             const needsTotal = spentByCat('need');
             const wantsTotal = spentByCat('want');
             const debtTotal = spentByCat('debt');
@@ -1347,8 +1500,10 @@
             const missingNeeds = NEED_IDS.filter(id => !selected.has(id));
             const wantsCount = countSelected(WANT_IDS);
             const smallWantCount = countSelected(SMALL_WANT_IDS);
+            const structuralNeedGap = Math.max(0, TOTAL_NEEDS_COST - scenario.available);
 
             return {
+                scenario,
                 needsTotal,
                 wantsTotal,
                 debtTotal,
@@ -1357,7 +1512,8 @@
                 remainingAfterEvent,
                 missingNeeds,
                 wantsCount,
-                smallWantCount
+                smallWantCount,
+                structuralNeedGap
             };
         }
 
@@ -1369,6 +1525,25 @@
             document.getElementById('bk-wants').textContent = fmt(data.wantsTotal);
             document.getElementById('bk-debt').textContent = fmt(data.debtTotal);
             document.getElementById('bk-saved').textContent = fmt(data.savedTotal);
+            if (data.structuralNeedGap > 0) {
+                consequences.push({
+                    type: 'insight',
+                    title: 'En este escenario, la quincena ya venía corta.',
+                    text: `Si quisieras cubrir todas las necesidades del ejemplo, todavía faltarían ${fmt(data.structuralNeedGap)} aun antes de sumar gustos o ahorro.`
+                });
+            }
+
+            if (data.scenario.allowShortfall && data.remainingBeforeEvent < 0) {
+                consequences.push({
+                    type: data.wantsTotal > 0 ? 'warning' : 'danger',
+                    title: data.wantsTotal > 0
+                        ? 'La quincena ya venía corta y algunos extras la apretaron más.'
+                        : 'Aquí el problema principal no fue un gusto.',
+                    text: data.wantsTotal > 0
+                        ? 'El faltante no empezó solo por un antojo. Pero cada gasto extra hizo más grande la diferencia.'
+                        : 'Incluso priorizando gastos básicos, el dinero disponible no alcanzó. Eso señala falta de margen, no solo mala priorización.'
+                });
+            }
 
             if (data.missingNeeds.length === 0) {
                 consequences.push({
@@ -1481,10 +1656,14 @@
 
             document.getElementById('event-before').textContent = fmt(data.remainingBeforeEvent);
             document.getElementById('event-after').textContent = fmt(data.remainingAfterEvent);
+            document.getElementById('event-before').style.color = data.remainingBeforeEvent >= 0 ? 'var(--light)' : 'var(--pressure)';
             document.getElementById('event-after').style.color = data.remainingAfterEvent >= 0 ? 'var(--light)' : 'var(--pressure)';
 
             const eventResult = document.getElementById('event-result');
-            if (data.remainingAfterEvent >= 0 && data.savedTotal > 0) {
+            if (data.scenario.allowShortfall && data.remainingBeforeEvent < 0) {
+                eventResult.className = 'event-result bad';
+                eventResult.textContent = `La quincena ya iba faltando ${fmt(Math.abs(data.remainingBeforeEvent))} antes del imprevisto. El golpe no creó el problema: lo hizo más visible.`;
+            } else if (data.remainingAfterEvent >= 0 && data.savedTotal > 0) {
                 eventResult.className = 'event-result good';
                 eventResult.textContent = 'Había un pequeño colchón. El golpe molesta, pero no te deja inmediatamente contra la pared.';
             } else if (data.remainingAfterEvent >= 0) {
@@ -1508,14 +1687,21 @@
                     q: '¿Qué pagaste primero y por qué?',
                     hint: 'Eso suele mostrar dónde sentiste más presión en la quincena.'
                 },
-                {
-                    q: data.missingNeeds.length > 0
-                        ? '¿Qué dejaste por fuera que luego te hizo falta?'
-                        : '¿Qué necesidad te costó más sostener aunque sabías que hacía falta?',
-                    hint: data.missingNeeds.length > 0
-                        ? 'A veces lo que se aplaza vuelve más rápido de lo que parecía.'
-                        : 'No todo pesa igual cuando muchos gastos llegan al mismo tiempo.'
-                },
+                data.scenario.allowShortfall
+                    ? {
+                        q: '¿En qué momento viste que el problema era falta de margen y no solo priorización?',
+                        hint: data.structuralNeedGap > 0
+                            ? `En este ejemplo, aun cubriendo lo básico, podían faltar ${fmt(data.structuralNeedGap)}.`
+                            : 'A veces la señal aparece cuando lo básico ya compite demasiado entre sí.'
+                    }
+                    : {
+                        q: data.missingNeeds.length > 0
+                            ? '¿Qué dejaste por fuera que luego te hizo falta?'
+                            : '¿Qué necesidad te costó más sostener aunque sabías que hacía falta?',
+                        hint: data.missingNeeds.length > 0
+                            ? 'A veces lo que se aplaza vuelve más rápido de lo que parecía.'
+                            : 'No todo pesa igual cuando muchos gastos llegan al mismo tiempo.'
+                    },
                 {
                     q: data.wantsCount > 0
                         ? '¿Hubo algún gasto pequeño que, sumado con otros, te apretó más de lo que pensabas?'
@@ -1524,14 +1710,21 @@
                         ? 'A veces la presión no viene de una sola compra, sino de varias decisiones chicas.'
                         : 'Lo que dejas por fuera también muestra qué estabas tratando de proteger.'
                 },
-                {
-                    q: data.savedTotal > 0
-                        ? '¿Qué cambió cuando separaste algo para imprevistos?'
-                        : '¿Qué habría cambiado si separabas algo para imprevistos?',
-                    hint: data.savedTotal > 0
-                        ? 'Aunque sea poco, tener un colchón cambia la sensación con la que termina la quincena.'
-                        : 'No siempre resuelve todo, pero sí cambia desde dónde se enfrenta un golpe inesperado.'
-                },
+                data.scenario.allowShortfall
+                    ? {
+                        q: data.remainingBeforeEvent < 0
+                            ? 'Si esta fuera tu quincena real, ¿qué hablarías primero: una fecha de pago, una negociación o una ayuda temporal?'
+                            : '¿Qué decisión ayudó a que una quincena ya apretada no empeorara más?',
+                        hint: 'Cuando no alcanza, el siguiente paso útil suele ser nombrar el faltante y decidir qué mover primero.'
+                    }
+                    : {
+                        q: data.savedTotal > 0
+                            ? '¿Qué cambió cuando separaste algo para imprevistos?'
+                            : '¿Qué habría cambiado si separabas algo para imprevistos?',
+                        hint: data.savedTotal > 0
+                            ? 'Aunque sea poco, tener un colchón cambia la sensación con la que termina la quincena.'
+                            : 'No siempre resuelve todo, pero sí cambia desde dónde se enfrenta un golpe inesperado.'
+                    },
                 {
                     q: '¿Qué te sorprendió de tus propias decisiones?',
                     hint: 'A veces la sorpresa está en ver lo rápido que se llena la quincena con cosas que parecían pequeñas.'
@@ -1569,8 +1762,14 @@
             renderReflection();
             openSection('reflect', true);
         }
+        function setScenario(key) {
+            if (!SCENARIOS[key] || key === currentScenarioKey) return;
+            currentScenarioKey = key;
+            syncScenarioUI();
+            resetSimulation(false);
+        }
 
-        function resetSimulation() {
+        function resetSimulation(shouldScroll = true) {
             selected.clear();
             document.querySelectorAll('.item-card').forEach(card => card.classList.remove('selected', 'cant-afford'));
             document.getElementById('consequence-list').innerHTML = '';
@@ -1581,13 +1780,14 @@
             document.getElementById('bk-saved').textContent = '$0';
             document.getElementById('event-before').textContent = '$0';
             document.getElementById('event-after').textContent = '$0';
+            document.getElementById('event-before').style.color = 'var(--light)';
             document.getElementById('event-after').style.color = 'var(--light)';
             document.getElementById('event-result').className = 'event-result tight';
             document.getElementById('event-result').textContent = 'Cuando veas tus consecuencias, aquí aparecerá qué tanto cambia la quincena con un gasto inesperado.';
             visitedSections.clear();
             visitedSections.add('distribute');
             updateBudget();
-            openSection('distribute', true);
+            openSection('distribute', shouldScroll);
         }
 
         window.addEventListener('resize', refreshPanels);
@@ -1595,6 +1795,7 @@
         document.getElementById('event-cost').textContent = `-${fmt(EVENT.cost).replace('$', '$')}`;
         document.getElementById('event-result').className = 'event-result tight';
         document.getElementById('event-result').textContent = 'Cuando veas tus consecuencias, aquí aparecerá qué tanto cambia la quincena con un gasto inesperado.';
+        syncScenarioUI();
         updateBudget();
         openSection('distribute', false);
     </script>
