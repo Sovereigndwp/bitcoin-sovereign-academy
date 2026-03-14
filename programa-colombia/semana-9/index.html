@@ -53,6 +53,18 @@
         .score-label { font-size:0.9rem; color:var(--dim); }
         .score-range { display:flex; justify-content:space-between; font-size:0.75rem; color:var(--dim); margin-top:0.25rem; }
         .score-summary { margin-top:1.2rem; }
+        .action-ladder { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:0.9rem; margin-top:1rem; }
+        .ladder-card { background:var(--dark2); border:1px solid rgba(252,209,22,0.15); border-radius:0.85rem; padding:1rem; text-align:left; }
+        .ladder-card.start { border-left:4px solid var(--yellow); }
+        .ladder-card.watch { border-left:4px solid var(--blue); }
+        .ladder-card.time { border-left:4px solid var(--green); }
+        .ladder-label { font-size:0.75rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:0.45rem; }
+        .ladder-card.start .ladder-label { color:var(--yellow); }
+        .ladder-card.watch .ladder-label { color:var(--blue); }
+        .ladder-card.time .ladder-label { color:var(--green); }
+        .ladder-title { color:var(--light); font-weight:700; font-size:1rem; line-height:1.45; margin-bottom:0.35rem; }
+        .ladder-text { color:var(--dim); font-size:0.88rem; line-height:1.65; }
+        .strength-note { color:var(--dim); font-size:0.9rem; line-height:1.7; margin-top:1rem; text-align:left; }
 
         /* Score factors */
         .factors-grid { display:grid; gap:0.75rem; margin-top:1.5rem; }
@@ -242,26 +254,25 @@
 
                 <div class="score-display">
                     <div class="score-kicker">Lectura del ejemplo</div>
-                    <div class="weight-grid">
-                        <div class="weight-card help">
-                            <div class="weight-label">Señales fuertes hoy</div>
-                            <div class="score-number" id="signal-strong">0 de 5</div>
-                            <div class="score-label">Lo que ya muestra una base más clara</div>
+                    <div class="action-ladder">
+                        <div class="ladder-card start">
+                            <div class="ladder-label">Empieza por aquí</div>
+                            <div class="ladder-title" id="next-focus-title">Ajusta los factores</div>
+                            <div class="ladder-text" id="next-focus-text">Cambia los selectores para ver qué señal conviene mover primero en este ejemplo.</div>
                         </div>
-                        <div class="weight-card watch">
-                            <div class="weight-label">Señales por revisar</div>
-                            <div class="score-number" id="signal-review">0 de 5</div>
-                            <div class="score-label">Lo que conviene mirar primero</div>
+                        <div class="ladder-card watch">
+                            <div class="ladder-label">Después mira</div>
+                            <div class="ladder-title" id="watch-focus-title">La siguiente palanca</div>
+                            <div class="ladder-text" id="watch-focus-text">Aquí aparecerá la siguiente señal útil para vigilar cuando la primera ya esté más ordenada.</div>
                         </div>
-                        <div class="weight-card review">
-                            <div class="weight-label">Lo que toma más tiempo</div>
-                            <div class="score-number" id="signal-time">En formación</div>
-                            <div class="score-label">Lo que mejora con continuidad, no de un día para otro</div>
+                        <div class="ladder-card time">
+                            <div class="ladder-label">Esto toma tiempo</div>
+                            <div class="ladder-title" id="time-focus-title">La antigüedad sigue formándose</div>
+                            <div class="ladder-text" id="time-focus-text">Hay señales que mejoran con continuidad, no con un cambio rápido de un solo mes.</div>
                         </div>
                     </div>
                     <div class="score-summary">
-                        <span class="score-number" id="next-focus-title">Ajusta los factores</span>
-                        <div class="score-label" id="next-focus-text">Cambia los selectores para ver qu&#233; se&#241;al conviene cuidar primero en este ejemplo.</div>
+                        <div class="strength-note" id="strength-summary">Cambia los selectores para ver qué señal ya ayuda y cuál conviene cuidar primero.</div>
                     </div>
                 </div>
 
@@ -537,6 +548,13 @@
                 text: 'La antig&#252;edad no se acelera de golpe. Lo que s&#237; puedes hacer es sostener buenos h&#225;bitos el tiempo suficiente para que se vean.'
             }
         };
+        const factorNames = {
+            payments: 'pagos a tiempo',
+            util: 'uso del cupo',
+            age: 'antigüedad del historial',
+            inquiries: 'consultas recientes',
+            products: 'tipos de productos'
+        };
 
         function updateSignals() {
             const factors = {
@@ -561,21 +579,36 @@
                 }
             });
 
-            const strongCount = Object.values(factors).filter(value => value >= 70).length;
-            const reviewCount = Object.values(factors).filter(value => value < 50).length;
             const orderedFocus = ['payments', 'util', 'inquiries', 'products', 'age'];
-            const nextFocusKey = orderedFocus.reduce((lowest, key) => factors[key] < factors[lowest] ? key : lowest, orderedFocus[0]);
-            const ageText = factors.age >= 70
-                ? 'Ya visible'
+            const actionableKeys = orderedFocus.filter(key => key !== 'age');
+            const sortedActionable = [...actionableKeys].sort((a, b) => {
+                if (factors[a] !== factors[b]) return factors[a] - factors[b];
+                return orderedFocus.indexOf(a) - orderedFocus.indexOf(b);
+            });
+            const nextFocusKey = sortedActionable[0];
+            const watchFocusKey = sortedActionable[1] || sortedActionable[0];
+            const strongKeys = orderedFocus.filter(key => factors[key] >= 70);
+            const ageTitle = factors.age >= 70
+                ? 'La antigüedad ya aporta contexto'
                 : factors.age >= 40
-                    ? 'En formaci&#243;n'
-                    : 'Muy reciente';
+                    ? 'La antigüedad sigue en formación'
+                    : 'La antigüedad apenas está empezando';
+            const watchText = watchFocusKey === nextFocusKey
+                ? 'Cuando ordenas la primera palanca, el siguiente trabajo es sostenerla mes a mes sin volver a apretarla.'
+                : `${focusMessages[watchFocusKey].text} ${factorImpacts[watchFocusKey][factors[watchFocusKey]]}`;
+            const strengthText = strongKeys.length
+                ? `Hoy ya ayudan: ${strongKeys.map(key => factorNames[key]).join(', ')}. Esa base no resuelve todo, pero sí muestra dónde ya hay algo construyéndose.`
+                : 'Todavía no hay una señal claramente fuerte. Eso no significa empezar desde cero: significa que conviene mover una sola palanca primero.';
 
-            document.getElementById('signal-strong').textContent = strongCount + ' de 5';
-            document.getElementById('signal-review').textContent = reviewCount + ' de 5';
-            document.getElementById('signal-time').textContent = ageText;
             document.getElementById('next-focus-title').textContent = focusMessages[nextFocusKey].title;
-            document.getElementById('next-focus-text').textContent = focusMessages[nextFocusKey].text;
+            document.getElementById('next-focus-text').textContent = `${focusMessages[nextFocusKey].text} ${factorImpacts[nextFocusKey][factors[nextFocusKey]]}`;
+            document.getElementById('watch-focus-title').textContent = watchFocusKey === nextFocusKey
+                ? 'Sostén esa misma señal'
+                : focusMessages[watchFocusKey].title;
+            document.getElementById('watch-focus-text').textContent = watchText;
+            document.getElementById('time-focus-title').textContent = ageTitle;
+            document.getElementById('time-focus-text').textContent = `${factorImpacts.age[factors.age]} Esta parte mejora con continuidad, no con afán.`;
+            document.getElementById('strength-summary').textContent = strengthText;
         }
 
         updateSignals();
