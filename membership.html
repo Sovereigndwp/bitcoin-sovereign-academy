@@ -539,7 +539,7 @@
                 <p class="price-detail">Forever</p>
                 <ul>
                     <li><span class="check">✓</span> All 44 interactive demos</li>
-                    <li><span class="check">✓</span> 8 guided learning paths</li>
+                    <li><span class="check">✓</span> Free preview modules across the learning paths</li>
                     <li><span class="check">✓</span> AI Tutor (bring your own API key)</li>
                     <li><span class="check">✓</span> Glossary &amp; resources</li>
                 </ul>
@@ -745,8 +745,66 @@
     <script src="/js/stripe-checkout.js"></script>
     <script>
         // === Live BTC price state ===
+        const POST_AUTH_REDIRECT_KEY = 'bsa_post_auth_redirect';
         let liveFiatCents = null; // locked-in price in cents when user clicks pay
         let liveFiatDisplay = '…';
+
+        function isSafeRedirectPath(path) {
+            return typeof path === 'string' &&
+                path.startsWith('/') &&
+                !path.startsWith('//') &&
+                !path.startsWith('/membership');
+        }
+
+        function getNextRedirectPath() {
+            const next = new URLSearchParams(window.location.search).get('next');
+            return isSafeRedirectPath(next) ? next : null;
+        }
+
+        function getStoredPostAuthRedirect() {
+            const stored = localStorage.getItem(POST_AUTH_REDIRECT_KEY);
+            return isSafeRedirectPath(stored) ? stored : null;
+        }
+
+        function storePostAuthRedirectFromQuery() {
+            const next = getNextRedirectPath();
+            if (next) {
+                localStorage.setItem(POST_AUTH_REDIRECT_KEY, next);
+                return;
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            if (!params.has('session_id') && !params.has('payment_success')) {
+                localStorage.removeItem(POST_AUTH_REDIRECT_KEY);
+            }
+        }
+
+        async function restorePremiumRouteAccessFromExistingState() {
+            const redirectTo = getNextRedirectPath();
+            if (!redirectTo) {
+                return;
+            }
+
+            try {
+                const accessToken = localStorage.getItem('bsa_access_token') || localStorage.getItem('bsa_jwt_token');
+                const headers = {};
+                if (accessToken) {
+                    headers.Authorization = `Bearer ${accessToken}`;
+                }
+
+                const response = await fetch('/api/premium-route-cookie', {
+                    method: 'POST',
+                    headers,
+                    credentials: 'same-origin'
+                });
+
+                if (response.ok) {
+                    window.location.assign(redirectTo);
+                }
+            } catch (error) {
+                console.debug('[Membership] Premium route cookie restore skipped:', error);
+            }
+        }
 
         async function fetchLiveFiatPrice() {
             try {
@@ -781,6 +839,8 @@
 
         // Check membership status on load
         document.addEventListener('DOMContentLoaded', function() {
+            storePostAuthRedirectFromQuery();
+            restorePremiumRouteAccessFromExistingState();
             updateMembershipUI();
             fetchLiveFiatPrice();
             // Refresh price every 60 seconds
@@ -917,12 +977,13 @@
         }
 
         function showPaymentSuccess() {
+            const redirectTo = getStoredPostAuthRedirect();
             const statusEl = document.getElementById('payment-status');
             statusEl.className = 'payment-status success';
             statusEl.innerHTML = `
                 <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎉</div>
                 <strong>Payment Confirmed!</strong>
-                <p style="margin-top: 0.5rem; color: var(--muted);">Welcome to the Apprentice tier. Start learning to earn sats back!</p>
+                <p style="margin-top: 0.5rem; color: var(--muted);">${redirectTo ? 'Apprentice access is active. Redirecting you back to your lesson…' : 'Welcome to the Apprentice tier. Start learning to earn sats back!'}</p>
             `;
 
             // Hide manual confirm
@@ -932,7 +993,11 @@
             setTimeout(() => {
                 closeModal();
                 updateMembershipUI();
-            }, 3000);
+                if (redirectTo) {
+                    localStorage.removeItem(POST_AUTH_REDIRECT_KEY);
+                    window.location.assign(redirectTo);
+                }
+            }, redirectTo ? 1200 : 3000);
         }
 
         function switchPaymentTab(tab) {

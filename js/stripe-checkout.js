@@ -18,7 +18,8 @@
         cancelUrl: '/membership.html',
         storageKeys: {
             membership: 'bsa-membership',
-            stripeSession: 'bsa-stripe-session'
+            stripeSession: 'bsa-stripe-session',
+            postAuthRedirect: 'bsa_post_auth_redirect'
         },
         btcpay: {
             enabled: false,
@@ -54,12 +55,36 @@
             localStorage.removeItem(CONFIG.storageKeys.stripeSession);
         }
 
+        isSafeReturnPath(path) {
+            return typeof path === 'string' &&
+                path.startsWith('/') &&
+                !path.startsWith('//') &&
+                !path.startsWith('/membership');
+        }
+
+        getStoredReturnPath() {
+            const stored = localStorage.getItem(CONFIG.storageKeys.postAuthRedirect);
+            return this.isSafeReturnPath(stored) ? stored : null;
+        }
+
+        clearStoredReturnPath() {
+            localStorage.removeItem(CONFIG.storageKeys.postAuthRedirect);
+        }
+
+        getPendingReturnPath(pendingSession = null) {
+            const candidate = pendingSession?.returnTo || this.getStoredReturnPath();
+            return this.isSafeReturnPath(candidate) ? candidate : null;
+        }
+
         async purchaseApprentice(priceCents) {
             if (!priceCents || priceCents < 100) {
                 alert('Unable to determine fiat price. Please refresh the page.');
                 return;
             }
-
+            this.storePendingSession({
+                expectedTier: 'apprentice',
+                returnTo: this.getStoredReturnPath()
+            });
             this.storePendingSession({ expectedTier: 'apprentice' });
 
             try {
@@ -98,7 +123,10 @@
         }
 
         async purchaseSovereign() {
-            this.storePendingSession({ expectedTier: 'sovereign' });
+            this.storePendingSession({
+                expectedTier: 'sovereign',
+                returnTo: this.getStoredReturnPath()
+            });
 
             try {
                 const res = await fetch(CONFIG.sovereignCheckoutApi, {
@@ -153,6 +181,7 @@
 
             const pendingSession = this.getPendingSession();
             const expectedTier = pendingSession?.expectedTier || this.inferExpectedTierFromPage();
+            const returnTo = this.getPendingReturnPath(pendingSession);
             this.setVerificationState('pending', 'Verifying your payment and unlocking access…');
 
             try {
@@ -173,9 +202,19 @@
                 this.setVerificationState(
                     'success',
                     membership.tier === 'sovereign'
-                        ? 'Payment verified. Sovereign access is now active.'
-                        : 'Payment verified. Apprentice access is now active.'
+                        ? returnTo
+                            ? 'Payment verified. Sovereign access is now active. Redirecting you back…'
+                            : 'Payment verified. Sovereign access is now active.'
+                        : returnTo
+                            ? 'Payment verified. Apprentice access is now active. Redirecting you back…'
+                            : 'Payment verified. Apprentice access is now active.'
                 );
+                if (returnTo) {
+                    this.clearStoredReturnPath();
+                    window.setTimeout(() => {
+                        window.location.assign(returnTo);
+                    }, 1200);
+                }
             } catch (err) {
                 console.error('[Stripe] Verification error:', err);
                 this.setVerificationState('error', err.message || 'We could not verify this payment yet.');

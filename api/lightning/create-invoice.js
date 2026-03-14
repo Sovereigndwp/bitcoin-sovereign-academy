@@ -7,6 +7,7 @@
  */
 
 export default async function handler(req, res) {
+  const APPRENTICE_DEPOSIT_SATS = 50000;
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -33,10 +34,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // Validate amount (must be positive integer in sats)
-    if (!Number.isInteger(amount) || amount <= 0) {
+    // Validate amount (must match the fixed Apprentice deposit)
+    if (!Number.isInteger(amount) || amount !== APPRENTICE_DEPOSIT_SATS) {
       return res.status(400).json({
-        error: 'Amount must be a positive integer (sats)'
+        error: `Amount must be exactly ${APPRENTICE_DEPOSIT_SATS} sats`
       });
     }
 
@@ -54,7 +55,7 @@ export default async function handler(req, res) {
 
     // Prepare invoice data
     const invoiceData = {
-      amount: amount, // Amount in sats
+      amount: APPRENTICE_DEPOSIT_SATS, // Amount in sats
       description: description,
       expiry: expirySeconds || 3600 // Default 1 hour
     };

@@ -197,12 +197,18 @@
                         const verified = await this.verifyPayment(invoice);
                         if (verified) {
                             this.stopPolling();
+                            if (verified.accessToken) {
+                                localStorage.setItem('bsa_access_token', verified.accessToken);
+                            }
                             this.setMembership('apprentice', {
-                                paymentHash: invoice.paymentHash,
+                                paymentHash: verified.membership?.referenceId || invoice.paymentHash,
                                 amount: invoice.satoshi,
-                                paidAt: Date.now()
+                                paidAt: verified.membership?.activated
+                                    ? new Date(verified.membership.activated).getTime()
+                                    : Date.now(),
+                                verified: true
                             });
-                            resolve({ success: true, invoice });
+                            resolve({ success: true, invoice, verification: verified });
                             return;
                         }
                     } catch (e) {
@@ -223,9 +229,30 @@
          * and verify on first protected content access
          */
         async verifyPayment(invoice) {
-            // In a real implementation, you'd call an API endpoint
-            // For now, return false to keep polling until manual confirmation
-            return false;
+            if (!invoice?.paymentHash) {
+                return false;
+            }
+
+            const response = await fetch('/api/lightning/verify-invoice', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    paymentHash: invoice.paymentHash
+                })
+            });
+
+            if (!response.ok) {
+                if (response.status >= 500) {
+                    throw new Error('Lightning invoice verification failed');
+                }
+
+                return false;
+            }
+
+            const data = await response.json().catch(() => ({}));
+            return data?.verified ? data : false;
         }
 
         /**

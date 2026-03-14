@@ -13,6 +13,8 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import https from 'https';
 import http from 'http';
+import { getProtectedRouteDetails } from './lib/premium-routes.js';
+import { resolvePremiumRouteAccess } from './lib/premium-route-access.js';
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -594,6 +596,30 @@ app.get('/api/tools/transaction', async (req, res) => {
 // ==============================================================================
 // STATIC FILE SERVING
 // ==============================================================================
+
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+
+  const routeDetails = getProtectedRouteDetails(req.path);
+  if (!routeDetails.protected) {
+    return next();
+  }
+
+  try {
+    const access = await resolvePremiumRouteAccess(req.path, req.headers.cookie || '');
+    if (access.allowed) {
+      return next();
+    }
+  } catch (error) {
+    console.error('[premium-route-guard] Access check failed:', error);
+  }
+
+  const membershipUrl = new URL('/membership.html', `${req.protocol}://${req.get('host')}`);
+  membershipUrl.searchParams.set('next', req.originalUrl || req.url);
+  return res.redirect(307, membershipUrl.toString());
+});
 
 // Serve static files with proper MIME types
 const mimeTypes = {

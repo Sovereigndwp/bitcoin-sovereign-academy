@@ -2,10 +2,17 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
 import { generateAccessToken } from './entitlements';
 import { isAllowedOrigin, setCorsHeaders } from './lib/origin';
+import {
+    ALL_PREMIUM_PATH_IDS,
+    buildPremiumRouteClaims,
+    serializePremiumRouteCookie,
+    signPremiumRouteToken
+} from './lib/premium-route-access';
 
 const EXPECTED_TIERS = new Set(['apprentice', 'sovereign']);
 const SESSION_ID_PATTERN = /^cs_(test|live)_[A-Za-z0-9_]+$/;
 const SOVEREIGN_PRICE_CENTS = 39_900;
+const PREMIUM_ROUTE_COOKIE_MAX_AGE_SECONDS = 365 * 24 * 60 * 60;
 
 let stripe: Stripe | null = null;
 
@@ -109,6 +116,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       paths: ['*'],
       purchaseDate,
     });
+    const premiumRouteClaims = buildPremiumRouteClaims({
+      userId: String(session.customer || session.id),
+      allPremium: true,
+      pathIds: [...ALL_PREMIUM_PATH_IDS],
+      deepDives: true,
+      expiresAt: new Date(Date.now() + PREMIUM_ROUTE_COOKIE_MAX_AGE_SECONDS * 1000),
+      source: 'stripe-membership'
+    });
+    const { token: premiumRouteToken, maxAgeSeconds } = signPremiumRouteToken(premiumRouteClaims, {
+      maxAgeSeconds: PREMIUM_ROUTE_COOKIE_MAX_AGE_SECONDS
+    });
+    res.setHeader('Set-Cookie', serializePremiumRouteCookie(premiumRouteToken, {
+      isSecure: process.env.NODE_ENV === 'production',
+      maxAgeSeconds
+    }));
 
     return res.status(200).json({
       verified: true,

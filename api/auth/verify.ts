@@ -13,6 +13,12 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import { query, queryOne, transaction, queryWithClient, logSecurityEvent } from '../lib/db';
 import { validateToken, assertValid, sanitizeIPAddress, sanitizeUserAgent, validateDeviceFingerprint } from '../lib/validation';
 import { hashToken, verifyHashedToken, generateSessionToken, generateAccessToken } from '../lib/jwt';
+import {
+  getUserPremiumRouteClaims,
+  serializeClearedPremiumRouteCookie,
+  serializePremiumRouteCookie,
+  signPremiumRouteToken
+} from '../lib/premium-route-access';
 
 interface User {
   id: string;
@@ -76,7 +82,7 @@ async function createSession(
   ipAddress: string,
   userAgent: string,
   client: any
-): Promise<string> {
+): Promise<{ sessionToken: string; expiresAt: Date }> {
   const sessionToken = generateSessionToken();
   const tokenHash = hashToken(sessionToken);
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
@@ -88,7 +94,7 @@ async function createSession(
     [userId, deviceId, tokenHash, expiresAt, userAgent, ipAddress]
   );
 
-  return sessionToken;
+  return { sessionToken, expiresAt };
 }
 
 /**
@@ -179,15 +185,14 @@ export default async function handler(
       );
 
       // Create session
-      const sessionToken = await createSession(
+      const session = await createSession(
         user.id,
         deviceId,
         ipAddress,
         userAgent,
         client
       );
-
-      return { deviceId, sessionToken };
+      return { deviceId, session };
     });
 
     // Generate access token (JWT)
@@ -199,8 +204,23 @@ export default async function handler(
 
     // Set session cookie (httpOnly, secure, sameSite)
     const isProduction = process.env.NODE_ENV === 'production';
+    const sessionCookie = `session=${result.session.sessionToken}; Path=/; HttpOnly; ${isProduction ? 'Secure;' : ''} SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
+    const premiumRouteClaims = await getUserPremiumRouteClaims(user.id, result.session.expiresAt);
+    const premiumRouteCookie = premiumRouteClaims
+      ? (() => {
+          const { token, maxAgeSeconds } = signPremiumRouteToken(premiumRouteClaims, {
+            expiresAt: premiumRouteClaims.expiresAt ? new Date(premiumRouteClaims.expiresAt) : result.session.expiresAt
+          });
+          return serializePremiumRouteCookie(token, {
+            isSecure: isProduction,
+            maxAgeSeconds
+          });
+        })()
+      : serializeClearedPremiumRouteCookie({ isSecure: isProduction });
+
     res.setHeader('Set-Cookie', [
-      `session=${result.sessionToken}; Path=/; HttpOnly; ${isProduction ? 'Secure;' : ''} SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`
+      sessionCookie,
+      premiumRouteCookie
     ]);
 
     console.log('User authenticated:', {

@@ -50,6 +50,10 @@
     }
     clearLegacyAccessState();
 
+    if (shouldDeferToServer()) {
+        return;
+    }
+
     // ============================================
     // Check subdomain access control
     // ============================================
@@ -204,6 +208,55 @@
             hostname === '0.0.0.0' ||
             hostname.endsWith('.localhost') ||
             hostname.endsWith('.vercel.app');
+    }
+
+    function isServerEnforcedHost() {
+        const hostname = window.location.hostname.toLowerCase();
+        return hostname === 'bitcoinsovereign.academy' ||
+            hostname === 'www.bitcoinsovereign.academy' ||
+            hostname === 'localhost' ||
+            hostname === '127.0.0.1' ||
+            hostname === '0.0.0.0' ||
+            hostname.endsWith('.localhost') ||
+            hostname.endsWith('.vercel.app');
+    }
+
+    function isServerProtectedRoute() {
+        const path = pathName.replace(/\/+$/, '') || '/';
+
+        if (path === '/deep-dives' || path === '/deep-dives/index.html' || path.startsWith('/deep-dives/')) {
+            return true;
+        }
+
+        if (!path.startsWith('/paths/')) {
+            return false;
+        }
+
+        const segments = path.split('/').filter(Boolean);
+        const [, , section, child] = segments;
+
+        if (section === 'capstone') {
+            return true;
+        }
+
+        if (section === 'stage-1') {
+            if (child === 'deep-dives') {
+                return true;
+            }
+
+            if (!child || child === 'index.html') {
+                return false;
+            }
+
+            return child.startsWith('module-') && child !== 'module-1' && child !== 'module-1.html';
+        }
+
+        const stageMatch = /^stage-(\d+)$/.exec(section || '');
+        return Boolean(stageMatch && Number(stageMatch[1]) >= 2);
+    }
+
+    function shouldDeferToServer() {
+        return isServerEnforcedHost() && isServerProtectedRoute();
     }
 
     function hasValidAccessToken() {
@@ -670,6 +723,8 @@
                 hasVerifiedToken: window.BSAAccessVerifier?.verifiedToken === getAccessVerifier().getStoredToken(),
                 hasValidToken: hasValidAccessToken(),
                 isDevelopmentHost: isDevelopmentHost(),
+                isServerEnforcedHost: isServerEnforcedHost(),
+                isServerProtectedRoute: isServerProtectedRoute(),
                 hasSubdomainAccess: typeof window.BSASubdomainAccess !== 'undefined'
             };
         }
