@@ -14,7 +14,13 @@ import fs from 'fs';
 import https from 'https';
 import http from 'http';
 import { getProtectedRouteDetails } from './lib/premium-routes.js';
-import { resolvePremiumRouteAccess } from './lib/premium-route-access.js';
+import {
+  ALL_PREMIUM_PATH_IDS,
+  buildPremiumRouteClaims,
+  resolvePremiumRouteAccess,
+  serializePremiumRouteCookie,
+  signPremiumRouteToken
+} from './lib/premium-route-access.js';
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -25,6 +31,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const HTTPS_PORT = process.env.HTTPS_PORT || 3443;
 const HOST = process.env.HOST || '127.0.0.1';
+const DEV_UNLOCK_MAX_AGE_SECONDS = 12 * 60 * 60;
 
 // Security & performance middleware
 app.use(helmet({
@@ -571,6 +578,66 @@ app.get('/api/simulations', (req, res) => {
 // ==============================================================================
 // TOOLS
 // ==============================================================================
+
+function normalizeHost(value = '') {
+  return String(value)
+    .split(',')[0]
+    .trim()
+    .toLowerCase()
+    .replace(/:\d+$/, '');
+}
+
+function isLocalDevelopmentHost(value = '') {
+  const host = normalizeHost(value);
+  return host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host === '0.0.0.0' ||
+    host === '[::1]' ||
+    host.endsWith('.localhost');
+}
+
+function getSafeRedirectTarget(input) {
+  return typeof input === 'string' && input.startsWith('/') && !input.startsWith('//')
+    ? input
+    : null;
+}
+
+app.all('/api/dev/unlock-all', (req, res) => {
+  if (!isLocalDevelopmentHost(req.get('host') || '')) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  const claims = buildPremiumRouteClaims({
+    userId: 'developer-localhost',
+    tier: 'developer',
+    allPremium: true,
+    pathIds: [...ALL_PREMIUM_PATH_IDS],
+    deepDives: true,
+    source: 'developer-localhost'
+  });
+  const { token, maxAgeSeconds } = signPremiumRouteToken(claims, {
+    maxAgeSeconds: DEV_UNLOCK_MAX_AGE_SECONDS
+  });
+
+  res.setHeader('Set-Cookie', serializePremiumRouteCookie(token, {
+    isSecure: false,
+    maxAgeSeconds
+  }));
+
+  const next = getSafeRedirectTarget(req.query?.next || req.body?.next);
+  if (next) {
+    return res.redirect(302, next);
+  }
+
+  return res.status(200).json({
+    unlocked: true,
+    tier: claims.tier,
+    expiresInSeconds: maxAgeSeconds,
+    allPremium: claims.allPremium,
+    deepDives: claims.deepDives,
+    pathIds: claims.pathIds
+  });
+});
 
 app.get('/api/tools/validate-address', (req, res) => {
   try {

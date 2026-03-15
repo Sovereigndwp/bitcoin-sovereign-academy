@@ -6,9 +6,9 @@
  *
  * Deployment Modes:
  * - PRODUCTION: Full gating, monetization enabled
- * - DEVELOPMENT: No gating, all content accessible
+ * - DEVELOPMENT: Client-side gating disabled; server-protected premium routes still need a trusted cookie
  * - PREVIEW: Limited preview access for demos
- * - FULLY_UNLOCKED: All content free (for testing/review)
+ * - FULLY_UNLOCKED: Client-side locks bypassed (for testing/review)
  */
 
 (function() {
@@ -30,7 +30,7 @@
         ENABLE_MODULE_GATING: true,      // Lock modules behind paywall
         ENABLE_DEMO_LOCKS: true,         // Lock interactive demos
         ENABLE_PREVIEW_MODE: false,      // Allow limited preview access
-        FULL_ACCESS: false,              // Bypass all locks (dev/testing)
+        FULL_ACCESS: false,              // Bypass client-side locks (dev/testing)
 
         // Access limits
         FREE_MODULES_LIMIT: 1,           // How many modules free per path (Stage 1, Module 1)

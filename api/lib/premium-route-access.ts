@@ -4,6 +4,14 @@ import { hashToken } from './jwt';
 
 export const PREMIUM_ROUTE_COOKIE_NAME = 'bsa_premium_route';
 export const PREMIUM_ROUTE_TOKEN_KIND = 'premium-route-access';
+export type PremiumRouteTier = 'explorer' | 'path' | 'apprentice' | 'sovereign' | 'developer';
+export const PREMIUM_ROUTE_TIERS: readonly PremiumRouteTier[] = Object.freeze([
+  'explorer',
+  'path',
+  'apprentice',
+  'sovereign',
+  'developer'
+]);
 export const ALL_PREMIUM_PATH_IDS = Object.freeze([
   'builder',
   'curious',
@@ -18,6 +26,7 @@ const DEFAULT_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 export interface PremiumRouteClaims {
   kind: 'premium-route-access';
+  tier: PremiumRouteTier;
   userId: string | null;
   allPremium: boolean;
   pathIds: string[];
@@ -62,6 +71,63 @@ function sanitizePathIds(pathIds: string[] = []): string[] {
   return [...new Set(pathIds.filter((pathId) => ALL_PREMIUM_PATH_IDS.includes(pathId)))];
 }
 
+function isPremiumRouteTier(tier: unknown): tier is PremiumRouteTier {
+  return typeof tier === 'string' && PREMIUM_ROUTE_TIERS.includes(tier as PremiumRouteTier);
+}
+
+function inferPremiumRouteTier({
+  tier = null,
+  allPremium = false,
+  pathIds = []
+}: {
+  tier?: PremiumRouteTier | null;
+  allPremium?: boolean;
+  pathIds?: string[];
+} = {}): PremiumRouteTier {
+  if (isPremiumRouteTier(tier)) {
+    return tier;
+  }
+
+  if (allPremium) {
+    return 'apprentice';
+  }
+
+  if (pathIds.length > 0) {
+    return 'path';
+  }
+
+  return 'explorer';
+}
+
+export function getPremiumRouteTierAccess(
+  tier: PremiumRouteTier,
+  pathIds: string[] = []
+): { allPremium: boolean; deepDives: boolean; pathIds: string[] } {
+  switch (tier) {
+    case 'developer':
+    case 'apprentice':
+    case 'sovereign':
+      return {
+        allPremium: true,
+        deepDives: true,
+        pathIds: [...ALL_PREMIUM_PATH_IDS]
+      };
+    case 'path':
+      return {
+        allPremium: false,
+        deepDives: false,
+        pathIds: sanitizePathIds(pathIds)
+      };
+    case 'explorer':
+    default:
+      return {
+        allPremium: false,
+        deepDives: false,
+        pathIds: []
+      };
+  }
+}
+
 function getCookieMaxAgeSeconds(expiresAt?: Date | string | null): number {
   const expiration = toDate(expiresAt);
   if (!expiration) {
@@ -73,6 +139,7 @@ function getCookieMaxAgeSeconds(expiresAt?: Date | string | null): number {
 
 export function buildPremiumRouteClaims({
   userId = null,
+  tier = null,
   allPremium = false,
   pathIds = [],
   deepDives = false,
@@ -80,20 +147,31 @@ export function buildPremiumRouteClaims({
   source = 'unknown'
 }: {
   userId?: string | null;
+  tier?: PremiumRouteTier | null;
   allPremium?: boolean;
   pathIds?: string[];
   deepDives?: boolean;
   expiresAt?: Date | string | null;
   source?: string;
 } = {}): PremiumRouteClaims {
-  const allowAllPremium = Boolean(allPremium);
+  const sanitizedPathIds = sanitizePathIds(pathIds);
+  const inferredTier = inferPremiumRouteTier({
+    tier,
+    allPremium: Boolean(allPremium),
+    pathIds: sanitizedPathIds
+  });
+  const tierAccess = getPremiumRouteTierAccess(inferredTier, sanitizedPathIds);
+  const allowAllPremium = Boolean(allPremium) || tierAccess.allPremium;
 
   return {
     kind: PREMIUM_ROUTE_TOKEN_KIND,
+    tier: inferredTier,
     userId,
     allPremium: allowAllPremium,
-    pathIds: allowAllPremium ? [...ALL_PREMIUM_PATH_IDS] : sanitizePathIds(pathIds),
-    deepDives: allowAllPremium || Boolean(deepDives),
+    pathIds: allowAllPremium
+      ? [...ALL_PREMIUM_PATH_IDS]
+      : (sanitizedPathIds.length > 0 ? sanitizedPathIds : tierAccess.pathIds),
+    deepDives: allowAllPremium || Boolean(deepDives) || tierAccess.deepDives,
     expiresAt: toDate(expiresAt)?.toISOString() || null,
     source
   };
@@ -159,6 +237,7 @@ function deriveClaimsFromEntitlements(
 ): PremiumRouteClaims | null {
   const pathIds = new Set<string>();
   let allPremium = false;
+  let tier: PremiumRouteTier = 'explorer';
   let derivedExpiresAt = toDate(expiresAt);
 
   for (const entitlement of entitlements) {
@@ -170,13 +249,25 @@ function deriveClaimsFromEntitlements(
       derivedExpiresAt = entitlementExpiresAt;
     }
 
-    if (entitlementType === 'all_access_monthly' || entitlementType === 'all_access_annual') {
+    if (entitlementType === 'all_access_annual') {
       allPremium = true;
+      tier = 'sovereign';
+      continue;
+    }
+
+    if (entitlementType === 'all_access_monthly') {
+      allPremium = true;
+      if (tier !== 'sovereign') {
+        tier = 'apprentice';
+      }
       continue;
     }
 
     if (entitlementType.startsWith('path_') && itemId && ALL_PREMIUM_PATH_IDS.includes(itemId)) {
       pathIds.add(itemId);
+      if (tier === 'explorer') {
+        tier = 'path';
+      }
     }
   }
 
@@ -186,9 +277,10 @@ function deriveClaimsFromEntitlements(
 
   return buildPremiumRouteClaims({
     userId,
+    tier,
     allPremium,
     pathIds: [...pathIds],
-    deepDives: allPremium,
+    deepDives: tier === 'apprentice' || tier === 'sovereign',
     expiresAt: derivedExpiresAt,
     source
   });

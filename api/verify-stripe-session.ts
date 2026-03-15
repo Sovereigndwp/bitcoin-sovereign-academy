@@ -118,6 +118,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
     const premiumRouteClaims = buildPremiumRouteClaims({
       userId: String(session.customer || session.id),
+      tier,
       allPremium: true,
       pathIds: [...ALL_PREMIUM_PATH_IDS],
       deepDives: true,

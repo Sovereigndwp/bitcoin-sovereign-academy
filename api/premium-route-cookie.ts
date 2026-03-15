@@ -5,6 +5,7 @@ import {
   ALL_PREMIUM_PATH_IDS,
   buildPremiumRouteClaims,
   getPremiumRouteClaimsFromSessionToken,
+  PREMIUM_ROUTE_TIERS,
   serializeClearedPremiumRouteCookie,
   serializePremiumRouteCookie,
   signPremiumRouteToken
@@ -12,6 +13,18 @@ import {
 import { setCorsHeaders } from './lib/origin';
 
 const YEAR_IN_SECONDS = 365 * 24 * 60 * 60;
+
+function getValidatedTierHint(rawTier: unknown): 'apprentice' | 'sovereign' | null {
+  if (typeof rawTier !== 'string' || !PREMIUM_ROUTE_TIERS.includes(rawTier as any)) {
+    return null;
+  }
+
+  if (rawTier === 'apprentice' || rawTier === 'sovereign') {
+    return rawTier;
+  }
+
+  return null;
+}
 
 function getSessionCookie(req: VercelRequest): string | null {
   const cookieHeader = req.headers.cookie || '';
@@ -52,6 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const authorizationToken = extractBearerToken(req.headers.authorization as string | undefined);
+    const tierHint = getValidatedTierHint(req.body?.tierHint);
     let claims = null;
     let maxAgeSeconds = YEAR_IN_SECONDS;
 
@@ -64,6 +78,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       claims = buildPremiumRouteClaims({
         userId: entitlement.userId,
+        tier: hasWildcardAccess ? (tierHint || 'apprentice') : 'path',
         allPremium: hasWildcardAccess,
         pathIds,
         deepDives: hasWildcardAccess,
@@ -89,6 +104,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       return res.status(200).json({
         authorized: true,
+        tier: claims.tier,
         allPremium: claims.allPremium,
         pathIds: claims.pathIds,
         deepDives: claims.deepDives
@@ -118,6 +134,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({
       authorized: true,
+      tier: claims.tier,
       allPremium: claims.allPremium,
       pathIds: claims.pathIds,
       deepDives: claims.deepDives

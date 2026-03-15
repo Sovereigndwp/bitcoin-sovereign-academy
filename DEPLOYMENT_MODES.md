@@ -16,8 +16,10 @@ The Bitcoin Sovereign Academy now uses a single-branch, configuration-based syst
 
 ### Development/Testing Mode
 Add to URL: `?mode=development` or `?unlock=true`
-- All content accessible
-- No paywalls
+- Client-side locks disabled
+- Interactive demos and browser-gated pages stay open
+- Server-protected premium curriculum still requires a trusted cookie
+- On localhost, use `/api/dev/unlock-all?next=/paths/...` to set the trusted premium cookie
 - Debug logging enabled
 - Example: `https://bitcoinsovereign.academy?mode=development`
 
@@ -31,8 +33,8 @@ Add to URL: `?mode=preview`
 
 ### Fully Unlocked Mode
 Add to URL: `?mode=unlocked`
-- All content free
-- No restrictions
+- Client-side locks disabled
+- Server-protected premium curriculum still requires a trusted cookie
 - For content review and testing
 - Example: `https://bitcoinsovereign.academy?mode=unlocked`
 
@@ -48,13 +50,13 @@ The configuration is managed in `/js/config.js`. This file:
 ### Automatic Environment Detection
 
 ```javascript
-// Localhost automatically enables development mode
+// Localhost automatically enables development mode for browser-side gates
 localhost → FULL_ACCESS = true
 
 // Domains with "preview" or "demo" → preview mode
 preview.bitcoinsovereign.academy → ENABLE_PREVIEW_MODE = true
 
-// Domains with "dev" or "staging" → development mode
+// Domains with \"dev\" or \"staging\" → development mode for browser-side gates
 dev.bitcoinsovereign.academy → FULL_ACCESS = true
 
 // All other domains → production mode (default)
@@ -71,7 +73,7 @@ Edit `js/config.js` to change default behavior:
     ENABLE_MODULE_GATING: true,      // Lock modules behind paywall
     ENABLE_DEMO_LOCKS: true,         // Lock interactive demos
     ENABLE_PREVIEW_MODE: false,      // Allow limited preview access
-    FULL_ACCESS: false,              // Bypass all locks (dev/testing)
+    FULL_ACCESS: false,              // Bypass client-side locks (dev/testing)
 
     // Access limits
     FREE_MODULES_LIMIT: 1,           // How many modules free per path
@@ -93,11 +95,11 @@ Edit `js/config.js` to change default behavior:
 
 2. **Development Subdomain** (`dev.bitcoinsovereign.academy`)
    - Automatically detects "dev" in hostname
-   - Enables full access mode
+   - Enables browser-side full access mode
 
 3. **Preview Deployments** (Vercel preview URLs)
    - Users can add `?mode=preview` to URL
-   - Or use `?unlock=true` for full access
+   - Or use `?unlock=true` for browser-side full access
 
 ### URL Parameter Overrides
 
@@ -108,7 +110,7 @@ URL parameters always take highest priority:
 ?mode=development    → Force development settings
 ?mode=preview        → Force preview settings
 ?mode=unlocked       → Force unlocked settings
-?unlock=true         → Quick unlock (FULL_ACCESS=true)
+?unlock=true         → Quick browser-side unlock (FULL_ACCESS=true)
 ?unlock=1            → Same as unlock=true
 ```
 
@@ -117,6 +119,18 @@ Examples:
 https://bitcoinsovereign.academy/paths/curious/stage-1/module-2.html?mode=development
 https://bitcoinsovereign.academy/interactive-demos/mining-simulator/?unlock=true
 ```
+
+## Trusted Premium Route Unlock
+
+Protected curriculum routes are now enforced before HTML is served. That means `FULL_ACCESS`, `?mode=development`, and `?unlock=true` only affect browser-side gating, not the server guard for premium curriculum.
+
+For localhost development, use:
+
+```javascript
+http://localhost:3000/api/dev/unlock-all?next=/paths/curious/stage-1/module-2.html
+```
+
+That endpoint is localhost-only and sets the trusted `bsa_premium_route` cookie with the explicit `developer` tier.
 
 ## Manual Override (Testing)
 
@@ -232,8 +246,9 @@ Both module and demo locks respect:
    ```javascript
    console.log(BSA_CONFIG);
    ```
-3. Try manual override in console
-4. Clear browser cache and reload
+3. If the route is server-protected premium curriculum, issue a localhost dev unlock with `/api/dev/unlock-all`
+4. Try manual override in console for browser-side gates
+5. Clear browser cache and reload
 
 ### Configuration not loading
 
@@ -251,6 +266,7 @@ Both module and demo locks respect:
 
 ### For Development
 - Use `localhost` or add `?mode=development` to URL
+- Use `/api/dev/unlock-all?next=/protected-route` when you need server-protected premium routes locally
 - Enable DEBUG to see configuration logs
 
 ### For Demos/Investors

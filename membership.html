@@ -766,6 +766,22 @@
             return isSafeRedirectPath(stored) ? stored : null;
         }
 
+        function getStoredMembershipTierHint() {
+            try {
+                const stored = localStorage.getItem('bsa-membership');
+                if (!stored) {
+                    return null;
+                }
+
+                const membership = JSON.parse(stored);
+                return membership?.tier === 'apprentice' || membership?.tier === 'sovereign'
+                    ? membership.tier
+                    : null;
+            } catch {
+                return null;
+            }
+        }
+
         function storePostAuthRedirectFromQuery() {
             const next = getNextRedirectPath();
             if (next) {
@@ -787,7 +803,10 @@
 
             try {
                 const accessToken = localStorage.getItem('bsa_access_token') || localStorage.getItem('bsa_jwt_token');
-                const headers = {};
+                const tierHint = getStoredMembershipTierHint();
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
                 if (accessToken) {
                     headers.Authorization = `Bearer ${accessToken}`;
                 }
@@ -795,7 +814,8 @@
                 const response = await fetch('/api/premium-route-cookie', {
                     method: 'POST',
                     headers,
-                    credentials: 'same-origin'
+                    credentials: 'same-origin',
+                    body: JSON.stringify(tierHint ? { tierHint } : {})
                 });
 
                 if (response.ok) {

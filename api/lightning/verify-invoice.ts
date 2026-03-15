@@ -117,6 +117,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const accessToken = buildLightningAccessToken(resolvedPaymentHash, activatedAt);
     const premiumRouteClaims = buildPremiumRouteClaims({
       userId: resolvedPaymentHash,
+      tier: 'apprentice',
       allPremium: true,
       pathIds: [...ALL_PREMIUM_PATH_IDS],
       deepDives: true,
