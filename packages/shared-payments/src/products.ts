@@ -1,3 +1,4 @@
+cat > packages/shared-payments/src/products.ts <<'EOF'
 import type { ProductConfig } from './types.js';
 
 export const PRODUCTS: ProductConfig[] = [
@@ -22,6 +23,26 @@ export const PRODUCTS: ProductConfig[] = [
     btcpayEnabled: true
   },
   {
+    productId: 'bsa-workshop-bundle',
+    displayName: 'Workshop Bundle Pass',
+    description: '7 day access to a workshop bundle',
+    app: 'bsa',
+    tier: 'starter',
+    type: 'workshop',
+    priceUsd: 7,
+    entitlementType: 'workshop',
+    entitlementKeys: ['bsa.workshop.bundle'],
+    durationHours: 168,
+    features: [
+      '7 days of access',
+      'Multiple workshops',
+      'Hands on exercises',
+      'Certificate of completion'
+    ],
+    isRecurring: false,
+    btcpayEnabled: true
+  },
+  {
     productId: 'bsa-path-monthly-curious',
     displayName: 'Curious Path Monthly',
     description: 'Monthly subscription to the Curious Path learning track',
@@ -41,6 +62,108 @@ export const PRODUCTS: ProductConfig[] = [
     isRecurring: true,
     stripePriceId: '',
     btcpayEnabled: false
+  },
+  {
+    productId: 'bsa-path-monthly-pragmatist',
+    displayName: 'Pragmatist Path Monthly',
+    description: 'Monthly subscription to the Pragmatist Path learning track',
+    app: 'bsa',
+    tier: 'pro',
+    type: 'path_monthly',
+    priceUsd: 9,
+    entitlementType: 'path_monthly',
+    entitlementKeys: ['bsa.paths.pragmatist'],
+    itemId: 'pragmatist',
+    features: [
+      'All Pragmatist Path modules',
+      'Practical Bitcoin skills',
+      'Real world scenarios',
+      'Cancel anytime'
+    ],
+    isRecurring: true,
+    stripePriceId: '',
+    btcpayEnabled: false
+  },
+  {
+    productId: 'bsa-path-monthly-builder',
+    displayName: 'Builder Path Monthly',
+    description: 'Monthly subscription to the Builder Path learning track',
+    app: 'bsa',
+    tier: 'pro',
+    type: 'path_monthly',
+    priceUsd: 9,
+    entitlementType: 'path_monthly',
+    entitlementKeys: ['bsa.paths.builder'],
+    itemId: 'builder',
+    features: [
+      'All Builder Path modules',
+      'Lightning Network demos',
+      'Wallet setup guides',
+      'Cancel anytime'
+    ],
+    isRecurring: true,
+    stripePriceId: '',
+    btcpayEnabled: false
+  },
+  {
+    productId: 'bsa-path-monthly-sovereign',
+    displayName: 'Sovereign Path Monthly',
+    description: 'Monthly subscription to the Sovereign Path learning track',
+    app: 'bsa',
+    tier: 'pro',
+    type: 'path_monthly',
+    priceUsd: 9,
+    entitlementType: 'path_monthly',
+    entitlementKeys: ['bsa.paths.sovereign'],
+    itemId: 'sovereign',
+    features: [
+      'All Sovereign Path modules',
+      'Security deep dives',
+      'Cold storage mastery',
+      'Cancel anytime'
+    ],
+    isRecurring: true,
+    stripePriceId: '',
+    btcpayEnabled: false
+  },
+  {
+    productId: 'bsa-path-annual-curious',
+    displayName: 'Curious Path Annual',
+    description: 'Annual subscription to the Curious Path',
+    app: 'bsa',
+    tier: 'pro',
+    type: 'path_annual',
+    priceUsd: 79,
+    entitlementType: 'path_annual',
+    entitlementKeys: ['bsa.paths.curious'],
+    itemId: 'curious',
+    features: [
+      'All Curious Path modules',
+      'Annual access',
+      'Save versus monthly'
+    ],
+    isRecurring: true,
+    stripePriceId: '',
+    btcpayEnabled: true
+  },
+  {
+    productId: 'bsa-path-lifetime-curious',
+    displayName: 'Curious Path Lifetime',
+    description: 'Lifetime access to the Curious Path',
+    app: 'bsa',
+    tier: 'pro',
+    type: 'path_lifetime',
+    priceUsd: 149,
+    entitlementType: 'path_lifetime',
+    entitlementKeys: ['bsa.paths.curious'],
+    itemId: 'curious',
+    features: [
+      'Lifetime access',
+      'All Curious Path modules',
+      'One time purchase'
+    ],
+    isRecurring: false,
+    btcpayEnabled: true
   },
   {
     productId: 'fsa-pro-monthly',
@@ -81,3 +204,4 @@ export const PRODUCTS: ProductConfig[] = [
     btcpayEnabled: false
   }
 ];
+EOF
