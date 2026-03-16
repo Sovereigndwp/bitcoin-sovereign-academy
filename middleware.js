@@ -1,4 +1,4 @@
-import { getProtectedRouteDetails } from './lib/premium-routes.js';
+import { getProtectedRouteDetails } from './packages/shared-access/src/premium-routes.js';
 import { resolvePremiumRouteAccess } from './lib/premium-route-access.js';
 
 export const config = {
