@@ -1,0 +1,1206 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proof of Work | The Builder Path</title>
+    <meta name="description" content="Master Bitcoin's consensus mechanism: proof-of-work mining, difficulty adjustment, network security, and the economics of mining.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --text-light: #e0e0e0;
+            --text-dim: #b3b3b3;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Module Header */
+        .module-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--primary-orange);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .module-title-section h1 {
+            font-size: 1.75rem;
+            color: var(--accent-blue);
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-orange);
+        }
+
+        .content-section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-blue);
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        code {
+            background: rgba(247, 147, 26, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            color: var(--primary-orange);
+        }
+
+        pre {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-light);
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-dim);
+        }
+
+        /* Demo Container */
+        .demo-container {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-blue);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-container h3 {
+            color: var(--accent-blue);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* External Link Card */
+        .external-demo {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-green);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .external-demo h4 {
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .demo-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 1rem 2rem;
+            background: var(--accent-green);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .demo-link:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        /* Completion Banner */
+        .completion-banner {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(76, 175, 80, 0.1));
+            border: 3px solid var(--accent-green);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin: 3rem 0;
+            text-align: center;
+            display: none;
+        }
+
+        .completion-banner h3 {
+            color: var(--accent-green);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .badge-display {
+            font-size: 4rem;
+            margin: 1rem 0;
+        }
+
+        /* Navigation */
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-orange);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-btn:hover {
+            background: #ff8c00;
+        }
+
+        .nav-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+
+        /* ===== ACCESSIBILITY ENHANCEMENTS (WCAG 2.1 AA) ===== */
+
+        /* WCAG 2.5.5: Touch Target Size */
+        button, a, [role="button"], .nav-btn, .module-cta {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        p a, li a {
+            min-height: auto;
+            min-width: auto;
+            padding: 0.25rem 0;
+        }
+
+        /* WCAG 2.4.7: Focus Visible */
+        *:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 2px;
+        }
+
+        button:focus-visible, a:focus-visible, [role="button"]:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 4px;
+            box-shadow: 0 0 0 4px rgba(247, 147, 26, 0.2);
+        }
+
+        /* WCAG 2.3.3: Animation from Interactions */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        /* WCAG 1.4.10: Reflow */
+        @media (max-width: 360px) {
+            body {
+                overflow-x: hidden;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+    <script src="/js/config.js"></script>
+    <script src="/js/subdomain-access-control.js"></script>
+    <script src="/js/module-gate-subdomain.js"></script>
+    <script src="/js/module-progress.js"></script>
+    <link rel="stylesheet" href="/css/icons.css">
+<link rel="canonical" href="https://bitcoinsovereign.academy/module-3.html"><meta property="og:title" content="Module 3 - Bitcoin Sovereign Academy"><meta property="og:description" content="Learn about module 3 at Bitcoin Sovereign Academy. Interactive Bitcoin education with hands-on exercises and expert guidance."><meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg"><meta property="og:url" content="https://bitcoinsovereign.academy/module-3.html"><meta property="og:type" content="website"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Bitcoin Sovereign Academy",
+  "description": "Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.",
+  "url": "https://bitcoinsovereign.academy",
+  "logo": "https://bitcoinsovereign.academy/assets/og-image.jpg",
+  "sameAs": [
+    "https://github.com/Sovereigndwp/bitcoin-sovereign-academy"
+  ],
+  "educationalLevel": "Beginner to Advanced",
+  "teaches": [
+    "Bitcoin Fundamentals",
+    "Cryptocurrency Technology",
+    "Financial Sovereignty",
+    "Digital Asset Security"
+  ],
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Students interested in Bitcoin and cryptocurrency"
+  }
+}</script><link rel="stylesheet" href="/css/lab-guide.css">
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <!-- Module Header -->
+    <header class="module-header">
+        <div class="container">
+            <nav aria-label="Breadcrumb" class="breadcrumb">
+                <ol style="list-style: none; display: flex; gap: 0.5rem; margin: 0; padding: 0; flex-wrap: wrap;">
+                    <li><a href="/">Home</a></li>
+                    <li aria-hidden="true">→</li>
+                    <li><a href="/paths/builder/">The Builder Path</a></li>
+                    <li aria-hidden="true">→</li>
+                    <li><a href="/paths/builder/stage-1/">Stage 1</a></li>
+                    <li aria-hidden="true">→</li>
+                    <li aria-current="page">Module 3</li>
+                </ol>
+            </nav>
+            <div class="module-title-section">
+                <h1>Proof of Work</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Socratic Questions -->
+            <section class="content-section">
+                <h2>🤔 The Consensus Challenge</h2>
+                <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                    Before exploring proof-of-work, think about the fundamental problem Bitcoin must solve:
+                </p>
+
+                <div style="background: var(--secondary-dark); border-left: 4px solid var(--accent-blue); border-radius: 0.75rem; padding: 1.5rem; margin: 1.5rem 0;">
+                    <div style="display: grid; gap: 1rem;">
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;"><span data-icon="network"></span> </span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How do 18,000 independent nodes agree on transaction order without a leader?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">No CEO, no voting, no central clock. How do you reach consensus across a global network?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">⚔️</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How do you make attacking Bitcoin more expensive than the reward?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">What if someone tries to rewrite history? How do you make that economically irrational?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">⚖️</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">Why shouldn't voting power be based on IP addresses or identities?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">Sybil attack: An attacker creates 10,000 fake identities. How do you prevent this?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;"><span data-icon="clock"></span> </span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How do you maintain a 10-minute block time despite hashrate fluctuations?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">Computing power doubles every year. How does Bitcoin stay predictable?</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="margin-top: 1.5rem; text-align: center; font-size: 1.1rem;">
+                    <strong style="color: var(--accent-green);">Proof-of-Work solves all of these elegantly.</strong>
+                </p>
+            </section>
+
+            <!-- What is Proof-of-Work -->
+            <section class="content-section">
+                <h2>What is Proof-of-Work?</h2>
+
+                <p>
+                    <strong>Proof-of-Work (PoW)</strong> is Bitcoin's consensus mechanism. It requires miners to expend computational energy
+                    (electricity + hardware) to propose new blocks. This creates a verifiable, costly proof that work was performed,
+                    making the blockchain extremely expensive to attack.
+                </p>
+
+                <h3>The Core Idea</h3>
+
+                <p>
+                    Miners compete to find a hash of the block header that is <strong>below a target value</strong>. Because hash functions
+                    are unpredictable, the only way to find a valid hash is to try trillions of random inputs (nonces) until you get lucky.
+                </p>
+
+                <h3>Block Header Structure</h3>
+
+                <pre><code>Block Header (80 bytes):
+- Version (4 bytes): Protocol version
+- Previous Block Hash (32 bytes): Links to parent block
+- Merkle Root (32 bytes): Root of Merkle tree of all transactions
+- Timestamp (4 bytes): Unix timestamp
+- Difficulty Target (4 bytes): Compressed target (nBits)
+- Nonce (4 bytes): Random number miners increment
+
+Hash = SHA-256(SHA-256(Block Header))</code></pre>
+
+                <h3>Mining Process</h3>
+
+                <pre><code>1. Collect transactions from mempool
+2. Construct Merkle tree → get Merkle root
+3. Create block header with:
+   - Previous block hash
+   - Merkle root
+   - Current timestamp
+   - Difficulty target
+   - Nonce = 0
+
+4. Loop:
+   - Hash block header
+   - If hash &lt; target: FOUND! Broadcast block
+   - Else: increment nonce, try again
+
+5. On average, requires ~2^77 hashes to find valid block (at current difficulty)</code></pre>
+            </section>
+
+            <!-- Interactive Mining Simulator -->
+            <section class="content-section">
+                <div class="demo-container" id="mining-simulator">
+                    <h3>⛏️ Interactive Mining Simulator</h3>
+                    <p style="margin-bottom: 1.5rem; text-align: center; color: var(--text-dim);">
+                        Experience Bitcoin mining! Adjust difficulty, watch hash attempts, and understand why PoW is computationally hard.
+                    </p>
+
+                    <!-- Difficulty Selector -->
+                    <div style="margin-bottom: 2rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--accent-blue); font-weight: 600;">Difficulty Level:</label>
+                        <select id="difficulty" style="width: 100%; padding: 0.75rem; background: var(--primary-dark); color: var(--text-light); border: 1px solid var(--border-color); border-radius: 0.5rem; font-size: 1rem;">
+                            <option value="2">Easy (2 leading zeros)</option>
+                            <option value="4" selected="">Medium (4 leading zeros)</option>
+                            <option value="6">Hard (6 leading zeros)</option>
+                            <option value="realistic">Realistic (Explanation Only)</option>
+                        </select>
+                    </div>
+
+                    <!-- Transaction Input -->
+                    <div style="margin-bottom: 2rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--accent-blue); font-weight: 600;">Transactions (one per line):</label>
+                        <textarea id="transactions" rows="4" style="width: 100%; padding: 0.75rem; background: var(--primary-dark); color: var(--text-light); border: 1px solid var(--border-color); border-radius: 0.5rem; font-family: 'Courier New', monospace; font-size: 0.9rem; resize: vertical;">Alice sends 1.5 BTC to Bob
+Bob sends 0.3 BTC to Charlie
+Charlie sends 2.1 BTC to Diana
+Diana sends 0.8 BTC to Eve
+Eve sends 1.2 BTC to Frank</textarea>
+                    </div>
+
+                    <!-- Block Header Visualization -->
+                    <div style="background: var(--primary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem; margin-bottom: 2rem;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">Block Header Components:</h4>
+                        <div style="font-family: 'Courier New', monospace; font-size: 0.85rem; display: grid; gap: 0.5rem;">
+                            <div><span style="color: var(--text-dim);">Version:</span> <span id="version">1</span></div>
+                            <div><span style="color: var(--text-dim);">Previous Hash:</span> <span id="prevHash">0000000000000000000...</span></div>
+                            <div><span style="color: var(--text-dim);">Merkle Root:</span> <span id="merkleRoot">calculating...</span></div>
+                            <div><span style="color: var(--text-dim);">Timestamp:</span> <span id="timestamp">-</span></div>
+                            <div><span style="color: var(--text-dim);">Target:</span> <span id="target">-</span></div>
+                            <div><span style="color: var(--text-dim);">Nonce:</span> <span id="nonceDisplay">0</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Mining Controls -->
+                    <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                        <button id="startMining" style="flex: 1; min-width: 150px; padding: 1rem; background: var(--accent-green); color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; font-size: 1rem;">Start Mining</button>
+                        <button id="stopMining" style="flex: 1; min-width: 150px; padding: 1rem; background: #d32f2f; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; font-size: 1rem;" disabled="">Stop Mining</button>
+                    </div>
+
+                    <!-- Mining Stats -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <div style="background: var(--primary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem; text-align: center;">
+                            <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.25rem;">Hash Rate</div>
+                            <div id="hashRate" style="color: var(--primary-orange); font-size: 1.5rem; font-weight: 700;">0</div>
+                            <div style="color: var(--text-dim); font-size: 0.75rem;">hashes/sec</div>
+                        </div>
+                        <div style="background: var(--primary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem; text-align: center;">
+                            <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.25rem;">Attempts</div>
+                            <div id="attempts" style="color: var(--accent-blue); font-size: 1.5rem; font-weight: 700;">0</div>
+                            <div style="color: var(--text-dim); font-size: 0.75rem;">nonces tested</div>
+                        </div>
+                        <div style="background: var(--primary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem; text-align: center;">
+                            <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.25rem;">Time Elapsed</div>
+                            <div id="timeElapsed" style="color: var(--accent-green); font-size: 1.5rem; font-weight: 700;">0.0s</div>
+                            <div style="color: var(--text-dim); font-size: 0.75rem;">seconds</div>
+                        </div>
+                    </div>
+
+                    <!-- Hash Visualization -->
+                    <div style="background: var(--primary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1rem; margin-bottom: 2rem;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">Current Hash Attempt:</h4>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <div id="hashStatus" style="width: 20px; height: 20px; border-radius: 50%; background: #666;"></div>
+                            <div id="currentHash" style="font-family: 'Courier New', monospace; font-size: 0.9rem; word-break: break-all; flex: 1;">waiting to start...</div>
+                        </div>
+                        <div id="leadingZeros" style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem;">Leading zeros: <span style="color: var(--primary-orange); font-weight: 600;">0</span></div>
+
+                        <!-- Target Comparison Chart -->
+                        <div style="margin-top: 1rem;">
+                            <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.5rem;">Hash vs Target:</div>
+                            <div style="background: var(--secondary-dark); border-radius: 0.25rem; height: 30px; position: relative; overflow: hidden;">
+                                <div id="targetBar" style="position: absolute; left: 0; top: 0; height: 100%; background: rgba(76, 175, 80, 0.3); border-right: 2px solid var(--accent-green);"></div>
+                                <div id="hashBar" style="position: absolute; left: 0; top: 0; height: 100%; background: var(--primary-orange); opacity: 0.6; transition: all 0.1s;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 0.25rem; font-size: 0.75rem; color: var(--text-dim);">
+                                <span>0 (lowest)</span>
+                                <span>Max Hash Value</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Success Animation -->
+                    <div id="successAnimation" style="display: none; background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(76, 175, 80, 0.1)); border: 3px solid var(--accent-green); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; text-align: center;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">🎉</div>
+                        <h4 style="color: var(--accent-green); font-size: 1.5rem; margin-bottom: 0.5rem;">Block Found!</h4>
+                        <div id="successMessage" style="color: var(--text-light); margin-bottom: 1rem;"></div>
+                        <div id="validHash" style="font-family: 'Courier New', monospace; font-size: 0.85rem; word-break: break-all; color: var(--accent-green);"></div>
+                    </div>
+
+                    <!-- Educational Feedback -->
+                    <div style="background: var(--primary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem;"><span data-icon="lightning"></span> Mining Insights:</h4>
+                        <div style="display: grid; gap: 1rem;">
+                            <div>
+                                <div style="color: var(--text-dim); font-size: 0.85rem;">Estimated Time to Find Block:</div>
+                                <div id="estimatedTime" style="color: var(--primary-orange); font-weight: 600;">-</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-dim); font-size: 0.85rem;">Your Hashrate vs Bitcoin Network:</div>
+                                <div id="networkComparison" style="color: var(--accent-blue); font-weight: 600;">-</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-dim); font-size: 0.85rem;">Energy Estimate:</div>
+                                <div id="energyEstimate" style="color: var(--accent-green); font-weight: 600;">-</div>
+                            </div>
+                            <div id="realisticMode" style="display: none; background: rgba(247, 147, 26, 0.1); border-left: 3px solid var(--primary-orange); padding: 1rem; border-radius: 0.25rem;">
+                                <div style="color: var(--primary-orange); font-weight: 600; margin-bottom: 0.5rem;">Realistic Bitcoin Mining (76 leading zeros required):</div>
+                                <div style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.6;">
+                                    At current difficulty, finding a valid block requires approximately 2^77 hash attempts.
+                                    The Bitcoin network performs ~400 EH/s (400 quintillion hashes/second) and finds one block every ~10 minutes.
+                                    A typical laptop performs ~50,000 hashes/second, meaning it would take <strong style="color: var(--text-light);">over 9 trillion years</strong> to find a block on average.
+                                    This is why miners use specialized ASIC hardware and pool their resources!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Difficulty Chart -->
+                    <div style="margin-top: 2rem; background: var(--primary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">Difficulty Exponential Growth:</h4>
+                        <div style="display: grid; gap: 0.5rem; font-size: 0.9rem; font-family: 'Courier New', monospace;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-dim);">2 leading zeros:</span>
+                                <span style="color: var(--text-light);">~256 attempts (instant)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-dim);">4 leading zeros:</span>
+                                <span style="color: var(--text-light);">~65,536 attempts (~1 sec)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-dim);">6 leading zeros:</span>
+                                <span style="color: var(--text-light);">~16.7 million attempts (~5 min)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-dim);">8 leading zeros:</span>
+                                <span style="color: var(--text-light);">~4.3 billion attempts (~24 hours)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 1px solid var(--border-color);">
+                                <span style="color: var(--primary-orange);">Bitcoin (76 zeros):</span>
+                                <span style="color: var(--primary-orange);">~2^77 attempts (10 min @ 400 EH/s)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 1.5rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;"><span data-icon="lightbulb"></span> Start with Easy Mode (2 zeros) then try Medium/Hard. Realistic mode shows why specialized hardware is essential!
+                    </p>
+                </div>
+
+                <style>
+                    @keyframes pulse {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.5; }
+                    }
+
+                    @keyframes success {
+                        0% { transform: scale(0.8); opacity: 0; }
+                        50% { transform: scale(1.1); }
+                        100% { transform: scale(1); opacity: 1; }
+                    }
+
+                    #successAnimation {
+                        animation: success 0.5s ease-out;
+                    }
+
+                    @media (max-width: 640px) {
+                        #mining-simulator button {
+                            min-width: 100%;
+                        }
+                    }
+                </style>
+
+                <script>
+                    (function() {
+                        let mining = false;
+                        let nonce = 0;
+                        let attempts = 0;
+                        let startTime = 0;
+                        let animationFrame = null;
+                        let hashCount = 0;
+                        let lastHashRateUpdate = 0;
+                        let difficulty = 4;
+
+                        const startBtn = document.getElementById('startMining');
+                        const stopBtn = document.getElementById('stopMining');
+                        const difficultySelect = document.getElementById('difficulty');
+                        const transactionsInput = document.getElementById('transactions');
+
+                        // SHA-256 hashing using SubtleCrypto API
+                        async function sha256(message) {
+                            const msgBuffer = new TextEncoder().encode(message);
+                            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                            const hashArray = Array.from(new Uint8Array(hashBuffer));
+                            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                        }
+
+                        // Double SHA-256 (Bitcoin's hashing)
+                        async function doubleSha256(message) {
+                            const hash1 = await sha256(message);
+                            return await sha256(hash1);
+                        }
+
+                        // Calculate Merkle Root
+                        async function calculateMerkleRoot(transactions) {
+                            const txList = transactions.split('\n').filter(tx => tx.trim());
+                            if (txList.length === 0) return '0000000000000000000000000000000000000000000000000000000000000000';
+
+                            let hashes = await Promise.all(txList.map(tx => sha256(tx)));
+
+                            while (hashes.length > 1) {
+                                const newHashes = [];
+                                for (let i = 0; i < hashes.length; i += 2) {
+                                    if (i + 1 < hashes.length) {
+                                        newHashes.push(await sha256(hashes[i] + hashes[i + 1]));
+                                    } else {
+                                        newHashes.push(await sha256(hashes[i] + hashes[i]));
+                                    }
+                                }
+                                hashes = newHashes;
+                            }
+
+                            return hashes[0];
+                        }
+
+                        // Count leading zeros in hex string
+                        function countLeadingZeros(hash) {
+                            let count = 0;
+                            for (let char of hash) {
+                                if (char === '0') count++;
+                                else break;
+                            }
+                            return count;
+                        }
+
+                        // Format hash with highlighted leading zeros
+                        function formatHash(hash, targetZeros) {
+                            const zeros = hash.slice(0, targetZeros);
+                            const rest = hash.slice(targetZeros);
+                            return `<span style="color: var(--accent-green); font-weight: 700;">${zeros}</span><span style="color: var(--text-light);">${rest}</span>`;
+                        }
+
+                        // Update UI elements
+                        function updateUI(hash, isValid = false) {
+                            const currentHashEl = document.getElementById('currentHash');
+                            const leadingZerosEl = document.getElementById('leadingZeros');
+                            const hashStatusEl = document.getElementById('hashStatus');
+                            const attemptsEl = document.getElementById('attempts');
+                            const nonceDisplayEl = document.getElementById('nonceDisplay');
+                            const timeElapsedEl = document.getElementById('timeElapsed');
+
+                            const leadingZeros = countLeadingZeros(hash);
+                            currentHashEl.innerHTML = formatHash(hash, leadingZeros);
+                            leadingZerosEl.innerHTML = `Leading zeros: <span style="color: var(--primary-orange); font-weight: 600;">${leadingZeros}</span>`;
+
+                            // Update hash status indicator
+                            if (isValid) {
+                                hashStatusEl.style.background = 'var(--accent-green)';
+                                hashStatusEl.style.boxShadow = '0 0 10px var(--accent-green)';
+                            } else {
+                                hashStatusEl.style.background = '#d32f2f';
+                            }
+
+                            // Update hash bar visualization
+                            const hashValue = parseInt(hash.slice(0, 16), 16);
+                            const maxValue = parseInt('ffffffffffffffff', 16);
+                            const percentage = (hashValue / maxValue) * 100;
+                            document.getElementById('hashBar').style.width = percentage + '%';
+
+                            // Update stats
+                            attemptsEl.textContent = attempts.toLocaleString();
+                            nonceDisplayEl.textContent = nonce.toLocaleString();
+
+                            const elapsed = (Date.now() - startTime) / 1000;
+                            timeElapsedEl.textContent = elapsed.toFixed(1) + 's';
+
+                            // Update hash rate
+                            const now = Date.now();
+                            if (now - lastHashRateUpdate >= 1000) {
+                                const hashRate = Math.round(hashCount);
+                                document.getElementById('hashRate').textContent = hashRate.toLocaleString();
+                                updateEducationalFeedback(hashRate);
+                                hashCount = 0;
+                                lastHashRateUpdate = now;
+                            }
+                        }
+
+                        // Update educational feedback
+                        function updateEducationalFeedback(hashRate) {
+                            const avgAttempts = Math.pow(16, difficulty);
+                            const estimatedSeconds = avgAttempts / hashRate;
+
+                            let timeStr;
+                            if (estimatedSeconds < 60) {
+                                timeStr = `~${Math.round(estimatedSeconds)} seconds`;
+                            } else if (estimatedSeconds < 3600) {
+                                timeStr = `~${Math.round(estimatedSeconds / 60)} minutes`;
+                            } else if (estimatedSeconds < 86400) {
+                                timeStr = `~${Math.round(estimatedSeconds / 3600)} hours`;
+                            } else {
+                                timeStr = `~${Math.round(estimatedSeconds / 86400)} days`;
+                            }
+
+                            document.getElementById('estimatedTime').textContent = timeStr + ' (average)';
+
+                            // Network comparison
+                            const networkHashrate = 400e18; // 400 EH/s
+                            const ratio = networkHashrate / hashRate;
+                            document.getElementById('networkComparison').textContent =
+                                `Bitcoin network is ${ratio.toExponential(2)}x faster than your computer`;
+
+                            // Energy estimate (assuming ~100W laptop)
+                            const watts = 100;
+                            const joules = (watts / hashRate).toFixed(6);
+                            document.getElementById('energyEstimate').textContent =
+                                `~${joules} joules per hash (~100W laptop)`;
+                        }
+
+                        // Mining loop using requestAnimationFrame
+                        async function miningLoop() {
+                            if (!mining) return;
+
+                            const batchSize = 1000; // Hash in batches for better performance
+
+                            for (let i = 0; i < batchSize && mining; i++) {
+                                const merkleRoot = document.getElementById('merkleRoot').textContent;
+                                const prevHash = document.getElementById('prevHash').textContent;
+                                const timestamp = document.getElementById('timestamp').textContent;
+                                const version = document.getElementById('version').textContent;
+
+                                const blockHeader = `${version}${prevHash}${merkleRoot}${timestamp}${difficulty}${nonce}`;
+                                const hash = await doubleSha256(blockHeader);
+
+                                attempts++;
+                                hashCount++;
+                                nonce++;
+
+                                const leadingZeros = countLeadingZeros(hash);
+                                const isValid = leadingZeros >= difficulty;
+
+                                if (i === batchSize - 1 || isValid) {
+                                    updateUI(hash, isValid);
+                                }
+
+                                if (isValid) {
+                                    mining = false;
+                                    showSuccess(hash);
+                                    startBtn.disabled = false;
+                                    stopBtn.disabled = true;
+                                    return;
+                                }
+                            }
+
+                            if (mining) {
+                                animationFrame = requestAnimationFrame(miningLoop);
+                            }
+                        }
+
+                        // Show success animation
+                        function showSuccess(hash) {
+                            const successEl = document.getElementById('successAnimation');
+                            const messageEl = document.getElementById('successMessage');
+                            const validHashEl = document.getElementById('validHash');
+
+                            const elapsed = (Date.now() - startTime) / 1000;
+                            messageEl.textContent = `Found valid hash after ${attempts.toLocaleString()} attempts in ${elapsed.toFixed(1)} seconds!`;
+                            validHashEl.innerHTML = formatHash(hash, difficulty);
+
+                            successEl.style.display = 'block';
+                            successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+
+                        // Initialize block header
+                        async function initializeBlockHeader() {
+                            const transactions = transactionsInput.value;
+                            const merkleRoot = await calculateMerkleRoot(transactions);
+                            document.getElementById('merkleRoot').textContent = merkleRoot.slice(0, 20) + '...';
+                            document.getElementById('merkleRoot').title = merkleRoot;
+
+                            const timestamp = Math.floor(Date.now() / 1000);
+                            document.getElementById('timestamp').textContent = timestamp;
+
+                            const targetZeros = '0'.repeat(difficulty);
+                            const targetValue = targetZeros + 'f'.repeat(64 - difficulty);
+                            document.getElementById('target').textContent = targetValue.slice(0, 20) + '...';
+                            document.getElementById('target').title = targetValue;
+
+                            // Update target bar
+                            const targetNum = parseInt(targetValue.slice(0, 16), 16);
+                            const maxNum = parseInt('ffffffffffffffff', 16);
+                            const targetPercentage = (targetNum / maxNum) * 100;
+                            document.getElementById('targetBar').style.width = targetPercentage + '%';
+                        }
+
+                        // Start mining
+                        startBtn.addEventListener('click', async () => {
+                            const selectedDifficulty = difficultySelect.value;
+
+                            if (selectedDifficulty === 'realistic') {
+                                document.getElementById('realisticMode').style.display = 'block';
+                                document.getElementById('realisticMode').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                return;
+                            } else {
+                                document.getElementById('realisticMode').style.display = 'none';
+                            }
+
+                            difficulty = parseInt(selectedDifficulty);
+                            mining = true;
+                            nonce = 0;
+                            attempts = 0;
+                            hashCount = 0;
+                            startTime = Date.now();
+                            lastHashRateUpdate = startTime;
+
+                            startBtn.disabled = true;
+                            stopBtn.disabled = false;
+                            document.getElementById('successAnimation').style.display = 'none';
+
+                            await initializeBlockHeader();
+                            miningLoop();
+                        });
+
+                        // Stop mining
+                        stopBtn.addEventListener('click', () => {
+                            mining = false;
+                            if (animationFrame) {
+                                cancelAnimationFrame(animationFrame);
+                            }
+                            startBtn.disabled = false;
+                            stopBtn.disabled = true;
+                        });
+
+                        // Update block header when transactions change
+                        transactionsInput.addEventListener('input', async () => {
+                            if (!mining) {
+                                await initializeBlockHeader();
+                            }
+                        });
+
+                        // Initialize on load
+                        initializeBlockHeader();
+                    })();
+                </script>
+            </section>
+
+            <!-- Difficulty Adjustment -->
+            <section class="content-section">
+                <h2>Difficulty Adjustment Algorithm</h2>
+
+                <p>
+                    Bitcoin adjusts mining difficulty every 2,016 blocks (~2 weeks) to maintain a 10-minute average block time,
+                    regardless of total network hashrate.
+                </p>
+
+                <h3>The Algorithm</h3>
+
+                <pre><code>Every 2,016 blocks:
+
+1. Measure actual time taken to mine last 2,016 blocks
+2. Expected time = 2,016 blocks × 10 minutes = 20,160 minutes
+
+If actual &lt; expected:
+    New Difficulty = Old Difficulty × (Actual / Expected)
+    → Blocks came too fast, make it harder
+
+If actual &gt; expected:
+    New Difficulty = Old Difficulty × (Actual / Expected)
+    → Blocks came too slow, make it easier
+
+Max adjustment per period: 4x (up or down)</code></pre>
+
+                <h3>Example</h3>
+
+                <pre><code>Scenario: Network hashrate doubles suddenly
+
+- Last 2,016 blocks took 10,080 minutes (1 week instead of 2)
+- New Difficulty = Old × (10,080 / 20,160) = Old × 0.5 = 2× harder
+- Next 2,016 blocks will take ~2 weeks again at new difficulty</code></pre>
+
+                <p>
+                    This is why Bitcoin's <strong>monetary policy is predictable</strong>: new blocks arrive every ~10 minutes
+                    regardless of mining technology advances.
+                </p>
+            </section>
+
+            <!-- Network Security -->
+            <section class="content-section">
+                <h2>Network Security Model</h2>
+
+                <h3>51% Attack</h3>
+
+                <p>
+                    A <strong>51% attack</strong> occurs when a miner (or cartel) controls more than 50% of network hashrate.
+                    They could:
+                </p>
+
+                <ul>
+                    <li>Double-spend their own transactions (by rewriting recent blocks)</li>
+                    <li>Prevent transactions from confirming</li>
+                    <li>Selectively censor transactions</li>
+                </ul>
+
+                <p>
+                    <strong>What they CANNOT do:</strong>
+                </p>
+
+                <ul>
+                    <li>Steal coins from other addresses (no private keys)</li>
+                    <li>Change consensus rules (nodes would reject invalid blocks)</li>
+                    <li>Create bitcoins out of thin air (exceeds block reward = rejected)</li>
+                </ul>
+
+                <h3>Cost of Attack</h3>
+
+                <pre><code>Current Bitcoin Network Stats (2024):
+- Hashrate: ~400 EH/s (400 quintillion hashes per second)
+- Hardware: Latest ASIC = ~140 TH/s @ $3,000
+- Needed for 51%: ~1.4 million ASICs = $4.2 billion in hardware
+- Electricity: ~200 MW continuous @ $0.05/kWh = $10 million/day
+
+Total cost to sustain attack for 1 week: $4.2B + $70M = ~$4.27 billion
+
+Expected gain: Rewrite maybe 6-12 hours of blocks before caught
+Result: Bitcoin price crashes, attacker's investment becomes worthless</code></pre>
+
+                <p>
+                    <strong>Conclusion:</strong> Attacking Bitcoin is economically irrational. Proof-of-Work converts electricity into security.
+                </p>
+            </section>
+
+            <!-- Mining Economics -->
+            <section class="content-section">
+                <h2>Mining Economics</h2>
+
+                <h3>Miner Revenue</h3>
+
+                <pre><code>Revenue per block = Block Subsidy + Transaction Fees
+
+Current (2024):
+- Block Subsidy: 6.25 BTC (halves every 210,000 blocks)
+- Avg Transaction Fees: ~0.5 BTC per block
+- Total: ~6.75 BTC per block
+
+Next Halving (2024):
+- Block Subsidy: 3.125 BTC
+- Fees become increasingly important</code></pre>
+
+                <h3>Halving Schedule</h3>
+
+                <ul>
+                    <li>2009-2012: 50 BTC per block</li>
+                    <li>2012-2016: 25 BTC per block</li>
+                    <li>2016-2020: 12.5 BTC per block</li>
+                    <li>2020-2024: 6.25 BTC per block</li>
+                    <li>2024-2028: 3.125 BTC per block</li>
+                    <li>...</li>
+                    <li>~2140: 0 BTC (final bitcoin mined), miners earn only fees</li>
+                </ul>
+
+                <h3>Energy Consumption</h3>
+
+                <p>
+                    Bitcoin's energy usage is often criticized, but context matters:
+                </p>
+
+                <ul>
+                    <li><strong>Purpose:</strong> Secures $500B+ network, enables censorship-resistant money</li>
+                    <li><strong>Incentive:</strong> Miners seek cheapest electricity (often renewable/stranded energy)</li>
+                    <li><strong>Comparison:</strong> Gold mining, banking system, military also consume massive energy</li>
+                    <li><strong>Efficiency:</strong> Energy/transaction is misleading—Bitcoin settles finality, not just txs</li>
+                </ul>
+            </section>
+
+            <!-- Consensus Game Link -->
+            <section class="content-section">
+                <div class="external-demo">
+                    <h4><span data-icon="target"></span> Test Your Understanding: Consensus Game</h4>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                        Play as a Bitcoin node and experience network attack scenarios. See how proof-of-work protects against
+                        51% attacks, selfish mining, and network splits.
+                    </p>
+                    <a href="/interactive-demos/consensus-game/" target="_blank" class="demo-link">
+                        Play Consensus Game →
+                    </a>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 1rem;"><span data-icon="lightbulb"></span> Experience Byzantine fault tolerance and see why PoW makes attacks economically irrational
+                    </p>
+                </div>
+            </section>
+
+            <!-- Interactive Consensus Game -->
+            <section class="content-section">
+                <div class="demo-embed" style="background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 1rem; padding: 2rem; margin: 2rem 0; text-align: center;">
+                    <h3 style="color: var(--primary-orange); margin-bottom: 1rem;"><span data-icon="game"></span> Interactive: Consensus Attack Simulator</h3>
+                    <p style="margin-bottom: 1.5rem; color: var(--text-dim);">
+                        Experiment with 5 attack scenarios: 51% attack, eclipse attack, selfish mining, network partition, and honest network. See consensus break and recover!
+                    </p>
+                    <a href="/interactive-demos/consensus-game/index.html?level=advanced&amp;path=builder" target="_blank" class="demo-link">
+                        Launch Consensus Game (Advanced Mode) →
+                    </a>
+                    <p style="margin-top: 1rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;"><span data-icon="lightbulb"></span> Visual network simulator - watch honest and malicious nodes compete for consensus!
+                    </p>
+                </div>
+            </section>
+
+            <!-- Key Takeaways -->
+            <section class="content-section">
+                <div style="background: rgba(76, 175, 80, 0.1); border-left: 4px solid var(--accent-green); border-radius: 0.5rem; padding: 1.5rem; margin: 2rem 0;">
+                    <h3 style="color: var(--accent-green); margin-bottom: 1rem;"><span data-icon="target"></span> Key Takeaways</h3>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Proof-of-Work requires computational work to propose blocks, making attacks expensive
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Miners search for nonce that produces hash below difficulty target
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Difficulty adjusts every 2,016 blocks to maintain 10-minute average block time
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Network security scales with hashrate (currently ~400 EH/s)
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            51% attacks are economically irrational due to cost vs. limited gain
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Block rewards halve every 210,000 blocks, transitioning to fee-based security
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            PoW converts electricity into cryptographic security, creating real-world cost anchor
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Completion Banner -->
+            <div class="completion-banner" id="completion-banner">
+                <div class="badge-display">🔬</div>
+                <h3>Congratulations! Stage 1 Complete!</h3>
+                <p style="margin-bottom: 1.5rem;">
+                    You've earned the <strong>"Protocol Mastery"</strong> badge! You now understand Bitcoin's technical architecture
+                    at a deep level: UTXOs, cryptographic primitives, and proof-of-work consensus.
+                </p>
+                <p style="margin-bottom: 1.5rem;">
+                    <strong>You've Mastered:</strong>
+                </p>
+                <ul style="list-style: none; display: inline-block; text-align: left; margin-bottom: 1.5rem;">
+                    <li>✅ UTXO model and transaction structure</li>
+                    <li>✅ SHA-256, ECDSA, and Merkle trees</li>
+                    <li>✅ Proof-of-Work and consensus mechanisms</li>
+                    <li>✅ Mining economics and network security</li>
+                </ul>
+                <p>
+                    <a href="/paths/builder/stage-2/" class="nav-btn" style="display: inline-block; text-decoration: none;">
+                        Continue to Stage 2: Lightning Network →
+                    </a>
+                </p>
+            </div>
+
+            <!-- Navigation -->
+            
+<!-- Lab Cards — Try It Now -->
+<div style="padding:2rem 0 1rem; border-top:1px solid rgba(247,147,26,0.15); margin-top:1rem;">
+    <h2 style="color:var(--primary-orange,#f7931a); margin-bottom:0.6rem;">⚡ Apply This Knowledge</h2>
+    <p style="color:var(--text-dim,#9ca3af); margin-bottom:1.5rem; font-size:0.95rem;">Practice on a real Bitcoin test network — free coins, zero risk.</p>
+    <div class="lab-card" data-lab="explore-mempool" onclick="openLab('explore-mempool')" style="cursor:pointer;">
+    <div class="lab-card-icon">🔭</div>
+    <div class="lab-card-body">
+        <div class="lab-card-eyebrow">⚡ Try It Now</div>
+        <h3>Navigate the Real Bitcoin Mempool</h3>
+        <p>Read the live fee histogram, find the latest block, decode a real transaction, and check hash rate and difficulty on mempool.space — no wallet needed.</p>
+        <div class="lab-card-meta">
+            <span class="lab-card-tag mainnet">Mainnet (read-only)</span>
+            <span class="lab-card-tag">mempool.space</span>
+            <span class="lab-card-tag">15 min</span>
+        </div>
+    </div>
+    <div class="lab-card-arrow">→</div>
+</div>
+</div>
+
+<nav class="module-navigation">
+                <a href="module-2.html" class="nav-btn nav-btn-secondary">← Previous: Cryptographic Primitives</a>
+                <button id="complete-module" class="nav-btn">Mark Complete &amp; Finish Stage 1 →</button>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('complete-module').addEventListener('click', function() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+
+            if (!progress.completedModules) {
+                progress.completedModules = [];
+            }
+
+            if (!progress.completedModules.includes('builder-1-3')) {
+                progress.completedModules.push('builder-1-3');
+            }
+
+            // Mark Stage 1 complete
+            if (!progress.completedStages) {
+                progress.completedStages = [];
+            }
+            if (!progress.completedStages.includes('builder-1')) {
+                progress.completedStages.push('builder-1');
+            }
+
+            // Award badge
+            if (!progress.badges) {
+                progress.badges = [];
+            }
+            if (!progress.badges.includes('protocol-mastery')) {
+                progress.badges.push('protocol-mastery');
+            }
+
+            progress.lastActivity = new Date().toISOString();
+            progress.path = 'builder';
+            progress.currentStage = 2;
+            progress.currentModule = 1;
+
+            localStorage.setItem('learningProgress', JSON.stringify(progress));
+
+            // Show completion banner
+            document.getElementById('completion-banner').style.display = 'block';
+
+            setTimeout(() => {
+                document.getElementById('completion-banner').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        });
+    </script>
+    
+    <!-- Animated Icon Library -->
+    <script src="/js/icon-library.js"></script>
+    <script>
+        // Inject icons after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.IconLibrary) {
+                document.querySelectorAll('[data-icon]').forEach(function(element) {
+                    var iconName = element.getAttribute('data-icon');
+                    if (iconName) {
+                        var iconHTML = IconLibrary.get(iconName, 20, true);
+                        var span = document.createElement('span');
+                        span.innerHTML = iconHTML;
+                        span.className = 'icon-inline';
+                        span.style.marginRight = '0.5rem';
+                        span.style.display = 'inline-block';
+                        span.style.verticalAlign = 'middle';
+                        element.insertBefore(span, element.firstChild);
+                    }
+                });
+            }
+        });
+    </script>
+
+
+    <!-- Navigation Context (return-to-path functionality) -->
+    <script src="/js/navigation-context.js"></script>
+    <!-- Reflect: Socratic questions after module -->
+    <div style="max-width:900px;margin:2rem auto 0;padding:0 1.5rem 2.5rem">
+        <div class="reflect-widget"
+             data-topic="cryptography"
+             data-path="builder"
+             data-title="Reflect: What can you build with what you learned?">
+        </div>
+    </div>
+    <script src="/js/reflect-widget.js"></script>
+
+<script src="/js/membership-gate.js"></script>
+<script src="/js/lab-guide.js"></script>
+    <script src="/js/bitcoin-context.js"></script>
+
+<!-- Analytics, Email Capture & Tip CTAs -->
+<div class="container" style="margin: 2rem auto; max-width: 900px; padding: 0 1.5rem;">
+    <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
+    <div id="tip-page" data-tip-cta="compact"></div>
+</div>
+<script src="/js/analytics.js" defer></script>
+<script src="/js/email-capture.js" defer></script>
+<script src="/js/tip-cta.js" defer></script>
+
+</body></html>

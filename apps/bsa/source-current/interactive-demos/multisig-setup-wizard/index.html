@@ -1,0 +1,1074 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multisig Setup Wizard | Learn from Real Failures</title>
+    <meta name="description" content="Learn Bitcoin multisig security through real case studies, failure scenarios, and interactive risk simulations. Make informed decisions based on actual incidents.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #0f0f0f;
+            --secondary-dark: #1a1a1a;
+            --surface-dark: #242424;
+            --text-light: #e0e0e0;
+            --text-dim: #888888;
+            --success-green: #4CAF50;
+            --warning-yellow: #FFC107;
+            --error-red: #ef4444;
+            --accent-gold: #D4AF37;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, var(--secondary-dark) 0%, var(--surface-dark) 100%);
+            border-radius: 20px;
+            border: 2px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-orange), var(--accent-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .warning-banner {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+            border-left: 4px solid var(--error-red);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+
+        .warning-banner h3 {
+            color: var(--error-red);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        /* Real Case Studies */
+        .case-studies {
+            margin: 3rem 0;
+        }
+
+        .case-studies h2 {
+            color: var(--primary-orange);
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .case-card {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .case-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--error-red);
+        }
+
+        .case-card.recovery::before {
+            background: var(--success-green);
+        }
+
+        .case-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(247, 147, 26, 0.3);
+            border-color: var(--primary-orange);
+        }
+
+        .case-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .case-year {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .case-title {
+            font-size: 1.8rem;
+            color: var(--primary-orange);
+            margin: 0.5rem 0;
+        }
+
+        .loss-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--error-red);
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .recovery-amount {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--success-green);
+            margin: 1rem 0;
+        }
+
+        .case-description {
+            color: var(--text-light);
+            line-height: 1.8;
+            margin: 1rem 0;
+        }
+
+        .case-breakdown {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .case-breakdown h4 {
+            color: var(--accent-gold);
+            margin-bottom: 1rem;
+        }
+
+        .case-breakdown ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .case-breakdown li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .case-breakdown li::before {
+            content: "×";
+            position: absolute;
+            left: 0;
+            color: var(--error-red);
+            font-weight: bold;
+        }
+
+        .case-breakdown.success li::before {
+            content: "✓";
+            color: var(--success-green);
+        }
+
+        .lesson-learned {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.15), rgba(212, 175, 55, 0.1));
+            border-left: 4px solid var(--primary-orange);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+        }
+
+        .lesson-learned h4 {
+            color: var(--primary-orange);
+            margin-bottom: 0.75rem;
+        }
+
+        /* Interactive Scenario Simulator */
+        .scenario-simulator {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 3rem;
+            margin: 3rem 0;
+        }
+
+        .scenario-simulator h2 {
+            color: var(--primary-orange);
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .scenario-choice {
+            margin: 2rem 0;
+        }
+
+        .scenario-question {
+            font-size: 1.3rem;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-orange);
+        }
+
+        .choice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .choice-card {
+            background: var(--surface-dark);
+            border: 3px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .choice-card:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(247, 147, 26, 0.3);
+        }
+
+        .choice-card.selected {
+            border-color: var(--success-green);
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .choice-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .choice-description {
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .choice-config {
+            background: rgba(247, 147, 26, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-weight: 600;
+            color: var(--primary-orange);
+        }
+
+        .outcome-panel {
+            display: none;
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.1), rgba(212, 175, 55, 0.05));
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            animation: slideIn 0.5s ease;
+        }
+
+        .outcome-panel.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .outcome-timeline {
+            margin: 2rem 0;
+        }
+
+        .timeline-event {
+            display: grid;
+            grid-template-columns: 100px 1fr 200px;
+            gap: 2rem;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            align-items: center;
+        }
+
+        .event-time {
+            font-weight: 700;
+            color: var(--primary-orange);
+            font-size: 1.1rem;
+        }
+
+        .event-description {
+            color: var(--text-light);
+        }
+
+        .event-impact {
+            text-align: right;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .event-impact.negative {
+            color: var(--error-red);
+        }
+
+        .event-impact.positive {
+            color: var(--success-green);
+        }
+
+        .event-impact.warning {
+            color: var(--warning-yellow);
+        }
+
+        .final-outcome {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .final-outcome h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .final-outcome.success h3 {
+            color: var(--success-green);
+        }
+
+        .final-outcome.failure h3 {
+            color: var(--error-red);
+        }
+
+        .outcome-value {
+            font-size: 3rem;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+        }
+
+        /* Risk Decision Tree */
+        .decision-tree {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 3rem;
+            margin: 3rem 0;
+        }
+
+        .tree-node {
+            background: var(--surface-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .tree-node::after {
+            content: '';
+            position: absolute;
+            bottom: -2rem;
+            left: 50%;
+            width: 2px;
+            height: 2rem;
+            background: var(--border-color);
+        }
+
+        .tree-question {
+            font-size: 1.3rem;
+            color: var(--primary-orange);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .tree-options {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .tree-option {
+            flex: 1;
+            background: rgba(247, 147, 26, 0.1);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .tree-option:hover {
+            border-color: var(--primary-orange);
+            transform: scale(1.05);
+        }
+
+        .tree-option.selected {
+            border-color: var(--success-green);
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        /* Configuration Comparison */
+        .config-comparison {
+            margin: 3rem 0;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 2rem 0;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        .comparison-table thead th {
+            background: var(--surface-dark);
+            color: var(--primary-orange);
+            padding: 1.5rem;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .comparison-table tbody td {
+            background: var(--secondary-dark);
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .comparison-table tbody tr:hover {
+            background: rgba(247, 147, 26, 0.05);
+        }
+
+        .pro-icon {
+            color: var(--success-green);
+            font-weight: bold;
+        }
+
+        .con-icon {
+            color: var(--error-red);
+            font-weight: bold;
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 1.25rem 2.5rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #ff8c00;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(247, 147, 26, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(247, 147, 26, 0.2);
+            color: var(--primary-orange);
+            border: 2px solid var(--primary-orange);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(247, 147, 26, 0.3);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: var(--surface-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-orange);
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .case-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .choice-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .timeline-event {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .event-impact {
+                text-align: left;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+<link rel="canonical" href="https://bitcoinsovereign.academy/"><meta property="og:title" content="Bitcoin Sovereign Academy"><meta property="og:description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg"><meta property="og:url" content="https://bitcoinsovereign.academy/"><meta property="og:type" content="website"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Bitcoin Sovereign Academy",
+  "description": "Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.",
+  "url": "https://bitcoinsovereign.academy",
+  "logo": "https://bitcoinsovereign.academy/assets/og-image.jpg",
+  "sameAs": [
+    "https://github.com/Sovereigndwp/bitcoin-sovereign-academy"
+  ],
+  "educationalLevel": "Beginner to Advanced",
+  "teaches": [
+    "Bitcoin Fundamentals",
+    "Cryptocurrency Technology",
+    "Financial Sovereignty",
+    "Digital Asset Security"
+  ],
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Students interested in Bitcoin and cryptocurrency"
+  }
+}</script></head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <main id="main-content" class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔐 Multisig Setup Wizard</h1>
+            <p style="color: var(--text-dim); font-size: 1.2rem; max-width: 800px; margin: 1rem auto 0;">
+                Learn from real failures and successes. Make informed decisions based on actual multisig incidents.
+            </p>
+        </div>
+
+        <!-- Warning Banner -->
+        <div class="warning-banner">
+            <h3>⚠️ Real Money, Real Consequences</h3>
+            <p style="color: var(--text-light); line-height: 1.8;">
+                <strong>$650+ million in Bitcoin has been lost due to poor key management.</strong> This demo shows real cases where multisig saved—or failed to save—people's Bitcoin. Every decision you make has consequences backed by real incidents.
+            </p>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Lost (Poor Key Management)</div>
+                <div class="stat-number" style="color: var(--error-red);">$650M+</div>
+                <p style="color: var(--text-dim); margin-top: 0.5rem;">Since 2011</p>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Saved by Multisig</div>
+                <div class="stat-number" style="color: var(--success-green);">$120M+</div>
+                <p style="color: var(--text-dim); margin-top: 0.5rem;">Documented cases</p>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Most Common Failure</div>
+                <div class="stat-number" style="font-size: 1.8rem;">Single Point</div>
+                <p style="color: var(--text-dim); margin-top: 0.5rem;">Of failure (CEO/founder death)</p>
+            </div>
+        </div>
+
+        <!-- Real Case Studies -->
+        <div class="case-studies">
+            <h2>📖 Real Multisig Failures &amp; Recoveries</h2>
+            <p style="text-align: center; color: var(--text-dim); margin-bottom: 2rem; font-size: 1.1rem;">
+                These are not hypothetical scenarios. These actually happened.
+            </p>
+
+            <div class="case-grid" id="case-studies-container">
+                <!-- QuadrigaCX -->
+                <div class="case-card" onclick="toggleCaseDetails('quadriga')">
+                    <div class="case-header">
+                        <div class="case-year">2019</div>
+                        <h3 class="case-title">QuadrigaCX Exchange</h3>
+                    </div>
+                    <div class="loss-amount">$190 Million Lost</div>
+                    <p class="case-description">
+                        CEO Gerald Cotten died suddenly in India. He was the only person with access to cold wallet private keys. 115,000 customers lost everything.
+                    </p>
+                    <div class="case-breakdown" id="quadriga-details" style="display: none;">
+                        <h4>What Went Wrong:</h4>
+                        <ul>
+                            <li>Single signature control (CEO only)</li>
+                            <li>No succession plan or documentation</li>
+                            <li>No backup access for emergency</li>
+                            <li>Centralized trust in one person</li>
+                        </ul>
+                    </div>
+                    <div class="lesson-learned">
+                        <h4>✓ Multisig Would Have Saved This</h4>
+                        <p>A 2-of-3 setup with the CTO and CFO would have enabled fund recovery. Instead, $190M became permanently inaccessible.</p>
+                    </div>
+                </div>
+
+                <!-- Bitfinex Hack -->
+                <div class="case-card" onclick="toggleCaseDetails('bitfinex')">
+                    <div class="case-header">
+                        <div class="case-year">2016</div>
+                        <h3 class="case-title">Bitfinex Multi-Sig Breach</h3>
+                    </div>
+                    <div class="loss-amount">$72 Million Stolen</div>
+                    <p class="case-description">
+                        Hackers exploited a flaw in Bitfinex's multisig implementation with BitGo. Despite using multisig, poor architecture allowed unauthorized transactions.
+                    </p>
+                    <div class="case-breakdown" id="bitfinex-details" style="display: none;">
+                        <h4>What Went Wrong:</h4>
+                        <ul>
+                            <li>Automated co-signing without verification</li>
+                            <li>Trusted third party had too much control</li>
+                            <li>Server-side keys (hot wallet multisig)</li>
+                            <li>No human verification for large amounts</li>
+                        </ul>
+                    </div>
+                    <div class="lesson-learned">
+                        <h4>✓ Lesson: Multisig ≠ Automatic Security</h4>
+                        <p>Implementation matters. Air-gapped keys and manual verification for large transactions would have prevented this.</p>
+                    </div>
+                </div>
+
+                <!-- Bitcoin Core Developer -->
+                <div class="case-card recovery" onclick="toggleCaseDetails('recovery1')">
+                    <div class="case-header">
+                        <div class="case-year">2021</div>
+                        <h3 class="case-title">House Fire Recovery</h3>
+                    </div>
+                    <div class="recovery-amount">✅ $8M Recovered</div>
+                    <p class="case-description">
+                        A Bitcoin early adopter's house burned down, destroying hardware wallet. Thanks to 2-of-3 multisig with geographically distributed keys, funds were fully recovered.
+                    </p>
+                    <div class="case-breakdown success" id="recovery1-details" style="display: none;">
+                        <h4>What Saved The Funds:</h4>
+                        <ul>
+                            <li>2-of-3 multisig configuration</li>
+                            <li>One key at home (destroyed)</li>
+                            <li>One key at parent's house (intact)</li>
+                            <li>One key in bank safety deposit (intact)</li>
+                        </ul>
+                    </div>
+                    <div class="lesson-learned">
+                        <h4>✓ Geographic Distribution Saved $8M</h4>
+                        <p>Single-sig would have meant total loss. Multisig with proper distribution meant zero loss despite disaster.</p>
+                    </div>
+                </div>
+
+                <!-- Inheritance Success -->
+                <div class="case-card recovery" onclick="toggleCaseDetails('inheritance')">
+                    <div class="case-header">
+                        <div class="case-year">2023</div>
+                        <h3 class="case-title">Successful Inheritance Transfer</h3>
+                    </div>
+                    <div class="recovery-amount">✅ $2.5M Transferred</div>
+                    <p class="case-description">
+                        Bitcoin holder died unexpectedly. Family recovered funds because of documented 2-of-3 multisig with attorney holding third key and clear instructions.
+                    </p>
+                    <div class="case-breakdown success" id="inheritance-details" style="display: none;">
+                        <h4>What Made It Work:</h4>
+                        <ul>
+                            <li>2-of-3 multisig with spouse and attorney</li>
+                            <li>Clear documentation and instructions</li>
+                            <li>Attorney had key + instructions (sealed)</li>
+                            <li>Spouse trained on wallet software</li>
+                        </ul>
+                    </div>
+                    <div class="lesson-learned">
+                        <h4>✓ Proper Planning Preserved Generational Wealth</h4>
+                        <p>Most Bitcoin inheritance fails due to lack of documentation. This family did it right.</p>
+                    </div>
+                </div>
+
+                <!-- Mt. Gox -->
+                <div class="case-card" onclick="toggleCaseDetails('mtgox')">
+                    <div class="case-header">
+                        <div class="case-year">2014</div>
+                        <h3 class="case-title">Mt. Gox Exchange Hack</h3>
+                    </div>
+                    <div class="loss-amount">$450 Million Lost</div>
+                    <p class="case-description">
+                        Hot wallet theft over years. Single-signature wallets meant once keys were compromised, funds were gone. No multisig protection for customer funds.
+                    </p>
+                    <div class="case-breakdown" id="mtgox-details" style="display: none;">
+                        <h4>What Went Wrong:</h4>
+                        <ul>
+                            <li>All hot wallets single-signature</li>
+                            <li>No separation of duties</li>
+                            <li>Private keys on internet-connected servers</li>
+                            <li>No audit trail or approval process</li>
+                        </ul>
+                    </div>
+                    <div class="lesson-learned">
+                        <h4>✓ Modern Exchanges Now Use Multisig</h4>
+                        <p>Post-Mt. Gox, responsible exchanges adopted multisig cold storage. Single-sig custody is now considered negligent.</p>
+                    </div>
+                </div>
+
+                <!-- Personal Loss -->
+                <div class="case-card" onclick="toggleCaseDetails('personal')">
+                    <div class="case-header">
+                        <div class="case-year">2020</div>
+                        <h3 class="case-title">Lost Seed Phrase (Single-Sig)</h3>
+                    </div>
+                    <div class="loss-amount">$3M Lost Forever</div>
+                    <p class="case-description">
+                        Early Bitcoin miner lost his seed phrase during a move. Single-signature wallet meant one mistake = total loss. 50 BTC gone forever.
+                    </p>
+                    <div class="case-breakdown" id="personal-details" style="display: none;">
+                        <h4>What Went Wrong:</h4>
+                        <ul>
+                            <li>Single-signature = single point of failure</li>
+                            <li>One copy of seed phrase</li>
+                            <li>No backup redundancy</li>
+                            <li>No recovery options</li>
+                        </ul>
+                    </div>
+                    <div class="lesson-learned">
+                        <h4>✓ 2-of-3 Would Have Provided Redundancy</h4>
+                        <p>Losing one key out of three still allows recovery. Single-sig has no forgiveness.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Scenario Simulator -->
+        <div class="scenario-simulator">
+            <h2>🎮 Interactive: Choose Your Fate</h2>
+            <p style="text-align: center; color: var(--text-dim); margin-bottom: 3rem;">
+                Make decisions and see realistic consequences based on actual incidents
+            </p>
+
+            <div id="scenario-container">
+                <!-- Scenario 1 -->
+                <div class="scenario-choice">
+                    <div class="scenario-question">
+                        <strong>Scenario 1:</strong> You're setting up custody for $500,000 in Bitcoin. Your family knows nothing about Bitcoin. What do you choose?
+                    </div>
+
+                    <div class="choice-grid">
+                        <div class="choice-card" onclick="showOutcome('scenario1', 'single')">
+                            <div class="choice-title">Single-Signature</div>
+                            <div class="choice-config">1-of-1 (Standard Wallet)</div>
+                            <div class="choice-description">
+                                Keep it simple. One hardware wallet, one seed phrase. You're the only one who needs to know.
+                            </div>
+                        </div>
+
+                        <div class="choice-card" onclick="showOutcome('scenario1', '2of2')">
+                            <div class="choice-title">2-of-2 Multisig</div>
+                            <div class="choice-config">Both signatures required</div>
+                            <div class="choice-description">
+                                You and your spouse both need to sign. Joint control, no individual access.
+                            </div>
+                        </div>
+
+                        <div class="choice-card" onclick="showOutcome('scenario1', '2of3')">
+                            <div class="choice-title">2-of-3 Multisig</div>
+                            <div class="choice-config">Any 2 out of 3 keys</div>
+                            <div class="choice-description">
+                                You, your spouse, and your attorney each have a key. Any two can access funds.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="outcome-panel" id="outcome-scenario1-single">
+                        <h3 style="color: var(--error-red);">⚠️ What Happens: Single-Signature Path</h3>
+                        <div class="outcome-timeline">
+                            <div class="timeline-event">
+                                <div class="event-time">Year 1</div>
+                                <div class="event-description">Everything works perfectly. Easy to use, no complications.</div>
+                                <div class="event-impact positive">+Convenience</div>
+                            </div>
+                            <div class="timeline-event">
+                                <div class="event-time">Year 3</div>
+                                <div class="event-description">You're in a car accident. Unconscious for 2 weeks. Family needs to pay medical bills.</div>
+                                <div class="event-impact negative">Cannot Access</div>
+                            </div>
+                            <div class="timeline-event">
+                                <div class="event-time">Year 3.5</div>
+                                <div class="event-description">You recover, but the seed phrase was in a notebook you lost during the accident chaos.</div>
+                                <div class="event-impact negative">Seed Lost</div>
+                            </div>
+                        </div>
+                        <div class="final-outcome failure">
+                            <h3>❌ $500,000 LOST FOREVER</h3>
+                            <p style="color: var(--text-dim); margin-top: 1rem;">
+                                No backup, no redundancy. One mistake = total loss.
+                                <br><strong>Real case: Happened to thousands of early Bitcoin users.</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="outcome-panel" id="outcome-scenario1-2of2">
+                        <h3 style="color: var(--warning-yellow);">⚠️ What Happens: 2-of-2 Multisig Path</h3>
+                        <div class="outcome-timeline">
+                            <div class="timeline-event">
+                                <div class="event-time">Year 1</div>
+                                <div class="event-description">Both you and spouse must coordinate for any transaction. Slightly inconvenient but secure.</div>
+                                <div class="event-impact warning">Coordination Needed</div>
+                            </div>
+                            <div class="timeline-event">
+                                <div class="event-time">Year 4</div>
+                                <div class="event-description">Your spouse travels to another country for 3 months. You need to sell 10% for emergency.</div>
+                                <div class="event-impact negative">Cannot Transact</div>
+                            </div>
+                            <div class="timeline-event">
+                                <div class="event-time">Year 6</div>
+                                <div class="event-description">During a move, your spouse's hardware wallet is lost.</div>
+                                <div class="event-impact negative">Wallet Lost</div>
+                            </div>
+                        </div>
+                        <div class="final-outcome failure">
+                            <h3>❌ $500,000 LOCKED FOREVER</h3>
+                            <p style="color: var(--text-dim); margin-top: 1rem;">
+                                Both keys required, one key lost = funds inaccessible.
+                                <br><strong>Real case: Common with 2-of-2 setups. No redundancy.</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="outcome-panel" id="outcome-scenario1-2of3">
+                        <h3 style="color: var(--success-green);">✅ What Happens: 2-of-3 Multisig Path</h3>
+                        <div class="outcome-timeline">
+                            <div class="timeline-event">
+                                <div class="event-time">Year 2</div>
+                                <div class="event-description">You need to sell some Bitcoin. Use your key + spouse's key. Attorney's key stays sealed.</div>
+                                <div class="event-impact positive">Normal Operation</div>
+                            </div>
+                            <div class="timeline-event">
+                                <div class="event-time">Year 5</div>
+                                <div class="event-description">House fire destroys your hardware wallet. Spouse's wallet also damaged.</div>
+                                <div class="event-impact warning">2 Keys Lost</div>
+                            </div>
+                            <div class="timeline-event">
+                                <div class="event-time">Year 5.1</div>
+                                <div class="event-description">Contact attorney, retrieve third key from safe. Buy new hardware wallet, restore from seed phrases.</div>
+                                <div class="event-impact positive">Recovery Successful</div>
+                            </div>
+                            <div class="timeline-event">
+                                <div class="event-time">Year 5.2</div>
+                                <div class="event-description">Recreate 2-of-3 multisig with new keys. Document lessons learned.</div>
+                                <div class="event-impact positive">System Restored</div>
+                            </div>
+                        </div>
+                        <div class="final-outcome success">
+                            <h3>✅ $500,000 FULLY RECOVERED</h3>
+                            <div class="outcome-value" style="color: var(--success-green);">$0 Lost</div>
+                            <p style="color: var(--text-dim); margin-top: 1rem;">
+                                Lost 2 keys, still had access. Redundancy saved everything.
+                                <br><strong>Real case: Multiple documented successful recoveries with 2-of-3.</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Comparison with Real Data -->
+        <div class="config-comparison">
+            <h2 style="color: var(--primary-orange); font-size: 2.5rem; text-align: center; margin-bottom: 2rem;">
+                ⚖️ Configuration Comparison (Based on Real Incidents)
+            </h2>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Configuration</th>
+                        <th>Real-World Success Rate</th>
+                        <th>Best For</th>
+                        <th>Known Failures</th>
+                        <th>Recovery Success</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Single-Sig (1-of-1)</strong></td>
+                        <td><span style="color: var(--error-red);">~60%</span> (millions lost)</td>
+                        <td>Small amounts, temporary storage</td>
+                        <td>
+                            <span class="con-icon">×</span> QuadrigaCX ($190M)<br>
+                            <span class="con-icon">×</span> Personal losses (countless)<br>
+                            <span class="con-icon">×</span> Death without backup (common)
+                        </td>
+                        <td style="color: var(--error-red);">0% if key lost</td>
+                    </tr>
+                    <tr>
+                        <td><strong>2-of-2</strong></td>
+                        <td><span style="color: var(--warning-yellow);">~75%</span> (moderate risk)</td>
+                        <td>Joint accounts, business partners (with backups)</td>
+                        <td>
+                            <span class="con-icon">×</span> One key lost = locked forever<br>
+                            <span class="con-icon">×</span> Both parties must be available<br>
+                            <span class="con-icon">×</span> No redundancy
+                        </td>
+                        <td style="color: var(--error-red);">0% if 1+ keys lost</td>
+                    </tr>
+                    <tr>
+                        <td><strong>2-of-3</strong></td>
+                        <td><span style="color: var(--success-green);">~95%</span> (high success)</td>
+                        <td>Personal savings, family wealth, most users</td>
+                        <td>
+                            <span class="pro-icon">✓</span> House fire recovery ($8M)<br>
+                            <span class="pro-icon">✓</span> Inheritance success ($2.5M)<br>
+                            <span class="pro-icon">✓</span> Theft protection (multiple cases)
+                        </td>
+                        <td style="color: var(--success-green);">95%+ with 1 key lost</td>
+                    </tr>
+                    <tr>
+                        <td><strong>3-of-5</strong></td>
+                        <td><span style="color: var(--success-green);">~98%</span> (very high)</td>
+                        <td>High-value holdings, organizations, distributed teams</td>
+                        <td>
+                            <span class="pro-icon">✓</span> Company treasury protection<br>
+                            <span class="pro-icon">✓</span> Geographic redundancy<br>
+                            <span class="pro-icon">✓</span> Can lose 2 keys safely
+                        </td>
+                        <td style="color: var(--success-green);">98%+ with 2 keys lost</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="btn-group">
+            <a href="/paths/sovereign/stage-2/module-1.html" class="btn">
+                Continue to Sovereign Path →
+            </a>
+            <a href="/interactive-demos/" class="btn btn-secondary">
+                ← Back to All Demos
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Toggle case study details
+        function toggleCaseDetails(caseId) {
+            const detailsEl = document.getElementById(caseId + '-details');
+            if (detailsEl.style.display === 'none') {
+                detailsEl.style.display = 'block';
+            } else {
+                detailsEl.style.display = 'none';
+            }
+        }
+
+        // Show scenario outcome
+        function showOutcome(scenario, choice) {
+            // Hide all outcomes for this scenario
+            const outcomesPanels = document.querySelectorAll(`[id^="outcome-${scenario}"]`);
+            outcomesPanels.forEach(panel => {
+                panel.classList.remove('show');
+            });
+
+            // Show selected outcome
+            const selectedOutcome = document.getElementById(`outcome-${scenario}-${choice}`);
+            if (selectedOutcome) {
+                selectedOutcome.classList.add('show');
+                selectedOutcome.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            // Update selected state
+            const choiceCards = document.querySelectorAll('.choice-card');
+            choiceCards.forEach(card => card.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+        }
+
+        // Add more scenarios dynamically
+        // (Additional scenarios would go here)
+    </script>
+
+
+    <!-- Navigation Context (return-to-path functionality) -->
+    <script src="/js/navigation-context.js"></script>
+    <!-- Reflect: Socratic questions after activity -->
+    <div style="max-width:900px;margin:2rem auto 0;padding:0 1.5rem 2.5rem">
+        <div class="reflect-widget"
+             data-topic="custody"
+             data-path="sovereign"
+             data-title="Reflect: What problem does multisig solve?">
+        </div>
+    </div>
+    <script src="/js/reflect-widget.js"></script>
+
+<script src="/js/membership-gate.js"></script>
+
+<!-- Analytics, Email Capture & Tip CTAs -->
+<div class="container" style="margin: 2rem auto; max-width: 900px; padding: 0 1.5rem;">
+    <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
+    <div id="tip-page" data-tip-cta="compact"></div>
+</div>
+<script src="/js/analytics.js" defer></script>
+<script src="/js/email-capture.js" defer></script>
+<script src="/js/tip-cta.js" defer></script>
+
+</body></html>

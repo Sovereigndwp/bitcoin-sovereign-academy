@@ -1,0 +1,843 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You Just Got Scammed - Double-Spending Demo | Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #b3b3b3;
+            --accent-purple: #4f46e5;
+            --accent-green: #28a745;
+            --accent-red: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ACCESSIBILITY ENHANCEMENTS (WCAG 2.1 AA) ===== */
+
+        /* Touch Targets */
+        button, a, [role="button"], input[type="button"], input[type="submit"] {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Focus Indicators */
+        *:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 2px;
+        }
+
+        button:focus-visible, a:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 4px;
+            box-shadow: 0 0 0 4px rgba(247, 147, 26, 0.2);
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Mobile Reflow */
+        @media (max-width: 360px) {
+            body {
+                overflow-x: hidden;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 1rem;
+            overflow-x: hidden;
+        }
+
+        /* Multi-Level Support */
+        body.level-beginner .advanced-only { display: none; }
+        body.level-beginner .intermediate-only { display: none; }
+        body.level-intermediate .advanced-only { display: none; }
+        body.level-intermediate .beginner-only { display: none; }
+        body.level-advanced .beginner-only { display: none; }
+        body.level-advanced .intermediate-only { display: none; }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: var(--primary-orange);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(247, 147, 26, 0.5); }
+            to { text-shadow: 0 0 20px rgba(247, 147, 26, 0.8); }
+        }
+
+        .header p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        /* Level Switcher */
+        .level-switcher {
+            background: linear-gradient(135deg, rgba(45, 45, 45, 0.95), rgba(35, 35, 35, 0.95));
+            border: 2px solid var(--primary-orange);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(247, 147, 26, 0.2);
+        }
+
+        .level-info {
+            text-align: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .level-label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .level-current {
+            color: var(--primary-orange);
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-left: 0.5rem;
+        }
+
+        .level-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .level-btn {
+            padding: 0.6rem 1.2rem;
+            background: rgba(247, 147, 26, 0.1);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 8px;
+            color: var(--text-light);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .level-btn:hover {
+            background: rgba(247, 147, 26, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .level-btn.active {
+            background: var(--primary-orange);
+            border-color: var(--primary-orange);
+            color: white;
+        }
+
+        /* Story Setup */
+        .story-box {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(79, 70, 229, 0.05));
+            border-left: 5px solid var(--accent-purple);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .story-box h3 {
+            color: var(--accent-purple);
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .story-box p {
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        /* Coffee Shop Simulator */
+        .shop-container {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            border: 2px solid rgba(247, 147, 26, 0.3);
+        }
+
+        .shop-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .shop-header h2 {
+            color: var(--primary-orange);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .shop-status {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 2px solid var(--accent-green);
+        }
+
+        .balance-display {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            text-align: center;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .balance-display.negative {
+            color: var(--accent-red);
+            animation: flash 0.5s infinite;
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .customer-scene {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .customer-message {
+            background: rgba(79, 70, 229, 0.2);
+            border-left: 4px solid var(--accent-purple);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-size: 1.1rem;
+        }
+
+        .payment-notification {
+            background: rgba(40, 167, 80, 0.2);
+            border: 2px solid var(--accent-green);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            text-align: center;
+            animation: pulse 1s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .payment-notification.fraud {
+            background: rgba(220, 53, 69, 0.2);
+            border-color: var(--accent-red);
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .action-btn {
+            background: var(--primary-orange);
+            color: white;
+            padding: 1.2rem 2.5rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 2rem auto;
+            box-shadow: 0 4px 15px rgba(247, 147, 26, 0.3);
+        }
+
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(247, 147, 26, 0.5);
+        }
+
+        .action-btn:disabled {
+            background: var(--text-dim);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* Transaction Log */
+        .transaction-log {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--text-dim);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .transaction-log h4 {
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .transaction-entry {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            margin: 0.75rem 0;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-green);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .transaction-entry.fraud {
+            border-left-color: var(--accent-red);
+            background: rgba(220, 53, 69, 0.1);
+        }
+
+        .revelation-box {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.2), rgba(220, 53, 69, 0.05));
+            border: 3px solid var(--accent-red);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            animation: revealShock 0.8s ease-out;
+        }
+
+        @keyframes revealShock {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .revelation-box h3 {
+            color: var(--accent-red);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .fraud-evidence {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+        }
+
+        .duplicate-payments {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .duplicate-card {
+            background: rgba(220, 53, 69, 0.1);
+            border: 2px solid var(--accent-red);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .duplicate-card h5 {
+            color: var(--accent-red);
+            margin-bottom: 1rem;
+        }
+
+        /* Solution Box */
+        .solution-box {
+            background: linear-gradient(135deg, rgba(40, 167, 80, 0.15), rgba(40, 167, 80, 0.05));
+            border-left: 6px solid var(--accent-green);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        .solution-box h4 {
+            color: var(--accent-green);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .solution-box p {
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        @media (max-width: 768px) {
+            .duplicate-payments {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="/css/icons.css">
+    <link rel="stylesheet" href="/css/interactive-demos.css">
+<meta name="description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><link rel="canonical" href="https://bitcoinsovereign.academy/"><meta property="og:title" content="Bitcoin Sovereign Academy"><meta property="og:description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg"><meta property="og:url" content="https://bitcoinsovereign.academy/"><meta property="og:type" content="website"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Bitcoin Sovereign Academy",
+  "description": "Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.",
+  "url": "https://bitcoinsovereign.academy",
+  "logo": "https://bitcoinsovereign.academy/assets/og-image.jpg",
+  "sameAs": [
+    "https://github.com/Sovereigndwp/bitcoin-sovereign-academy"
+  ],
+  "educationalLevel": "Beginner to Advanced",
+  "teaches": [
+    "Bitcoin Fundamentals",
+    "Cryptocurrency Technology",
+    "Financial Sovereignty",
+    "Digital Asset Security"
+  ],
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Students interested in Bitcoin and cryptocurrency"
+  }
+}</script></head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <script src="/js/config.js"></script>
+    <script src="/js/demo-lock-subdomain.js"></script>
+    <script src="/js/subdomain-access-control.js"></script>
+    <main id="main-content" class="container">
+        <div class="header">
+            <h1>☕ You Just Got Scammed</h1>
+            <p>Experience the double-spending problem firsthand</p>
+        </div>
+
+        <!-- Level Switcher -->
+        <div class="level-switcher">
+            <div class="level-info">
+                <span class="level-label">Difficulty:</span>
+                <span class="level-current" id="current-level-name">Beginner Mode</span>
+            </div>
+            <div class="level-buttons">
+                <button class="level-btn active" data-level="beginner">Beginner</button>
+                <button class="level-btn" data-level="intermediate">Intermediate</button>
+                <button class="level-btn" data-level="advanced">Advanced</button>
+            </div>
+        </div>
+
+        <!-- Story Introduction -->
+        <div class="story-box">
+            <h3><span data-icon="book"></span> Your Story</h3>
+            <p class="beginner-only">
+                You own a small coffee shop. A friendly customer named Alice walks in and orders a $5 latte.
+                She pays with "DigiDollars" - a new digital currency everyone's using. The payment shows up
+                in your account instantly! You hand over the coffee with a smile. But then... something strange happens.
+            </p>
+            <p class="intermediate-only">
+                You're running a coffee shop accepting DigiDollars - a digital currency without a shared ledger.
+                In early digital payment systems, every merchant had their own copy of the ledger. Messages could
+                arrive out of order or at the same time. If two payments using the same coin ID reached different
+                servers before they could talk to each other, both might appear valid — at least for a few moments.
+            </p>
+            <p class="advanced-only">
+                You're operating a merchant node in a distributed payment network without Byzantine Fault Tolerance.
+                Each node maintains a local ledger copy with eventual consistency. Alice will exploit network latency
+                and lack of atomic global state to broadcast conflicting transactions that temporarily appear valid
+                to different nodes. This demonstrates why trustless digital currency requires consensus mechanisms like
+                proof-of-work to establish canonical transaction ordering.
+            </p>
+        </div>
+
+        <!-- Interactive Simulation -->
+        <div class="shop-container">
+            <div class="shop-header">
+                <h2>☕ Your Coffee Shop</h2>
+                <p style="color: var(--text-dim);">Watch your day unfold...</p>
+            </div>
+
+            <!-- Shop Status -->
+            <div class="shop-status" id="shop-status">
+                <div style="text-align: center; color: var(--text-dim); font-size: 0.9rem;">YOUR BALANCE</div>
+                <div class="balance-display" id="balance">$100.00</div>
+                <div style="text-align: center; color: var(--text-dim); margin-top: 0.5rem;" id="status-message">
+                    Business is good! <span data-icon="sparkles"></span>                 </div>
+            </div>
+
+            <!-- Customer Scene -->
+            <div class="customer-scene" id="scene" style="display: none;">
+                <div class="customer-message">
+                    <strong>👩 Alice:</strong> "Hi! I'd like a latte please. I'll pay with DigiDollars!"
+                </div>
+                <div style="text-align: center; margin: 2rem 0;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">☕</div>
+                    <div style="color: var(--text-dim);">One delicious latte - $5.00</div>
+                </div>
+            </div>
+
+            <!-- Payment Notification -->
+            <div id="payment-notification"></div>
+
+            <!-- Transaction Log -->
+            <div class="transaction-log" id="transaction-log" style="display: none;">
+                <h4>📝 Transaction Log</h4>
+                <div id="log-entries"></div>
+            </div>
+
+            <!-- Action Button -->
+            <button type="button" class="action-btn" id="action-btn" onclick="startScenario()">
+                ▶️ Start Your Day
+            </button>
+
+            <!-- Revelation -->
+            <div id="revelation"></div>
+        </div>
+
+        <!-- Solution Box -->
+        <div class="solution-box beginner-only" id="solution-beginner" style="display: none;">
+            <h4><span data-icon="lightbulb"></span> Why This Happened</h4>
+            <p>
+                Without a <strong>shared ledger</strong> that everyone agrees on, Alice could send the same $5
+                to multiple people at once. Each merchant saw the payment in their own system, but there was
+                no way to know the money had already been spent elsewhere!
+            </p>
+            <p style="margin-top: 1rem;">
+                <strong>Bitcoin's Solution:</strong> Every transaction is recorded on a public blockchain that
+                everyone can see. Once Alice's $5 is spent at your coffee shop, it's marked as "used" on the
+                blockchain. When she tries to spend it again elsewhere, Bitcoin rejects it because the money
+                is already gone!
+            </p>
+            <p style="margin-top: 1rem; padding: 1rem; background: rgba(40, 167, 80, 0.2); border-radius: 8px;"><span data-icon="lightbulb"></span> <strong>Key Insight:</strong> Digital money REQUIRES a shared, trusted record of who owns what.
+                Without it, the same money can be spent infinite times!
+            </p>
+        </div>
+
+        <div class="solution-box intermediate-only" id="solution-intermediate" style="display: none;">
+            <h4>🔑 The Double-Spending Problem</h4>
+            <p>
+                This attack exploited the fundamental challenge of digital currency: <strong>achieving consensus
+                without a central authority</strong>. In traditional systems, banks prevent double-spending by
+                maintaining centralized ledgers. But decentralized systems need a different approach.
+            </p>
+            <p style="margin-top: 1rem;">
+                <strong>Bitcoin's Innovation:</strong> The blockchain creates an immutable, chronological record
+                of all transactions. Proof-of-work mining ensures that:
+            </p>
+            <ul style="margin-left: 2rem; margin-top: 1rem; line-height: 1.8;">
+                <li>All nodes agree on transaction order (timestamp ordering)</li>
+                <li>Spent outputs (UTXOs) can't be spent again</li>
+                <li>Attempting to rewrite history requires re-mining all subsequent blocks</li>
+                <li>6 confirmations = ~$1M cost to reverse (economic finality)</li>
+            </ul>
+        </div>
+
+        <div class="solution-box advanced-only" id="solution-advanced" style="display: none;">
+            <h4><span data-icon="lightning"></span> Byzantine Fault Tolerance Through Nakamoto Consensus</h4>
+            <p>
+                This scenario demonstrates a Byzantine Agreement failure - multiple parties observing
+                inconsistent state due to lack of synchronized truth. Previous digital currency attempts
+                (DigiCash, e-gold) all required trusted third parties to maintain canonical state.
+            </p>
+            <p style="margin-top: 1rem;">
+                <strong>Bitcoin's Breakthrough:</strong> Proof-of-work creates unforgeable timestamps that
+                establish objective transaction ordering without trust:
+            </p>
+            <ul style="margin-left: 2rem; margin-top: 1rem; line-height: 1.8;">
+                <li><strong>UTXO Model:</strong> Each coin can only be spent once; outputs become inputs</li>
+                <li><strong>Mempool Validation:</strong> Nodes reject conflicting transactions immediately</li>
+                <li><strong>Longest Chain Rule:</strong> Miners extend the chain with most accumulated work</li>
+                <li><strong>Probabilistic Finality:</strong> Reorg probability: 0.5^n where n = confirmations</li>
+                <li><strong>Economic Security:</strong> 51% attack cost &gt;&gt; value of reversed transactions</li>
+            </ul>
+            <p style="margin-top: 1rem; padding: 1rem; background: rgba(40, 167, 80, 0.2); border-radius: 8px;">
+                <strong>Attack Analysis:</strong> At 400 EH/s network hashrate, reorganizing 6 blocks requires
+                ~$20B ASIC investment + $6M electricity. Attack destroys Bitcoin value, making theft worthless.
+                Game theory ensures honest mining is always more profitable.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Multi-level support
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLevel = urlParams.get('level') || 'beginner';
+        document.body.classList.add(`level-${currentLevel}`);
+
+        const LEVEL_CONFIG = {
+            beginner: { name: "Beginner Mode" },
+            intermediate: { name: "Intermediate Mode" },
+            advanced: { name: "Advanced Mode" }
+        };
+
+        document.getElementById('current-level-name').textContent = LEVEL_CONFIG[currentLevel].name;
+
+        // Level switcher
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            if (btn.dataset.level === currentLevel) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const newLevel = e.target.dataset.level;
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('level', newLevel);
+                window.location.href = newUrl.toString();
+            });
+        });
+
+        // Simulation state
+        let balance = 100;
+        let step = 0;
+
+        function updateBalance(amount) {
+            balance += amount;
+            const balanceEl = document.getElementById('balance');
+            balanceEl.textContent = `$${balance.toFixed(2)}`;
+            if (balance < 0) {
+                balanceEl.classList.add('negative');
+            }
+        }
+
+        function addTransaction(merchant, amount, isValid = true) {
+            const logEntries = document.getElementById('log-entries');
+            const entry = document.createElement('div');
+            entry.className = `transaction-entry ${!isValid ? 'fraud' : ''}`;
+            entry.innerHTML = `
+                <div><strong>${isValid ? '✅' : '⚠️'} Payment Received</strong></div>
+                <div style="color: var(--text-dim); font-size: 0.9rem; margin-top: 0.5rem;">
+                    From: Alice → ${merchant}<br>
+                    Amount: $5.00 DigiDollars<br>
+                    Transaction ID: ${Math.random().toString(36).substr(2, 9)}
+                </div>
+            `;
+            logEntries.appendChild(entry);
+        }
+
+        function startScenario() {
+            const btn = document.getElementById('action-btn');
+            const scene = document.getElementById('scene');
+            const log = document.getElementById('transaction-log');
+
+            btn.disabled = true;
+            scene.style.display = 'block';
+            log.style.display = 'block';
+
+            // Step 1: Customer orders
+            setTimeout(() => {
+                btn.textContent = '✅ Accept Payment & Give Coffee';
+                btn.disabled = false;
+                btn.onclick = acceptPayment;
+            }, 1000);
+        }
+
+        function acceptPayment() {
+            const btn = document.getElementById('action-btn');
+            const notification = document.getElementById('payment-notification');
+            const statusMsg = document.getElementById('status-message');
+
+            btn.disabled = true;
+
+            // Show payment received
+            notification.innerHTML = `
+                <div class="payment-notification">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">✅</div>
+                    <strong>Payment Received!</strong><br>
+                    <span style="color: var(--accent-green); font-size: 1.5rem;">+$5.00</span>
+                </div>
+            `;
+
+            updateBalance(5);
+            addTransaction('Your Coffee Shop', 5, true);
+            statusMsg.textContent = 'Great! You made a sale! 🎉';
+
+            setTimeout(() => {
+                btn.textContent = '☕ Hand Over the Coffee';
+                btn.disabled = false;
+                btn.onclick = giveCoffee;
+            }, 1500);
+        }
+
+        function giveCoffee() {
+            const btn = document.getElementById('action-btn');
+            const statusMsg = document.getElementById('status-message');
+
+            btn.disabled = true;
+            statusMsg.textContent = 'Alice walks away with her latte... ☕';
+
+            // The horror begins
+            setTimeout(() => {
+                revealFraud();
+            }, 2000);
+        }
+
+        function revealFraud() {
+            const revelation = document.getElementById('revelation');
+            const statusMsg = document.getElementById('status-message');
+            const shopStatus = document.getElementById('shop-status');
+
+            shopStatus.style.borderColor = 'var(--accent-red)';
+            statusMsg.textContent = '⚠️ ALERT: Duplicate transactions detected!';
+
+            // Show the scam
+            revelation.innerHTML = `
+                <div class="revelation-box">
+                    <h3><span data-icon="alert"></span> WAIT... SOMETHING'S WRONG!</h3>
+
+                    <p style="font-size: 1.2rem; text-align: center; margin: 1.5rem 0;">
+                        Your payment terminal just received an ALERT from other merchants:
+                    </p>
+
+                    <div class="fraud-evidence">
+                        <strong style="color: var(--accent-red); font-size: 1.3rem;">
+                            She just sent three identical payment messages to the network within seconds of each other.
+                        </strong>
+                    </div>
+
+                    <div class="duplicate-payments">
+                        <div class="duplicate-card">
+                            <h5>Bob's Bakery</h5>
+                            <div style="font-size: 2rem; margin: 1rem 0;">🥐</div>
+                            <div>Payment: $5.00</div>
+                            <div style="color: var(--accent-red); margin-top: 0.5rem;">SAME COIN ID!</div>
+                        </div>
+
+                        <div class="duplicate-card">
+                            <h5>Your Coffee Shop</h5>
+                            <div style="font-size: 2rem; margin: 1rem 0;">☕</div>
+                            <div>Payment: $5.00</div>
+                            <div style="color: var(--accent-red); margin-top: 0.5rem;">SAME COIN ID!</div>
+                        </div>
+
+                        <div class="duplicate-card">
+                            <h5>Charlie's Deli</h5>
+                            <div style="font-size: 2rem; margin: 1rem 0;">🥪</div>
+                            <div>Payment: $5.00</div>
+                            <div style="color: var(--accent-red); margin-top: 0.5rem;">SAME COIN ID!</div>
+                        </div>
+                    </div>
+
+                    <div class="fraud-evidence">
+                        <p style="font-size: 1.2rem; line-height: 1.8;">
+                            <strong>How This Worked:</strong> Since there's no shared ledger, each shop thought they'd been paid.
+                            Your local system checked: "Does Alice have $5? Yes!" and accepted it.
+                        </p>
+                        <p style="margin-top: 1rem; font-size: 1.1rem; line-height: 1.8;">
+                            But when DigiDollar's system finally reconciled the transactions a few minutes later, only the
+                            <strong>first payment was valid</strong>. The rest were rejected as double-spends.
+                        </p>
+                        <p style="margin-top: 1rem; font-size: 1.15rem; line-height: 1.8; padding: 1rem; background: rgba(220, 53, 69, 0.2); border-radius: 8px;"><span data-icon="lightbulb"></span> <strong>Why This Happened:</strong> This timing gap is what allowed Alice's scam to work.
+                            It's not that she teleported — it's that the networks didn't agree fast enough. Without instant
+                            global consensus, each merchant only knew what their own system told them.
+                        </p>
+                        <p style="margin-top: 1rem; font-size: 1.2rem; color: var(--accent-red);">
+                            <strong>The Damage:</strong> You gave away a $5 latte for FREE. Your actual balance is:
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            // Update to reflect reality
+            addTransaction('Bob\'s Bakery', 5, false);
+            addTransaction('Charlie\'s Deli', 5, false);
+            updateBalance(-10); // Lose the $5 you thought you had, plus the $5 coffee cost
+
+            // Show solution
+            setTimeout(() => {
+                const solutionId = `solution-${currentLevel}`;
+                const solution = document.getElementById(solutionId);
+                if (solution) {
+                    solution.style.display = 'block';
+                    solution.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }, 2000);
+        }
+
+        console.log(`☕ Double-Spending Demo Level: ${currentLevel}`);
+    </script>
+
+    <!-- Animated Icon Library -->
+    <script src="/js/icon-library.js"></script>
+    <script>
+        // Inject icons after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.IconLibrary) {
+                document.querySelectorAll('[data-icon]').forEach(function(element) {
+                    var iconName = element.getAttribute('data-icon');
+                    if (iconName) {
+                        var iconHTML = IconLibrary.get(iconName, 20, true);
+                        var span = document.createElement('span');
+                        span.innerHTML = iconHTML;
+                        span.className = 'icon-inline';
+                        span.style.marginRight = '0.5rem';
+                        span.style.display = 'inline-block';
+                        span.style.verticalAlign = 'middle';
+                        element.insertBefore(span, element.firstChild);
+                    }
+                });
+            }
+        });
+    </script>
+
+
+    <!-- Reflect: Socratic questions after double spending demo -->
+    <div style="max-width:900px;margin:2rem auto 0;padding:0 1.5rem 2.5rem">
+        <div class="reflect-widget"
+             data-topic="blockchain"
+             data-path="curious"
+             data-title="Reflect: Why can't Bitcoin be double-spent?">
+        </div>
+    </div>
+    <script src="/js/reflect-widget.js"></script>
+
+    <!-- Navigation Context (return-to-path functionality) -->
+    <script src="/js/navigation-context.js"></script>
+<script src="/js/membership-gate.js"></script>
+
+<!-- Analytics, Email Capture & Tip CTAs -->
+<div class="container" style="margin: 2rem auto; max-width: 900px; padding: 0 1.5rem;">
+    <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
+    <div id="tip-page" data-tip-cta="compact"></div>
+</div>
+<script src="/js/analytics.js" defer></script>
+<script src="/js/email-capture.js" defer></script>
+<script src="/js/tip-cta.js" defer></script>
+
+</body></html>

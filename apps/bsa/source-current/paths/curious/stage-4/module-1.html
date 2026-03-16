@@ -1,0 +1,1162 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Fundamentals | Protecting Your Bitcoin | The Curious Path</title>
+    <meta name="description" content="Master Bitcoin security basics: private keys, seed phrases, common attack vectors, and how to protect yourself.">
+
+    <!-- Progress Manager -->
+    <script src="/js/progress-manager.js"></script>
+    <!-- Navigation Context (return-to-path functionality) -->
+    <script src="/js/navigation-context.js"></script>
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --accent-red: #f44336;
+            --text-light: #e0e0e0;
+            --text-dim: #b3b3b3;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Module Header */
+        .module-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--accent-green);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .module-title-section h1 {
+            font-size: 1.75rem;
+            color: var(--accent-green);
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-orange);
+        }
+
+        .content-section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-green);
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .content-section ul, .content-section ol {
+            margin-left: 2rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .content-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background: rgba(76, 175, 80, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            color: var(--accent-green);
+        }
+
+        /* Danger Box */
+        .danger-box {
+            background: rgba(244, 67, 54, 0.1);
+            border: 2px solid var(--accent-red);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .danger-box h3 {
+            color: var(--accent-red);
+            margin-bottom: 1rem;
+        }
+
+        /* Attack Example */
+        .attack-example {
+            background: var(--secondary-dark);
+            border-left: 4px solid var(--accent-red);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .attack-example h4 {
+            color: var(--accent-red);
+            margin-bottom: 0.75rem;
+        }
+
+        .attack-stats {
+            background: rgba(244, 67, 54, 0.1);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-weight: 600;
+            color: var(--accent-red);
+        }
+
+        /* Security Dojo */
+        .security-dojo {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-green);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .security-dojo h3 {
+            color: var(--accent-green);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .scenario-card {
+            background: rgba(247, 147, 26, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .scenario-card h4 {
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+
+        .scenario-options {
+            display: grid;
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        .scenario-btn {
+            padding: 0.75rem 1rem;
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .scenario-btn:hover {
+            border-color: var(--accent-green);
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .scenario-btn.correct {
+            border-color: var(--accent-green);
+            background: rgba(76, 175, 80, 0.2);
+        }
+
+        .scenario-btn.incorrect {
+            border-color: var(--accent-red);
+            background: rgba(244, 67, 54, 0.2);
+        }
+
+        .scenario-feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            display: none;
+        }
+
+        .scenario-feedback.show {
+            display: block;
+        }
+
+        .scenario-feedback.correct {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .scenario-feedback.incorrect {
+            background: rgba(244, 67, 54, 0.2);
+            border-left: 4px solid var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        /* Quiz */
+        .quiz-container {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-blue);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .quiz-container h3 {
+            color: var(--accent-blue);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .quiz-question {
+            margin-bottom: 2rem;
+        }
+
+        .quiz-question h4 {
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .quiz-options label {
+            display: block;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: rgba(247, 147, 26, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-options label:hover {
+            background: rgba(247, 147, 26, 0.1);
+        }
+
+        .quiz-submit {
+            width: 100%;
+            padding: 1rem;
+            background: var(--accent-green);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-submit:hover {
+            background: #45a049;
+        }
+
+        .quiz-result {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            display: none;
+        }
+
+        .quiz-result.show {
+            display: block;
+        }
+
+        .quiz-result.pass {
+            background: rgba(76, 175, 80, 0.2);
+            border: 2px solid var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .quiz-result.fail {
+            background: rgba(244, 67, 54, 0.2);
+            border: 2px solid var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        /* Takeaway Box */
+        .takeaway-box {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--accent-green);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .takeaway-box h3 {
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .takeaway-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .takeaway-box li {
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .takeaway-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        /* Navigation */
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--accent-green);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .nav-btn:hover {
+            background: #45a049;
+        }
+
+        .nav-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ===== ACCESSIBILITY ENHANCEMENTS (WCAG 2.1 AA) ===== */
+
+        /* WCAG 2.5.5: Touch Target Size - Minimum 44x44px */
+        button, a, [role="button"], .nav-btn, .module-cta {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Exception for inline text links */
+        p a, li a {
+            min-height: auto;
+            min-width: auto;
+            padding: 0.25rem 0;
+        }
+
+        /* WCAG 2.4.7: Focus Visible - Enhanced focus indicators */
+        *:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 2px;
+        }
+
+        button:focus-visible, a:focus-visible, [role="button"]:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 4px;
+            box-shadow: 0 0 0 4px rgba(247, 147, 26, 0.2);
+        }
+
+        /* WCAG 2.3.3: Animation from Interactions - Respect user preferences */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        /* WCAG 1.4.10: Reflow - Prevent horizontal scrolling on small devices */
+        @media (max-width: 360px) {
+            body {
+                overflow-x: hidden;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+    <script src="/js/config.js"></script>
+    <script src="/js/subdomain-access-control.js"></script>
+    <script src="/js/module-gate-subdomain.js"></script>
+    <script src="/js/module-progress.js"></script>
+    <link rel="stylesheet" href="/css/icons.css">
+<link rel="canonical" href="https://bitcoinsovereign.academy/module-1.html"><meta property="og:title" content="Module 1 - Bitcoin Sovereign Academy"><meta property="og:description" content="Learn about module 1 at Bitcoin Sovereign Academy. Interactive Bitcoin education with hands-on exercises and expert guidance."><meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg"><meta property="og:url" content="https://bitcoinsovereign.academy/module-1.html"><meta property="og:type" content="website"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Bitcoin Sovereign Academy",
+  "description": "Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.",
+  "url": "https://bitcoinsovereign.academy",
+  "logo": "https://bitcoinsovereign.academy/assets/og-image.jpg",
+  "sameAs": [
+    "https://github.com/Sovereigndwp/bitcoin-sovereign-academy"
+  ],
+  "educationalLevel": "Beginner to Advanced",
+  "teaches": [
+    "Bitcoin Fundamentals",
+    "Cryptocurrency Technology",
+    "Financial Sovereignty",
+    "Digital Asset Security"
+  ],
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Students interested in Bitcoin and cryptocurrency"
+  }
+}</script><link rel="stylesheet" href="/css/lab-guide.css">
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <!-- Module Header -->
+    <header class="module-header">
+        <div class="container">
+            <nav aria-label="Breadcrumb" class="breadcrumb">
+                <ol style="list-style: none; display: flex; gap: 0.5rem; margin: 0; padding: 0; flex-wrap: wrap;">
+                    <li><a href="/">Home</a></li>
+                    <li aria-hidden="true">→</li>
+                    <li><a href="/paths/curious/">The Curious Path</a></li>
+                    <li aria-hidden="true">→</li>
+                    <li><a href="/paths/curious/stage-4/">Stage 4</a></li>
+                    <li aria-hidden="true">→</li>
+                    <li aria-current="page">Module 1</li>
+                </ol>
+            </nav>
+            <div class="module-title-section">
+                <h1><span data-icon="lock"></span> Module 1: Security Fundamentals</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Introduction -->
+            <section class="content-section">
+                <h2>Why Bitcoin Security Matters</h2>
+                <p>
+                    Bitcoin gives you complete control over your money—no bank, no intermediary, no one who can reverse
+                    transactions or freeze your account. This is incredibly powerful, but it also means <strong>you are
+                    fully responsible for security</strong>.
+                </p>
+
+                <p>
+                    Unlike a bank account where you can call customer service if something goes wrong, Bitcoin transactions
+                    are irreversible. If someone gets your private keys or tricks you into sending Bitcoin,
+                    <strong>it's gone forever</strong>.
+                </p>
+
+                <div class="danger-box">
+                    <h3>⚠️ The Reality of Bitcoin Losses</h3>
+                    <p>
+                        Over <strong>$3.8 billion</strong> worth of Bitcoin was stolen in 2022 through hacks, scams, and
+                        social engineering. An estimated <strong>20% of all Bitcoin</strong> is lost forever due to lost
+                        private keys.
+                    </p>
+                    <p style="margin-top: 1rem; font-weight: 600;">
+                        This module will teach you how to avoid becoming a statistic.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Private Keys 101 -->
+            <section class="content-section">
+                <h2>Understanding Private Keys</h2>
+
+                <p>
+                    A <strong>private key</strong> is a 256-bit number that proves ownership of Bitcoin. Think of it as
+                    the master password to your Bitcoin.
+                </p>
+
+                <h3>How Private Keys Work</h3>
+                <ul>
+                    <li><strong>Private key</strong> → generates → <strong>Public key</strong> → generates → <strong>Bitcoin address</strong></li>
+                    <li>Anyone can see your public address (like an email address)</li>
+                    <li>Only you should know your private key (like a password)</li>
+                    <li>You sign transactions with your private key to prove ownership</li>
+                </ul>
+
+                <div style="background: var(--secondary-dark); border: 2px dashed var(--border-color); border-radius: 0.75rem; padding: 1.5rem; margin: 1.5rem 0;">
+                    <p style="font-family: monospace; color: var(--text-dim); font-size: 0.85rem; word-break: break-all; line-height: 1.8;">
+                        Private Key Example (256-bit hex):<br>
+                        <span style="color: var(--accent-red);">E9873D79C6D87DC0FB6A5778633389F4453213303DA61F20BD67FC233AA33262</span>
+                    </p>
+                    <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 1rem;">
+                        ⚠️ This is just an example - NEVER share your real private key with anyone!
+                    </p>
+                </div>
+
+                <h3>Seed Phrases: Human-Readable Private Keys</h3>
+                <p>
+                    Because raw private keys are impossible to remember, wallets use <strong>seed phrases</strong>
+                    (also called recovery phrases or mnemonic phrases). These are typically 12 or 24 words.
+                </p>
+
+                <div style="background: var(--secondary-dark); border: 2px solid var(--accent-green); border-radius: 0.75rem; padding: 1.5rem; margin: 1.5rem 0; text-align: center;">
+                    <p style="font-family: monospace; color: var(--accent-green); font-size: 1rem; line-height: 2;">
+                        witch collapse practice feed shame open despair creek road again ice least
+                    </p>
+                    <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 1rem;">
+                        Example 12-word seed phrase (DO NOT USE - for illustration only)
+                    </p>
+                </div>
+
+                <div class="danger-box">
+                    <h3><span data-icon="lock"></span> Critical: Seed Phrase = Full Control</h3>
+                    <ul style="margin-left: 2rem; margin-top: 1rem;">
+                        <li><strong>Anyone with your seed phrase can steal all your Bitcoin</strong></li>
+                        <li>There is NO customer service to call if it's compromised</li>
+                        <li>If you lose it, your Bitcoin is gone forever</li>
+                        <li>No one legitimate will EVER ask for your seed phrase</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Common Attack Vectors -->
+            <section class="content-section">
+                <h2>Common Attack Vectors (How You Can Lose Bitcoin)</h2>
+
+                <div class="attack-example">
+                    <h4>1. Phishing Attacks</h4>
+                    <p>
+                        Attackers create fake websites or apps that look identical to legitimate services. When you enter
+                        your seed phrase or private key, they steal it.
+                    </p>
+                    <div class="attack-stats"><span data-icon="money"></span> Average loss: $50,000 per victim | <span data-icon="chart"></span> Success rate: 30% of targeted users
+                    </div>
+                    <p style="margin-top: 1rem; color: var(--text-light);">
+                        <strong>How to protect yourself:</strong> Never enter your seed phrase on any website. Bookmark legitimate sites. Double-check URLs.
+                    </p>
+                </div>
+
+                <div class="attack-example">
+                    <h4>2. Social Engineering / Customer Support Scams</h4>
+                    <p>
+                        Scammers impersonate customer support and claim there's a problem with your account. They ask for
+                        your seed phrase to "verify" or "restore" your wallet.
+                    </p>
+                    <div class="attack-stats"><span data-icon="money"></span> Total stolen in 2022: $575 million | <span data-icon="chart"></span> Most common victim: New users
+                    </div>
+                    <p style="margin-top: 1rem; color: var(--text-light);">
+                        <strong>How to protect yourself:</strong> Hang up and contact official support channels directly.
+                    </p>
+                </div>
+
+                <div class="attack-example">
+                    <h4>3. Malware &amp; Keyloggers</h4>
+                    <p>
+                        Malicious software on your computer records your keystrokes or screenshots when you access your wallet,
+                        stealing your seed phrase or private keys.
+                    </p>
+                    <div class="attack-stats"><span data-icon="money"></span> Average loss: $25,000 per infected device | <span data-icon="chart"></span> Infection vector: Fake software downloads
+                    </div>
+                    <p style="margin-top: 1rem; color: var(--text-light);">
+                        <strong>How to protect yourself:</strong> Only download wallets from official sources. Keep antivirus
+                        updated. Use hardware wallets for large amounts.
+                    </p>
+                </div>
+
+                <div class="attack-example">
+                    <h4>4. SIM Swap Attacks</h4>
+                    <p>
+                        Attackers convince your phone carrier to transfer your number to their SIM card. They then bypass
+                        2FA to access exchange accounts.
+                    </p>
+                    <div class="attack-stats"><span data-icon="money"></span> Record single loss: $24 million | <span data-icon="chart"></span> Average time to execute: 15 minutes
+                    </div>
+                    <p style="margin-top: 1rem; color: var(--text-light);">
+                        <strong>How to protect yourself:</strong> Use authenticator apps (not SMS) for 2FA. Enable PIN/password
+                        protection with your carrier. Use non-custodial wallets.
+                    </p>
+                </div>
+
+                <div class="attack-example">
+                    <h4>5. Fake Wallet Apps</h4>
+                    <p>
+                        Scammers publish fake wallet apps on app stores that look legitimate but are designed to steal
+                        your seed phrase when you "create" or "restore" a wallet.
+                    </p>
+                    <div class="attack-stats"><span data-icon="money"></span> Total stolen: $500,000+ before removal | <span data-icon="chart"></span> Often appear in top search results
+                    </div>
+                    <p style="margin-top: 1rem; color: var(--text-light);">
+                        <strong>How to protect yourself:</strong> Verify app developer. Check reviews carefully. Download
+                        from official website links, not search results.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Scam Detection Exercise -->
+            <section class="content-section">
+                <div class="security-dojo">
+                    <h3><span data-icon="shield"></span> Spot the Scam</h3>
+                    <p style="color: var(--text-dim); text-align: center; margin-bottom: 2rem;">
+                        Test your security skills! For each scenario, identify whether it's legitimate or a scam.
+                    </p>
+
+                    <!-- Scenario 1 -->
+                    <div class="scenario-card">
+                        <h4>Scenario 1: Email from "MetaMask Support"</h4>
+                        <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                            You receive an email: <em>"Your wallet has been flagged for suspicious activity. Click here
+                            and enter your seed phrase within 24 hours to verify your identity and prevent account suspension."</em>
+                        </p>
+                        <div class="scenario-options">
+                            <button class="scenario-btn" onclick="checkScenario(1, 'scam', this)">
+                                <span data-icon="alert"></span> This is a SCAM
+                            </button>
+                            <button class="scenario-btn" onclick="checkScenario(1, 'legit', this)">
+                                ✅ This is LEGITIMATE
+                            </button>
+                        </div>
+                        <div id="feedback-1" class="scenario-feedback"></div>
+                    </div>
+
+                    <!-- Scenario 2 -->
+                    <div class="scenario-card">
+                        <h4>Scenario 2: App Store Download</h4>
+                        <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                            You search "Bitcoin wallet" in the App Store. The top result is called "Bitcoin Wallet Pro"
+                            with 4.8 stars and 10,000 downloads. It was published 2 months ago by "Crypto Solutions LLC."
+                        </p>
+                        <div class="scenario-options">
+                            <button class="scenario-btn" onclick="checkScenario(2, 'safe', this)">
+                                ✅ Safe to download based on ratings
+                            </button>
+                            <button class="scenario-btn" onclick="checkScenario(2, 'risky', this)">
+                                <span data-icon="alert"></span> Too risky - verify official source first
+                            </button>
+                        </div>
+                        <div id="feedback-2" class="scenario-feedback"></div>
+                    </div>
+
+                    <!-- Scenario 3 -->
+                    <div class="scenario-card">
+                        <h4>Scenario 3: Telegram Message</h4>
+                        <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                            Someone messages you on Telegram: <em>"Hey! I'm a moderator for Ledger. I noticed you posted
+                            about having trouble with your device. DM me your seed phrase and I'll help you troubleshoot!"</em>
+                        </p>
+                        <div class="scenario-options">
+                            <button class="scenario-btn" onclick="checkScenario(3, 'scam', this)">
+                                <span data-icon="alert"></span> This is a SCAM
+                            </button>
+                            <button class="scenario-btn" onclick="checkScenario(3, 'legit', this)">
+                                ✅ Helpful moderator trying to assist
+                            </button>
+                        </div>
+                        <div id="feedback-3" class="scenario-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Interactive Security Activities -->
+            <section class="content-section">
+                <div class="quiz-container">
+                    <h3><span data-icon="target"></span> Security Skills Test</h3>
+                    <p style="color: var(--text-dim); text-align: center; margin-bottom: 2rem;">
+                        Complete all 3 activities to prove your security knowledge.
+                    </p>
+
+                    <!-- Activity 1: Phishing Email Detective -->
+                    <div id="phishing-detective" class="card" style="padding: 2.5rem; margin-bottom: 2rem; background: var(--secondary-dark); border: 2px solid var(--accent-red); border-radius: 1rem;">
+                        <h4 style="margin-bottom: 1rem; color: var(--text-light);"><span data-icon="alert"></span> Phishing Email Detective</h4>
+                        <p style="margin-bottom: 1.5rem; color: var(--text-dim);">You receive this email. Tap each suspicious element to identify the red flags:</p>
+
+                        <div style="background: #1e1e1e; border: 1px solid #444; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; font-family: monospace; font-size: 0.9rem;">
+                            <div style="border-bottom: 1px solid #444; padding-bottom: 0.5rem; margin-bottom: 1rem; color: var(--text-dim);">
+                                <strong>From:</strong> <span class="red-flag tapcard" data-id="from" data-answer="⚠️ Fake domain! Real Coinbase uses @coinbase.com, not @coinbase-security.com" style="color: #ff6b6b; cursor: pointer; text-decoration: underline;">support@coinbase-security.com</span>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <strong style="color: var(--text-light);">Subject:</strong> <span class="red-flag tapcard" data-id="subject" data-answer="⚠️ Urgency tactic! Scammers use 'URGENT' and '24 hours' to pressure you into acting without thinking." style="cursor: pointer; color: var(--primary-orange); text-decoration: underline;">URGENT: Account Suspended - Action Required in 24 Hours</span>
+                            </div>
+                            <div style="color: var(--text-light); line-height: 1.6;">
+                                Dear User,<br><br>
+                                Your account has been suspended due to suspicious activity. To restore access, please <span class="red-flag tapcard" data-id="verify" data-answer="🚫 Never verify! Legitimate companies don't ask you to 'verify' by entering credentials via email links." style="cursor: pointer; color: #4fc3f7; text-decoration: underline;">verify your identity</span> by clicking below:<br><br>
+                                <a href="#" style="color: #4fc3f7;">[Verify Account Now]</a><br><br>
+                                Please provide your <span class="red-flag tapcard" data-id="seed" data-answer="🛑 BIGGEST RED FLAG! No legitimate service EVER asks for seed phrases. This is 100% a scam." style="cursor: pointer; color: #ff6b6b; font-weight: bold; text-decoration: underline;">12-word recovery phrase</span> to confirm ownership.<br><br>
+                                Thank you,<br>
+                                Coinbase Security Team
+                            </div>
+                        </div>
+
+                        <div id="phishing-feedback" style="padding: 1rem; background: rgba(247, 147, 26, 0.05); border-radius: 0.5rem; min-height: 60px; color: var(--text-dim);">
+                            Tap the suspicious parts above...
+                        </div>
+                    </div>
+
+                    <!-- Activity 2: Seed Phrase Security Choices -->
+                    <div id="seed-security" class="card" style="padding: 2.5rem; margin-bottom: 2rem; background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 1rem;">
+                        <h4 style="margin-bottom: 1rem; color: var(--text-light);"><span data-icon="lock"></span> Seed Phrase Security Test</h4>
+                        <p style="margin-bottom: 1.5rem; color: var(--text-dim);">Someone you trust asks to see your seed phrase. What do you say?</p>
+
+                        <div class="chips" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                            <button class="choice-chip" data-choice="share" style="padding: 1.25rem; background: rgba(247, 147, 26, 0.1); border: 2px solid var(--border-color); color: var(--text-light); border-radius: 0.75rem; cursor: pointer; text-align: left; transition: all 0.3s;">
+                                <span data-icon="chat"></span> "Sure, you're my friend/family. Here it is."
+                            </button>
+                            <button class="choice-chip" data-choice="partial" style="padding: 1.25rem; background: rgba(247, 147, 26, 0.1); border: 2px solid var(--border-color); color: var(--text-light); border-radius: 0.75rem; cursor: pointer; text-align: left; transition: all 0.3s;">
+                                🤔 "I'll give you just a few words, not all 12."
+                            </button>
+                            <button class="choice-chip" data-choice="refuse" style="padding: 1.25rem; background: rgba(247, 147, 26, 0.1); border: 2px solid var(--border-color); color: var(--text-light); border-radius: 0.75rem; cursor: pointer; text-align: left; transition: all 0.3s;">
+                                🚫 "No. My seed phrase is NEVER shared with anyone, ever."
+                            </button>
+                            <button class="choice-chip" data-choice="photo" style="padding: 1.25rem; background: rgba(247, 147, 26, 0.1); border: 2px solid var(--border-color); color: var(--text-light); border-radius: 0.75rem; cursor: pointer; text-align: left; transition: all 0.3s;">
+                                📸 "Let me take a photo and text it to you."
+                            </button>
+                        </div>
+
+                        <div id="seed-feedback" style="display: none; margin-top: 1.5rem; padding: 1.5rem; border-radius: 0.75rem;"></div>
+                    </div>
+
+                    <!-- Activity 3: Attack Defense Matching -->
+                    <div id="attack-defense" class="card" style="padding: 2.5rem; margin-bottom: 2rem; background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 1rem;">
+                        <h4 style="margin-bottom: 1rem; color: var(--text-light);">⚔️ Attack Defense Matching</h4>
+                        <p style="margin-bottom: 1.5rem; color: var(--text-dim);">Match each attack to its best defense:</p>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem;">
+                            <div>
+                                <h5 style="color: var(--accent-red); margin-bottom: 1rem;">Attacks</h5>
+                                <div class="attack-item" data-attack="phishing" style="padding: 1rem; background: rgba(244, 67, 54, 0.1); border: 2px solid rgba(244, 67, 54, 0.3); border-radius: 0.5rem; margin-bottom: 0.75rem; cursor: pointer; transition: all 0.3s; color: var(--text-light);">
+                                    🎣 Phishing Email
+                                </div>
+                                <div class="attack-item" data-attack="sim" style="padding: 1rem; background: rgba(244, 67, 54, 0.1); border: 2px solid rgba(244, 67, 54, 0.3); border-radius: 0.5rem; margin-bottom: 0.75rem; cursor: pointer; transition: all 0.3s; color: var(--text-light);">
+                                    📱 SIM Swap
+                                </div>
+                                <div class="attack-item" data-attack="malware" style="padding: 1rem; background: rgba(244, 67, 54, 0.1); border: 2px solid rgba(244, 67, 54, 0.3); border-radius: 0.5rem; margin-bottom: 0.75rem; cursor: pointer; transition: all 0.3s; color: var(--text-light);">
+                                    🦠 Malware/Keylogger
+                                </div>
+                            </div>
+
+                            <div>
+                                <h5 style="color: var(--accent-green); margin-bottom: 1rem;">Best Defense</h5>
+                                <div class="defense-slot" data-defense="phishing" style="padding: 1rem; background: rgba(76, 175, 80, 0.05); border: 2px dashed rgba(76, 175, 80, 0.3); border-radius: 0.5rem; margin-bottom: 0.75rem; min-height: 60px; transition: all 0.3s; color: var(--text-dim);">
+                                    ✓ Always verify URLs before clicking
+                                </div>
+                                <div class="defense-slot" data-defense="sim" style="padding: 1rem; background: rgba(76, 175, 80, 0.05); border: 2px dashed rgba(76, 175, 80, 0.3); border-radius: 0.5rem; margin-bottom: 0.75rem; min-height: 60px; transition: all 0.3s; color: var(--text-dim);"><span data-icon="lock"></span> Use authenticator apps, not SMS 2FA
+                                </div>
+                                <div class="defense-slot" data-defense="malware" style="padding: 1rem; background: rgba(76, 175, 80, 0.05); border: 2px dashed rgba(76, 175, 80, 0.3); border-radius: 0.5rem; margin-bottom: 0.75rem; min-height: 60px; transition: all 0.3s; color: var(--text-dim);"><span data-icon="shield"></span> Use hardware wallet, never enter seed online
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="check-matches" class="btn" style="margin-top: 1rem;">Check My Matches</button>
+                        <div id="match-feedback" style="display: none; margin-top: 1.5rem; padding: 1.5rem; border-radius: 0.75rem;"></div>
+                    </div>
+
+                    <div id="overall-result" class="quiz-result"></div>
+                </div>
+            </section>
+
+            <!-- Key Takeaways -->
+            <section class="content-section">
+                <div class="takeaway-box">
+                    <h3><span data-icon="target"></span> Key Takeaways</h3>
+                    <ul>
+                        <li>Your seed phrase = complete control of your Bitcoin. Protect it like your life depends on it.</li>
+                        <li>No legitimate service will EVER ask for your seed phrase or private keys</li>
+                        <li>Bitcoin transactions are irreversible - there's no "customer support" to reverse theft</li>
+                        <li>Common attacks: phishing, social engineering, malware, SIM swaps, fake apps</li>
+                        <li>Write seed phrases on paper, never digitally. Store in a secure physical location.</li>
+                        <li>Always verify website URLs before entering sensitive information</li>
+                        <li>Use authenticator apps for 2FA, not SMS (which can be SIM-swapped)</li>
+                        <li>When in doubt, assume it's a scam. Legitimate services won't pressure you.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            
+<!-- Lab Cards — Try It Now -->
+<div style="padding:2rem 0 1rem; border-top:1px solid rgba(247,147,26,0.15); margin-top:1rem;">
+    <h2 style="color:var(--primary-orange,#f7931a); margin-bottom:0.6rem;">⚡ Apply This Knowledge</h2>
+    <p style="color:var(--text-dim,#9ca3af); margin-bottom:1.5rem; font-size:0.95rem;">Practice on a real Bitcoin test network — free coins, zero risk.</p>
+    <div class="lab-card" data-lab="decode-transaction" onclick="openLab('decode-transaction')" style="cursor:pointer;">
+    <div class="lab-card-icon">🧬</div>
+    <div class="lab-card-body">
+        <div class="lab-card-eyebrow">⚡ Try It Now</div>
+        <h3>Decode a Raw Bitcoin Transaction</h3>
+        <p>Get raw hex from mempool.space, decode every field on learnmeabitcoin.com (version, inputs, witness data, locktime), then visualize in Sparrow.</p>
+        <div class="lab-card-meta">
+            <span class="lab-card-tag mainnet">Mainnet</span>
+            <span class="lab-card-tag">mempool.space + Sparrow</span>
+            <span class="lab-card-tag">20 min</span>
+        </div>
+    </div>
+    <div class="lab-card-arrow">→</div>
+</div>
+</div>
+
+<nav class="module-navigation">
+                <a href="/paths/curious/stage-4/" class="nav-btn nav-btn-secondary">← Back to Stage 4</a>
+                <button id="complete-module" class="nav-btn" disabled="">Complete Quiz to Continue →</button>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        // Security Dojo Scenarios
+        const scenarioAnswers = {
+            1: {
+                correct: 'scam',
+                feedback: {
+                    scam: '✅ Correct! No legitimate wallet service will EVER ask for your seed phrase via email. This is a classic phishing scam. MetaMask and other wallets explicitly warn users that they will never ask for seed phrases.',
+                    legit: '❌ Incorrect. This is a scam! No legitimate service asks for seed phrases. Wallets cannot be "suspended" - this is a pressure tactic used by scammers.'
+                }
+            },
+            2: {
+                correct: 'risky',
+                feedback: {
+                    risky: '✅ Correct! High ratings and downloads can be faked. Always download wallet apps from the official website, not search results. Scam apps often appear in top results and use fake reviews.',
+                    safe: '❌ Incorrect. Ratings and downloads can be faked! New apps (2 months old) with generic company names are red flags. Always verify the official developer and download from the wallet\'s official website.'
+                }
+            },
+            3: {
+                correct: 'scam',
+                feedback: {
+                    scam: '✅ Correct! This is 100% a scam. Real moderators/support will NEVER: (1) DM you first (2) Ask for seed phrases (3) Claim they can "help" by accessing your wallet. Block and report immediately.',
+                    legit: '❌ Incorrect. This is a scam! Real moderators never DM first and NEVER ask for seed phrases. Ledger explicitly warns users about this scam on their website.'
+                }
+            }
+        };
+
+        function checkScenario(num, answer, button) {
+            const scenario = scenarioAnswers[num];
+            const feedback = document.getElementById(`feedback-${num}`);
+            const buttons = button.parentElement.querySelectorAll('.scenario-btn');
+
+            // Disable all buttons
+            buttons.forEach(btn => btn.disabled = true);
+
+            // Show feedback
+            feedback.textContent = scenario.feedback[answer];
+            feedback.classList.add('show');
+
+            if (answer === scenario.correct) {
+                feedback.classList.add('correct');
+                button.classList.add('correct');
+            } else {
+                feedback.classList.add('incorrect');
+                button.classList.add('incorrect');
+            }
+        }
+
+        // ===== INTERACTIVE SECURITY ACTIVITIES =====
+
+        // Activity 1: Phishing Email Detective
+        (() => {
+            const feedback = document.getElementById('phishing-feedback');
+            let foundFlags = new Set();
+            const totalFlags = 4;
+
+            document.querySelectorAll('.red-flag').forEach((flag) => {
+                const KEY = 'retention.s4m1.phishing.' + flag.dataset.id;
+                const answer = flag.dataset.answer;
+
+                flag.addEventListener('click', () => {
+                    if (flag.classList.contains('revealed')) return;
+
+                    flag.classList.add('revealed');
+                    flag.style.background = 'rgba(244, 67, 54, 0.3)';
+                    flag.style.padding = '0.2rem 0.4rem';
+                    flag.style.borderRadius = '0.25rem';
+                    localStorage.setItem(KEY, 'found');
+                    foundFlags.add(flag.dataset.id);
+
+                    feedback.innerHTML = `<strong style="color: var(--accent-red);">${answer}</strong>`;
+                    feedback.style.color = 'var(--text-light)';
+
+                    if (foundFlags.size === totalFlags) {
+                        feedback.innerHTML = '<strong style="color: var(--accent-green);">✓ Perfect!</strong> You found all 4 red flags. This email is a phishing scam - delete it immediately and never click links or provide information.';
+                        checkAllActivitiesComplete();
+                    }
+                });
+
+                // Restore state
+                if (localStorage.getItem(KEY)) {
+                    flag.classList.add('revealed');
+                    flag.style.background = 'rgba(244, 67, 54, 0.3)';
+                    flag.style.padding = '0.2rem 0.4rem';
+                    flag.style.borderRadius = '0.25rem';
+                    foundFlags.add(flag.dataset.id);
+                }
+            });
+
+            // Check if already complete
+            if (foundFlags.size === totalFlags) {
+                feedback.innerHTML = '<strong style="color: var(--accent-green);">✓ Already completed</strong>';
+                feedback.style.color = 'var(--text-light)';
+            }
+        })();
+
+        // Activity 2: Seed Phrase Security Test
+        (() => {
+            const KEY = 'retention.seedSecurity.v1';
+            const chips = document.querySelectorAll('.choice-chip');
+            const feedback = document.getElementById('seed-feedback');
+
+            chips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const choice = chip.dataset.choice;
+                    chips.forEach(c => c.style.opacity = '0.5');
+                    chip.style.opacity = '1';
+                    chip.style.borderColor = 'var(--primary-orange)';
+
+                    feedback.style.display = 'block';
+
+                    if (choice === 'refuse') {
+                        feedback.style.background = 'rgba(76, 175, 80, 0.2)';
+                        feedback.style.border = '2px solid var(--accent-green)';
+                        feedback.innerHTML = `
+                            <div style="color: var(--accent-green); font-weight: 700; margin-bottom: 0.5rem;">✓ Correct!</div>
+                            <div style="color: var(--text-light);">Your seed phrase is the ONLY way to control your Bitcoin. <strong>Never share it with anyone</strong> - not friends, not family, not support staff. Anyone with your seed phrase owns your Bitcoin.</div>
+                            <div style="margin-top: 1rem; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 0.5rem; font-size: 0.9rem; color: var(--text-dim);"><span data-icon="lightbulb"></span> <strong>Better approach for inheritance:</strong> Use a multi-signature setup or write instructions for accessing your wallet after you're gone - but NEVER give out the seed phrase while you're alive.
+                            </div>
+                        `;
+                        localStorage.setItem(KEY, 'passed');
+                        chip.style.borderColor = 'var(--accent-green)';
+                        checkAllActivitiesComplete();
+                    } else if (choice === 'share') {
+                        feedback.style.background = 'rgba(255, 107, 107, 0.2)';
+                        feedback.style.border = '2px solid #ff6b6b';
+                        feedback.innerHTML = `
+                            <div style="color: #ff6b6b; font-weight: 700; margin-bottom: 0.5rem;"><span data-icon="alert"></span> DANGER!</div>
+                            <div style="color: var(--text-light);">You just lost all your Bitcoin! Even trusted friends/family could be hacked, coerced, or make mistakes. <strong>Seed phrases are NEVER shared.</strong></div>
+                        `;
+                    } else if (choice === 'partial') {
+                        feedback.style.background = 'rgba(255, 107, 107, 0.2)';
+                        feedback.style.border = '2px solid #ff6b6b';
+                        feedback.innerHTML = `
+                            <div style="color: #ff6b6b; font-weight: 700; margin-bottom: 0.5rem;">✗ Still dangerous!</div>
+                            <div style="color: var(--text-light);">Partial seed phrases can still be brute-forced by attackers. The rule is absolute: <strong>Never share ANY part of your seed phrase.</strong></div>
+                        `;
+                    } else {
+                        feedback.style.background = 'rgba(255, 107, 107, 0.2)';
+                        feedback.style.border = '2px solid #ff6b6b';
+                        feedback.innerHTML = `
+                            <div style="color: #ff6b6b; font-weight: 700; margin-bottom: 0.5rem;"><span data-icon="alert"></span> CRITICAL MISTAKE!</div>
+                            <div style="color: var(--text-light);">Photos can be hacked, texts intercepted, cloud storage breached. You just gave attackers complete access to your Bitcoin. <strong>Seed phrases belong on paper only, stored physically.</strong></div>
+                        `;
+                    }
+                });
+            });
+
+            // Restore state
+            if (localStorage.getItem(KEY)) {
+                chips[2].style.borderColor = 'var(--accent-green)';
+                chips[2].style.opacity = '1';
+                chips[0].style.opacity = '0.5';
+                chips[1].style.opacity = '0.5';
+                chips[3].style.opacity = '0.5';
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(76, 175, 80, 0.2)';
+                feedback.innerHTML = '<div style="color: var(--accent-green);">✓ Already completed</div>';
+            }
+        })();
+
+        // Activity 3: Attack Defense Matching
+        (() => {
+            const KEY = 'retention.attackDefense.v1';
+            const attacks = document.querySelectorAll('.attack-item');
+            const checkBtn = document.getElementById('check-matches');
+            const feedback = document.getElementById('match-feedback');
+            let selectedAttack = null;
+            const matches = {};
+
+            attacks.forEach(attack => {
+                attack.addEventListener('click', () => {
+                    if (Object.keys(matches).length === 3) return; // All matched
+
+                    attacks.forEach(a => a.style.borderColor = 'rgba(244, 67, 54, 0.3)');
+                    attack.style.borderColor = 'var(--accent-red)';
+                    selectedAttack = attack.dataset.attack;
+                });
+            });
+
+            document.querySelectorAll('.defense-slot').forEach(slot => {
+                slot.addEventListener('click', () => {
+                    if (!selectedAttack || Object.keys(matches).length === 3) return;
+
+                    if (selectedAttack === slot.dataset.defense) {
+                        // Correct match
+                        slot.style.background = 'rgba(76, 175, 80, 0.2)';
+                        slot.style.borderColor = 'var(--accent-green)';
+                        slot.style.borderStyle = 'solid';
+                        matches[selectedAttack] = true;
+
+                        const attackEl = document.querySelector(`[data-attack="${selectedAttack}"]`);
+                        attackEl.style.opacity = '0.3';
+                        attackEl.style.pointerEvents = 'none';
+
+                        selectedAttack = null;
+
+                        if (Object.keys(matches).length === 3) {
+                            feedback.style.display = 'block';
+                            feedback.style.background = 'rgba(76, 175, 80, 0.2)';
+                            feedback.style.border = '2px solid var(--accent-green)';
+                            feedback.innerHTML = `
+                                <div style="color: var(--accent-green); font-weight: 700; margin-bottom: 0.5rem;">✓ Perfect Matches!</div>
+                                <div style="color: var(--text-light);">You understand how to defend against common Bitcoin attacks. Remember: defense is about layers - use multiple protections together.</div>
+                            `;
+                            localStorage.setItem(KEY, 'passed');
+                            checkBtn.disabled = true;
+                            checkAllActivitiesComplete();
+                        }
+                    }
+                });
+            });
+
+            checkBtn.addEventListener('click', () => {
+                if (Object.keys(matches).length < 3) {
+                    alert('Click an attack (left), then click its matching defense (right) to pair them.');
+                }
+            });
+
+            // Restore state
+            if (localStorage.getItem(KEY)) {
+                document.querySelectorAll('.defense-slot').forEach(slot => {
+                    slot.style.background = 'rgba(76, 175, 80, 0.2)';
+                    slot.style.borderColor = 'var(--accent-green)';
+                    slot.style.borderStyle = 'solid';
+                });
+                attacks.forEach(a => {
+                    a.style.opacity = '0.3';
+                    a.style.pointerEvents = 'none';
+                });
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(76, 175, 80, 0.2)';
+                feedback.innerHTML = '<div style="color: var(--accent-green);">✓ Already completed</div>';
+                checkBtn.disabled = true;
+            }
+        })();
+
+        // Check if all activities are complete
+        function checkAllActivitiesComplete() {
+            const activity1 = document.querySelectorAll('.red-flag.revealed').length === 4;
+            const activity2 = localStorage.getItem('retention.seedSecurity.v1');
+            const activity3 = localStorage.getItem('retention.attackDefense.v1');
+
+            if (activity1 && activity2 && activity3) {
+                const resultDiv = document.getElementById('overall-result');
+                resultDiv.classList.add('pass', 'show');
+                resultDiv.innerHTML = `
+                    <h3>🎉 Security Skills Mastered!</h3>
+                    <p style="margin-top: 1rem; color: var(--text-light);">You've demonstrated strong security fundamentals. You can now continue to the next module!</p>
+                `;
+                document.getElementById('complete-module').disabled = false;
+                resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Initialize ProgressManager
+        const progressManager = new ProgressManager();
+        progressManager.init();
+
+        // Module Completion
+        document.getElementById('complete-module').addEventListener('click', function() {
+            progressManager.setModuleComplete('curious', 4, 1);
+            // Visit next module (stage 4, module 2)
+            progressManager.setModuleVisited('curious', 4, 2);
+
+            alert('✓ Module 1 completed! Redirecting to Stage 4 overview...');
+            window.location.href = '/paths/curious/stage-4/';
+        });
+
+        // Check on page load
+        checkAllActivitiesComplete();
+    </script>
+    
+    <!-- Animated Icon Library -->
+    <script src="/js/icon-library.js"></script>
+    <script>
+        // Inject icons after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.IconLibrary) {
+                document.querySelectorAll('[data-icon]').forEach(function(element) {
+                    var iconName = element.getAttribute('data-icon');
+                    if (iconName) {
+                        var iconHTML = IconLibrary.get(iconName, 20, true);
+                        var span = document.createElement('span');
+                        span.innerHTML = iconHTML;
+                        span.className = 'icon-inline';
+                        span.style.marginRight = '0.5rem';
+                        span.style.display = 'inline-block';
+                        span.style.verticalAlign = 'middle';
+                        element.insertBefore(span, element.firstChild);
+                    }
+                });
+            }
+        });
+    </script>
+    <!-- Reflect: Socratic questions after module -->
+    <div style="max-width:900px;margin:2rem auto 0;padding:0 1.5rem 2.5rem">
+        <div class="reflect-widget"
+             data-topic="money"
+             data-path="curious"
+             data-title="Reflect: What did you discover in this module?">
+        </div>
+    </div>
+    <script src="/js/reflect-widget.js"></script>
+
+
+
+<script src="/js/membership-gate.js"></script>
+<script src="/js/lab-guide.js"></script>
+    <script src="/js/bitcoin-context.js"></script>
+
+<!-- Analytics, Email Capture & Tip CTAs -->
+<div class="container" style="margin: 2rem auto; max-width: 900px; padding: 0 1.5rem;">
+    <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
+    <div id="tip-page" data-tip-cta="compact"></div>
+</div>
+<script src="/js/analytics.js" defer></script>
+<script src="/js/email-capture.js" defer></script>
+<script src="/js/tip-cta.js" defer></script>
+
+</body></html>

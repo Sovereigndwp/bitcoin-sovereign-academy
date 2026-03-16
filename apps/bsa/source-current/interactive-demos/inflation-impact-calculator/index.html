@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Inflation Impact Calculator | Bitcoin Sovereign Academy</title>
+    <meta name="description" content="Calculate exactly how inflation affects your income and savings. See the real impact on your purchasing power over time.">
+    
+    <!-- Essential CSS -->
+    <link rel="stylesheet" href="/css/design-tokens.css">
+    <link rel="stylesheet" href="/css/mobile-accessibility.css">
+    <link rel="stylesheet" href="/css/safety-assessment.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-primary);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            line-height: var(--line-height-normal);
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .demo-header {
+            background: var(--color-bg-secondary);
+            border-bottom: 2px solid var(--color-warning);
+            padding: var(--space-4) 0;
+            text-align: center;
+            position: relative;
+        }
+        
+        .back-link {
+            position: absolute;
+            left: var(--space-4);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            font-size: var(--font-size-base);
+            transition: color 0.2s ease;
+        }
+        
+        .back-link:hover {
+            color: var(--color-primary);
+        }
+        
+        .demo-title {
+            color: var(--color-warning);
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+        }
+        
+        /* Main Container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-4);
+        }
+        
+        /* Introduction */
+        .intro {
+            text-align: center;
+            margin-bottom: var(--space-8);
+        }
+        
+        .intro h1 {
+            font-size: var(--font-size-3xl);
+            margin-bottom: var(--space-4);
+            background: linear-gradient(135deg, var(--color-warning), #ffcc02);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .intro p {
+            font-size: var(--font-size-lg);
+            color: var(--color-text-secondary);
+            max-width: 600px;
+            margin: 0 auto var(--space-6);
+            line-height: var(--line-height-relaxed);
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 152, 0, 0.05));
+            border: 2px solid var(--color-warning);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+        
+        .warning-box h3 {
+            color: var(--color-warning);
+            margin-bottom: var(--space-3);
+            font-size: var(--font-size-xl);
+        }
+        
+        .warning-box p {
+            color: var(--color-text-primary);
+            margin-bottom: 0;
+        }
+        
+        /* Calculator Layout */
+        .calculator-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-8);
+            margin-bottom: var(--space-8);
+        }
+        
+        .input-panel {
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--space-8);
+            border: 2px solid var(--color-border-default);
+        }
+        
+        .results-panel {
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--space-8);
+            border: 2px solid var(--color-warning);
+        }
+        
+        .panel-title {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--space-6);
+            text-align: center;
+        }
+        
+        .input-panel .panel-title {
+            color: var(--color-primary);
+        }
+        
+        .results-panel .panel-title {
+            color: var(--color-warning);
+        }
+        
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: var(--space-6);
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: var(--font-weight-semibold);
+            margin-bottom: var(--space-3);
+            color: var(--color-text-primary);
+            font-size: var(--font-size-base);
+        }
+        
+        .input-wrapper {
+            position: relative;
+        }
+        
+        .currency-symbol {
+            position: absolute;
+            left: var(--space-4);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-primary);
+            font-weight: var(--font-weight-bold);
+            font-size: var(--font-size-lg);
+            pointer-events: none;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: var(--space-4) var(--space-4) var(--space-4) var(--space-10);
+            background: var(--color-bg-primary);
+            border: 2px solid var(--color-border-default);
+            border-radius: var(--radius-md);
+            color: var(--color-text-primary);
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-medium);
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+        
+        .form-input::placeholder {
+            color: var(--color-text-secondary);
+            opacity: 0.7;
+        }
+        
+        .slider-group {
+            margin-bottom: var(--space-4);
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-3);
+        }
+        
+        .slider-value {
+            color: var(--color-warning);
+            font-weight: var(--font-weight-bold);
+            font-size: var(--font-size-lg);
+        }
+        
+        .form-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--color-bg-primary);
+            outline: none;
+            cursor: pointer;
+            -webkit-appearance: none;
+        }
+        
+        .form-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--color-warning);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease;
+        }
+        
+        .form-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+        
+        .form-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--color-warning);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        
+        /* Results Display */
+        .result-grid {
+            display: grid;
+            gap: var(--space-4);
+        }
+        
+        .result-card {
+            background: var(--color-bg-primary);
+            border: 2px solid var(--color-border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5);
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+        
+        .result-card.highlight {
+            border-color: var(--color-error);
+            background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(244, 67, 54, 0.02));
+        }
+        
+        .result-card.positive {
+            border-color: var(--color-success);
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.02));
+        }
+        
+        .result-label {
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .result-value {
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--space-2);
+        }
+        
+        .result-card.highlight .result-value {
+            color: var(--color-error);
+        }
+        
+        .result-card.positive .result-value {
+            color: var(--color-success);
+        }
+        
+        .result-description {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            line-height: var(--line-height-relaxed);
+        }
+        
+        /* Time Period Visualization */
+        .timeline-viz {
+            background: var(--color-bg-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            margin-top: var(--space-6);
+        }
+        
+        .timeline-title {
+            text-align: center;
+            color: var(--color-text-primary);
+            margin-bottom: var(--space-6);
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-semibold);
+        }
+        
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--space-4);
+        }
+        
+        .timeline-item {
+            text-align: center;
+            padding: var(--space-4);
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border-subtle);
+        }
+        
+        .timeline-period {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-2);
+            font-weight: var(--font-weight-medium);
+        }
+        
+        .timeline-loss {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-error);
+            margin-bottom: var(--space-1);
+        }
+        
+        .timeline-purchasing-power {
+            font-size: var(--font-size-xs);
+            color: var(--color-text-secondary);
+        }
+        
+        /* Action Section */
+        .action-section {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.1), rgba(247, 147, 26, 0.02));
+            border: 2px solid var(--color-primary);
+            border-radius: var(--radius-xl);
+            padding: var(--space-8);
+            text-align: center;
+            margin-top: var(--space-8);
+        }
+        
+        .action-section h3 {
+            color: var(--color-primary);
+            font-size: var(--font-size-2xl);
+            margin-bottom: var(--space-4);
+        }
+        
+        .action-section p {
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--space-6);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: var(--space-4);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: var(--space-4) var(--space-8);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-semibold);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .action-btn.primary {
+            background: var(--color-primary);
+            color: white;
+            box-shadow: var(--shadow-accent-md);
+        }
+        
+        .action-btn.primary:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-accent-lg);
+        }
+        
+        .action-btn.secondary {
+            background: transparent;
+            color: var(--color-primary);
+            border: 2px solid var(--color-border-default);
+        }
+        
+        .action-btn.secondary:hover {
+            border-color: var(--color-primary);
+            background: rgba(247, 147, 26, 0.05);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .calculator-layout {
+                grid-template-columns: 1fr;
+                gap: var(--space-6);
+            }
+            
+            .timeline-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+            
+            .back-link {
+                position: static;
+                transform: none;
+                display: block;
+                margin-bottom: var(--space-3);
+            }
+            
+            .demo-header {
+                padding: var(--space-6) var(--space-4);
+                position: relative;
+            }
+        }
+        
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+                animation: none !important;
+            }
+        }
+        
+        @media (prefers-contrast: high) {
+            .result-card {
+                border-width: 3px;
+            }
+            
+            .form-input {
+                border-width: 3px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="demo-header">
+        <a href="/start-simple.html" class="back-link">← Back to Start Page</a>
+        <h1 class="demo-title">Personal Inflation Calculator</h1>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Introduction -->
+        <section class="intro">
+            <h1>How Much Is Inflation Costing You?</h1>
+            <p>
+                Enter your income and savings to see exactly how much purchasing power 
+                you're losing to inflation each month and year.
+            </p>
+            
+            <div class="warning-box">
+                <h3>⚠️ This Might Be Shocking</h3>
+                <p>
+                    Most people underestimate inflation's impact on their finances. 
+                    This calculator uses real data to show you the actual cost.
+                </p>
+            </div>
+        </section>
+        
+        <!-- Calculator -->
+        <section class="calculator-layout">
+            <!-- Input Panel -->
+            <div class="input-panel">
+                <h2 class="panel-title">Your Financial Information</h2>
+                
+                <form id="inflation-calculator">
+                    <div class="form-group">
+                        <label for="monthly-income">Monthly Income (after taxes)</label>
+                        <div class="input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input 
+                                type="number" 
+                                id="monthly-income" 
+                                class="form-input"
+                                placeholder="5,000"
+                                min="0"
+                                step="100"
+                                value="5000"
+                            >
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="monthly-expenses">Monthly Essential Expenses</label>
+                        <div class="input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input 
+                                type="number" 
+                                id="monthly-expenses" 
+                                class="form-input"
+                                placeholder="3,000"
+                                min="0"
+                                step="100"
+                                value="3000"
+                            >
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="total-savings">Total Savings</label>
+                        <div class="input-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input 
+                                type="number" 
+                                id="total-savings" 
+                                class="form-input"
+                                placeholder="50,000"
+                                min="0"
+                                step="1000"
+                                value="50000"
+                            >
+                        </div>
+                    </div>
+                    
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <label for="inflation-rate">Annual Inflation Rate</label>
+                            <span class="slider-value" id="inflation-display">3.2%</span>
+                        </div>
+                        <input 
+                            type="range" 
+                            id="inflation-rate" 
+                            class="form-slider"
+                            min="1"
+                            max="15"
+                            step="0.1"
+                            value="3.2"
+                        >
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 0.5rem;">
+                            <span>1% (Official target)</span>
+                            <span>15% (Historical high)</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Results Panel -->
+            <div class="results-panel">
+                <h2 class="panel-title">Your Inflation Impact</h2>
+                
+                <div class="result-grid">
+                    <div class="result-card highlight">
+                        <div class="result-label">Monthly Purchasing Power Loss</div>
+                        <div class="result-value" id="monthly-loss">-$133</div>
+                        <div class="result-description">
+                            How much less your money can buy each month
+                        </div>
+                    </div>
+                    
+                    <div class="result-card highlight">
+                        <div class="result-label">Annual Purchasing Power Loss</div>
+                        <div class="result-value" id="annual-loss">-$1,600</div>
+                        <div class="result-description">
+                            Total purchasing power lost per year
+                        </div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div class="result-label">Real Income After Inflation</div>
+                        <div class="result-value" id="real-income">$4,867</div>
+                        <div class="result-description">
+                            Your income's actual buying power today
+                        </div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div class="result-label">Savings Erosion Rate</div>
+                        <div class="result-value" id="savings-erosion">-$1,600/year</div>
+                        <div class="result-description">
+                            How much purchasing power your savings lose annually
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="timeline-viz">
+                    <h3 class="timeline-title">Cumulative Impact Over Time</h3>
+                    <div class="timeline-grid" id="timeline-grid">
+                        <!-- Timeline items will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Action Section -->
+        <section class="action-section">
+            <h3>What Can You Do About This?</h3>
+            <p>
+                Understanding inflation's impact is the first step. Now learn how Bitcoin 
+                can help protect your purchasing power over time.
+            </p>
+            <div class="action-buttons">
+                <a href="/start-simple.html" class="action-btn primary">
+                    🎯 Learn About Bitcoin Protection
+                </a>
+                <a href="/interactive-demos/bitcoin-vs-banking/" class="action-btn secondary">
+                    ⚖️ Compare Bitcoin vs Traditional Savings
+                </a>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Calculator JavaScript -->
+    <script>
+        (function() {
+            'use strict';
+            
+            // Get form elements
+            const monthlyIncome = document.getElementById('monthly-income');
+            const monthlyExpenses = document.getElementById('monthly-expenses');
+            const totalSavings = document.getElementById('total-savings');
+            const inflationRate = document.getElementById('inflation-rate');
+            const inflationDisplay = document.getElementById('inflation-display');
+            
+            // Get result elements
+            const monthlyLoss = document.getElementById('monthly-loss');
+            const annualLoss = document.getElementById('annual-loss');
+            const realIncome = document.getElementById('real-income');
+            const savingsErosion = document.getElementById('savings-erosion');
+            const timelineGrid = document.getElementById('timeline-grid');
+            
+            function formatCurrency(amount) {
+                return new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(Math.abs(amount));
+            }
+            
+            function formatPercentage(rate) {
+                return (rate).toFixed(1) + '%';
+            }
+            
+            function calculateInflationImpact() {
+                const income = parseFloat(monthlyIncome.value) || 0;
+                const expenses = parseFloat(monthlyExpenses.value) || 0;
+                const savings = parseFloat(totalSavings.value) || 0;
+                const inflation = parseFloat(inflationRate.value) || 0;
+                
+                // Calculate monthly inflation impact
+                const monthlyInflationRate = inflation / 100 / 12;
+                const monthlyIncomeInflationLoss = income * monthlyInflationRate;
+                const monthlyExpenseInflationLoss = expenses * monthlyInflationRate;
+                const monthlyNetLoss = monthlyIncomeInflationLoss + monthlyExpenseInflationLoss;
+                
+                // Calculate annual impact
+                const annualInflationLoss = (income * 12 + savings) * (inflation / 100);
+                const realMonthlyIncome = income * (1 - monthlyInflationRate);
+                const annualSavingsErosion = savings * (inflation / 100);
+                
+                // Update displays
+                monthlyLoss.textContent = '-$' + Math.round(monthlyNetLoss).toLocaleString();
+                annualLoss.textContent = '-$' + Math.round(annualInflationLoss).toLocaleString();
+                realIncome.textContent = '$' + Math.round(realMonthlyIncome).toLocaleString();
+                savingsErosion.textContent = '-$' + Math.round(annualSavingsErosion).toLocaleString() + '/year';
+                
+                // Update timeline visualization
+                updateTimeline(savings, inflation / 100);
+            }
+            
+            function updateTimeline(initialSavings, inflationRate) {
+                const periods = [
+                    { years: 1, label: '1 Year' },
+                    { years: 5, label: '5 Years' },
+                    { years: 10, label: '10 Years' },
+                    { years: 20, label: '20 Years' }
+                ];
+                
+                let timelineHTML = '';
+                
+                periods.forEach(period => {
+                    const futureValue = initialSavings * Math.pow(1 - inflationRate, period.years);
+                    const purchasingPowerLoss = initialSavings - futureValue;
+                    const percentageLoss = ((purchasingPowerLoss / initialSavings) * 100);
+                    
+                    timelineHTML += `
+                        <div class="timeline-item">
+                            <div class="timeline-period">${period.label}</div>
+                            <div class="timeline-loss">-${formatCurrency(purchasingPowerLoss)}</div>
+                            <div class="timeline-purchasing-power">${percentageLoss.toFixed(1)}% purchasing power lost</div>
+                        </div>
+                    `;
+                });
+                
+                timelineGrid.innerHTML = timelineHTML;
+            }
+            
+            function updateInflationDisplay() {
+                inflationDisplay.textContent = formatPercentage(parseFloat(inflationRate.value));
+            }
+            
+            // Event listeners
+            monthlyIncome.addEventListener('input', calculateInflationImpact);
+            monthlyExpenses.addEventListener('input', calculateInflationImpact);
+            totalSavings.addEventListener('input', calculateInflationImpact);
+            inflationRate.addEventListener('input', function() {
+                updateInflationDisplay();
+                calculateInflationImpact();
+            });
+            
+            // Initialize calculator
+            updateInflationDisplay();
+            calculateInflationImpact();
+            
+            // Track usage
+            if (typeof localStorage !== 'undefined') {
+                localStorage.setItem('bsa_used_inflation_calculator', new Date().toISOString());
+            }
+        })();
+    </script>
+    
+    <!-- Safety Assessment -->
+    <script src="/js/safety-assessment.js"></script>
+    <script src="/js/safety-banner.js"></script>
+</body>
+</html>

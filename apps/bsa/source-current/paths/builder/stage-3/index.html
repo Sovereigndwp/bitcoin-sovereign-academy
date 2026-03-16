@@ -1,0 +1,619 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stage 3: Building Applications | The Builder Path</title>
+    <meta name="description" content="Build Bitcoin applications: development environment setup, transaction creation, wallet building, and production best practices.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --builder-purple: #9C27B0;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header */
+        .stage-header {
+            background: var(--secondary-dark);
+            border-bottom: 3px solid var(--builder-purple);
+            padding: 3rem 0;
+            text-align: center;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .stage-header h1 {
+            font-size: 2.5rem;
+            color: var(--builder-purple);
+            margin-bottom: 1rem;
+        }
+
+        .stage-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+        }
+
+        .stage-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        /* Content */
+        .content-section {
+            padding: 3rem 0;
+        }
+
+        .content-section h2 {
+            font-size: 1.75rem;
+            color: var(--primary-orange);
+            margin-bottom: 1.5rem;
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        /* Modules Grid */
+        .modules-grid {
+            display: grid;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .module-card {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .module-card:hover {
+            border-color: var(--builder-purple);
+            transform: translateY(-5px);
+        }
+
+        .module-card.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .module-card.locked:hover {
+            transform: none;
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .module-title h3 {
+            font-size: 1.3rem;
+            color: var(--builder-purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .module-number {
+            background: var(--builder-purple);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .module-description {
+            margin-bottom: 1.5rem;
+            color: var(--text-light);
+        }
+
+        .module-topics {
+            margin-bottom: 1.5rem;
+        }
+
+        .module-topics h4 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .module-topics ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .module-topics li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-dim);
+        }
+
+        .module-topics li:before {
+            content: "💻";
+            position: absolute;
+            left: 0;
+        }
+
+        .module-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .module-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .module-cta {
+            padding: 0.75rem 1.5rem;
+            background: var(--builder-purple);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .module-cta:hover {
+            background: #7B1FA2;
+            transform: translateX(5px);
+        }
+
+        .module-cta.locked {
+            background: var(--border-color);
+            color: var(--text-dim);
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Completion Banner */
+        .completion-banner {
+            background: linear-gradient(135deg, rgba(156, 39, 176, 0.3), rgba(156, 39, 176, 0.1));
+            border: 3px solid var(--builder-purple);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin: 3rem 0;
+            text-align: center;
+            display: none;
+        }
+
+        .completion-banner h3 {
+            color: var(--builder-purple);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .badge-display {
+            font-size: 4rem;
+            margin: 1rem 0;
+        }
+
+        .next-stage-btn {
+            display: inline-block;
+            margin-top: 1.5rem;
+            padding: 1rem 2rem;
+            background: var(--builder-purple);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .next-stage-btn:hover {
+            background: #7B1FA2;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .stage-header h1 {
+                font-size: 2rem;
+            }
+
+            .stage-subtitle {
+                font-size: 1rem;
+            }
+
+            .stage-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .module-footer {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Status Indicators - Color Coded */
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        .status-green { color: #4caf50; }
+        .status-indicator.green { background: #4caf50; box-shadow: 0 0 8px #4caf50; }
+
+        .status-yellow { color: #ffc107; }
+        .status-indicator.yellow { background: #ffc107; box-shadow: 0 0 8px #ffc107; }
+
+        .status-orange { color: #ff9800; }
+        .status-indicator.orange { background: #ff9800; box-shadow: 0 0 8px #ff9800; }
+
+        .status-red { color: #ef4444; }
+        .status-indicator.red { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            gap: 0.25rem;
+        }
+
+        .security-high {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid #4caf50;
+        }
+
+        .security-medium {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid #ffc107;
+        }
+
+        .security-low {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ff9800;
+            border: 1px solid #ff9800;
+        }
+
+        .security-risky {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/icons.css">
+<link rel="canonical" href="https://bitcoinsovereign.academy/"><meta property="og:title" content="Bitcoin Sovereign Academy"><meta property="og:description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg"><meta property="og:url" content="https://bitcoinsovereign.academy/"><meta property="og:type" content="website"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Bitcoin Sovereign Academy",
+  "description": "Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.",
+  "url": "https://bitcoinsovereign.academy",
+  "logo": "https://bitcoinsovereign.academy/assets/og-image.jpg",
+  "sameAs": [
+    "https://github.com/Sovereigndwp/bitcoin-sovereign-academy"
+  ],
+  "educationalLevel": "Beginner to Advanced",
+  "teaches": [
+    "Bitcoin Fundamentals",
+    "Cryptocurrency Technology",
+    "Financial Sovereignty",
+    "Digital Asset Security"
+  ],
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Students interested in Bitcoin and cryptocurrency"
+  }
+}</script></head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <!-- Stage Header -->
+    <header class="stage-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/builder/">The Builder Path</a> →
+                <span>Stage 3</span>
+            </div>
+            <h1>💻 Stage 3: Building Applications</h1>
+            <p class="stage-subtitle">Create production-ready Bitcoin applications from scratch</p>
+            <div class="stage-meta">
+                <span><span data-icon="timer"></span> ~3.75 hours</span>
+                <span><span data-icon="target"></span> 3 modules</span>
+                <span><span data-icon="trophy"></span> Bitcoin Builder badge</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Introduction -->
+            <section class="content-section">
+                <h2>Welcome to Bitcoin Application Development</h2>
+                <p>
+                    You've mastered Bitcoin's protocol and Lightning Network. Now it's time to build! In this stage,
+                    you'll set up a complete Bitcoin development environment, create transactions from scratch, and
+                    build a functional wallet application.
+                </p>
+                <p>
+                    By the end of this stage, you'll have hands-on experience building production-ready Bitcoin applications
+                    and understand the best practices that separate hobbyist code from professional implementations.
+                </p>
+            </section>
+
+            <!-- Modules Grid -->
+            <section class="content-section">
+                <h2>Modules</h2>
+
+                <div class="modules-grid">
+                    <!-- Module 1 -->
+                    <div class="module-card" data-module="builder-3-1">
+                        <div class="module-header">
+                            <div class="module-title">
+                                <h3>Module 1: Bitcoin Development Environment</h3>
+                            </div>
+                            <div class="module-number">1</div>
+                        </div>
+
+                        <div class="module-description">
+                            Set up a complete Bitcoin development environment with Bitcoin Core, regtest mode, and
+                            the RPC interface. Learn how to create a local blockchain for testing without risking real funds.
+                        </div>
+
+                        <div class="module-topics">
+                            <h4>Topics Covered:</h4>
+                            <ul>
+                                <li>Bitcoin Core installation and configuration</li>
+                                <li>Regtest mode for development testing</li>
+                                <li>Bitcoin RPC interface and commands</li>
+                                <li>Creating and managing test wallets</li>
+                                <li>Mining blocks in regtest</li>
+                            </ul>
+                        </div>
+
+                        <div class="module-footer">
+                            <div class="module-meta">
+                                <span><span data-icon="timer"></span> 60 minutes</span>
+                                <span>💻 Setup exercise</span>
+                                <span>📝 RPC practice</span>
+                            </div>
+                            <a href="module-1.html" class="module-cta">Start Module 1 →</a>
+                        </div>
+                    </div>
+
+                    <!-- Module 2 -->
+                    <div class="module-card locked" data-module="builder-3-2">
+                        <div class="module-header">
+                            <div class="module-title">
+                                <h3>Module 2: Building with Bitcoin</h3>
+                            </div>
+                            <div class="module-number">2</div>
+                        </div>
+
+                        <div class="module-description">
+                            Build a functional Bitcoin wallet from scratch. Generate addresses, create transactions,
+                            sign with private keys, and broadcast to the network. This is where theory becomes practice.
+                        </div>
+
+                        <div class="module-topics">
+                            <h4>Topics Covered:</h4>
+                            <ul>
+                                <li>HD wallet and address generation (BIP32/39/44)</li>
+                                <li>UTXO selection and coin control</li>
+                                <li>Transaction construction and signing</li>
+                                <li>Fee estimation and RBF (Replace-By-Fee)</li>
+                                <li>Broadcasting transactions to the network</li>
+                            </ul>
+                        </div>
+
+                        <div class="module-footer">
+                            <div class="module-meta">
+                                <span><span data-icon="timer"></span> 120 minutes</span>
+                                <span>💻 Wallet project</span>
+                                <span>📝 Code exercises</span>
+                            </div>
+                            <a href="module-2.html" class="module-cta locked">Complete Module 1 First</a>
+                        </div>
+                    </div>
+
+                    <!-- Module 3 -->
+                    <div class="module-card locked" data-module="builder-3-3">
+                        <div class="module-header">
+                            <div class="module-title">
+                                <h3>Module 3: Best Practices</h3>
+                            </div>
+                            <div class="module-number">3</div>
+                        </div>
+
+                        <div class="module-description">
+                            Learn the security considerations, testing strategies, and code review practices that separate
+                            experimental code from production-ready Bitcoin applications.
+                        </div>
+
+                        <div class="module-topics">
+                            <h4>Topics Covered:</h4>
+                            <ul>
+                                <li>Security considerations (key management, validation)</li>
+                                <li>Testing strategies (unit, integration, property-based)</li>
+                                <li>Error handling and edge cases</li>
+                                <li>Code review best practices</li>
+                                <li>Production readiness checklist</li>
+                            </ul>
+                        </div>
+
+                        <div class="module-footer">
+                            <div class="module-meta">
+                                <span><span data-icon="timer"></span> 45 minutes</span>
+                                <span>📝 Checklist</span>
+                                <span><span data-icon="search"></span> Code review</span>
+                            </div>
+                            <a href="module-3.html" class="module-cta locked">Complete Module 2 First</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Completion Banner -->
+            <div class="completion-banner" id="completion-banner">
+                <div class="badge-display">💻</div>
+                <h3>Congratulations! Stage 3 Complete!</h3>
+                <p>
+                    You've earned the <strong>"Bitcoin Builder"</strong> badge! You can now build production-ready
+                    Bitcoin applications from scratch, with proper security and testing practices.
+                </p>
+                <a href="/paths/builder/stage-4/" class="next-stage-btn">Continue to Stage 4: Contributing to Bitcoin →</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Check progress and update UI
+        function updateProgress() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+            const completedModules = progress.completedModules || [];
+
+            // Update module cards
+            completedModules.forEach(moduleId => {
+                if (moduleId.startsWith('builder-3-')) {
+                    const card = document.querySelector(`[data-module="${moduleId}"]`);
+                    if (card) {
+                        card.style.borderColor = 'var(--builder-purple)';
+                        card.style.background = 'rgba(156, 39, 176, 0.05)';
+                    }
+                }
+            });
+
+            // Unlock next module
+            if (completedModules.includes('builder-3-1')) {
+                const module2 = document.querySelector('[data-module="builder-3-2"]');
+                module2.classList.remove('locked');
+                module2.querySelector('.module-cta').classList.remove('locked');
+                module2.querySelector('.module-cta').textContent = 'Start Module 2 →';
+            }
+
+            if (completedModules.includes('builder-3-2')) {
+                const module3 = document.querySelector('[data-module="builder-3-3"]');
+                module3.classList.remove('locked');
+                module3.querySelector('.module-cta').classList.remove('locked');
+                module3.querySelector('.module-cta').textContent = 'Start Module 3 →';
+            }
+
+            // Check if stage completed
+            const stageComplete = completedModules.includes('builder-3-1') &&
+                                completedModules.includes('builder-3-2') &&
+                                completedModules.includes('builder-3-3');
+
+            if (stageComplete) {
+                document.getElementById('completion-banner').style.display = 'block';
+            }
+        }
+
+        updateProgress();
+    </script>
+
+    <!-- Animated Icon Library -->
+    <script src="/js/icon-library.js"></script>
+    <script>
+        // Inject icons after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.IconLibrary) {
+                document.querySelectorAll('[data-icon]').forEach(function(element) {
+                    var iconName = element.getAttribute('data-icon');
+                    if (iconName) {
+                        var iconHTML = IconLibrary.get(iconName, 20, true);
+                        var span = document.createElement('span');
+                        span.innerHTML = iconHTML;
+                        span.className = 'icon-inline';
+                        span.style.marginRight = '0.5rem';
+                        span.style.display = 'inline-block';
+                        span.style.verticalAlign = 'middle';
+                        element.insertBefore(span, element.firstChild);
+                    }
+                });
+            }
+        });
+    </script>
+
+
+    <!-- Navigation Context (return-to-path functionality) -->
+    <script src="/js/navigation-context.js"></script>
+    <!-- Reflect: Socratic questions after module -->
+    <div style="max-width:900px;margin:2rem auto 0;padding:0 1.5rem 2.5rem">
+        <div class="reflect-widget"
+             data-topic="cryptography"
+             data-path="builder"
+             data-title="Reflect: What can you build with what you learned?">
+        </div>
+    </div>
+    <script src="/js/reflect-widget.js"></script>
+
+<script src="/js/membership-gate.js"></script>
+
+<!-- Analytics, Email Capture & Tip CTAs -->
+<div class="container" style="margin: 2rem auto; max-width: 900px; padding: 0 1.5rem;">
+    <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
+    <div id="tip-page" data-tip-cta="compact"></div>
+</div>
+<script src="/js/analytics.js" defer></script>
+<script src="/js/email-capture.js" defer></script>
+<script src="/js/tip-cta.js" defer></script>
+
+</body></html>
