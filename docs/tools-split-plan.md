@@ -4,41 +4,51 @@
 
 Split the current `tools/` folder into clearer categories before moving anything.
 
-## Likely categories
+## Current classification
 
-### Internal dev and ops tools
-Examples:
-- domain config
-- domain monitor
-- deploy automation
-- SEO optimizer
-- content validator
-- test scripts
-- maintenance scripts
+### Internal developer and ops tools
+- tools/bundle-assets.js
+- tools/check-unique-ids.js
+- tools/content-validator.js
+- tools/deploy-automation.js
+- tools/domain-config.js
+- tools/domain-monitor.js
+- tools/domain-test-suite.js
+- tools/registry.js
+- tools/security-headers.js
+- tools/seo-optimizer.js
+- tools/site-enhancer.js
+- tools/test-domain.sh
+- tools/test-tenants.js
+- tools/vercel-weekly-maintenance.sh
 
-### User facing tools
-Examples:
-- tools index
-- recovery binder
-- future calculators or decision tools
+### User facing tool pages
+- tools/index.html
+- tools/bitcoin-recovery-binder.html
+
+### Needs further classification
+- tools/domain-dashboard.html
 
 ## Migration rule
 
 Do not move the whole `tools/` folder at once.
 
 Instead:
-1. identify internal-only files
-2. identify user-facing files
-3. identify test/validation files
+1. keep internal tools in place for now
+2. identify which HTML tools are user facing
+3. decide whether each user facing tool belongs to BSA, FSA, Institutional, or shared
 4. move only one subcategory at a time later
 
-## Likely future locations
+## Likely future destinations
 
-### Internal dev and ops tools
-- keep under `tools/`
-- or move selected items into `scripts/` or `packages/shared-testing/`
+### Internal tools
+- tools/
+- scripts/
+- ops/
+- packages/shared-testing/
 
-### User facing tools
-- BSA-specific tools stay with BSA
-- FSA-specific tools stay with FSA
-- truly shared tools may later go to `packages/shared-calculators` or a shared tools package
+### User facing BSA tools
+- apps/bsa/tools/
+
+### Truly shared calculators or decision tools
+- packages/shared-calculators/
