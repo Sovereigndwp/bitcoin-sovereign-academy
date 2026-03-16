@@ -1,4 +1,3 @@
-cat > packages/shared-payments/src/products.ts <<'EOF'
 import type { ProductConfig } from './types.js';
 
 export const PRODUCTS: ProductConfig[] = [
@@ -147,6 +146,66 @@ export const PRODUCTS: ProductConfig[] = [
     btcpayEnabled: true
   },
   {
+    productId: 'bsa-path-annual-pragmatist',
+    displayName: 'Pragmatist Path Annual',
+    description: 'Annual subscription to the Pragmatist Path',
+    app: 'bsa',
+    tier: 'pro',
+    type: 'path_annual',
+    priceUsd: 79,
+    entitlementType: 'path_annual',
+    entitlementKeys: ['bsa.paths.pragmatist'],
+    itemId: 'pragmatist',
+    features: [
+      'All Pragmatist Path modules',
+      'Annual access',
+      'Save versus monthly'
+    ],
+    isRecurring: true,
+    stripePriceId: '',
+    btcpayEnabled: true
+  },
+  {
+    productId: 'bsa-path-annual-builder',
+    displayName: 'Builder Path Annual',
+    description: 'Annual subscription to the Builder Path',
+    app: 'bsa',
+    tier: 'pro',
+    type: 'path_annual',
+    priceUsd: 79,
+    entitlementType: 'path_annual',
+    entitlementKeys: ['bsa.paths.builder'],
+    itemId: 'builder',
+    features: [
+      'All Builder Path modules',
+      'Annual access',
+      'Save versus monthly'
+    ],
+    isRecurring: true,
+    stripePriceId: '',
+    btcpayEnabled: true
+  },
+  {
+    productId: 'bsa-path-annual-sovereign',
+    displayName: 'Sovereign Path Annual',
+    description: 'Annual subscription to the Sovereign Path',
+    app: 'bsa',
+    tier: 'pro',
+    type: 'path_annual',
+    priceUsd: 79,
+    entitlementType: 'path_annual',
+    entitlementKeys: ['bsa.paths.sovereign'],
+    itemId: 'sovereign',
+    features: [
+      'All Sovereign Path modules',
+      'Annual access',
+      'Save versus monthly'
+    ],
+    isRecurring: true,
+    stripePriceId: '',
+    btcpayEnabled: true
+  },
+  {
     productId: 'bsa-path-lifetime-curious',
     displayName: 'Curious Path Lifetime',
     description: 'Lifetime access to the Curious Path',
@@ -160,6 +219,63 @@ export const PRODUCTS: ProductConfig[] = [
     features: [
       'Lifetime access',
       'All Curious Path modules',
+      'One time purchase'
+    ],
+    isRecurring: false,
+    btcpayEnabled: true
+  },
+  {
+    productId: 'bsa-path-lifetime-pragmatist',
+    displayName: 'Pragmatist Path Lifetime',
+    description: 'Lifetime access to the Pragmatist Path',
+    app: 'bsa',
+    tier: 'pro',
+    type: 'path_lifetime',
+    priceUsd: 149,
+    entitlementType: 'path_lifetime',
+    entitlementKeys: ['bsa.paths.pragmatist'],
+    itemId: 'pragmatist',
+    features: [
+      'Lifetime access',
+      'All Pragmatist Path modules',
+      'One time purchase'
+    ],
+    isRecurring: false,
+    btcpayEnabled: true
+  },
+  {
+    productId: 'bsa-path-lifetime-builder',
+    displayName: 'Builder Path Lifetime',
+    description: 'Lifetime access to the Builder Path',
+    app: 'bsa',
+    tier: 'pro',
+    type: 'path_lifetime',
+    priceUsd: 149,
+    entitlementType: 'path_lifetime',
+    entitlementKeys: ['bsa.paths.builder'],
+    itemId: 'builder',
+    features: [
+      'Lifetime access',
+      'All Builder Path modules',
+      'One time purchase'
+    ],
+    isRecurring: false,
+    btcpayEnabled: true
+  },
+  {
+    productId: 'bsa-path-lifetime-sovereign',
+    displayName: 'Sovereign Path Lifetime',
+    description: 'Lifetime access to the Sovereign Path',
+    app: 'bsa',
+    tier: 'pro',
+    type: 'path_lifetime',
+    priceUsd: 149,
+    entitlementType: 'path_lifetime',
+    entitlementKeys: ['bsa.paths.sovereign'],
+    itemId: 'sovereign',
+    features: [
+      'Lifetime access',
+      'All Sovereign Path modules',
       'One time purchase'
     ],
     isRecurring: false,
@@ -204,4 +320,3 @@ export const PRODUCTS: ProductConfig[] = [
     btcpayEnabled: false
   }
 ];
-EOF
