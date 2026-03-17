@@ -9,7 +9,7 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { query } from '../lib/db';
 import { verifyJWTWithRevocation, extractBearerToken } from '../lib/jwt';
-import { FREE_DEMOS } from '../config/products';
+import { FREE_DEMOS } from '../../packages/shared-payments/src/helpers.js';
 
 interface Entitlement {
   id: string;
