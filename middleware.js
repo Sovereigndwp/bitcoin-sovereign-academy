@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { getProtectedRouteDetails } from './packages/shared-access/src/premium-routes.js';
 import { resolvePremiumRouteAccess } from './lib/premium-route-access.js';
 
@@ -15,7 +14,7 @@ export default async function middleware(request) {
   const routeDetails = getProtectedRouteDetails(url.pathname);
 
   if (!routeDetails.protected) {
-    return NextResponse.next();
+    return fetch(request);
   }
 
   const access = await resolvePremiumRouteAccess(
@@ -24,10 +23,10 @@ export default async function middleware(request) {
   );
 
   if (access.allowed) {
-    return NextResponse.next();
+    return fetch(request);
   }
 
   const redirectUrl = new URL('/membership.html', url);
   redirectUrl.searchParams.set('next', `${url.pathname}${url.search}`);
-  return NextResponse.redirect(redirectUrl, 307);
+  return Response.redirect(redirectUrl, 307);
 }
