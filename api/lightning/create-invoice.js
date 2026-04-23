@@ -1,13 +1,17 @@
 /**
- * Alby Hub Lightning Invoice Creation API
- * Creates Lightning invoices through Alby Hub API
- * 
+ * Lightning Invoice Creation via LNURL-pay
+ * Uses the configured Lightning address (no local node required).
+ * Alby's servers handle the LNURL endpoint; payments settle to your wallet.
+ *
  * POST /api/lightning/create-invoice
  * Body: { amount, description, expirySeconds }
  */
 
+const LIGHTNING_ADDRESS = process.env.LIGHTNING_ADDRESS || 'dulcetsurf67367@getalby.com';
+const APPRENTICE_DEPOSIT_SATS = 50_000;
+const APPRENTICE_DEPOSIT_MSATS = APPRENTICE_DEPOSIT_SATS * 1000;
+
 export default async function handler(req, res) {
-  const APPRENTICE_DEPOSIT_SATS = 50000;
   // CORS headers — never fall back to wildcard for payment endpoints
   const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://bitcoinsovereign.academy';
   res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
@@ -15,107 +19,97 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Vary', 'Origin');
 
-  // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  // Only allow POST requests
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
     const { amount, description, expirySeconds } = req.body;
 
-    // Validate required fields
     if (!amount || !description) {
-      return res.status(400).json({
-        error: 'Missing required fields',
-        required: ['amount', 'description']
-      });
+      return res.status(400).json({ error: 'Missing required fields: amount, description' });
     }
 
-    // Validate amount (must match the fixed Apprentice deposit)
     if (!Number.isInteger(amount) || amount !== APPRENTICE_DEPOSIT_SATS) {
+      return res.status(400).json({ error: `Amount must be exactly ${APPRENTICE_DEPOSIT_SATS} sats` });
+    }
+
+    // Step 1: Resolve the Lightning address to its LNURL-pay endpoint
+    const [user, domain] = LIGHTNING_ADDRESS.split('@');
+    if (!user || !domain) {
+      return res.status(500).json({ error: 'Invalid Lightning address configured' });
+    }
+
+    const lnurlEndpoint = `https://${domain}/.well-known/lnurlp/${user}`;
+    const lnurlResponse = await fetch(lnurlEndpoint, {
+      headers: { 'User-Agent': 'BitcoinSovereignAcademy/1.0' }
+    });
+
+    if (!lnurlResponse.ok) {
+      console.error('[Lightning] LNURL fetch failed:', lnurlResponse.status);
+      return res.status(502).json({ error: 'Failed to reach Lightning address provider' });
+    }
+
+    const lnurlData = await lnurlResponse.json();
+
+    if (lnurlData.status === 'ERROR') {
+      console.error('[Lightning] LNURL error:', lnurlData.reason);
+      return res.status(502).json({ error: lnurlData.reason || 'Lightning address error' });
+    }
+
+    // Step 2: Confirm amount is within the allowed range
+    if (APPRENTICE_DEPOSIT_MSATS < lnurlData.minSendable || APPRENTICE_DEPOSIT_MSATS > lnurlData.maxSendable) {
       return res.status(400).json({
-        error: `Amount must be exactly ${APPRENTICE_DEPOSIT_SATS} sats`
+        error: `Amount ${APPRENTICE_DEPOSIT_SATS} sats is outside the allowed range for this Lightning address`
       });
     }
 
-    // Get Alby Hub configuration from environment
-    const ALBY_HUB_URL = process.env.ALBY_HUB_URL;
-    const ALBY_API_KEY = process.env.ALBY_API_KEY;
-
-    if (!ALBY_HUB_URL || !ALBY_API_KEY) {
-      console.error('Alby Hub configuration missing');
-      return res.status(500).json({ 
-        error: 'Lightning payment system not configured',
-        details: process.env.NODE_ENV === 'development' ? 'Missing ALBY_HUB_URL or ALBY_API_KEY' : undefined
-      });
+    // Step 3: Request an invoice from the callback URL
+    const callbackUrl = new URL(lnurlData.callback);
+    callbackUrl.searchParams.set('amount', String(APPRENTICE_DEPOSIT_MSATS));
+    if (description) {
+      callbackUrl.searchParams.set('comment', description.substring(0, 144));
     }
 
-    // Prepare invoice data
-    const invoiceData = {
-      amount: APPRENTICE_DEPOSIT_SATS, // Amount in sats
-      description: description,
-      expiry: expirySeconds || 3600 // Default 1 hour
-    };
-
-    console.log('Creating invoice with Alby Hub:', {
-      amount,
-      description: description.substring(0, 50) + '...',
-      hubUrl: ALBY_HUB_URL
+    const invoiceResponse = await fetch(callbackUrl.toString(), {
+      headers: { 'User-Agent': 'BitcoinSovereignAcademy/1.0' }
     });
 
-    // Create invoice via Alby Hub API
-    const albyResponse = await fetch(`${ALBY_HUB_URL}/api/invoices`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${ALBY_API_KEY}`,
-        'Content-Type': 'application/json',
-        'User-Agent': 'BitcoinSovereignAcademy/1.0'
-      },
-      body: JSON.stringify(invoiceData)
-    });
-
-    // Check if request was successful
-    if (!albyResponse.ok) {
-      const errorText = await albyResponse.text();
-      console.error('Alby Hub API error:', albyResponse.status, errorText);
-
-      return res.status(500).json({
-        error: 'Failed to create Lightning invoice',
-        details: process.env.NODE_ENV === 'development' ? errorText : undefined
-      });
+    if (!invoiceResponse.ok) {
+      console.error('[Lightning] Invoice callback failed:', invoiceResponse.status);
+      return res.status(502).json({ error: 'Failed to generate Lightning invoice' });
     }
 
-    const albyData = await albyResponse.json();
+    const invoiceData = await invoiceResponse.json();
 
-    // Log successful invoice creation
-    console.log('Lightning invoice created:', {
-      paymentHash: albyData.payment_hash,
-      amount: amount,
-      description: description.substring(0, 50) + '...'
+    if (invoiceData.status === 'ERROR' || !invoiceData.pr) {
+      console.error('[Lightning] Invoice generation error:', invoiceData.reason);
+      return res.status(502).json({ error: invoiceData.reason || 'Failed to generate invoice' });
+    }
+
+    // Decode the payment hash from the BOLT11 invoice prefix
+    // (Full decode not needed — the hash is returned by some providers)
+    const paymentHash = invoiceData.payment_hash || invoiceData.paymentHash || null;
+
+    console.log('[Lightning] Invoice created via LNURL-pay:', {
+      lightningAddress: LIGHTNING_ADDRESS,
+      amount: APPRENTICE_DEPOSIT_SATS,
+      hasPaymentHash: !!paymentHash
     });
 
-    // Return invoice details
     return res.status(200).json({
       success: true,
-      paymentRequest: albyData.payment_request,
-      paymentHash: albyData.payment_hash,
-      amount: amount,
-      description: description,
-      expiresAt: new Date(Date.now() + (invoiceData.expiry * 1000)).toISOString()
+      paymentRequest: invoiceData.pr,
+      paymentHash: paymentHash,
+      amount: APPRENTICE_DEPOSIT_SATS,
+      description,
+      expiresAt: new Date(Date.now() + (expirySeconds || 3600) * 1000).toISOString()
     });
 
   } catch (error) {
-    console.error('Error creating Lightning invoice:', error);
-
+    console.error('[Lightning] Error creating invoice:', error);
     return res.status(500).json({
       error: 'Internal server error',
       message: process.env.NODE_ENV === 'development' ? error.message : 'Lightning payment processing failed'
     });
   }
 }
-

@@ -68,27 +68,48 @@ export default async function handler(req, res) {
 
 /**
  * Handle invoice settlement (payment received)
+ * Writes the confirmed payment to Supabase so verify-invoice.ts can read it.
  */
 async function handleInvoiceSettled(invoiceData) {
+  const paymentHash = invoiceData.payment_hash;
+  const settledAt = invoiceData.settled_at || new Date().toISOString();
+  const amount = invoiceData.amount;
+
+  console.log('Invoice settled:', { paymentHash, amount, settledAt });
+
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('[Alby webhook] Supabase not configured — payment confirmed but not stored');
+    return;
+  }
+
   try {
-    console.log('Invoice settled:', {
-      paymentHash: invoiceData.payment_hash,
-      amount: invoiceData.amount,
-      settledAt: invoiceData.settled_at
+    const response = await fetch(`${supabaseUrl}/rest/v1/lightning_payments`, {
+      method: 'POST',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        payment_hash: paymentHash,
+        amount_sats: amount,
+        settled: true,
+        settled_at: settledAt
+      })
     });
 
-    // You can add database updates here to track payments
-    // For now, we rely on frontend polling for simplicity
-    
-    // Example: Update user's membership status in database
-    // await updateUserMembership(invoiceData.payment_hash, 'apprentice');
-    
-    // Example: Send confirmation email
-    // await sendPaymentConfirmationEmail(invoiceData);
-    
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('[Alby webhook] Failed to store payment in Supabase:', err);
+    } else {
+      console.log('[Alby webhook] Payment stored in Supabase:', paymentHash);
+    }
   } catch (error) {
-    console.error('Error processing invoice settlement:', error);
-    throw error;
+    console.error('[Alby webhook] Error storing payment:', error);
   }
 }
 

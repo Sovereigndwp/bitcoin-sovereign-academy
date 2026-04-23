@@ -68,33 +68,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Valid payment hash is required' });
   }
 
-  const ALBY_HUB_URL = process.env.ALBY_HUB_URL;
-  const ALBY_API_KEY = process.env.ALBY_API_KEY;
-  if (!ALBY_HUB_URL || !ALBY_API_KEY) {
+  // Verification reads from Supabase — written there by the Alby webhook handler
+  // when a payment is confirmed. This avoids needing a direct connection to the
+  // local Alby Hub, which is unreachable from Vercel's servers.
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
     return res.status(500).json({ error: 'Lightning payment verification is not configured' });
   }
 
   try {
-    const invoiceResponse = await fetch(`${ALBY_HUB_URL}/api/invoices/${encodeURIComponent(paymentHash)}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${ALBY_API_KEY}`,
-        'Content-Type': 'application/json',
-        'User-Agent': 'BitcoinSovereignAcademy/1.0'
+    const dbResponse = await fetch(
+      `${supabaseUrl}/rest/v1/lightning_payments?payment_hash=eq.${encodeURIComponent(paymentHash)}&select=*&limit=1`,
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json'
+        }
       }
-    });
+    );
 
-    if (invoiceResponse.status === 404) {
-      return res.status(404).json({ verified: false, settled: false, error: 'Invoice not found' });
-    }
-
-    if (!invoiceResponse.ok) {
-      const errorText = await invoiceResponse.text();
-      console.error('[lightning verify] Alby invoice lookup failed:', invoiceResponse.status, errorText);
+    if (!dbResponse.ok) {
+      const errorText = await dbResponse.text();
+      console.error('[lightning verify] Supabase lookup failed:', dbResponse.status, errorText);
       return res.status(502).json({ verified: false, settled: false, error: 'Failed to verify Lightning invoice' });
     }
 
-    const invoice = await invoiceResponse.json() as AlbyInvoiceResponse;
+    const rows = await dbResponse.json() as any[];
+
+    if (!rows || rows.length === 0) {
+      return res.status(200).json({ verified: false, settled: false, state: 'pending' });
+    }
+
+    const invoice: AlbyInvoiceResponse = {
+      payment_hash: rows[0].payment_hash,
+      amount: rows[0].amount_sats,
+      settled: rows[0].settled,
+      settled_at: rows[0].settled_at
+    };
+
     const amount = normalizeAmount(invoice);
     if (amount !== APPRENTICE_DEPOSIT_SATS) {
       return res.status(400).json({
