@@ -9,6 +9,7 @@
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { sendWelcomeEmail } from './email';
+import { setCorsHeaders } from './lib/origin';
 
 // Simple rate limit (5 signups per IP per hour)
 const ipCounts: Map<string, { count: number; reset: number }> = new Map();
@@ -35,9 +36,7 @@ function isValidEmail(email: string): boolean {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  setCorsHeaders(req, res, 'POST, OPTIONS', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 

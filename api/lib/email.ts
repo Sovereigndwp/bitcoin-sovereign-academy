@@ -410,3 +410,66 @@ Bitcoin Sovereign Academy
     text
   });
 }
+
+/**
+ * Send welcome email to new subscribers
+ */
+export async function sendWelcomeEmail(email: string, source: string = ''): Promise<void> {
+  const baseUrl = process.env.BASE_URL || 'https://bitcoinsovereign.academy';
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f0f; color: #e0e0e0; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+    .logo { font-size: 24px; font-weight: 800; color: #f7931a; text-align: center; margin-bottom: 30px; }
+    .content { background: #1a1a1a; border: 2px solid #2d2d2d; border-radius: 16px; padding: 40px; }
+    h1 { color: #f7931a; font-size: 26px; margin-bottom: 16px; }
+    p { color: #b3b3b3; line-height: 1.7; margin-bottom: 16px; }
+    .button { display: inline-block; background: linear-gradient(135deg, #f7931a, #ff8c00); color: #000; padding: 14px 36px; border-radius: 12px; text-decoration: none; font-weight: 700; margin: 20px 0; }
+    .footer { text-align: center; margin-top: 30px; font-size: 13px; color: #555; }
+    .links { margin-top: 24px; padding-top: 20px; border-top: 1px solid #2d2d2d; }
+    .links a { color: #f7931a; text-decoration: none; margin-right: 16px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">₿ Bitcoin Sovereign Academy</div>
+    <div class="content">
+      <h1>Welcome — you're in.</h1>
+      <p>Thanks for joining Bitcoin Sovereign Academy. You'll hear from us when we publish new lessons, tools, and Bitcoin insights worth your time.</p>
+      <p>We keep it signal, no noise. No spam, ever.</p>
+      <a href="${baseUrl}" class="button">Start Learning</a>
+      <div class="links">
+        <a href="${baseUrl}/paths/curious">Curious Path</a>
+        <a href="${baseUrl}/paths/builder">Builder Path</a>
+        <a href="${baseUrl}/membership.html">Membership</a>
+      </div>
+    </div>
+    <div class="footer">
+      <p>Bitcoin Sovereign Academy · Learn Bitcoin. Achieve Sovereignty.</p>
+      <p><a href="${baseUrl}/privacy.html" style="color:#555;">Privacy Policy</a> · You're receiving this because you subscribed at ${baseUrl}${source ? ' (' + source + ')' : ''}.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = `Welcome to Bitcoin Sovereign Academy
+
+Thanks for joining. You'll hear from us when we publish new lessons, tools, and Bitcoin insights worth your time.
+
+Start learning: ${baseUrl}
+
+---
+Bitcoin Sovereign Academy · Learn Bitcoin. Achieve Sovereignty.
+You subscribed at ${baseUrl}${source ? ' (' + source + ')' : ''}.`;
+
+  await sendEmail({
+    to: email,
+    subject: 'Welcome to Bitcoin Sovereign Academy',
+    html,
+    text
+  });
+}
