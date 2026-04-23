@@ -27,7 +27,9 @@ export default async function handler(req, res) {
       });
     }
 
-    // Verify webhook signature
+    // Zaprite does not use webhook signing secrets.
+    // Security is handled by calling back to the Zaprite API in handleOrderPaid()
+    // to confirm the order is genuinely paid before granting access.
     const webhookSecret = process.env.ZAPRITE_WEBHOOK_SECRET;
     if (webhookSecret && signature) {
       const isValid = verifyWebhookSignature(webhookPayload, signature, webhookSecret);
@@ -35,10 +37,6 @@ export default async function handler(req, res) {
         console.error('Invalid webhook signature');
         return res.status(401).json({ error: 'Invalid signature' });
       }
-    } else if (process.env.NODE_ENV === 'production') {
-      // In production, always require signature verification
-      console.error('Missing webhook signature or secret');
-      return res.status(401).json({ error: 'Signature verification required' });
     }
 
     // Extract webhook data
