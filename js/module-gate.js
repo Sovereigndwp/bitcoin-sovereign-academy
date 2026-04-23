@@ -22,6 +22,8 @@
     const urlParams = new URLSearchParams(window.location.search);
     const urlKey = urlParams.get('preview');
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlKey = urlParams.get('preview');
     if (urlKey && PREVIEW_KEYS[urlKey]) {
         const expiry = PREVIEW_KEYS[urlKey].expires;
         if (new Date(expiry) > new Date()) {
