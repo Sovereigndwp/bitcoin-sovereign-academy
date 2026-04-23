@@ -11,6 +11,32 @@
         return; // Bypass all gating logic
     }
 
+
+    // ============================================
+    // Preview Key Unlock (for private sharing)
+    // ============================================
+    const PREVIEW_KEYS = {
+        'dalia-beta-2026': { expires: '2026-12-31' }
+    };
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlKey = urlParams.get('preview');
+    if (urlKey && PREVIEW_KEYS[urlKey]) {
+        const expiry = PREVIEW_KEYS[urlKey].expires;
+        if (new Date(expiry) > new Date()) {
+            localStorage.setItem('bsa_preview_unlock', urlKey);
+            localStorage.setItem('bsa_preview_expires', expiry);
+            console.log('🔓 Preview access granted until ' + expiry);
+        }
+    }
+    const storedKey = localStorage.getItem('bsa_preview_unlock');
+    const storedExpiry = localStorage.getItem('bsa_preview_expires');
+    if (storedKey && storedExpiry && new Date(storedExpiry) > new Date()) {
+        return;
+    } else if (storedKey) {
+        localStorage.removeItem('bsa_preview_unlock');
+        localStorage.removeItem('bsa_preview_expires');
+    }
+
     const previewLimit = window.BSA_CONFIG?.FREE_MODULES_LIMIT || 2;
 
     const pathName = normalizePath(window.location.pathname);
