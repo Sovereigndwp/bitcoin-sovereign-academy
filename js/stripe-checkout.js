@@ -354,23 +354,20 @@
                 return this.purchaseSovereign();
             }
 
+            // SECURITY: Do NOT call BTCPay directly from the browser.
+            // Route through /api/btcpay-checkout instead, which keeps the
+            // store credentials server-side and validates the request first.
+            // This direct-call approach exposes storeId + serverUrl in client code.
             try {
-                const response = await fetch(`${CONFIG.btcpay.serverUrl}/api/v1/stores/${CONFIG.btcpay.storeId}/invoices`, {
+                const response = await fetch('/api/btcpay-checkout', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        amount: CONFIG.sovereignPriceUSD / 100,
-                        currency: 'USD',
-                        metadata: {
-                            orderId: 'bsa_sovereign_' + Date.now(),
-                            tier: 'sovereign'
-                        },
-                        checkout: {
-                            redirectURL: window.location.origin + CONFIG.successUrl + '?btcpay_success=true',
-                            redirectAutomatically: true
-                        }
+                        tier: 'sovereign',
+                        successUrl: window.location.origin + CONFIG.successUrl + '?btcpay_success=true',
+                        cancelUrl: window.location.origin + CONFIG.cancelUrl
                     })
                 });
 
@@ -378,12 +375,14 @@
 
                 const invoice = await response.json();
                 this.storePendingSession({
-                    referenceId: invoice.id,
+                    referenceId: invoice.id || invoice.invoiceId,
                     method: 'btcpay',
                     expectedTier: 'sovereign'
                 });
 
-                window.location.href = invoice.checkoutLink;
+                const checkoutUrl = invoice.checkoutLink || invoice.checkoutUrl || invoice.url;
+                if (!checkoutUrl) throw new Error('No checkout URL returned from BTCPay');
+                window.location.href = checkoutUrl;
 
             } catch (error) {
                 console.error('[BTCPay] Error:', error);

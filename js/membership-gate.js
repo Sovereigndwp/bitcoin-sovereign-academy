@@ -84,20 +84,22 @@
 
         /**
          * Development hosts keep unrestricted access for local work.
+         * NOTE: .vercel.app preview URLs are intentionally excluded — they are
+         * publicly accessible and must enforce gating like production.
          */
         isDevelopmentMode() {
             const hostname = window.location.hostname.toLowerCase();
             return hostname === 'localhost' ||
                 hostname === '127.0.0.1' ||
                 hostname === '0.0.0.0' ||
-                hostname.endsWith('.localhost') ||
-                hostname.endsWith('.vercel.app');
+                hostname.endsWith('.localhost');
         }
 
         isServerEnforcedHost() {
             const hostname = window.location.hostname.toLowerCase();
             return hostname === 'bitcoinsovereign.academy' ||
                 hostname === 'www.bitcoinsovereign.academy' ||
+                hostname.endsWith('.bitcoinsovereign.academy') ||
                 hostname === 'localhost' ||
                 hostname === '127.0.0.1' ||
                 hostname === '0.0.0.0' ||

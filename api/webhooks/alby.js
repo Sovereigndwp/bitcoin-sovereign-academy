@@ -23,14 +23,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Verify webhook signature
+    // Verify webhook signature using constant-time comparison to prevent timing attacks
     const payload = JSON.stringify(req.body);
-    const expectedSignature = crypto
+    const expectedSignature = `sha256=${crypto
       .createHmac('sha256', webhookSecret)
       .update(payload, 'utf8')
-      .digest('hex');
+      .digest('hex')}`;
 
-    if (signature !== `sha256=${expectedSignature}`) {
+    if (!signature || signature.length !== expectedSignature.length ||
+        !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
       console.error('Invalid webhook signature');
       return res.status(401).json({ error: 'Invalid signature' });
     }

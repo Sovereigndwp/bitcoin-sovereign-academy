@@ -8,10 +8,12 @@
 
 export default async function handler(req, res) {
   const APPRENTICE_DEPOSIT_SATS = 50000;
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || '*');
+  // CORS headers — never fall back to wildcard for payment endpoints
+  const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://bitcoinsovereign.academy';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Vary', 'Origin');
 
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
