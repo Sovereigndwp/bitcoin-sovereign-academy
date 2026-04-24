@@ -428,12 +428,13 @@
     </div>
     
     <!-- Scripts -->
-    <script src="../js/widgets/api-handler.js"></script>
+    <script src="/js/widgets/api-handler.js"></script>
     
     <script>
         // Initialize
         const apiHandler = new BitcoinAPIHandler({ enableLogging: false });
         let currentBTCPrice = 97000; // Fallback
+        let btcHistoryCache = null;
         
         // Get current BTC price
         async function getCurrentPrice() {
@@ -447,10 +448,17 @@
         
         getCurrentPrice();
         
-        // Set default start date (2 years ago)
+        // Set default start date (2 years ago), then bound min/max to available BTC price history.
         const defaultDate = new Date();
         defaultDate.setFullYear(defaultDate.getFullYear() - 2);
-        document.getElementById('start-date').value = defaultDate.toISOString().split('T')[0];
+        const startInput = document.getElementById('start-date');
+        startInput.value = defaultDate.toISOString().split('T')[0];
+        loadBtcHistory().then(history => {
+            startInput.min = history[0].date;
+            startInput.max = history[history.length - 1].date;
+            if (startInput.value < startInput.min) startInput.value = startInput.min;
+            if (startInput.value > startInput.max) startInput.value = startInput.max;
+        }).catch(err => console.warn('BTC history preload failed:', err));
         
         // Update duration display
         document.getElementById('duration').addEventListener('input', (e) => {
@@ -460,27 +468,44 @@
                 months < 12 ? `${months} months` : `${years} years`;
         });
         
-        // Simulate historical BTC prices (simplified model)
-        function simulateHistoricalPrices(startDate, numPurchases, frequency) {
+        // Real BTC monthly price history (sourced from blockchain.info, bundled as static JSON)
+        async function loadBtcHistory() {
+            if (btcHistoryCache) return btcHistoryCache;
+            const resp = await fetch('btc-monthly-history.json', { cache: 'force-cache' });
+            if (!resp.ok) throw new Error('Failed to load BTC price history');
+            const json = await resp.json();
+            btcHistoryCache = json.data
+                .map(d => ({ date: d.date, price: d.price, t: Date.parse(d.date + 'T00:00:00Z') }))
+                .sort((a, b) => a.t - b.t);
+            return btcHistoryCache;
+        }
+
+        // Nearest monthly price at-or-before dateMs. Returns null if date is before series start.
+        function lookupPriceAt(history, dateMs) {
+            if (dateMs < history[0].t) return null;
+            let lo = 0, hi = history.length - 1;
+            while (lo < hi) {
+                const mid = (lo + hi + 1) >> 1;
+                if (history[mid].t <= dateMs) lo = mid; else hi = mid - 1;
+            }
+            return history[lo].price;
+        }
+
+        // Build a real historical purchase series from bundled monthly BTC prices.
+        // Purchases that would fall after the latest data point are omitted (no fake future prices).
+        async function getHistoricalPrices(startDate, numPurchases, frequency) {
+            const history = await loadBtcHistory();
+            const lastDataMs = history[history.length - 1].t;
             const prices = [];
             const start = new Date(startDate);
-            
-            // Rough historical averages (simplified)
-            const basePrice = 30000;
-            const volatility = 0.15;
-            
+            const daysPerPurchase = getDaysForFrequency(frequency);
             for (let i = 0; i < numPurchases; i++) {
-                // Add some randomness and trend
-                const trend = 1 + (i / numPurchases) * 2; // Upward trend
-                const random = 1 + (Math.random() - 0.5) * volatility;
-                const price = basePrice * trend * random;
-                
-                prices.push({
-                    date: new Date(start.getTime() + i * getDaysForFrequency(frequency) * 86400000),
-                    price: Math.round(price)
-                });
+                const dateMs = start.getTime() + i * daysPerPurchase * 86400000;
+                if (dateMs > lastDataMs) break;
+                const price = lookupPriceAt(history, dateMs);
+                if (price === null) continue;
+                prices.push({ date: new Date(dateMs), price });
             }
-            
             return prices;
         }
         
@@ -532,9 +557,30 @@
                 const numPurchases = Math.floor(duration * frequencyMultiplier[frequency]);
                 const purchaseAmount = monthlyAmount / frequencyMultiplier[frequency];
 
-                // Simulate historical prices
-                await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
-                const priceHistory = simulateHistoricalPrices(startDate, numPurchases, frequency);
+                // Validate date against available history, then fetch real prices
+                const history = await loadBtcHistory();
+                const historyStart = history[0].date;
+                const historyEnd = history[history.length - 1].date;
+                const startMs = Date.parse(startDate + 'T00:00:00Z');
+                if (isNaN(startMs) || startMs < history[0].t) {
+                    alert(`Start date must be on or after ${historyStart} (earliest date with meaningful BTC market price).`);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('results-content').style.display = 'block';
+                    return;
+                }
+                if (startMs > history[history.length - 1].t) {
+                    alert(`Start date must be on or before ${historyEnd} (latest date in bundled price data).`);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('results-content').style.display = 'block';
+                    return;
+                }
+                const priceHistory = await getHistoricalPrices(startDate, numPurchases, frequency);
+                if (priceHistory.length === 0) {
+                    alert('No purchases fit within the available price history range.');
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('results-content').style.display = 'block';
+                    return;
+                }
 
                 // Calculate totals
                 let totalInvested = 0;
@@ -554,11 +600,15 @@
                 const profitLoss = currentValue - totalInvested;
                 const profitLossPct = (profitLoss / totalInvested) * 100;
                 const roi = profitLossPct;
-                const annualReturn = (Math.pow(currentValue / totalInvested, 12 / duration) - 1) * 100;
+                // Use actual elapsed months (first to last purchase) for CAGR, not the requested duration.
+                const firstMs = priceHistory[0].date.getTime();
+                const lastMs = priceHistory[priceHistory.length - 1].date.getTime();
+                const elapsedMonths = Math.max(1, (lastMs - firstMs) / (30.4375 * 86400000));
+                const annualReturn = (Math.pow(currentValue / totalInvested, 12 / elapsedMonths) - 1) * 100;
 
                 // Display results
                 document.getElementById('total-invested').textContent = `$${totalInvested.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
-                document.getElementById('num-purchases').textContent = `${numPurchases} purchases`;
+                document.getElementById('num-purchases').textContent = `${priceHistory.length} purchases`;
 
                 document.getElementById('btc-accumulated').textContent = `${totalBTC.toFixed(8)} BTC`;
                 document.getElementById('avg-price').textContent = `Avg price: $${avgPrice.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
