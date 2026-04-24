@@ -3,7 +3,6 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 const DEFAULT_ALLOWED_ORIGINS = [
   'https://bitcoinsovereign.academy',
   'https://www.bitcoinsovereign.academy',
-  'https://learn.bitcoinsovereign.academy',
   'https://preview.bitcoinsovereign.academy'
 ];
 

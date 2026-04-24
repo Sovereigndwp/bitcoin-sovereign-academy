@@ -119,9 +119,9 @@ Chronological. See `git log main --oneline` for full list.
 
 ```bash
 # From production domain (CORS will reject other origins)
-curl -sS -X POST https://learn.bitcoinsovereign.academy/api/tutor \
+curl -sS -X POST https://bitcoinsovereign.academy/api/tutor \
   -H "Content-Type: application/json" \
-  -H "Origin: https://learn.bitcoinsovereign.academy" \
+  -H "Origin: https://bitcoinsovereign.academy" \
   -d '{"message":"ping","persona":"curious"}' \
   --max-time 15 | head -c 500
 ```

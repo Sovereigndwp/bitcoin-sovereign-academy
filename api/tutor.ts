@@ -30,7 +30,6 @@ const MAX_TOKENS = 1024;
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ALLOWED_ORIGINS_DEFAULT = [
-  'https://learn.bitcoinsovereign.academy',
   'https://bitcoinsovereign.academy',
   'https://www.bitcoinsovereign.academy',
   'https://financiallysovereign.academy',
