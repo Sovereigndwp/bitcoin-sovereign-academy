@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getProtectedRouteDetails, isProtectedPremiumRoute, normalizePathname } from '../packages/shared-access/src/premium-routes.js';
+import { getProtectedRouteDetails, isProtectedPremiumRoute, normalizePathname } from '../lib/premium-routes.js';
 
 test('normalizes clean URLs and removes trailing slashes', () => {
   assert.equal(normalizePathname('/paths/curious/stage-2/module-1/'), '/paths/curious/stage-2/module-1');

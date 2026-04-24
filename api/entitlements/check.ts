@@ -13,7 +13,7 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import { queryMany, logSecurityEvent } from '../lib/db';
 import { validateContentId, assertValid, sanitizeIPAddress } from '../lib/validation';
 import { verifyJWTWithRevocation, JWTError, extractBearerToken } from '../lib/jwt';
-import { isFreeDemo } from '../../packages/shared-payments/src/helpers.js';
+import { isFreeDemo } from '../config/products';
 
 interface Entitlement {
   id: string;

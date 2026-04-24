@@ -1,7 +1,7 @@
 /**
  * Membership Gating System
  * Controls access to premium content based on membership tier
- *
+ * 
  * Features:
  * - Integrates with lightning-payment.js and stripe-checkout.js
  * - Shows upgrade modal when non-members access premium content
@@ -12,10 +12,12 @@
     'use strict';
 
     const CONFIG = {
+        // Storage keys
         storageKeys: {
             membership: 'bsa-membership'
         },
 
+        // Pages that are always free (no gating)
         freePages: [
             '/',
             '/index.html',
@@ -23,9 +25,11 @@
             '/contact.html',
             '/community/',
             '/membership.html',
-            '/membership-success.html'
+            '/membership-success.html',
+            '/membership.html'
         ],
 
+        // Demo pages that are free (first few in each path)
         freeDemos: [
             '/interactive-demos/',
             '/interactive-demos/index.html',
@@ -34,12 +38,14 @@
             '/interactive-demos/energy-bucket/'
         ],
 
-        freeModulePattern: /\/paths\/[^/]+\/stage-1\/module-1(\.html)?$/,
+        // Path module-1 pages are always free
+        freeModulePattern: /\/paths\/[^/]+\/stage-1\/module-1\.html$/,
 
+        // Premium content patterns (everything else in paths/ and most demos)
         premiumPatterns: [
-            /\/paths\/[^/]+\/stage-[2-9](\/|$)/,
-            /\/paths\/[^/]+\/stage-1\/module-[2-9](\.html)?$/,
-            /\/deep-dives(\/|$)/
+            /\/paths\/[^/]+\/stage-[2-9]\//,
+            /\/paths\/[^/]+\/stage-1\/module-[2-9]\./,
+            /\/deep-dives\//
         ]
     };
 
@@ -57,9 +63,11 @@
                 this.initialized = true;
                 return;
             }
-
+            
+            // Load membership status
             this.membership = this.getMembership();
-
+            
+            // Check if current page needs gating
             if (this.shouldGatePage() && !(await this.hasPremiumAccess())) {
                 this.applyGate();
             }
@@ -67,6 +75,9 @@
             this.initialized = true;
         }
 
+        /**
+         * Remove legacy owner-mode storage so it can no longer bypass gating.
+         */
         clearLegacyOwnerState() {
             sessionStorage.removeItem('bsa-owner-mode');
         }
@@ -96,23 +107,8 @@
                 hostname.endsWith('.vercel.app');
         }
 
-        normalizeGatePath(pathname) {
-            let path = pathname || '/';
-            path = path.replace(/\/+$/, '');
-
-            if (/\/module-\d+$/.test(path)) {
-                return `${path}.html`;
-            }
-
-            if (/\/module-\d+-\d+$/.test(path)) {
-                return `${path}.html`;
-            }
-
-            return path || '/';
-        }
-
         isServerProtectedRoute() {
-            const path = this.normalizeGatePath(window.location.pathname);
+            const path = window.location.pathname.replace(/\/+$/, '') || '/';
 
             if (path === '/deep-dives' || path === '/deep-dives/index.html' || path.startsWith('/deep-dives/')) {
                 return true;
@@ -149,6 +145,9 @@
             return this.isServerEnforcedHost() && this.isServerProtectedRoute();
         }
 
+        /**
+         * Check for a signed access token issued by the server.
+         */
         getAccessVerifier() {
             if (window.BSAAccessVerifier) {
                 return window.BSAAccessVerifier;
@@ -246,6 +245,9 @@
             return Boolean(this.getAccessVerifier().getPayload(token));
         }
 
+        /**
+         * Get membership from localStorage
+         */
         getMembership() {
             try {
                 const data = localStorage.getItem(CONFIG.storageKeys.membership);
@@ -255,6 +257,9 @@
             }
         }
 
+        /**
+         * Check if user has premium access
+         */
         async hasPremiumAccess() {
             if (this.isDevelopmentMode() || window.BSASubdomainAccess?.hasFullAccess?.()) {
                 return true;
@@ -263,25 +268,39 @@
             return this.getAccessVerifier().verifyStoredToken();
         }
 
+        /**
+         * Determine if current page should be gated
+         */
         shouldGatePage() {
-            const path = this.normalizeGatePath(window.location.pathname);
+            const path = window.location.pathname;
 
-            if (CONFIG.freePages.includes(path)) {
+            // Always free pages
+            if (CONFIG.freePages.some(p => path === p || path === p + 'index.html')) {
                 return false;
             }
 
+            // Free demos
             if (CONFIG.freeDemos.some(p => path.startsWith(p))) {
                 return false;
             }
 
+            // Free module pattern (module-1 of stage-1)
             if (CONFIG.freeModulePattern.test(path)) {
                 return false;
             }
 
-            return CONFIG.premiumPatterns.some(pattern => pattern.test(path));
+            // Check if premium content
+            const isPremium = CONFIG.premiumPatterns.some(pattern => pattern.test(path));
+            
+            // If premium and no access, gate it
+            return isPremium;
         }
 
+        /**
+         * Apply the gate overlay
+         */
         applyGate() {
+            // Wait for DOM
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', () => this.showGateOverlay());
             } else {
@@ -289,13 +308,19 @@
             }
         }
 
+        /**
+         * Show the full-page gate overlay
+         */
         showGateOverlay() {
+            // Track gate view
             if (window.bsaAnalytics) {
                 window.bsaAnalytics.trackGateView(window.location.pathname);
             }
 
+            // Inject styles
             this.injectStyles();
 
+            // Create overlay
             const overlay = document.createElement('div');
             overlay.id = 'membership-gate-overlay';
             overlay.innerHTML = `
@@ -303,7 +328,7 @@
                     <div class="gate-icon">🔐</div>
                     <h2>Premium Content</h2>
                     <p class="gate-subtitle">This content is available to members only.</p>
-
+                    
                     <div class="gate-options">
                         <div class="gate-option apprentice">
                             <div class="option-badge">Popular</div>
@@ -314,7 +339,7 @@
                                 Start Earning
                             </button>
                         </div>
-
+                        
                         <div class="gate-option sovereign">
                             <h3>👑 Sovereign</h3>
                             <div class="option-price">$399</div>
@@ -343,6 +368,9 @@
             document.body.style.overflow = 'hidden';
         }
 
+        /**
+         * Inject gate styles
+         */
         injectStyles() {
             if (document.getElementById('membership-gate-styles')) return;
 
@@ -510,14 +538,17 @@
         }
     }
 
+    // Create and initialize
     const membershipGate = new MembershipGate();
-
+    
+    // Initialize on load
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => membershipGate.init());
     } else {
         membershipGate.init();
     }
 
+    // Expose globally
     window.membershipGate = membershipGate;
 
 })();

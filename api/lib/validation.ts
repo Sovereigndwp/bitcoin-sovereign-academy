@@ -4,7 +4,7 @@
  * Security: Zero Trust - validate everything, trust nothing
  */
 
-import { isValidProductId } from '../../packages/shared-payments/src/helpers.js';
+import { isValidProductId } from '../config/products';
 
 /**
  * Disposable email domains to block

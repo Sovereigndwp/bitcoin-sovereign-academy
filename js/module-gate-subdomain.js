@@ -43,7 +43,7 @@
     ];
 
     const isAdvancedModule = advancedModules.some(path => pathName.endsWith(path));
-    const isPathModule = /\/module-\d+(\.html)?$/.test(pathName) || /\/module-\d+-\d+(\.html)?$/.test(pathName);
+    const isPathModule = /\/module-\d+\.html$/.test(pathName);
 
     if (!isPathModule && !isAdvancedModule) {
         return;
@@ -196,20 +196,9 @@
 
     function normalizePath(path) {
         if (!path.startsWith('/')) {
-            path = '/' + path;
+            return '/' + path;
         }
-    
-        path = path.replace(/\/+$/, '');
-    
-        if (/\/module-\d+$/.test(path)) {
-            path = `${path}.html`;
-        }
-    
-        if (/\/module-\d+-\d+$/.test(path)) {
-            path = `${path}.html`;
-        }
-    
-        return path || '/';
+        return path;
     }
 
     function isDevelopmentHost() {
