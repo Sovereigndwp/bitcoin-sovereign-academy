@@ -198,7 +198,7 @@ function generateAccessTokenEmailHTML(data: AccessTokenEmailData): string {
       <h3 style="color: #f7931a; font-size: 18px; margin: 0 0 16px 0;">🔑 How to Use Your Access Token</h3>
 
       <ol style="margin: 0; padding-left: 20px; color: #e0e0e0; line-height: 1.8;">
-        <li>Visit <a href="https://learn.bitcoinsovereign.academy" style="color: #f7931a; text-decoration: none;">learn.bitcoinsovereign.academy</a></li>
+        <li>Visit <a href="https://bitcoinsovereign.academy" style="color: #f7931a; text-decoration: none;">bitcoinsovereign.academy</a></li>
         <li>You'll be prompted to enter your access token</li>
         <li>Paste the token from above</li>
         <li>Start learning! All your purchased content is now unlocked</li>

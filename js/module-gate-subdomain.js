@@ -310,7 +310,7 @@
                     <strong>Free Access:</strong> Stage 1, Module 1 of each path
                 </p>
                 <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
-                    <a href="https://learn.bitcoinsovereign.academy${window.location.pathname}"
+                    <a href="https://bitcoinsovereign.academy${window.location.pathname}"
                        style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); color: white; text-decoration: none; font-weight: 600; font-size: 1.1rem; padding: 1rem 2rem; border-radius: 999px; transition: transform 0.2s;">
                         Access as Member →
                     </a>
@@ -426,7 +426,7 @@
                 </button>
 
                 <div class="lock-footer">
-                    <small>Already enrolled? <a href="https://learn.bitcoinsovereign.academy${window.location.pathname}" class="module-lock-login">Sign in</a></small>
+                    <small>Already enrolled? <a href="https://bitcoinsovereign.academy${window.location.pathname}" class="module-lock-login">Sign in</a></small>
                 </div>
             </div>
         `;

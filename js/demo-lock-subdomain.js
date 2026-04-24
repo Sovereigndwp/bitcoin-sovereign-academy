@@ -91,7 +91,7 @@
                         This interactive demo is available to Bitcoin Sovereign Academy members
                     </p>
                     <div style="display:flex;flex-direction:column;gap:12px;align-items:center;">
-                        <a href="https://learn.bitcoinsovereign.academy${window.location.pathname}"
+                        <a href="https://bitcoinsovereign.academy${window.location.pathname}"
                            style="display:inline-block;color:#fff;background:#10b981;text-decoration:none;font-weight:600;font-size:1.1rem;padding:12px 24px;border-radius:8px;transition:all 0.2s;">
                             Access as Member →
                         </a>
