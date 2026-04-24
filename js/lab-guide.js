@@ -1152,8 +1152,52 @@
     let currentLabId = null;
     let currentStep  = 0;
     let totalSteps   = 0;
+    let lastFocused  = null; // element that had focus before the panel opened
 
     const STORAGE_KEY = 'bsa_lab_completions';
+
+    // ── Accessibility helpers ────────────────────────────────
+
+    const FOCUSABLE_SELECTOR = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])'
+    ].join(', ');
+
+    function getFocusable(root) {
+        if (!root) return [];
+        return Array.from(root.querySelectorAll(FOCUSABLE_SELECTOR))
+            .filter(function (el) {
+                return !el.hasAttribute('disabled') && el.offsetParent !== null;
+            });
+    }
+
+    function trapFocusHandler(e) {
+        if (e.key !== 'Tab') return;
+        const panel = document.getElementById('labPanel');
+        if (!panel) return;
+        const nodes = getFocusable(panel);
+        if (!nodes.length) return;
+        const first = nodes[0];
+        const last  = nodes[nodes.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+        }
+    }
+
+    function announce(msg) {
+        const a = document.getElementById('labAnnouncer');
+        if (!a) return;
+        a.textContent = '';
+        setTimeout(function () { a.textContent = msg; }, 50);
+    }
 
     function getCompletions() {
         try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
@@ -1182,33 +1226,64 @@
         currentLabId = labId;
         currentStep  = 0;
         totalSteps   = lab.steps.length;
+        // WCAG 2.4.3: remember what had focus so we can restore on close
+        lastFocused = document.activeElement;
         ensureOverlay();
         renderLab(lab);
-        document.getElementById('labOverlay').classList.add('open');
+        const overlay = document.getElementById('labOverlay');
+        overlay.classList.add('open');
+        overlay.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
+        // Install focus trap
+        document.addEventListener('keydown', trapFocusHandler, true);
+        // Move focus to the close button (reliably present, keeps orientation)
+        setTimeout(function () {
+            const closeBtn = document.querySelector('#labPanel .lab-close-btn');
+            if (closeBtn) closeBtn.focus();
+            announce('Lab opened: ' + lab.title + '. Step 1 of ' + totalSteps + '.');
+        }, 50);
     }
 
     function closeLab() {
         const overlay = document.getElementById('labOverlay');
-        if (overlay) overlay.classList.remove('open');
+        if (overlay) {
+            overlay.classList.remove('open');
+            overlay.setAttribute('aria-hidden', 'true');
+        }
         document.body.style.overflow = '';
+        document.removeEventListener('keydown', trapFocusHandler, true);
         currentLabId = null;
+        // WCAG 2.4.3: return focus to the element that opened the panel
+        if (lastFocused && typeof lastFocused.focus === 'function') {
+            try { lastFocused.focus(); } catch (e) { /* element may be gone */ }
+        }
+        lastFocused = null;
     }
 
     function ensureOverlay() {
         if (document.getElementById('labOverlay')) return;
         const html = `
-<div class="lab-overlay" id="labOverlay">
-  <div class="lab-panel" id="labPanel">
+<div class="lab-overlay" id="labOverlay" aria-hidden="true">
+  <div class="lab-panel" id="labPanel"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="labPanelTitle">
     <div class="lab-header" id="labHeader"></div>
     <div class="lab-progress-row">
-      <div class="lab-step-dots" id="labDots"></div>
-      <span class="lab-progress-label" id="labProgressLabel"></span>
+      <div class="lab-step-dots"
+           id="labDots"
+           role="progressbar"
+           aria-label="Lab progress"
+           aria-valuemin="1"
+           aria-valuemax="1"
+           aria-valuenow="1"></div>
+      <span class="lab-progress-label" id="labProgressLabel" aria-hidden="true"></span>
     </div>
-    <div class="lab-body" id="labBody"></div>
+    <div class="lab-body" id="labBody" tabindex="-1"></div>
+    <div id="labAnnouncer" class="lab-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="lab-footer">
-      <button class="lab-btn lab-btn-secondary" id="labPrevBtn" onclick="LabGuide.prevStep()">← Back</button>
-      <button class="lab-btn lab-btn-primary" id="labNextBtn" onclick="LabGuide.nextStep()">Next Step →</button>
+      <button type="button" class="lab-btn lab-btn-secondary" id="labPrevBtn" onclick="LabGuide.prevStep()">← Back</button>
+      <button type="button" class="lab-btn lab-btn-primary" id="labNextBtn" onclick="LabGuide.nextStep()">Next Step →</button>
     </div>
   </div>
 </div>`;
@@ -1217,7 +1292,7 @@
             if (e.target === document.getElementById('labOverlay')) closeLab();
         });
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') closeLab();
+            if (e.key === 'Escape' && currentLabId) closeLab();
         });
     }
 
@@ -1236,13 +1311,19 @@
             : '';
 
         document.getElementById('labHeader').innerHTML = `
-<div class="lab-header-icon">${lab.icon}</div>
+<div class="lab-header-icon" aria-hidden="true">${lab.icon}</div>
 <div class="lab-header-text">
-  <h2>${lab.title}</h2>
-  <p>${lab.subtitle}</p>
+  <h2 id="labPanelTitle">${escHtml(lab.title)}</h2>
+  <p>${escHtml(lab.subtitle)}</p>
   <div class="lab-meta">${badges}${tools}</div>
 </div>
-<button class="lab-close-btn" onclick="LabGuide.closeLab()" aria-label="Close lab">×</button>`;
+<button type="button" class="lab-close-btn" onclick="LabGuide.closeLab()" aria-label="Close lab panel">
+  <span aria-hidden="true">×</span>
+</button>`;
+
+        // Keep progressbar value bounds in sync with this lab
+        const dots = document.getElementById('labDots');
+        if (dots) dots.setAttribute('aria-valuemax', String(totalSteps));
 
         renderStep(lab, currentStep);
     }
@@ -1252,9 +1333,12 @@
         let dots = '';
         for (let i = 0; i < totalSteps; i++) {
             const cls = i < stepIndex ? 'done' : i === stepIndex ? 'current' : '';
-            dots += '<div class="lab-step-dot ' + cls + '"></div>';
+            dots += '<div class="lab-step-dot ' + cls + '" aria-hidden="true"></div>';
         }
-        document.getElementById('labDots').innerHTML = dots;
+        const dotsEl = document.getElementById('labDots');
+        dotsEl.innerHTML = dots;
+        dotsEl.setAttribute('aria-valuenow', String(stepIndex + 1));
+        dotsEl.setAttribute('aria-valuetext', 'Step ' + (stepIndex + 1) + ' of ' + totalSteps);
         document.getElementById('labProgressLabel').textContent = 'Step ' + (stepIndex + 1) + ' of ' + totalSteps;
 
         // Step content
@@ -1304,8 +1388,23 @@
 </div>`;
         }
 
-        document.getElementById('labBody').innerHTML = html;
-        document.getElementById('labBody').scrollTop = 0;
+        const bodyEl = document.getElementById('labBody');
+        bodyEl.innerHTML = html;
+        bodyEl.scrollTop = 0;
+
+        // WCAG 2.4.3: move focus to the new step title so SR/keyboard users stay oriented
+        const stepTitleEl = bodyEl.querySelector('.lab-step-title');
+        if (stepTitleEl) {
+            stepTitleEl.setAttribute('tabindex', '-1');
+            // Only move focus on step transitions, not the initial open (open focuses close-btn)
+            if (stepIndex > 0 || bodyEl.dataset.stepRendered === '1') {
+                stepTitleEl.focus({ preventScroll: true });
+            }
+            bodyEl.dataset.stepRendered = '1';
+        }
+
+        // Announce the step change (redundant with focus but helps SR users)
+        announce('Step ' + (stepIndex + 1) + ' of ' + totalSteps + ': ' + step.title);
 
         // Buttons
         const prevBtn = document.getElementById('labPrevBtn');
@@ -1313,11 +1412,12 @@
         prevBtn.disabled = stepIndex === 0;
         if (isLast) {
             nextBtn.textContent = isComplete(currentLabId) ? '✓ Completed' : 'Mark Complete ✓';
-            nextBtn.style.background = isComplete(currentLabId) ? '#4caf50' : '#f7931a';
+            // Rely on CSS disabled state for bg (dark green); no inline style
+            nextBtn.style.background = '';
             nextBtn.disabled = isComplete(currentLabId);
         } else {
             nextBtn.textContent = 'Next Step →';
-            nextBtn.style.background = '#f7931a';
+            nextBtn.style.background = '';
             nextBtn.disabled = false;
         }
     }
@@ -1333,15 +1433,17 @@
             markComplete(currentLabId);
             const nextBtn = document.getElementById('labNextBtn');
             nextBtn.textContent = '✓ Completed';
-            nextBtn.style.background = '#4caf50';
+            nextBtn.style.background = '';
             nextBtn.disabled = true;
             // Briefly show completion
             const body = document.getElementById('labBody');
             const banner = document.createElement('div');
             banner.className = 'lab-tip-box';
+            banner.setAttribute('role', 'status');
             banner.style.cssText = 'text-align:center;font-size:1rem;padding:1.25rem;margin-top:1rem;';
             banner.innerHTML = '🎉 Lab complete! Your progress is saved. Close the panel or try another lab.';
             body.insertAdjacentElement('afterbegin', banner);
+            announce('Lab complete. ' + lab.title + ' marked as completed.');
         }
     }
 
@@ -1358,13 +1460,36 @@
         return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    // Mark completed lab cards on page load
+    // Upgrade lab cards to keyboard-accessible buttons + mark completions.
+    // Runs on every module page that loads this script, so cards authored as
+    // plain <div onclick=...> get proper button semantics without touching each HTML file.
     function initLabCards() {
         const completions = getCompletions();
-        Object.keys(completions).forEach(function (labId) {
-            document.querySelectorAll('[data-lab="' + labId + '"]').forEach(function (el) {
-                el.classList.add('completed');
-            });
+        document.querySelectorAll('.lab-card[data-lab]').forEach(function (card) {
+            const labId = card.dataset.lab;
+            const lab = LABS[labId];
+
+            // WCAG 2.1.1 / 4.1.2: make the card keyboard-operable + give it button semantics
+            if (card.tagName !== 'BUTTON' && card.tagName !== 'A') {
+                if (!card.getAttribute('role')) card.setAttribute('role', 'button');
+                if (!card.hasAttribute('tabindex')) card.setAttribute('tabindex', '0');
+            }
+            if (!card.getAttribute('aria-label') && lab) {
+                const completed = !!completions[labId];
+                card.setAttribute('aria-label',
+                    (completed ? 'Completed lab: ' : 'Open lab: ') +
+                    lab.title + ' — ' + lab.duration + ', ' + lab.difficulty + ' difficulty');
+            }
+            if (!card.dataset.lgKbd) {
+                card.dataset.lgKbd = '1';
+                card.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openLab(labId);
+                    }
+                });
+            }
+            if (completions[labId]) card.classList.add('completed');
         });
     }
 
