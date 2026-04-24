@@ -21,6 +21,90 @@ const MODEL = 'claude-sonnet-4-6';
 const MAX_TOKENS = 1024;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Hardening configuration
+//   - CORS allow-list (override via env TUTOR_ALLOWED_ORIGINS, comma-separated)
+//   - Input size caps on message + history to bound token cost per request
+//   - Per-IP rate limit (in-memory; best-effort on Edge — fronting with a
+//     CDN/WAF is still recommended for distributed abuse protection)
+//   - Valid persona allow-list so unknown values fall back to "curious"
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ALLOWED_ORIGINS_DEFAULT = [
+  'https://learn.bitcoinsovereign.academy',
+  'https://bitcoinsovereign.academy',
+  'https://www.bitcoinsovereign.academy',
+  'https://financiallysovereign.academy',
+  'https://www.financiallysovereign.academy',
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+];
+
+const MAX_MESSAGE_CHARS = 2000;           // single learner message
+const MAX_HISTORY_MESSAGE_CHARS = 4000;   // per-message inside history
+const MAX_HISTORY_MESSAGES = 20;          // matches prior .slice(-20)
+
+const RATE_LIMIT_WINDOW_MS = 60_000;      // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 20;       // per IP per minute
+
+const VALID_PERSONAS = new Set([
+  'curious', 'skeptic', 'hurried', 'pragmatist',
+  'sovereign', 'builder', 'principled', 'unknown',
+]);
+
+function getAllowedOrigins(): string[] {
+  const env = (process as NodeJS.Process & {
+    env: Record<string, string | undefined>;
+  }).env.TUTOR_ALLOWED_ORIGINS;
+  if (env) return env.split(',').map((s) => s.trim()).filter(Boolean);
+  return ALLOWED_ORIGINS_DEFAULT;
+}
+
+function buildCorsHeaders(requestOrigin: string | null): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    Vary: 'Origin',
+  };
+  // Only echo Access-Control-Allow-Origin when origin is allow-listed.
+  // Unknown origins get no header → browsers block the cross-origin request.
+  if (requestOrigin && getAllowedOrigins().includes(requestOrigin)) {
+    headers['Access-Control-Allow-Origin'] = requestOrigin;
+  }
+  return headers;
+}
+
+function getClientId(req: Request): string {
+  const fwd = req.headers.get('x-forwarded-for') || '';
+  const firstHop = fwd.split(',')[0]?.trim();
+  return firstHop || req.headers.get('x-real-ip') || 'unknown';
+}
+
+// In-memory rate-limit buckets. Edge instances are short-lived so this is
+// best-effort — use a CDN/WAF for distributed-abuse protection.
+const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(clientId: string): { allowed: boolean; retryAfter: number } {
+  const now = Date.now();
+  const bucket = rateLimitBuckets.get(clientId);
+  if (!bucket || bucket.resetAt < now) {
+    rateLimitBuckets.set(clientId, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    // Opportunistic GC when the map grows large
+    if (rateLimitBuckets.size > 10_000) {
+      rateLimitBuckets.forEach((v, k) => {
+        if (v.resetAt < now) rateLimitBuckets.delete(k);
+      });
+    }
+    return { allowed: true, retryAfter: 0 };
+  }
+  bucket.count++;
+  if (bucket.count > RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, retryAfter: Math.ceil((bucket.resetAt - now) / 1000) };
+  }
+  return { allowed: true, retryAfter: 0 };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // System prompt (cached — must exceed Sonnet 4.6 minimum of 2048 tokens).
 // Shipped as a single frozen block; the entire prompt re-caches on any change.
 // Keep volatile content (module objectives, live data) OUT of this block — they
@@ -383,11 +467,8 @@ function sseChunk(payload: Record<string, string>): Uint8Array {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default async function handler(req: Request): Promise<Response> {
-  const corsHeaders: Record<string, string> = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
+  const requestOrigin = req.headers.get('origin');
+  const corsHeaders = buildCorsHeaders(requestOrigin);
 
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders });
@@ -398,6 +479,26 @@ export default async function handler(req: Request): Promise<Response> {
       status: 405,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+  }
+
+  // Rate limit (per-IP, 20 req/min) — guards Anthropic API budget against abuse
+  const clientId = getClientId(req);
+  const rate = checkRateLimit(clientId);
+  if (!rate.allowed) {
+    return new Response(
+      JSON.stringify({
+        error: 'Too many requests. Please wait a moment and try again.',
+        retryAfter: rate.retryAfter,
+      }),
+      {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+          'Retry-After': String(rate.retryAfter),
+        },
+      },
+    );
   }
 
   // Env check
@@ -420,7 +521,9 @@ export default async function handler(req: Request): Promise<Response> {
     });
   }
 
-  const { message, history = [], context, persona = 'curious' } = body;
+  const { message, history = [], context } = body;
+  const rawPersona = (body.persona || 'curious').toLowerCase();
+  const persona = VALID_PERSONAS.has(rawPersona) ? rawPersona : 'curious';
 
   if (!message?.trim()) {
     return new Response(JSON.stringify({ error: 'message is required' }), {
@@ -429,12 +532,37 @@ export default async function handler(req: Request): Promise<Response> {
     });
   }
 
+  if (message.length > MAX_MESSAGE_CHARS) {
+    return new Response(
+      JSON.stringify({
+        error: `Message too long. Max ${MAX_MESSAGE_CHARS} characters.`,
+      }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
   // Fetch live Bitcoin data in parallel while we build the request
   const bitcoinData = await fetchBitcoinData();
   const contextNote = buildContextNote(context, persona, bitcoinData);
 
-  // Trim history to last 10 exchanges (20 messages) to control token cost
-  const trimmedHistory = history.slice(-20);
+  // Clamp history: last 20 messages, role validated, each content capped
+  const trimmedHistory: ChatMessage[] = (Array.isArray(history) ? history : [])
+    .slice(-MAX_HISTORY_MESSAGES)
+    .filter(
+      (m): m is ChatMessage =>
+        !!m && typeof m.content === 'string' && (m.role === 'user' || m.role === 'assistant'),
+    )
+    .map((m) => ({
+      role: m.role,
+      content:
+        m.content.length > MAX_HISTORY_MESSAGE_CHARS
+          ? m.content.slice(0, MAX_HISTORY_MESSAGE_CHARS)
+          : m.content,
+    }));
+
   const userContent = contextNote
     ? `[${contextNote}]\n\n${message.trim()}`
     : message.trim();
