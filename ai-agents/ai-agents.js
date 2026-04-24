@@ -345,7 +345,7 @@ class BitcoinStoryAgent {
     }
 
     getBitcoinProject() {
-        const projects = ['Bitcoin Core', 'Lightning Network', 'BTCPay Server', 'Bisq', 'Wasabi Wallet', 'Blockstream', 'Strike', 'OpenSats', 'Fedimint', 'Liquid Network'];
+        const projects = ['Bitcoin Core', 'Lightning Network', 'BTCPay Server', 'Bisq', 'Ginger Wallet', 'Blockstream', 'Strike', 'OpenSats', 'Fedimint', 'Liquid Network'];
         return projects[Math.floor(Math.random() * projects.length)];
     }
 
