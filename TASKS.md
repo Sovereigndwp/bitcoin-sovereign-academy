@@ -12,7 +12,7 @@ Last updated: 2026-04-24
 | ID | Task | Owner | Status | Notes |
 |---|---|---|---|---|
 | A1 | Run first tutor eval baseline | — | **needs API key** | `npm run tutor:evals` locally. Writes `reports/tutor-evals-2026-04-24.md`. Establishes baseline for every future SYSTEM_PROMPT change. |
-| A2 | Consolidate demo-truthfulness audit | — | **pending** (3 agents running) | Three parallel audits queued: economics, protocol, custody. Merge into `reports/demo-audit-2026-04-24.md` when all three finish. |
+| A2 | Consolidate demo-truthfulness audit | — | **✅ done** | See [`reports/demo-audit-2026-04-24.md`](reports/demo-audit-2026-04-24.md). 135 findings across 52 demos (41 🔴 / 59 🟡 / 35 🟢). Top-10 action list inside. |
 | A3 | Tutor live in production? | — | **needs verification** | Test `/api/tutor` from production domain (see "Smoke test" in this file). Ensure `ANTHROPIC_API_KEY` set in Vercel prod env. |
 
 ---
@@ -23,10 +23,30 @@ Ranked by leverage × feasibility. Pull from the top.
 
 ### B1. Act on demo-truthfulness findings 🔴🟡🟢
 
-**Trigger:** once `reports/demo-audit-2026-04-24.md` exists.
-**Output:** PRs tiered by severity — all 🔴 Wrong findings first (factual errors teaching the wrong thing), then 🟡 Misleading, then 🟢 Sharpen-up.
-**Why:** CLAUDE.md's #1 rule is "always verify truth of content in platform." Wrong facts in popular demos teach learners the wrong thing.
-**Scope:** one fix PR per demo category (economics / protocol / custody) for parallel reviewability.
+**Status:** audit complete — [`reports/demo-audit-2026-04-24.md`](reports/demo-audit-2026-04-24.md) has a prioritized TOP-10 action list.
+
+**B1 / Tier 1 (🔴 factual errors teaching wrong things — ship this week):**
+- [ ] B1.1 `sat-stacking-calculator` L463-485: "historical backtesting" actually generates random prices. Rename or rewire to real data.
+- [ ] B1.2 Reorg/security math cluster — single PR fixing 3 files:
+  - `network-consensus-demo` L320: drop bogus `2^n difficulty` reorg-cost formula
+  - `consensus-game` Q4: recalculate 40%/6-conf reorg probability (~17.7% not 0.09%)
+  - `double-spending-demo` L583: `0.5^n` is not a general formula
+- [ ] B1.3 `mining-simulator` L633: `16^3 = 4096` not `256^3 = 16.7M` (off by 4,000×)
+- [ ] B1.4 `bitcoin-unit-converter` L662: mBTC = 100,000 sats (not "1 thousand")
+- [ ] B1.5 `bitcoin-layers-map` L1150: drop invented `OP_WITHDRAWPROOFVERIFY` opcode
+- [ ] B1.6 Custody cluster — single PR:
+  - Remove/update Samourai/Whirlpool references (DOJ takedown April 2024)
+  - Fix Wasabi zkSNACKs coordinator shutdown (June 2024)
+  - Refresh hardware-wallet inventory (Coldcard Q not Mk4, Trezor Safe 3/5 not Model T)
+- [ ] B1.7 `bitcoin-ira-decision-tool`: update 2025 Roth IRA phase-out to $150K/$236K
+
+**B1 / Tier 2 (🟡 architectural — next sprint, two PRs resolve ~60 findings):**
+- [ ] B1.T2a **Live-data pipeline adoption** — wire all demos with hardcoded BTC price/hashrate/supply/difficulty to `js/bitcoin-data-reliable.js`
+- [ ] B1.T2b **Defunct-services lint** — ship `docs/SERVICE_STATUS.md` + grep-based CI check that flags demos referencing retired names (FTX, Celsius, Samourai, Wasabi-coord, Paxful, Caravan, etc.)
+
+**B1 / Tier 3 (🟢 sharpening):** pick up during normal content passes.
+
+**Why this matters:** CLAUDE.md's #1 rule is "always verify truth of content in platform." Pre-audit, ~80% of demos had unverified claims. This was the first systematic verification pass.
 
 ### B2. Tiered reflection system (3-depth ladder)
 
