@@ -1,0 +1,1060 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consensus Game - Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        :root {
+            --primary-orange: var(--color-brand);
+            --primary-dark: var(--color-bg);
+            --secondary-dark: var(--color-surface);
+            --text-light: var(--color-text);
+            --text-dim: #b3b3b3;
+            --success-green: var(--color-success);
+            --danger-red: var(--color-danger);
+            --warning-yellow: var(--color-warning);
+            --node-green: var(--color-node-green);
+            --node-red: var(--color-node-red);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ACCESSIBILITY ENHANCEMENTS (WCAG 2.1 AA) ===== */
+
+        /* Touch Targets */
+        button, a, [role="button"], input[type="button"], input[type="submit"] {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Focus Indicators */
+        *:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 2px;
+        }
+
+        button:focus-visible, a:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 4px;
+            box-shadow: 0 0 0 4px rgba(247, 147, 26, 0.2);
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Mobile Reflow */
+        @media (max-width: 360px) {
+            body {
+                overflow-x: hidden;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            color: var(--primary-orange);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 147, 26, 0.4);
+        }
+
+        .game-controls {
+            background: var(--secondary-dark);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .scenario-selector {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .scenario-btn {
+            background: rgba(247, 147, 26, 0.2);
+            border: 2px solid var(--primary-orange);
+            color: var(--text-light);
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .scenario-btn:hover {
+            background: var(--primary-orange);
+            transform: translateY(-2px);
+        }
+
+        .scenario-btn.active {
+            background: var(--primary-orange);
+        }
+
+        .network-visualization {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .network-panel {
+            background: var(--secondary-dark);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+        }
+
+        .network-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .node {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .node.honest {
+            background: var(--node-green);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .node.malicious {
+            background: var(--node-red);
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+        }
+
+        .node.offline {
+            background: var(--text-dim);
+            box-shadow: none;
+        }
+
+        .node:hover {
+            transform: scale(1.1);
+        }
+
+        .consensus-status {
+            text-align: center;
+            padding: 2rem;
+            margin: 2rem 0;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+        }
+
+        .status-indicator {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .blockchain-view {
+            background: var(--primary-dark);
+            border: 2px solid var(--primary-orange);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+
+        .block-chain {
+            display: flex;
+            gap: 1rem;
+            min-width: max-content;
+        }
+
+        .block {
+            background: var(--secondary-dark);
+            border: 2px solid var(--primary-orange);
+            border-radius: 10px;
+            padding: 1rem;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .block.valid {
+            border-color: var(--success-green);
+        }
+
+        .block.invalid {
+            border-color: var(--danger-red);
+        }
+
+        .block.orphaned {
+            border-color: var(--warning-yellow);
+            opacity: 0.6;
+        }
+
+        .attack-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .attack-btn {
+            background: var(--danger-red);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .attack-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(244, 51, 54, 0.4);
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .educational-info {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .reveal-btn {
+            background: rgba(247, 147, 26, 0.2);
+            border: 2px solid var(--primary-orange);
+            color: var(--primary-orange);
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .reveal-btn:hover {
+            background: var(--primary-orange);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(247, 147, 26, 0.3);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .simulation-log {
+            background: var(--primary-dark);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9rem;
+            margin: 2rem 0;
+        }
+
+        .log-entry {
+            margin-bottom: 0.5rem;
+            padding: 0.25rem;
+        }
+
+        .log-entry.success { color: var(--success-green); }
+        .log-entry.error { color: var(--danger-red); }
+        .log-entry.warning { color: var(--warning-yellow); }
+
+        @media (max-width: 768px) {
+            .network-visualization {
+                grid-template-columns: 1fr;
+            }
+            
+            .network-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .scenario-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .back-btn {
+                position: relative;
+                top: auto;
+                left: auto;
+                margin-bottom: 2rem;
+                display: inline-block;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="/css/icons.css">
+    <link rel="stylesheet" href="/css/interactive-demos.css">
+<meta name="description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><link rel="canonical" href="https://bitcoinsovereign.academy/"><meta property="og:title" content="Bitcoin Sovereign Academy"><meta property="og:description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg"><meta property="og:url" content="https://bitcoinsovereign.academy/"><meta property="og:type" content="website"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Bitcoin Sovereign Academy",
+  "description": "Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.",
+  "url": "https://bitcoinsovereign.academy",
+  "logo": "https://bitcoinsovereign.academy/assets/og-image.jpg",
+  "sameAs": [
+    "https://github.com/Sovereigndwp/bitcoin-sovereign-academy"
+  ],
+  "educationalLevel": "Beginner to Advanced",
+  "teaches": [
+    "Bitcoin Fundamentals",
+    "Cryptocurrency Technology",
+    "Financial Sovereignty",
+    "Digital Asset Security"
+  ],
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Students interested in Bitcoin and cryptocurrency"
+  }
+}</script></head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <script src="/js/config.js"></script>
+    <script src="/js/demo-lock-subdomain.js"></script>
+    <script src="/js/subdomain-access-control.js"></script>
+
+
+
+    <a href="../../" class="back-btn">← Back to Academy</a>
+    
+    <main id="main-content" class="container">
+        <div class="header">
+            <h1>⚔️ Bitcoin Consensus Game</h1>
+            <p>Simulate network attacks and discover how Bitcoin achieves consensus</p>
+        </div>
+
+        <div class="game-controls">
+            <h3 style="color: var(--primary-orange); margin-bottom: 2rem;">Choose Your Scenario</h3>
+            
+            <div class="scenario-selector">
+                <button class="scenario-btn active" onclick="setScenario('honest')">
+                    🟢 Honest Network
+                </button>
+                <button class="scenario-btn" onclick="setScenario('51attack')">
+                    🔴 51% Attack
+                </button>
+                <button class="scenario-btn" onclick="setScenario('eclipse')">
+                    🌘 Eclipse Attack
+                </button>
+                <button class="scenario-btn" onclick="setScenario('selfish')">
+                    🎭 Selfish Mining
+                </button>
+                <button class="scenario-btn" onclick="setScenario('partition')">
+                    🔗 Network Split
+                </button>
+            </div>
+
+            <div class="attack-controls">
+                <button class="attack-btn" onclick="startSimulation()" id="simulateBtn">
+                    ▶️ Start Simulation
+                </button>
+                <button class="attack-btn" onclick="resetNetwork()" style="background: var(--text-dim);">
+                    <span data-icon="refresh"></span> Reset Network
+                </button>
+            </div>
+        </div>
+
+        <div class="network-visualization">
+            <div class="network-panel">
+                <h4 style="color: var(--primary-orange); text-align: center; margin-bottom: 1rem;"><span data-icon="network"></span> Network Nodes
+                </h4>
+                <div class="network-grid" id="networkGrid">
+                    <!-- Nodes will be populated by JavaScript -->
+                </div>
+                <div style="text-align: center; margin-top: 1rem; font-size: 0.9rem;">
+                    <span style="color: var(--node-green);">● Honest Nodes</span>
+                    <span style="margin: 0 1rem; color: var(--node-red);">● Malicious Nodes</span>
+                    <span style="color: var(--text-dim);">● Offline Nodes</span>
+                </div>
+            </div>
+
+            <div class="network-panel">
+                <h4 style="color: var(--primary-orange); text-align: center; margin-bottom: 1rem;"><span data-icon="chart"></span> Network Stats
+                </h4>
+                <div class="stats-panel">
+                    <div class="stat-card">
+                        <div class="stat-value" id="honestHashrate">75%</div>
+                        <div>Honest Hashrate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="maliciousHashrate">25%</div>
+                        <div>Malicious Hashrate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="blockHeight">685000</div>
+                        <div>Block Height</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="consensusStatus">✅</div>
+                        <div>Consensus</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="consensus-status">
+            <div class="status-indicator" id="statusIndicator">✅</div>
+            <h3 style="color: var(--primary-orange); margin-bottom: 1rem;" id="statusTitle">Network Secure</h3>
+            <p id="statusDescription">
+                The network is operating normally with honest majority maintaining consensus.
+            </p>
+        </div>
+
+        <div class="blockchain-view">
+            <h4 style="color: var(--primary-orange); margin-bottom: 1rem;">⛓️ Blockchain State</h4>
+            <div class="block-chain" id="blockChain">
+                <!-- Blocks will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="simulation-log">
+            <h4 style="color: var(--primary-orange); margin-bottom: 1rem;">📜 Simulation Log</h4>
+            <div id="logContainer">
+                <div class="log-entry">System initialized. Ready to start simulation.</div>
+            </div>
+        </div>
+
+        <div class="educational-info">
+            <h4 style="margin-bottom: 1rem;"><span data-icon="books"></span> Understanding Bitcoin Consensus</h4>
+            <p id="educationalContent">
+                Bitcoin's consensus mechanism relies on honest majority hashrate. When more than 50% of mining power
+                is controlled by honest actors, the network remains secure and follows the longest valid chain.
+                Experiment with different scenarios to see how attacks can affect consensus!
+            </p>
+        </div>
+
+        <!-- Socratic Questions Section -->
+        <div style="background: linear-gradient(135deg, rgba(247, 147, 26, 0.1), rgba(255, 107, 0, 0.05)); border: 2px solid rgba(247, 147, 26, 0.3); border-radius: 12px; padding: 2rem; margin-top: 2rem;">
+            <h3 style="color: var(--primary-orange); font-size: 1.3rem; margin-bottom: 1.5rem; text-align: center;"><span data-icon="graduation"></span> Test Your Understanding</h3>
+
+            <div style="background: rgba(0, 0, 0, 0.3); border-left: 4px solid var(--primary-orange); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                <strong style="color: #FFC107; font-size: 1.1rem; display: block; margin-bottom: 1rem;">Q1: Why does Bitcoin require "proof of work" instead of simply counting votes from nodes?</strong>
+                <button class="reveal-btn" onclick="toggleAnswer('consensus-answer1')">Reveal Answer</button>
+                <div class="answer" id="consensus-answer1" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(76, 175, 80, 0.1); border-left: 4px solid var(--success-green); border-radius: 8px; line-height: 1.6;">
+                    <p>
+                        In a decentralized system, <strong>anyone can create as many nodes as they want</strong> (this is called a "Sybil attack").
+                        If Bitcoin used simple voting, an attacker could create thousands of fake nodes and easily control the network.
+                    </p>
+                    <p style="margin-top: 0.5rem;">
+                        <strong>Proof of Work solves this</strong> by making each "vote" (block) expensive to create. An attacker would need to
+                        acquire massive amounts of physical mining hardware and electricity—not just create virtual nodes. This makes attacks
+                        economically impractical because:
+                    </p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Mining hardware costs millions of dollars</li>
+                        <li>Electricity consumption is enormous and ongoing</li>
+                        <li>Successfully attacking would crash the price, destroying the attacker's investment</li>
+                        <li>The attacker would earn more by mining honestly</li>
+                    </ul>
+                    <p style="margin-top: 0.5rem;">
+                        <strong>Bottom line:</strong> Proof of Work makes votes cost real-world resources, preventing free Sybil attacks.
+                    </p>
+                </div>
+            </div>
+
+            <div style="background: rgba(0, 0, 0, 0.3); border-left: 4px solid var(--primary-orange); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                <strong style="color: #FFC107; font-size: 1.1rem; display: block; margin-bottom: 1rem;">Q2: What happens to transactions if there's a chain reorganization (reorg)?</strong>
+                <button class="reveal-btn" onclick="toggleAnswer('consensus-answer2')">Reveal Answer</button>
+                <div class="answer" id="consensus-answer2" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(76, 175, 80, 0.1); border-left: 4px solid var(--success-green); border-radius: 8px; line-height: 1.6;">
+                    <p>
+                        A <strong>chain reorganization (reorg)</strong> occurs when a longer competing chain emerges and becomes the new "main chain."
+                        When this happens:
+                    </p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li><strong>Orphaned blocks:</strong> Blocks on the shorter chain become "orphaned" (invalid)</li>
+                        <li><strong>Transactions reversed:</strong> Transactions in orphaned blocks return to the mempool (unconfirmed)</li>
+                        <li><strong>Most get re-mined:</strong> Honest miners will typically re-include these transactions in future blocks</li>
+                        <li><strong>Double-spends possible:</strong> An attacker can replace their original transaction with a different one</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">
+                        <strong>This is why merchants wait for confirmations!</strong>
+                    </p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li><strong>1 confirmation:</strong> Risky, 10-min reorg is possible</li>
+                        <li><strong>3 confirmations:</strong> Safer, requires attacker to mine 3 blocks in a row</li>
+                        <li><strong>6 confirmations:</strong> Very safe standard (~1 hour), extremely expensive to reorg</li>
+                        <li><strong>100+ confirmations:</strong> Required for newly mined coins (coinbase maturity)</li>
+                    </ul>
+                    <p style="margin-top: 0.5rem;">
+                        <strong>Key insight:</strong> Each additional confirmation exponentially increases the cost for an attacker to reorganize the chain.
+                    </p>
+                </div>
+            </div>
+
+            <div style="background: rgba(0, 0, 0, 0.3); border-left: 4px solid var(--primary-orange); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                <strong style="color: #FFC107; font-size: 1.1rem; display: block; margin-bottom: 1rem;">Q3: Why can't a 51% attacker steal your Bitcoin or print unlimited coins?</strong>
+                <button class="reveal-btn" onclick="toggleAnswer('consensus-answer3')">Reveal Answer</button>
+                <div class="answer" id="consensus-answer3" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(76, 175, 80, 0.1); border-left: 4px solid var(--success-green); border-radius: 8px; line-height: 1.6;">
+                    <p>
+                        Even with 51% of mining power, an attacker is <strong>severely limited</strong> by Bitcoin's consensus rules, which are enforced by
+                        <strong>every full node</strong>, not just miners:
+                    </p>
+                    <p style="margin-top: 1rem;"><strong>What a 51% attacker CAN do:</strong></p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>✓ Double-spend their own coins (send, receive goods, then reverse the transaction)</li>
+                        <li>✓ Prevent specific transactions from confirming (censorship)</li>
+                        <li>✓ Orphan other miners' blocks (waste their work)</li>
+                    </ul>
+                    <p style="margin-top: 1rem;"><strong>What a 51% attacker CANNOT do:</strong></p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>✗ Steal Bitcoin from someone else's address (requires private keys)</li>
+                        <li>✗ Create Bitcoin out of thin air (violates 21M supply cap)</li>
+                        <li>✗ Change the block reward (violates halving schedule)</li>
+                        <li>✗ Spend coins without valid signatures (violates cryptographic rules)</li>
+                        <li>✗ Invalidate properly signed transactions (all nodes would reject their blocks)</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">
+                        <strong>Why?</strong> Because every full node independently validates every block according to Bitcoin's consensus rules.
+                        If a miner creates a block that breaks the rules (invalid signatures, wrong supply, etc.), <strong>every node will reject it</strong>—
+                        even if it's on the longest chain!
+                    </p>
+                    <p style="margin-top: 0.5rem;">
+                        <strong>Key takeaway:</strong> Miners propose blocks, but full nodes enforce the rules. This separation of powers is crucial to Bitcoin's security.
+                    </p>
+                </div>
+            </div>
+
+            <div style="background: rgba(0, 0, 0, 0.3); border-left: 4px solid var(--primary-orange); border-radius: 8px; padding: 1.5rem;">
+                <strong style="color: #FFC107; font-size: 1.1rem; display: block; margin-bottom: 1rem;">Q4: If honest miners control 60% hashrate, what's the probability a malicious miner with 40% produces the next block?</strong>
+                <button class="reveal-btn" onclick="toggleAnswer('consensus-answer4')">Reveal Answer</button>
+                <div class="answer" id="consensus-answer4" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(76, 175, 80, 0.1); border-left: 4px solid var(--success-green); border-radius: 8px; line-height: 1.6;">
+                    <p>
+                        The probability is approximately <strong>40%</strong> for any single block. This is because mining is a probabilistic process—
+                        each miner's chance of finding the next block is directly proportional to their hashrate.
+                    </p>
+                    <p style="margin-top: 1rem;"><strong>The Math:</strong></p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Total network hashrate = 100%</li>
+                        <li>Honest miners = 60% of hashrate → 60% chance to find next block</li>
+                        <li>Malicious miners = 40% of hashrate → 40% chance to find next block</li>
+                    </ul>
+                    <p style="margin-top: 1rem;"><strong>But over time, probabilities average out:</strong></p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Over 10 blocks: Honest will likely produce ~6, malicious ~4</li>
+                        <li>Over 100 blocks: Honest ~60, malicious ~40</li>
+                        <li>Over 1,000 blocks: Honest ~600, malicious ~400</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">
+                        <strong>Why this matters for security:</strong>
+                    </p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>With 60% hashrate, honest chain grows faster on average (0.6 blocks/period vs 0.4 blocks/period)</li>
+                        <li>Even if malicious miners get lucky and mine 2-3 blocks in a row, honest chain will eventually overtake</li>
+                        <li>The longer you wait (more confirmations), the exponentially harder it becomes to reorganize</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">
+                        <strong>Example attack scenario:</strong> To reorganize a chain with 6 confirmations when controlling 40% hashrate,
+                        an attacker would need to mine 7 blocks faster than the honest 60% mines 1 block. The probability of this is vanishingly small: <strong>~0.09%</strong>
+                    </p>
+                    <p style="margin-top: 0.5rem;">
+                        <strong>Key insight:</strong> Security comes from the cumulative difficulty of outpacing the honest majority over many blocks, not from any single block.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add toggle function for answers
+        function toggleAnswer(id) {
+            const answer = document.getElementById(id);
+            if (answer.style.display === 'none') {
+                answer.style.display = 'block';
+                answer.style.animation = 'slideDown 0.3s ease';
+            } else {
+                answer.style.display = 'none';
+            }
+        }
+    </script>
+
+    <script>
+        let currentScenario = 'honest';
+        let simulationRunning = false;
+        let blockHeight = 685000;
+        let simulationInterval;
+        
+        const scenarios = {
+            honest: {
+                name: 'Honest Network',
+                honestNodes: 12,
+                maliciousNodes: 4,
+                description: 'Normal operation with honest majority maintaining network security.',
+                educationalContent: 'In a healthy Bitcoin network, honest miners control the majority of hashrate. This ensures that valid transactions are included and invalid ones are rejected. The longest valid chain always wins.'
+            },
+            '51attack': {
+                name: '51% Attack',
+                honestNodes: 7,
+                maliciousNodes: 9,
+                description: 'Malicious actors control majority hashrate - network vulnerable to attacks!',
+                educationalContent: 'When malicious actors control >50% of hashrate, they can reorganize the blockchain, double-spend, and prevent transactions from confirming. This is why Bitcoin\'s security depends on decentralized mining.'
+            },
+            eclipse: {
+                name: 'Eclipse Attack',
+                honestNodes: 10,
+                maliciousNodes: 6,
+                description: 'Some honest nodes are isolated from the main network.',
+                educationalContent: 'In an eclipse attack, malicious nodes surround and isolate honest nodes, feeding them false information. This can trick isolated nodes into accepting invalid chains.'
+            },
+            selfish: {
+                name: 'Selfish Mining',
+                honestNodes: 9,
+                maliciousNodes: 7,
+                description: 'Malicious miners withhold blocks to gain unfair advantage.',
+                educationalContent: 'Selfish miners mine in secret and strategically release blocks to waste honest miners\' work. This attack can be profitable even with less than 50% hashrate.'
+            },
+            partition: {
+                name: 'Network Partition',
+                honestNodes: 8,
+                maliciousNodes: 0,
+                description: 'Network split into two segments - competing chains emerge.',
+                educationalContent: 'When the network splits (due to connectivity issues), two valid chains can emerge. When connection is restored, the longest chain wins and shorter chains become orphaned.'
+            }
+        };
+
+        function setScenario(scenario) {
+            console.log('Setting consensus scenario:', scenario);
+            
+            if (!scenarios[scenario]) {
+                console.error('Invalid scenario:', scenario);
+                alert('❌ Invalid scenario selected. Please refresh the page.');
+                return;
+            }
+            
+            currentScenario = scenario;
+            
+            // Update UI safely
+            document.querySelectorAll('.scenario-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Find and activate the correct button
+            const activeBtn = event?.target || document.querySelector(`[onclick="setScenario('${scenario}')"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            } else {
+                console.warn('Could not find button for scenario:', scenario);
+            }
+            
+            // Reset and update network with error handling
+            try {
+                resetNetwork();
+                updateNetworkDisplay();
+                updateEducationalContent();
+                logMessage(`Scenario changed to: ${scenarios[scenario].name}`, 'success');
+                
+                console.log('Scenario set successfully:', scenarios[scenario]);
+            } catch (error) {
+                console.error('Error setting scenario:', error);
+                logMessage('Error changing scenario', 'error');
+                alert('❌ Error changing scenario. Please refresh the page.');
+            }
+        }
+
+        function updateNetworkDisplay() {
+            const scenario = scenarios[currentScenario];
+            const networkGrid = document.getElementById('networkGrid');
+            
+            if (!networkGrid) {
+                console.error('Network grid not found');
+                return;
+            }
+            
+            if (!scenario) {
+                console.error('Scenario not found:', currentScenario);
+                return;
+            }
+            
+            console.log('Updating network display for scenario:', scenario.name);
+            
+            // Clear existing nodes
+            networkGrid.innerHTML = '';
+            
+            try {
+                // Create honest nodes
+                for (let i = 0; i < scenario.honestNodes; i++) {
+                    const node = document.createElement('div');
+                    node.className = 'node honest';
+                    node.textContent = `H${i + 1}`;
+                    node.onclick = () => toggleNode(node);
+                    node.title = `Honest Node ${i + 1}`;
+                    networkGrid.appendChild(node);
+                }
+                
+                // Create malicious nodes
+                for (let i = 0; i < scenario.maliciousNodes; i++) {
+                    const node = document.createElement('div');
+                    node.className = 'node malicious';
+                    node.textContent = `M${i + 1}`;
+                    node.onclick = () => toggleNode(node);
+                    node.title = `Malicious Node ${i + 1}`;
+                    networkGrid.appendChild(node);
+                }
+                
+                // Fill remaining slots with offline nodes
+                const totalNodes = 16;
+                const activeNodes = scenario.honestNodes + scenario.maliciousNodes;
+                for (let i = activeNodes; i < totalNodes; i++) {
+                    const node = document.createElement('div');
+                    node.className = 'node offline';
+                    node.textContent = `---`;
+                    node.title = 'Offline Node';
+                    networkGrid.appendChild(node);
+                }
+                
+                console.log('Network nodes created:', {
+                    honest: scenario.honestNodes,
+                    malicious: scenario.maliciousNodes,
+                    offline: totalNodes - activeNodes
+                });
+                
+                updateStats();
+            } catch (error) {
+                console.error('Error updating network display:', error);
+                logMessage('Error updating network display', 'error');
+            }
+        }
+
+        function updateStats() {
+            const scenario = scenarios[currentScenario];
+            const totalActive = scenario.honestNodes + scenario.maliciousNodes;
+            const honestPercent = totalActive > 0 ? Math.round((scenario.honestNodes / totalActive) * 100) : 0;
+            const maliciousPercent = totalActive > 0 ? Math.round((scenario.maliciousNodes / totalActive) * 100) : 0;
+            
+            document.getElementById('honestHashrate').textContent = `${honestPercent}%`;
+            document.getElementById('maliciousHashrate').textContent = `${maliciousPercent}%`;
+            document.getElementById('blockHeight').textContent = blockHeight.toLocaleString();
+            
+            // Update consensus status
+            const consensusSecure = honestPercent > 50;
+            document.getElementById('consensusStatus').textContent = consensusSecure ? '✅' : '❌';
+            document.getElementById('statusIndicator').textContent = consensusSecure ? '✅' : '⚠️';
+            document.getElementById('statusTitle').textContent = consensusSecure ? 'Network Secure' : 'Network Compromised';
+            document.getElementById('statusDescription').textContent = scenario.description;
+        }
+
+        function updateEducationalContent() {
+            const scenario = scenarios[currentScenario];
+            document.getElementById('educationalContent').textContent = scenario.educationalContent;
+        }
+
+        function startSimulation() {
+            console.log('Starting consensus simulation...');
+            
+            if (simulationRunning) {
+                console.log('Stopping currently running simulation');
+                stopSimulation();
+                return;
+            }
+            
+            const simulateBtn = document.getElementById('simulateBtn');
+            if (!simulateBtn) {
+                console.error('Simulate button not found');
+                alert('❌ Interface error. Please refresh the page.');
+                return;
+            }
+            
+            simulationRunning = true;
+            simulateBtn.textContent = '⏸️ Stop Simulation';
+            
+            logMessage('Starting simulation...', 'success');
+            console.log('Simulation started for scenario:', currentScenario);
+            
+            simulationInterval = setInterval(() => {
+                try {
+                    simulateBlock();
+                } catch (error) {
+                    console.error('Simulation error:', error);
+                    logMessage('Simulation error occurred', 'error');
+                    stopSimulation();
+                }
+            }, 2000);
+        }
+
+        function stopSimulation() {
+            simulationRunning = false;
+            clearInterval(simulationInterval);
+            document.getElementById('simulateBtn').textContent = '▶️ Start Simulation';
+            logMessage('Simulation stopped.', 'warning');
+        }
+
+        function simulateBlock() {
+            blockHeight++;
+            
+            const scenario = scenarios[currentScenario];
+            if (!scenario) {
+                console.error('No scenario found for simulation');
+                return;
+            }
+            
+            const totalActive = scenario.honestNodes + scenario.maliciousNodes;
+            const honestChance = totalActive > 0 ? scenario.honestNodes / totalActive : 0.5;
+            
+            const isHonestBlock = Math.random() < honestChance;
+            const blockType = isHonestBlock ? 'valid' : (currentScenario === '51attack' ? 'invalid' : 'valid');
+            
+            console.log('Simulating block:', {
+                height: blockHeight,
+                scenario: currentScenario,
+                isHonest: isHonestBlock,
+                type: blockType
+            });
+            
+            addBlockToChain(blockHeight, blockType, isHonestBlock);
+            
+            // Scenario-specific messages
+            if (currentScenario === '51attack' && !isHonestBlock) {
+                logMessage(`Block ${blockHeight}: Malicious block mined - potential double spend!`, 'error');
+            } else if (currentScenario === 'selfish' && !isHonestBlock) {
+                logMessage(`Block ${blockHeight}: Selfish miner found block but withholding...`, 'warning');
+            } else if (currentScenario === 'eclipse' && Math.random() < 0.3) {
+                logMessage(`Block ${blockHeight}: Some nodes receiving different chain view`, 'warning');
+            } else {
+                logMessage(`Block ${blockHeight}: Block mined by ${isHonestBlock ? 'honest' : 'malicious'} miner`, 'success');
+            }
+            
+            updateStats();
+            
+            // Special scenario behaviors
+            if (currentScenario === 'partition' && blockHeight % 5 === 0) {
+                logMessage(`Network partition detected - competing chains emerging!`, 'warning');
+            }
+        }
+
+        function addBlockToChain(height, type, isHonest) {
+            const blockChain = document.getElementById('blockChain');
+            
+            // Keep only last 6 blocks visible
+            while (blockChain.children.length >= 6) {
+                blockChain.removeChild(blockChain.firstChild);
+            }
+            
+            const block = document.createElement('div');
+            block.className = `block ${type}`;
+            block.innerHTML = `
+                <div style="font-weight: bold; color: var(--primary-orange);">#${height}</div>
+                <div style="font-size: 0.8rem; margin-top: 0.5rem;">
+                    ${isHonest ? 'Honest' : 'Malicious'}<br>
+                    ${type === 'valid' ? '✅ Valid' : '❌ Invalid'}
+                </div>
+            `;
+            
+            blockChain.appendChild(block);
+        }
+
+        function resetNetwork() {
+            stopSimulation();
+            blockHeight = 685000;
+            
+            // Clear blockchain
+            document.getElementById('blockChain').innerHTML = `
+                <div class="block valid">
+                    <div style="font-weight: bold; color: var(--primary-orange);">Genesis</div>
+                    <div style="font-size: 0.8rem; margin-top: 0.5rem;">Block #0<br>✅ Valid</div>
+                </div>
+            `;
+            
+            // Clear logs
+            document.getElementById('logContainer').innerHTML = `
+                <div class="log-entry">Network reset. Ready for new simulation.</div>
+            `;
+            
+            updateStats();
+        }
+
+        function toggleNode(node) {
+            if (node.classList.contains('offline')) return;
+            
+            // Toggle between honest and malicious (simplified for demo)
+            if (node.classList.contains('honest')) {
+                logMessage(`Node ${node.textContent} went offline`, 'warning');
+                node.className = 'node offline';
+                node.textContent = '---';
+            } else if (node.classList.contains('malicious')) {
+                logMessage(`Node ${node.textContent} went offline`, 'warning');
+                node.className = 'node offline';
+                node.textContent = '---';
+            }
+        }
+
+        function logMessage(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Keep only last 50 log entries
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+
+        // Initialize with safety checks
+        console.log('Consensus Game initialized');
+        
+        // Test required elements
+        const requiredElements = ['networkGrid', 'simulateBtn', 'statusIndicator', 'statusTitle', 'logContainer'];
+        const missingElements = requiredElements.filter(id => !document.getElementById(id));
+        
+        if (missingElements.length > 0) {
+            console.error('Missing required elements:', missingElements);
+            alert('Interface error: Missing elements detected. Please refresh the page.');
+        } else {
+            console.log('All required elements found, initializing...');
+            
+            try {
+                updateNetworkDisplay();
+                updateEducationalContent();
+                
+                // Add some initial blocks to the chain
+                for (let i = 0; i < 4; i++) {
+                    addBlockToChain(blockHeight - 3 + i, 'valid', true);
+                }
+                
+                console.log('Consensus Game initialization complete');
+            } catch (error) {
+                console.error('Initialization error:', error);
+                alert('Initialization error. Please refresh the page.');
+            }
+        }
+    </script>
+
+    <!-- Animated Icon Library -->
+    <script src="/js/icon-library.js"></script>
+    <script>
+        // Inject icons after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.IconLibrary) {
+                document.querySelectorAll('[data-icon]').forEach(function(element) {
+                    var iconName = element.getAttribute('data-icon');
+                    if (iconName) {
+                        var iconHTML = IconLibrary.get(iconName, 20, true);
+                        var span = document.createElement('span');
+                        span.innerHTML = iconHTML;
+                        span.className = 'icon-inline';
+                        span.style.marginRight = '0.5rem';
+                        span.style.display = 'inline-block';
+                        span.style.verticalAlign = 'middle';
+                        element.insertBefore(span, element.firstChild);
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Navigation Context (return-to-path functionality) -->
+    <script src="/js/navigation-context.js"></script>
+    <!-- Reflect: Socratic questions after activity -->
+    <div style="max-width:900px;margin:2rem auto 0;padding:0 1.5rem 2.5rem">
+        <div class="reflect-widget"
+             data-topic="blockchain"
+             data-path="curious"
+             data-title="Reflect: How do strangers reach agreement?">
+        </div>
+    </div>
+    <script src="/js/reflect-widget.js"></script>
+
+<script src="/js/membership-gate.js"></script>
+
+<!-- Analytics, Email Capture & Tip CTAs -->
+<div class="container" style="margin: 2rem auto; max-width: 900px; padding: 0 1.5rem;">
+    <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
+    <div id="tip-page" data-tip-cta="compact"></div>
+</div>
+<script src="/js/analytics.js" defer></script>
+<script src="/js/email-capture.js" defer></script>
+<script src="/js/tip-cta.js" defer></script>
+
+</body></html>

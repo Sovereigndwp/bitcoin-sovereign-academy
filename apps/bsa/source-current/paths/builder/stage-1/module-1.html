@@ -1,0 +1,1232 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Protocol Deep Dive | The Builder Path</title>
+    <meta name="description" content="Master Bitcoin's UTXO model, transaction structure, and script language with interactive demos and hands-on exercises.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --text-light: #e0e0e0;
+            --text-dim: #b3b3b3;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Module Header */
+        .module-header {
+            background: var(--secondary-dark);
+            border-bottom: 2px solid var(--primary-orange);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .module-title-section h1 {
+            font-size: 1.75rem;
+            color: var(--accent-blue);
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-orange);
+        }
+
+        .content-section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--accent-blue);
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        code {
+            background: rgba(247, 147, 26, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            color: var(--primary-orange);
+        }
+
+        pre {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-light);
+        }
+
+        /* Interactive Demo */
+        .demo-container {
+            background: var(--secondary-dark);
+            border: 2px solid var(--accent-blue);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-container h3 {
+            color: var(--accent-blue);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Navigation */
+        .module-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-orange);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #ff8c00;
+        }
+
+        .nav-btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-light);
+        }
+
+        /* Mobile Responsive Adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            #flow-diagram > div > div {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+
+            #flow-inputs, #flow-outputs {
+                align-items: stretch !important;
+            }
+
+            #flow-inputs > div {
+                flex-direction: row-reverse !important;
+            }
+
+            #flow-outputs > div {
+                flex-direction: row !important;
+            }
+        }
+
+        /* ===== ACCESSIBILITY ENHANCEMENTS (WCAG 2.1 AA) ===== */
+
+        /* WCAG 2.5.5: Touch Target Size */
+        button, a, [role="button"], .nav-btn, .module-cta {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        p a, li a {
+            min-height: auto;
+            min-width: auto;
+            padding: 0.25rem 0;
+        }
+
+        /* WCAG 2.4.7: Focus Visible */
+        *:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 2px;
+        }
+
+        button:focus-visible, a:focus-visible, [role="button"]:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 4px;
+            box-shadow: 0 0 0 4px rgba(247, 147, 26, 0.2);
+        }
+
+        /* WCAG 2.3.3: Animation from Interactions */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        /* WCAG 1.4.10: Reflow */
+        @media (max-width: 360px) {
+            body {
+                overflow-x: hidden;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+        }
+
+        /* Demo Link - styled CTA for demos */
+        .demo-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #d97706, var(--primary-orange, #f7931a));
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .demo-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(247, 147, 26, 0.4);
+            color: white;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/lab-guide.css">
+    <script src="/js/config.js"></script>
+    <script src="/js/subdomain-access-control.js"></script>
+    <script src="/js/module-gate-subdomain.js"></script>
+    <script src="/js/module-progress.js"></script>
+    <link rel="stylesheet" href="/css/icons.css">
+<link rel="canonical" href="https://bitcoinsovereign.academy/module-1.html"><meta property="og:title" content="Module 1 - Bitcoin Sovereign Academy"><meta property="og:description" content="Learn about module 1 at Bitcoin Sovereign Academy. Interactive Bitcoin education with hands-on exercises and expert guidance."><meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg"><meta property="og:url" content="https://bitcoinsovereign.academy/module-1.html"><meta property="og:type" content="website"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Bitcoin Sovereign Academy",
+  "description": "Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.",
+  "url": "https://bitcoinsovereign.academy",
+  "logo": "https://bitcoinsovereign.academy/assets/og-image.jpg",
+  "sameAs": [
+    "https://github.com/Sovereigndwp/bitcoin-sovereign-academy"
+  ],
+  "educationalLevel": "Beginner to Advanced",
+  "teaches": [
+    "Bitcoin Fundamentals",
+    "Cryptocurrency Technology",
+    "Financial Sovereignty",
+    "Digital Asset Security"
+  ],
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Students interested in Bitcoin and cryptocurrency"
+  }
+}</script></head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <!-- Module Header -->
+    <header class="module-header">
+        <div class="container">
+            <nav aria-label="Breadcrumb" class="breadcrumb">
+                <ol style="list-style: none; display: flex; gap: 0.5rem; margin: 0; padding: 0; flex-wrap: wrap;">
+                    <li><a href="/">Home</a></li>
+                    <li aria-hidden="true">→</li>
+                    <li><a href="/paths/builder/">The Builder Path</a></li>
+                    <li aria-hidden="true">→</li>
+                    <li><a href="/paths/builder/stage-1/">Stage 1</a></li>
+                    <li aria-hidden="true">→</li>
+                    <li aria-current="page">Module 1</li>
+                </ol>
+            </nav>
+            <div class="module-title-section">
+                <h1>Bitcoin Protocol Deep Dive</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Socratic Questions -->
+            <section class="content-section">
+                <h2>🤔 Before We Begin: Think Like a Protocol Designer</h2>
+                <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                    Before diving into Bitcoin's transaction model, consider the fundamental problems you'd need to solve:
+                </p>
+
+                <div style="background: var(--secondary-dark); border-left: 4px solid var(--accent-blue); border-radius: 0.75rem; padding: 1.5rem; margin: 1.5rem 0;">
+                    <div style="display: grid; gap: 1rem;">
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;"><span data-icon="money"></span> </span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How do you represent digital money without a bank database?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">If there's no central ledger tracking account balances, how do you know who owns what?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">🔁</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How do you prevent double-spending without a trusted authority?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">What stops someone from spending the same digital coin twice in different transactions?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;"><span data-icon="lock"></span> </span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">How do you prove ownership without revealing your identity?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">Can you have privacy AND security in digital transactions?</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <span style="font-size: 1.5rem;">📝</span>
+                            <div>
+                                <strong style="color: var(--accent-blue);">What data structure would allow 18,000 independent nodes to agree on transaction order?</strong>
+                                <p style="color: var(--text-dim); font-size: 0.95rem; margin-top: 0.5rem;">How do you design a system where everyone can verify everything independently?</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="margin-top: 1.5rem; text-align: center; font-size: 1.1rem;">
+                    <strong style="color: var(--accent-green);">Bitcoin's answer to all of these: The UTXO Model</strong>
+                </p>
+            </section>
+
+            <!-- Prerequisites & Foundation -->
+            <section class="content-section" style="background: rgba(33, 150, 243, 0.1); border-left: 4px solid var(--accent-blue); padding: 2rem; border-radius: 0.5rem;">
+                <h2 style="color: var(--accent-blue);"><span data-icon="book"></span> Prerequisites: Blockchain Basics</h2>
+                <p>
+                    Before diving into UTXOs, you should understand that Bitcoin uses a <strong>blockchain</strong>—a
+                    shared ledger that records all transactions in sequential blocks. Each block contains multiple
+                    transactions, and blocks are linked together chronologically.
+                </p>
+
+                <div style="background: var(--secondary-dark); padding: 1.5rem; border-radius: 0.5rem; margin: 1.5rem 0;">
+                    <h3 style="color: var(--primary-orange); font-size: 1rem;">Need a Blockchain Refresher?</h3>
+                    <p style="margin: 0.5rem 0;">
+                        If you haven't learned about blockchain basics yet, we recommend starting with:
+                    </p>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li><a href="/paths/curious/stage-2/module-1.html" style="color: var(--primary-orange);">Curious Path: How Bitcoin Works</a> (10 min intro)</li>
+                        <li><a href="/interactive-demos/building-the-chain-demo/" style="color: var(--primary-orange);">Building the Chain Demo</a> (Interactive)</li>
+                    </ul>
+                    <p style="margin-top: 0.5rem; color: var(--text-dim); font-size: 0.9rem;">
+                        ✓ Already familiar with blockchain? Continue below to learn about Bitcoin's unique UTXO model.
+                    </p>
+                </div>
+
+                <details style="margin-top: 1rem;">
+                    <summary style="cursor: pointer; color: var(--primary-orange); font-weight: bold;">
+                        <span data-icon="search"></span> Quick Review: Key Blockchain Terms
+                    </summary>
+                    <div style="margin-top: 1rem; padding: 1rem; background: var(--secondary-dark); border-radius: 0.5rem;">
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin: 0.75rem 0;"><strong>Block:</strong> A batch of transactions grouped together</li>
+                            <li style="margin: 0.75rem 0;"><strong>Blockchain:</strong> Blocks linked together in chronological order</li>
+                            <li style="margin: 0.75rem 0;"><strong>Transaction:</strong> A record of value transfer from one address to another</li>
+                            <li style="margin: 0.75rem 0;"><strong>Ledger:</strong> The complete record of all transactions (the blockchain itself)</li>
+                        </ul>
+                    </div>
+                </details>
+            </section>
+
+            <!-- UTXO Model -->
+            <section class="content-section">
+                <h2>The UTXO Model: Bitcoin's Transaction System</h2>
+
+                <p>
+                    Bitcoin doesn't track account balances like a bank. Instead, it tracks <strong>Unspent Transaction Outputs (UTXOs)</strong>—
+                    individual "coins" of various denominations that can be spent once and only once.
+                </p>
+
+                <h3>How UTXOs Work</h3>
+                <p>
+                    Think of UTXOs like physical cash:
+                </p>
+                <ul style="margin-left: 2rem; color: var(--text-dim); margin-bottom: 1rem;">
+                    <li>You have several bills in your wallet: $5, $10, $20</li>
+                    <li>To pay $15, you give the $20 bill and receive $5 change</li>
+                    <li>The $20 bill is now "spent" (destroyed)</li>
+                    <li>You receive a new $5 bill as change</li>
+                </ul>
+
+                <p>
+                    Bitcoin transactions work the same way:
+                </p>
+                <ul style="margin-left: 2rem; color: var(--text-dim); margin-bottom: 1rem;">
+                    <li><strong>Inputs:</strong> UTXOs you're spending (destroyed in the transaction)</li>
+                    <li><strong>Outputs:</strong> New UTXOs created for recipients and change</li>
+                    <li><strong>Rule:</strong> Sum of outputs ≤ Sum of inputs (difference = miner fee)</li>
+                </ul>
+
+                <h3>Transaction Structure</h3>
+                <p>Every Bitcoin transaction has:</p>
+
+                <pre><code>{
+  "txid": "abc123...",        // Unique transaction ID
+  "version": 2,               // Transaction version
+  "inputs": [                 // UTXOs being spent
+    {
+      "txid": "def456...",    // Previous transaction
+      "vout": 0,              // Output index
+      "scriptSig": "...",     // Signature proving ownership
+      "sequence": 4294967295
+    }
+  ],
+  "outputs": [                // New UTXOs being created
+    {
+      "value": 50000000,      // Amount in satoshis
+      "scriptPubKey": "..."   // Locking script (conditions)
+    }
+  ],
+  "locktime": 0               // Block height/time lock
+}</code></pre>
+
+                <h3 style="margin-top: 2rem; color: var(--accent-blue);">Master UTXO Management</h3>
+                <p>
+                    Understanding UTXOs is critical for Bitcoin development. Use this advanced visualizer to explore:
+                </p>
+                <ul style="margin-left: 2rem; margin-bottom: 1.5rem;">
+                    <li>UTXO selection strategies</li>
+                    <li>Fee optimization techniques</li>
+                    <li>Privacy considerations (address clustering)</li>
+                    <li>Dust management</li>
+                    <li>Raw transaction data and scripts</li>
+                </ul>
+
+                <!-- Lab: Real UTXO practice in Sparrow -->
+                <div class="lab-card" data-lab="sparrow-utxo" onclick="openLab('sparrow-utxo')">
+                    <div class="lab-card-icon">🔬</div>
+                    <div class="lab-card-body">
+                        <div class="lab-card-eyebrow">⚡ Try It Now — Real Practice</div>
+                        <h3>Inspect UTXOs and Build a Transaction in Sparrow Wallet</h3>
+                        <p>Open Sparrow Wallet on signet, browse real UTXOs, use coin control to select inputs, set a custom fee rate, sign, and broadcast. Verify on mempool.space/signet.</p>
+                        <div class="lab-card-meta">
+                            <span class="lab-card-tag signet">Signet (free coins)</span>
+                            <span class="lab-card-tag">Sparrow Wallet</span>
+                            <span class="lab-card-tag">20 min</span>
+                        </div>
+                    </div>
+                    <div class="lab-card-arrow">→</div>
+                </div>
+
+                <!-- Enhanced UTXO Visualizer (Advanced Mode) -->
+                <div class="demo-embed" style="margin-bottom: 3rem;">
+                    <h3>⚙️ UTXO Visualizer - Advanced Mode</h3>
+                    <p style="margin-bottom: 1.5rem;">
+                        Full UTXO management with technical details panel showing raw transaction data, fee calculations, and script inspection.
+                    </p>
+                    <a href="/interactive-demos/utxo-visualizer-enhanced/index.html?level=advanced&amp;path=builder" target="_blank" class="demo-link">
+                        Launch UTXO Visualizer (Advanced Mode) →
+                    </a>
+                    <p style="margin-top: 1rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;"><span data-icon="lightbulb"></span> All 6 scenarios available + expert challenge. Technical panel shows raw tx data, scripts, and fee breakdowns.
+                    </p>
+                </div>
+
+                <!-- Lab: Live mempool exploration -->
+                <div class="lab-card" data-lab="decode-transaction" onclick="openLab('decode-transaction')" style="cursor:pointer;">
+    <div class="lab-card-icon">🧾</div>
+    <div class="lab-card-body">
+        <div class="lab-card-eyebrow">⚡ Try It Now</div>
+        <h3>Decode a Bitcoin Transaction</h3>
+        <p>Parse a raw transaction hex byte-by-byte — see the protocol in action, no abstraction.</p>
+        <div class="lab-card-meta">
+            <span class="lab-card-tag mainnet">mainnet</span><span class="lab-card-tag">Mempool.space</span><span class="lab-card-tag">20 min</span>
+        </div>
+    </div>
+    <div class="lab-card-arrow">→</div>
+</div>
+
+                <!-- Mempool & Fee Market Visualizer -->
+                <div class="demo-embed" style="margin-bottom: 3rem; background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 1rem; padding: 2rem;">
+                    <h3 style="color: var(--primary-orange); margin-bottom: 1rem;"><span data-icon="chart"></span> Mempool &amp; Fee Market Economics</h3>
+                    <p style="margin-bottom: 1.5rem;">
+                        Deep dive into Bitcoin's fee market mechanics. Understand how mempool dynamics work, how miners prioritize transactions, and master fee estimation strategies. Essential knowledge for building Bitcoin applications!
+                    </p>
+                    <a href="/interactive-demos/mempool-visualizer/index.html?path=builder&amp;stage=1&amp;module=1" target="_blank" class="demo-link">
+                        Launch Mempool Visualizer →
+                    </a>
+                    <p style="margin-top: 1rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;"><span data-icon="lightbulb"></span> Complete all 5 steps including block building simulation, fee market analysis, and practical scenarios!
+                    </p>
+                </div>
+            </section>
+
+            <!-- Interactive UTXO Demo -->
+            <section class="content-section">
+                <div class="demo-container">
+                    <h3><span data-icon="game"></span> Additional Practice: UTXO Transaction Builder</h3>
+                    <p style="color: var(--text-dim); text-align: center; margin-bottom: 1.5rem;">
+                        Build a transaction by selecting UTXOs and creating outputs. See how change works!
+                    </p>
+
+                    <!-- UTXO Builder Interface -->
+                    <div id="utxo-builder" style="background: var(--primary-dark); padding: 2rem; border-radius: 0.75rem;">
+
+                        <!-- Smart Feedback Panel -->
+                        <div id="smart-feedback" style="margin-bottom: 2rem; padding: 1.25rem; background: var(--secondary-dark); border-radius: 0.75rem; border-left: 4px solid var(--primary-orange); min-height: 60px; display: none;">
+                            <div id="feedback-content" style="font-size: 0.95rem; line-height: 1.6;">
+                                <!-- Feedback will be dynamically added here -->
+                            </div>
+                        </div>
+
+                        <!-- Visual Flow Diagram -->
+                        <div id="flow-diagram" style="margin-bottom: 2rem; padding: 1.5rem; background: var(--secondary-dark); border-radius: 0.75rem; display: none;">
+                            <h4 style="color: var(--primary-orange); margin-bottom: 1.5rem; text-align: center; font-size: 1.1rem;"><span data-icon="chart"></span> Transaction Flow</h4>
+                            <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 1.5rem; align-items: center; min-height: 150px;">
+                                <!-- Inputs Column -->
+                                <div id="flow-inputs" style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;">
+                                    <!-- Input items will be added here -->
+                                </div>
+
+                                <!-- Transaction Center Box -->
+                                <div style="display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1;">
+                                    <div style="background: rgba(247, 147, 26, 0.2); border: 3px solid var(--primary-orange); border-radius: 0.75rem; padding: 1.25rem 1.5rem; text-align: center; min-width: 140px;">
+                                        <div style="font-weight: 700; color: var(--primary-orange); font-size: 1rem; margin-bottom: 0.5rem;">TRANSACTION</div>
+                                        <div style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.5rem;">
+                                            <div>Fee:</div>
+                                            <div id="flow-fee" style="color: var(--primary-orange); font-weight: 700; font-size: 1.1rem;">0 sats</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Outputs Column -->
+                                <div id="flow-outputs" style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start;">
+                                    <!-- Output items will be added here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Available UTXOs -->
+                        <div style="margin-bottom: 2rem;">
+                            <h4 style="color: var(--accent-blue); margin-bottom: 1rem; font-size: 1.1rem;">📦 Your Available UTXOs (Click to Select)</h4>
+                            <div id="available-utxos" style="display: grid; gap: 0.75rem;">
+                                <!-- UTXOs will be dynamically added here -->
+                            </div>
+                        </div>
+
+                        <!-- Transaction Inputs -->
+                        <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(33, 150, 243, 0.1); border-left: 4px solid var(--accent-blue); border-radius: 0.5rem;">
+                            <h4 style="color: var(--accent-blue); margin-bottom: 1rem; font-size: 1.1rem;">📥 Transaction Inputs (Selected UTXOs)</h4>
+                            <div id="selected-inputs" style="min-height: 60px;">
+                                <p style="color: var(--text-dim); font-size: 0.9rem; font-style: italic;">Click UTXOs above to add as inputs...</p>
+                            </div>
+                            <div style="margin-top: 1rem; padding: 0.75rem; background: var(--secondary-dark); border-radius: 0.5rem;">
+                                <strong style="color: var(--accent-blue);">Total Input Value:</strong>
+                                <span id="total-input" style="color: var(--accent-green); font-size: 1.2rem; margin-left: 0.5rem;">0 sats</span>
+                            </div>
+                        </div>
+
+                        <!-- Transaction Outputs -->
+                        <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(76, 175, 80, 0.1); border-left: 4px solid var(--accent-green); border-radius: 0.5rem;">
+                            <h4 style="color: var(--accent-green); margin-bottom: 1rem; font-size: 1.1rem;">📤 Transaction Outputs</h4>
+
+                            <div style="display: grid; gap: 1rem; margin-bottom: 1rem;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-light); font-weight: 600;">Recipient Address:</label>
+                                    <select id="recipient-address" style="width: 100%; padding: 0.75rem; background: var(--secondary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--text-light); font-family: monospace; cursor: pointer;">
+                                        <option value="">Select recipient...</option>
+                                        <option value="bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh">bc1qxy2k...fjhx0wlh (Alice's Coffee Shop)</option>
+                                        <option value="bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4">bc1qw508...kv8f3t4 (Bob's Hardware Store)</option>
+                                        <option value="bc1q34aq5drpuwy3wgl9lhup9892qp6svr8ldzyy7c">bc1q34aq...8ldzyy7c (Carol's Consulting)</option>
+                                        <option value="bc1qr583w2swedy2acd7rung055k8t3n7udp37v8hc">bc1qr583...udp37v8hc (Dave's Development)</option>
+                                        <option value="bc1q3ychxz6x36wt2tswvywtd4y4qc6dl6kxmr07lz">bc1q3ych...6kxmr07lz (Your Change Address)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-light); font-weight: 600;">Amount (satoshis):</label>
+                                    <input type="number" id="output-amount" placeholder="e.g., 50000" min="0" style="width: 100%; padding: 0.75rem; background: var(--secondary-dark); border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--text-light);">
+                                </div>
+                                <button id="add-output" style="padding: 0.75rem 1.5rem; background: var(--accent-green); color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                    Add Output
+                                </button>
+                            </div>
+
+                            <div id="output-list" style="margin-top: 1rem;">
+                                <p style="color: var(--text-dim); font-size: 0.9rem; font-style: italic;">No outputs added yet...</p>
+                            </div>
+
+                            <div style="margin-top: 1rem; padding: 0.75rem; background: var(--secondary-dark); border-radius: 0.5rem;">
+                                <strong style="color: var(--accent-green);">Total Output Value:</strong>
+                                <span id="total-output" style="color: var(--accent-green); font-size: 1.2rem; margin-left: 0.5rem;">0 sats</span>
+                            </div>
+                        </div>
+
+                        <!-- Transaction Summary -->
+                        <div style="padding: 1.5rem; background: rgba(247, 147, 26, 0.1); border: 2px solid var(--primary-orange); border-radius: 0.75rem;">
+                            <h4 style="color: var(--primary-orange); margin-bottom: 1rem; font-size: 1.2rem; text-align: center;"><span data-icon="lightning"></span> Transaction Summary</h4>
+                            <div style="display: grid; gap: 0.75rem; font-size: 1rem;">
+                                <div style="display: flex; justify-content: space-between; padding: 0.5rem;">
+                                    <span style="color: var(--text-light);">Total Inputs:</span>
+                                    <span id="summary-inputs" style="color: var(--accent-blue); font-weight: 600;">0 sats</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 0.5rem;">
+                                    <span style="color: var(--text-light);">Total Outputs:</span>
+                                    <span id="summary-outputs" style="color: var(--accent-green); font-weight: 600;">0 sats</span>
+                                </div>
+                                <div style="height: 1px; background: var(--border-color);"></div>
+                                <div style="display: flex; justify-content: space-between; padding: 0.5rem;">
+                                    <span style="color: var(--text-light); font-weight: 600;">Miner Fee:</span>
+                                    <span id="summary-fee" style="color: var(--primary-orange); font-weight: 700; font-size: 1.1rem;">0 sats</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: rgba(76, 175, 80, 0.2); border-radius: 0.5rem;">
+                                    <span style="color: var(--text-light); font-weight: 600;">Change Required:</span>
+                                    <span id="summary-change" style="color: var(--accent-green); font-weight: 700; font-size: 1.1rem;">0 sats</span>
+                                </div>
+                            </div>
+
+                            <div id="validation-message" style="margin-top: 1rem; padding: 0.75rem; border-radius: 0.5rem; text-align: center; font-weight: 600;">
+                                <!-- Validation messages will appear here -->
+                            </div>
+
+                            <button id="build-transaction" style="width: 100%; margin-top: 1rem; padding: 1rem; background: var(--primary-orange); color: white; border: none; border-radius: 0.5rem; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: all 0.3s;">
+                                Build Transaction
+                            </button>
+                        </div>
+
+                        <!-- Transaction Result -->
+                        <div id="transaction-result" style="margin-top: 2rem; padding: 1.5rem; background: var(--secondary-dark); border-radius: 0.75rem; display: none;">
+                            <h4 style="color: var(--accent-green); margin-bottom: 1rem; text-align: center;">✅ Transaction Built Successfully!</h4>
+                            <pre id="transaction-json" style="font-size: 0.85rem; max-height: 400px; overflow-y: auto;"></pre>
+                            <button id="reset-builder" style="width: 100%; margin-top: 1rem; padding: 0.75rem; background: var(--secondary-dark); color: var(--text-light); border: 2px solid var(--border-color); border-radius: 0.5rem; font-weight: 600; cursor: pointer;">
+                                Build Another Transaction
+                            </button>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 1rem; text-align: center; color: var(--text-dim); font-size: 0.9rem;"><span data-icon="lightbulb"></span> Try creating a transaction with exact change vs. requiring change output. Notice how fees work!
+                    </p>
+                </div>
+            </section>
+
+            <!-- Bitcoin Script (Optional Deep Dive) -->
+            <section class="content-section" style="background: rgba(156, 39, 176, 0.05); border-left: 4px solid var(--builder-purple); border-radius: 0.5rem; padding: 2rem;">
+                <h2 style="color: var(--builder-purple);">🔬 Optional Deep Dive: Bitcoin Script</h2>
+
+                <p style="background: rgba(255, 193, 7, 0.15); border-left: 4px solid #ffc107; padding: 1rem 1.5rem; margin-bottom: 1.5rem;">
+                    <strong style="color: #ffc107;">⚠️ Advanced Topic:</strong>
+                    This section covers low-level technical details. Feel free to skip if you're new to Bitcoin development —
+                    we'll cover this in depth in <strong>Stage 3, Module 2 (Building with Bitcoin)</strong> when creating transactions from scratch.
+                </p>
+
+                <details style="cursor: pointer;">
+                    <summary style="font-size: 1.1rem; font-weight: 600; color: var(--builder-purple); padding: 1rem; background: var(--secondary-dark); border-radius: 0.5rem; margin-bottom: 1rem;">
+                        📜 How are UTXOs locked and unlocked? (Click to expand)
+                    </summary>
+
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: var(--secondary-dark); border-radius: 0.5rem;">
+                        <p>
+                            UTXOs are locked with <strong>Bitcoin Script</strong>—a stack-based programming language that defines spending conditions.
+                        </p>
+
+                        <h3 style="margin-top: 1.5rem; color: var(--primary-orange);">Common Script Types</h3>
+
+                        <p style="margin-top: 1rem;"><strong>1. Pay-to-Public-Key-Hash (P2PKH)</strong> - The original Bitcoin address format:</p>
+                        <pre style="background: var(--primary-dark); padding: 1rem; border-radius: 0.5rem; overflow-x: auto;"><code>OP_DUP OP_HASH160 &lt;pubKeyHash&gt; OP_EQUALVERIFY OP_CHECKSIG</code></pre>
+
+                        <p style="margin-top: 1rem;"><strong>2. Pay-to-Script-Hash (P2SH)</strong> - Allows complex scripts like multisig:</p>
+                        <pre style="background: var(--primary-dark); padding: 1rem; border-radius: 0.5rem; overflow-x: auto;"><code>OP_HASH160 &lt;scriptHash&gt; OP_EQUAL</code></pre>
+
+                        <p style="margin-top: 1rem;"><strong>3. Pay-to-Witness-Public-Key-Hash (P2WPKH)</strong> - SegWit format:</p>
+                        <pre style="background: var(--primary-dark); padding: 1rem; border-radius: 0.5rem; overflow-x: auto;"><code>OP_0 &lt;pubKeyHash&gt;</code></pre>
+
+                        <p style="margin-top: 1.5rem;">
+                            Scripts enable features like multisignature wallets, timelocks, and atomic swaps without requiring protocol changes!
+                        </p>
+
+                        <div style="background: rgba(33, 150, 243, 0.1); border-left: 4px solid var(--accent-blue); padding: 1rem; margin-top: 1.5rem; border-radius: 0.5rem;">
+                            <p style="margin: 0; color: var(--text-light);">
+                                <strong style="color: var(--accent-blue);">💡 Learn More:</strong>
+                                We'll dive deep into Bitcoin Script, transaction construction, and signing in
+                                <a href="/paths/builder/stage-3/module-2.html" style="color: var(--primary-orange); text-decoration: underline;">Stage 3, Module 2</a>.
+                            </p>
+                        </div>
+                    </div>
+                </details>
+            </section>
+
+            <!-- Key Takeaways -->
+            <section class="content-section">
+                <div style="background: rgba(76, 175, 80, 0.1); border-left: 4px solid var(--accent-green); border-radius: 0.5rem; padding: 1.5rem; margin: 2rem 0;">
+                    <h3 style="color: var(--accent-green); margin-bottom: 1rem;"><span data-icon="target"></span> Key Takeaways</h3>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Bitcoin uses the UTXO model, not account balances
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Transactions consume inputs and create outputs
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Each UTXO can only be spent once (prevents double-spending)
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Bitcoin Script locks UTXOs with spending conditions
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Difference between inputs and outputs = miner fee
+                        </li>
+                        <li style="padding-left: 1.5rem; margin-bottom: 0.5rem; position: relative;">
+                            <span style="position: absolute; left: 0; color: var(--accent-green); font-weight: 700;">✓</span>
+                            Every node independently verifies all transactions
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <nav class="module-navigation">
+                <a href="/paths/builder/stage-1/" class="nav-btn nav-btn-secondary">← Back to Stage 1</a>
+                <button id="complete-module" class="nav-btn">Mark Complete &amp; Continue →</button>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        // UTXO Transaction Builder Logic
+        const utxoBuilder = {
+            availableUTXOs: [
+                { id: 'utxo-1', txid: 'abc123...def456', vout: 0, value: 100000, address: 'bc1q...xyz', selected: false },
+                { id: 'utxo-2', txid: 'def456...ghi789', vout: 1, value: 50000, address: 'bc1q...abc', selected: false },
+                { id: 'utxo-3', txid: 'ghi789...jkl012', vout: 0, value: 75000, address: 'bc1q...def', selected: false },
+                { id: 'utxo-4', txid: 'jkl012...mno345', vout: 2, value: 150000, address: 'bc1q...ghi', selected: false },
+                { id: 'utxo-5', txid: 'mno345...pqr678', vout: 0, value: 25000, address: 'bc1q...jkl', selected: false }
+            ],
+            outputs: [],
+            feeRate: 10 // sats per vbyte (simplified for learning)
+        };
+
+        function initializeBuilder() {
+            renderAvailableUTXOs();
+            updateSummary();
+        }
+
+        function renderAvailableUTXOs() {
+            const container = document.getElementById('available-utxos');
+            container.innerHTML = utxoBuilder.availableUTXOs.map(utxo => `
+                <div id="${utxo.id}" onclick="toggleUTXO('${utxo.id}')"
+                     style="padding: 1rem; background: ${utxo.selected ? 'rgba(33, 150, 243, 0.3)' : 'var(--secondary-dark)'};
+                            border: 2px solid ${utxo.selected ? 'var(--accent-blue)' : 'var(--border-color)'};
+                            border-radius: 0.5rem; cursor: pointer; transition: all 0.3s;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                        <div>
+                            <div style="font-family: monospace; font-size: 0.85rem; color: var(--text-dim);">${utxo.txid}:${utxo.vout}</div>
+                            <div style="margin-top: 0.25rem; font-size: 0.85rem; color: var(--text-dim);">From: ${utxo.address}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent-green);">${utxo.value.toLocaleString()} sats</div>
+                            <div style="font-size: 0.85rem; color: var(--text-dim);">${(utxo.value / 100000000).toFixed(8)} BTC</div>
+                        </div>
+                    </div>
+                    ${utxo.selected ? '<div style="margin-top: 0.5rem; color: var(--accent-blue); font-weight: 600; text-align: center;">✓ Selected as Input</div>' : ''}
+                </div>
+            `).join('');
+        }
+
+        function toggleUTXO(utxoId) {
+            const utxo = utxoBuilder.availableUTXOs.find(u => u.id === utxoId);
+            utxo.selected = !utxo.selected;
+            renderAvailableUTXOs();
+            renderSelectedInputs();
+            updateSummary();
+            updateFlowDiagram();
+            analyzeTransaction();
+        }
+
+        function renderSelectedInputs() {
+            const container = document.getElementById('selected-inputs');
+            const selected = utxoBuilder.availableUTXOs.filter(u => u.selected);
+
+            if (selected.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-dim); font-size: 0.9rem; font-style: italic;">Click UTXOs above to add as inputs...</p>';
+                return;
+            }
+
+            container.innerHTML = selected.map((utxo, index) => `
+                <div style="padding: 0.75rem; background: var(--secondary-dark); border-radius: 0.5rem; margin-bottom: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600;">Input #${index + 1}</div>
+                            <div style="font-family: monospace; font-size: 0.85rem; color: var(--text-dim);">${utxo.txid}:${utxo.vout}</div>
+                        </div>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: var(--accent-blue);">${utxo.value.toLocaleString()} sats</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function calculateTotalInput() {
+            return utxoBuilder.availableUTXOs
+                .filter(u => u.selected)
+                .reduce((sum, u) => sum + u.value, 0);
+        }
+
+        function calculateTotalOutput() {
+            return utxoBuilder.outputs.reduce((sum, o) => sum + o.value, 0);
+        }
+
+        function calculateFee() {
+            const selectedInputs = utxoBuilder.availableUTXOs.filter(u => u.selected).length;
+            const numOutputs = utxoBuilder.outputs.length;
+
+            // Simplified fee calculation for learning purposes
+            // Actual: 10 + (148 * inputs) + (34 * outputs) vbytes
+            const estimatedSize = 10 + (148 * selectedInputs) + (34 * numOutputs);
+            return Math.ceil(estimatedSize * utxoBuilder.feeRate);
+        }
+
+        function updateSummary() {
+            const totalInput = calculateTotalInput();
+            const totalOutput = calculateTotalOutput();
+            const fee = calculateFee();
+            const change = totalInput - totalOutput - fee;
+
+            document.getElementById('total-input').textContent = `${totalInput.toLocaleString()} sats`;
+            document.getElementById('total-output').textContent = `${totalOutput.toLocaleString()} sats`;
+            document.getElementById('summary-inputs').textContent = `${totalInput.toLocaleString()} sats`;
+            document.getElementById('summary-outputs').textContent = `${totalOutput.toLocaleString()} sats`;
+            document.getElementById('summary-fee').textContent = `${fee.toLocaleString()} sats`;
+            document.getElementById('summary-change').textContent = change >= 0 ? `${change.toLocaleString()} sats` : '⚠️ Insufficient funds';
+
+            // Validation message
+            const validationEl = document.getElementById('validation-message');
+            if (totalInput === 0) {
+                validationEl.innerHTML = '';
+                validationEl.style.background = '';
+            } else if (totalInput < totalOutput + fee) {
+                validationEl.innerHTML = '⚠️ Inputs must be greater than outputs + fee';
+                validationEl.style.background = 'rgba(255, 0, 0, 0.2)';
+                validationEl.style.color = '#ff6666';
+            } else if (utxoBuilder.outputs.length === 0) {
+                validationEl.innerHTML = '💡 Add at least one output to build transaction';
+                validationEl.style.background = 'rgba(255, 221, 0, 0.2)';
+                validationEl.style.color = 'var(--primary-orange)';
+            } else {
+                validationEl.innerHTML = '✓ Transaction is valid! Ready to build.';
+                validationEl.style.background = 'rgba(76, 175, 80, 0.2)';
+                validationEl.style.color = 'var(--accent-green)';
+            }
+        }
+
+        // Update Flow Diagram
+        function updateFlowDiagram() {
+            const selectedInputs = utxoBuilder.availableUTXOs.filter(u => u.selected);
+            const fee = calculateFee();
+            const flowDiagram = document.getElementById('flow-diagram');
+            const flowInputs = document.getElementById('flow-inputs');
+            const flowOutputs = document.getElementById('flow-outputs');
+            const flowFee = document.getElementById('flow-fee');
+
+            // Show/hide diagram based on activity
+            if (selectedInputs.length === 0 && utxoBuilder.outputs.length === 0) {
+                flowDiagram.style.display = 'none';
+                return;
+            }
+            flowDiagram.style.display = 'block';
+
+            // Update fee display
+            flowFee.textContent = `${fee.toLocaleString()} sats`;
+
+            // Render inputs with arrows
+            if (selectedInputs.length === 0) {
+                flowInputs.innerHTML = '<div style="color: var(--text-dim); font-size: 0.85rem; text-align: right; padding: 1rem;">No inputs selected</div>';
+            } else {
+                flowInputs.innerHTML = selectedInputs.map(utxo => `
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="background: rgba(33, 150, 243, 0.2); border: 2px solid var(--accent-blue); border-radius: 0.5rem; padding: 0.75rem 1rem; text-align: right; flex: 1;">
+                            <div style="font-size: 0.85rem; color: var(--text-dim); font-family: monospace;">${utxo.txid.substring(0, 8)}...${utxo.vout}</div>
+                            <div style="font-weight: 700; color: var(--accent-blue); margin-top: 0.25rem;">${utxo.value.toLocaleString()} sats</div>
+                        </div>
+                        <svg width="40" height="20" style="overflow: visible;">
+                            <defs>
+                                <marker id="arrowhead-input" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                    <polygon points="0 0, 10 3, 0 6" fill="var(--accent-blue)" />
+                                </marker>
+                            </defs>
+                            <line x1="0" y1="10" x2="35" y2="10" stroke="var(--accent-blue)" stroke-width="2" marker-end="url(#arrowhead-input)" />
+                        </svg>
+                    </div>
+                `).join('');
+            }
+
+            // Render outputs with arrows
+            if (utxoBuilder.outputs.length === 0) {
+                flowOutputs.innerHTML = '<div style="color: var(--text-dim); font-size: 0.85rem; padding: 1rem;">No outputs added</div>';
+            } else {
+                flowOutputs.innerHTML = utxoBuilder.outputs.map(output => `
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <svg width="40" height="20" style="overflow: visible;">
+                            <defs>
+                                <marker id="arrowhead-output" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                    <polygon points="0 0, 10 3, 0 6" fill="var(--accent-green)" />
+                                </marker>
+                            </defs>
+                            <line x1="5" y1="10" x2="40" y2="10" stroke="var(--accent-green)" stroke-width="2" marker-end="url(#arrowhead-output)" />
+                        </svg>
+                        <div style="background: rgba(76, 175, 80, 0.2); border: 2px solid var(--accent-green); border-radius: 0.5rem; padding: 0.75rem 1rem; flex: 1;">
+                            <div style="font-size: 0.85rem; color: var(--text-dim); font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${output.address.substring(0, 12)}...</div>
+                            <div style="font-weight: 700; color: var(--accent-green); margin-top: 0.25rem;">${output.value.toLocaleString()} sats</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Analyze Transaction and Provide Smart Feedback
+        function analyzeTransaction() {
+            const selectedInputs = utxoBuilder.availableUTXOs.filter(u => u.selected);
+            const totalInput = calculateTotalInput();
+            const totalOutput = calculateTotalOutput();
+            const fee = calculateFee();
+            const change = totalInput - totalOutput - fee;
+
+            const feedbackPanel = document.getElementById('smart-feedback');
+            const feedbackContent = document.getElementById('feedback-content');
+
+            // Don't show feedback if nothing is happening
+            if (selectedInputs.length === 0 && utxoBuilder.outputs.length === 0) {
+                feedbackPanel.style.display = 'none';
+                return;
+            }
+
+            feedbackPanel.style.display = 'block';
+            let feedbackMessages = [];
+
+            // Check for too many small UTXOs
+            if (selectedInputs.length >= 4) {
+                feedbackMessages.push({
+                    icon: '💡',
+                    message: `You selected ${selectedInputs.length} UTXOs. This increases transaction size and fees. Consider using larger UTXOs when possible.`,
+                    color: 'var(--primary-orange)'
+                });
+            }
+
+            // Check for high fees (only if we have outputs)
+            if (totalOutput > 0 && totalInput > 0) {
+                const feePercentage = ((fee / totalOutput) * 100).toFixed(1);
+
+                if (feePercentage > 10) {
+                    feedbackMessages.push({
+                        icon: '⚠️',
+                        message: `Fee is ${feePercentage}% of transaction value. This is high! Try selecting fewer or larger UTXOs.`,
+                        color: '#ff6666'
+                    });
+                } else if (feePercentage < 5) {
+                    feedbackMessages.push({
+                        icon: '✅',
+                        message: `Great UTXO selection! Your fee is only ${feePercentage}% of the transaction.`,
+                        color: 'var(--accent-green)'
+                    });
+                }
+            }
+
+            // Check for unnecessary small change
+            if (change > 0 && change < 10000 && totalInput > totalOutput + fee) {
+                feedbackMessages.push({
+                    icon: '💡',
+                    message: `Your change output is very small (${change.toLocaleString()} sats). Consider adjusting output amount to avoid dust.`,
+                    color: 'var(--primary-orange)'
+                });
+            }
+
+            // Check for perfect selection (no change needed)
+            if (change >= 0 && change <= 546 && totalOutput > 0 && selectedInputs.length > 0) {
+                feedbackMessages.push({
+                    icon: '🎯',
+                    message: 'Perfect! No change needed - you selected exact inputs.',
+                    color: 'var(--accent-green)'
+                });
+            }
+
+            // Check for consolidating dust
+            const smallUTXOs = selectedInputs.filter(u => u.value < 50000);
+            if (smallUTXOs.length >= 3 && utxoBuilder.outputs.length === 1) {
+                feedbackMessages.push({
+                    icon: '♻️',
+                    message: `Good strategy! You're consolidating ${smallUTXOs.length} small UTXOs into a larger one.`,
+                    color: 'var(--accent-green)'
+                });
+            }
+
+            // Render feedback
+            if (feedbackMessages.length > 0) {
+                feedbackContent.innerHTML = feedbackMessages.map(fb => `
+                    <div style="display: flex; gap: 0.75rem; align-items: flex-start; margin-bottom: ${feedbackMessages.length > 1 ? '0.75rem' : '0'};">
+                        <span style="font-size: 1.25rem; flex-shrink: 0;">${fb.icon}</span>
+                        <div style="color: ${fb.color}; flex: 1;">${fb.message}</div>
+                    </div>
+                `).join('');
+            } else {
+                feedbackContent.innerHTML = '<div style="color: var(--text-dim); font-style: italic;">Select inputs and add outputs to see smart feedback...</div>';
+            }
+        }
+
+        document.getElementById('add-output').addEventListener('click', function() {
+            const address = document.getElementById('recipient-address').value.trim();
+            const amount = parseInt(document.getElementById('output-amount').value);
+
+            if (!address) {
+                alert('Please select a recipient address');
+                return;
+            }
+
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            utxoBuilder.outputs.push({
+                address: address,
+                value: amount
+            });
+
+            renderOutputList();
+            updateSummary();
+            updateFlowDiagram();
+            analyzeTransaction();
+
+            // Clear inputs
+            document.getElementById('recipient-address').value = '';
+            document.getElementById('output-amount').value = '';
+        });
+
+        function renderOutputList() {
+            const container = document.getElementById('output-list');
+
+            if (utxoBuilder.outputs.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-dim); font-size: 0.9rem; font-style: italic;">No outputs added yet...</p>';
+                return;
+            }
+
+            container.innerHTML = utxoBuilder.outputs.map((output, index) => `
+                <div style="padding: 0.75rem; background: var(--secondary-dark); border-radius: 0.5rem; margin-bottom: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Output #${index + 1}</div>
+                            <div style="font-family: monospace; font-size: 0.85rem; color: var(--text-dim); word-break: break-all;">${output.address}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.1rem; font-weight: 700; color: var(--accent-green);">${output.value.toLocaleString()} sats</div>
+                            <button onclick="removeOutput(${index})" style="margin-top: 0.5rem; padding: 0.25rem 0.75rem; background: rgba(255, 0, 0, 0.2); color: #ff6666; border: 1px solid #ff6666; border-radius: 0.25rem; cursor: pointer; font-size: 0.85rem;">Remove</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.removeOutput = function(index) {
+            utxoBuilder.outputs.splice(index, 1);
+            renderOutputList();
+            updateSummary();
+            updateFlowDiagram();
+            analyzeTransaction();
+        };
+
+        document.getElementById('build-transaction').addEventListener('click', function() {
+            const totalInput = calculateTotalInput();
+            const totalOutput = calculateTotalOutput();
+            const fee = calculateFee();
+
+            if (totalInput === 0) {
+                alert('Please select at least one UTXO input');
+                return;
+            }
+
+            if (utxoBuilder.outputs.length === 0) {
+                alert('Please add at least one output');
+                return;
+            }
+
+            if (totalInput < totalOutput + fee) {
+                alert('Insufficient inputs! Total inputs must cover outputs + fees.');
+                return;
+            }
+
+            // Build transaction object
+            const selectedInputs = utxoBuilder.availableUTXOs.filter(u => u.selected);
+            const change = totalInput - totalOutput - fee;
+
+            const transaction = {
+                version: 2,
+                inputs: selectedInputs.map(utxo => ({
+                    txid: utxo.txid,
+                    vout: utxo.vout,
+                    value: utxo.value,
+                    scriptSig: "<signature + pubkey>",
+                    sequence: 4294967295
+                })),
+                outputs: [...utxoBuilder.outputs],
+                locktime: 0,
+                metadata: {
+                    totalInput: totalInput,
+                    totalOutput: totalOutput,
+                    fee: fee,
+                    change: change,
+                    feeRate: `${utxoBuilder.feeRate} sats/vbyte`
+                }
+            };
+
+            // Add change output if needed
+            if (change > 546) { // Dust limit
+                transaction.outputs.push({
+                    address: "bc1q<change-address>",
+                    value: change,
+                    note: "Change output (back to sender)"
+                });
+            }
+
+            document.getElementById('transaction-json').textContent = JSON.stringify(transaction, null, 2);
+            document.getElementById('transaction-result').style.display = 'block';
+            document.getElementById('utxo-builder').style.display = 'none';
+        });
+
+        document.getElementById('reset-builder').addEventListener('click', function() {
+            // Reset state
+            utxoBuilder.availableUTXOs.forEach(u => u.selected = false);
+            utxoBuilder.outputs = [];
+
+            // Reset UI
+            document.getElementById('transaction-result').style.display = 'none';
+            document.getElementById('utxo-builder').style.display = 'block';
+            document.getElementById('recipient-address').value = '';
+            document.getElementById('output-amount').value = '';
+
+            renderAvailableUTXOs();
+            renderSelectedInputs();
+            renderOutputList();
+            updateSummary();
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeBuilder);
+    </script>
+
+    <script>
+        document.getElementById('complete-module').addEventListener('click', function() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+
+            if (!progress.completedModules) {
+                progress.completedModules = [];
+            }
+
+            if (!progress.completedModules.includes('builder-1-1')) {
+                progress.completedModules.push('builder-1-1');
+            }
+
+            progress.lastActivity = new Date().toISOString();
+            progress.path = 'builder';
+            progress.currentStage = 1;
+            progress.currentModule = 2;
+
+            localStorage.setItem('learningProgress', JSON.stringify(progress));
+
+            alert('✓ Module 1 completed! Redirecting to Stage 1 overview...');
+            window.location.href = '/paths/builder/stage-1/';
+        });
+    </script>
+    
+    <!-- Animated Icon Library -->
+    <script src="/js/icon-library.js"></script>
+    <script>
+        // Inject icons after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.IconLibrary) {
+                document.querySelectorAll('[data-icon]').forEach(function(element) {
+                    var iconName = element.getAttribute('data-icon');
+                    if (iconName) {
+                        var iconHTML = IconLibrary.get(iconName, 20, true);
+                        var span = document.createElement('span');
+                        span.innerHTML = iconHTML;
+                        span.className = 'icon-inline';
+                        span.style.marginRight = '0.5rem';
+                        span.style.display = 'inline-block';
+                        span.style.verticalAlign = 'middle';
+                        element.insertBefore(span, element.firstChild);
+                    }
+                });
+            }
+        });
+    </script>
+
+
+    <!-- Navigation Context (return-to-path functionality) -->
+    <script src="/js/navigation-context.js"></script>
+    <script src="/js/lab-guide.js"></script>
+    <script src="/js/bitcoin-context.js"></script>
+    <!-- Reflect: Socratic questions after module -->
+    <div style="max-width:900px;margin:2rem auto 0;padding:0 1.5rem 2.5rem">
+        <div class="reflect-widget"
+             data-topic="cryptography"
+             data-path="builder"
+             data-title="Reflect: What can you build with what you learned?">
+        </div>
+    </div>
+    <script src="/js/reflect-widget.js"></script>
+
+<script src="/js/membership-gate.js"></script>
+
+<!-- Analytics, Email Capture & Tip CTAs -->
+<div class="container" style="margin: 2rem auto; max-width: 900px; padding: 0 1.5rem;">
+    <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
+    <div id="tip-page" data-tip-cta="compact"></div>
+</div>
+<script src="/js/analytics.js" defer></script>
+<script src="/js/email-capture.js" defer></script>
+<script src="/js/tip-cta.js" defer></script>
+
+</body></html>

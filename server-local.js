@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import https from 'https';
 import http from 'http';
-import { getProtectedRouteDetails } from './lib/premium-routes.js';
+import { getProtectedRouteDetails } from './packages/shared-access/src/premium-routes.js';
 import {
   ALL_PREMIUM_PATH_IDS,
   buildPremiumRouteClaims,

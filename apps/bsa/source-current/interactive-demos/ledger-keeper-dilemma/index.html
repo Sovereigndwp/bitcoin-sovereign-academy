@@ -1,0 +1,864 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ledger Keeper's Dilemma 2.0 — Interactive Comparison</title>
+    <meta name="description" content="Compare payment systems: CBDCs, state rails, Bitcoin, and more. Interactive table shows speed, control, privacy trade-offs.">
+    <link rel="stylesheet" href="/css/brand.css">
+    <link rel="stylesheet" href="/css/interactive-demos.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #b3b3b3;
+            --border-color: rgba(247, 147, 26, 0.2);
+            --accent-green: #4caf50;
+            --accent-red: #f44336;
+            --accent-yellow: #ffc107;
+            --accent-blue: #2196f3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ACCESSIBILITY */
+        *:focus-visible {
+            outline: 3px solid var(--primary-orange);
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: var(--text-light);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            max-width: 800px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .tagline {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-light);
+            padding: 1.5rem;
+            background: rgba(247, 147, 26, 0.1);
+            border-left: 4px solid var(--primary-orange);
+            border-radius: 0.5rem;
+            margin: 2rem auto;
+            max-width: 900px;
+        }
+
+        /* Instructions */
+        .instructions {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .instructions h2 {
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .instructions p {
+            font-size: 1.05rem;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Comparison Table */
+        .table-container {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 900px;
+        }
+
+        .comparison-table thead th {
+            background: rgba(247, 147, 26, 0.2);
+            color: var(--primary-orange);
+            padding: 1rem;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border: 1px solid var(--border-color);
+        }
+
+        .comparison-table thead th:first-child {
+            text-align: left;
+            min-width: 200px;
+        }
+
+        .comparison-table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .comparison-table tbody tr:hover {
+            background: rgba(247, 147, 26, 0.05);
+        }
+
+        .comparison-table tbody tr.selected {
+            background: rgba(247, 147, 26, 0.15);
+            border: 2px solid var(--primary-orange);
+        }
+
+        .comparison-table td {
+            padding: 1.25rem 1rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .comparison-table td:first-child {
+            text-align: left;
+            font-weight: 600;
+            cursor: default;
+        }
+
+        .comparison-table td:not(:first-child):hover {
+            background: rgba(247, 147, 26, 0.1);
+            transform: scale(1.02);
+        }
+
+        .keeper-name {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .keeper-icon {
+            font-size: 1.5rem;
+        }
+
+        .keeper-label {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .keeper-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            font-weight: 400;
+        }
+
+        .rating-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .rating-icon {
+            font-size: 1.5rem;
+        }
+
+        .rating-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        /* Color coding */
+        .rating-good { color: var(--accent-green); }
+        .rating-conditional { color: var(--accent-yellow); }
+        .rating-bad { color: var(--accent-red); }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--secondary-dark);
+            border: 3px solid var(--primary-orange);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            max-width: 700px;
+            width: 100%;
+            position: relative;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            transform: rotate(90deg);
+            background: #d32f2f;
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            color: var(--primary-orange);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-section {
+            margin: 1.5rem 0;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+        }
+
+        .promise-section {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .tradeoff-section {
+            background: rgba(244, 67, 54, 0.1);
+            border-left: 4px solid var(--accent-red);
+        }
+
+        .example-section {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .modal-section h4 {
+            margin-bottom: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        .promise-section h4 { color: var(--accent-green); }
+        .tradeoff-section h4 { color: var(--accent-red); }
+        .example-section h4 { color: var(--accent-blue); }
+
+        /* Scenario Testing */
+        .scenario-section {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .scenario-section h2 {
+            color: var(--primary-orange);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .scenario-selector {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .scenario-btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(247, 147, 26, 0.2);
+            border: 2px solid var(--primary-orange);
+            color: var(--text-light);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-btn:hover, .scenario-btn.active {
+            background: var(--primary-orange);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .scenario-results {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .scenario-results.active {
+            display: block;
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .scenario-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 2px solid var(--border-color);
+        }
+
+        .scenario-card h4 {
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+
+            .table-container {
+                padding: 1rem;
+            }
+
+            .comparison-table {
+                font-size: 0.85rem;
+            }
+
+            .comparison-table td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* CTA */
+        .cta-section {
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: var(--primary-orange);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background: #d97706;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(247, 147, 26, 0.4);
+        }
+
+        .highlight-box {
+            background: rgba(247, 147, 26, 0.1);
+            border-left: 4px solid var(--primary-orange);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+    </style>
+<link rel="canonical" href="https://bitcoinsovereign.academy/"><meta property="og:title" content="Bitcoin Sovereign Academy"><meta property="og:description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg"><meta property="og:url" content="https://bitcoinsovereign.academy/"><meta property="og:type" content="website"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Bitcoin Sovereign Academy",
+  "description": "Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.",
+  "url": "https://bitcoinsovereign.academy",
+  "logo": "https://bitcoinsovereign.academy/assets/og-image.jpg",
+  "sameAs": [
+    "https://github.com/Sovereigndwp/bitcoin-sovereign-academy"
+  ],
+  "educationalLevel": "Beginner to Advanced",
+  "teaches": [
+    "Bitcoin Fundamentals",
+    "Cryptocurrency Technology",
+    "Financial Sovereignty",
+    "Digital Asset Security"
+  ],
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Students interested in Bitcoin and cryptocurrency"
+  }
+}</script></head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <main id="main-content" class="container">
+        <!-- Hero -->
+        <div class="hero">
+            <h1>The Ledger Keeper's Dilemma 2.0</h1>
+            <p>Every payment system decides who can change the ledger—and who can see it.</p>
+            <div class="tagline">
+                The question isn't whether we trust; it's <strong>how we verify.</strong>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="instructions">
+            <h2>How to Use This Tool</h2>
+            <p>✅ <strong>Click any cell</strong> to see detailed trade-offs, real-world examples, and when to use each system</p>
+            <p>🎯 <strong>Select scenarios below</strong> to see how each keeper performs under pressure</p>
+            <p>⚡ <strong>Compare side-by-side</strong> to understand the speed vs. freedom spectrum</p>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="table-container">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Ledger Keeper</th>
+                        <th>Speed</th>
+                        <th>Control</th>
+                        <th>Privacy</th>
+                        <th>Censorship<br>Resistance</th>
+                        <th>Real Examples</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Rows generated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Scenario Testing -->
+        <div class="scenario-section">
+            <h2>🎯 Test Your Keeper in Real Scenarios</h2>
+            <p style="text-align: center; color: var(--text-dim); margin-bottom: 1.5rem;">
+                Select a scenario to see how each ledger keeper handles the challenge
+            </p>
+
+            <div class="scenario-selector">
+                <button class="scenario-btn" onclick="selectScenario('cross-border')">
+                    💸 Cross-Border Payment
+                </button>
+                <button class="scenario-btn" onclick="selectScenario('controversial')">
+                    🚫 Controversial Donation
+                </button>
+                <button class="scenario-btn" onclick="selectScenario('policy-shock')">
+                    ⚡ Policy Shock
+                </button>
+            </div>
+
+            <div id="scenarioResults" class="scenario-results">
+                <div class="scenario-grid" id="scenarioGrid">
+                    <!-- Scenario cards generated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 2rem;">
+                <strong>Pattern:</strong> Centralized rails = fast but fragile.<br>
+                Open networks = resilient but require responsibility.
+            </div>
+        </div>
+
+        <!-- Takeaway -->
+        <div class="highlight-box" style="font-size: 1.3rem; padding: 2rem;">
+            <strong style="color: var(--primary-orange); font-size: 1.5rem;">"Speed is easy. Freedom is fragile."</strong><br><br>
+            Centralized rails keep getting faster.<br>
+            Bitcoin's revolution was <strong>independence</strong>—rules without a referee change the game.
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-section">
+            <a href="/paths/curious/stage-1/module-2.html" class="cta-button">← Back to Module 2</a>
+            <a href="/paths/curious/stage-1/module-3.html" class="cta-button">Next: Enter Bitcoin →</a>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <div id="modalBody">
+                <!-- Content populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Structure
+        const keeperData = {
+            cbdc: {
+                name: "CBDC",
+                subtitle: "State-Issued Digital Currency",
+                icon: "🏦",
+                speed: { rating: "good", icon: "🟢", label: "Instant" },
+                control: { rating: "bad", icon: "🔴", label: "State" },
+                privacy: { rating: "bad", icon: "🔴", label: "None" },
+                censorship: { rating: "bad", icon: "🔴", label: "High" },
+                examples: { label: "e-CNY" },
+                promise: "Legal tender status, state backing, instant settlement, financial inclusion.",
+                tradeoff: "Full state visibility, programmable restrictions, policy risk, surveillance infrastructure, exit controls.",
+                realExample: "e-CNY (China): Digital yuan with complete state visibility and programmable policy enforcement. Government can freeze, expire, or geo-fence funds via software update.",
+                whenUse: "Strong state backing, legal tender status, government stability assumed.",
+                whenAvoid: "Government overreach, policy instability, privacy rights, surveillance concerns."
+            },
+            staterails: {
+                name: "State Rails",
+                subtitle: "Instant Payment Infrastructure",
+                icon: "🚄",
+                speed: { rating: "good", icon: "🟢", label: "Instant" },
+                control: { rating: "bad", icon: "🔴", label: "Policy" },
+                privacy: { rating: "bad", icon: "🔴", label: "Tracked" },
+                censorship: { rating: "bad", icon: "🔴", label: "Yes" },
+                examples: { label: "Pix, Bre-B" },
+                promise: "24/7 instant payments, national integration, free/low-cost, open API access.",
+                tradeoff: "Central bank sees all flows, KYC gating, policy risk, not new money (just faster movement), surveillance infrastructure.",
+                realExample: "Pix (Brazil): 140M+ users, 10-second settlement, free for individuals. Central Bank of Brazil sees every transaction. Bre-B (Colombia): Launched Oct 2025, currently facing withholding-tax proposal disincentivizing usage—clear policy risk.",
+                whenUse: "Fast domestic payments, banking integration, convenience, low cost.",
+                whenAvoid: "Privacy concerns, state surveillance, policy risk, potential censorship."
+            },
+            bigtech: {
+                name: "Big Tech",
+                subtitle: "Platform Payment Systems",
+                icon: "🏢",
+                speed: { rating: "good", icon: "🟢", label: "Fast" },
+                control: { rating: "conditional", icon: "🟡", label: "ToS" },
+                privacy: { rating: "bad", icon: "🔴", label: "Mined" },
+                censorship: { rating: "conditional", icon: "🟡", label: "Moderate" },
+                examples: { label: "WeChat Pay" },
+                promise: "Seamless UX, fast innovation, ecosystem integration, fraud protection, global reach.",
+                tradeoff: "Profit-driven control, data mining, platform lock-in, arbitrary bans, surveillance capitalism.",
+                realExample: "WeChat Pay (China): 1B+ users. Complete financial + social graph visible to Tencent and CCP. Mercado Pago (LatAm): Leading fintech with QR codes and crypto integration, but corporate entity controls access.",
+                whenUse: "User experience, ecosystem benefits, innovation speed, convenience over control.",
+                whenAvoid: "Corporate surveillance, platform dependency, data monetization, ToS changes."
+            },
+            stablecoin: {
+                name: "Stablecoin",
+                subtitle: "Dollar-Pegged Tokens",
+                icon: "🪙",
+                speed: { rating: "good", icon: "🟢", label: "24/7" },
+                control: { rating: "conditional", icon: "🟡", label: "Issuer" },
+                privacy: { rating: "conditional", icon: "🟡", label: "Chain" },
+                censorship: { rating: "conditional", icon: "🟡", label: "Moderate" },
+                examples: { label: "USDC, USDT" },
+                promise: "Global 24/7 operation, dollar stability (1:1 peg), fast and borderless, programmable, DeFi integration.",
+                tradeoff: "Issuer can freeze addresses, redeemability subject to KYC, reserve/issuer risk, centralized control, regulatory capture.",
+                realExample: "USDC Freezes (2023): Circle froze USDC in Tornado Cash-connected wallets. Tether Opacity: $100B+ circulation, repeatedly failed to prove 1:1 backing—systemic failure risk if reserves are fractional.",
+                whenUse: "Dollar exposure, DeFi access, global transfers, blockchain benefits.",
+                whenAvoid: "Censorship, regulatory capture, reserve audits, counterparty risk."
+            },
+            cooperative: {
+                name: "Cooperative",
+                subtitle: "Community-Governed Systems",
+                icon: "🤝",
+                speed: { rating: "conditional", icon: "🟡", label: "Moderate" },
+                control: { rating: "good", icon: "🟢", label: "Members" },
+                privacy: { rating: "conditional", icon: "🟡", label: "Local" },
+                censorship: { rating: "good", icon: "🟢", label: "Low" },
+                examples: { label: "Credit Unions" },
+                promise: "Democratic governance (members vote), local empowerment, aligned incentives (not-for-profit), transparency.",
+                tradeoff: "Governance fragility, slower innovation, limited scale, technical complexity, capture risk.",
+                realExample: "Credit Union Movement: 1B+ members globally, member-owned, not-for-profit model with lower fees. Trade-off: Can't compete on technology with big banks. DAOs (2020+): Democracy on blockchain, but suffers from voter apathy and whale dominance.",
+                whenUse: "Community control, aligned values, democratic decision-making, local resilience.",
+                whenAvoid: "Coordination overhead, slow decisions, limited tech capacity, governance capture."
+            },
+            bitcoin: {
+                name: "Open Networks",
+                subtitle: "Bitcoin & Lightning",
+                icon: "⚡",
+                speed: { rating: "good", icon: "🟢", label: "Instant*" },
+                control: { rating: "good", icon: "🟢", label: "Self" },
+                privacy: { rating: "good", icon: "🟢", label: "High*" },
+                censorship: { rating: "good", icon: "🟢", label: "None" },
+                examples: { label: "Lightning" },
+                promise: "Permissionless, censorship-resistant, fully auditable, immutable supply (21M), consensus robustness.",
+                tradeoff: "UX complexity, volatility, self-responsibility (lost keys = lost funds), Lightning requires liquidity/routing.",
+                realExample: "Bitcoin (2009+): 99.98% uptime since 2009, no transaction ever blocked, hard cap enforced by math. Lightning Network: Instant Bitcoin payments, cheap and private, but requires channel management. Fedimint: Community custody with privacy—balance between self-custody and UX.",
+                whenUse: "Sovereignty, censorship resistance, predictable monetary policy, independence from institutions.",
+                whenAvoid: "Price volatility, technical complexity, self-custody burden, regulatory uncertainty."
+            }
+        };
+
+        // Scenario Data
+        const scenarioData = {
+            'cross-border': {
+                title: "💸 Pay an Employee Abroad Tonight",
+                subtitle: "Small business urgency test",
+                scores: {
+                    cbdc: { speed: "🔴", control: "🔴", privacy: "🔴", note: "Fast but policy gate + visibility" },
+                    staterails: { speed: "🟡", control: "🔴", privacy: "🔴", note: "Domestic only; needs correspondent banks" },
+                    bigtech: { speed: "🟢", control: "🟡", privacy: "🔴", note: "Great UX, ToS + data exhaust" },
+                    stablecoin: { speed: "🟢", control: "🟡", privacy: "🟡", note: "Borderless, issuer freeze/KYC risk" },
+                    cooperative: { speed: "🔴", control: "🟢", privacy: "🟡", note: "Local control, cross-border friction" },
+                    bitcoin: { speed: "🟢", control: "🟢", privacy: "🟡", note: "Permissionless, requires discipline" }
+                }
+            },
+            'controversial': {
+                title: "🚫 Donate to Controversial NGO",
+                subtitle: "Freedom test",
+                scores: {
+                    cbdc: { speed: "🔴", control: "🔴", privacy: "🔴", note: "Policy blocks + full traceability" },
+                    staterails: { speed: "🔴", control: "🔴", privacy: "🔴", note: "KYC + state visibility = censorship" },
+                    bigtech: { speed: "🔴", control: "🔴", privacy: "🔴", note: "ToS + regulator pressure block" },
+                    stablecoin: { speed: "🟡", control: "🟡", privacy: "🟡", note: "Issuer blacklists; chain tracked" },
+                    cooperative: { speed: "🟢", control: "🟢", privacy: "🟡", note: "Community decides; less censorship" },
+                    bitcoin: { speed: "🟢", control: "🟢", privacy: "🟢", note: "Uncensorable; privacy tools available" }
+                }
+            },
+            'policy-shock': {
+                title: "⚡ Buy Inventory During Policy Change",
+                subtitle: "Supply shock test",
+                scores: {
+                    cbdc: { speed: "🔴", control: "🔴", privacy: "🔴", note: "Capital controls freeze flows" },
+                    staterails: { speed: "🔴", control: "🔴", privacy: "🔴", note: "Policy mandates restrict FX" },
+                    bigtech: { speed: "🟡", control: "🟡", privacy: "🔴", note: "Platform affected by regulation" },
+                    stablecoin: { speed: "🟢", control: "🟡", privacy: "🟡", note: "Global but subject to sanctions" },
+                    cooperative: { speed: "🟡", control: "🟢", privacy: "🟡", note: "Local rules; needs coordination" },
+                    bitcoin: { speed: "🟢", control: "🟢", privacy: "🟡", note: "Neutral money; no policy override" }
+                }
+            }
+        };
+
+        // Render Table
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            Object.keys(keeperData).forEach(key => {
+                const keeper = keeperData[key];
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="keeper-name">
+                            <span class="keeper-icon">${keeper.icon}</span>
+                            <div class="keeper-label">
+                                <span>${keeper.name}</span>
+                                <span class="keeper-subtitle">${keeper.subtitle}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td onclick="showDetail('${key}', 'speed')">
+                        <div class="rating-cell">
+                            <span class="rating-icon">${keeper.speed.icon}</span>
+                            <span class="rating-label">${keeper.speed.label}</span>
+                        </div>
+                    </td>
+                    <td onclick="showDetail('${key}', 'control')">
+                        <div class="rating-cell">
+                            <span class="rating-icon">${keeper.control.icon}</span>
+                            <span class="rating-label">${keeper.control.label}</span>
+                        </div>
+                    </td>
+                    <td onclick="showDetail('${key}', 'privacy')">
+                        <div class="rating-cell">
+                            <span class="rating-icon">${keeper.privacy.icon}</span>
+                            <span class="rating-label">${keeper.privacy.label}</span>
+                        </div>
+                    </td>
+                    <td onclick="showDetail('${key}', 'censorship')">
+                        <div class="rating-cell">
+                            <span class="rating-icon">${keeper.censorship.icon}</span>
+                            <span class="rating-label">${keeper.censorship.label}</span>
+                        </div>
+                    </td>
+                    <td onclick="showDetail('${key}', 'examples')">
+                        <strong>${keeper.examples.label}</strong>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Show Detail Modal
+        function showDetail(keeperKey, property) {
+            const keeper = keeperData[keeperKey];
+            const modal = document.getElementById('modal');
+            const modalBody = document.getElementById('modalBody');
+
+            modalBody.innerHTML = `
+                <div class="modal-header">
+                    <h3>${keeper.icon} ${keeper.name}</h3>
+                    <p style="color: var(--text-dim); font-style: italic;">${keeper.subtitle}</p>
+                </div>
+
+                <div class="modal-section promise-section">
+                    <h4>✅ The Promise</h4>
+                    <p>${keeper.promise}</p>
+                </div>
+
+                <div class="modal-section tradeoff-section">
+                    <h4>⚠️ The Hidden Trade-Off</h4>
+                    <p>${keeper.tradeoff}</p>
+                </div>
+
+                <div class="modal-section example-section">
+                    <h4>📊 Real-World Example</h4>
+                    <p>${keeper.realExample}</p>
+                </div>
+
+                <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(247, 147, 26, 0.1); border-radius: 0.5rem;">
+                    <strong style="color: var(--accent-green);">✓ When to Choose:</strong><br>
+                    <span>${keeper.whenUse}</span><br><br>
+                    <strong style="color: var(--accent-red);">✗ When to Avoid:</strong><br>
+                    <span>${keeper.whenAvoid}</span>
+                </div>
+            `;
+
+            modal.classList.add('active');
+        }
+
+        function closeModal(event) {
+            if (!event || event.target.id === 'modal') {
+                document.getElementById('modal').classList.remove('active');
+            }
+        }
+
+        // Scenario Selection
+        function selectScenario(scenarioKey) {
+            const scenario = scenarioData[scenarioKey];
+            const results = document.getElementById('scenarioResults');
+            const grid = document.getElementById('scenarioGrid');
+
+            // Update button states
+            document.querySelectorAll('.scenario-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Render scenario cards
+            grid.innerHTML = '';
+            Object.keys(scenario.scores).forEach(keeperKey => {
+                const keeper = keeperData[keeperKey];
+                const score = scenario.scores[keeperKey];
+
+                const card = document.createElement('div');
+                card.className = 'scenario-card';
+                card.innerHTML = `
+                    <h4>${keeper.icon} ${keeper.name}</h4>
+                    <div class="score-row">
+                        <span>Speed:</span>
+                        <span>${score.speed}</span>
+                    </div>
+                    <div class="score-row">
+                        <span>Control:</span>
+                        <span>${score.control}</span>
+                    </div>
+                    <div class="score-row">
+                        <span>Privacy:</span>
+                        <span>${score.privacy}</span>
+                    </div>
+                    <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-dim); font-style: italic;">${score.note}</p>
+                `;
+                grid.appendChild(card);
+            });
+
+            results.classList.add('active');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', renderTable);
+    </script>
+
+
+    <!-- Navigation Context (return-to-path functionality) -->
+    <script src="/js/navigation-context.js"></script>
+    <!-- Reflect: Socratic questions after activity -->
+    <div style="max-width:900px;margin:2rem auto 0;padding:0 1.5rem 2.5rem">
+        <div class="reflect-widget"
+             data-topic="money"
+             data-path="principled"
+             data-title="Reflect: Who should control the ledger?">
+        </div>
+    </div>
+    <script src="/js/reflect-widget.js"></script>
+
+<script src="/js/membership-gate.js"></script>
+
+<!-- Analytics, Email Capture & Tip CTAs -->
+<div class="container" style="margin: 2rem auto; max-width: 900px; padding: 0 1.5rem;">
+    <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
+    <div id="tip-page" data-tip-cta="compact"></div>
+</div>
+<script src="/js/analytics.js" defer></script>
+<script src="/js/email-capture.js" defer></script>
+<script src="/js/tip-cta.js" defer></script>
+
+</body></html>

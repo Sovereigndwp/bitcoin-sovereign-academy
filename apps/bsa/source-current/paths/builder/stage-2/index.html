@@ -1,0 +1,662 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stage 2: Lightning Network | The Builder Path</title>
+    <meta name="description" content="Master Lightning Network development: payment channels, routing, HTLCs, and building Lightning applications.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --lightning-yellow: #FFC107;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --border-color: rgba(247, 147, 26, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header */
+        .stage-header {
+            background: var(--secondary-dark);
+            border-bottom: 3px solid var(--lightning-yellow);
+            padding: 3rem 0;
+            text-align: center;
+        }
+
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .stage-header h1 {
+            font-size: 2.5rem;
+            color: var(--lightning-yellow);
+            margin-bottom: 1rem;
+        }
+
+        .stage-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+        }
+
+        .stage-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        /* Content */
+        .content-section {
+            padding: 3rem 0;
+        }
+
+        .content-section h2 {
+            font-size: 1.75rem;
+            color: var(--primary-orange);
+            margin-bottom: 1.5rem;
+        }
+
+        .content-section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        /* Modules Grid */
+        .modules-grid {
+            display: grid;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .module-card {
+            background: var(--secondary-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .module-card:hover {
+            border-color: var(--lightning-yellow);
+            transform: translateY(-5px);
+        }
+
+        .module-card.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .module-card.locked:hover {
+            transform: none;
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .module-title h3 {
+            font-size: 1.3rem;
+            color: var(--lightning-yellow);
+            margin-bottom: 0.5rem;
+        }
+
+        .module-number {
+            background: var(--lightning-yellow);
+            color: var(--primary-dark);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .module-description {
+            margin-bottom: 1.5rem;
+            color: var(--text-light);
+        }
+
+        .module-topics {
+            margin-bottom: 1.5rem;
+        }
+
+        .module-topics h4 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .module-topics ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .module-topics li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-dim);
+        }
+
+        .module-topics li:before {
+            content: "⚡";
+            position: absolute;
+            left: 0;
+            color: var(--lightning-yellow);
+        }
+
+        .module-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .module-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .module-cta {
+            padding: 0.75rem 1.5rem;
+            background: var(--lightning-yellow);
+            color: var(--primary-dark);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .module-cta:hover {
+            background: #ffb300;
+            transform: translateX(5px);
+        }
+
+        .module-cta.locked {
+            background: var(--border-color);
+            color: var(--text-dim);
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Completion Banner */
+        .completion-banner {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(255, 193, 7, 0.1));
+            border: 3px solid var(--lightning-yellow);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin: 3rem 0;
+            text-align: center;
+            display: none;
+        }
+
+        .completion-banner h3 {
+            color: var(--lightning-yellow);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .badge-display {
+            font-size: 4rem;
+            margin: 1rem 0;
+        }
+
+        .next-stage-btn {
+            display: inline-block;
+            margin-top: 1.5rem;
+            padding: 1rem 2rem;
+            background: var(--lightning-yellow);
+            color: var(--primary-dark);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .next-stage-btn:hover {
+            background: #ffb300;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .stage-header h1 {
+                font-size: 2rem;
+            }
+
+            .stage-subtitle {
+                font-size: 1rem;
+            }
+
+            .stage-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .module-footer {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Status Indicators - Color Coded */
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        .status-green { color: #4caf50; }
+        .status-indicator.green { background: #4caf50; box-shadow: 0 0 8px #4caf50; }
+
+        .status-yellow { color: #ffc107; }
+        .status-indicator.yellow { background: #ffc107; box-shadow: 0 0 8px #ffc107; }
+
+        .status-orange { color: #ff9800; }
+        .status-indicator.orange { background: #ff9800; box-shadow: 0 0 8px #ff9800; }
+
+        .status-red { color: #ef4444; }
+        .status-indicator.red { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            gap: 0.25rem;
+        }
+
+        .security-high {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid #4caf50;
+        }
+
+        .security-medium {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid #ffc107;
+        }
+
+        .security-low {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ff9800;
+            border: 1px solid #ff9800;
+        }
+
+        .security-risky {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/icons.css">
+<link rel="canonical" href="https://bitcoinsovereign.academy/"><meta property="og:title" content="Bitcoin Sovereign Academy"><meta property="og:description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg"><meta property="og:url" content="https://bitcoinsovereign.academy/"><meta property="og:type" content="website"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Bitcoin Sovereign Academy",
+  "description": "Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.",
+  "url": "https://bitcoinsovereign.academy",
+  "logo": "https://bitcoinsovereign.academy/assets/og-image.jpg",
+  "sameAs": [
+    "https://github.com/Sovereigndwp/bitcoin-sovereign-academy"
+  ],
+  "educationalLevel": "Beginner to Advanced",
+  "teaches": [
+    "Bitcoin Fundamentals",
+    "Cryptocurrency Technology",
+    "Financial Sovereignty",
+    "Digital Asset Security"
+  ],
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Students interested in Bitcoin and cryptocurrency"
+  }
+}</script></head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <!-- Stage Header -->
+    <header class="stage-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a> →
+                <a href="/paths/builder/">The Builder Path</a> →
+                <span>Stage 2</span>
+            </div>
+            <h1><span data-icon="lightning"></span> Stage 2: Lightning Network</h1>
+            <p class="stage-subtitle">Build scalable Bitcoin payment solutions with Layer 2</p>
+            <div class="stage-meta">
+                <span><span data-icon="timer"></span> ~3.5 hours</span>
+                <span><span data-icon="target"></span> 4 modules</span>
+                <span><span data-icon="trophy"></span> Lightning Developer badge</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Introduction -->
+            <section class="content-section">
+                <h2>Welcome to Lightning Network Development</h2>
+                <p>
+                    Bitcoin's base layer settles ~7 transactions per second. Lightning Network is a Layer 2 solution that enables
+                    millions of instant, low-cost payments per second while maintaining Bitcoin's security guarantees.
+                </p>
+                <p>
+                    In this stage, you'll learn how Lightning works at a protocol level, understand the cryptographic primitives
+                    that enable trustless off-chain payments, and build your first Lightning application.
+                </p>
+            </section>
+
+            <!-- Modules Grid -->
+            <section class="content-section">
+                <h2>Modules</h2>
+
+                <div class="modules-grid">
+                    <!-- Module 1 -->
+                    <div class="module-card" data-module="builder-2-1">
+                        <div class="module-header">
+                            <div class="module-title">
+                                <h3>Module 1: Payment Channels</h3>
+                            </div>
+                            <div class="module-number">1</div>
+                        </div>
+
+                        <div class="module-description">
+                            Understand the foundation of Lightning: bidirectional payment channels. Learn how two parties can
+                            transact thousands of times with only two on-chain transactions (open and close).
+                        </div>
+
+                        <div class="module-topics">
+                            <h4>Topics Covered:</h4>
+                            <ul>
+                                <li>Channel construction and funding</li>
+                                <li>Commitment transactions</li>
+                                <li>Revocation mechanism (penalty transactions)</li>
+                                <li>Channel states and balance updates</li>
+                                <li>Interactive Lightning Lab demo</li>
+                            </ul>
+                        </div>
+
+                        <div class="module-footer">
+                            <div class="module-meta">
+                                <span><span data-icon="timer"></span> 50 minutes</span>
+                                <span><span data-icon="game"></span> Interactive demo</span>
+                                <span>📝 Channel exercise</span>
+                            </div>
+                            <a href="module-1.html" class="module-cta">Start Module 1 →</a>
+                        </div>
+                    </div>
+
+                    <!-- Module 2 -->
+                    <div class="module-card locked" data-module="builder-2-2">
+                        <div class="module-header">
+                            <div class="module-title">
+                                <h3>Module 2: Routing &amp; HTLCs</h3>
+                            </div>
+                            <div class="module-number">2</div>
+                        </div>
+
+                        <div class="module-description">
+                            Master Hash Time-Locked Contracts (HTLCs) and understand how Lightning routes payments across
+                            a network of channels without trusted intermediaries.
+                        </div>
+
+                        <div class="module-topics">
+                            <h4>Topics Covered:</h4>
+                            <ul>
+                                <li>Hash Time-Locked Contracts (HTLCs)</li>
+                                <li>Multi-hop payment routing</li>
+                                <li>Onion routing for privacy</li>
+                                <li>Path finding algorithms</li>
+                                <li>Interactive route simulator</li>
+                            </ul>
+                        </div>
+
+                        <div class="module-footer">
+                            <div class="module-meta">
+                                <span><span data-icon="timer"></span> 55 minutes</span>
+                                <span><span data-icon="game"></span> Interactive demo</span>
+                                <span>📝 Quiz</span>
+                            </div>
+                            <a href="module-2.html" class="module-cta locked">Complete Module 1 First</a>
+                        </div>
+                    </div>
+
+                    <!-- Module 3 -->
+                    <div class="module-card locked" data-module="builder-2-3">
+                        <div class="module-header">
+                            <div class="module-title">
+                                <h3>Module 3: Lightning Application Development</h3>
+                            </div>
+                            <div class="module-number">3</div>
+                        </div>
+
+                        <div class="module-description">
+                            Learn to build Lightning applications using LND, c-lightning, or Eclair. Create invoices,
+                            handle payments, and build a simple Lightning-powered app.
+                        </div>
+
+                        <div class="module-topics">
+                            <h4>Topics Covered:</h4>
+                            <ul>
+                                <li>Lightning implementations (LND, CLN, Eclair)</li>
+                                <li>REST and gRPC APIs</li>
+                                <li>WebSocket subscriptions for real-time updates</li>
+                                <li>BOLT 11 invoice format</li>
+                                <li>Code: Build a Lightning invoice generator</li>
+                            </ul>
+                        </div>
+
+                        <div class="module-footer">
+                            <div class="module-meta">
+                                <span><span data-icon="timer"></span> 90 minutes</span>
+                                <span>💻 Coding project</span>
+                                <span>📝 API practice</span>
+                            </div>
+                            <a href="module-3.html" class="module-cta locked">Complete Module 2 First</a>
+                        </div>
+                    </div>
+
+                    <!-- Module 4 -->
+                    <div class="module-card locked" data-module="builder-2-4">
+                        <div class="module-header">
+                            <div class="module-title">
+                                <h3>Module 4: Beyond Lightning - The Future of Bitcoin Layers</h3>
+                            </div>
+                            <div class="module-number">4</div>
+                        </div>
+
+                        <div class="module-description">
+                            Explore Bitcoin's evolving layer ecosystem beyond Lightning: Liquid, Fedimint, Drivechains, and emerging
+                            protocols. Understand the tradeoffs and how each layer extends Bitcoin's capabilities.
+                        </div>
+
+                        <div class="module-topics">
+                            <h4>Topics Covered:</h4>
+                            <ul>
+                                <li>Bitcoin's layered architecture philosophy</li>
+                                <li>Liquid Network (privacy &amp; institutional layer)</li>
+                                <li>Fedimint (community custody &amp; eCash)</li>
+                                <li>Drivechains &amp; experimental sidechains</li>
+                                <li>Interactive layers explorer map</li>
+                            </ul>
+                        </div>
+
+                        <div class="module-footer">
+                            <div class="module-meta">
+                                <span><span data-icon="timer"></span> 10 minutes</span>
+                                <span><span data-icon="game"></span> Interactive explorer</span>
+                                <span>🧩 Tradeoff analysis</span>
+                            </div>
+                            <a href="module-4.html" class="module-cta locked">Complete Module 3 First</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Completion Banner -->
+            <div class="completion-banner" id="completion-banner">
+                <div class="badge-display"><span data-icon="lightning"></span> </div>
+                <h3>Congratulations! Stage 2 Complete!</h3>
+                <p>
+                    You've earned the <strong>"Lightning Developer"</strong> badge! You now understand payment channels,
+                    routing with HTLCs, and can build Lightning applications.
+                </p>
+                <a href="/paths/builder/stage-3/" class="next-stage-btn">Continue to Stage 3: Building Applications →</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Check progress and update UI
+        function updateProgress() {
+            const progress = JSON.parse(localStorage.getItem('learningProgress') || '{}');
+            const completedModules = progress.completedModules || [];
+
+            // Update module cards
+            completedModules.forEach(moduleId => {
+                if (moduleId.startsWith('builder-2-')) {
+                    const card = document.querySelector(`[data-module="${moduleId}"]`);
+                    if (card) {
+                        card.style.borderColor = 'var(--lightning-yellow)';
+                        card.style.background = 'rgba(255, 193, 7, 0.05)';
+                    }
+                }
+            });
+
+            // Unlock next module
+            if (completedModules.includes('builder-2-1')) {
+                const module2 = document.querySelector('[data-module="builder-2-2"]');
+                module2.classList.remove('locked');
+                module2.querySelector('.module-cta').classList.remove('locked');
+                module2.querySelector('.module-cta').textContent = 'Start Module 2 →';
+            }
+
+            if (completedModules.includes('builder-2-2')) {
+                const module3 = document.querySelector('[data-module="builder-2-3"]');
+                module3.classList.remove('locked');
+                module3.querySelector('.module-cta').classList.remove('locked');
+                module3.querySelector('.module-cta').textContent = 'Start Module 3 →';
+            }
+
+            if (completedModules.includes('builder-2-3')) {
+                const module4 = document.querySelector('[data-module="builder-2-4"]');
+                module4.classList.remove('locked');
+                module4.querySelector('.module-cta').classList.remove('locked');
+                module4.querySelector('.module-cta').textContent = 'Start Module 4 →';
+            }
+
+            // Check if stage completed
+            const stageComplete = completedModules.includes('builder-2-1') &&
+                                completedModules.includes('builder-2-2') &&
+                                completedModules.includes('builder-2-3') &&
+                                completedModules.includes('builder-2-4');
+
+            if (stageComplete) {
+                document.getElementById('completion-banner').style.display = 'block';
+            }
+        }
+
+        updateProgress();
+    </script>
+
+    <!-- Animated Icon Library -->
+    <script src="/js/icon-library.js"></script>
+    <script>
+        // Inject icons after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.IconLibrary) {
+                document.querySelectorAll('[data-icon]').forEach(function(element) {
+                    var iconName = element.getAttribute('data-icon');
+                    if (iconName) {
+                        var iconHTML = IconLibrary.get(iconName, 20, true);
+                        var span = document.createElement('span');
+                        span.innerHTML = iconHTML;
+                        span.className = 'icon-inline';
+                        span.style.marginRight = '0.5rem';
+                        span.style.display = 'inline-block';
+                        span.style.verticalAlign = 'middle';
+                        element.insertBefore(span, element.firstChild);
+                    }
+                });
+            }
+        });
+    </script>
+
+
+    <!-- Navigation Context (return-to-path functionality) -->
+    <script src="/js/navigation-context.js"></script>
+    <!-- Reflect: Socratic questions after module -->
+    <div style="max-width:900px;margin:2rem auto 0;padding:0 1.5rem 2.5rem">
+        <div class="reflect-widget"
+             data-topic="cryptography"
+             data-path="builder"
+             data-title="Reflect: What can you build with what you learned?">
+        </div>
+    </div>
+    <script src="/js/reflect-widget.js"></script>
+
+<script src="/js/membership-gate.js"></script>
+
+<!-- Analytics, Email Capture & Tip CTAs -->
+<div class="container" style="margin: 2rem auto; max-width: 900px; padding: 0 1.5rem;">
+    <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
+    <div id="tip-page" data-tip-cta="compact"></div>
+</div>
+<script src="/js/analytics.js" defer></script>
+<script src="/js/email-capture.js" defer></script>
+<script src="/js/tip-cta.js" defer></script>
+
+</body></html>

@@ -1,0 +1,1206 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Basics - Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        :root {
+            --primary-orange: var(--color-brand);
+            --primary-dark: var(--color-bg);
+            --secondary-dark: var(--color-surface);
+            --text-light: var(--color-text);
+            --text-dim: var(--color-muted);
+            --success-green: var(--color-success);
+            --danger-red: var(--color-danger);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: var(--primary-orange);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        .deprecation-banner {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
+            border: 2px solid #4caf50;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .deprecation-banner h3 {
+            color: #4caf50;
+            margin: 0 0 0.5rem;
+            font-size: 1.25rem;
+        }
+
+        .deprecation-banner p {
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .upgrade-btn {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 147, 26, 0.4);
+        }
+
+        /* Override some default styles for workshop */
+        .seed-word-chip {
+            display: inline-block;
+            background: rgba(247, 147, 26, 0.1);
+            border: 1px solid var(--primary-orange);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            margin: 0.25rem;
+            color: var(--primary-orange);
+            font-weight: 600;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .comparison-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(247, 147, 26, 0.2);
+        }
+
+        .address-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .address-type-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(247, 147, 26, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .address-type-card:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(247, 147, 26, 0.2);
+        }
+
+        .address-type-card.legacy {
+            opacity: 0.7;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-header h4 {
+            color: var(--primary-orange);
+            margin: 0;
+        }
+
+        .recommended-badge,
+        .new-badge,
+        .compatible-badge,
+        .old-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .recommended-badge {
+            background: var(--success-green);
+            color: white;
+        }
+
+        .new-badge {
+            background: #2196F3;
+            color: white;
+        }
+
+        .compatible-badge {
+            background: #FF9800;
+            color: white;
+        }
+
+        .old-badge {
+            background: rgba(244, 67, 54, 0.2);
+            color: #F44336;
+            border: 1px solid #F44336;
+        }
+
+        .address-example {
+            font-family: monospace;
+            font-size: 0.85rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.75rem;
+            border-radius: 6px;
+            word-break: break-all;
+            margin: 1rem 0;
+            color: var(--primary-orange);
+        }
+
+        .benefits {
+            list-style: none;
+            padding: 0;
+        }
+
+        .benefits li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(247, 147, 26, 0.1);
+        }
+
+        .benefits li:last-child {
+            border-bottom: none;
+        }
+
+        .tech-details {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(247, 147, 26, 0.2);
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .derivation-tree {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+        }
+
+        .tree-level {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .tree-level.multi {
+            flex-wrap: wrap;
+        }
+
+        .tree-node {
+            background: rgba(247, 147, 26, 0.1);
+            border: 2px solid var(--primary-orange);
+            border-radius: 8px;
+            padding: 1rem;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .tree-node.master {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.2), rgba(255, 107, 0, 0.2));
+        }
+
+        .tree-node.child {
+            min-width: 150px;
+            font-size: 0.9rem;
+        }
+
+        .tree-node.more {
+            border-style: dashed;
+            opacity: 0.5;
+        }
+
+        .node-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .node-label {
+            font-weight: 600;
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .node-value,
+        .node-path {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .tree-arrow {
+            text-align: center;
+            color: var(--text-dim);
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .ecc-visual {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+        }
+
+        .ecc-equation {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .eq-part {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .eq-arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .arrow-symbol {
+            font-size: 2rem;
+            color: var(--primary-orange);
+        }
+
+        .one-way-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .direction {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .direction.forward {
+            border: 2px solid var(--success-green);
+        }
+
+        .direction.backward {
+            border: 2px solid var(--danger-red);
+        }
+
+        .success-summary {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(139, 195, 74, 0.1));
+            border: 2px solid var(--success-green);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .success-summary h3 {
+            color: var(--success-green);
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .summary-item {
+            padding: 1rem;
+        }
+
+        .summary-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-label {
+            font-weight: 600;
+            color: var(--primary-orange);
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-value {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .next-steps {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid #2196F3;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 8px;
+        }
+
+        .next-steps h4 {
+            color: #2196F3;
+            margin-bottom: 1rem;
+        }
+
+        .learned-list,
+        .next-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .learned-list li,
+        .next-list li {
+            padding: 0.5rem 0;
+        }
+
+        .action-btn {
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .action-btn:hover {
+            background: #c77808;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 147, 26, 0.4);
+        }
+
+        .generated-address {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .address-output {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .address-output code {
+            font-family: monospace;
+            font-size: 1.1rem;
+            color: var(--primary-orange);
+            word-break: break-all;
+        }
+
+        .address-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .path-select,
+        .address-select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--primary-orange);
+            color: var(--text-light);
+            border-radius: 6px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .path-explanation {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 3px solid #2196F3;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
+        .security-note {
+            background: rgba(255, 152, 0, 0.1);
+            border-left: 4px solid #FF9800;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 8px;
+        }
+
+        .security-note h4 {
+            color: #FF9800;
+            margin-bottom: 1rem;
+        }
+
+        .curve-container {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .curve-explanation {
+            text-align: center;
+            margin-top: 1rem;
+            color: var(--text-dim);
+        }
+
+        .pubkey-formats {
+            margin: 2rem 0;
+        }
+
+        .format-selector {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .format-selector label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .pubkey-display {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .key-breakdown {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .breakdown-part {
+            flex: 0 0 auto;
+        }
+
+        .breakdown-part.full {
+            flex: 1 1 100%;
+        }
+
+        .breakdown-part code {
+            display: block;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            word-break: break-all;
+            color: var(--primary-orange);
+            font-size: 0.85rem;
+        }
+
+        .format-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .format-option {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .seed-conversion-visual {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .conversion-step {
+            text-align: center;
+        }
+
+        .conv-label {
+            background: rgba(247, 147, 26, 0.1);
+            border: 1px solid var(--primary-orange);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            color: var(--primary-orange);
+            font-weight: 600;
+        }
+
+        .conv-arrow {
+            font-size: 1.5rem;
+            color: var(--primary-orange);
+            margin: 0.5rem 0;
+        }
+
+        .seed-options {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+
+        .seed-options label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .seed-phrase-container {
+            margin: 2rem 0;
+        }
+
+        .seed-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .address-derivation-flow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .flow-step {
+            text-align: center;
+        }
+
+        .step-box {
+            background: rgba(247, 147, 26, 0.1);
+            border: 2px solid var(--primary-orange);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            color: var(--primary-orange);
+            font-weight: 600;
+            min-width: 200px;
+        }
+
+        .step-box.final {
+            background: var(--success-green);
+            border-color: var(--success-green);
+            color: white;
+        }
+
+        .step-arrow {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+
+        .address-generator {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .qr-container {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .qr-container p {
+            color: #333;
+            margin-top: 1rem;
+        }
+
+        /* ===== ACCESSIBILITY ENHANCEMENTS (WCAG 2.1 AA) ===== */
+
+        /* Color Contrast - Change dim text from muted to #b3b3b3 for 4.6:1 ratio */
+        .header p, .summary-value, .tech-details, .curve-explanation,
+        .step-arrow, small {
+            color: #b3b3b3;
+        }
+
+        /* Touch Targets - Minimum 44x44px */
+        button, a, [role="button"], input[type="button"], input[type="submit"],
+        .back-btn, .action-btn, .address-type-card {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Focus Indicators */
+        *:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 2px;
+        }
+
+        button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
+        .address-type-card:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 4px;
+            box-shadow: 0 0 0 4px rgba(247, 147, 26, 0.2);
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Mobile Reflow */
+        @media (max-width: 360px) {
+            body {
+                overflow-x: hidden;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid,
+            .one-way-demo,
+            .format-comparison {
+                grid-template-columns: 1fr;
+            }
+
+            .ecc-equation {
+                flex-direction: column;
+            }
+
+            .address-types {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="/css/icons.css">
+    <link rel="stylesheet" href="/css/interactive-demos.css">
+<meta name="description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><link rel="canonical" href="https://bitcoinsovereign.academy/"><meta property="og:title" content="Bitcoin Sovereign Academy"><meta property="og:description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg"><meta property="og:url" content="https://bitcoinsovereign.academy/"><meta property="og:type" content="website"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Bitcoin Sovereign Academy",
+  "description": "Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.",
+  "url": "https://bitcoinsovereign.academy",
+  "logo": "https://bitcoinsovereign.academy/assets/og-image.jpg",
+  "sameAs": [
+    "https://github.com/Sovereigndwp/bitcoin-sovereign-academy"
+  ],
+  "educationalLevel": "Beginner to Advanced",
+  "teaches": [
+    "Bitcoin Fundamentals",
+    "Cryptocurrency Technology",
+    "Financial Sovereignty",
+    "Digital Asset Security"
+  ],
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Students interested in Bitcoin and cryptocurrency"
+  }
+}</script></head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <script src="/js/config.js"></script>
+    <script src="/js/demo-lock-subdomain.js"></script>
+    <script src="/js/subdomain-access-control.js"></script>
+
+
+
+    <a href="../index.html" class="back-btn">← Back to Demos</a>
+
+    <main id="main-content" class="container">
+        <div class="header">
+            <h1>🔑 Wallet Basics</h1>
+            <p>Everything you need to know before using Bitcoin</p>
+        </div>
+
+        <!-- Mission Statement -->
+        <div class="deprecation-banner" style="background: rgba(247, 147, 26, 0.1); border-color: var(--primary-orange);">
+            <h3 style="color: var(--primary-orange);">🎯 Start Here First</h3>
+            <p>Before using any Bitcoin wallet, understand what a wallet actually is, how custody works, and which type fits your needs. This foundation prevents costly mistakes.</p>
+        </div>
+
+        <!-- What is a Bitcoin Wallet? -->
+        <div style="background: rgba(0, 0, 0, 0.3); border: 2px solid var(--primary-orange); border-radius: 12px; padding: 2rem; margin: 2rem 0;">
+            <h2 style="color: var(--primary-orange); margin-bottom: 1rem;">💭 What is a Bitcoin Wallet?</h2>
+            
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 1.5rem;">
+                <strong>A Bitcoin wallet is NOT a physical container.</strong> Your Bitcoin doesn't "live" anywhere—it exists as entries on the blockchain that everyone can see.
+            </p>
+            
+            <div style="background: rgba(247, 147, 26, 0.1); border-left: 4px solid var(--primary-orange); padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0;">
+                <strong style="color: var(--primary-orange); font-size: 1.1rem;">A wallet is actually a key manager:</strong><br><br>
+                It stores your <strong>private keys</strong>—the secret passwords that let you spend Bitcoin associated with your addresses.
+            </div>
+
+            <div class="comparison-grid" style="margin-top: 2rem;">
+                <div style="background: rgba(76, 175, 80, 0.1); border: 2px solid #4caf50; border-radius: 8px; padding: 1.5rem;">
+                    <h3 style="color: #4caf50; margin-bottom: 0.75rem;">✅ Better Analogy</h3>
+                    <p>A wallet is like a <strong>keyring</strong> that holds keys to safe deposit boxes. The boxes (Bitcoin) are in a public vault (blockchain), but only your keys can open them.</p>
+                </div>
+                <div style="background: rgba(244, 67, 54, 0.1); border: 2px solid #F44336; border-radius: 8px; padding: 1.5rem;">
+                    <h3 style="color: #F44336; margin-bottom: 0.75rem;">❌ Common Misconception</h3>
+                    <p>Bitcoin is <strong>not</strong> stored "in" your wallet like cash in a physical wallet. Your wallet just proves ownership on the blockchain.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custodial vs Non-Custodial -->
+        <div style="background: rgba(0, 0, 0, 0.3); border: 2px solid var(--primary-orange); border-radius: 12px; padding: 2rem; margin: 2rem 0;">
+            <h2 style="color: var(--primary-orange); margin-bottom: 1rem;">🔐 Custodial vs. Non-Custodial: Who Has the Keys?</h2>
+            
+            <div style="background: rgba(33, 150, 243, 0.1); border-left: 4px solid #2196F3; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+                <strong style="color: #2196F3; font-size: 1.1rem;">The Golden Rule:</strong><br><br>
+                <p style="font-size: 1.1rem;">"<strong>Get your Bitcoin off exchanges.</strong>"<br>
+If you don't control the private keys (the seed words), you don't actually own the Bitcoin—someone else does.</p>
+            </div>
+
+            <h3 style="color: var(--text-light); margin-top: 2rem; margin-bottom: 1rem;">How to Recognize Each Type:</h3>
+            
+            <div class="comparison-grid">
+                <div style="background: rgba(255, 152, 0, 0.1); border: 2px solid #FF9800; border-radius: 12px; padding: 1.5rem;">
+                    <h3 style="color: #FF9800; margin-bottom: 1rem;">⚠️ Custodial Wallet</h3>
+                    <p style="margin-bottom: 1rem; line-height: 1.8;"><strong>Someone else controls your keys.</strong></p>
+                    
+                    <h4 style="color: var(--text-light); margin-top: 1.5rem; margin-bottom: 0.5rem;">How to Recognize:</h4>
+                    <ul style="line-height: 1.8; margin-left: 1.5rem;">
+                        <li>❌ No seed words given to you</li>
+                        <li>❌ Just username &amp; password login</li>
+                        <li>❌ You can "reset password"</li>
+                        <li>❌ Terms say "we custody your assets"</li>
+                    </ul>
+
+                    <h4 style="color: var(--text-light); margin-top: 1.5rem; margin-bottom: 0.5rem;">Examples:</h4>
+                    <ul style="line-height: 1.8; margin-left: 1.5rem;">
+                        <li>Coinbase, Binance, Kraken (exchange accounts)</li>
+                        <li>Cash App, PayPal, Robinhood</li>
+                        <li>Strike (before self-custody feature)</li>
+                    </ul>
+
+                    <h4 style="color: var(--text-light); margin-top: 1.5rem; margin-bottom: 0.5rem;">When It's Okay:</h4>
+                    <ul style="line-height: 1.8; margin-left: 1.5rem;">
+                        <li>Small amounts you can afford to lose</li>
+                        <li>Actively trading or testing</li>
+                        <li>Very short-term holding before withdrawing</li>
+                    </ul>
+                </div>
+
+                <div style="background: rgba(76, 175, 80, 0.1); border: 2px solid #4caf50; border-radius: 12px; padding: 1.5rem;">
+                    <h3 style="color: #4caf50; margin-bottom: 1rem;">✅ Non-Custodial Wallet</h3>
+                    <p style="margin-bottom: 1rem; line-height: 1.8;"><strong>You control your own keys.</strong></p>
+                    
+                    <h4 style="color: var(--text-light); margin-top: 1.5rem; margin-bottom: 0.5rem;">How to Recognize:</h4>
+                    <ul style="line-height: 1.8; margin-left: 1.5rem;">
+                        <li>✅ You get 12 or 24 seed words</li>
+                        <li>✅ Warning: "Write these down or lose access forever"</li>
+                        <li>✅ No "forgot password" recovery</li>
+                        <li>✅ App says "only you control your funds"</li>
+                    </ul>
+
+                    <h4 style="color: var(--text-light); margin-top: 1.5rem; margin-bottom: 0.5rem;">Examples:</h4>
+                    <ul style="line-height: 1.8; margin-left: 1.5rem;">
+                        <li><strong>Software:</strong> BlueWallet, Sparrow, Electrum, Samourai</li>
+                        <li><strong>Hardware:</strong> Coldcard, Trezor, Ledger, Passport</li>
+                        <li><strong>Mobile:</strong> Muun, Phoenix, Breez</li>
+                    </ul>
+
+                    <h4 style="color: var(--text-light); margin-top: 1.5rem; margin-bottom: 0.5rem;">When It's Required:</h4>
+                    <ul style="line-height: 1.8; margin-left: 1.5rem;">
+                        <li>Amounts you can't afford to lose</li>
+                        <li>Long-term holding ("HODLing")</li>
+                        <li>True financial sovereignty</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hot vs Cold Wallets -->
+        <div style="background: rgba(0, 0, 0, 0.3); border: 2px solid var(--primary-orange); border-radius: 12px; padding: 2rem; margin: 2rem 0;">
+            <h2 style="color: var(--primary-orange); margin-bottom: 1rem;">🔥❄️ Hot vs. Cold Wallets</h2>
+            
+            <p style="margin-bottom: 1.5rem; line-height: 1.8;">Once you've chosen non-custodial, the next choice is connectivity:</p>
+
+            <div class="comparison-grid">
+                <div style="background: rgba(255, 107, 0, 0.1); border: 2px solid #FF6B00; border-radius: 12px; padding: 1.5rem;">
+                    <h3 style="color: #FF6B00; margin-bottom: 1rem;">🔥 Hot Wallet</h3>
+                    <p style="margin-bottom: 1rem;"><strong>Connected to the internet</strong></p>
+                    
+                    <h4 style="color: var(--text-light); margin: 1rem 0 0.5rem;">Pros:</h4>
+                    <ul style="line-height: 1.8; margin-left: 1.5rem;">
+                        <li>✅ Convenient for daily use</li>
+                        <li>✅ Fast transactions</li>
+                        <li>✅ Free (software) or cheap (phone)</li>
+                        <li>✅ Good for small amounts</li>
+                    </ul>
+
+                    <h4 style="color: var(--text-light); margin: 1.5rem 0 0.5rem;">Cons:</h4>
+                    <ul style="line-height: 1.8; margin-left: 1.5rem;">
+                        <li>❌ Vulnerable to hacking</li>
+                        <li>❌ Malware risk</li>
+                        <li>❌ If device is compromised, funds at risk</li>
+                    </ul>
+
+                    <h4 style="color: var(--text-light); margin: 1.5rem 0 0.5rem;">Examples:</h4>
+                    <p>BlueWallet, Sparrow (on laptop), Muun, Phoenix</p>
+                </div>
+
+                <div style="background: rgba(33, 150, 243, 0.1); border: 2px solid #2196F3; border-radius: 12px; padding: 1.5rem;">
+                    <h3 style="color: #2196F3; margin-bottom: 1rem;">❄️ Cold Wallet</h3>
+                    <p style="margin-bottom: 1rem;"><strong>Never touches the internet</strong></p>
+                    
+                    <h4 style="color: var(--text-light); margin: 1rem 0 0.5rem;">Pros:</h4>
+                    <ul style="line-height: 1.8; margin-left: 1.5rem;">
+                        <li>✅ Maximum security</li>
+                        <li>✅ Immune to online attacks</li>
+                        <li>✅ Best for large amounts/savings</li>
+                        <li>✅ Physical control</li>
+                    </ul>
+
+                    <h4 style="color: var(--text-light); margin: 1.5rem 0 0.5rem;">Cons:</h4>
+                    <ul style="line-height: 1.8; margin-left: 1.5rem;">
+                        <li>❌ Less convenient</li>
+                        <li>❌ Costs money ($60-$300+)</li>
+                        <li>❌ Learning curve</li>
+                        <li>❌ Can be lost or damaged</li>
+                    </ul>
+
+                    <h4 style="color: var(--text-light); margin: 1.5rem 0 0.5rem;">Examples:</h4>
+                    <p>Coldcard, Trezor, Ledger, Passport, Jade</p>
+                </div>
+            </div>
+
+            <div style="background: rgba(76, 175, 80, 0.1); border-left: 4px solid #4caf50; padding: 1.5rem; border-radius: 8px; margin-top: 2rem;">
+                <strong style="color: #4caf50;">💡 Common Strategy:</strong><br><br>
+                Use both! Hot wallet for spending money (like a regular wallet), cold wallet for savings (like a safe).
+            </div>
+        </div>
+
+        <!-- Single-sig vs Multisig -->
+        <div style="background: rgba(0, 0, 0, 0.3); border: 2px solid var(--primary-orange); border-radius: 12px; padding: 2rem; margin: 2rem 0;">
+            <h2 style="color: var(--primary-orange); margin-bottom: 1rem;">🔑 Single-Sig vs. Multisig</h2>
+            
+            <p style="margin-bottom: 1.5rem; line-height: 1.8;">How many keys are needed to spend Bitcoin?</p>
+
+            <div class="comparison-grid">
+                <div style="background: rgba(255, 255, 255, 0.05); border: 2px solid var(--text-dim); border-radius: 12px; padding: 1.5rem;">
+                    <h3 style="color: var(--text-light); margin-bottom: 1rem;">🔑 Single-Signature (Standard)</h3>
+                    <p style="margin-bottom: 1rem;"><strong>One key controls everything</strong></p>
+                    
+                    <ul style="line-height: 1.8; margin: 1rem 0 1rem 1.5rem;">
+                        <li>One seed phrase = full control</li>
+                        <li>Simpler to use and back up</li>
+                        <li>Most common setup for individuals</li>
+                        <li>If seed is compromised, all funds at risk</li>
+                    </ul>
+
+                    <p style="margin-top: 1rem; color: #4caf50;"><strong>Best for:</strong> Personal wallets, most users</p>
+                </div>
+
+                <div style="background: rgba(156, 39, 176, 0.1); border: 2px solid #9C27B0; border-radius: 12px; padding: 1.5rem;">
+                    <h3 style="color: #9C27B0; margin-bottom: 1rem;">🔑🔑🔑 Multisignature (Advanced)</h3>
+                    <p style="margin-bottom: 1rem;"><strong>Multiple keys required to spend</strong></p>
+                    
+                    <ul style="line-height: 1.8; margin: 1rem 0 1rem 1.5rem;">
+                        <li>Requires M of N keys (e.g., 2-of-3, 3-of-5)</li>
+                        <li>No single point of failure</li>
+                        <li>Can share responsibility or add redundancy</li>
+                        <li>More complex setup and usage</li>
+                    </ul>
+
+                    <p style="margin-top: 1rem; color: #4caf50;"><strong>Best for:</strong> Large amounts, inheritance, business/shared funds</p>
+
+                    <div style="background: rgba(33, 150, 243, 0.1); border-left: 3px solid #2196F3; padding: 1rem; border-radius: 6px; margin-top: 1rem; font-size: 0.95rem;">
+                        <strong>Example 2-of-3 setup:</strong><br>
+                        • Key 1: Hardware wallet at home<br>
+                        • Key 2: Hardware wallet in safe deposit box<br>
+                        • Key 3: With trusted family member<br><br>
+                        Need any 2 to spend. Losing one key doesn't lose funds.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step-by-Step Guides -->
+        <div style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.05)); border: 2px solid #4caf50; border-radius: 12px; padding: 2rem; margin: 2rem 0;">
+            <h2 style="color: #4caf50; margin-bottom: 1.5rem;">📋 Step-by-Step Setup Guides</h2>
+            
+            <!-- Software Wallet Setup -->
+            <details style="background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; cursor: pointer;">
+                <summary style="font-size: 1.2rem; font-weight: 600; color: var(--primary-orange); cursor: pointer;">📱 Setting Up a Software Wallet (BlueWallet Example)</summary>
+                <div style="margin-top: 1.5rem;">
+                    <ol style="line-height: 2; margin-left: 1.5rem; font-size: 1.05rem;">
+                        <li><strong>Download from official source</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• iOS: App Store | Android: Google Play | Desktop: Official website only<br>
+                            • ⚠️ NEVER download from random websites or links</span>
+                        </li>
+                        <li style="margin-top: 1rem;"><strong>Create a new wallet</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• Choose "Create new wallet" or "Add wallet"<br>
+                            • Select "Bitcoin" (not Lightning for first wallet)</span>
+                        </li>
+                        <li style="margin-top: 1rem;"><strong>Write down your seed words</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• App shows 12 or 24 words<br>
+                            • Write on paper IN ORDER<br>
+                            • Number them: 1. word 2. word 3. word...<br>
+                            • ⚠️ NEVER screenshot, photo, or type into computer</span>
+                        </li>
+                        <li style="margin-top: 1rem;"><strong>Verify your backup</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• App will ask you to confirm words (usually random ones)<br>
+                            • Make sure you wrote them correctly</span>
+                        </li>
+                        <li style="margin-top: 1rem;"><strong>Store backup safely</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• Keep paper somewhere safe (fireproof safe ideal)<br>
+                            • NEVER store digitally (no cloud, no photos)<br>
+                            • Consider a second copy in different location</span>
+                        </li>
+                        <li style="margin-top: 1rem;"><strong>Test with small amount first</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• Send $10-50 worth to test<br>
+                            • Practice sending it back out<br>
+                            • Delete wallet and restore from seed words to verify backup works</span>
+                        </li>
+                    </ol>
+                </div>
+            </details>
+
+            <!-- Hardware Wallet Setup -->
+            <details style="background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; cursor: pointer;">
+                <summary style="font-size: 1.2rem; font-weight: 600; color: var(--primary-orange); cursor: pointer;">🔐 Setting Up a Hardware Wallet (General Process)</summary>
+                <div style="margin-top: 1.5rem;">
+                    <ol style="line-height: 2; margin-left: 1.5rem; font-size: 1.05rem;">
+                        <li><strong>Buy from official source</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• Order direct from manufacturer (Coldcard, Trezor, Ledger, etc.)<br>
+                            • ⚠️ NEVER buy from Amazon, eBay, or third parties<br>
+                            • Verify tamper-evident packaging on arrival</span>
+                        </li>
+                        <li style="margin-top: 1rem;"><strong>Initialize device</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• Power on and follow setup wizard<br>
+                            • Choose "Create new wallet" (not restore)<br>
+                            • Set PIN code (device-specific protection)</span>
+                        </li>
+                        <li style="margin-top: 1rem;"><strong>Generate and write seed words</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• Device generates 12 or 24 words<br>
+                            • Write on recovery card or paper included<br>
+                            • Some devices (Coldcard) never show seed on screen—extra security</span>
+                        </li>
+                        <li style="margin-top: 1rem;"><strong>Verify seed words</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• Device asks you to confirm words in random order<br>
+                            • Ensures you wrote them correctly</span>
+                        </li>
+                        <li style="margin-top: 1rem;"><strong>Connect to wallet software</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• Use manufacturer's app OR use Sparrow/Electrum (more privacy)<br>
+                            • Device stays offline; only public keys shared with computer<br>
+                            • Private keys never leave the hardware wallet</span>
+                        </li>
+                        <li style="margin-top: 1rem;"><strong>Test recovery process</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• Send small test amount<br>
+                            • Reset device and restore from seed words<br>
+                            • Verify funds reappear—confirms backup works</span>
+                        </li>
+                    </ol>
+
+                    <div style="background: rgba(33, 150, 243, 0.1); border-left: 4px solid #2196F3; padding: 1.5rem; border-radius: 8px; margin-top: 2rem;">
+                        <strong style="color: #2196F3;">💡 Pro Tip:</strong> Many people buy 2 hardware wallets of the same model—one for daily use, one as backup. Both can hold the same seed for redundancy.
+                    </div>
+                </div>
+            </details>
+
+            <!-- Recovery Process -->
+            <details style="background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 1.5rem; cursor: pointer;">
+                <summary style="font-size: 1.2rem; font-weight: 600; color: var(--primary-orange); cursor: pointer;">🔄 Recovery &amp; Backup Strategies</summary>
+                <div style="margin-top: 1.5rem;">
+                    <h4 style="color: var(--text-light); margin-bottom: 1rem;">When You Need Recovery:</h4>
+                    <ul style="line-height: 2; margin-left: 1.5rem;">
+                        <li>Lost or broken phone/hardware wallet</li>
+                        <li>Deleted wallet app</li>
+                        <li>Device stolen or damaged</li>
+                        <li>Moving to new device</li>
+                    </ul>
+
+                    <h4 style="color: var(--text-light); margin: 2rem 0 1rem;">How to Recover:</h4>
+                    <ol style="line-height: 2; margin-left: 1.5rem; font-size: 1.05rem;">
+                        <li><strong>Get new wallet app or device</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• Same wallet software (BlueWallet, etc.) OR<br>
+                            • Any BIP39-compatible wallet (most modern wallets)</span>
+                        </li>
+                        <li style="margin-top: 1rem;"><strong>Choose "Restore from seed" option</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• Usually "Import wallet" or "Restore wallet"</span>
+                        </li>
+                        <li style="margin-top: 1rem;"><strong>Enter your seed words in order</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• Type carefully—some wallets autocomplete from BIP39 wordlist<br>
+                            • Must be EXACT order: word 1, word 2, etc.</span>
+                        </li>
+                        <li style="margin-top: 1rem;"><strong>Wait for sync</strong><br>
+                            <span style="color: var(--text-dim); font-size: 0.95rem;">• Wallet scans blockchain for your transactions<br>
+                            • May take a few minutes<br>
+                            • All Bitcoin should reappear</span>
+                        </li>
+                    </ol>
+
+                    <h4 style="color: var(--text-light); margin: 2rem 0 1rem;">Backup Best Practices:</h4>
+                    <div class="comparison-grid">
+                        <div style="background: rgba(76, 175, 80, 0.1); border: 2px solid #4caf50; border-radius: 8px; padding: 1rem;">
+                            <h4 style="color: #4caf50; margin-bottom: 0.5rem;">✅ DO</h4>
+                            <ul style="line-height: 1.8; margin-left: 1.5rem; font-size: 0.95rem;">
+                                <li>Write on paper or metal plate</li>
+                                <li>Store in fireproof safe</li>
+                                <li>Keep second copy in different location</li>
+                                <li>Use metal seed storage for fire/flood protection</li>
+                                <li>Test recovery with small amount first</li>
+                            </ul>
+                        </div>
+                        <div style="background: rgba(244, 67, 54, 0.1); border: 2px solid #F44336; border-radius: 8px; padding: 1rem;">
+                            <h4 style="color: #F44336; margin-bottom: 0.5rem;">❌ DON'T</h4>
+                            <ul style="line-height: 1.8; margin-left: 1.5rem; font-size: 0.95rem;">
+                                <li>Screenshot or photograph seed</li>
+                                <li>Store in cloud (Google Drive, iCloud, Dropbox)</li>
+                                <li>Email to yourself</li>
+                                <li>Store in password manager (controversial—some disagree)</li>
+                                <li>Share with anyone, including "support"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="success-summary">
+            <h3>🎓 You Now Understand Bitcoin Wallets!</h3>
+            <p style="margin-bottom: 2rem; line-height: 1.8;">You've learned the foundation. Ready to see how it all works interactively?</p>
+            
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="/interactive-demos/wallet-workshop/interactive.html" class="action-btn" style="text-decoration: none; display: inline-block; background: linear-gradient(135deg, #f7931a 0%, #ff6b00 100%);">
+                    🎮 Interactive Wallet Workshop
+                </a>
+                <a href="/interactive-demos/wallet-security-workshop/" class="action-btn" style="text-decoration: none; display: inline-block;">
+                    🔐 Practice Wallet Security Workshop
+                </a>
+                <a href="/interactive-demos/security-dojo-enhanced/" class="action-btn" style="background: #4caf50; text-decoration: none; display: inline-block;">
+                    🏋️ Security Training Lab
+                </a>
+            </div>
+
+            <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(33, 150, 243, 0.1); border-radius: 12px;">
+                <h4 style="color: #2196F3; margin-bottom: 1rem;">📚 Recommended Learning Path:</h4>
+                <ol style="line-height: 2; margin-left: 1.5rem; text-align: left;">
+                    <li><strong>Interactive Wallet Workshop</strong> — Play with entropy, see HD derivation, explore address types (hands-on!)</li>
+                    <li><strong>Wallet Security Workshop</strong> — Generate real seeds, practice backups, verify addresses</li>
+                    <li><strong>Security Training Lab</strong> — Train through hands-on security stations and earn belts</li>
+                    <li><strong>UTXO Visualizer</strong> — Understand how transactions actually work</li>
+                    <li><strong>Emergency Kit</strong> — Know what to do when things go wrong</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Animated Icon Library -->
+    <script src="/js/icon-library.js"></script>
+    <script>
+        // Inject icons after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.IconLibrary) {
+                document.querySelectorAll('[data-icon]').forEach(function(element) {
+                    var iconName = element.getAttribute('data-icon');
+                    if (iconName) {
+                        var iconHTML = IconLibrary.get(iconName, 20, true);
+                        var span = document.createElement('span');
+                        span.innerHTML = iconHTML;
+                        span.className = 'icon-inline';
+                        span.style.marginRight = '0.5rem';
+                        span.style.display = 'inline-block';
+                        span.style.verticalAlign = 'middle';
+                        element.insertBefore(span, element.firstChild);
+                    }
+                });
+            }
+        });
+    </script>
+
+
+    <!-- Navigation Context (return-to-path functionality) -->
+    <script src="/js/navigation-context.js"></script>
+
+    <!-- Tip CTA -->
+    <script src="/js/tip-cta.js" defer></script>
+    <div id="tip-footer" data-tip-cta="footer" data-variant="footer"></div>
+<script src="/js/membership-gate.js"></script>
+
+<!-- Analytics, Email Capture & Tip CTAs -->
+<div class="container" style="margin: 2rem auto; max-width: 900px; padding: 0 1.5rem;">
+    <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
+</div>
+<script src="/js/analytics.js" defer></script>
+<script src="/js/email-capture.js" defer></script>
+
+</body></html>

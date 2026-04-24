@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Assets Resist Inflation? | Financially Sovereign Academy</title>
+    <meta name="description" content="Compare how cash, bonds, gold, stocks, and Bitcoin perform against inflation. Interactive comparison tool for building your inflation-resistant strategy.">
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-sans); background: var(--color-bg); color: var(--color-text); line-height: 1.7; }
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+        .breadcrumb { color: var(--color-muted); font-size: 0.9rem; margin-bottom: 2rem; }
+        .breadcrumb a { color: var(--color-brand); text-decoration: none; }
+
+        .hero { text-align: center; padding: 3rem 0; margin-bottom: 3rem; }
+        .hero h1 { font-size: 2.5rem; margin-bottom: 1rem; color: var(--color-text); }
+        .hero h1 span { color: var(--color-brand); }
+        .hero p { color: var(--color-muted); font-size: 1.15rem; max-width: 650px; margin: 0 auto; }
+
+        .context-box { background: var(--color-surface); border: 2px solid var(--color-border); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 3rem; }
+        .context-box h2 { color: var(--color-brand); margin-bottom: 1rem; font-size: 1.5rem; }
+        .context-box p { color: var(--color-muted); margin-bottom: 1rem; }
+
+        /* Interactive Comparison */
+        .comparison-tool { margin-bottom: 3rem; }
+        .comparison-tool h2 { text-align: center; margin-bottom: 0.5rem; font-size: 1.75rem; }
+        .comparison-tool .subtitle { text-align: center; color: var(--color-muted); margin-bottom: 2rem; }
+
+        .slider-group { background: var(--color-surface); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem; }
+        .slider-group label { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: 600; }
+        .slider-group label span { color: var(--color-brand); }
+        .slider-group input[type="range"] { width: 100%; accent-color: var(--color-brand); }
+
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-top: 2rem; }
+        .result-card { background: var(--color-surface); border: 2px solid var(--color-border); border-radius: var(--radius-md); padding: 1.25rem; text-align: center; transition: all 0.3s; }
+        .result-card:hover { border-color: var(--color-brand); transform: translateY(-2px); }
+        .result-card .asset-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .result-card .asset-name { font-weight: 700; margin-bottom: 0.25rem; font-size: 0.95rem; }
+        .result-card .asset-return { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem; }
+        .result-card .asset-detail { font-size: 0.8rem; color: var(--color-muted); }
+        .positive { color: var(--color-success); }
+        .negative { color: var(--color-danger); }
+        .neutral { color: var(--color-warning); }
+
+        .insight-box { background: rgba(247, 147, 26, 0.08); border: 2px solid rgba(247, 147, 26, 0.25); border-radius: var(--radius-md); padding: 1.5rem; margin: 2rem 0; }
+        .insight-box h3 { color: var(--color-brand); margin-bottom: 0.75rem; }
+        .insight-box p { color: var(--color-muted); }
+
+        /* Tradeoffs Table */
+        .tradeoffs { margin-bottom: 3rem; }
+        .tradeoffs h2 { margin-bottom: 1.5rem; font-size: 1.75rem; }
+        .tradeoff-row { display: grid; grid-template-columns: 120px 1fr 1fr 1fr; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--color-border); align-items: center; }
+        .tradeoff-header { font-weight: 700; color: var(--color-brand); font-size: 0.8rem; text-transform: uppercase; }
+        .tradeoff-row:first-child { border-bottom: 2px solid var(--color-border); }
+        .tradeoff-cell { font-size: 0.9rem; color: var(--color-muted); }
+        .tradeoff-asset { font-weight: 700; color: var(--color-text); }
+
+        /* CTA Section */
+        .cta-section { text-align: center; padding: 3rem; background: linear-gradient(135deg, rgba(247, 147, 26, 0.1), rgba(147, 51, 234, 0.08)); border-radius: var(--radius-lg); border: 2px solid rgba(247, 147, 26, 0.3); margin: 3rem 0; }
+        .cta-section h2 { font-size: 2rem; margin-bottom: 1rem; }
+        .cta-section p { color: var(--color-muted); max-width: 600px; margin: 0 auto 2rem; font-size: 1.1rem; }
+        .cta-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+        .btn-primary { padding: 1rem 2rem; background: var(--gradient-brand); color: #000; border: none; border-radius: var(--radius-pill); font-weight: 700; font-size: 1.05rem; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.3s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); color: #000; }
+        .btn-secondary { padding: 1rem 2rem; background: transparent; border: 2px solid var(--color-border); color: var(--color-text); border-radius: var(--radius-pill); font-weight: 600; font-size: 1.05rem; text-decoration: none; display: inline-block; transition: all 0.3s; }
+        .btn-secondary:hover { border-color: var(--color-brand); color: var(--color-brand); }
+
+        .back-link { display: inline-block; margin-top: 2rem; color: var(--color-muted); text-decoration: none; font-size: 0.95rem; }
+        .back-link:hover { color: var(--color-brand); }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 1.8rem; }
+            .tradeoff-row { grid-template-columns: 1fr; gap: 0.5rem; }
+            .tradeoff-header { display: none; }
+            .results-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <nav class="breadcrumb">
+            <a href="/fsa/">FSA Home</a> → <a href="/fsa/#modules">Modules</a> → Bridge: Inflation Hedge
+        </nav>
+
+        <section class="hero">
+            <h1>What Assets <span>Resist Inflation</span>?</h1>
+            <p>You've learned that cash loses 3-7% of its purchasing power annually. Now let's explore what tools exist to protect your wealth.</p>
+        </section>
+
+        <section class="context-box">
+            <h2>📚 What You Already Know</h2>
+            <p>In Module 2 (Emergency Funds & Smart Saving), you learned that inflation erodes the value of cash over time. A $10,000 emergency fund loses $300-700 in purchasing power every year it sits in a savings account.</p>
+            <p>The question isn't <em>whether</em> to protect against inflation — it's <em>how</em>. Let's compare your options with real numbers.</p>
+        </section>
+
+        <section class="comparison-tool">
+            <h2>Interactive: Inflation Erosion Calculator</h2>
+            <p class="subtitle">See how different assets perform over time against inflation</p>
+
+            <div class="slider-group">
+                <label>Starting Amount: <span id="amountDisplay">$10,000</span></label>
+                <input type="range" id="amount" min="1000" max="100000" step="1000" value="10000">
+            </div>
+            <div class="slider-group">
+                <label>Time Horizon: <span id="yearsDisplay">10 years</span></label>
+                <input type="range" id="years" min="1" max="30" value="10">
+            </div>
+            <div class="slider-group">
+                <label>Inflation Rate: <span id="inflationDisplay">5%</span></label>
+                <input type="range" id="inflation" min="2" max="15" step="0.5" value="5">
+            </div>
+
+            <div class="results-grid" id="results">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="insight-box" id="insight">
+                <h3>💡 Key Insight</h3>
+                <p id="insightText">Adjust the sliders above to see how your money performs across different assets.</p>
+            </div>
+        </section>
+
+        <section class="tradeoffs">
+            <h2>Every Asset Has Trade-Offs</h2>
+            <div class="tradeoff-row">
+                <div class="tradeoff-header">Asset</div>
+                <div class="tradeoff-header">Strengths</div>
+                <div class="tradeoff-header">Risks</div>
+                <div class="tradeoff-header">Access</div>
+            </div>
+            <div class="tradeoff-row">
+                <div class="tradeoff-asset">💵 Cash</div>
+                <div class="tradeoff-cell">Instant liquidity, FDIC insured</div>
+                <div class="tradeoff-cell">Guaranteed loss to inflation</div>
+                <div class="tradeoff-cell">Bank account</div>
+            </div>
+            <div class="tradeoff-row">
+                <div class="tradeoff-asset">📊 I-Bonds</div>
+                <div class="tradeoff-cell">Inflation-adjusted, US gov backed</div>
+                <div class="tradeoff-cell">$10K annual limit, 1yr lockup</div>
+                <div class="tradeoff-cell">TreasuryDirect.gov</div>
+            </div>
+            <div class="tradeoff-row">
+                <div class="tradeoff-asset">📈 Index Funds</div>
+                <div class="tradeoff-cell">Historically 7-10% real returns</div>
+                <div class="tradeoff-cell">Volatile, 30-50% drawdowns</div>
+                <div class="tradeoff-cell">Brokerage account</div>
+            </div>
+            <div class="tradeoff-row">
+                <div class="tradeoff-asset">🪙 Gold</div>
+                <div class="tradeoff-cell">5,000yr track record, tangible</div>
+                <div class="tradeoff-cell">Storage costs, hard to divide</div>
+                <div class="tradeoff-cell">Dealer, ETF, or vault</div>
+            </div>
+            <div class="tradeoff-row">
+                <div class="tradeoff-asset">₿ Bitcoin</div>
+                <div class="tradeoff-cell">Fixed 21M supply, self-custodial, 24/7 liquid</div>
+                <div class="tradeoff-cell">High volatility, 15yr track record</div>
+                <div class="tradeoff-cell">Exchange or self-custody</div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <h2>Want to Understand Bitcoin's Properties?</h2>
+            <p>You now understand <em>why</em> certain asset properties matter: scarcity, portability, divisibility, durability. Bitcoin was designed with these properties from scratch.</p>
+            <div class="cta-buttons">
+                <a href="/paths/curious/" class="btn-primary" onclick="trackBridgeCTA('inflation-hedge', 'curious')">
+                    🌱 Start The Curious Path
+                </a>
+                <a href="/interactive-demos/stock-to-flow/" class="btn-secondary" onclick="trackBridgeCTA('inflation-hedge', 'stock-to-flow-demo')">
+                    📊 Try: Stock-to-Flow Model
+                </a>
+            </div>
+        </section>
+
+        <a href="/fsa/" class="back-link">← Back to Financially Sovereign Academy</a>
+    </main>
+
+    <script src="/js/analytics.js"></script>
+    <script>
+        const assets = {
+            cash:   { icon: '💵', name: 'Cash (Savings)', annualReturn: 0.5 },
+            ibonds: { icon: '📊', name: 'I-Bonds',        annualReturn: 3.5 },
+            index:  { icon: '📈', name: 'S&P 500',        annualReturn: 10 },
+            gold:   { icon: '🪙', name: 'Gold',            annualReturn: 7 },
+            btc:    { icon: '₿',  name: 'Bitcoin (avg)',   annualReturn: 50 }
+        };
+
+        function calculate() {
+            const amount = parseInt(document.getElementById('amount').value);
+            const years = parseInt(document.getElementById('years').value);
+            const inflation = parseFloat(document.getElementById('inflation').value);
+
+            document.getElementById('amountDisplay').textContent = '$' + amount.toLocaleString();
+            document.getElementById('yearsDisplay').textContent = years + ' year' + (years > 1 ? 's' : '');
+            document.getElementById('inflationDisplay').textContent = inflation + '%';
+
+            const resultsEl = document.getElementById('results');
+            let html = '';
+            let bestAsset = '';
+            let bestReal = -Infinity;
+
+            for (const [key, asset] of Object.entries(assets)) {
+                const nominalGrowth = amount * Math.pow(1 + asset.annualReturn / 100, years);
+                const realValue = nominalGrowth / Math.pow(1 + inflation / 100, years);
+                const realReturn = ((realValue / amount - 1) * 100).toFixed(0);
+                const cls = realReturn > 0 ? 'positive' : realReturn < 0 ? 'negative' : 'neutral';
+
+                if (realValue > bestReal) { bestReal = realValue; bestAsset = asset.name; }
+
+                html += `<div class="result-card">
+                    <div class="asset-icon">${asset.icon}</div>
+                    <div class="asset-name">${asset.name}</div>
+                    <div class="asset-return ${cls}">${realReturn > 0 ? '+' : ''}${realReturn}%</div>
+                    <div class="asset-detail">$${Math.round(realValue).toLocaleString()} real value</div>
+                </div>`;
+            }
+            resultsEl.innerHTML = html;
+
+            // Insight
+            const cashReal = amount * Math.pow(1 + 0.005, years) / Math.pow(1 + inflation / 100, years);
+            const cashLoss = amount - cashReal;
+            document.getElementById('insightText').textContent =
+                `Over ${years} years at ${inflation}% inflation, cash loses $${Math.round(cashLoss).toLocaleString()} in purchasing power. ` +
+                `${bestAsset} performs best in this scenario — but remember, past performance doesn't guarantee future results. Diversification reduces risk.`;
+        }
+
+        document.querySelectorAll('input[type="range"]').forEach(el => el.addEventListener('input', calculate));
+        calculate();
+
+        function trackBridgeCTA(bridge, destination) {
+            if (window.bsaAnalytics) {
+                window.bsaAnalytics.track('bridge_cta_click', { bridge, destination });
+            }
+        }
+    </script>
+</body>
+</html>

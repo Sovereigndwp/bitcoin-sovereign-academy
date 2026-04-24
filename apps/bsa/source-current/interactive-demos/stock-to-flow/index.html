@@ -1,0 +1,1056 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Stock-to-Flow Model | Interactive Demo</title>
+    <meta name="description" content="Interactive visualization of Bitcoin's Stock-to-Flow model. Understand scarcity, halving cycles, and why Bitcoin becomes harder money over time.">
+
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --secondary-dark: #2d2d2d;
+            --primary-dark: #1a1a1a;
+            --text-light: #e0e0e0;
+            --text-dim: #999;
+            --accent-gold: #d4af37;
+            --status-green: #4caf50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            display: inline-block;
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 147, 26, 0.4);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 0.25rem;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+        }
+
+        .intro-section {
+            background: var(--secondary-dark);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .intro-section h2 {
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .concept-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .concept-card {
+            background: var(--secondary-dark);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 2px solid rgba(247, 147, 26, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .concept-card:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-4px);
+        }
+
+        .concept-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .concept-card h3 {
+            color: var(--primary-orange);
+            margin-bottom: 0.75rem;
+        }
+
+        .interactive-section {
+            background: var(--secondary-dark);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .slider-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .slider-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary-orange);
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: rgba(247, 147, 26, 0.2);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-orange);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--primary-orange);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .current-value {
+            color: var(--primary-orange);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        #s2f-chart {
+            width: 100%;
+            height: 350px;
+            background: var(--primary-dark);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 2px solid rgba(247, 147, 26, 0.2);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .comparison-table th {
+            background: rgba(247, 147, 26, 0.1);
+            color: var(--primary-orange);
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .comparison-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(247, 147, 26, 0.1);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(247, 147, 26, 0.05);
+        }
+
+        .highlight-box {
+            background: rgba(247, 147, 26, 0.1);
+            border-left: 4px solid var(--primary-orange);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 4px;
+        }
+
+        .highlight-box strong {
+            color: var(--primary-orange);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        .stat-card {
+            background: var(--primary-dark);
+            padding: 0.75rem;
+            border-radius: 6px;
+            text-align: center;
+            border: 2px solid rgba(247, 147, 26, 0.2);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+        }
+
+        .halving-timeline {
+            margin-top: 1.5rem;
+        }
+
+        .timeline-event {
+            position: relative;
+            padding-left: 2.5rem;
+            margin-bottom: 2rem;
+            border-left: 2px solid var(--primary-orange);
+        }
+
+        .timeline-event::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 0;
+            width: 10px;
+            height: 10px;
+            background: var(--primary-orange);
+            border-radius: 50%;
+        }
+
+        .timeline-date {
+            color: var(--primary-orange);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .formula-box {
+            background: var(--secondary-dark);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-gold);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .formula {
+            font-size: 1.5rem;
+            color: var(--primary-orange);
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .concept-card {
+            animation: fadeIn 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .concept-card:nth-child(1) { animation-delay: 0.1s; }
+        .concept-card:nth-child(2) { animation-delay: 0.2s; }
+        .concept-card:nth-child(3) { animation-delay: 0.3s; }
+
+        .stat-card {
+            animation: fadeIn 0.5s ease-out;
+            animation-fill-mode: both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(247, 147, 26, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .stat-card:hover::before {
+            left: 100%;
+        }
+
+        .stat-value {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .timeline-event {
+            animation: fadeIn 0.8s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .timeline-event:nth-child(1) { animation-delay: 0.1s; }
+        .timeline-event:nth-child(2) { animation-delay: 0.2s; }
+        .timeline-event:nth-child(3) { animation-delay: 0.3s; }
+        .timeline-event:nth-child(4) { animation-delay: 0.4s; }
+        .timeline-event:nth-child(5) { animation-delay: 0.5s; }
+        .timeline-event:nth-child(6) { animation-delay: 0.6s; }
+
+        /* ===== ACCESSIBILITY ENHANCEMENTS (WCAG 2.1 AA) ===== */
+
+        /* Color Contrast - Change dim text from #999 to #b3b3b3 for 4.6:1 ratio */
+        :root {
+            --text-dim: #b3b3b3;
+        }
+
+        .subtitle, .stat-label, .value-display, .block-time, .formula-box p,
+        .faucet-steps, .coin-age, .address-display small, .timeline-date {
+            color: #b3b3b3;
+        }
+
+        /* Touch Targets - Minimum 44x44px */
+        button, a, [role="button"], input[type="button"], input[type="submit"],
+        .back-btn, .demo-button, .wallet-btn, .control-button, .level-btn {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Focus Indicators */
+        *:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 2px;
+        }
+
+        button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 4px;
+            box-shadow: 0 0 0 4px rgba(247, 147, 26, 0.2);
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Mobile Reflow */
+        @media (max-width: 360px) {
+            body {
+                overflow-x: hidden;
+            }
+        }
+
+        /* Enhanced hover effects */
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 4px 12px rgba(247, 147, 26, 0.3);
+        }
+
+        .timeline-event:hover {
+            background: rgba(247, 147, 26, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-left: -1rem;
+            padding-left: 3.5rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.25rem;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            #s2f-chart {
+                height: 250px;
+            }
+
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .concept-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-table {
+                font-size: 0.85rem;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="/css/icons.css">
+    <link rel="stylesheet" href="/css/interactive-demos.css">
+<link rel="canonical" href="https://bitcoinsovereign.academy/"><meta property="og:title" content="Bitcoin Sovereign Academy"><meta property="og:description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg"><meta property="og:url" content="https://bitcoinsovereign.academy/"><meta property="og:type" content="website"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Bitcoin Sovereign Academy",
+  "description": "Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.",
+  "url": "https://bitcoinsovereign.academy",
+  "logo": "https://bitcoinsovereign.academy/assets/og-image.jpg",
+  "sameAs": [
+    "https://github.com/Sovereigndwp/bitcoin-sovereign-academy"
+  ],
+  "educationalLevel": "Beginner to Advanced",
+  "teaches": [
+    "Bitcoin Fundamentals",
+    "Cryptocurrency Technology",
+    "Financial Sovereignty",
+    "Digital Asset Security"
+  ],
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Students interested in Bitcoin and cryptocurrency"
+  }
+}</script></head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <script src="/js/config.js"></script>
+    <script src="/js/demo-lock-subdomain.js"></script>
+    <script src="/js/subdomain-access-control.js"></script>
+
+
+
+    <main id="main-content" class="container">
+        <a href="/" class="back-btn">← Back to Home</a>
+
+        <header>
+            <h1><span data-icon="chart"></span> Bitcoin Stock-to-Flow Model</h1>
+            <p class="subtitle">Understanding Bitcoin's scarcity and its relationship to value over time</p>
+        </header>
+
+        <div class="intro-section">
+            <h2>What is Stock-to-Flow?</h2>
+            <p>
+                Stock-to-Flow (S2F) is a model that measures the <strong>scarcity</strong> of an asset by comparing
+                the existing supply (stock) to the new production (flow).
+            </p>
+            <br>
+            <p>
+                <strong>Higher S2F ratio = More scarce = Harder money</strong>
+            </p>
+            <br>
+            <p>
+                Bitcoin's S2F ratio increases approximately every 4 years during "halving" events,
+                when the block reward (new Bitcoin production) is cut in half. This makes Bitcoin
+                progressively scarcer over time.
+            </p>
+        </div>
+
+        <div class="concept-grid">
+            <div class="concept-card">
+                <span class="concept-icon">📦</span>
+                <h3>Stock</h3>
+                <p>
+                    The total existing supply of an asset. For Bitcoin, this is all BTC that have been mined so far
+                    (currently ~19.7 million BTC).
+                </p>
+            </div>
+
+            <div class="concept-card">
+                <span class="concept-icon">⛏️</span>
+                <h3>Flow</h3>
+                <p>
+                    The new production added annually. For Bitcoin, this is the amount of new BTC mined each year
+                    through block rewards.
+                </p>
+            </div>
+
+            <div class="concept-card">
+                <span class="concept-icon">⚖️</span>
+                <h3>S2F Ratio</h3>
+                <p>
+                    Stock divided by Flow. Shows how many years of current production would be needed to match
+                    the existing stock. Higher = More scarce.
+                </p>
+            </div>
+        </div>
+
+        <div class="formula-box">
+            <h3 style="color: var(--text-dim); margin-bottom: 1rem;">The Formula</h3>
+            <div class="formula">
+                S2F = Stock / Annual Flow
+            </div>
+            <p style="color: var(--text-dim); margin-top: 1rem;">
+                For Bitcoin: S2F = Total Mined BTC / BTC Mined Per Year
+            </p>
+        </div>
+
+        <div class="interactive-section">
+            <h2 style="color: var(--primary-orange); margin-bottom: 1.5rem;">⚙️ Interactive S2F Calculator</h2>
+
+            <div class="controls">
+                <div class="slider-group">
+                    <label for="block-height">Bitcoin Block Height</label>
+                    <input type="range" id="block-height" min="0" max="1000000" step="10000" value="840000">
+                    <div class="value-display">
+                        <span>Current: <span class="current-value" id="block-value">840,000</span></span>
+                        <span style="color: var(--text-dim);">Max: 1,000,000</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <span class="stat-value" id="total-supply">19,688,125</span>
+                    <span class="stat-label">Total BTC Mined (Stock)</span>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-value" id="annual-production">164,250</span>
+                    <span class="stat-label">Annual Production (Flow)</span>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-value" id="s2f-ratio">119.9</span>
+                    <span class="stat-label">Stock-to-Flow Ratio</span>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-value" id="halving-number">5</span>
+                    <span class="stat-label">Halving Era</span>
+                </div>
+            </div>
+
+            <svg id="s2f-chart" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+
+        <div class="intro-section">
+            <h2><span data-icon="trending-up"></span> Comparing to Other Assets</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Asset</th>
+                        <th>Stock (Total Supply)</th>
+                        <th>Flow (Annual Production)</th>
+                        <th>S2F Ratio</th>
+                        <th>Hardness</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong><span data-icon="money"></span> Gold</strong></td>
+                        <td>~208,000 tonnes</td>
+                        <td>~3,500 tonnes/year</td>
+                        <td><strong>~59</strong></td>
+                        <td>Hard Money (historically)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>🥈 Silver</strong></td>
+                        <td>~1,740,000 tonnes</td>
+                        <td>~25,000 tonnes/year</td>
+                        <td><strong>~22</strong></td>
+                        <td>Moderate</td>
+                    </tr>
+                    <tr style="background: rgba(247, 147, 26, 0.1);">
+                        <td><strong>₿ Bitcoin (2024)</strong></td>
+                        <td>~19.7 million BTC</td>
+                        <td>~164,000 BTC/year</td>
+                        <td><strong>~120</strong></td>
+                        <td>Hardest Money Ever</td>
+                    </tr>
+                    <tr style="background: rgba(247, 147, 26, 0.15);">
+                        <td><strong>₿ Bitcoin (2140)</strong></td>
+                        <td>21 million BTC</td>
+                        <td>0 BTC/year</td>
+                        <td><strong>∞</strong></td>
+                        <td>Perfectly Scarce</td>
+                    </tr>
+                    <tr>
+                        <td><strong><span data-icon="dollar"></span> Fiat Currency</strong></td>
+                        <td>Variable</td>
+                        <td>Unlimited (can be printed)</td>
+                        <td><strong>&lt; 1</strong></td>
+                        <td>Soft Money</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="intro-section">
+            <h2><span data-icon="clock"></span> Bitcoin Halving Timeline</h2>
+            <div class="halving-timeline">
+                <div class="timeline-event">
+                    <div class="timeline-date">2009-2012 | Era 1</div>
+                    <p><strong>Block Reward:</strong> 50 BTC</p>
+                    <p><strong>S2F:</strong> ~1.5 (Similar to copper)</p>
+                    <p>Bitcoin's genesis. High inflation, low scarcity.</p>
+                </div>
+
+                <div class="timeline-event">
+                    <div class="timeline-date">2012-2016 | Era 2</div>
+                    <p><strong>Block Reward:</strong> 25 BTC (1st Halving)</p>
+                    <p><strong>S2F:</strong> ~8 (Similar to collectibles)</p>
+                    <p>First halving event. Price rallied from $12 to $1,000.</p>
+                </div>
+
+                <div class="timeline-event">
+                    <div class="timeline-date">2016-2020 | Era 3</div>
+                    <p><strong>Block Reward:</strong> 12.5 BTC (2nd Halving)</p>
+                    <p><strong>S2F:</strong> ~22 (Similar to silver)</p>
+                    <p>Bitcoin reaches silver-level scarcity. Price: $650 → $20,000.</p>
+                </div>
+
+                <div class="timeline-event">
+                    <div class="timeline-date">2020-2024 | Era 4</div>
+                    <p><strong>Block Reward:</strong> 6.25 BTC (3rd Halving)</p>
+                    <p><strong>S2F:</strong> ~56 (Approaching gold)</p>
+                    <p>Near gold-level scarcity. Price: $9,000 → $69,000.</p>
+                </div>
+
+                <div class="timeline-event">
+                    <div class="timeline-date">2024-2028 | Era 5</div>
+                    <p><strong>Block Reward:</strong> 3.125 BTC (4th Halving)</p>
+                    <p><strong>S2F:</strong> ~120 (Surpasses gold)</p>
+                    <p>Bitcoin becomes scarcer than gold. Current era.</p>
+                </div>
+
+                <div class="timeline-event">
+                    <div class="timeline-date">2028+ | Future Eras</div>
+                    <p><strong>Block Reward:</strong> Continues halving every 4 years</p>
+                    <p><strong>S2F:</strong> Approaches infinity</p>
+                    <p>By 2140, all 21 million BTC will be mined. No more inflation.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <h3 style="margin-bottom: 1rem;"><span data-icon="target"></span> Key Takeaways</h3>
+            <ul style="margin-left: 1.5rem; line-height: 2;">
+                <li><strong>Bitcoin's S2F increases over time</strong> due to programmed halvings every 4 years</li>
+                <li><strong>Higher S2F = More scarce = Harder money</strong> that's resistant to inflation</li>
+                <li><strong>Bitcoin already surpasses gold</strong> in scarcity (S2F ~120 vs Gold's ~59)</li>
+                <li><strong>By 2140, Bitcoin will have infinite S2F</strong> when the last BTC is mined</li>
+                <li><strong>The model suggests</strong> that as S2F increases, so does Bitcoin's market value</li>
+                <li><strong>No other asset</strong> has a predictable, programmatic scarcity schedule like Bitcoin</li>
+            </ul>
+        </div>
+
+        <div class="highlight-box" style="background: rgba(239, 68, 68, 0.1); border-left-color: #ef4444;">
+            <h3 style="margin-bottom: 1rem; color: #ef4444;">⚠️ Important Notes</h3>
+            <p>
+                <strong>The S2F model is not a price prediction tool.</strong> While historical data shows correlation
+                between S2F and price, past performance doesn't guarantee future results. Many factors affect Bitcoin's
+                price beyond scarcity alone.
+            </p>
+            <br>
+            <p>
+                S2F is best used as a framework for understanding Bitcoin's <strong>monetary properties</strong> and
+                <strong>programmatic scarcity</strong>, not as investment advice.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Stock-to-Flow Calculator
+        const blockHeightSlider = document.getElementById('block-height');
+        const blockValue = document.getElementById('block-value');
+        const totalSupply = document.getElementById('total-supply');
+        const annualProduction = document.getElementById('annual-production');
+        const s2fRatio = document.getElementById('s2f-ratio');
+        const halvingNumber = document.getElementById('halving-number');
+
+        // Constants
+        const BLOCKS_PER_YEAR = 52560; // 365.25 days * 144 blocks/day
+        const INITIAL_REWARD = 50;
+        const HALVING_INTERVAL = 210000;
+
+        function calculateBitcoinMetrics(blockHeight) {
+            // Calculate which halving era we're in
+            const halvingEra = Math.floor(blockHeight / HALVING_INTERVAL);
+            const blockReward = INITIAL_REWARD / Math.pow(2, halvingEra);
+
+            // Calculate total supply (sum of all rewards)
+            let totalBTC = 0;
+            for (let i = 0; i <= halvingEra; i++) {
+                const rewardInEra = INITIAL_REWARD / Math.pow(2, i);
+                const blocksInEra = i === halvingEra
+                    ? blockHeight % HALVING_INTERVAL
+                    : HALVING_INTERVAL;
+                totalBTC += rewardInEra * blocksInEra;
+            }
+
+            // Annual production (flow)
+            const annualFlow = blockReward * BLOCKS_PER_YEAR;
+
+            // Stock-to-Flow ratio
+            const s2f = annualFlow > 0 ? totalBTC / annualFlow : Infinity;
+
+            return {
+                totalBTC,
+                blockReward,
+                annualFlow,
+                s2f,
+                halvingEra: halvingEra + 1
+            };
+        }
+
+        // Throttle updates for better performance
+        let updateTimeout;
+        function updateDisplay() {
+            const height = parseInt(blockHeightSlider.value);
+            blockValue.textContent = height.toLocaleString();
+
+            const metrics = calculateBitcoinMetrics(height);
+
+            totalSupply.textContent = metrics.totalBTC.toLocaleString(undefined, {
+                maximumFractionDigits: 0
+            });
+
+            annualProduction.textContent = metrics.annualFlow.toLocaleString(undefined, {
+                maximumFractionDigits: 0
+            });
+
+            s2fRatio.textContent = metrics.s2f === Infinity
+                ? '∞'
+                : metrics.s2f.toLocaleString(undefined, {
+                    maximumFractionDigits: 1
+                });
+
+            halvingNumber.textContent = metrics.halvingEra;
+
+            updateSVGChart(height, metrics);
+        }
+
+        // Enhanced SVG Chart with animations and tooltips
+        function updateSVGChart(currentBlock, currentMetrics) {
+            const svg = document.getElementById('s2f-chart');
+            const width = 800;
+            const height = 400;
+            const padding = 60;
+
+            // Enable smooth transitions
+            svg.style.transition = 'all 0.3s ease';
+            
+            // Precomputed S2F values at key halvings (for performance)
+            const halvingData = [
+                { block: 0, s2f: 1.8, era: 0 },
+                { block: 210000, s2f: 10.5, era: 1 },
+                { block: 420000, s2f: 25, era: 2 },
+                { block: 630000, s2f: 56, era: 3 },
+                { block: 840000, s2f: 120, era: 4 },
+                { block: 1050000, s2f: 250, era: 5 }
+            ];
+            
+            // Scale functions
+            const xScale = (block) => padding + (block / 1050000) * (width - 2 * padding);
+            const yScale = (s2f) => {
+                const logS2f = Math.log10(Math.max(1, s2f));
+                const logMax = Math.log10(300);
+                return height - padding - (logS2f / logMax) * (height - 2 * padding);
+            };
+            
+            // Clear and redraw
+            svg.innerHTML = '';
+
+            // Draw grid lines for better readability
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (i / 5) * (height - 2 * padding);
+                const gridLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                gridLine.setAttribute('x1', padding);
+                gridLine.setAttribute('y1', y);
+                gridLine.setAttribute('x2', width - padding);
+                gridLine.setAttribute('y2', y);
+                gridLine.setAttribute('stroke', 'rgba(255, 255, 255, 0.05)');
+                gridLine.setAttribute('stroke-width', '1');
+                svg.appendChild(gridLine);
+            }
+
+            // Background gradient
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+            gradient.setAttribute('id', 's2fGradient');
+            gradient.setAttribute('x1', '0%');
+            gradient.setAttribute('y1', '0%');
+            gradient.setAttribute('x2', '0%');
+            gradient.setAttribute('y2', '100%');
+            gradient.innerHTML = `
+                <stop offset="0%" style="stop-color:rgba(247,147,26,0.3);stop-opacity:1" />
+                <stop offset="100%" style="stop-color:rgba(247,147,26,0);stop-opacity:1" />
+            `;
+            defs.appendChild(gradient);
+            svg.appendChild(defs);
+            
+            // Draw curve as path
+            let pathData = 'M';
+            halvingData.forEach((point, i) => {
+                const x = xScale(point.block);
+                const y = yScale(point.s2f);
+                pathData += i === 0 ? `${x},${y}` : ` L${x},${y}`;
+            });
+            
+            // Fill area under curve
+            const fillPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            fillPath.setAttribute('d', pathData + ` L${xScale(1050000)},${height - padding} L${padding},${height - padding} Z`);
+            fillPath.setAttribute('fill', 'url(#s2fGradient)');
+            svg.appendChild(fillPath);
+            
+            // Draw line
+            const linePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            linePath.setAttribute('d', pathData);
+            linePath.setAttribute('stroke', '#f7931a');
+            linePath.setAttribute('stroke-width', '3');
+            linePath.setAttribute('fill', 'none');
+            svg.appendChild(linePath);
+            
+            // Draw halving markers with labels
+            const halvingLabels = ['', 'Halving 1', 'Halving 2', 'Halving 3', 'Halving 4', 'Halving 5'];
+            halvingData.slice(1).forEach((point, idx) => {
+                const cx = xScale(point.block);
+                const cy = yScale(point.s2f);
+
+                // Vertical line
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', cx);
+                line.setAttribute('y1', padding);
+                line.setAttribute('x2', cx);
+                line.setAttribute('y2', height - padding);
+                line.setAttribute('stroke', 'rgba(156, 39, 176, 0.3)');
+                line.setAttribute('stroke-width', '2');
+                line.setAttribute('stroke-dasharray', '5,5');
+                svg.appendChild(line);
+
+                // Halving point with glow effect
+                const glowCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                glowCircle.setAttribute('cx', cx);
+                glowCircle.setAttribute('cy', cy);
+                glowCircle.setAttribute('r', '12');
+                glowCircle.setAttribute('fill', 'rgba(156, 39, 176, 0.2)');
+                svg.appendChild(glowCircle);
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', cx);
+                circle.setAttribute('cy', cy);
+                circle.setAttribute('r', '6');
+                circle.setAttribute('fill', '#9C27B0');
+                circle.setAttribute('stroke', '#fff');
+                circle.setAttribute('stroke-width', '2');
+                circle.style.cursor = 'pointer';
+                svg.appendChild(circle);
+
+                // Label for halving
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', cx);
+                label.setAttribute('y', cy - 20);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('fill', '#9C27B0');
+                label.setAttribute('font-size', '10');
+                label.setAttribute('font-weight', '600');
+                label.textContent = halvingLabels[idx + 1];
+                svg.appendChild(label);
+
+                // S2F value label
+                const valueLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                valueLabel.setAttribute('x', cx);
+                valueLabel.setAttribute('y', cy + 20);
+                valueLabel.setAttribute('text-anchor', 'middle');
+                valueLabel.setAttribute('fill', '#999');
+                valueLabel.setAttribute('font-size', '10');
+                valueLabel.textContent = `S2F: ${point.s2f.toFixed(0)}`;
+                svg.appendChild(valueLabel);
+            });
+            
+            // Draw current position marker with pulsing animation
+            const currentX = xScale(currentBlock);
+            const currentY = yScale(currentMetrics.s2f);
+
+            // Animated pulse ring
+            const pulseRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            pulseRing.setAttribute('cx', currentX);
+            pulseRing.setAttribute('cy', currentY);
+            pulseRing.setAttribute('r', '16');
+            pulseRing.setAttribute('fill', 'none');
+            pulseRing.setAttribute('stroke', '#4caf50');
+            pulseRing.setAttribute('stroke-width', '2');
+            pulseRing.setAttribute('opacity', '0.5');
+            svg.appendChild(pulseRing);
+
+            // Glow effect
+            const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            glow.setAttribute('cx', currentX);
+            glow.setAttribute('cy', currentY);
+            glow.setAttribute('r', '12');
+            glow.setAttribute('fill', 'rgba(76, 175, 80, 0.3)');
+            svg.appendChild(glow);
+
+            // Main marker
+            const marker = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            marker.setAttribute('cx', currentX);
+            marker.setAttribute('cy', currentY);
+            marker.setAttribute('r', '8');
+            marker.setAttribute('fill', '#4caf50');
+            marker.setAttribute('stroke', '#fff');
+            marker.setAttribute('stroke-width', '3');
+            svg.appendChild(marker);
+
+            // Current position label
+            const currentLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            currentLabel.setAttribute('x', currentX);
+            currentLabel.setAttribute('y', currentY - 25);
+            currentLabel.setAttribute('text-anchor', 'middle');
+            currentLabel.setAttribute('fill', '#4caf50');
+            currentLabel.setAttribute('font-size', '12');
+            currentLabel.setAttribute('font-weight', '700');
+            currentLabel.textContent = 'You are here';
+            svg.appendChild(currentLabel);
+            
+            // Axes labels
+            const xAxisLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            xAxisLabel.setAttribute('x', width / 2);
+            xAxisLabel.setAttribute('y', height - 10);
+            xAxisLabel.setAttribute('text-anchor', 'middle');
+            xAxisLabel.setAttribute('fill', '#e0e0e0');
+            xAxisLabel.setAttribute('font-size', '12');
+            xAxisLabel.textContent = 'Block Height';
+            svg.appendChild(xAxisLabel);
+            
+            const yAxisLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            yAxisLabel.setAttribute('x', -height / 2);
+            yAxisLabel.setAttribute('y', 20);
+            yAxisLabel.setAttribute('text-anchor', 'middle');
+            yAxisLabel.setAttribute('fill', '#e0e0e0');
+            yAxisLabel.setAttribute('font-size', '12');
+            yAxisLabel.setAttribute('transform', `rotate(-90, 20, ${height / 2})`);
+            yAxisLabel.textContent = 'S2F Ratio (years)';
+            svg.appendChild(yAxisLabel);
+        }
+
+        blockHeightSlider.addEventListener('input', updateDisplay);
+
+        // Initialize
+        updateDisplay();
+    </script>
+
+    <!-- Animated Icon Library -->
+    <script src="/js/icon-library.js"></script>
+    <script>
+        // Inject icons after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.IconLibrary) {
+                document.querySelectorAll('[data-icon]').forEach(function(element) {
+                    var iconName = element.getAttribute('data-icon');
+                    if (iconName) {
+                        var iconHTML = IconLibrary.get(iconName, 20, true);
+                        var span = document.createElement('span');
+                        span.innerHTML = iconHTML;
+                        span.className = 'icon-inline';
+                        span.style.marginRight = '0.5rem';
+                        span.style.display = 'inline-block';
+                        span.style.verticalAlign = 'middle';
+                        element.insertBefore(span, element.firstChild);
+                    }
+                });
+            }
+        });
+    </script>
+
+
+    <!-- Navigation Context (return-to-path functionality) -->
+    <script src="/js/navigation-context.js"></script>
+    <!-- Reflect: Socratic questions after activity -->
+    <div style="max-width:900px;margin:2rem auto 0;padding:0 1.5rem 2.5rem">
+        <div class="reflect-widget"
+             data-topic="money"
+             data-path="principled"
+             data-title="Reflect: What does scarcity do to value?">
+        </div>
+    </div>
+    <script src="/js/reflect-widget.js"></script>
+
+<script src="/js/membership-gate.js"></script>
+
+<!-- Analytics, Email Capture & Tip CTAs -->
+<div class="container" style="margin: 2rem auto; max-width: 900px; padding: 0 1.5rem;">
+    <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
+    <div id="tip-page" data-tip-cta="compact"></div>
+</div>
+<script src="/js/analytics.js" defer></script>
+<script src="/js/email-capture.js" defer></script>
+<script src="/js/tip-cta.js" defer></script>
+
+</body></html>

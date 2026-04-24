@@ -1,0 +1,1095 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Signatures Demo - Bitcoin Sovereign Academy</title>
+    <link rel="stylesheet" href="/css/brand.css">
+    <style>
+        :root {
+            --primary-orange: #f7931a;
+            --primary-dark: #1a1a1a;
+            --secondary-dark: #2d2d2d;
+            --text-light: #e0e0e0;
+            --text-dim: #b3b3b3;
+            --accent-purple: #4f46e5;
+            --accent-green: #28a745;
+            --accent-red: #dc3545;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ===== ACCESSIBILITY ENHANCEMENTS (WCAG 2.1 AA) ===== */
+
+        /* Touch Targets */
+        button, a, [role="button"], input[type="button"], input[type="submit"] {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Focus Indicators */
+        *:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 2px;
+        }
+
+        button:focus-visible, a:focus-visible {
+            outline: 3px solid var(--primary-orange, #f7931a);
+            outline-offset: 4px;
+            box-shadow: 0 0 0 4px rgba(247, 147, 26, 0.2);
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Mobile Reflow */
+        @media (max-width: 360px) {
+            body {
+                overflow-x: hidden;
+            }
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        body.level-beginner .advanced-only { display: none; }
+        body.level-beginner .intermediate-only { display: none; }
+        body.level-intermediate .advanced-only { display: none; }
+        body.level-intermediate .beginner-only { display: none; }
+        body.level-advanced .beginner-only { display: none; }
+        body.level-advanced .intermediate-only { display: none; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 1rem; }
+        .header h1 { color: var(--primary-orange); font-size: 1.5rem; margin-bottom: 0.25rem; }
+
+        .level-switcher { background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 8px; padding: 0.75rem; margin-bottom: 1rem; }
+        .level-info { text-align: center; margin-bottom: 0.5rem; }
+        .level-buttons { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+        .level-btn { padding: 0.5rem 1rem; background: rgba(247, 147, 26, 0.1); border: 2px solid rgba(247, 147, 26, 0.3); border-radius: 6px; color: var(--text-light); cursor: pointer; font-weight: 600; transition: all 0.3s ease; font-size: 0.85rem; }
+        .level-btn.active { background: var(--primary-orange); border-color: var(--primary-orange); color: white; }
+
+        .intro-box { background: rgba(79, 70, 229, 0.1); border-left: 4px solid var(--accent-purple); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; }
+        .demo-container { background: var(--secondary-dark); border: 2px solid var(--primary-orange); border-radius: 12px; padding: 1rem; margin: 1rem 0; }
+
+        .key-display {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(79, 70, 229, 0.3);
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin: 0.75rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            word-break: break-all;
+        }
+
+        .btn {
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(247, 147, 26, 0.4); }
+        .btn-danger { background: linear-gradient(135deg, var(--accent-red), #c82333); }
+
+        input[type="text"] {
+            width: 70%;
+            padding: 0.6rem;
+            border: 2px solid var(--accent-purple);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-right: 0.25rem;
+        }
+
+        /* Collapsible Sections */
+        .collapsible-section { margin-top: 1.5rem; }
+        .collapsible-header {
+            background: var(--secondary-dark);
+            border: 2px solid currentColor;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .collapsible-header:hover { filter: brightness(1.2); }
+        .collapsible-header h4 { margin: 0; font-size: 1.1rem; }
+        .collapsible-icon {
+            font-size: 1.3rem;
+            transition: transform 0.3s;
+        }
+        .collapsible-icon.open { transform: rotate(180deg); }
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .collapsible-content.open {
+            max-height: 5000px;
+            transition: max-height 0.6s ease-in;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/icons.css">
+    <link rel="stylesheet" href="/css/interactive-demos.css">
+<meta name="description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><link rel="canonical" href="https://bitcoinsovereign.academy/"><meta property="og:title" content="Bitcoin Sovereign Academy"><meta property="og:description" content="Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here."><meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg"><meta property="og:url" content="https://bitcoinsovereign.academy/"><meta property="og:type" content="website"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Bitcoin Sovereign Academy",
+  "description": "Master Bitcoin through interactive experiences, AI-powered learning, and real-world simulations. Your journey from monetary curiosity to financial sovereignty starts here.",
+  "url": "https://bitcoinsovereign.academy",
+  "logo": "https://bitcoinsovereign.academy/assets/og-image.jpg",
+  "sameAs": [
+    "https://github.com/Sovereigndwp/bitcoin-sovereign-academy"
+  ],
+  "educationalLevel": "Beginner to Advanced",
+  "teaches": [
+    "Bitcoin Fundamentals",
+    "Cryptocurrency Technology",
+    "Financial Sovereignty",
+    "Digital Asset Security"
+  ],
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Students interested in Bitcoin and cryptocurrency"
+  }
+}</script></head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <script src="/js/config.js"></script>
+    <script src="/js/demo-lock-subdomain.js"></script>
+    <script src="/js/subdomain-access-control.js"></script>
+
+
+
+    <main id="main-content" class="container">
+        <div class="header">
+            <h1><span data-icon="lock"></span> Digital Signatures</h1>
+            <p>Proving ownership without revealing your secret key</p>
+        </div>
+
+        <div class="level-switcher">
+            <div class="level-info">
+                <span style="color: var(--text-dim); font-size: 0.9rem;">Difficulty:</span>
+                <span style="color: var(--primary-orange); font-weight: bold; font-size: 1.1rem; margin-left: 0.5rem;" id="current-level-name">Beginner Mode</span>
+            </div>
+            <div class="level-buttons">
+                <button class="level-btn active" data-level="beginner">Beginner</button>
+                <button class="level-btn" data-level="intermediate">Intermediate</button>
+                <button class="level-btn" data-level="advanced">Advanced</button>
+            </div>
+        </div>
+
+        <div class="intro-box">
+            <h3 style="color: var(--accent-purple); margin-bottom: 0.75rem;">🎉 Prove You Own Your Bitcoin... Without Showing Your Secret!</h3>
+            <p class="beginner-only">
+                Imagine your Bitcoin is locked in a treasure chest. Only you have the secret key. But how do you <strong>prove it's your chest</strong> without showing the secret key to everyone?<br><br>
+                That's what a <strong>digital signature</strong> does! It's cryptographic proof that says "I own this" without revealing your secret.<br><br>
+                Bitcoin has two ways to do this:<br>
+                • <strong style="color: var(--primary-orange);">ECDSA</strong> (the original way, since 2009)<br>
+                • <strong style="color: #9C27B0;">✨ Schnorr</strong> (the new way, since 2021) — smaller, faster, more private!
+            </p>
+            <p class="intermediate-only">
+                Bitcoin uses elliptic curve cryptography (secp256k1) for digital signatures. Private keys sign transactions, public keys verify signatures. The mathematical relationship is one-way: easy to derive public from private, impossible to reverse.<br><br>
+                <strong>Two signature algorithms:</strong> ECDSA (original, 2009-present) and <strong style="color: #9C27B0;">Schnorr</strong> (Taproot, 2021+). Schnorr enables signature aggregation and batch verification for improved efficiency and privacy.
+            </p>
+            <p class="advanced-only">
+                Bitcoin originally implemented ECDSA (Elliptic Curve Digital Signature Algorithm) over secp256k1 curve. Private key k generates public key P = k·G where G is generator point. Signature (r,s) proves knowledge of k without revealing it. Verification: s⁻¹(H(m)·G + r·P) = R validates ownership.<br><br>
+                <strong>BIP-340 (Schnorr):</strong> Introduced with Taproot (2021). Uses x-only pubkeys, tagged hashes, and enables linear aggregation via MuSig2. Signature verification: s·G = R + e·P where e = Hash<sub>BIP0340/challenge</sub>(r || P || m).
+            </p>
+        </div>
+
+        <div class="demo-container">
+            <h4 style="color: var(--accent-purple); margin-bottom: 1rem; font-size: 1.1rem;">🔑 Step 1: Generate Your Keys</h4>
+            <p class="beginner-only" style="margin-bottom: 1rem; color: var(--text-dim); font-size: 1rem;">Click the button to create your <strong>secret key</strong> and <strong>public key</strong>.</p>
+            <p class="intermediate-only" style="margin-bottom: 1rem; color: var(--text-dim);">This demo shows ECDSA (the original signature scheme). We'll compare it with Schnorr signatures below.</p>
+            <p class="advanced-only" style="margin-bottom: 1rem; color: var(--text-dim); font-family: 'Courier New', monospace; font-size: 0.85rem;">ECDSA implementation: Generate random k per signature, compute (r,s) where r = x(k·G), s = k⁻¹(H(m) + r·x) mod n</p>
+
+            <button class="btn" onclick="generateKeyPair()" style="font-size: 1.1rem; padding: 0.75rem 1.5rem;">🎲 Generate Keys</button>
+
+            <div style="margin-top: 1rem;">
+                <p style="margin-bottom: 0.25rem;"><strong><span data-icon="lock"></span> Your Secret Key</strong> <span class="beginner-only" style="color: var(--accent-red); font-size: 0.9rem;">(never share this!)</span></p>
+                <div class="key-display" id="private-key">Click "Generate Keys" to create</div>
+            </div>
+
+            <div>
+                <p style="margin-bottom: 0.25rem;"><strong>🔓 Your Public Key</strong> <span class="beginner-only" style="color: var(--accent-green); font-size: 0.9rem;">(totally safe to share!)</span></p>
+                <div class="key-display" id="public-key">Appears automatically</div>
+            </div>
+
+            <div style="margin-top: 1.5rem; background: rgba(79, 70, 229, 0.05); padding: 1.25rem; border-radius: 8px;">
+                <h5 class="beginner-only" style="color: var(--accent-purple); margin-bottom: 0.75rem;">✍️ Step 2: Say Something and Sign It</h5>
+                <h5 class="intermediate-only advanced-only" style="color: var(--accent-purple); margin-bottom: 0.75rem;">Create Digital Signature (ECDSA)</h5>
+                <p class="beginner-only" style="margin-bottom: 0.75rem; font-size: 0.95rem;">Type any message (pretend it's a Bitcoin payment):</p>
+                <input type="text" id="message-to-sign" placeholder="I send 1 BTC to Alice" style="width: 100%; margin-bottom: 0.75rem;">
+                <button class="btn" onclick="signMessage()" style="font-size: 1rem;">✨ Sign Message</button>
+                <p class="beginner-only" style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.5rem;">This creates an "ECDSA signature" (the original Bitcoin method from 2009). We'll try Schnorr next!</p>
+            </div>
+
+            <div style="margin-top: 1rem;">
+                <p style="margin-bottom: 0.25rem;"><strong>Your Digital Signature:</strong></p>
+                <div class="key-display" id="signature">Sign a message first</div>
+            </div>
+
+            <div style="background: rgba(79, 70, 229, 0.1); border: 2px dashed rgba(79, 70, 229, 0.3); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                <h4 style="color: var(--accent-purple); margin-bottom: 0.75rem; font-size: 1rem;">🎮 Step 3: The Verification Game</h4>
+                <p class="beginner-only" style="font-size: 0.95rem; margin-bottom: 0.75rem;">Now anyone can check that YOU really signed it. Try to break it — it's impossible!</p>
+                <p class="intermediate-only advanced-only" style="font-size: 0.9rem; margin-bottom: 0.75rem; color: var(--text-dim);">Test signature verification - try changing the message or tampering with the signature!</p>
+
+                <div style="margin-bottom: 0.75rem;">
+                    <label style="display: block; margin-bottom: 0.25rem; font-weight: bold; font-size: 0.9rem;">Message to Verify:</label>
+                    <input type="text" id="verify-message" placeholder="Original message" style="width: 100%; margin-right: 0;">
+                </div>
+
+                <div style="margin-bottom: 0.75rem;">
+                    <label style="display: block; margin-bottom: 0.25rem; font-weight: bold; font-size: 0.9rem;">Signature to Verify:</label>
+                    <input type="text" id="verify-signature" placeholder="Paste signature here or use the one above" style="width: 100%; margin-right: 0; font-family: 'Courier New', monospace; font-size: 0.75rem;">
+                </div>
+
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
+                    <button class="btn" onclick="verifySignature()" style="background: var(--accent-green);"><span data-icon="search"></span> ✅ Verify Signature</button>
+                    <button class="btn btn-danger" onclick="tamperWithSignature()">🔨 Break the Signature</button>
+                    <button class="btn btn-danger" onclick="changeMessage()">✏️ Change the Message</button>
+                </div>
+                <p class="beginner-only" style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.75rem; text-align: center;">Correct message + correct signature = ✅ Real!<br>Change anything = ❌ Fake!</p>
+            </div>
+
+            <div id="signature-result"></div>
+        </div>
+
+        <!-- SCHNORR SIGNATURES SECTION -->
+        <div class="collapsible-section">
+            <div class="collapsible-header" style="color: #9C27B0;" onclick="toggleCollapsible('schnorr')">
+                <h4>✨ Schnorr Signatures: The 2021 Upgrade <span class="beginner-only">(Click to learn more)</span></h4>
+                <span class="collapsible-icon" id="schnorr-icon">▼</span>
+            </div>
+            <div class="collapsible-content" id="schnorr-content">
+        <div class="demo-container" style="border-color: #9C27B0; margin-top: 0; border-top-left-radius: 0; border-top-right-radius: 0;">
+            <h4 style="color: #9C27B0; margin-bottom: 1rem; font-size: 1.2rem;">✨ Schnorr Signatures: The 2021 Upgrade</h4>
+            
+            <!-- BEGINNER LEVEL -->
+            <div class="beginner-only">
+                <div style="background: rgba(156, 39, 176, 0.1); border-left: 4px solid #9C27B0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem;">
+                    <p style="font-size: 1.05rem; margin-bottom: 1rem;">You just tried <strong>ECDSA</strong> (the original way). Now let's try <strong style="color: #9C27B0;">Schnorr</strong> — the 2021 upgrade that made Bitcoin better!</p>
+                    <p style="font-size: 0.95rem;">What makes Schnorr special? It's <strong>smaller, faster, and has a powerful feature</strong>: multiple people can sign together and it looks like just one person signed!</p>
+                </div>
+
+                <div style="background: rgba(156, 39, 176, 0.1); padding: 1.25rem; border-radius: 8px; margin-top: 1rem;">
+                    <h5 style="color: #9C27B0; margin-bottom: 1rem; font-size: 1.1rem;">🎪 Signature Aggregation: The Key Feature</h5>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
+                        <tbody><tr style="border-bottom: 2px solid rgba(156, 39, 176, 0.3);">
+                            <th style="padding: 0.75rem; text-align: left; color: #9C27B0;">What You Do</th>
+                            <th style="padding: 0.75rem; text-align: left; color: #9C27B0;">What the World Sees</th>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(156, 39, 176, 0.2);">
+                            <td style="padding: 0.75rem;">1 person signs</td>
+                            <td style="padding: 0.75rem;">✅ 1 tiny signature</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(156, 39, 176, 0.2);">
+                            <td style="padding: 0.75rem;"><strong>3 people sign together</strong></td>
+                            <td style="padding: 0.75rem;">✅ Still 1 tiny signature!</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid rgba(156, 39, 176, 0.2);">
+                            <td style="padding: 0.75rem;"><strong>100 people sign (CoinJoin)</strong></td>
+                            <td style="padding: 0.75rem;">✅ Still 1 tiny signature!</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem;"><strong>Complex smart contract</strong></td>
+                            <td style="padding: 0.75rem;">✅ Still 1 tiny signature!</td>
+                        </tr>
+                    </tbody></table>
+                    <p style="margin-top: 1rem; font-size: 0.95rem; padding: 1rem; background: rgba(76, 175, 80, 0.1); border-radius: 6px;">
+                        <strong style="color: #4CAF50;">🎉 That's the power!</strong> Everyone's complex transactions look exactly like a normal payment from one person. Total privacy!
+                    </p>
+                </div>
+            </div>
+
+            <!-- INTERMEDIATE LEVEL -->
+            <div class="intermediate-only">
+                <div style="background: rgba(156, 39, 176, 0.1); border-left: 4px solid #9C27B0; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <p>Schnorr signatures (activated in Bitcoin via Taproot in 2021) are simpler, more efficient, and enable powerful features like <strong>signature aggregation</strong> and <strong>batch verification</strong>.</p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0;">
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 2px solid var(--accent-red);">
+                        <h5 style="color: var(--accent-red); margin-bottom: 0.5rem;">ECDSA (Old Way)</h5>
+                        <p style="font-size: 0.85rem;"><strong>Signature:</strong> (r, s) where r and s are derived separately</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Verification:</strong> Complex multi-step process</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Size:</strong> ~72 bytes (DER-encoded)</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Aggregation:</strong> ❌ Not possible</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Malleability:</strong> ⚠️ Signature can be tweaked</p>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 2px solid #9C27B0;">
+                        <h5 style="color: #9C27B0; margin-bottom: 0.5rem;">Schnorr (New Way)</h5>
+                        <p style="font-size: 0.85rem;"><strong>Signature:</strong> (R, s) where R is a curve point, s is scalar</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Verification:</strong> Simple equation: s·G = R + e·P</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Size:</strong> 64 bytes (always fixed)</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Aggregation:</strong> ✅ Multiple signatures → 1 signature!</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Malleability:</strong> ✅ Impossible to tweak</p>
+                    </div>
+                </div>
+
+                <div style="background: rgba(156, 39, 176, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                    <h5 style="color: #9C27B0; margin-bottom: 0.75rem;">How Schnorr Signing Works</h5>
+                    <ol style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li><strong>Generate nonce:</strong> Pick random k, compute R = k·G</li>
+                        <li><strong>Create challenge:</strong> e = Hash(R || P || m) where P is public key, m is message</li>
+                        <li><strong>Compute signature:</strong> s = k + e·x (where x is private key)</li>
+                        <li><strong>Output:</strong> Signature is (R, s)</li>
+                    </ol>
+                    <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-dim);"><strong>Verification:</strong> Check if s·G = R + e·P. If true, signature is valid!</p>
+                </div>
+
+                <div style="background: rgba(76, 175, 80, 0.1); border: 2px solid #4CAF50; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                    <strong style="color: #4CAF50;">💡 Key Advantage: Linearity</strong>
+                    <p style="margin-top: 0.5rem;">Schnorr's linearity property allows <strong>signature aggregation</strong>: Multiple parties can combine their signatures into a single signature. This makes complex multisig setups look identical to single-key spends on-chain — massive privacy and efficiency gains!</p>
+                </div>
+            </div>
+
+            <!-- ADVANCED LEVEL -->
+            <div class="advanced-only">
+                <div style="background: rgba(156, 39, 176, 0.1); border-left: 4px solid #9C27B0; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <p>Schnorr signatures (BIP-340) provide provable security, linearity enabling key and signature aggregation, and batch verification. Bitcoin's implementation uses secp256k1 curve with x-only public keys and tagged hashing.</p>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 2px solid #9C27B0; margin-bottom: 1rem;">
+                    <h5 style="color: #9C27B0; margin-bottom: 0.75rem;">Schnorr Signature Algorithm (BIP-340)</h5>
+                    <div style="font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6;">
+                        <strong style="color: var(--primary-orange);">// Signing</strong><br>
+                        k = random_scalar()  <span style="color: var(--text-dim);">// Random nonce</span><br>
+                        R = k·G  <span style="color: var(--text-dim);">// Nonce point</span><br>
+                        r = x(R)  <span style="color: var(--text-dim);">// x-only coordinate</span><br>
+                        e = int(Hash<sub>BIP0340/challenge</sub>(r || P || m)) mod n  <span style="color: var(--text-dim);">// Tagged hash</span><br>
+                        s = (k + e·x) mod n  <span style="color: var(--text-dim);">// Signature scalar</span><br>
+                        return (r, s)  <span style="color: var(--text-dim);">// 64-byte signature</span><br><br>
+                        
+                        <strong style="color: var(--primary-orange);">// Verification</strong><br>
+                        e = int(Hash<sub>BIP0340/challenge</sub>(r || P || m)) mod n<br>
+                        R' = s·G - e·P  <span style="color: var(--text-dim);">// Compute expected R</span><br>
+                        return x(R') == r &amp;&amp; has_even_y(R')  <span style="color: var(--text-dim);">// Verify</span>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0;">
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                        <h5 style="color: #9C27B0; margin-bottom: 0.5rem;">BIP-340 Design Decisions</h5>
+                        <ul style="margin-left: 1.5rem; line-height: 1.6; font-size: 0.85rem;">
+                            <li><strong>x-only pubkeys:</strong> 32 bytes instead of 33</li>
+                            <li><strong>Implicit y-parity:</strong> Always even y-coordinate</li>
+                            <li><strong>Tagged hashing:</strong> Prevents cross-protocol attacks</li>
+                            <li><strong>Nonce generation:</strong> RFC6979-style deterministic</li>
+                            <li><strong>Batch verification:</strong> Verify n signatures in ~1.5n time</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                        <h5 style="color: #9C27B0; margin-bottom: 0.5rem;">Security Properties</h5>
+                        <ul style="margin-left: 1.5rem; line-height: 1.6; font-size: 0.85rem;">
+                            <li><strong>SUF-CMA secure:</strong> Strong existential unforgeability under chosen message attack</li>
+                            <li><strong>Non-malleable:</strong> Cannot modify existing valid signatures</li>
+                            <li><strong>Provably secure:</strong> Security reduction to DLP</li>
+                            <li><strong>Linear:</strong> Enables MuSig2, FROST protocols</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="background: rgba(76, 175, 80, 0.1); border: 2px solid #4CAF50; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                    <strong style="color: #4CAF50;">🔬 Key Aggregation with MuSig2</strong>
+                    <p style="margin-top: 0.5rem; font-family: 'Courier New', monospace; font-size: 0.85rem;">
+                        P<sub>agg</sub> = P<sub>1</sub> + P<sub>2</sub> + ... + P<sub>n</sub>  (with key coefficient adjustments)<br>
+                        s<sub>agg</sub> = s<sub>1</sub> + s<sub>2</sub> + ... + s<sub>n</sub> mod n
+                    </p>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem;">Indistinguishable from single-key signature. Enables n-of-n multisig with constant O(1) space and verification time.</p>
+                </div>
+            </div>
+
+            <!-- SCHNORR PLAYGROUND (all levels) -->
+            <div style="background: rgba(0,0,0,0.3); border: 2px dashed rgba(156, 39, 176, 0.3); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                <h5 style="color: #9C27B0; margin-bottom: 0.75rem;">🎮 <span class="beginner-only">Try It Yourself!</span><span class="intermediate-only advanced-only">Schnorr Playground</span></h5>
+                <p class="beginner-only" style="margin-bottom: 1rem; font-size: 0.95rem;">Sign a message with Schnorr and watch multiple signatures combine into one!</p>
+                <div style="display: grid; gap: 0.75rem;">
+                    <div>
+                        <label style="font-weight: 600;">Message:</label>
+                        <input type="text" id="schnorr-message" placeholder="Enter message to sign (Schnorr)" style="width: 100%; margin-right: 0;">
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn" onclick="schnorrSignMessage()" style="background: #9C27B0;">✨ Sign with Schnorr</button>
+                        <button class="btn" onclick="schnorrVerify()" style="background: var(--accent-green);">🔍 Verify</button>
+                        <div class="beginner-only" style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(76, 175, 80, 0.1); padding: 0.5rem; border-radius: 6px;">
+                            <label for="agg-count-beginner" style="font-weight: 600;">Try combining:</label>
+                            <select id="agg-count-beginner" style="padding: 0.4rem; border-radius: 6px; background: rgba(0,0,0,0.3); color: var(--text-light); border: 2px solid #9C27B0;">
+                                <option value="2">2 people</option>
+                                <option value="3">3 people</option>
+                                <option value="5">5 people</option>
+                            </select>
+                            <button class="btn" onclick="schnorrAggregate()" style="background: #4CAF50;">➕ Combine Signatures</button>
+                        </div>
+                        <div class="intermediate-only advanced-only" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <label for="agg-count-advanced" style="font-weight: 600;">Aggregate</label>
+                            <select id="agg-count-advanced" style="padding: 0.4rem; border-radius: 6px; background: rgba(0,0,0,0.3); color: var(--text-light); border: 2px solid #9C27B0;">
+                                <option value="2">2 signers</option>
+                                <option value="3">3 signers</option>
+                                <option value="5">5 signers</option>
+                            </select>
+                            <button class="btn" onclick="schnorrAggregate()">➕ Combine</button>
+                        </div>
+                    </div>
+
+                    <div class="key-display"><strong>R (nonce point):</strong> <span id="schnorr-R">-</span></div>
+                    <div class="key-display"><strong>s (scalar):</strong> <span id="schnorr-s">-</span></div>
+                    <div class="key-display"><strong>Signature (R||s):</strong> <span id="schnorr-sig">-</span></div>
+
+                    <div id="schnorr-verify-result"></div>
+
+                    <div id="schnorr-agg" style="display:none; background: rgba(76, 175, 80, 0.1); border: 2px solid #4CAF50; border-radius: 8px; padding: 0.75rem;">
+                        <strong style="color: #4CAF50;">✅ Aggregated!</strong>
+                        <div style="margin-top: 0.5rem; font-family: 'Courier New', monospace; font-size: 0.85rem;" id="schnorr-agg-details"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+        </div>
+
+        <!-- TAPROOT SECTION -->
+        <div class="collapsible-section">
+            <div class="collapsible-header" style="color: #4CAF50;" onclick="toggleCollapsible('taproot')">
+                <h4>🌳 Taproot: Make Complex Look Simple <span class="beginner-only">(Click to learn more)</span></h4>
+                <span class="collapsible-icon" id="taproot-icon">▼</span>
+            </div>
+            <div class="collapsible-content" id="taproot-content">
+        <div class="demo-container" style="border-color: #4CAF50; margin-top: 0; border-top-left-radius: 0; border-top-right-radius: 0;">
+            <h4 style="color: #4CAF50; margin-bottom: 1rem; font-size: 1.2rem;">🌳 Taproot: Make Complex Look Simple</h4>
+
+            <!-- BEGINNER LEVEL -->
+            <div class="beginner-only">
+                <div style="background: rgba(76, 175, 80, 0.1); border-left: 4px solid #4CAF50; border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem;">
+                    <p style="font-size: 1.05rem;">Taproot = <strong>The Invisible Smart Contract</strong></p>
+                    <p style="font-size: 0.95rem; margin-top: 0.75rem;">It combines Schnorr with hidden backup plans. 99% of the time, you just use one simple signature. But if something goes wrong, you can reveal your backup plan.</p>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 1.25rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <p style="font-size: 1rem; margin-bottom: 1rem;"><strong>New Address Type:</strong> Taproot addresses start with <strong style="color: #4CAF50;">bc1p...</strong></p>
+                    <div class="key-display" id="taproot-address" style="margin-bottom: 0.75rem;">Click the button to create one</div>
+                    <button class="btn" onclick="taprootBuildAddress()" style="background: #4CAF50; font-size: 1rem;">🏗️ Build Taproot Address</button>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 1.25rem; border-radius: 8px;">
+                    <p style="font-size: 1rem; margin-bottom: 1rem;"><strong>Two Ways to Spend Your Bitcoin:</strong></p>
+                    <div style="display: grid; gap: 1rem;">
+                        <div style="background: rgba(76, 175, 80, 0.1); padding: 1rem; border-radius: 6px; border-left: 3px solid #4CAF50;">
+                            <strong style="color: #4CAF50;">✅ Key-path (the normal way):</strong>
+                            <p style="margin-top: 0.5rem; font-size: 0.95rem;">Just one tiny Schnorr signature. Cheap and private. This is what 99% of people use!</p>
+                        </div>
+                        <div style="background: rgba(255, 152, 0, 0.1); padding: 1rem; border-radius: 6px; border-left: 3px solid #ff9800;">
+                            <strong style="color: #ff9800;">🛑 Script-path (plan B):</strong>
+                            <p style="margin-top: 0.5rem; font-size: 0.95rem;">Only reveal this if something goes wrong (like losing a key). Your backup plan stays hidden until you need it!</p>
+                        </div>
+                    </div>
+                    <p style="margin-top: 1rem; padding: 0.75rem; background: rgba(76, 175, 80, 0.05); border-radius: 6px; font-size: 0.9rem;">
+                        <strong>🎉 Privacy win:</strong> On the blockchain, everything looks like a normal single-person payment, even if it's actually a complex 10-person multisig!
+                    </p>
+                </div>
+            </div>
+
+            <!-- INTERMEDIATE LEVEL -->
+            <div class="intermediate-only">
+                <div style="background: rgba(76, 175, 80, 0.1); border-left: 4px solid #4CAF50; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <p>Taproot outputs (P2TR) commit to a <strong>tweaked key</strong> that optionally includes a hidden <strong>script tree</strong>. You can spend via <strong>key-path</strong> (cheap) or reveal one <strong>Merkle branch</strong> (script-path).</p>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <h5 style="color: #4CAF50; margin-bottom: 0.75rem;">How Taproot Works</h5>
+                    <ol style="margin-left: 1.5rem; line-height: 1.8; font-size: 0.9rem;">
+                        <li><strong>Start with internal key P:</strong> This is your base public key</li>
+                        <li><strong>Add script commitments:</strong> Hash your script tree to get root t</li>
+                        <li><strong>Tweak the key:</strong> Q = P + Hash(P||t)·G</li>
+                        <li><strong>Create P2TR address:</strong> bc1p... from Q (x-only)</li>
+                    </ol>
+                    <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-dim);">The tweaked key Q becomes the address. Scripts stay hidden in the hash until you need them.</p>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                    <h5 style="color: #4CAF50; margin-bottom: 0.5rem;">Interactive: Spend Type</h5>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn" onclick="taprootShow('key')">🔑 Key-path</button>
+                        <button class="btn" onclick="taprootShow('script')">🧾 Script-path</button>
+                    </div>
+                    <div id="taproot-spend-view" style="margin-top: 0.75rem; font-family: 'Courier New', monospace;"></div>
+                </div>
+
+                <div style="background: rgba(76, 175, 80, 0.05); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                    <h5 style="color: #4CAF50; margin-bottom: 0.75rem;">Real-World Example: 2-of-3 Multisig</h5>
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;"><strong>Without Taproot:</strong> Everyone sees it's a 2-of-3 multisig. ~200 bytes on-chain.</p>
+                    <p style="font-size: 0.9rem;"><strong>With Taproot:</strong> If all 3 cooperate, use key-path (64 bytes, looks like single-sig). If one is unavailable, reveal script-path. Privacy + efficiency!</p>
+                </div>
+            </div>
+
+            <!-- ADVANCED LEVEL -->
+            <div class="advanced-only">
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <h5 style="color: #4CAF50; margin-bottom: 0.75rem;">Taproot Construction (BIP-341)</h5>
+                    <div style="font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.7;">
+                        <strong style="color: var(--primary-orange);">// Key Construction</strong><br>
+                        P = internal_pubkey  <span style="color: var(--text-dim);">// Base public key</span><br>
+                        t = tagged_hash("TapBranch", left_hash || right_hash)  <span style="color: var(--text-dim);">// Merkle root</span><br>
+                        tweak = tagged_hash("TapTweak", x(P) || t)  <span style="color: var(--text-dim);">// BIP-340 tagged hash</span><br>
+                        Q = lift_x(x(P) + tweak mod n)  <span style="color: var(--text-dim);">// Output key (x-only, even y)</span><br><br>
+                        
+                        <strong style="color: var(--primary-orange);">// Key-path Spend</strong><br>
+                        sig = Sign(sk + tweak, message)  <span style="color: var(--text-dim);">// Schnorr sig with tweaked key</span><br>
+                        witness: [sig]  <span style="color: var(--text-dim);">// 64 bytes only</span><br><br>
+                        
+                        <strong style="color: var(--primary-orange);">// Script-path Spend</strong><br>
+                        control_block = [parity || x(P) || merkle_proof]<br>
+                        witness: [script_inputs... || script || control_block]<br>
+                        verify: Hash(control_block[1:33] + hash(script) + proof) == t
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                        <h5 style="color: #4CAF50; margin-bottom: 0.5rem;">Tapscript Changes (BIP-342)</h5>
+                        <ul style="margin-left: 1.5rem; line-height: 1.6; font-size: 0.85rem;">
+                            <li><strong>OP_CHECKSIGADD:</strong> Replaces OP_CHECKMULTISIG</li>
+                            <li><strong>OP_SUCCESS:</strong> Reserved opcodes for soft forks</li>
+                            <li><strong>Schnorr-only:</strong> No ECDSA in Tapscript</li>
+                            <li><strong>Signature validation:</strong> Uses BIP-340 exclusively</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                        <h5 style="color: #4CAF50; margin-bottom: 0.5rem;">MAST Benefits</h5>
+                        <ul style="margin-left: 1.5rem; line-height: 1.6; font-size: 0.85rem;">
+                            <li><strong>Privacy:</strong> Unexecuted branches stay hidden</li>
+                            <li><strong>Efficiency:</strong> O(log n) witness size</li>
+                            <li><strong>Flexibility:</strong> Unlimited script alternatives</li>
+                            <li><strong>Composability:</strong> Combine with covenants</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="background: rgba(76, 175, 80, 0.05); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                    <strong style="color: #4CAF50;">🔬 Implementation Note:</strong>
+                    <p style="margin-top: 0.5rem; font-size: 0.85rem;">Taproot witness program: 1-byte version (0x01) + 32-byte x-only pubkey Q. SegWit v1 uses Bech32m encoding. Key-path spends are indistinguishable from each other regardless of hidden scripts.</p>
+                </div>
+            </div>
+        </div>
+        </div>
+        </div>
+
+        <div style="background: rgba(40, 167, 80, 0.1); border-left: 4px solid var(--accent-green);
+            <h4 style=" color:="" var(--accent-green);="" margin-bottom:="" 1rem;"="">📚 Summary: How Bitcoin Uses Digital Signatures
+            
+            <!-- BEGINNER -->
+            <div class="beginner-only">
+                <div style="display: grid; gap: 0.75rem;">
+                    <div style="background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 6px;">
+                        <strong>💼 Bitcoin Addresses:</strong> Derived from your public key. People send Bitcoin to your address.
+                    </div>
+                    <div style="background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 6px;">
+                        <strong>✈️ Spending Bitcoin:</strong> When you spend, you create a signature with your private key. This proves you own the Bitcoin.
+                    </div>
+                    <div style="background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 6px;">
+                        <strong>🔒 Old vs New:</strong>
+                        <ul style="margin-left: 1.25rem; margin-top: 0.5rem;">
+                            <li><strong>ECDSA</strong> (2009-now): Original signatures, work great but bigger</li>
+                            <li><strong>Schnorr + Taproot</strong> (2021-now): Newer, smaller, more private — multisig looks like single-sig!</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- INTERMEDIATE -->
+            <div class="intermediate-only">
+                <table style="width: 100%; border-collapse: collapse; margin-top: 0.5rem;">
+                    <tbody><tr style="border-bottom: 2px solid var(--accent-green);">
+                        <th style="padding: 0.5rem; text-align: left; color: var(--accent-green);">Component</th>
+                        <th style="padding: 0.5rem; text-align: left; color: var(--accent-green);">ECDSA (Legacy)</th>
+                        <th style="padding: 0.5rem; text-align: left; color: var(--accent-green);">Schnorr + Taproot</th>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(40, 167, 80, 0.2);">
+                        <td style="padding: 0.5rem;"><strong>Address Type</strong></td>
+                        <td style="padding: 0.5rem;">P2PKH (1...), P2WPKH (bc1q...)</td>
+                        <td style="padding: 0.5rem;">P2TR (bc1p...)</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(40, 167, 80, 0.2);">
+                        <td style="padding: 0.5rem;"><strong>Signature Size</strong></td>
+                        <td style="padding: 0.5rem;">~72 bytes (DER encoded)</td>
+                        <td style="padding: 0.5rem;">64 bytes (fixed)</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(40, 167, 80, 0.2);">
+                        <td style="padding: 0.5rem;"><strong>Multisig</strong></td>
+                        <td style="padding: 0.5rem;">Visible on-chain, multiple sigs</td>
+                        <td style="padding: 0.5rem;">Aggregated → looks like 1 sig</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.5rem;"><strong>Privacy</strong></td>
+                        <td style="padding: 0.5rem;">Lower (script types visible)</td>
+                        <td style="padding: 0.5rem;">Higher (key-path hides complexity)</td>
+                    </tr>
+                </tbody></table>
+                <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-dim);"><strong>Key Point:</strong> Every Bitcoin transaction input requires a valid signature. Schnorr + Taproot make complex smart contracts indistinguishable from simple payments.</p>
+            </div>
+            
+            <!-- ADVANCED -->
+            <div class="advanced-only">
+                <div style="font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.7;">
+                    <strong style="color: var(--accent-green);">Script Validation Opcodes:</strong><br>
+                    • <strong>OP_CHECKSIG:</strong> Verifies ECDSA signature against pubkey<br>
+                    • <strong>OP_CHECKSIGVERIFY:</strong> Same but fails script if invalid<br>
+                    • <strong>OP_CHECKMULTISIG:</strong> Verifies m-of-n ECDSA signatures<br>
+                    • <strong>OP_CHECKSIGADD (Tapscript):</strong> Accumulator-based multisig for Schnorr<br><br>
+                    
+                    <strong style="color: var(--accent-green);">Taproot Signature Validation (BIP-341/342):</strong><br>
+                    Key-path: Single Schnorr signature validates against tweaked pubkey Q<br>
+                    Script-path: Execute revealed script leaf (Tapscript), supports OP_CHECKSIGADD<br><br>
+                    
+                    <strong style="color: var(--accent-green);">Security Model:</strong><br>
+                    ECDSA: SUF-CMA secure under Random Oracle Model + ECDLP hardness<br>
+                    Schnorr (BIP-340): SUF-CMA secure with tighter reduction, non-malleable<br>
+                    Both: ~128-bit security with secp256k1 (256-bit keys)
+                </div>
+            </div>
+        </div>
+        
+        <!-- FINAL COMPARISON BOX -->
+        <div style="background: linear-gradient(135deg, rgba(247, 147, 26, 0.1), rgba(156, 39, 176, 0.1)); border: 2px solid var(--primary-orange); border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem; text-align: center;">
+            <h3 style="color: var(--primary-orange); margin-bottom: 1rem;">🎓 What You've Learned</h3>
+            <p class="beginner-only" style="font-size: 1rem; line-height: 1.8;">
+                ✅ How digital signatures prove ownership without revealing secrets<br>
+                ✅ The difference between ECDSA (old) and Schnorr (new) signatures<br>
+                ✅ How Taproot makes complex Bitcoin transactions look simple<br>
+                ✅ Why Bitcoin's privacy and efficiency improved in 2021
+            </p>
+            <p class="intermediate-only" style="font-size: 0.95rem; line-height: 1.8;">
+                ✅ ECDSA signature generation and verification mechanics<br>
+                ✅ Schnorr's linearity property enables signature aggregation<br>
+                ✅ Taproot's key-path vs script-path spending trade-offs<br>
+                ✅ How MuSig2 enables efficient n-of-n multisig with Schnorr
+            </p>
+            <p class="advanced-only" style="font-size: 0.9rem; line-height: 1.8; font-family: 'Courier New', monospace;">
+                ✅ ECDSA: (r,s) where r = x(k·G), s = k⁻¹(H(m) + r·x) mod n<br>
+                ✅ Schnorr (BIP-340): (r,s) where s = k + e·x, e = Hash<sub>BIP0340/challenge</sub>(r || P || m)<br>
+                ✅ Taproot (BIP-341): Q = P + Hash<sub>TapTweak</sub>(P || t)·G<br>
+                ✅ MuSig2: Non-interactive n-of-n with key aggregation P<sub>agg</sub> = ∑ a<sub>i</sub>P<sub>i</sub>
+            </p>
+            <div style="margin-top: 1rem;">
+                <p style="font-size: 0.9rem; color: var(--text-dim);">Want to dive deeper? Explore the <a href="/interactive-demos/" style="color: var(--primary-orange); text-decoration: underline;">other interactive demos</a>!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLevel = urlParams.get('level') || 'beginner';
+        document.body.classList.add(`level-${currentLevel}`);
+
+        const LEVEL_CONFIG = {
+            beginner: { name: "Beginner Mode" },
+            intermediate: { name: "Intermediate Mode" },
+            advanced: { name: "Advanced Mode" }
+        };
+
+        document.getElementById('current-level-name').textContent = LEVEL_CONFIG[currentLevel].name;
+
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            if (btn.dataset.level === currentLevel) btn.classList.add('active');
+            btn.addEventListener('click', (e) => {
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('level', e.target.dataset.level);
+                window.location.href = newUrl.toString();
+            });
+        });
+
+        let privateKey = '';
+        let publicKey = '';
+        let currentSignature = '';
+        let currentMessage = '';
+
+        function generateRandomHex(length) {
+            const chars = '0123456789abcdef';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return result;
+        }
+
+        function generateKeyPair() {
+            privateKey = generateRandomHex(64);
+            publicKey = '04' + generateRandomHex(128);
+
+            document.getElementById('private-key').textContent = privateKey;
+            document.getElementById('public-key').textContent = publicKey;
+        }
+
+        function signMessage() {
+            const message = document.getElementById('message-to-sign').value;
+            if (!message) {
+                alert('Please enter a message to sign');
+                return;
+            }
+            if (!privateKey) {
+                alert('Please generate a key pair first');
+                return;
+            }
+
+            currentMessage = message;
+            currentSignature = generateRandomHex(128);
+            document.getElementById('signature').textContent = currentSignature;
+
+            // Auto-populate verification fields
+            document.getElementById('verify-message').value = currentMessage;
+            document.getElementById('verify-signature').value = currentSignature;
+        }
+
+        function verifySignature() {
+            const verifyMsg = document.getElementById('verify-message').value;
+            const verifySig = document.getElementById('verify-signature').value;
+
+            if (!verifyMsg || !verifySig) {
+                alert('Please enter both a message and signature to verify');
+                return;
+            }
+            if (!currentSignature) {
+                alert('Please sign a message first to have a baseline for comparison');
+                return;
+            }
+
+            const result = document.getElementById('signature-result');
+
+            // Check if signature is valid
+            const isValidSignature = (verifySig === currentSignature);
+            const isValidMessage = (verifyMsg === currentMessage);
+            const isValid = isValidSignature && isValidMessage;
+
+            let message = '';
+            let backgroundColor = '';
+            let borderColor = '';
+
+            if (isValid) {
+                backgroundColor = 'rgba(40, 167, 80, 0.2)';
+                borderColor = 'var(--accent-green)';
+
+                if (currentLevel === 'beginner') {
+                    message = `
+                        <strong style="color: var(--accent-green);">✅ Signature Valid!</strong><br><br>
+                        ✓ Message matches: "${verifyMsg}"<br>
+                        ✓ Signature matches original<br>
+                        ✓ Public key verified ownership<br><br>
+                        The signature proves you own the private key without revealing it.<br>
+                        This is how Bitcoin transactions are authorized!
+                    `;
+                } else if (currentLevel === 'intermediate') {
+                    message = `
+                        <strong style="color: var(--accent-green);">✅ ECDSA Signature Verified!</strong><br><br>
+                        Message: "${verifyMsg}"<br>
+                        Signature: ${verifySig.substring(0, 32)}...<br><br>
+                        Verification confirms the signer possesses the private key corresponding to the public key,
+                        without revealing the private key itself. This is the mathematical foundation of Bitcoin ownership.
+                    `;
+                } else {
+                    message = `
+                        <strong style="color: var(--accent-green);">✅ Cryptographic Proof Validated!</strong><br><br>
+                        <strong>Verification Process:</strong><br>
+                        1. Hash message: H(m) = SHA-256("${verifyMsg}")<br>
+                        2. Extract signature components: (r, s) from signature<br>
+                        3. Compute: w = s⁻¹ mod n<br>
+                        4. Compute: u₁ = H(m)·w mod n, u₂ = r·w mod n<br>
+                        5. Compute point: (x, y) = u₁·G + u₂·P<br>
+                        6. Verify: x ≡ r (mod n) ✓<br><br>
+                        Signature is cryptographically valid. The signer must possess private key k
+                        such that P = k·G. This is Bitcoin's zero-knowledge proof of ownership.
+                    `;
+                }
+            } else {
+                backgroundColor = 'rgba(220, 53, 69, 0.2)';
+                borderColor = 'var(--accent-red)';
+
+                // Determine what was tampered with
+                let tamperedPart = '';
+                if (!isValidMessage && !isValidSignature) {
+                    tamperedPart = 'Both the message and signature were changed!';
+                } else if (!isValidMessage) {
+                    tamperedPart = 'The message was changed!';
+                } else if (!isValidSignature) {
+                    tamperedPart = 'The signature was tampered with!';
+                }
+
+                if (currentLevel === 'beginner') {
+                    message = `
+                        <strong style="color: var(--accent-red);">❌ Signature Invalid!</strong><br><br>
+                        ${tamperedPart}<br><br>
+                        This signature doesn't match the message or was modified.<br>
+                        Someone tried to fake the signature, but the math doesn't work!<br><br>
+                        <strong>What changed:</strong><br>
+                        Original message: "${currentMessage}"<br>
+                        Your message: "${verifyMsg}"<br>
+                        Match: ${isValidMessage ? '✓' : '✗'}<br><br>
+                        Original signature: ${currentSignature.substring(0, 32)}...<br>
+                        Your signature: ${verifySig.substring(0, 32)}...<br>
+                        Match: ${isValidSignature ? '✓' : '✗'}<br><br>
+                        This is why Bitcoin is secure - you can't forge signatures without the private key!
+                    `;
+                } else if (currentLevel === 'intermediate') {
+                    message = `
+                        <strong style="color: var(--accent-red);">❌ ECDSA Verification Failed!</strong><br><br>
+                        ${tamperedPart}<br><br>
+                        The signature is cryptographically invalid. Detected issues:<br>
+                        ${!isValidMessage ? '• Message was altered after signing<br>' : ''}
+                        ${!isValidSignature ? '• Signature was modified or doesn\'t match the public key<br>' : ''}
+                        <br>
+                        <strong>Comparison:</strong><br>
+                        Original: "${currentMessage}" → ${currentSignature.substring(0, 20)}...<br>
+                        Verified: "${verifyMsg}" → ${verifySig.substring(0, 20)}...<br><br>
+                        Bitcoin nodes reject invalid transactions immediately. Without a valid signature proving ownership
+                        of the private key, the transaction cannot spend those UTXOs.
+                    `;
+                } else {
+                    message = `
+                        <strong style="color: var(--accent-red);">❌ Cryptographic Verification Rejected!</strong><br><br>
+                        ${tamperedPart}<br><br>
+                        <strong>Failure Analysis:</strong><br>
+                        The verification equation failed: s⁻¹(H(m)·G + r·P) ≠ R<br><br>
+                        This indicates:<br>
+                        ${!isValidSignature ? '• Signature (r,s) was tampered with or not generated from private key k matching P = k·G<br>' : ''}
+                        ${!isValidMessage ? '• Message hash H(m) doesn\'t match the originally signed message<br>' : ''}
+                        <br>
+                        <strong>Detection:</strong><br>
+                        Expected H(m): SHA-256("${currentMessage}")<br>
+                        Received H(m): SHA-256("${verifyMsg}")<br>
+                        Match: ${isValidMessage ? '✓' : '✗'}<br><br>
+                        Expected (r,s): ${currentSignature.substring(0, 32)}...<br>
+                        Received (r,s): ${verifySig.substring(0, 32)}...<br>
+                        Match: ${isValidSignature ? '✓' : '✗'}<br><br>
+                        <strong>Security Implications:</strong> ECDSA's security relies on the computational hardness
+                        of the Elliptic Curve Discrete Logarithm Problem (ECDLP). Forging a signature without the private
+                        key requires solving ECDLP, which is computationally infeasible with current technology
+                        (estimated 2^128 operations for secp256k1).
+                    `;
+                }
+            }
+
+            result.innerHTML = `
+                <div style="background: ${backgroundColor}; border: 2px solid ${borderColor}; border-radius: 12px; padding: 1.5rem; margin-top: 2rem; animation: fadeIn 0.5s;">
+                    ${message}
+                </div>
+            `;
+        }
+
+        function tamperWithSignature() {
+            if (!currentSignature) {
+                alert('Please sign a message first');
+                return;
+            }
+
+            // Randomly modify a few characters in the signature
+            const sigArray = document.getElementById('verify-signature').value.split('');
+            const numChanges = Math.floor(Math.random() * 5) + 3; // 3-7 character changes
+
+            for (let i = 0; i < numChanges; i++) {
+                const randomIndex = Math.floor(Math.random() * sigArray.length);
+                const chars = '0123456789abcdef';
+                sigArray[randomIndex] = chars[Math.floor(Math.random() * chars.length)];
+            }
+
+            document.getElementById('verify-signature').value = sigArray.join('');
+
+            // Show hint
+            const result = document.getElementById('signature-result');
+            result.innerHTML = `
+                <div style="background: rgba(255, 152, 0, 0.2); border: 2px solid #ff9800; border-radius: 12px; padding: 1rem; margin-top: 1rem;">
+                    <strong style="color: #ff9800;">⚠️ Signature Tampered!</strong><br>
+                    Several random characters in the signature were changed. Click "Verify Signature" to see what happens!
+                </div>
+            `;
+        }
+
+        function changeMessage() {
+            const currentMsg = document.getElementById('verify-message').value;
+            if (!currentMsg) {
+                alert('Please sign a message first');
+                return;
+            }
+
+            // Suggest modified messages
+            const modifications = [
+                currentMsg + ' (modified)',
+                currentMsg.replace(/1/g, '2'),
+                currentMsg.replace('BTC', 'SATS'),
+                currentMsg.replace('Alice', 'Bob'),
+                currentMsg.toUpperCase(),
+                currentMsg.substring(0, currentMsg.length - 3) + '...'
+            ];
+
+            const randomMod = modifications[Math.floor(Math.random() * modifications.length)];
+            document.getElementById('verify-message').value = randomMod;
+
+            // Show hint
+            const result = document.getElementById('signature-result');
+            result.innerHTML = `
+                <div style="background: rgba(255, 152, 0, 0.2); border: 2px solid #ff9800; border-radius: 12px; padding: 1rem; margin-top: 1rem;">
+                    <strong style="color: #ff9800;">📝 Message Changed!</strong><br>
+                    The message was modified. Click "Verify Signature" to see if the signature still validates!
+                </div>
+            `;
+        }
+
+        // ===== Schnorr Playground Logic (educational, simplified) =====
+        let schnorrState = { message: '', R: '', s: '', pubkey: '' };
+
+        function randomHex(bytes) {
+            return Array.from(crypto.getRandomValues(new Uint8Array(bytes))).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function schnorrSignMessage() {
+            const msg = document.getElementById('schnorr-message').value.trim();
+            if (!msg) { alert('Enter a message to sign (Schnorr)'); return; }
+            // Generate x-only pubkey (simulated)
+            if (!schnorrState.pubkey) schnorrState.pubkey = randomHex(32);
+            // Simulate k, R, e, s
+            const k = randomHex(32);
+            const R = randomHex(32); // x-only R for display
+            const e = randomHex(32); // simulate challenge
+            const s = randomHex(32);
+            schnorrState.message = msg;
+            schnorrState.R = R;
+            schnorrState.s = s;
+            document.getElementById('schnorr-R').textContent = R;
+            document.getElementById('schnorr-s').textContent = s;
+            document.getElementById('schnorr-sig').textContent = R + s;
+            document.getElementById('schnorr-verify-result').innerHTML = '';
+            document.getElementById('schnorr-agg').style.display = 'none';
+        }
+
+        function schnorrVerify() {
+            const msg = document.getElementById('schnorr-message').value.trim();
+            const ok = (msg === schnorrState.message) && schnorrState.R && schnorrState.s;
+            const box = document.getElementById('schnorr-verify-result');
+            if (ok) {
+                box.innerHTML = `
+                    <div style="background: rgba(40, 167, 80, 0.2); border: 2px solid var(--accent-green); border-radius: 12px; padding: 1rem; margin-top: 0.5rem;">
+                        <strong style="color: var(--accent-green);">✅ Valid Schnorr Signature!</strong><br>
+                        Verified using: <code>s·G = R + e·P</code><br>
+                        (Educational demo: equation shown conceptually)
+                    </div>`;
+            } else {
+                box.innerHTML = `
+                    <div style="background: rgba(220, 53, 69, 0.2); border: 2px solid var(--accent-red); border-radius: 12px; padding: 1rem; margin-top: 0.5rem;">
+                        <strong style="color: var(--accent-red);">❌ Invalid Schnorr Signature</strong><br>
+                        Message changed or signature missing.
+                    </div>`;
+            }
+        }
+
+        function schnorrAggregate() {
+            const n = parseInt(document.getElementById('agg-count-beginner')?.value
+                       || document.getElementById('agg-count-advanced')?.value, 10) || 2;
+            const pubkeys = Array.from({length: n}, () => randomHex(32));
+            const aggPub = randomHex(32);
+            const aggSig = randomHex(64/2); // 32 bytes s, 32 bytes R combined notionally → 64 bytes total
+            const details = `Signers: ${n}\nPubKeys: ${pubkeys.map(p=>p.slice(0,8)+'…').join(', ')}\nCombined pubkey: ${aggPub.slice(0,16)}…\nCombined signature size: 64 bytes`;
+            document.getElementById('schnorr-agg').style.display = 'block';
+            document.getElementById('schnorr-agg-details').textContent = details;
+        }
+
+        // ===== Taproot mini-demo =====
+        function taprootBuildAddress() {
+            const bech = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+            const rand = (len)=>Array.from({length: len}, ()=>bech[Math.floor(Math.random()*bech.length)]).join('');
+            document.getElementById('taproot-address').textContent = 'bc1p' + rand(38);
+        }
+
+        function taprootShow(type) {
+            const view = document.getElementById('taproot-spend-view');
+            if (type === 'key') {
+                view.innerHTML = `
+                    <div><strong>Key-path Spend</strong></div>
+                    <div>Reveal: 64-byte Schnorr signature</div>
+                    <div>On-chain: looks like single-sig ✅</div>`;
+            } else {
+                view.innerHTML = `
+                    <div><strong>Script-path Spend</strong></div>
+                    <div>Reveal: Merkle branch + script leaf + signatures</div>
+                    <div>Only the used branch is revealed ✅</div>`;
+            }
+        }
+
+        // Toggle collapsible sections
+        function toggleCollapsible(id) {
+            const content = document.getElementById(id + '-content');
+            const icon = document.getElementById(id + '-icon');
+            content.classList.toggle('open');
+            icon.classList.toggle('open');
+        }
+
+        console.log(`🔐 Digital Signatures Demo Level: ${currentLevel}`);
+    </script>
+
+    <!-- Animated Icon Library -->
+    <script src="/js/icon-library.js"></script>
+    <script>
+        // Inject icons after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.IconLibrary) {
+                document.querySelectorAll('[data-icon]').forEach(function(element) {
+                    var iconName = element.getAttribute('data-icon');
+                    if (iconName) {
+                        var iconHTML = IconLibrary.get(iconName, 20, true);
+                        var span = document.createElement('span');
+                        span.innerHTML = iconHTML;
+                        span.className = 'icon-inline';
+                        span.style.marginRight = '0.5rem';
+                        span.style.display = 'inline-block';
+                        span.style.verticalAlign = 'middle';
+                        element.insertBefore(span, element.firstChild);
+                    }
+                });
+            }
+        });
+    </script>
+
+
+    <!-- Reflect: Socratic questions after digital signatures activity -->
+    <div style="max-width:900px;margin:2rem auto 0;padding:0 1.5rem 2.5rem">
+        <div class="reflect-widget"
+             data-topic="cryptography"
+             data-path="builder"
+             data-title="Reflect: How do digital signatures prove ownership?">
+        </div>
+    </div>
+    <script src="/js/reflect-widget.js"></script>
+
+    <!-- Navigation Context (return-to-path functionality) -->
+    <script src="/js/navigation-context.js"></script>
+<script src="/js/membership-gate.js"></script>
+
+<!-- Analytics, Email Capture & Tip CTAs -->
+<div class="container" style="margin: 2rem auto; max-width: 900px; padding: 0 1.5rem;">
+    <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
+    <div id="tip-page" data-tip-cta="compact"></div>
+</div>
+<script src="/js/analytics.js" defer></script>
+<script src="/js/email-capture.js" defer></script>
+<script src="/js/tip-cta.js" defer></script>
+
+</body></html>
