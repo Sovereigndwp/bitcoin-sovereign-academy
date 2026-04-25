@@ -42,6 +42,9 @@
                 referrer: document.referrer || 'direct'
             });
 
+            // Auto-fire module_started + arm module_completed heuristic if on a path module page
+            this.initLearningOutcomes();
+
             // Start periodic server flush
             this._flushTimer = setInterval(() => this.flushToServer(), CONFIG.flushIntervalMs);
 
@@ -52,6 +55,53 @@
 
             this.initialized = true;
             this.log('Analytics initialized', { sessionId: this.sessionId });
+        }
+
+        /**
+         * Detect path module pages and wire module_started + module_completed events.
+         * URL pattern: /paths/{pathId}/stage-{N}/module-{M}.html (or /es/module-{M}.html for Spanish).
+         * module_completed fires once per session per moduleId when 80%+ scrolled AND 30s+ on page.
+         */
+        initLearningOutcomes() {
+            const m = window.location.pathname.match(/^\/paths\/([^/]+)\/stage-(\d+)\/(?:es\/)?module-([^/.]+)/);
+            if (!m) return;
+            const [, pathId, stage, moduleNum] = m;
+            const lang = window.location.pathname.includes('/es/') ? 'es' : 'en';
+            const moduleId = `${pathId}/stage-${stage}/module-${moduleNum}${lang === 'es' ? '/es' : ''}`;
+
+            this.track('module_started', { pathId, stage: parseInt(stage, 10), moduleNum, moduleId, lang });
+
+            // Completion heuristic: 80% scroll depth AND ≥30s on page (per-session, fired once)
+            const sessionCompletedKey = 'bsa-completed-' + this.sessionId;
+            const completed = JSON.parse(sessionStorage.getItem(sessionCompletedKey) || '{}');
+            if (completed[moduleId]) return; // already fired this session
+
+            const startTs = Date.now();
+            let maxScrollPct = 0;
+            let armed = true;
+
+            const checkComplete = () => {
+                if (!armed) return;
+                const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+                if (scrollHeight <= 0) return;
+                const pct = (window.scrollY || document.documentElement.scrollTop) / scrollHeight;
+                maxScrollPct = Math.max(maxScrollPct, pct);
+                const elapsedMs = Date.now() - startTs;
+                if (maxScrollPct >= 0.8 && elapsedMs >= 30000) {
+                    armed = false;
+                    completed[moduleId] = Date.now();
+                    sessionStorage.setItem(sessionCompletedKey, JSON.stringify(completed));
+                    this.track('module_completed', {
+                        pathId, stage: parseInt(stage, 10), moduleNum, moduleId, lang,
+                        timeOnPageMs: elapsedMs,
+                        maxScrollPct: Math.round(maxScrollPct * 100)
+                    });
+                }
+            };
+
+            window.addEventListener('scroll', checkComplete, { passive: true });
+            // Also check on a slow timer in case user reads without scrolling much
+            setInterval(checkComplete, 5000);
         }
 
         /**
@@ -180,6 +230,83 @@
                         ? ((count(recentEvents, 'stripe_success') + count(recentEvents, 'lightning_success')) / Math.max(count(recentEvents, 'membership_click'), 1) * 100).toFixed(1) + '%'
                         : 'N/A'
                 }
+            };
+        }
+
+        /**
+         * Learning-outcomes metrics — aggregates module_started, module_completed, lab_completed.
+         * Returns 7d / 30d / all-time counts plus completion rate, top lists, and per-path breakdown.
+         * Reads only from this user's localStorage; site-wide aggregation requires a server endpoint.
+         */
+        getLearningMetrics() {
+            const events = this.getStoredEvents();
+            const now = Date.now();
+            const d7 = now - 7 * 86400000;
+            const d30 = now - 30 * 86400000;
+
+            const inWindow = (ts, since) => ts >= since;
+            const byEvent = (name, since) =>
+                events.filter(e => e.event === name && inWindow(e.timestamp, since));
+
+            const moduleStarts7 = byEvent('module_started', d7);
+            const moduleStarts30 = byEvent('module_started', d30);
+            const moduleCompletes7 = byEvent('module_completed', d7);
+            const moduleCompletes30 = byEvent('module_completed', d30);
+            const labCompletes7 = byEvent('lab_completed', d7);
+            const labCompletes30 = byEvent('lab_completed', d30);
+
+            const completionRate = (starts, completes) => {
+                const s = starts.length;
+                if (s === 0) return null;
+                return ((completes.length / s) * 100).toFixed(1) + '%';
+            };
+
+            const topN = (arr, key, n = 5) => {
+                const counts = {};
+                arr.forEach(e => {
+                    const k = (e.props && e.props[key]) || e[key];
+                    if (k) counts[k] = (counts[k] || 0) + 1;
+                });
+                return Object.entries(counts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, n)
+                    .map(([id, count]) => ({ id, count }));
+            };
+
+            const byPath = (events) => {
+                const counts = {};
+                events.forEach(e => {
+                    const p = (e.props && e.props.pathId) || e.pathId;
+                    if (p) counts[p] = (counts[p] || 0) + 1;
+                });
+                return counts;
+            };
+
+            return {
+                last7Days: {
+                    modulesStarted: moduleStarts7.length,
+                    modulesCompleted: moduleCompletes7.length,
+                    labsCompleted: labCompletes7.length,
+                    moduleCompletionRate: completionRate(moduleStarts7, moduleCompletes7),
+                    topModules: topN(moduleStarts7, 'moduleId'),
+                    topLabs: topN(labCompletes7, 'labId'),
+                    byPath: byPath(moduleStarts7)
+                },
+                last30Days: {
+                    modulesStarted: moduleStarts30.length,
+                    modulesCompleted: moduleCompletes30.length,
+                    labsCompleted: labCompletes30.length,
+                    moduleCompletionRate: completionRate(moduleStarts30, moduleCompletes30),
+                    topModules: topN(moduleStarts30, 'moduleId'),
+                    topLabs: topN(labCompletes30, 'labId'),
+                    byPath: byPath(moduleStarts30)
+                },
+                allTime: {
+                    modulesStarted: events.filter(e => e.event === 'module_started').length,
+                    modulesCompleted: events.filter(e => e.event === 'module_completed').length,
+                    labsCompleted: events.filter(e => e.event === 'lab_completed').length
+                },
+                _note: 'Local-only metrics from this device. Site-wide aggregation requires a server-side read endpoint.'
             };
         }
 

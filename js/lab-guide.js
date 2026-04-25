@@ -1206,12 +1206,17 @@
 
     function markComplete(labId) {
         const c = getCompletions();
+        const firstTimeThisLab = !c[labId];
         c[labId] = Date.now();
         localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
         // Update any lab cards on the page
         document.querySelectorAll('[data-lab="' + labId + '"]').forEach(function (el) {
             el.classList.add('completed');
         });
+        // Learning outcomes event (only fire on first completion of this lab to avoid noise)
+        if (firstTimeThisLab && window.bsaAnalytics) {
+            window.bsaAnalytics.track('lab_completed', { labId, path: window.location.pathname });
+        }
     }
 
     function isComplete(labId) {

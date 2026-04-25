@@ -173,7 +173,7 @@
     <!-- Platform Stats -->
     <div class="stats-bar">
         <div class="stat-card">
-            <div class="stat-value">6</div>
+            <div class="stat-value">7</div>
             <div class="stat-label">Learning Paths</div>
         </div>
         <div class="stat-card">
@@ -181,7 +181,7 @@
             <div class="stat-label">Interactive Demos</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">10</div>
+            <div class="stat-value">16</div>
             <div class="stat-label">Practical Labs</div>
         </div>
         <div class="stat-card">
@@ -189,6 +189,27 @@
             <div class="stat-label">Linked Academies</div>
         </div>
     </div>
+
+    <!-- Your Learning Outcomes (per-user, localStorage-driven) -->
+    <section id="learning-outcomes" style="background: rgba(247,147,26,0.06); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.75rem 1.5rem; margin-bottom: 2.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+            <h2 style="color: var(--primary-orange); font-size: 1.25rem; margin: 0;">📊 Your learning, last 7 days</h2>
+            <button id="lo-toggle-window" style="background: none; border: 1px solid var(--border-color); color: var(--text-dim); padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">Show 30 days</button>
+        </div>
+        <div id="lo-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="stat-card" style="padding: 1rem;"><div class="stat-value" id="lo-modules-started" style="font-size: 1.6rem;">—</div><div class="stat-label">Modules started</div></div>
+            <div class="stat-card" style="padding: 1rem;"><div class="stat-value" id="lo-modules-completed" style="font-size: 1.6rem;">—</div><div class="stat-label">Modules completed</div></div>
+            <div class="stat-card" style="padding: 1rem;"><div class="stat-value" id="lo-completion-rate" style="font-size: 1.6rem;">—</div><div class="stat-label">Completion rate</div></div>
+            <div class="stat-card" style="padding: 1rem;"><div class="stat-value" id="lo-labs-completed" style="font-size: 1.6rem;">—</div><div class="stat-label">Labs completed</div></div>
+        </div>
+        <div id="lo-breakdown" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; font-size: 0.875rem;"></div>
+        <p id="lo-empty" style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.75rem; display: none;">
+            No learning activity yet. Open a module or complete a lab to start populating this view.
+        </p>
+        <p style="color: var(--text-dim); font-size: 0.75rem; margin-top: 1rem; opacity: 0.8;">
+            🔒 This view shows <strong>only your own activity on this device</strong> from localStorage. Site-wide aggregation requires a server-side read endpoint (planned).
+        </p>
+    </section>
 
     <!-- Week: Feb 17–24, 2026 -->
     <article class="week-entry" id="week-2026-02-24">
@@ -458,5 +479,81 @@
     </footer>
 
 </div>
+
+<script src="/js/analytics.js" defer></script>
+<script>
+(function () {
+    const PATH_LABELS = {
+        curious: '🧭 Curious', skeptic: '🔍 Skeptic', hurried: '⚡ Hurried',
+        pragmatist: '🔨 Pragmatist', principled: '⭐ Principled',
+        sovereign: '🛡️ Sovereign', builder: '🏗️ Builder'
+    };
+
+    function escape(s) { return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    function render(window) {
+        if (!window) return;
+        const m = window;
+        document.getElementById('lo-modules-started').textContent = m.modulesStarted;
+        document.getElementById('lo-modules-completed').textContent = m.modulesCompleted;
+        document.getElementById('lo-completion-rate').textContent = m.moduleCompletionRate || '—';
+        document.getElementById('lo-labs-completed').textContent = m.labsCompleted;
+
+        const empty = m.modulesStarted === 0 && m.labsCompleted === 0;
+        document.getElementById('lo-empty').style.display = empty ? 'block' : 'none';
+
+        const breakdown = document.getElementById('lo-breakdown');
+        breakdown.innerHTML = '';
+
+        if (m.byPath && Object.keys(m.byPath).length) {
+            const pathRows = Object.entries(m.byPath)
+                .sort((a, b) => b[1] - a[1])
+                .map(([p, c]) => `<div style="display:flex;justify-content:space-between;padding:0.35rem 0;border-bottom:1px solid rgba(247,147,26,0.08);"><span>${escape(PATH_LABELS[p] || p)}</span><strong>${c}</strong></div>`)
+                .join('');
+            breakdown.insertAdjacentHTML('beforeend', `<div><h3 style="font-size:0.85rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">By path</h3>${pathRows}</div>`);
+        }
+
+        if (m.topModules && m.topModules.length) {
+            const rows = m.topModules
+                .map(({ id, count }) => `<div style="display:flex;justify-content:space-between;padding:0.35rem 0;border-bottom:1px solid rgba(247,147,26,0.08);"><span style="font-family:ui-monospace,Menlo,monospace;font-size:0.8rem;color:var(--text-dim);">${escape(id)}</span><strong>${count}</strong></div>`)
+                .join('');
+            breakdown.insertAdjacentHTML('beforeend', `<div><h3 style="font-size:0.85rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">Top modules opened</h3>${rows}</div>`);
+        }
+
+        if (m.topLabs && m.topLabs.length) {
+            const rows = m.topLabs
+                .map(({ id, count }) => `<div style="display:flex;justify-content:space-between;padding:0.35rem 0;border-bottom:1px solid rgba(247,147,26,0.08);"><span style="font-family:ui-monospace,Menlo,monospace;font-size:0.8rem;color:var(--text-dim);">${escape(id)}</span><strong>${count}</strong></div>`)
+                .join('');
+            breakdown.insertAdjacentHTML('beforeend', `<div><h3 style="font-size:0.85rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">Top labs completed</h3>${rows}</div>`);
+        }
+    }
+
+    let showing30 = false;
+    function refresh() {
+        if (!window.bsaAnalytics || !window.bsaAnalytics.getLearningMetrics) return;
+        const data = window.bsaAnalytics.getLearningMetrics();
+        const w = showing30 ? data.last30Days : data.last7Days;
+        document.querySelector('#learning-outcomes h2').textContent = '📊 Your learning, last ' + (showing30 ? '30' : '7') + ' days';
+        document.getElementById('lo-toggle-window').textContent = showing30 ? 'Show 7 days' : 'Show 30 days';
+        render(w);
+    }
+
+    document.getElementById('lo-toggle-window').addEventListener('click', () => {
+        showing30 = !showing30;
+        refresh();
+    });
+
+    // Wait for analytics.js to load
+    function tryRender(retries) {
+        if (window.bsaAnalytics && window.bsaAnalytics.getLearningMetrics) refresh();
+        else if (retries > 0) setTimeout(() => tryRender(retries - 1), 250);
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => tryRender(20));
+    } else {
+        tryRender(20);
+    }
+})();
+</script>
 </body>
 </html>
