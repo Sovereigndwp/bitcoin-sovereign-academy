@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { setCorsHeaders } from './lib/origin';
 
 const supabase = createClient(
     process.env.SUPABASE_URL || '',
@@ -38,10 +39,7 @@ function getUserIdFromToken(req: VercelRequest): string | null {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    // CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    setCorsHeaders(req, res, 'GET, POST, OPTIONS', 'Content-Type, Authorization');
     if (req.method === 'OPTIONS') return res.status(200).end();
 
     const { action } = req.query;

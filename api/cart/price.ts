@@ -1,24 +1,7 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { calculatePricing } from '../pricing';
 import { PricingRequest, APIError } from '../types';
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
-
-function handleCORS(req: VercelRequest, res: VercelResponse): boolean {
-  Object.entries(CORS_HEADERS).forEach(([key, value]) => {
-    res.setHeader(key, value);
-  });
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return true;
-  }
-  return false;
-}
+import { setCorsHeaders } from '../lib/origin';
 
 function errorResponse(res: VercelResponse, status: number, message: string, code?: string) {
   const error: APIError = { error: 'Error', message, code };
@@ -26,7 +9,11 @@ function errorResponse(res: VercelResponse, status: number, message: string, cod
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (handleCORS(req, res)) return;
+  setCorsHeaders(req, res, 'GET, POST, OPTIONS', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
   if (req.method !== 'POST') {
     return errorResponse(res, 405, 'Method not allowed');

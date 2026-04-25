@@ -1,14 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { setCorsHeaders } from './lib/origin';
 
 // Simple analytics storage
 const analyticsStore: Map<string, any> = new Map();
 const conversionMetrics: Map<string, any> = new Map();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    // CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    setCorsHeaders(req, res, 'GET, OPTIONS', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();

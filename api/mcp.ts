@@ -4,6 +4,7 @@
  */
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
+import { setCorsHeaders } from './lib/origin';
 
 // ============================================
 // Types
@@ -279,11 +280,8 @@ function getPersonalizedModules(persona: PersonaInfo | null): ModuleItem[] {
 // ============================================
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Enable CORS
+  setCorsHeaders(req, res, 'GET,POST,OPTIONS', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();

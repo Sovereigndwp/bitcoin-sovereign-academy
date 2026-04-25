@@ -3,10 +3,30 @@
  * Handles site generation through MCP pipeline
  */
 
+// CORS allow-list — inlined here because this file is .js and cannot import the .ts shared lib.
+// Mirrors the policy in api/lib/origin.ts: production domains + dev hosts + ALLOWED_ORIGIN env override.
+const DEFAULT_ALLOWED_ORIGINS = [
+  'https://bitcoinsovereign.academy',
+  'https://www.bitcoinsovereign.academy',
+  'https://preview.bitcoinsovereign.academy',
+];
+
+function isAllowedOrigin(origin) {
+  if (!origin || typeof origin !== 'string') return false;
+  try {
+    const { hostname } = new URL(origin);
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.vercel.app')) return true;
+  } catch { return false; }
+  const env = (process.env.ALLOWED_ORIGIN || '').split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+  return [...DEFAULT_ALLOWED_ORIGINS, ...env].includes(origin);
+}
+
 // For Vercel deployment, export as default
 export default async function handler(req, res) {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const requestOrigin = req.headers.origin;
+  const corsOrigin = isAllowedOrigin(requestOrigin) ? requestOrigin : DEFAULT_ALLOWED_ORIGINS[0];
+  res.setHeader('Access-Control-Allow-Origin', corsOrigin);
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 

@@ -12,15 +12,16 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createBTCPayInvoice } from '../btcpay';
 import { query, queryOne, logSecurityEvent } from '../lib/db';
-import { 
-  validateEmail, 
-  validateProductId, 
+import {
+  validateEmail,
+  validateProductId,
   validateDeviceFingerprint,
-  assertValid, 
-  sanitizeIPAddress, 
-  sanitizeUserAgent 
+  assertValid,
+  sanitizeIPAddress,
+  sanitizeUserAgent
 } from '../lib/validation';
 import { getProduct, supportsBTCPay, isRecurring, getPrice } from '../config/products';
+import { setCorsHeaders } from '../lib/origin';
 
 interface CheckoutRequest {
   email: string;
@@ -38,20 +39,12 @@ interface CheckoutResponse {
   expiresAt?: string;
 }
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
-
 /**
- * Handle CORS preflight
+ * Handle CORS preflight using the shared allow-list (api/lib/origin.ts).
+ * Returns true for OPTIONS so the caller short-circuits.
  */
 function handleCORS(req: VercelRequest, res: VercelResponse): boolean {
-  Object.entries(CORS_HEADERS).forEach(([key, value]) => {
-    res.setHeader(key, value);
-  });
-
+  setCorsHeaders(req, res, 'GET, POST, OPTIONS', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return true;

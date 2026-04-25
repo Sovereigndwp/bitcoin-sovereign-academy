@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { randomUUID } from 'crypto';
+import { setCorsHeaders } from './lib/origin';
 
 interface AnalyticsEvent {
     event: string;
@@ -22,10 +23,7 @@ const analyticsStore: Map<string, AnalyticsData> = new Map();
 const conversionMetrics: Map<string, any> = new Map();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    // CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    setCorsHeaders(req, res, 'POST, OPTIONS', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
