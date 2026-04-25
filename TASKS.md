@@ -3,7 +3,7 @@
 > Shared roadmap + task list. Check this file at the start of every session.
 > See `CLAUDE.md` for values and voice. See `weekly/index.html` for shipped-changelog.
 
-Last updated: 2026-04-24
+Last updated: 2026-04-25
 
 ---
 
@@ -54,11 +54,11 @@ Ranked by leverage × feasibility. Pull from the top.
 **Why:** CLAUDE.md promises an "engaging, tiered reflection system that adapts to depth of engagement while maintaining educational rigor." Currently we have 3 fixed seeds per topic — no tier structure.
 **Depends on:** A1 (want to know baseline tutor quality before we ship a new prompt interaction pattern).
 
-### B3. Spanish localization — Curious Stage-1 modules 2 & 3
+### B3. Spanish localization — Curious Stage-1 modules 2 & 3 ✅ done
 
-**What:** translate `/paths/curious/stage-1/module-2.html` and `module-3.html` to Spanish under `/paths/curious/stage-1/es/`. Colombian register. Include `lang="es"` + `hreflang` SEO.
-**Why:** Colombia is your named focus market; you have only 1 Spanish module shipped. Bitcoin adoption is high in LatAm; content barrier is language, not quality.
-**Dependencies:** none. Could ship in 2-3 hours.
+**Shipped:** `paths/curious/stage-1/es/module-2.html` and `module-3.html`. Both ported 1:1 from English with Colombian-neutral register, `lang="es"`, hreflang alternates (en/es/x-default), translated canonical/og/JSON-LD, breadcrumb language switcher to EN. Retrofit applied to `module-1.html` (EN + ES) for hreflang parity, and to EN `module-2/3.html` for the 🇨🇴 Español switcher. `module-2-5.html` next-link in ES files points to `../module-2-5.html` (English) until that intermediate is translated.
+
+**Follow-ups:** translate `module-2-5.html` to Spanish; localize `paths/curious/stage-2/` modules; expand to other paths (Builder, Sovereign).
 
 ### B4. Learning-outcomes instrumentation (minimal)
 
