@@ -1004,6 +1004,22 @@
 
         // Initialize
         updateDisplay();
+
+        // On load, snap slider to real chain tip so the demo opens with current values
+        async function syncToLiveHeight() {
+            if (!window.bitcoinData) return;
+            try {
+                const real = await window.bitcoinData.getBlockHeight();
+                if (!real) return;
+                // Slider step is 10000; round down to nearest step within max range
+                const sliderMax = parseInt(blockHeightSlider.max);
+                const step = parseInt(blockHeightSlider.step) || 1;
+                const snapped = Math.min(sliderMax, Math.floor(real / step) * step);
+                blockHeightSlider.value = snapped;
+                updateDisplay();
+            } catch (e) { /* keep default */ }
+        }
+        window.addEventListener('load', () => { syncToLiveHeight(); });
     </script>
 
     <!-- Animated Icon Library -->
@@ -1049,6 +1065,7 @@
     <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
     <div id="tip-page" data-tip-cta="compact"></div>
 </div>
+<script src="/js/bitcoin-data-reliable.js" defer></script>
 <script src="/js/analytics.js" defer></script>
 <script src="/js/email-capture.js" defer></script>
 <script src="/js/tip-cta.js" defer></script>

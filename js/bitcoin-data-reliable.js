@@ -30,6 +30,7 @@
                 mempool: 60000,        // 1 minute
                 fees: 60000,           // 1 minute
                 difficulty: 600000,    // 10 minutes
+                hashrate: 600000,      // 10 minutes
                 ath: 3600000,          // 1 hour
                 historical: 86400000   // 24 hours
             };
@@ -369,6 +370,65 @@
         }
         
         /**
+         * Get current network hashrate in EH/s
+         * Source: mempool.space — `currentHashrate` is reported in H/s; we expose EH/s for display.
+         */
+        async getHashrate() {
+            const cacheKey = 'hashrate';
+            if (this.isValidCache(cacheKey)) {
+                return this.cache.get(cacheKey);
+            }
+
+            try {
+                const data = await this.fetchWithTimeout('https://mempool.space/api/v1/mining/hashrate/3d');
+                const hashesPerSec = data.currentHashrate;
+                if (hashesPerSec && hashesPerSec > 0) {
+                    const result = {
+                        ehs: hashesPerSec / 1e18,        // exahashes per second (display unit)
+                        ths: hashesPerSec / 1e12,        // terahashes per second (mining math unit)
+                        raw: hashesPerSec                // hashes per second
+                    };
+                    this.setCache(cacheKey, result, this.cacheDurations.hashrate);
+                    this.log(`Hashrate: ${result.ehs.toFixed(0)} EH/s`);
+                    return result;
+                }
+            } catch (error) {
+                this.log(`Hashrate fetch failed: ${error.message}`, 'warn');
+            }
+            return { ehs: null, ths: null, raw: null };
+        }
+
+        /**
+         * Get circulating Bitcoin supply (BTC).
+         * Derived deterministically from block height — no API call needed.
+         * Reward schedule: 50 BTC for blocks 0-209,999, halved every 210,000 blocks.
+         */
+        async getSupply() {
+            const blockHeight = await this.getBlockHeight();
+            if (!blockHeight) return { btc: null, blockHeight: null };
+
+            const HALVING_INTERVAL = 210000;
+            let supplySats = 0;
+            let rewardSats = 50 * 100000000; // 50 BTC in sats
+            let blocksRemaining = blockHeight;
+            let era = 0;
+
+            while (blocksRemaining > 0 && rewardSats > 0) {
+                const blocksInEra = Math.min(blocksRemaining, HALVING_INTERVAL);
+                supplySats += blocksInEra * rewardSats;
+                blocksRemaining -= blocksInEra;
+                rewardSats = Math.floor(rewardSats / 2);
+                era++;
+                if (era > 64) break; // safety: reward goes to 0 long before this
+            }
+
+            return {
+                btc: supplySats / 100000000,
+                blockHeight: blockHeight
+            };
+        }
+
+        /**
          * Get historical price for a specific date (for gain calculations)
          */
         async getHistoricalPrice(date) {
@@ -515,7 +575,37 @@
                     this.updateElement('bar-difficulty', diffStr);
                     this.updateElement('difficulty', diffStr);
                 }
-                
+
+                // Hashrate + supply (lazy — only fetch if any element on the page wants them)
+                const wantsHashrate = document.querySelector('[data-btc-live="hashrate"], [data-btc-live="hashrate-ehs"], [data-btc-live="hashrate-ths"]');
+                const wantsSupply = document.querySelector('[data-btc-live="supply"], [data-btc-live="supply-pct"]');
+                let hashrate = null, supply = null;
+                if (wantsHashrate) hashrate = await this.getHashrate();
+                if (wantsSupply) supply = await this.getSupply();
+
+                // data-btc-live attribute binder: any element marked with data-btc-live="key"
+                // gets its textContent populated. Optional data-btc-format="number|currency|compact|raw"
+                const liveData = {
+                    'price':         priceData.price,
+                    'price-change':  priceData.change24h,
+                    'block-height':  blockHeight,
+                    'halvings':      blockHeight ? this.getHalvingsCompleted(blockHeight) : null,
+                    'days-genesis':  this.getDaysSinceGenesis(),
+                    'mempool':       mempoolData.count,
+                    'fee-fastest':   fees.fastest,
+                    'fee-hour':      fees.hour,
+                    'fee-economy':   fees.economy,
+                    'difficulty':    difficulty.difficulty,
+                    'difficulty-t':  difficulty.difficulty ? (difficulty.difficulty / 1e12) : null,
+                    'ath':           athData.price,
+                    'hashrate':      hashrate ? hashrate.ehs : null,
+                    'hashrate-ehs':  hashrate ? hashrate.ehs : null,
+                    'hashrate-ths':  hashrate ? hashrate.ths : null,
+                    'supply':        supply ? supply.btc : null,
+                    'supply-pct':    supply ? (supply.btc / 21000000) * 100 : null
+                };
+                this.applyLiveBindings(liveData);
+
                 this.log('Data update complete');
                 
             } catch (error) {
@@ -531,6 +621,48 @@
             if (el && text !== null && text !== undefined) {
                 el.textContent = text;
             }
+        }
+
+        /**
+         * data-btc-live attribute binder
+         * Marks any element <span data-btc-live="price"></span> as live.
+         * Optional data-btc-format: "currency" ($1,234), "number" (1,234), "compact" (1.2T),
+         *   "percent" (1.23%), "fixed-N" (decimal N), "raw" (no formatting). Default: number.
+         * Optional data-btc-suffix: appended after value (e.g., " EH/s", " sat/vB").
+         * Optional data-btc-prefix: prepended (e.g., "$").
+         */
+        applyLiveBindings(liveData) {
+            const els = document.querySelectorAll('[data-btc-live]');
+            els.forEach(el => {
+                const key = el.getAttribute('data-btc-live');
+                const value = liveData[key];
+                if (value === null || value === undefined) return;
+
+                const format = el.getAttribute('data-btc-format') || 'number';
+                const prefix = el.getAttribute('data-btc-prefix') || '';
+                const suffix = el.getAttribute('data-btc-suffix') || '';
+                let formatted;
+
+                if (format === 'currency') {
+                    formatted = '$' + Math.round(value).toLocaleString();
+                } else if (format === 'compact') {
+                    if (Math.abs(value) >= 1e12) formatted = (value / 1e12).toFixed(2) + 'T';
+                    else if (Math.abs(value) >= 1e9) formatted = (value / 1e9).toFixed(2) + 'B';
+                    else if (Math.abs(value) >= 1e6) formatted = (value / 1e6).toFixed(2) + 'M';
+                    else formatted = Math.round(value).toLocaleString();
+                } else if (format === 'percent') {
+                    formatted = value.toFixed(2) + '%';
+                } else if (format.startsWith('fixed-')) {
+                    const decimals = parseInt(format.split('-')[1], 10) || 0;
+                    formatted = value.toFixed(decimals);
+                } else if (format === 'raw') {
+                    formatted = String(value);
+                } else { // 'number' default
+                    formatted = (typeof value === 'number') ? Math.round(value).toLocaleString() : String(value);
+                }
+
+                el.textContent = prefix + formatted + suffix;
+            });
         }
     }
     

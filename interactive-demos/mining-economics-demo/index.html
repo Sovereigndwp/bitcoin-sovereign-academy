@@ -422,8 +422,9 @@
             });
         });
 
-        // Live BTC price — populated from window.bitcoinData when available; fallback if API unreachable
+        // Live data — populated from window.bitcoinData when available; fallbacks if API unreachable
         let liveBtcPrice = 95000;
+        let liveNetworkHashrateThs = 700000000; // 700 EH/s = 700,000,000 TH/s (late-2026 estimate)
 
         function updateBlockValues() {
             const blockReward = 3.125;
@@ -436,20 +437,21 @@
             document.getElementById('block-value-adv').textContent = '$' + value.toLocaleString();
         }
 
-        async function refreshLivePrice() {
+        async function refreshLiveData() {
             if (!window.bitcoinData) return;
             try {
-                const result = await window.bitcoinData.getPrice();
-                if (result && result.price) {
-                    liveBtcPrice = result.price;
-                    updateBlockValues();
-                }
-            } catch (e) { /* keep fallback */ }
+                const [priceRes, hashrateRes] = await Promise.all([
+                    window.bitcoinData.getPrice(),
+                    window.bitcoinData.getHashrate()
+                ]);
+                if (priceRes && priceRes.price) liveBtcPrice = priceRes.price;
+                if (hashrateRes && hashrateRes.ths) liveNetworkHashrateThs = hashrateRes.ths;
+                updateBlockValues();
+            } catch (e) { /* keep fallbacks */ }
         }
 
         updateBlockValues();
-        // Wait for bitcoin-data-reliable.js to load, then pull live price
-        window.addEventListener('load', () => { refreshLivePrice(); });
+        window.addEventListener('load', () => { refreshLiveData(); });
 
         function calculateProfitability() {
             const hashrate = parseFloat(document.getElementById('hashrate').value) || 100;
@@ -457,8 +459,8 @@
             const powerConsumption = parseFloat(document.getElementById('power-consumption').value) || 3250;
             const poolFee = currentLevel === 'advanced' ? (parseFloat(document.getElementById('pool-fee').value) || 2) : 2;
 
-            // Network stats (approximate). networkHashrate is hardcoded — no live source wired yet.
-            const networkHashrate = 700000000; // ~700 EH/s = 700,000,000 TH/s (late-2026 estimate)
+            // Network stats — wired to live data via bitcoin-data-reliable.js (fallbacks above)
+            const networkHashrate = liveNetworkHashrateThs;
             const blockReward = 3.125;
             const fees = 0.15;
             const btcPrice = liveBtcPrice;

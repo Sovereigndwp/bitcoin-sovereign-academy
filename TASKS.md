@@ -35,8 +35,8 @@ Ranked by leverage × feasibility. Pull from the top.
 - [x] B1.7 `bitcoin-ira-decision-tool` 2025 Roth phase-out updated (`c31993ba`)
 
 **B1 / Tier 2 (🟡 architectural):**
-- [x] B1.T2a (price + block-height pass) — wired `mining-economics-demo` (live BTC price replaces 2 hardcoded $100K), `time-chain-explorer` (real chain tip replaces stale 820000), `consensus-game` (real chain tip replaces stale 685000); updated fallback values in `fee-master-tool` and `bitcoin-dca-time-machine`. Verified in preview with live data flowing.
-- [ ] B1.T2a-cont **Hashrate / supply extension** — `bitcoin-data-reliable.js` doesn't expose hashrate or circulating supply yet. `mining-economics-demo` still hardcodes `networkHashrate = 700 EH/s`. Add `getHashrate()` (mempool.space `/api/v1/mining/hashrate/3d`) and `getSupply()` (derive from block height or use blockchain.info `/q/totalbc`).
+- [x] B1.T2a (price + block-height pass) — wired `mining-economics-demo`, `time-chain-explorer`, `consensus-game`; refreshed fallbacks in `fee-master-tool`, `bitcoin-dca-time-machine`. Commit `41363edf`.
+- [x] B1.T2a-cont (hashrate / supply / binder) — extended `js/bitcoin-data-reliable.js` with `getHashrate()` (mempool.space `/api/v1/mining/hashrate/3d` → EH/s + TH/s), `getSupply()` (derived from block height — no API needed), and a `data-btc-live="key"` attribute binder (auto-populates any element on the 60s refresh tick). Wired `mining-economics-demo` (live network hashrate replaces hardcoded 700 EH/s), `stock-to-flow` (slider snaps to real chain tip on load), `difficulty-calculator` (live difficulty + hashrate + height replace stale Jan-2025 values). Verified live values flow: 936 EH/s, $77,609, 20.02M BTC supply.
 - [ ] B1.T2b **Defunct-services lint** — ship `docs/SERVICE_STATUS.md` + grep-based CI check that flags demos referencing retired names (FTX, Celsius, Samourai, Wasabi-coord, Paxful, Caravan, etc.)
 
 **B1 / Tier 3 (🟢 sharpening):** pick up during normal content passes.

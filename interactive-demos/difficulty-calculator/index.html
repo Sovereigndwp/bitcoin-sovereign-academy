@@ -614,7 +614,26 @@
             renderDifficultyChart();
         }
 
+        async function syncLiveNetworkData() {
+            if (!window.bitcoinData) return;
+            try {
+                const [diff, hash, height] = await Promise.all([
+                    window.bitcoinData.getDifficulty(),
+                    window.bitcoinData.getHashrate(),
+                    window.bitcoinData.getBlockHeight()
+                ]);
+                if (diff && diff.difficulty) networkData.difficulty = diff.difficulty;
+                if (diff && diff.remainingBlocks != null) networkData.blocksUntilAdjustment = diff.remainingBlocks;
+                if (hash && hash.raw) networkData.networkHashrate = hash.raw;
+                if (height) networkData.blockHeight = height;
+                updateNetworkStats();
+                calculateMiningResults();
+                renderDifficultyChart();
+            } catch (e) { /* keep fallbacks */ }
+        }
+
         init();
+        window.addEventListener('load', () => { syncLiveNetworkData(); });
     </script>
 
     <!-- Animated Icon Library -->
@@ -660,6 +679,7 @@
     <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
     <div id="tip-page" data-tip-cta="compact"></div>
 </div>
+<script src="/js/bitcoin-data-reliable.js" defer></script>
 <script src="/js/analytics.js" defer></script>
 <script src="/js/email-capture.js" defer></script>
 <script src="/js/tip-cta.js" defer></script>
