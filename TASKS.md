@@ -55,11 +55,11 @@ Ranked by leverage × feasibility. Pull from the top.
 
 **Follow-ups:** translate `module-2-5.html` to Spanish; localize `paths/curious/stage-2/` modules; expand to other paths (Builder, Sovereign).
 
-### B4. Learning-outcomes instrumentation (minimal)
+### B4. Learning-outcomes instrumentation ✅ done (`a5ddca81`)
 
-**What:** add 3 privacy-respecting events — `module_started`, `module_completed`, `lab_completed`. localStorage + optional Plausible event. Aggregate into a weekly view in `/weekly/`.
-**Why:** you can't optimize what you don't measure. Every other roadmap item becomes data-driven once this exists.
-**Risk:** requires thoughtful event design to avoid privacy drift.
+**Shipped:** 3 events fire automatically — `module_started` on page load (path-pattern match), `module_completed` on ≥80% scroll + ≥30s on page (per-session gate), `lab_completed` on first lab completion. `getLearningMetrics()` aggregates 7d/30d/all-time counts, completion rate, top-5 modules/labs, and by-path breakdown. `/weekly/` renders a per-user dashboard with 7d↔30d toggle and an explicit privacy note.
+
+**Follow-up:** site-wide aggregation requires a `/api/metrics` read endpoint backed by a server data store (Vercel KV likely). Current dashboard is per-device-localStorage only — useful for the user's own progress, but not for product analytics across all visitors. Flagged in the dashboard footer.
 
 ### B5. Harden remaining API endpoints (CORS + rate-limit)
 
