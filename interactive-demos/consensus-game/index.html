@@ -469,7 +469,7 @@
                         <div>Malicious Hashrate</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="blockHeight">685000</div>
+                        <div class="stat-value" id="blockHeight">880000</div>
                         <div>Block Height</div>
                     </div>
                     <div class="stat-card">
@@ -660,7 +660,7 @@
     <script>
         let currentScenario = 'honest';
         let simulationRunning = false;
-        let blockHeight = 685000;
+        let blockHeight = 880000;
         let simulationInterval;
         
         const scenarios = {
@@ -933,7 +933,7 @@
 
         function resetNetwork() {
             stopSimulation();
-            blockHeight = 685000;
+            blockHeight = 880000;
             
             // Clear blockchain
             document.getElementById('blockChain').innerHTML = `
@@ -1011,6 +1011,19 @@
                 alert('Initialization error. Please refresh the page.');
             }
         }
+
+        async function syncRealHeight() {
+            if (!window.bitcoinData) return;
+            try {
+                const real = await window.bitcoinData.getBlockHeight();
+                if (real && real > blockHeight) {
+                    blockHeight = real;
+                    const el = document.getElementById('blockHeight');
+                    if (el) el.textContent = blockHeight.toLocaleString();
+                }
+            } catch (e) { /* keep fallback */ }
+        }
+        window.addEventListener('load', () => { syncRealHeight(); });
     </script>
 
     <!-- Animated Icon Library -->
@@ -1055,6 +1068,7 @@
     <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
     <div id="tip-page" data-tip-cta="compact"></div>
 </div>
+<script src="/js/bitcoin-data-reliable.js" defer></script>
 <script src="/js/analytics.js" defer></script>
 <script src="/js/email-capture.js" defer></script>
 <script src="/js/tip-cta.js" defer></script>

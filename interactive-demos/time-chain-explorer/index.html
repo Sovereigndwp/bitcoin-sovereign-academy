@@ -414,9 +414,9 @@
     </div>
 
     <script>
-        // Simulated block data
+        // Simulated block data — currentBlockHeight is overwritten with real chain tip on load (fallback if API fails)
         let blocks = [];
-        let currentBlockHeight = 820000;
+        let currentBlockHeight = 880000;
         let lastBlockTime = Date.now();
 
         // Generate initial blocks
@@ -610,7 +610,23 @@
             setInterval(updateCountdown, 1000);
         }
 
+        async function syncRealHeight() {
+            if (!window.bitcoinData) return;
+            try {
+                const real = await window.bitcoinData.getBlockHeight();
+                if (real && real > currentBlockHeight) {
+                    currentBlockHeight = real;
+                    blocks = [];
+                    generateInitialBlocks();
+                    updateStats();
+                    renderBlockTimeChart();
+                    initializeBlockStream();
+                }
+            } catch (e) { /* keep fallback height */ }
+        }
+
         init();
+        window.addEventListener('load', () => { syncRealHeight(); });
     </script>
 
     <!-- Animated Icon Library -->
@@ -656,6 +672,7 @@
     <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
     <div id="tip-page" data-tip-cta="compact"></div>
 </div>
+<script src="/js/bitcoin-data-reliable.js" defer></script>
 <script src="/js/analytics.js" defer></script>
 <script src="/js/email-capture.js" defer></script>
 <script src="/js/tip-cta.js" defer></script>

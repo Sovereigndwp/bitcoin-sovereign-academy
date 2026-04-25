@@ -3,7 +3,7 @@
 > Shared roadmap + task list. Check this file at the start of every session.
 > See `CLAUDE.md` for values and voice. See `weekly/index.html` for shipped-changelog.
 
-Last updated: 2026-04-25
+Last updated: 2026-04-25 (post-Tier-1 cleanup)
 
 ---
 
@@ -23,25 +23,20 @@ Ranked by leverage × feasibility. Pull from the top.
 
 ### B1. Act on demo-truthfulness findings 🔴🟡🟢
 
-**Status:** audit complete — [`reports/demo-audit-2026-04-24.md`](reports/demo-audit-2026-04-24.md) has a prioritized TOP-10 action list.
+**Status:** audit complete — [`reports/demo-audit-2026-04-24.md`](reports/demo-audit-2026-04-24.md). **Tier 1 done.** Tier 2 next.
 
-**B1 / Tier 1 (🔴 factual errors teaching wrong things — ship this week):**
-- [ ] B1.1 `sat-stacking-calculator` L463-485: "historical backtesting" actually generates random prices. Rename or rewire to real data.
-- [ ] B1.2 Reorg/security math cluster — single PR fixing 3 files:
-  - `network-consensus-demo` L320: drop bogus `2^n difficulty` reorg-cost formula
-  - `consensus-game` Q4: recalculate 40%/6-conf reorg probability (~17.7% not 0.09%)
-  - `double-spending-demo` L583: `0.5^n` is not a general formula
-- [ ] B1.3 `mining-simulator` L633: `16^3 = 4096` not `256^3 = 16.7M` (off by 4,000×)
-- [ ] B1.4 `bitcoin-unit-converter` L662: mBTC = 100,000 sats (not "1 thousand")
-- [ ] B1.5 `bitcoin-layers-map` L1150: drop invented `OP_WITHDRAWPROOFVERIFY` opcode
-- [ ] B1.6 Custody cluster — single PR:
-  - Remove/update Samourai/Whirlpool references (DOJ takedown April 2024)
-  - Fix Wasabi zkSNACKs coordinator shutdown (June 2024)
-  - Refresh hardware-wallet inventory (Coldcard Q not Mk4, Trezor Safe 3/5 not Model T)
-- [ ] B1.7 `bitcoin-ira-decision-tool`: update 2025 Roth IRA phase-out to $150K/$236K
+**B1 / Tier 1 (🔴 factual errors teaching wrong things) ✅ done:**
+- [x] B1.1 `sat-stacking-calculator` rewired to real historical BTC prices (`20ce1c44`)
+- [x] B1.2 Reorg/security math fixed across 3 demos (`86d13f31`)
+- [x] B1.3 `mining-simulator` `16^3 = 4,096` (`17a15c59`)
+- [x] B1.4 `bitcoin-unit-converter` mBTC = 100,000 sats (`17a15c59`)
+- [x] B1.5 `bitcoin-layers-map` dropped invented `OP_WITHDRAWPROOFVERIFY` opcode (`c31993ba`)
+- [x] B1.6 Custody cluster refreshed — Samourai/Wasabi shutdowns + hardware inventory (`d07753be`)
+- [x] B1.7 `bitcoin-ira-decision-tool` 2025 Roth phase-out updated (`c31993ba`)
 
-**B1 / Tier 2 (🟡 architectural — next sprint, two PRs resolve ~60 findings):**
-- [ ] B1.T2a **Live-data pipeline adoption** — wire all demos with hardcoded BTC price/hashrate/supply/difficulty to `js/bitcoin-data-reliable.js`
+**B1 / Tier 2 (🟡 architectural):**
+- [x] B1.T2a (price + block-height pass) — wired `mining-economics-demo` (live BTC price replaces 2 hardcoded $100K), `time-chain-explorer` (real chain tip replaces stale 820000), `consensus-game` (real chain tip replaces stale 685000); updated fallback values in `fee-master-tool` and `bitcoin-dca-time-machine`. Verified in preview with live data flowing.
+- [ ] B1.T2a-cont **Hashrate / supply extension** — `bitcoin-data-reliable.js` doesn't expose hashrate or circulating supply yet. `mining-economics-demo` still hardcodes `networkHashrate = 700 EH/s`. Add `getHashrate()` (mempool.space `/api/v1/mining/hashrate/3d`) and `getSupply()` (derive from block height or use blockchain.info `/q/totalbc`).
 - [ ] B1.T2b **Defunct-services lint** — ship `docs/SERVICE_STATUS.md` + grep-based CI check that flags demos referencing retired names (FTX, Celsius, Samourai, Wasabi-coord, Paxful, Caravan, etc.)
 
 **B1 / Tier 3 (🟢 sharpening):** pick up during normal content passes.
@@ -54,7 +49,7 @@ Ranked by leverage × feasibility. Pull from the top.
 **Why:** CLAUDE.md promises an "engaging, tiered reflection system that adapts to depth of engagement while maintaining educational rigor." Currently we have 3 fixed seeds per topic — no tier structure.
 **Depends on:** A1 (want to know baseline tutor quality before we ship a new prompt interaction pattern).
 
-### B3. Spanish localization — Curious Stage-1 modules 2 & 3 ✅ done
+### B3. Spanish localization — Curious Stage-1 modules 2 & 3 ✅ done (`ca3e42db`)
 
 **Shipped:** `paths/curious/stage-1/es/module-2.html` and `module-3.html`. Both ported 1:1 from English with Colombian-neutral register, `lang="es"`, hreflang alternates (en/es/x-default), translated canonical/og/JSON-LD, breadcrumb language switcher to EN. Retrofit applied to `module-1.html` (EN + ES) for hreflang parity, and to EN `module-2/3.html` for the 🇨🇴 Español switcher. `module-2-5.html` next-link in ES files points to `../module-2-5.html` (English) until that intermediate is translated.
 

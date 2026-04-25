@@ -422,20 +422,34 @@
             });
         });
 
-        // Update block values
+        // Live BTC price — populated from window.bitcoinData when available; fallback if API unreachable
+        let liveBtcPrice = 95000;
+
         function updateBlockValues() {
             const blockReward = 3.125;
             const fees = 0.15;
-            const btcPrice = 100000;
             const total = blockReward + fees;
-            const value = total * btcPrice;
+            const value = Math.round(total * liveBtcPrice);
 
             document.getElementById('block-value').textContent = '$' + value.toLocaleString();
             document.getElementById('block-value-int').textContent = '$' + value.toLocaleString();
             document.getElementById('block-value-adv').textContent = '$' + value.toLocaleString();
         }
 
+        async function refreshLivePrice() {
+            if (!window.bitcoinData) return;
+            try {
+                const result = await window.bitcoinData.getPrice();
+                if (result && result.price) {
+                    liveBtcPrice = result.price;
+                    updateBlockValues();
+                }
+            } catch (e) { /* keep fallback */ }
+        }
+
         updateBlockValues();
+        // Wait for bitcoin-data-reliable.js to load, then pull live price
+        window.addEventListener('load', () => { refreshLivePrice(); });
 
         function calculateProfitability() {
             const hashrate = parseFloat(document.getElementById('hashrate').value) || 100;
@@ -443,11 +457,11 @@
             const powerConsumption = parseFloat(document.getElementById('power-consumption').value) || 3250;
             const poolFee = currentLevel === 'advanced' ? (parseFloat(document.getElementById('pool-fee').value) || 2) : 2;
 
-            // Network stats (approximate)
-            const networkHashrate = 400000000; // 400 EH/s = 400,000,000 TH/s
+            // Network stats (approximate). networkHashrate is hardcoded — no live source wired yet.
+            const networkHashrate = 700000000; // ~700 EH/s = 700,000,000 TH/s (late-2026 estimate)
             const blockReward = 3.125;
             const fees = 0.15;
-            const btcPrice = 100000;
+            const btcPrice = liveBtcPrice;
             const blocksPerDay = 144;
 
             // Calculate expected BTC per day
@@ -609,6 +623,7 @@
     <div id="email-capture-page" data-email-capture="page-footer" data-title="📬 Stay Updated" data-subtitle="Get Bitcoin insights and new content announcements. No spam, ever."></div>
     <div id="tip-page" data-tip-cta="compact"></div>
 </div>
+<script src="/js/bitcoin-data-reliable.js" defer></script>
 <script src="/js/analytics.js" defer></script>
 <script src="/js/email-capture.js" defer></script>
 <script src="/js/tip-cta.js" defer></script>
