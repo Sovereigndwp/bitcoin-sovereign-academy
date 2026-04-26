@@ -11,8 +11,11 @@
  * Privacy posture: returns counts only — no session IDs, no IPs, no per-user paths.
  * The < 10 suppression floor reduces re-identification risk on small modules.
  *
- * Caching: `public, s-maxage=300, stale-while-revalidate=600` lets the CDN absorb
- * repeat hits cheaply. Admin detail responses are not cached.
+ * Caching: Vercel applies a default `Cache-Control: public, max-age=0,
+ * must-revalidate` to serverless function responses, and overriding the standard
+ * Cache-Control header is unreliable. We use `CDN-Cache-Control` (Vercel-specific,
+ * not stripped) to set s-maxage=300 + stale-while-revalidate=600 — the CDN absorbs
+ * repeat hits while browsers always revalidate. Admin detail responses are private.
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
@@ -131,11 +134,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     response._note = `Counts under ${SMALL_COUNT_THRESHOLD} are suppressed for privacy.`;
   }
 
-  // Cache aggressively at the CDN, but never cache admin detail responses.
+  // Caching: use CDN-Cache-Control (Vercel-specific; not stripped by the
+  // platform's serverless-function default that overrides standard Cache-Control).
+  // Browser always revalidates; CDN absorbs repeat hits for 5 min.
   if (isAdmin) {
     res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('CDN-Cache-Control', 'private, no-store');
   } else {
-    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    res.setHeader('CDN-Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
   }
   return res.status(200).json(response);
 }
