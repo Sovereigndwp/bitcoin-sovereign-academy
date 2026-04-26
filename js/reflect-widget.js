@@ -23,85 +23,193 @@
   'use strict';
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Seed questions per topic
+  // Seed questions per topic — tiered ladder
+  //
+  // Each topic supports up to three depth tiers:
+  //   surface       — what & how (concrete, factual, recognition)
+  //   conceptual    — why & trade-offs (mental models, second-order)
+  //   philosophical — what it means for sovereignty / society / values
+  //
+  // A topic may provide any subset of tiers. A flat array (legacy form) is
+  // treated as { conceptual: [...] }. Tiers with no questions hide their tab.
+  //
+  // Five pilot topics have full 3-tier coverage: private-key, custody, money,
+  // cryptography, mining. Other topics keep their current questions under
+  // "conceptual"; they'll get philosophical/surface tiers in follow-up commits.
   // ─────────────────────────────────────────────────────────────────────────
 
+  const TIERS = ['surface', 'conceptual', 'philosophical'];
+  const TIER_LABELS = {
+    surface:       { label: 'Quick',     hint: 'What & how',                  emoji: '🌱' },
+    conceptual:    { label: 'Deeper',    hint: 'Why & trade-offs',            emoji: '🧭' },
+    philosophical: { label: 'Why it matters', hint: 'Implications for sovereignty', emoji: '⭐' },
+  };
+
   const SEED_QUESTIONS = {
-    'private-key': [
-      'What do you think makes a private key "private"?',
-      'If you lost your private key, what would happen to your Bitcoin?',
-      'How is a private key fundamentally different from a password?',
-    ],
-    'public-key': [
-      'Why do you think Bitcoin uses two keys — public and private?',
-      'Is it safe to share your public key with anyone? Why or why not?',
-      'How can someone verify you own Bitcoin without you revealing your private key?',
-    ],
-    'bitcoin-address': [
-      'What do you think a Bitcoin address actually represents?',
-      'Why might you want to use a different address for each transaction?',
-      'How does an address prove ownership without exposing your private key?',
-    ],
-    'transactions': [
-      'What do you think happens to a transaction before it gets confirmed?',
-      'Why do you think Bitcoin requires fees — what problem do they solve?',
-      'If transactions are public, how can users maintain any financial privacy?',
-    ],
-    'mining': [
-      'Why do you think "work" is required to add transactions to Bitcoin\'s chain?',
-      'What would happen to Bitcoin if mining stopped entirely?',
-      'How does difficulty adjustment keep blocks coming every ~10 minutes?',
-    ],
-    'blockchain': [
-      'What do you think makes a chain of blocks harder to change than a single record?',
-      'Why does Bitcoin need thousands of nodes all holding the same copy?',
-      'If someone wanted to rewrite old transactions, what would they need to do?',
-    ],
-    'lightning-network': [
-      'What problem do you think the Lightning Network solves that Bitcoin\'s base layer can\'t?',
-      'How does a payment channel relate to an ordinary Bitcoin transaction?',
-      'What happens to the money in a Lightning channel if someone goes offline forever?',
-    ],
-    'wallets': [
-      'What do you think a Bitcoin wallet actually stores?',
-      'What\'s the real security difference between a hot wallet and a cold wallet?',
-      'Why might one seed phrase be able to generate thousands of different addresses?',
-    ],
-    'seed-phrase': [
-      'Why do you think Bitcoin uses 12 or 24 words instead of a password?',
-      'What is the risk of storing your seed phrase digitally?',
-      'How does one seed phrase generate all of your wallet\'s keys?',
-    ],
-    'money': [
-      'What properties do you think ideal money should have?',
-      'How does Bitcoin\'s supply schedule differ from how fiat currency is issued?',
-      'What is inflation, and how does it affect your savings over time?',
-    ],
-    'custody': [
-      'What does it mean to truly "own" your Bitcoin?',
-      'What are the trade-offs between keeping Bitcoin on an exchange vs. self-custody?',
-      'How would you think about securing Bitcoin you don\'t plan to touch for 10 years?',
-    ],
-    'privacy': [
-      'Are Bitcoin transactions private, public, or something in between?',
-      'How could someone potentially link your Bitcoin addresses to your real identity?',
-      'What steps could you take to improve your financial privacy with Bitcoin?',
-    ],
-    'cryptography': [
-      'Why do you think cryptography is essential for a trustless financial system?',
-      'What makes a mathematical function "one-way"?',
-      'How does a digital signature prove you authorized a transaction without revealing your key?',
-    ],
-    'bitcoin-key-generator-visual': [
-      'How many possible private keys exist — and what does that number actually mean?',
-      'Why is entropy (randomness) so critical in the first step of key generation?',
-      'Changing one bit in your entropy changed all downstream values — what does that tell you?',
-    ],
-    'default': [
-      'What brought you to Bitcoin Sovereign Academy today?',
-      'What\'s one thing about Bitcoin that still feels unclear to you?',
-      'If you could understand one Bitcoin concept deeply, which would it be?',
-    ],
+    // ── PILOT TOPICS (full 3-tier coverage) ────────────────────────────────
+
+    'private-key': {
+      surface: [
+        'In one sentence, what is a private key?',
+        'What does a private key look like — a word, a number, a file?',
+        'Where does your wallet actually store your private key?',
+      ],
+      conceptual: [
+        'What do you think makes a private key "private"?',
+        'If you lost your private key, what would happen to your Bitcoin?',
+        'How is a private key fundamentally different from a password?',
+      ],
+      philosophical: [
+        'If owning Bitcoin equals knowing a number, what does ownership really mean?',
+        'A private key has no government, no court, no appeal. Is that a feature or a flaw?',
+        'Should the right to hold a private key be considered a basic human right?',
+      ],
+    },
+
+    'custody': {
+      surface: [
+        'Who holds the keys when your Bitcoin sits on an exchange?',
+        'What is the difference between an exchange wallet and a hardware wallet?',
+        'What does "self-custody" mean in plain English?',
+      ],
+      conceptual: [
+        'What does it mean to truly "own" your Bitcoin?',
+        'What are the trade-offs between keeping Bitcoin on an exchange vs. self-custody?',
+        'How would you think about securing Bitcoin you don\'t plan to touch for 10 years?',
+      ],
+      philosophical: [
+        'If self-custody requires constant vigilance, who is sovereignty actually for?',
+        'What does inheritance look like when "the password is the asset"?',
+        'Is convenience the price of trusting a custodian — or is it the trap?',
+      ],
+    },
+
+    'money': {
+      surface: [
+        'Name three things that have been used as money in the last 5,000 years.',
+        'What is the difference between cash and a bank balance?',
+        'Roughly, how much new money does the U.S. create each year?',
+      ],
+      conceptual: [
+        'What properties do you think ideal money should have?',
+        'How does Bitcoin\'s supply schedule differ from how fiat currency is issued?',
+        'What is inflation, and how does it affect your savings over time?',
+      ],
+      philosophical: [
+        'If money is information about who is owed what, who should control that information?',
+        'What does it say about a society when its money loses 50% of its value in 20 years?',
+        'Is "neutral money" possible — and would humans want it if it were?',
+      ],
+    },
+
+    'cryptography': {
+      surface: [
+        'What does "encryption" do in one sentence?',
+        'Name two things on the internet you use every day that depend on cryptography.',
+        'What is the difference between a hash and an encryption?',
+      ],
+      conceptual: [
+        'Why do you think cryptography is essential for a trustless financial system?',
+        'What makes a mathematical function "one-way"?',
+        'How does a digital signature prove you authorized a transaction without revealing your key?',
+      ],
+      philosophical: [
+        'If math can replace trust in institutions, what should institutions do instead?',
+        'Cryptography lets individuals defend things from any government. Is that good for democracy?',
+        'When code becomes the final arbiter, who is responsible for outcomes?',
+      ],
+    },
+
+    'mining': {
+      surface: [
+        'What is a Bitcoin miner — a person, a machine, or both?',
+        'Roughly how often does a new Bitcoin block get added?',
+        'Where does the energy that miners use come from?',
+      ],
+      conceptual: [
+        'Why do you think "work" is required to add transactions to Bitcoin\'s chain?',
+        'What would happen to Bitcoin if mining stopped entirely?',
+        'How does difficulty adjustment keep blocks coming every ~10 minutes?',
+      ],
+      philosophical: [
+        'Bitcoin mining converts energy into security. Should energy ever be "wasted" on this?',
+        'If mining migrates to where energy is cheapest, what does that imply about energy markets?',
+        'Is proof-of-work a defense of human time itself — or just a clever lock?',
+      ],
+    },
+
+    // ── REMAINING TOPICS (legacy 3 questions → "conceptual" tier for now) ──
+
+    'public-key': {
+      conceptual: [
+        'Why do you think Bitcoin uses two keys — public and private?',
+        'Is it safe to share your public key with anyone? Why or why not?',
+        'How can someone verify you own Bitcoin without you revealing your private key?',
+      ],
+    },
+    'bitcoin-address': {
+      conceptual: [
+        'What do you think a Bitcoin address actually represents?',
+        'Why might you want to use a different address for each transaction?',
+        'How does an address prove ownership without exposing your private key?',
+      ],
+    },
+    'transactions': {
+      conceptual: [
+        'What do you think happens to a transaction before it gets confirmed?',
+        'Why do you think Bitcoin requires fees — what problem do they solve?',
+        'If transactions are public, how can users maintain any financial privacy?',
+      ],
+    },
+    'blockchain': {
+      conceptual: [
+        'What do you think makes a chain of blocks harder to change than a single record?',
+        'Why does Bitcoin need thousands of nodes all holding the same copy?',
+        'If someone wanted to rewrite old transactions, what would they need to do?',
+      ],
+    },
+    'lightning-network': {
+      conceptual: [
+        'What problem do you think the Lightning Network solves that Bitcoin\'s base layer can\'t?',
+        'How does a payment channel relate to an ordinary Bitcoin transaction?',
+        'What happens to the money in a Lightning channel if someone goes offline forever?',
+      ],
+    },
+    'wallets': {
+      conceptual: [
+        'What do you think a Bitcoin wallet actually stores?',
+        'What\'s the real security difference between a hot wallet and a cold wallet?',
+        'Why might one seed phrase be able to generate thousands of different addresses?',
+      ],
+    },
+    'seed-phrase': {
+      conceptual: [
+        'Why do you think Bitcoin uses 12 or 24 words instead of a password?',
+        'What is the risk of storing your seed phrase digitally?',
+        'How does one seed phrase generate all of your wallet\'s keys?',
+      ],
+    },
+    'privacy': {
+      conceptual: [
+        'Are Bitcoin transactions private, public, or something in between?',
+        'How could someone potentially link your Bitcoin addresses to your real identity?',
+        'What steps could you take to improve your financial privacy with Bitcoin?',
+      ],
+    },
+    'bitcoin-key-generator-visual': {
+      conceptual: [
+        'How many possible private keys exist — and what does that number actually mean?',
+        'Why is entropy (randomness) so critical in the first step of key generation?',
+        'Changing one bit in your entropy changed all downstream values — what does that tell you?',
+      ],
+    },
+    'default': {
+      conceptual: [
+        'What brought you to Bitcoin Sovereign Academy today?',
+        'What\'s one thing about Bitcoin that still feels unclear to you?',
+        'If you could understand one Bitcoin concept deeply, which would it be?',
+      ],
+    },
   };
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -129,6 +237,51 @@
   margin: 0 0 1.25rem;
   font-size: 0.85rem;
   color: #a0a0a0; /* WCAG 1.4.3: was #888 (4.63:1 marginal) → #a0a0a0 (~6:1) */
+}
+.reflect-widget-tiers {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  flex-wrap: wrap;
+}
+.reflect-widget-tier-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(247, 147, 26, 0.35);
+  color: #c0c0c0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: inherit;
+}
+.reflect-widget-tier-btn:hover {
+  background: rgba(247, 147, 26, 0.1);
+  border-color: rgba(247, 147, 26, 0.55);
+  color: #fff;
+}
+.reflect-widget-tier-btn:focus-visible {
+  outline: 3px solid #f7931a;
+  outline-offset: 2px;
+}
+.reflect-widget-tier-btn[aria-pressed="true"] {
+  background: rgba(247, 147, 26, 0.18);
+  border-color: #f7931a;
+  color: #fff;
+}
+.reflect-widget-tier-btn .rw-tier-hint {
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-left: 0.15rem;
+}
+.reflect-widget-tier-btn[aria-pressed="true"] .rw-tier-hint {
+  color: #d4a060;
 }
 .reflect-widget-seeds {
   display: flex;
@@ -301,9 +454,30 @@
   // Widget renderer
   // ─────────────────────────────────────────────────────────────────────────
 
-  function getQuestions(topic) {
+  /**
+   * Resolve a topic's tier map.
+   * Handles legacy flat-array form by wrapping it as { conceptual: [...] }.
+   * Always returns an object with at least one tier populated.
+   */
+  function getTierMap(topic) {
     const normalized = (topic || '').toLowerCase().replace(/\s+/g, '-');
-    return SEED_QUESTIONS[normalized] || SEED_QUESTIONS['default'];
+    const entry = SEED_QUESTIONS[normalized] || SEED_QUESTIONS['default'];
+    if (Array.isArray(entry)) return { conceptual: entry };
+    return entry;
+  }
+
+  /** Which tiers actually have questions for a topic, in canonical order. */
+  function availableTiers(topic) {
+    const map = getTierMap(topic);
+    return TIERS.filter((t) => Array.isArray(map[t]) && map[t].length > 0);
+  }
+
+  function getQuestions(topic, tier) {
+    const map = getTierMap(topic);
+    if (tier && Array.isArray(map[tier])) return map[tier];
+    // Pick first available tier
+    for (const t of TIERS) if (Array.isArray(map[t]) && map[t].length > 0) return map[t];
+    return SEED_QUESTIONS['default'].conceptual;
   }
 
   function escapeHtml(str) {
@@ -333,7 +507,8 @@
     const topic = container.dataset.topic || 'default';
     const learnerPath = container.dataset.path || 'curious';
     const title = container.dataset.title || 'Reflect';
-    const questions = getQuestions(topic);
+    const tiers = availableTiers(topic);              // e.g., ['surface','conceptual','philosophical']
+    let currentTier = tiers[0];                        // start at the lightest available
     const uid = `rw-${++widgetSeq}`;
     const titleId = `${uid}-title`;
     const statusId = `${uid}-status`;
@@ -343,9 +518,25 @@
     inner.className = 'reflect-widget-inner';
     inner.setAttribute('role', 'region');
     inner.setAttribute('aria-labelledby', titleId);
+    // Build tier-tab markup only when a topic actually has multiple tiers
+    const tierTabsHtml = tiers.length > 1
+      ? `<div class="reflect-widget-tiers" role="group" aria-label="Reflection depth">
+           ${tiers.map((t) => {
+             const meta = TIER_LABELS[t];
+             return `<button type="button" class="reflect-widget-tier-btn"
+                             data-tier="${t}"
+                             aria-pressed="${t === currentTier ? 'true' : 'false'}"
+                             title="${escapeHtml(meta.hint)}">
+                       <span aria-hidden="true">${meta.emoji}</span>${escapeHtml(meta.label)}
+                       <span class="rw-tier-hint">— ${escapeHtml(meta.hint)}</span>
+                     </button>`;
+           }).join('')}
+         </div>`
+      : '';
     inner.innerHTML = `
       <h3 id="${titleId}">${escapeHtml(title)}</h3>
       <p class="rw-subtitle">Choose a question to explore — or ask your own.</p>
+      ${tierTabsHtml}
       <ul class="reflect-widget-seeds" aria-label="Suggested reflection questions"></ul>
       <div class="reflect-widget-input-row">
         <label for="${inputId}" class="rw-sr-only">Ask your own reflection question</label>
@@ -363,17 +554,39 @@
       <button type="button" class="reflect-widget-clear-btn" style="display:none">Start over</button>
     `;
 
-    // Render seed buttons in <li> wrappers so SR announces "list, N items"
     const seedsContainer = inner.querySelector('.reflect-widget-seeds');
-    questions.forEach((q) => {
-      const li = document.createElement('li');
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'reflect-widget-seed-btn';
-      btn.textContent = q;
-      btn.addEventListener('click', () => sendQuestion(q));
-      li.appendChild(btn);
-      seedsContainer.appendChild(li);
+
+    function renderSeeds() {
+      seedsContainer.innerHTML = '';
+      const questions = getQuestions(topic, currentTier);
+      questions.forEach((q) => {
+        const li = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'reflect-widget-seed-btn';
+        btn.textContent = q;
+        btn.addEventListener('click', () => sendQuestion(q));
+        li.appendChild(btn);
+        seedsContainer.appendChild(li);
+      });
+    }
+    renderSeeds();
+
+    // Tier tab handlers
+    inner.querySelectorAll('.reflect-widget-tier-btn').forEach((tabBtn) => {
+      tabBtn.addEventListener('click', () => {
+        const newTier = tabBtn.dataset.tier;
+        if (newTier === currentTier) return;
+        currentTier = newTier;
+        inner.querySelectorAll('.reflect-widget-tier-btn').forEach((b) => {
+          b.setAttribute('aria-pressed', b === tabBtn ? 'true' : 'false');
+        });
+        renderSeeds();
+        // Optional analytics — no-op if bsaAnalytics isn't loaded
+        if (window.bsaAnalytics && typeof window.bsaAnalytics.track === 'function') {
+          window.bsaAnalytics.track('reflect_tier_selected', { topic, tier: currentTier, learnerPath });
+        }
+      });
     });
 
     container.appendChild(inner);
@@ -421,6 +634,16 @@
       clearError();
       setLoading(true);
       announce('Tutor is thinking…');
+
+      // Track which tier the learner is actually engaging at — feeds B4 metrics.
+      if (window.bsaAnalytics && typeof window.bsaAnalytics.track === 'function') {
+        window.bsaAnalytics.track('reflect_question_asked', {
+          topic, tier: currentTier, learnerPath,
+          questionLen: question.length,
+          // Was this one of our seed questions, or did the learner type their own?
+          fromSeed: getQuestions(topic, currentTier).includes(question),
+        });
+      }
 
       // Show the question being asked
       questionSpan.textContent = question;
