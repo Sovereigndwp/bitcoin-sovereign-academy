@@ -61,8 +61,8 @@ Ranked by leverage × feasibility. Pull from the top.
 
 **Follow-up shipped (`ef706f03`):** Site-wide aggregation now reads from Supabase `analytics_events` (243 events / 30d at ship time). `api/metrics.ts` rewritten as a real aggregator — `GET /api/metrics` is public + anonymized (counts < 10 suppressed for privacy), `?detail=1` is admin-only via `verifyAdminToken`. Dashboard at `/weekly/` has a parallel "🌐 Site-wide" section beside "📊 Your learning". Reused the existing renderer via `renderInto(prefix, m)`. No Postgres RPC migration needed — JS-side group-by handles current scale (revisit at ~100k events / 30d).
 
-**B4 follow-ups still open:**
-- Cache-Control: Vercel applies its default `public, max-age=0, must-revalidate` to serverless function responses, overriding the `s-maxage=300, stale-while-revalidate=600` set by `api/metrics.ts`. Minor CDN-caching optimization, not a functional issue. Worth investigating (might need vercel.json route override or framework header).
+**B4 follow-ups:**
+- ✅ Cache-Control fixed (`0d010929`) — Vercel's serverless-function default cannot be overridden via standard `Cache-Control`, but Vercel's CDN respects `CDN-Cache-Control`. Browser revalidates always; CDN caches for 5 min, serves stale up to 10 min while revalidating. Verified: `x-vercel-cache: HIT` with `age: 10s` on repeat hits.
 - `api/analytics.ts` is dead code BUT `js/kpi-tracking.js` (loaded by the homepage) still posts to it. Migrate kpi-tracking.js's payload shape to `/api/track`, then delete `api/analytics.ts`.
 
 ### B5. Harden remaining API endpoints (CORS + rate-limit)
