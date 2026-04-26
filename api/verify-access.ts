@@ -1,9 +1,9 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { verifyAccessToken, hasModuleAccess, hasPathAccess } from './entitlements';
 import { setCorsHeaders } from './lib/origin';
+import { checkRateLimit } from './rate-limiter';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    // Enable CORS
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     setCorsHeaders(req, res, 'POST,OPTIONS', 'Content-Type, Authorization');
 
@@ -14,6 +14,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
+
+    if (!(await checkRateLimit(req, res, 'api'))) return;
 
     const { moduleId, pathId } = req.body;
     const authHeader = req.headers.authorization;

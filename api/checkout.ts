@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { appendLiteralQueryParam, resolveAllowedRedirectUrl, setCorsHeaders } from './lib/origin';
+import { checkRateLimit } from './rate-limiter';
 
 // Inline pricing catalog (avoids cross-file import issues on Vercel)
 const PATHS: Record<string, { name: string; priceUSD: number }> = {
@@ -34,6 +35,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  if (!(await checkRateLimit(req, res, 'payment'))) return;
 
   try {
     const { items, provider, email, successUrl, cancelUrl } = req.body || {};

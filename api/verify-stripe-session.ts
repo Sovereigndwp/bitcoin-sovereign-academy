@@ -2,6 +2,7 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
 import { generateAccessToken } from './entitlements';
 import { isAllowedOrigin, setCorsHeaders } from './lib/origin';
+import { checkRateLimit } from './rate-limiter';
 import {
     ALL_PREMIUM_PATH_IDS,
     buildPremiumRouteClaims,
@@ -58,6 +59,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  if (!(await checkRateLimit(req, res, 'payment'))) return;
 
   try {
     const { sessionId, expectedTier } = req.body || {};

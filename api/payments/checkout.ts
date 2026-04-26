@@ -22,6 +22,7 @@ import {
 } from '../lib/validation';
 import { getProduct, supportsBTCPay, isRecurring, getPrice } from '../config/products';
 import { setCorsHeaders } from '../lib/origin';
+import { checkRateLimit as sharedCheckRateLimit } from '../rate-limiter';
 
 interface CheckoutRequest {
   email: string;
@@ -53,41 +54,6 @@ function handleCORS(req: VercelRequest, res: VercelResponse): boolean {
 }
 
 /**
- * Rate limiting check (simple in-memory implementation)
- * TODO: Use Redis in production
- */
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(identifier: string, maxRequests: number = 10, windowMs: number = 60000): boolean {
-  const now = Date.now();
-  const record = rateLimitMap.get(identifier);
-
-  if (!record || record.resetAt < now) {
-    rateLimitMap.set(identifier, { count: 1, resetAt: now + windowMs });
-    return true;
-  }
-
-  if (record.count >= maxRequests) {
-    return false;
-  }
-
-  record.count++;
-  return true;
-}
-
-/**
- * Clean up old rate limit records
- */
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, record] of rateLimitMap.entries()) {
-    if (record.resetAt < now) {
-      rateLimitMap.delete(key);
-    }
-  }
-}, 60000);
-
-/**
  * Main checkout handler
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -110,18 +76,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
     const userAgent = sanitizeUserAgent(req.headers['user-agent']);
 
-    // Rate limiting by IP
-    if (!checkRateLimit(ipAddress, 10, 60000)) {
+    // Rate limiting by IP — uses the shared 'payment' preset (10 req/min, returns 429
+    // with standard headers on breach). On breach we still log a security event for
+    // visibility, then exit; the limiter has already sent the response.
+    if (!(await sharedCheckRateLimit(req, res, 'payment'))) {
       await logSecurityEvent({
         event_type: 'RATE_LIMIT_HIT',
         severity: 'MEDIUM',
         ip_address: ipAddress,
         metadata: { endpoint: 'checkout' }
       });
-
-      return res.status(429).json({
-        error: 'Too many requests. Please try again later.'
-      });
+      return;
     }
 
     // Parse and validate request

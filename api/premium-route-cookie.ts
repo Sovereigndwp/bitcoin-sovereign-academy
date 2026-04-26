@@ -11,6 +11,7 @@ import {
   signPremiumRouteToken
 } from './lib/premium-route-access';
 import { setCorsHeaders } from './lib/origin';
+import { checkRateLimit } from './rate-limiter';
 
 const YEAR_IN_SECONDS = 365 * 24 * 60 * 60;
 
@@ -60,6 +61,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  if (!(await checkRateLimit(req, res, 'api'))) return;
 
   const isProduction = process.env.NODE_ENV === 'production';
 
