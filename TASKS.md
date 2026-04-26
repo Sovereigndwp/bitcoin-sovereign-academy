@@ -67,9 +67,15 @@ Ranked by leverage × feasibility. Pull from the top.
 
 ### B5. Harden remaining API endpoints (CORS + rate-limit)
 
-**What:** apply the tutor hardening pattern (commit `ec01fa8c`) to other `api/*.ts` endpoints that currently have wildcard CORS.
-**Candidates to audit:** `api/subscribe.ts`, `api/pay.ts`, `api/btcpay.ts`, `api/stripe.ts`, `api/checkout.ts`, `api/auth.ts`, `api/create-order.js`.
-**Why:** tutor is now solid; the same risks exist elsewhere. Payment endpoints especially matter.
+- ✅ Phase 1 (`959fcc36`) — replaced wildcard CORS with origin allow-list in 8 endpoints.
+- ✅ Phase 2 (`44a67b91`) — added rate limits to 10 browser-callable endpoints.
+- ✅ Phase 3 (`e53bf1ec`) — hardened the four highest-risk endpoints that earlier phases missed:
+  - `api/create-order` (.js → .ts) — payment-tier rate limit + setCorsHeaders
+  - `api/lightning/create-invoice` (.js → .ts) — payment-tier rate limit + setCorsHeaders (replacing inline single-origin pattern)
+  - `api/auth/magic-link` — added setCorsHeaders + auth-tier IP rate limit (existing per-email DB limit kept)
+  - `api/auth/verify` — added setCorsHeaders + auth-tier IP rate limit (existing one-time-use + constant-time compare kept)
+  - Audit confirmed via curl: allowed origin echoed; disallowed origin gets canonical fallback so browser CORS check fails.
+- 🟡 **B5 Phase 4 remaining (lower priority — token-gated or simple data endpoints):** `api/account/entitlements.ts`, `api/account/purchases.ts`, `api/entitlements/check.ts`, `api/entitlements/grant.ts`, `api/subscriptions/manage.ts`, `api/get-token.ts`, `api/health.ts`, `api/pricing.ts`, `api/config/products.ts`, `api/index.ts`, `api/admin/*` (5 files — already token-gated, lowest priority).
 
 ---
 
