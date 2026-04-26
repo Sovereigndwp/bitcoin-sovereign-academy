@@ -4,6 +4,7 @@
  *
  * Usage:
  *   ANTHROPIC_API_KEY=sk-ant-... node scripts/tutor-evals.mjs
+ *   # OR put ANTHROPIC_API_KEY=... in .env.local at the repo root (auto-loaded).
  *
  * What it does:
  *   1. Extracts SYSTEM_PROMPT from api/tutor.ts (at runtime, no refactor)
@@ -29,6 +30,36 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
+
+// Auto-load .env.local at repo root so the eval works in any shell context
+// without requiring zshrc/bashrc to have been sourced. Existing process.env
+// values win — set ANTHROPIC_API_KEY=... on the command line to override.
+async function loadDotenvLocal() {
+  let raw;
+  try {
+    raw = await fs.readFile(path.join(REPO_ROOT, '.env.local'), 'utf8');
+  } catch {
+    return;
+  }
+  for (const line of raw.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq <= 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let val = trimmed.slice(eq + 1).trim();
+    if (
+      (val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))
+    ) {
+      val = val.slice(1, -1);
+    }
+    // Override only if existing value is missing or empty — an empty shell
+    // export (e.g., a duplicate `export FOO=` after the real one) shouldn't
+    // shadow .env.local.
+    if (!process.env[key]) process.env[key] = val;
+  }
+}
 
 const CANDIDATE_MODEL = 'claude-sonnet-4-6';
 const JUDGE_MODEL = 'claude-opus-4-7';
@@ -478,9 +509,11 @@ function renderReport(results, systemPromptChars) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function main() {
+  await loadDotenvLocal();
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     console.error('ANTHROPIC_API_KEY env var is required.');
+    console.error('Set it in your shell, on the command line, or in .env.local at the repo root.');
     process.exit(1);
   }
 
