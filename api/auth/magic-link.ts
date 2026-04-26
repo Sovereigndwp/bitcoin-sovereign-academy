@@ -13,13 +13,6 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import { query, queryOne, logSecurityEvent } from '../lib/db';
 import { validateEmail, assertValid, sanitizeIPAddress } from '../lib/validation';
 import { generateSecureToken, hashToken } from '../lib/jwt';
-import { setCorsHeaders } from '../lib/origin';
-import { rateLimit, RATE_LIMITS } from '../rate-limiter';
-
-// Per-IP rate limit (5 / 15 min). The DB-based per-email check below stays —
-// it prevents flooding a single inbox even from rotating IPs. This per-IP
-// layer prevents one IP from probing many emails.
-const magicLinkIpRateLimit = rateLimit(RATE_LIMITS.auth);
 
 /**
  * Rate limiting check
@@ -62,12 +55,10 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
-  setCorsHeaders(req, res, 'POST, OPTIONS', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  // Only allow POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  if (!(await magicLinkIpRateLimit(req, res))) return;
 
   try {
     const { email } = req.body;

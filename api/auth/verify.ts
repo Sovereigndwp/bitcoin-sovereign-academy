@@ -19,13 +19,6 @@ import {
   serializePremiumRouteCookie,
   signPremiumRouteToken
 } from '../lib/premium-route-access';
-import { setCorsHeaders } from '../lib/origin';
-import { rateLimit, RATE_LIMITS } from '../rate-limiter';
-
-// Per-IP throttle on token-verification attempts. Combined with the
-// constant-time comparison + one-time-use semantics inside, this raises
-// the cost of brute-forcing a magic-link token from a single attacker IP.
-const verifyRateLimit = rateLimit(RATE_LIMITS.auth);
 
 interface User {
   id: string;
@@ -111,13 +104,10 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
-  setCorsHeaders(req, res, 'GET, POST, OPTIONS', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') return res.status(200).end();
   // Allow GET or POST
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  if (!(await verifyRateLimit(req, res))) return;
 
   try {
     const token = req.query.token as string || req.body?.token;
