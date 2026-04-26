@@ -33,9 +33,10 @@
   // A topic may provide any subset of tiers. A flat array (legacy form) is
   // treated as { conceptual: [...] }. Tiers with no questions hide their tab.
   //
-  // Five pilot topics have full 3-tier coverage: private-key, custody, money,
-  // cryptography, mining. Other topics keep their current questions under
-  // "conceptual"; they'll get philosophical/surface tiers in follow-up commits.
+  // All 15 topics now ship with full 3-tier coverage. Surface questions
+  // are concrete and factual (good entry points). Philosophical questions
+  // pull on the user's "risks people don't see" frame — sovereignty,
+  // inheritance, governance, the ethics of immutability and privacy.
   // ─────────────────────────────────────────────────────────────────────────
 
   const TIERS = ['surface', 'conceptual', 'philosophical'];
@@ -138,76 +139,185 @@
       ],
     },
 
-    // ── REMAINING TOPICS (legacy 3 questions → "conceptual" tier for now) ──
+    // ── REMAINING TOPICS (full 3-tier coverage) ───────────────────────────
 
     'public-key': {
+      surface: [
+        'In one sentence, what is a public key?',
+        'What\'s the relationship between a public key and a Bitcoin address — are they the same?',
+        'Where would you actually use or share a public key?',
+      ],
       conceptual: [
         'Why do you think Bitcoin uses two keys — public and private?',
         'Is it safe to share your public key with anyone? Why or why not?',
         'How can someone verify you own Bitcoin without you revealing your private key?',
       ],
+      philosophical: [
+        'If a public key proves who can spend, what does identity even mean here?',
+        'Broadcasting a public key makes you traceable forever. Is that a fair trade for being verifiable?',
+        'Could a society function on public-key identity instead of government IDs?',
+      ],
     },
+
     'bitcoin-address': {
+      surface: [
+        'How does a Bitcoin address typically look — letters, numbers, both?',
+        'Where can you find your address: in your wallet app, on the blockchain, both?',
+        'What\'s the safest way to share an address with someone paying you?',
+      ],
       conceptual: [
         'What do you think a Bitcoin address actually represents?',
         'Why might you want to use a different address for each transaction?',
         'How does an address prove ownership without exposing your private key?',
       ],
+      philosophical: [
+        'An address is a one-way invitation to receive value. Why does that asymmetry matter?',
+        'If addresses are public, can you really hide wealth — or only delay being seen?',
+        'Should addresses be human-readable like usernames, or is the friction the point?',
+      ],
     },
+
     'transactions': {
+      surface: [
+        'Roughly how long until a Bitcoin transaction is "final"?',
+        'What fee do you typically pay to send a Bitcoin transaction?',
+        'Once broadcast, can you cancel a Bitcoin transaction?',
+      ],
       conceptual: [
         'What do you think happens to a transaction before it gets confirmed?',
         'Why do you think Bitcoin requires fees — what problem do they solve?',
         'If transactions are public, how can users maintain any financial privacy?',
       ],
+      philosophical: [
+        'Transactions are public forever. Is permanent visibility a feature or a curse?',
+        'A Bitcoin payment can\'t be reversed — even by mistake. Is that maturity or cruelty?',
+        'Who actually wins when a payment can\'t be undone — the sender, the receiver, or society?',
+      ],
     },
+
     'blockchain': {
+      surface: [
+        'Roughly how often does a new block get added to Bitcoin\'s chain?',
+        'What gets stored in a block — transactions, balances, both?',
+        'About how many copies of the Bitcoin blockchain exist worldwide?',
+      ],
       conceptual: [
         'What do you think makes a chain of blocks harder to change than a single record?',
         'Why does Bitcoin need thousands of nodes all holding the same copy?',
         'If someone wanted to rewrite old transactions, what would they need to do?',
       ],
+      philosophical: [
+        'A blockchain replaces a single source of truth with thousands. Is that more honest, or just harder to corrupt?',
+        'If history can\'t be rewritten, what does that change about how we record other things — contracts, votes, identity?',
+        'Does an immutable ledger serve memory, or punish change?',
+      ],
     },
+
     'lightning-network': {
+      surface: [
+        'Is a Lightning payment recorded on the Bitcoin blockchain?',
+        'Roughly how fast is a Lightning payment compared to an on-chain one?',
+        'What happens when you "open" a Lightning channel?',
+      ],
       conceptual: [
         'What problem do you think the Lightning Network solves that Bitcoin\'s base layer can\'t?',
         'How does a payment channel relate to an ordinary Bitcoin transaction?',
         'What happens to the money in a Lightning channel if someone goes offline forever?',
       ],
+      philosophical: [
+        'Lightning trades some of Bitcoin\'s auditability for speed. Is that the right trade?',
+        'If most payments move off-chain, what is the base layer actually for?',
+        'Does a payment network need to be visible to be trusted?',
+      ],
     },
+
     'wallets': {
+      surface: [
+        'What does a Bitcoin wallet need from you to send a payment?',
+        'Is your wallet\'s balance stored in the wallet, or on the blockchain?',
+        'What\'s the difference between a wallet you control and an exchange account?',
+      ],
       conceptual: [
         'What do you think a Bitcoin wallet actually stores?',
         'What\'s the real security difference between a hot wallet and a cold wallet?',
         'Why might one seed phrase be able to generate thousands of different addresses?',
       ],
+      philosophical: [
+        'A wallet is just a key — everything else is an interface. Why do most apps obscure that?',
+        'If your wallet UI is helpful enough, do you ever really learn Bitcoin?',
+        'Should "easy" wallets exist when convenience hides what\'s actually at stake?',
+      ],
     },
+
     'seed-phrase': {
+      surface: [
+        'How many words is a typical Bitcoin seed phrase?',
+        'Do you need your seed phrase every time you send Bitcoin?',
+        'Could two different people generate the same seed phrase by accident?',
+      ],
       conceptual: [
         'Why do you think Bitcoin uses 12 or 24 words instead of a password?',
         'What is the risk of storing your seed phrase digitally?',
         'How does one seed phrase generate all of your wallet\'s keys?',
       ],
+      philosophical: [
+        'Twelve words = your bank, your vault, your inheritance. What does that change about how you treat words?',
+        'If forgetting your phrase costs you everything, what does Bitcoin demand of human memory?',
+        'Should writing a seed phrase down feel sacred, or routine?',
+      ],
     },
+
     'privacy': {
+      surface: [
+        'Are Bitcoin transactions visible to anyone who looks?',
+        'What information about you can a Bitcoin address reveal on its own?',
+        'Are addresses linked to your real name by default?',
+      ],
       conceptual: [
         'Are Bitcoin transactions private, public, or something in between?',
         'How could someone potentially link your Bitcoin addresses to your real identity?',
         'What steps could you take to improve your financial privacy with Bitcoin?',
       ],
+      philosophical: [
+        'If financial privacy must be earned and maintained, who actually gets to have it?',
+        'A surveillance-capable Bitcoin and a privacy-respecting Bitcoin are the same code. What does that say about technology and intent?',
+        'Should the right to transact privately exist for everyone — or only those who can afford the tools?',
+      ],
     },
+
     'bitcoin-key-generator-visual': {
+      surface: [
+        'What inputs go into generating a Bitcoin key?',
+        'Roughly how big is the number that becomes a private key?',
+        'Does the same seed always generate the same key?',
+      ],
       conceptual: [
         'How many possible private keys exist — and what does that number actually mean?',
         'Why is entropy (randomness) so critical in the first step of key generation?',
         'Changing one bit in your entropy changed all downstream values — what does that tell you?',
       ],
+      philosophical: [
+        'A private key is just a really big number. Why does that feel disturbing — or freeing?',
+        'If anyone could theoretically guess your key, why does the universe-sized search space make Bitcoin safe?',
+        'Does math-based security feel different from rule-based security? Should it?',
+      ],
     },
+
     'default': {
+      surface: [
+        'What\'s one thing you\'d want to know about Bitcoin in the next 60 seconds?',
+        'If you had to teach someone Bitcoin in five minutes, where would you start?',
+        'What\'s the simplest Bitcoin question that nobody seems to answer well?',
+      ],
       conceptual: [
         'What brought you to Bitcoin Sovereign Academy today?',
         'What\'s one thing about Bitcoin that still feels unclear to you?',
         'If you could understand one Bitcoin concept deeply, which would it be?',
+      ],
+      philosophical: [
+        'If Bitcoin is the answer, what\'s the question you\'re really asking?',
+        'Why do people who understand Bitcoin often struggle to explain it?',
+        'What would learning Bitcoin teach you that wasn\'t about Bitcoin?',
       ],
     },
   };
