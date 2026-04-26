@@ -280,8 +280,10 @@ function getPersonalizedModules(persona: PersonaInfo | null): ModuleItem[] {
 // ============================================
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  setCorsHeaders(req, res, 'GET,POST,OPTIONS', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  // No credentials needed — endpoint is persona-based personalization keyed off query/body
+  // params, no cookies or Authorization header are read. Dropping Allow-Credentials and
+  // Authorization from Allow-Headers shrinks the attack surface (defense in depth).
+  setCorsHeaders(req, res, 'GET,POST,OPTIONS', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
