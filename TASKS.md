@@ -3,7 +3,7 @@
 > Shared roadmap + task list. Check this file at the start of every session.
 > See `CLAUDE.md` for values and voice. See `weekly/index.html` for shipped-changelog.
 
-Last updated: 2026-04-26 (B1.T2b shipped: defunct-services lint)
+Last updated: 2026-04-26 (B1.T2b + A1 + bip39-citation fix + B4 multiplayer all shipped)
 
 ---
 
@@ -59,7 +59,11 @@ Ranked by leverage × feasibility. Pull from the top.
 
 **Shipped:** 3 events fire automatically — `module_started` on page load (path-pattern match), `module_completed` on ≥80% scroll + ≥30s on page (per-session gate), `lab_completed` on first lab completion. `getLearningMetrics()` aggregates 7d/30d/all-time counts, completion rate, top-5 modules/labs, and by-path breakdown. `/weekly/` renders a per-user dashboard with 7d↔30d toggle and an explicit privacy note.
 
-**Follow-up:** site-wide aggregation requires a `/api/metrics` read endpoint backed by a server data store (Vercel KV likely). Current dashboard is per-device-localStorage only — useful for the user's own progress, but not for product analytics across all visitors. Flagged in the dashboard footer.
+**Follow-up shipped (`ef706f03`):** Site-wide aggregation now reads from Supabase `analytics_events` (243 events / 30d at ship time). `api/metrics.ts` rewritten as a real aggregator — `GET /api/metrics` is public + anonymized (counts < 10 suppressed for privacy), `?detail=1` is admin-only via `verifyAdminToken`. Dashboard at `/weekly/` has a parallel "🌐 Site-wide" section beside "📊 Your learning". Reused the existing renderer via `renderInto(prefix, m)`. No Postgres RPC migration needed — JS-side group-by handles current scale (revisit at ~100k events / 30d).
+
+**B4 follow-ups still open:**
+- Cache-Control: Vercel applies its default `public, max-age=0, must-revalidate` to serverless function responses, overriding the `s-maxage=300, stale-while-revalidate=600` set by `api/metrics.ts`. Minor CDN-caching optimization, not a functional issue. Worth investigating (might need vercel.json route override or framework header).
+- `api/analytics.ts` is dead code BUT `js/kpi-tracking.js` (loaded by the homepage) still posts to it. Migrate kpi-tracking.js's payload shape to `/api/track`, then delete `api/analytics.ts`.
 
 ### B5. Harden remaining API endpoints (CORS + rate-limit)
 
