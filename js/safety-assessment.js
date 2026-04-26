@@ -122,41 +122,66 @@
         modal.setAttribute('aria-labelledby', 'assessment-title');
         
         modal.innerHTML = `
-            <div class="safety-modal-overlay"></div>
-            <div class="safety-modal-content">
+            <div class="safety-modal-overlay" aria-hidden="true"></div>
+            <div class="safety-modal-content" tabindex="-1">
                 <div class="safety-header">
-                    <h2 id="assessment-title">⚠️ Bitcoin Safety Assessment</h2>
+                    <h2 id="assessment-title"><span aria-hidden="true">⚠️ </span>Bitcoin Safety Assessment</h2>
                     <p class="safety-subtitle">
                         Before learning about Bitcoin custody and security, let's make sure you're ready to handle this information safely.
                     </p>
                 </div>
-                
+
                 <div class="safety-warning">
                     <strong>Important:</strong> Bitcoin is not a get-rich-quick scheme. Poor security practices can lead to permanent loss of funds.
                     This assessment helps ensure you're prepared.
                 </div>
-                
+
                 <form id="safety-assessment-form" class="assessment-form">
                     <div class="progress-indicator">
-                        <div class="progress-bar">
+                        <div class="progress-bar"
+                             role="progressbar"
+                             aria-label="Assessment progress"
+                             aria-valuemin="0"
+                             aria-valuemax="100"
+                             aria-valuenow="0">
                             <div class="progress-fill" style="width: 0%"></div>
                         </div>
-                        <span class="progress-text">Question 1 of ${assessmentQuestions.length}</span>
+                        <span class="progress-text" aria-live="polite">Question 1 of ${assessmentQuestions.length}</span>
                     </div>
-                    
+
                     <div id="questions-container"></div>
-                    
+
                     <div class="assessment-nav">
                         <button type="button" id="prev-question" class="btn btn-secondary" disabled>Previous</button>
                         <button type="button" id="next-question" class="btn btn-primary">Next</button>
                         <button type="submit" id="complete-assessment" class="btn btn-primary" style="display: none;">Complete Assessment</button>
                     </div>
                 </form>
-                
-                <button class="safety-modal-close" aria-label="Close assessment">×</button>
+
+                <button type="button" class="safety-modal-close" aria-label="Close assessment">
+                    <span aria-hidden="true">×</span>
+                </button>
             </div>
         `;
-        
+
+        // Focus trap on Tab — keeps keyboard nav inside the dialog while it's open.
+        modal.addEventListener('keydown', (e) => {
+            if (e.key !== 'Tab') return;
+            const focusable = modal.querySelectorAll(
+                'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            );
+            if (focusable.length === 0) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        });
+
         return modal;
     }
     
@@ -195,10 +220,12 @@
         // Update progress
         const progressFill = document.querySelector('.progress-fill');
         const progressText = document.querySelector('.progress-text');
+        const progressBar = document.querySelector('#safety-assessment-modal .progress-bar');
         const progress = ((questionIndex + 1) / assessmentQuestions.length) * 100;
-        
+
         progressFill.style.width = `${progress}%`;
         progressText.textContent = `Question ${questionIndex + 1} of ${assessmentQuestions.length}`;
+        if (progressBar) progressBar.setAttribute('aria-valuenow', String(Math.round(progress)));
     }
     
     function showAssessmentResults(score, maxScore) {
@@ -399,8 +426,14 @@
             alert('Please complete the safety assessment to proceed with Bitcoin security topics.');
         });
         
-        // Focus the modal
-        assessmentModal.focus();
+        // Focus the modal content (has tabindex="-1") so SR users land inside
+        // the dialog and the focus trap can take over from there.
+        const modalContent = assessmentModal.querySelector('.safety-modal-content');
+        if (modalContent && typeof modalContent.focus === 'function') {
+            modalContent.focus();
+        } else {
+            assessmentModal.focus();
+        }
     }
     
     function validateCurrentQuestion(questionIndex) {

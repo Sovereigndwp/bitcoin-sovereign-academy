@@ -320,31 +320,39 @@
             // Inject styles
             this.injectStyles();
 
-            // Create overlay
+            // Capture the element that had focus before the gate opened so we
+            // can restore it if the gate is ever dismissed.
+            this._previousFocus = document.activeElement;
+
+            // Create overlay — modal dialog with proper a11y semantics.
             const overlay = document.createElement('div');
             overlay.id = 'membership-gate-overlay';
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-modal', 'true');
+            overlay.setAttribute('aria-labelledby', 'membership-gate-title');
+            overlay.setAttribute('aria-describedby', 'membership-gate-subtitle');
             overlay.innerHTML = `
-                <div class="gate-content">
-                    <div class="gate-icon">🔐</div>
-                    <h2>Premium Content</h2>
-                    <p class="gate-subtitle">This content is available to members only.</p>
-                    
+                <div class="gate-content" tabindex="-1">
+                    <div class="gate-icon" aria-hidden="true">🔐</div>
+                    <h2 id="membership-gate-title">Premium Content</h2>
+                    <p class="gate-subtitle" id="membership-gate-subtitle">This content is available to members only.</p>
+
                     <div class="gate-options">
                         <div class="gate-option apprentice">
                             <div class="option-badge">Popular</div>
                             <h3>⚡ Apprentice</h3>
                             <div class="option-price">50,000 sats</div>
                             <p>Deposit sats, earn up to 80% back as you learn</p>
-                            <button class="gate-btn primary" onclick="if(window.bsaAnalytics)window.bsaAnalytics.trackMembershipClick('apprentice','gate');window.location.href='/membership.html#apprentice'">
+                            <button type="button" class="gate-btn primary" onclick="if(window.bsaAnalytics)window.bsaAnalytics.trackMembershipClick('apprentice','gate');window.location.href='/membership.html#apprentice'">
                                 Start Earning
                             </button>
                         </div>
-                        
+
                         <div class="gate-option sovereign">
                             <h3>👑 Sovereign</h3>
                             <div class="option-price">$399</div>
                             <p>Lifetime access to everything. No hoops.</p>
-                            <button class="gate-btn secondary" onclick="if(window.bsaAnalytics)window.bsaAnalytics.trackMembershipClick('sovereign','gate');window.location.href='/membership.html#sovereign'">
+                            <button type="button" class="gate-btn secondary" onclick="if(window.bsaAnalytics)window.bsaAnalytics.trackMembershipClick('sovereign','gate');window.location.href='/membership.html#sovereign'">
                                 Get Lifetime Access
                             </button>
                         </div>
@@ -358,7 +366,7 @@
 
                     <div class="gate-footer">
                         <a href="/" class="gate-link">← Back to Home</a>
-                        <span class="gate-divider">|</span>
+                        <span class="gate-divider" aria-hidden="true">|</span>
                         <a href="/interactive-demos/" class="gate-link">Browse Free Content</a>
                     </div>
                 </div>
@@ -366,6 +374,35 @@
 
             document.body.appendChild(overlay);
             document.body.style.overflow = 'hidden';
+
+            // Move focus into the dialog (focus the first primary CTA so SR users
+            // immediately hear the meaningful action).
+            const firstCta = overlay.querySelector('.gate-btn.primary') || overlay.querySelector('.gate-content');
+            if (firstCta && typeof firstCta.focus === 'function') firstCta.focus();
+
+            // Trap Tab / Shift+Tab inside the dialog while it's open.
+            this._trapHandler = (e) => this._trapFocusOnTab(e, overlay);
+            document.addEventListener('keydown', this._trapHandler);
+        }
+
+        /**
+         * Focus-trap handler — keeps Tab/Shift+Tab cycling within the modal.
+         */
+        _trapFocusOnTab(e, overlay) {
+            if (e.key !== 'Tab') return;
+            const focusable = overlay.querySelectorAll(
+                'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            );
+            if (focusable.length === 0) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
         }
 
         /**

@@ -115,16 +115,27 @@
 
     function injectProgressUI() {
         const title = document.querySelector('h1')?.textContent || 'Module Progress';
-        
+
         const ui = document.createElement('div');
         ui.className = 'module-progress-sticky';
+        // a11y: progressbar with valuenow updated on scroll; time badge is a polite
+        // status region so SR users can choose to query progress without spam.
         ui.innerHTML = `
-            <div class="module-progress-inner">
+            <div class="module-progress-inner" role="region" aria-label="Module reading progress">
                 <span class="module-title-compact">${title}</span>
-                <div class="progress-track">
+                <div class="progress-track"
+                     role="progressbar"
+                     aria-label="Reading progress"
+                     aria-valuemin="0"
+                     aria-valuemax="100"
+                     aria-valuenow="0"
+                     id="progress-track-role">
                     <div class="progress-fill-bar" id="progress-fill"></div>
                 </div>
-                <span class="time-remaining-badge" id="time-remaining">Calculating...</span>
+                <span class="time-remaining-badge"
+                      id="time-remaining"
+                      aria-live="polite"
+                      aria-atomic="true">Calculating...</span>
             </div>
         `;
         document.body.appendChild(ui);
@@ -152,37 +163,51 @@
 
     function setupScrollTracking() {
         const progressBar = document.getElementById('progress-fill');
+        const progressTrack = document.getElementById('progress-track-role');
         const stickyHeader = document.querySelector('.module-progress-sticky');
         const content = document.querySelector('main') || document.body;
-        
-        // Show sticky bar after scrolling past header (approx 200px)
+
+        // Throttle aria-valuenow + time-remaining updates so SR doesn't get
+        // an announcement on every scroll tick — visual bar still updates smoothly.
+        let lastAriaPct = -1;
+        let lastTimeMin = -1;
+
         window.addEventListener('scroll', () => {
             const scrollY = window.scrollY;
             const windowHeight = window.innerHeight;
             const docHeight = content.scrollHeight;
-            
-            // Calculate percentage
-            // We use (docHeight - windowHeight) because you can't scroll past the bottom
+
             const maxScroll = docHeight - windowHeight;
             let percentage = (scrollY / maxScroll) * 100;
             percentage = Math.min(100, Math.max(0, percentage));
-            
-            // Update bar
+
             if (progressBar) {
                 progressBar.style.width = `${percentage}%`;
             }
-            
-            // Update visibility
+
+            // Update aria-valuenow only on 5%+ change (cuts ~95% of announcements
+            // while preserving useful granularity for SR users).
+            const rounded = Math.round(percentage / 5) * 5;
+            if (progressTrack && rounded !== lastAriaPct) {
+                progressTrack.setAttribute('aria-valuenow', String(rounded));
+                lastAriaPct = rounded;
+            }
+
             if (scrollY > 300) {
                 stickyHeader.classList.add('visible');
             } else {
                 stickyHeader.classList.remove('visible');
             }
-            
-            // Recalculate remaining time
+
+            // Time remaining: only update when minute count actually changes —
+            // pairs with aria-live="polite" on the badge so each minute boundary
+            // is a single announcement.
             if (window.moduleTotalMinutes) {
                 const remaining = Math.ceil(window.moduleTotalMinutes * (1 - (percentage / 100)));
-                updateTimeRemaining(remaining);
+                if (remaining !== lastTimeMin) {
+                    updateTimeRemaining(remaining);
+                    lastTimeMin = remaining;
+                }
             }
         }, { passive: true });
     }

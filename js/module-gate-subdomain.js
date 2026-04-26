@@ -287,8 +287,12 @@
         // Hide entire page content and show upgrade message
         const container = document.querySelector('main') || document.querySelector('.container') || document.body;
 
-        // Create full-page lock overlay
+        // Create full-page lock overlay — modal dialog with proper a11y semantics.
         const lockOverlay = document.createElement('div');
+        lockOverlay.setAttribute('role', 'dialog');
+        lockOverlay.setAttribute('aria-modal', 'true');
+        lockOverlay.setAttribute('aria-labelledby', 'module-lock-title');
+        lockOverlay.setAttribute('aria-describedby', 'module-lock-desc');
         lockOverlay.style.cssText = `
             position: fixed;
             inset: 0;
@@ -301,10 +305,10 @@
         `;
 
         lockOverlay.innerHTML = `
-            <div style="max-width: 500px; text-align: center; color: white; font-family: system-ui;">
-                <div style="font-size: 4rem; margin-bottom: 1rem;">🔒</div>
-                <h2 style="font-size: 2rem; margin: 0 0 1rem; color: #f7931a;">Module Locked</h2>
-                <p style="font-size: 1.1rem; color: #e0e0e0; line-height: 1.6; margin-bottom: 2rem;">
+            <div style="max-width: 500px; text-align: center; color: white; font-family: system-ui;" tabindex="-1">
+                <div style="font-size: 4rem; margin-bottom: 1rem;" aria-hidden="true">🔒</div>
+                <h2 id="module-lock-title" style="font-size: 2rem; margin: 0 0 1rem; color: #f7931a;">Module Locked</h2>
+                <p id="module-lock-desc" style="font-size: 1.1rem; color: #e0e0e0; line-height: 1.6; margin-bottom: 2rem;">
                     This module is available to Bitcoin Sovereign Academy members.
                     <br><br>
                     <strong>Free Access:</strong> Stage 1, Module 1 of each path
@@ -318,7 +322,7 @@
                        style="display: inline-block; color: #f7931a; text-decoration: none; font-weight: 600; padding: 0.75rem 1.5rem; border: 2px solid #f7931a; border-radius: 999px;">
                         ← Back to Home
                     </a>
-                    <p style="color: #888; font-size: 0.9rem; margin-top: 1rem;">
+                    <p style="color: #b5b5b5; font-size: 0.9rem; margin-top: 1rem;">
                         Not a member? <a href="/#unlock" style="color: #f7931a; text-decoration: underline;">Join now</a>
                     </p>
                 </div>
@@ -326,6 +330,27 @@
         `;
 
         document.body.appendChild(lockOverlay);
+
+        // Focus the primary CTA so SR users immediately hear "Access as Member".
+        const firstCta = lockOverlay.querySelector('a');
+        if (firstCta && typeof firstCta.focus === 'function') firstCta.focus();
+
+        // Trap Tab inside the lock overlay so users can't accidentally tab into
+        // hidden behind-overlay content.
+        lockOverlay.addEventListener('keydown', (e) => {
+            if (e.key !== 'Tab') return;
+            const focusable = lockOverlay.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])');
+            if (focusable.length === 0) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        });
     }
 
     function applyGate(limit) {

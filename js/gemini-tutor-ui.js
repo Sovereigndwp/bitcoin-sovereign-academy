@@ -118,7 +118,7 @@ class GeminiTutorUI {
                     <p id="tutor-context-display" style="margin: 4px 0 0 0; font-size: 12px; color: #999;">Bitcoin Learning</p>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <button id="clear-chat" aria-label="Clear conversation" title="Clear conversation" style="
+                    <button type="button" id="clear-chat" aria-label="Clear conversation" title="Clear conversation" style="
                         background: rgba(255,255,255,0.05);
                         border: 1px solid rgba(255,255,255,0.1);
                         color: #999;
@@ -130,8 +130,8 @@ class GeminiTutorUI {
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                    ">🗑️</button>
-                    <button id="close-tutor" aria-label="Close tutor" style="
+                    "><span aria-hidden="true">🗑️</span></button>
+                    <button type="button" id="close-tutor" aria-label="Close tutor" style="
                         background: rgba(255,255,255,0.05);
                         border: 1px solid rgba(255,255,255,0.1);
                         color: #e0e0e0;
@@ -143,11 +143,21 @@ class GeminiTutorUI {
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                    ">&times;</button>
+                    "><span aria-hidden="true">&times;</span></button>
                 </div>
             </div>
 
-            <div class="chat-messages" id="chat-messages" style="
+            <!-- a11y: role="log" makes this a conversation landmark; aria-live="polite"
+                 announces each new message (user + assistant) once when appended,
+                 without re-reading the whole transcript. aria-relevant="additions"
+                 is the default but stated explicitly for clarity. -->
+            <div class="chat-messages" id="chat-messages"
+                 role="log"
+                 aria-label="Conversation with the AI tutor"
+                 aria-live="polite"
+                 aria-atomic="false"
+                 aria-relevant="additions"
+                 style="
                 flex: 1;
                 overflow-y: auto;
                 padding: 16px;
@@ -156,6 +166,13 @@ class GeminiTutorUI {
                 gap: 12px;
                 scroll-behavior: smooth;
             "></div>
+
+            <!-- Visually hidden status region for thinking/loading announcements
+                 (the typing indicator dots are purely visual). -->
+            <div id="tutor-status-sr"
+                 role="status"
+                 aria-live="polite"
+                 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;"></div>
 
             <div class="chat-quick-questions" id="quick-questions" style="
                 padding: 12px 16px;
@@ -188,7 +205,7 @@ class GeminiTutorUI {
                             transition: border-color 0.2s ease;
                         "
                     />
-                    <button id="send-btn" aria-label="Send message" style="
+                    <button type="button" id="send-btn" aria-label="Send message" style="
                         padding: 12px 20px;
                         background: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
                         border: none;
@@ -382,16 +399,20 @@ I use the Socratic method - I'll ask questions to help you discover insights you
         // Scroll to bottom
         this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
 
-        // Show typing indicator
+        // Show typing indicator (visual) + announce status to SR (the dots are aria-hidden noise)
         const typingIndicator = this.createTypingIndicator();
         this.chatMessages.appendChild(typingIndicator);
+        const statusEl = document.getElementById('tutor-status-sr');
+        if (statusEl) statusEl.textContent = 'Tutor is thinking…';
 
         try {
             // Get AI response
             const response = await this.gemini.generateTutorResponse(text, this.currentContext);
 
-            // Remove typing indicator
+            // Remove typing indicator + clear status (the response itself will be announced
+            // via the role="log" / aria-live="polite" on chat-messages)
             typingIndicator.remove();
+            if (statusEl) statusEl.textContent = '';
 
             // Add AI response
             const aiMsg = this.createMessage(response, 'assistant');
@@ -402,6 +423,7 @@ I use the Socratic method - I'll ask questions to help you discover insights you
 
         } catch (error) {
             typingIndicator.remove();
+            if (statusEl) statusEl.textContent = '';
             const errorMsg = this.createMessage(`Error: ${error.message}`, 'error');
             this.chatMessages.appendChild(errorMsg);
         }
@@ -448,6 +470,8 @@ I use the Socratic method - I'll ask questions to help you discover insights you
             background: #2d2d2d;
             color: #e0e0e0;
         `;
+        // Dots are purely visual — SR users get the "Tutor is thinking…" status announcement instead.
+        indicator.setAttribute('aria-hidden', 'true');
         indicator.innerHTML = `
             <div style="display: flex; gap: 5px;">
                 <div class="dot" style="width: 8px; height: 8px; background: #f7931a; border-radius: 50%; animation: typing 1.4s infinite;"></div>

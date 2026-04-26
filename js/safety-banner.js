@@ -36,23 +36,30 @@
     }
     
     function createSafetyBanner() {
-        const banner = document.createElement('div');
+        const banner = document.createElement('section');
         banner.id = 'safety-warning-banner';
         banner.className = 'safety-banner';
-        banner.setAttribute('role', 'alert');
+        // a11y: role="region" with aria-label gives this banner a proper landmark
+        // for SR navigation. aria-live="polite" announces it once on first render.
+        // (role="alert" was previously used but is implicitly assertive — overkill
+        // for an informational safety banner.)
+        banner.setAttribute('role', 'region');
+        banner.setAttribute('aria-label', 'Safety advisory');
         banner.setAttribute('aria-live', 'polite');
-        
+
         banner.innerHTML = `
             <div class="safety-banner-content">
-                <div class="safety-banner-icon">⚠️</div>
+                <div class="safety-banner-icon" aria-hidden="true">⚠️</div>
                 <div class="safety-banner-text">
-                    <strong>Safety First:</strong> This page contains Bitcoin security information. 
-                    Bitcoin mistakes can result in permanent loss of funds. 
-                    <button type="button" class="safety-banner-assess" aria-label="Take safety assessment">
+                    <strong>Safety First:</strong> This page contains Bitcoin security information.
+                    Bitcoin mistakes can result in permanent loss of funds.
+                    <button type="button" class="safety-banner-assess">
                         Take our 2-minute safety assessment first
                     </button>
                 </div>
-                <button type="button" class="safety-banner-close" aria-label="Dismiss safety warning">×</button>
+                <button type="button" class="safety-banner-close" aria-label="Dismiss safety advisory">
+                    <span aria-hidden="true">×</span>
+                </button>
             </div>
         `;
         
