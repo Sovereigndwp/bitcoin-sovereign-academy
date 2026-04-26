@@ -1,13 +1,19 @@
 /**
  * Primary KPI Tracking System
- * Tracks key conversion metrics for the UX redesign
+ *
+ * Captures homepage conversion-funnel events (hero CTA clicks, demo previews,
+ * path recommendations, scroll milestones, etc.) and routes them through the
+ * shared bsaAnalytics queue defined in js/analytics.js — which batches and
+ * persists to /api/track → Supabase analytics_events.
+ *
+ * No own batching / unload listeners / endpoints — all of that is owned by
+ * js/analytics.js. This module only DECIDES which events to fire.
  */
 
 class KPITracker {
     constructor() {
         this.sessionId = this.generateSessionId();
         this.startTime = Date.now();
-        this.events = [];
         this.funnelSteps = {};
         this.init();
     }
@@ -16,7 +22,6 @@ class KPITracker {
         this.trackPageLoad();
         this.setupEventListeners();
         this.trackUserBehavior();
-        this.setupBeaconSending();
     }
 
     generateSessionId() {
@@ -310,24 +315,16 @@ class KPITracker {
     }
 
     recordEvent(eventData) {
-        this.events.push({
-            ...eventData,
-            sessionId: this.sessionId,
-            timestamp: eventData.timestamp || Date.now()
-        });
-        
-        // Send to analytics if available
-        if (typeof track === 'function') {
-            track(eventData.event, eventData);
+        // Route through the shared analytics pipeline (js/analytics.js).
+        // bsaAnalytics.track() batches and POSTs to /api/track → Supabase.
+        // If bsaAnalytics isn't ready yet (race on initial page load), the
+        // event is dropped — analytics.js loads with `defer` and KPITracker
+        // initializes on DOMContentLoaded, so this should be rare.
+        if (typeof window === 'undefined' || !window.bsaAnalytics || typeof window.bsaAnalytics.track !== 'function') {
+            return;
         }
-        
-        // Send to Google Analytics if available
-        if (typeof gtag === 'function') {
-            gtag('event', eventData.event, {
-                custom_parameter: JSON.stringify(eventData),
-                session_id: this.sessionId
-            });
-        }
+        const { event, timestamp, sessionId, ...rest } = eventData;
+        window.bsaAnalytics.track(event, rest);
     }
 
     extractPathType(pathCard) {
@@ -384,59 +381,6 @@ class KPITracker {
         });
     }
 
-    setupBeaconSending() {
-        // Send data periodically
-        setInterval(() => {
-            this.sendAnalytics();
-        }, 30000); // Every 30 seconds
-        
-        // Send on page unload
-        window.addEventListener('beforeunload', () => {
-            this.sendAnalytics(true);
-        });
-        
-        // Send on visibility change (tab switching)
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') {
-                this.sendAnalytics();
-            }
-        });
-    }
-
-    sendAnalytics(isUnloading = false) {
-        const analyticsData = {
-            sessionId: this.sessionId,
-            events: this.events,
-            funnelSteps: this.funnelSteps,
-            sessionDuration: Date.now() - this.startTime,
-            url: window.location.href,
-            timestamp: Date.now()
-        };
-        
-        // Use sendBeacon for reliable sending on unload
-        if (isUnloading && navigator.sendBeacon) {
-            const blob = new Blob([JSON.stringify(analyticsData)], {
-                type: 'application/json'
-            });
-            navigator.sendBeacon('/api/analytics', blob);
-        } else {
-            // Use fetch for regular sends
-            fetch('/api/analytics', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(analyticsData),
-                keepalive: true
-            }).catch(error => {
-                console.warn('Analytics send failed:', error);
-            });
-        }
-        
-        // Clear sent events to avoid duplication
-        this.events = [];
-    }
-
     // Manual tracking methods for specific events
     trackDemoStart(demoId) {
         this.recordFunnelStep('demo_start', {
@@ -463,7 +407,6 @@ class KPITracker {
         return {
             sessionId: this.sessionId,
             duration: Date.now() - this.startTime,
-            eventCount: this.events.length,
             funnelSteps: Object.keys(this.funnelSteps),
             conversions: this.getConversions()
         };

@@ -63,7 +63,7 @@ Ranked by leverage × feasibility. Pull from the top.
 
 **B4 follow-ups:**
 - ✅ Cache-Control fixed (`0d010929`) — Vercel's serverless-function default cannot be overridden via standard `Cache-Control`, but Vercel's CDN respects `CDN-Cache-Control`. Browser revalidates always; CDN caches for 5 min, serves stale up to 10 min while revalidating. Verified: `x-vercel-cache: HIT` with `age: 10s` on repeat hits.
-- `api/analytics.ts` is dead code BUT `js/kpi-tracking.js` (loaded by the homepage) still posts to it. Migrate kpi-tracking.js's payload shape to `/api/track`, then delete `api/analytics.ts`.
+- ✅ kpi-tracking → /api/track migration done — `js/kpi-tracking.js` now routes events through `window.bsaAnalytics.track()` (which batches → `/api/track` → Supabase). Dropped 57 lines of dead self-batching infrastructure (`events[]`, `sendAnalytics()`, `setupBeaconSending()`) plus the dead `track()`/`gtag()` global lookups. Funnel events (hero CTA clicks, demo previews, scroll milestones, path recommendations) now flow into the live pipeline and are queryable via `/api/admin/analytics`. `api/analytics.ts` deleted.
 
 ### B5. Harden remaining API endpoints (CORS + rate-limit)
 
