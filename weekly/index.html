@@ -207,7 +207,31 @@
             No learning activity yet. Open a module or complete a lab to start populating this view.
         </p>
         <p style="color: var(--text-dim); font-size: 0.75rem; margin-top: 1rem; opacity: 0.8;">
-            🔒 This view shows <strong>only your own activity on this device</strong> from localStorage. Site-wide aggregation requires a server-side read endpoint (planned).
+            🔒 This view shows <strong>only your own activity on this device</strong> from localStorage. The site-wide section below pulls aggregated counts from the server.
+        </p>
+    </section>
+
+    <!-- Site-wide Learning Activity (server-aggregated, anonymized) -->
+    <section id="learning-outcomes-sitewide" style="background: rgba(247,147,26,0.06); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.75rem 1.5rem; margin-bottom: 2.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+            <h2 style="color: var(--primary-orange); font-size: 1.25rem; margin: 0;">🌐 Site-wide, last 7 days</h2>
+            <button id="sw-toggle-window" style="background: none; border: 1px solid var(--border-color); color: var(--text-dim); padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">Show 30 days</button>
+        </div>
+        <div id="sw-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="stat-card" style="padding: 1rem;"><div class="stat-value" id="sw-modules-started" style="font-size: 1.6rem;">—</div><div class="stat-label">Modules started</div></div>
+            <div class="stat-card" style="padding: 1rem;"><div class="stat-value" id="sw-modules-completed" style="font-size: 1.6rem;">—</div><div class="stat-label">Modules completed</div></div>
+            <div class="stat-card" style="padding: 1rem;"><div class="stat-value" id="sw-completion-rate" style="font-size: 1.6rem;">—</div><div class="stat-label">Completion rate</div></div>
+            <div class="stat-card" style="padding: 1rem;"><div class="stat-value" id="sw-labs-completed" style="font-size: 1.6rem;">—</div><div class="stat-label">Labs completed</div></div>
+        </div>
+        <div id="sw-breakdown" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; font-size: 0.875rem;"></div>
+        <p id="sw-empty" style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.75rem; display: none;">
+            Not enough activity yet to show — counts under 10 are suppressed for privacy.
+        </p>
+        <p id="sw-error" style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.75rem; display: none;">
+            Server-side aggregation temporarily unavailable.
+        </p>
+        <p style="color: var(--text-dim); font-size: 0.75rem; margin-top: 1rem; opacity: 0.8;">
+            🌐 Aggregated counts across all visitors (last 30 days). Counts under 10 are suppressed for privacy. No session, IP, or per-user data is exposed.
         </p>
     </section>
 
@@ -491,18 +515,25 @@
 
     function escape(s) { return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-    function render(window) {
-        if (!window) return;
-        const m = window;
-        document.getElementById('lo-modules-started').textContent = m.modulesStarted;
-        document.getElementById('lo-modules-completed').textContent = m.modulesCompleted;
-        document.getElementById('lo-completion-rate').textContent = m.moduleCompletionRate || '—';
-        document.getElementById('lo-labs-completed').textContent = m.labsCompleted;
+    // Renders one window of metrics into a section identified by `prefix` (e.g. "lo" or "sw").
+    // Both the per-user section (lo-*) and the site-wide section (sw-*) share this renderer
+    // because the server endpoint returns the same shape as getLearningMetrics().
+    function renderInto(prefix, m, opts) {
+        if (!m) return;
+        opts = opts || {};
+        const fmt = (v) => v == null ? '—' : v;
+        document.getElementById(prefix + '-modules-started').textContent = fmt(m.modulesStarted);
+        document.getElementById(prefix + '-modules-completed').textContent = fmt(m.modulesCompleted);
+        document.getElementById(prefix + '-completion-rate').textContent = m.moduleCompletionRate || '—';
+        document.getElementById(prefix + '-labs-completed').textContent = fmt(m.labsCompleted);
 
-        const empty = m.modulesStarted === 0 && m.labsCompleted === 0;
-        document.getElementById('lo-empty').style.display = empty ? 'block' : 'none';
+        // Empty state: in suppressed mode, all-null counters are just "below threshold."
+        const allNullOrZero = (v) => v == null || v === 0;
+        const empty = allNullOrZero(m.modulesStarted) && allNullOrZero(m.labsCompleted);
+        const emptyEl = document.getElementById(prefix + '-empty');
+        if (emptyEl) emptyEl.style.display = empty ? 'block' : 'none';
 
-        const breakdown = document.getElementById('lo-breakdown');
+        const breakdown = document.getElementById(prefix + '-breakdown');
         breakdown.innerHTML = '';
 
         if (m.byPath && Object.keys(m.byPath).length) {
@@ -528,31 +559,61 @@
         }
     }
 
-    let showing30 = false;
-    function refresh() {
+    // ── Per-user (localStorage) section ────────────────────────────────────────
+    let loShowing30 = false;
+    function refreshLocal() {
         if (!window.bsaAnalytics || !window.bsaAnalytics.getLearningMetrics) return;
         const data = window.bsaAnalytics.getLearningMetrics();
-        const w = showing30 ? data.last30Days : data.last7Days;
-        document.querySelector('#learning-outcomes h2').textContent = '📊 Your learning, last ' + (showing30 ? '30' : '7') + ' days';
-        document.getElementById('lo-toggle-window').textContent = showing30 ? 'Show 7 days' : 'Show 30 days';
-        render(w);
+        const w = loShowing30 ? data.last30Days : data.last7Days;
+        document.querySelector('#learning-outcomes h2').textContent = '📊 Your learning, last ' + (loShowing30 ? '30' : '7') + ' days';
+        document.getElementById('lo-toggle-window').textContent = loShowing30 ? 'Show 7 days' : 'Show 30 days';
+        renderInto('lo', w);
     }
-
     document.getElementById('lo-toggle-window').addEventListener('click', () => {
-        showing30 = !showing30;
-        refresh();
+        loShowing30 = !loShowing30;
+        refreshLocal();
     });
 
-    // Wait for analytics.js to load
-    function tryRender(retries) {
-        if (window.bsaAnalytics && window.bsaAnalytics.getLearningMetrics) refresh();
-        else if (retries > 0) setTimeout(() => tryRender(retries - 1), 250);
+    function tryRenderLocal(retries) {
+        if (window.bsaAnalytics && window.bsaAnalytics.getLearningMetrics) refreshLocal();
+        else if (retries > 0) setTimeout(() => tryRenderLocal(retries - 1), 250);
     }
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => tryRender(20));
+        document.addEventListener('DOMContentLoaded', () => tryRenderLocal(20));
     } else {
-        tryRender(20);
+        tryRenderLocal(20);
     }
+
+    // ── Site-wide (server) section ─────────────────────────────────────────────
+    let swShowing30 = false;
+    let swCachedData = null;
+    function refreshSitewide() {
+        if (!swCachedData) return;
+        const w = swShowing30 ? swCachedData.last30Days : swCachedData.last7Days;
+        document.querySelector('#learning-outcomes-sitewide h2').textContent = '🌐 Site-wide, last ' + (swShowing30 ? '30' : '7') + ' days';
+        document.getElementById('sw-toggle-window').textContent = swShowing30 ? 'Show 7 days' : 'Show 30 days';
+        renderInto('sw', w);
+    }
+    document.getElementById('sw-toggle-window').addEventListener('click', () => {
+        swShowing30 = !swShowing30;
+        refreshSitewide();
+    });
+
+    fetch('/api/metrics', { credentials: 'omit' })
+        .then(r => {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        })
+        .then(data => {
+            swCachedData = data;
+            refreshSitewide();
+        })
+        .catch(err => {
+            const errEl = document.getElementById('sw-error');
+            if (errEl) errEl.style.display = 'block';
+            const tog = document.getElementById('sw-toggle-window');
+            if (tog) tog.style.display = 'none';
+        });
 })();
 </script>
 </body>

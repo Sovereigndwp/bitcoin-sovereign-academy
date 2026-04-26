@@ -1,174 +1,230 @@
+/**
+ * Site-wide learning metrics — aggregated read endpoint.
+ *
+ * GET /api/metrics                 → public summary, counts < 10 suppressed (privacy floor)
+ * GET /api/metrics?detail=1        → admin-only, full numbers (requires Bearer admin token)
+ *
+ * Source of truth: Supabase `analytics_events` table (written by /api/track).
+ * Aggregation: in-memory over the last 30 days of rows. JS-side group-by avoids a
+ * Postgres RPC migration; revisit if event volume passes ~100k/30d.
+ *
+ * Privacy posture: returns counts only — no session IDs, no IPs, no per-user paths.
+ * The < 10 suppression floor reduces re-identification risk on small modules.
+ *
+ * Caching: `public, s-maxage=300, stale-while-revalidate=600` lets the CDN absorb
+ * repeat hits cheaply. Admin detail responses are not cached.
+ */
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { setCorsHeaders } from './lib/origin';
+import { rateLimit } from './rate-limiter';
+import { verifyAdminToken } from './admin/auth';
 
-// Simple analytics storage
-const analyticsStore: Map<string, any> = new Map();
-const conversionMetrics: Map<string, any> = new Map();
+const metricsRateLimit = rateLimit({
+  maxRequests: 30,
+  windowMs: 60_000,
+  message: 'Metrics rate limit exceeded',
+});
+
+const SMALL_COUNT_THRESHOLD = 10;
+const MAX_ROWS = 50_000;
+
+interface RawEvent {
+  event_type: string;
+  page_path: string | null;
+  props: Record<string, unknown> | null;
+  created_at: string;
+}
+
+interface WindowMetrics {
+  modulesStarted: number | null;
+  modulesCompleted: number | null;
+  moduleCompletionRate: string | null;
+  labsCompleted: number | null;
+  byPath: Record<string, number>;
+  topModules: Array<{ id: string; count: number }>;
+  topLabs: Array<{ id: string; count: number }>;
+}
+
+interface MetricsResponse {
+  last7Days: WindowMetrics;
+  last30Days: WindowMetrics;
+  totalEvents: number;
+  rangeStart: string;
+  rangeEnd: string;
+  detail: boolean;
+  truncated?: boolean;
+  _note?: string;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    setCorsHeaders(req, res, 'GET, OPTIONS', 'Content-Type');
+  setCorsHeaders(req, res, 'GET, OPTIONS', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  if (!(await metricsRateLimit(req, res))) return;
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+  // Detail mode requires a valid admin token.
+  const wantsDetail = req.query.detail === '1';
+  let isAdmin = false;
+  if (wantsDetail) {
+    const auth = String(req.headers.authorization || '');
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+    if (!verifyAdminToken(token)) {
+      return res.status(401).json({ error: 'Admin token required for detail mode' });
     }
+    isAdmin = true;
+  }
 
-    if (req.method !== 'GET') {
-        return res.status(405).json({ error: 'Method not allowed' });
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) {
+    return res.status(503).json({ error: 'Backend not configured' });
+  }
+
+  const now = Date.now();
+  const cutoff = new Date(now - 30 * 86_400_000).toISOString();
+
+  const url =
+    `${supabaseUrl}/rest/v1/analytics_events` +
+    `?select=event_type,page_path,props,created_at` +
+    `&created_at=gte.${encodeURIComponent(cutoff)}` +
+    `&order=created_at.desc&limit=${MAX_ROWS + 1}`;
+
+  let rows: RawEvent[];
+  try {
+    const r = await fetch(url, {
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+      },
+    });
+    if (!r.ok) {
+      const errText = await r.text();
+      console.error('[metrics] Supabase fetch failed:', r.status, errText.slice(0, 300));
+      return res.status(502).json({ error: 'Upstream error' });
     }
+    rows = (await r.json()) as RawEvent[];
+  } catch (err) {
+    console.error('[metrics] fetch error:', err);
+    return res.status(502).json({ error: 'Upstream error' });
+  }
 
-    try {
-        const today = new Date().toISOString().split('T')[0];
-        const todayMetrics = conversionMetrics.get(today);
+  const truncated = rows.length > MAX_ROWS;
+  if (truncated) rows = rows.slice(0, MAX_ROWS);
 
-        if (!todayMetrics) {
-            return res.status(200).json({
-                date: today,
-                totalSessions: 0,
-                kpis: {
-                    homepageToDemo: { rate: 0, count: 0, target: 30 },
-                    demoCompletion: { rate: 0, count: 0, target: 65 },
-                    pathRecommendationAcceptance: { rate: 0, count: 0, total: 0, target: 40 },
-                    averageFirstActionTime: { seconds: 0, target: 60 },
-                    returnVisitorEngagement: { high: 0, total: 0, rate: 0 }
-                },
-                visitorBreakdown: {
-                    new: 0,
-                    returning: 0,
-                    total: 0
-                },
-                summary: {
-                    status: 'No data available',
-                    topPerforming: null,
-                    needsAttention: null
-                }
-            });
-        }
+  const sevenDaysAgo = now - 7 * 86_400_000;
+  const thirtyDaysAgo = now - 30 * 86_400_000;
 
-        const kpiResults = {
-            date: today,
-            totalSessions: todayMetrics.totalSessions,
-            kpis: {
-                homepageToDemo: {
-                    rate: todayMetrics.totalSessions > 0 ? 
-                        (todayMetrics.homepageToDemoConversions / todayMetrics.totalSessions) * 100 : 0,
-                    count: todayMetrics.homepageToDemoConversions,
-                    target: 30,
-                    status: getKPIStatus(
-                        todayMetrics.homepageToDemoConversions / todayMetrics.totalSessions * 100, 
-                        30
-                    )
-                },
-                demoCompletion: {
-                    rate: todayMetrics.homepageToDemoConversions > 0 ? 
-                        (todayMetrics.demoCompletions / todayMetrics.homepageToDemoConversions) * 100 : 0,
-                    count: todayMetrics.demoCompletions,
-                    target: 65,
-                    status: getKPIStatus(
-                        todayMetrics.homepageToDemoConversions > 0 ? 
-                            (todayMetrics.demoCompletions / todayMetrics.homepageToDemoConversions) * 100 : 0, 
-                        65
-                    )
-                },
-                pathRecommendationAcceptance: {
-                    rate: todayMetrics.totalRecommendations > 0 ? 
-                        (todayMetrics.pathRecommendationsAccepted / todayMetrics.totalRecommendations) * 100 : 0,
-                    count: todayMetrics.pathRecommendationsAccepted,
-                    total: todayMetrics.totalRecommendations,
-                    target: 40,
-                    status: getKPIStatus(
-                        todayMetrics.totalRecommendations > 0 ? 
-                            (todayMetrics.pathRecommendationsAccepted / todayMetrics.totalRecommendations) * 100 : 0, 
-                        40
-                    )
-                },
-                averageFirstActionTime: {
-                    seconds: Math.round(todayMetrics.averageFirstActionTime / 1000),
-                    target: 60,
-                    status: todayMetrics.averageFirstActionTime ? 
-                        (todayMetrics.averageFirstActionTime / 1000 <= 60 ? 'meeting' : 'below') : 'no-data'
-                },
-                returnVisitorEngagement: {
-                    high: todayMetrics.highEngagementReturningVisitors,
-                    total: todayMetrics.returningVisitors,
-                    rate: todayMetrics.returningVisitors > 0 ? 
-                        (todayMetrics.highEngagementReturningVisitors / todayMetrics.returningVisitors) * 100 : 0
-                }
-            },
-            visitorBreakdown: {
-                new: todayMetrics.newVisitors,
-                returning: todayMetrics.returningVisitors,
-                total: todayMetrics.totalSessions
-            }
-        };
+  const last7 = computeWindow(rows, sevenDaysAgo, now);
+  const last30 = computeWindow(rows, thirtyDaysAgo, now);
 
-        // Add summary insights
-        const summary = generateSummary(kpiResults);
-        
-        return res.status(200).json({
-            ...kpiResults,
-            summary
-        });
+  const response: MetricsResponse = {
+    last7Days: isAdmin ? last7 : suppressSmallCounts(last7),
+    last30Days: isAdmin ? last30 : suppressSmallCounts(last30),
+    totalEvents: rows.length,
+    rangeStart: new Date(thirtyDaysAgo).toISOString(),
+    rangeEnd: new Date(now).toISOString(),
+    detail: isAdmin,
+  };
+  if (truncated) response.truncated = true;
+  if (!isAdmin) {
+    response._note = `Counts under ${SMALL_COUNT_THRESHOLD} are suppressed for privacy.`;
+  }
 
-    } catch (error) {
-        console.error('Metrics retrieval error:', error);
-        return res.status(500).json({ error: 'Internal server error' });
-    }
+  // Cache aggressively at the CDN, but never cache admin detail responses.
+  if (isAdmin) {
+    res.setHeader('Cache-Control', 'private, no-store');
+  } else {
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+  }
+  return res.status(200).json(response);
 }
 
-function getKPIStatus(actual: number, target: number) {
-    if (actual >= target * 1.1) return 'exceeding'; // 10% above target
-    if (actual >= target) return 'meeting';
-    if (actual >= target * 0.8) return 'approaching'; // Within 20% of target
-    return 'below';
+function computeWindow(rows: RawEvent[], sinceMs: number, untilMs: number): WindowMetrics {
+  let started = 0;
+  let completed = 0;
+  let labCompleted = 0;
+  const byPath = new Map<string, number>();
+  const moduleCounts = new Map<string, number>();
+  const labCounts = new Map<string, number>();
+
+  for (const row of rows) {
+    const ts = Date.parse(row.created_at);
+    if (!Number.isFinite(ts) || ts < sinceMs || ts > untilMs) continue;
+    const props = (row.props || {}) as Record<string, unknown>;
+
+    switch (row.event_type) {
+      case 'module_started': {
+        started++;
+        const pathId = stringProp(props.pathId);
+        if (pathId) byPath.set(pathId, (byPath.get(pathId) || 0) + 1);
+        const moduleId = stringProp(props.moduleId);
+        if (moduleId) moduleCounts.set(moduleId, (moduleCounts.get(moduleId) || 0) + 1);
+        break;
+      }
+      case 'module_completed': {
+        completed++;
+        break;
+      }
+      case 'lab_completed': {
+        labCompleted++;
+        const labId = stringProp(props.labId);
+        if (labId) labCounts.set(labId, (labCounts.get(labId) || 0) + 1);
+        break;
+      }
+    }
+  }
+
+  const completionRate =
+    started > 0 ? `${((completed / started) * 100).toFixed(1)}%` : null;
+
+  return {
+    modulesStarted: started,
+    modulesCompleted: completed,
+    moduleCompletionRate: completionRate,
+    labsCompleted: labCompleted,
+    byPath: Object.fromEntries(byPath),
+    topModules: topN(moduleCounts, 5),
+    topLabs: topN(labCounts, 5),
+  };
 }
 
-function generateSummary(kpiResults: any) {
-    const kpis = kpiResults.kpis;
-    const topPerforming: string[] = [];
-    const needsAttention: string[] = [];
+function stringProp(v: unknown): string | null {
+  return typeof v === 'string' && v.length > 0 ? v.slice(0, 200) : null;
+}
 
-    if (kpis.homepageToDemo.status === 'exceeding') {
-        topPerforming.push('Homepage to Demo conversion');
-    } else if (kpis.homepageToDemo.status === 'below') {
-        needsAttention.push('Homepage to Demo conversion');
-    }
+function topN(counts: Map<string, number>, n: number): Array<{ id: string; count: number }> {
+  return Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, n)
+    .map(([id, count]) => ({ id, count }));
+}
 
-    if (kpis.demoCompletion.status === 'exceeding') {
-        topPerforming.push('Demo completion rate');
-    } else if (kpis.demoCompletion.status === 'below') {
-        needsAttention.push('Demo completion rate');
-    }
+// Apply the small-count suppression floor: any aggregate < SMALL_COUNT_THRESHOLD
+// is replaced with `null` (numeric scalars) or filtered out (top-N lists, byPath
+// entries). Completion rate is also nulled when its inputs are suppressed —
+// otherwise the rate would silently leak the suppressed count.
+function suppressSmallCounts(w: WindowMetrics): WindowMetrics {
+  const sup = (n: number | null) =>
+    n == null || n < SMALL_COUNT_THRESHOLD ? null : n;
 
-    if (kpis.pathRecommendationAcceptance.status === 'exceeding') {
-        topPerforming.push('Path recommendation acceptance');
-    } else if (kpis.pathRecommendationAcceptance.status === 'below') {
-        needsAttention.push('Path recommendation acceptance');
-    }
+  const startedSup = sup(w.modulesStarted);
+  const completedSup = sup(w.modulesCompleted);
+  const labsSup = sup(w.labsCompleted);
+  const rateSup = startedSup == null || completedSup == null ? null : w.moduleCompletionRate;
 
-    if (kpis.averageFirstActionTime.status === 'below') {
-        needsAttention.push('Time to first action');
-    }
+  const byPathFiltered: Record<string, number> = {};
+  for (const [k, v] of Object.entries(w.byPath)) {
+    if (v >= SMALL_COUNT_THRESHOLD) byPathFiltered[k] = v;
+  }
 
-    let status = 'Good performance';
-    if (needsAttention.length > 2) {
-        status = 'Needs optimization';
-    } else if (topPerforming.length > 1) {
-        status = 'Excellent performance';
-    } else if (needsAttention.length > 0) {
-        status = 'Room for improvement';
-    }
-
-    return {
-        status,
-        topPerforming: topPerforming.length > 0 ? topPerforming : null,
-        needsAttention: needsAttention.length > 0 ? needsAttention : null,
-        totalSessions: kpiResults.totalSessions,
-        conversionFunnel: {
-            visitors: kpiResults.totalSessions,
-            demoStarts: kpis.homepageToDemo.count,
-            demoCompletions: kpis.demoCompletion.count,
-            pathRecommendations: kpis.pathRecommendationAcceptance.total,
-            pathAcceptances: kpis.pathRecommendationAcceptance.count
-        }
-    };
+  return {
+    modulesStarted: startedSup,
+    modulesCompleted: completedSup,
+    moduleCompletionRate: rateSup,
+    labsCompleted: labsSup,
+    byPath: byPathFiltered,
+    topModules: w.topModules.filter((m) => m.count >= SMALL_COUNT_THRESHOLD),
+    topLabs: w.topLabs.filter((l) => l.count >= SMALL_COUNT_THRESHOLD),
+  };
 }
