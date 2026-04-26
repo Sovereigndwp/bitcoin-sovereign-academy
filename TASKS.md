@@ -69,17 +69,17 @@ Ranked by leverage × feasibility. Pull from the top.
 
 ---
 
-## 📋 Accessibility (Phase 1 completion)
+## 📋 Accessibility (Phase 1 completion) ✅ done (`621bf2f2`)
 
-Original plan had 7 shared-component audits. Completed 2 of 7; remaining 5 have diminishing returns but close out the pass.
+All 7 shared-component audits closed out. Together with the earlier homepage / reflect-widget / lab-guide passes (`b59a8274`, `cb322bb7`, `1d7952c4`), the platform's shared interactive components now meet WCAG 2.1 AA on landmark, focus, contrast, and live-region patterns.
 
-| ID | Target | Pages affected | Effort | Notes |
-|---|---|---|---|---|
-| C1 | Bitcoin context bar (`js/bitcoin-context.js`) | All modules | ~20 min | Same live-region consolidation pattern used on homepage. Single file. |
-| C2 | Claude AI tutor UI (`js/gemini-tutor-ui.js`) | AI-tutor pages | ~45 min | SSE streaming response needs debounced aria-live; textarea label; conversation landmark. |
-| C3 | Membership / module gate modals (`js/membership-gate.js`, `js/module-gate-subdomain.js`) | Gated modules | ~30 min | Upgrade modal needs focus trap + aria-labelledby. |
-| C4 | Safety banner / assessment (`js/safety-assessment.js`, `js/safety-banner.js`) | Homepage + modules | ~20 min | Form labels, banner dismissibility, focus management. |
-| C5 | Progress manager (`js/progress-manager.js`) | Modules | ~15 min | Progress announcements via `aria-valuenow`, completion toast. |
+| ID | Target | Status |
+|---|---|---|
+| C1 | `js/bitcoin-context.js` | ✅ region role + live-region consolidation + contrast fixes |
+| C2 | `js/gemini-tutor-ui.js` | ✅ role="log" conversation landmark + visually-hidden status region for thinking-state |
+| C3 | `js/membership-gate.js` + `js/module-gate-subdomain.js` | ✅ role=dialog + aria-modal + focus trap + labelledby/describedby |
+| C4 | `js/safety-banner.js` + `js/safety-assessment.js` | ✅ banner region + assessment focus trap + progressbar role |
+| C5 | `js/module-progress.js` (TASKS.md note misnamed it "progress-manager") | ✅ progressbar role + aria-valuenow throttled to 5% increments + polite time-remaining |
 
 ---
 
