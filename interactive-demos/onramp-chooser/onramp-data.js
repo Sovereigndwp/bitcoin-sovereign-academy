@@ -545,15 +545,6 @@ const ONRAMP_RULES = [
                 badge: 'Gift cards',
                 kyc: 'None',
                 notes: 'Many card types accepted'
-            },
-            {
-                name: 'Paxful',
-                fee: '0–5% (varies by seller)',
-                time: '15 min – 2 hours',
-                bestFor: 'P2P marketplace, gift cards accepted',
-                link: 'https://paxful.com',
-                kyc: 'Varies by amount',
-                notes: 'Many payment methods'
             }
         ]
     }
