@@ -67,17 +67,19 @@ Ranked by leverage × feasibility. Pull from the top.
 - ✅ Cache-Control fixed (`0d010929`) — Vercel's serverless-function default cannot be overridden via standard `Cache-Control`, but Vercel's CDN respects `CDN-Cache-Control`. Browser revalidates always; CDN caches for 5 min, serves stale up to 10 min while revalidating. Verified: `x-vercel-cache: HIT` with `age: 10s` on repeat hits.
 - ✅ kpi-tracking → /api/track migration done — `js/kpi-tracking.js` now routes events through `window.bsaAnalytics.track()` (which batches → `/api/track` → Supabase). Dropped 57 lines of dead self-batching infrastructure (`events[]`, `sendAnalytics()`, `setupBeaconSending()`) plus the dead `track()`/`gtag()` global lookups. Funnel events (hero CTA clicks, demo previews, scroll milestones, path recommendations) now flow into the live pipeline and are queryable via `/api/admin/analytics`. `api/analytics.ts` deleted.
 
-### B5. Harden remaining API endpoints (CORS + rate-limit)
+### B5. Harden remaining API endpoints (CORS + rate-limit) — closed at Phase 1+2
+
+**Status:** done at the level that matters; Phase 3+4 won't ship. Documented residual risk below.
 
 - ✅ Phase 1 (`959fcc36`) — replaced wildcard CORS with origin allow-list in 8 endpoints.
 - ✅ Phase 2 (`44a67b91`) — added rate limits to 10 browser-callable endpoints.
-- ✅ Phase 3 (`e53bf1ec`) — hardened the four highest-risk endpoints that earlier phases missed:
-  - `api/create-order` (.js → .ts) — payment-tier rate limit + setCorsHeaders
-  - `api/lightning/create-invoice` (.js → .ts) — payment-tier rate limit + setCorsHeaders (replacing inline single-origin pattern)
-  - `api/auth/magic-link` — added setCorsHeaders + auth-tier IP rate limit (existing per-email DB limit kept)
-  - `api/auth/verify` — added setCorsHeaders + auth-tier IP rate limit (existing one-time-use + constant-time compare kept)
-  - Audit confirmed via curl: allowed origin echoed; disallowed origin gets canonical fallback so browser CORS check fails.
-- 🟡 **B5 Phase 4 remaining (lower priority — token-gated or simple data endpoints):** `api/account/entitlements.ts`, `api/account/purchases.ts`, `api/entitlements/check.ts`, `api/entitlements/grant.ts`, `api/subscriptions/manage.ts`, `api/get-token.ts`, `api/health.ts`, `api/pricing.ts`, `api/config/products.ts`, `api/index.ts`, `api/admin/*` (5 files — already token-gated, lowest priority).
+- 🔁 Phase 3 (`e53bf1ec`) shipped, then **reverted** by `4acbd889`. The .js→.ts migration of `create-order` and `lightning/create-invoice` was un-done; `auth/magic-link` and `auth/verify` returned to their pre-hardening state.
+- ❌ Phase 4 (12 lower-risk handlers + admin/*) — **won't ship**. Branch `b5-phase4` deleted.
+- ✅ One carve-out from the abandoned Phase 4: **`api/admin/auth.ts` got auth-tier rate limiting** — brute-forcing the admin password from a static URL is the one threat that's actually plausible here. No CORS migration, no .ts conversion, single-line change.
+
+**Why we stopped:** the rate-limiter is in-memory (`Map<string, count>` in `api/rate-limiter.ts`), which resets on every cold start. Vercel functions are stateless, so "5 per 15min" is closer to "5 per warm-instance lifetime" — real protection against opportunistic abuse, ~zero protection against a motivated attacker who rotates IPs or triggers cold starts. CORS allow-listing only blocks browser-based CSRF; payment endpoints flow through Stripe / BTCPay / Zaprite which do their own server-side verification. P3+P4 was diminishing-returns plumbing while B1 / B2 (content + tiered reflection) compound for every learner.
+
+**Residual risk accepted:** the Phase 3 (4 endpoints) and Phase 4 (12 endpoints) targets retain whatever CORS / rate-limit they had pre-revert. If we ever revisit, the right move is to (a) understand why Phase 3 was reverted before re-shipping and (b) replace the in-memory limiter with Upstash Redis or a Supabase row-counter so the limits actually mean what they say.
 
 ---
 

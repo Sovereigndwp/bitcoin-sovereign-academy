@@ -1,10 +1,17 @@
 /**
  * Admin Authentication API
- * POST /api/admin/auth - Verify admin credentials
+ * POST /api/admin/auth - Verify admin credentials.
+ *
+ * Brute-force protection: auth-tier IP rate limit (5 per 15min) — the one
+ * threat that's actually plausible against this site's static admin URL.
+ * Everything else stays unchanged (CORS, password check, token issuance).
  */
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import * as crypto from 'crypto';
+import { rateLimit, RATE_LIMITS } from '../rate-limiter';
+
+const adminAuthRateLimit = rateLimit(RATE_LIMITS.auth);
 
 /**
  * CORS headers
@@ -118,6 +125,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+  if (!(await adminAuthRateLimit(req, res))) return;
 
   try {
     const { password } = req.body;
