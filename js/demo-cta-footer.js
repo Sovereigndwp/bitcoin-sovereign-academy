@@ -34,6 +34,11 @@
     advisor: 'Advisor',
     beginner: 'Beginner',
     'spanish-speaker': 'En español',
+    'us-buyer': 'US',
+    'eu-buyer': 'EU',
+    'latam-buyer': 'LatAm',
+    colombia: 'Colombia',
+    employer: 'Employer',
   };
 
   function escHtml(s) {
