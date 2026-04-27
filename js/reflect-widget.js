@@ -285,6 +285,24 @@
       ],
     },
 
+    'models': {
+      surface: [
+        'Name a model that worked great in one decade and broke in the next.',
+        'If a model fits past data perfectly but predicts nothing future, what was it actually doing?',
+        'Why might a model that explains price with one variable be missing something?',
+      ],
+      conceptual: [
+        'A model can be a useful way to think and a bad way to predict. How would you tell which a given model is?',
+        'PlanB\'s S2F price model fit Bitcoin through 2020 and broke after. What\'s a fair test of "did it work"?',
+        'If markets price in known information (like a halving schedule), what\'s left for the halving event itself to do to price?',
+      ],
+      philosophical: [
+        'When a model you wanted to believe stops working, what changes — your beliefs, or your interpretation of the data?',
+        'Is a broken model still useful as a way to think? When?',
+        'If someone shows you a chart of in-sample fit, what\'s the question you should ask before being convinced?',
+      ],
+    },
+
     'dca': {
       surface: [
         'If you DCA into an asset that ends up worth less than when you started, what happened?',
