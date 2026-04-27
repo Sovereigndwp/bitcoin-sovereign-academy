@@ -3,17 +3,19 @@
 > Shared roadmap + task list. Check this file at the start of every session.
 > See `CLAUDE.md` for values and voice. See `weekly/index.html` for shipped-changelog.
 
-Last updated: 2026-04-26 (B1.T2b + A1 + bip39-citation fix + B4 multiplayer all shipped)
+Last updated: 2026-04-27 (A1 + A3 confirmed done after stale-status sweep; institutional analytics-coverage shipped + CI lint added)
 
 ---
 
 ## 🔥 Active / in-progress
 
+_Empty as of 2026-04-27. Pull next work from "Next high-leverage bets" below._
+
 | ID | Task | Owner | Status | Notes |
 |---|---|---|---|---|
-| A1 | Run first tutor eval baseline | — | **needs API key** | `npm run tutor:evals` locally. Writes `reports/tutor-evals-2026-04-24.md`. Establishes baseline for every future SYSTEM_PROMPT change. |
+| A1 | Run first tutor eval baseline | — | **✅ done** | Baseline shipped 2026-04-24 ([`reports/tutor-evals-2026-04-24.md`](reports/tutor-evals-2026-04-24.md): 10 pass / 1 marginal / 1 fail). Follow-up after MECHANISM-EXPLANATION rule shipped 2026-04-26 ([`reports/tutor-evals-2026-04-26.md`](reports/tutor-evals-2026-04-26.md): **12/12 pass**, dimension averages all ≥8.58). `.env.local` auto-load committed in `5e6a6db5`. M1 (run on every SYSTEM_PROMPT change) now active. |
 | A2 | Consolidate demo-truthfulness audit | — | **✅ done** | See [`reports/demo-audit-2026-04-24.md`](reports/demo-audit-2026-04-24.md). 135 findings across 52 demos (41 🔴 / 59 🟡 / 35 🟢). Top-10 action list inside. |
-| A3 | Tutor live in production? | — | **needs verification** | Test `/api/tutor` from production domain (see "Smoke test" in this file). Ensure `ANTHROPIC_API_KEY` set in Vercel prod env. |
+| A3 | Tutor live in production? | — | **✅ done** | Smoke-tested 2026-04-27 from `https://bitcoinsovereign.academy` origin. HTTP 200, `text/event-stream`, CORS allow-list working, response is Socratic ("What brings you here today…"), stream terminates with `done`. All security headers present. M4 (monthly API-quota check) is the recurring guardrail. |
 
 ---
 
