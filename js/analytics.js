@@ -455,6 +455,32 @@
     // Expose globally
     window.bsaAnalytics = analytics;
 
+    // Legacy compatibility shim — keeps inline onclick="track('Foo',{...})" handlers
+    // (used across index.html and a few JS files) from throwing ReferenceError.
+    // These calls existed before the analytics pipeline was unified; they routed
+    // to a global `track` / `trackEvent` that no longer exists. Without this shim,
+    // every path-card / anchor-nav / quick-tool click silently throws and no event
+    // is recorded. New code should use window.bsaAnalytics.track(...) directly.
+    function legacyTrack(eventName, properties) {
+        try {
+            if (window.bsaAnalytics && typeof window.bsaAnalytics.track === 'function') {
+                window.bsaAnalytics.track(eventName, properties || {});
+            }
+        } catch (_) { /* never break user navigation on a tracking error */ }
+    }
+    if (typeof window.track !== 'function') window.track = legacyTrack;
+    if (typeof window.trackEvent !== 'function') window.trackEvent = legacyTrack;
+
+    // abVariant: referenced by inline onclick handlers (e.g. {ab:abVariant()})
+    // but never defined anywhere — caused the same ReferenceError. Reads any
+    // variant set by a prior A/B harness from localStorage; defaults to 'a'.
+    if (typeof window.abVariant !== 'function') {
+        window.abVariant = function () {
+            try { return localStorage.getItem('bsa-ab-variant') || 'a'; }
+            catch (_) { return 'a'; }
+        };
+    }
+
     // Export for module use
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = { AnalyticsService };
