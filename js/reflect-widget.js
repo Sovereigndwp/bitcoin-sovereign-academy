@@ -285,6 +285,24 @@
       ],
     },
 
+    'dca': {
+      surface: [
+        'If you DCA into an asset that ends up worth less than when you started, what happened?',
+        'Name one thing this calculator doesn\'t account for that would change your real returns.',
+        'Why might a chart of "stack value over time" look very different from a chart of "price over time"?',
+      ],
+      conceptual: [
+        'DCA is supposed to reduce timing risk. What kind of risk does it not reduce?',
+        'You picked a year Bitcoin was around for. What does that selection alone do to the returns you see?',
+        'If lump-summing at the start beat DCA in your scenario, what does that tell you about DCA\'s actual job?',
+      ],
+      philosophical: [
+        'Looking at the worst drawdown in your simulation: be honest — would you have kept buying through it, or stopped?',
+        'A backtest tells you what would have happened. Why is that different from what will happen?',
+        'If "time in the market beats timing the market" is true, why does it feel so hard to act on?',
+      ],
+    },
+
     'bitcoin-key-generator-visual': {
       surface: [
         'What inputs go into generating a Bitcoin key?',
