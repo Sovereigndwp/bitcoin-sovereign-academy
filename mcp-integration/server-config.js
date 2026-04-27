@@ -49,7 +49,7 @@ const MCPServerConfig = {
             scenario: '/api/agents/scenario',
             advisor: '/api/agents/advisor',
             poetry: '/api/agents/poetry',
-            timeMachine: '/api/agents/time-machine',
+            timeMachine: '/api/agents/bitcoin-genesis-timeline',
             philosophy: '/api/agents/philosophy'
         },
         

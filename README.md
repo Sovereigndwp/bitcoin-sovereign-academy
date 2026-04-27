@@ -123,7 +123,7 @@ bitcoin-sovereign-academy/
 │   ├── future-oracle/         # Scenario generation
 │   ├── strategy-advisor/      # Personal guidance
 │   ├── data-poet/            # Blockchain poetry
-│   ├── time-machine/         # Historical simulation
+│   ├── bitcoin-genesis-timeline/  # Cryptographic lineage demo
 │   └── philosophy-guide/     # Conceptual exploration
 │
 ├── 🔗 mcp-integration/         # Model Context Protocol

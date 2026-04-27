@@ -63,7 +63,7 @@ After submitting your sitemap, you can request immediate indexing for your top p
    - `https://bitcoinsovereign.academy/`
    - `https://bitcoinsovereign.academy/paths/curious/`
    - `https://bitcoinsovereign.academy/paths/builder/`
-   - `https://bitcoinsovereign.academy/interactive-demos/30-day-money-plan/`
+   - `https://bitcoinsovereign.academy/interactive-demos/coinjoin-simulator/`
    - `https://bitcoinsovereign.academy/curriculum/philosophy-economics/`
    - etc.
 3. Click "Request Indexing" for each

@@ -413,8 +413,8 @@
                         'Paste the invoice — you\'ll see: amount in millisats, timestamp, expiry, node pubkey, payment hash'
                     ],
                     links: [
-                        { label: 'BOLT11 Decoder', url: 'https://www.bolt11.org/' },
-                        { label: 'Our In-App Decoder', url: '/interactive-demos/bolt11-decoder/' }
+                        { label: 'BOLT11 Decoder (bolt11.org)', url: 'https://www.bolt11.org/' },
+                        { label: 'learnmeabitcoin TX decoder', url: 'https://learnmeabitcoin.com/tools/transaction-decoder/' }
                     ],
                     verify: 'I can read the payment hash and amount from the decoded invoice'
                 }

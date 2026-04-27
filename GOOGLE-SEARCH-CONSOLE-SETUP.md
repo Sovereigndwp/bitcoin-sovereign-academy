@@ -132,7 +132,7 @@ After submitting sitemap, manually request indexing for your top pages:
    https://bitcoinsovereign.academy/
    https://bitcoinsovereign.academy/paths/curious/
    https://bitcoinsovereign.academy/paths/builder/
-   https://bitcoinsovereign.academy/interactive-demos/30-day-money-plan/
+   https://bitcoinsovereign.academy/interactive-demos/coinjoin-simulator/
    https://bitcoinsovereign.academy/curriculum/philosophy-economics/
    ```
 3. Click **"Request Indexing"** button

@@ -45,7 +45,7 @@ Type: Standalone HTML
 | **security-dojo.html** | Standalone HTML | Eclipse, Sybil, network attacks | ✅ Keep | Unknown |
 | **debt-crisis.html** | Standalone HTML | Inflation, Cantillon effect, debt spiral | ✅ Keep | Unknown |
 | **energy-bucket.html** | Standalone HTML | PoW as energy, time | 🔄 Review | Unknown |
-| **time-machine.html** | Standalone HTML | Time preference, scarcity, economics | 🔄 Review | Unknown |
+| **bitcoin-genesis-timeline/** | Interactive demo | Cryptographic lineage: Chaum, b-money, RPOW, Bit Gold | ✅ Keep | Unknown |
 | **bitcoin-sovereign-game/** | Directory | Full gamified journey | ✅ Keep | Unknown |
 
 ---
@@ -372,7 +372,7 @@ Each concept gets a `metadata.json`:
 | Consensus | `consensus-game/` | (May be original) | ✅ Integrated |
 | Money Basics | `/deep-dives/first-principles/` | MoneyModule.js | ⚠️ Check overlap |
 | Network Security | `security-dojo.html` | (May be original) | ✅ Integrated |
-| Economics | `debt-crisis.html`, `time-machine.html` | (May be original) | ✅ Integrated |
+| Economics | `debt-crisis.html`, `bitcoin-genesis-timeline/` | (May be original) | ✅ Integrated |
 
 ---
 
