@@ -151,6 +151,51 @@ When Phase 2 begins, these references guide funnel-artifact decisions.
 
 ---
 
+## 11. Operating frame — unbounded mode
+
+> **Source:** [10am.pro — "The ultimate unbounded video game"](https://10am.pro). Frame, not gimmick: this is how the brand operates and teaches.
+
+The brand operates in **unbounded mode**, not bounded mode. This is the operating philosophy that makes the rules in §2–§5 coherent under one frame, not an arbitrary checklist.
+
+**Bounded mode** (most Bitcoin education, most marketing funnels):
+- Fixed rules, gamified rewards, quizzes, badges, points
+- *"Complete this module to unlock the next."*
+- Operates at the edge of capability, but rewards are **fake** — the work doesn't compound in the real world
+- Closed loop — the curriculum ends, the user "finishes," nothing continues
+
+**Unbounded mode** (this brand):
+- **Instant feedback loops with real stakes.** Every analysis a reader does on their actual custody, actual ETF holdings, actual inheritance plan yields different real-world outcomes — *not* a different score in a simulator.
+- **Turing-complete pedagogy.** First-principles reasoning (§4) gives readers a *generator* — they derive new conclusions for situations the brand has never written about — not a fixed set of memorized facts.
+- **Real-world relevance.** Outputs are **actual artifacts** — a signed PSBT, an inheritance binder, a recovery plan, a custody readiness review, a Family Bitcoin Operating System — not points, badges, or completion percentages.
+- **Expanding objective.** Once a reader understands custody, the next door opens (inheritance design); once that's understood, jurisdictional resilience opens; then family governance; then advisor education. The objective never fills up.
+
+Flow: **Prompt → Execute → Real-World Deployment → Expand Objective.** (The growing spiral, not the closed circle.)
+
+### Why this frame is operationally upstream of the other rules
+
+Without the unbounded frame, the rules in §2–§5 look like preferences. With it, they're coherent:
+
+- **The 5 named domain pairs (§2) are an unbounded palette.** Combinations multiply. Once you've bridged custody × LATAM legal, the next bridge (sovereignty × pragmatism) opens. The palette is **generative**, not exhaustive.
+- **First-principles reasoning (§4) is the Turing-complete operator.** It gives readers a derivation engine, not a fact list. They can reason about situations the brand has never written about.
+- **Inform-not-convince (§5) preserves reader agency.** The reader plays the unbounded game on their own terms. The brand provides primitives + frames; the reader composes them in their own life.
+- **The brand asset stack (§6) is proof of unbounded mode.** BSA, FSA, MPB curriculum, TBA practice — these are real artifacts that yielded real outcomes for real people. Not fake-world points.
+
+### What to avoid (bounded-mode anti-patterns)
+
+- **Quizzes with binary right/wrong answers** as the primary teaching tool
+- **Badges, XP, points, "100% complete" indicators** on educational content
+- **"Complete X to unlock Y" gating** that simulates progression rather than producing real outcomes
+- **Simulated custody decisions** when real ones are within reach (a *"what would you do?"* multiple-choice when a signet faucet + Sparrow lets the reader actually do it)
+- **Marketing language that promises "becoming an expert"** — the unbounded game has no expert level; mastery is a moving target
+
+### Tension acknowledged
+
+BSA's existing path / stage / module structure is partially bounded by design (finite content) but the *pedagogical philosophy* inside each module is unbounded (lab cards produce real artifacts; reflect-widgets pose open-ended questions; modules link to actual tools and faucets). **New BSA content and the identity hub structure (Phase 1) lean further unbounded** — fewer quizzes, more lab artifacts; fewer "modules" framings, more "doors" framings; fewer simulated decisions, more real ones.
+
+The Phase 1 identity hub itself is designed in unbounded mode: 4 doors that open onto continuing learning, not a single CTA that closes a sale.
+
+---
+
 ## Source
 
 This voice spec consolidates decisions made during the brainstorming session of 2026-04-28. Full derivation in:
@@ -158,3 +203,4 @@ This voice spec consolidates decisions made during the brainstorming session of 
 - `docs/superpowers/specs/2026-04-28-distribution-engine-phase-1-design.md` §1.5 (composability), §1.6 (first-principles, 7 rules), §1.7 (editorial stance, 7 rules)
 - `docs/superpowers/specs/2026-04-28-phase-1-identity-convergence.md` §3 (T3a thesis lock-in)
 - `docs/superpowers/specs/2026-04-28-distribution-engine-phase-1-design-plan-b.md` §2.5 (per-artifact enforcement, professional-track variant)
+- 10am.pro — "The ultimate unbounded video game" (operating-frame source for §11)
