@@ -2,7 +2,7 @@
 
 **Date:** 2026-04-28
 **Author:** Dalia (with Claude Opus 4.7)
-**Status:** design — awaiting final user review before implementation plan
+**Status:** **RECLASSIFIED AS PHASE 2 CANDIDATE** (2026-04-28, post-commit). After this spec was committed (`b543c833`), the brand-direction conversation produced a reframe: the active Phase 1 is now `2026-04-28-phase-1-identity-convergence.md` (Identity Convergence + Asset Surfacing). This spec remains a valid **Phase 2 candidate** (Spanish consumer funnel) — to be revived, modified, or retired after the Phase 1 audit completes. See Phase 1 spec §15 for disposition rationale.
 
 ---
 
