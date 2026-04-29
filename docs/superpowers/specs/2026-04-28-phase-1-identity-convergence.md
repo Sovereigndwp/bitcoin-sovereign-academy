@@ -46,22 +46,30 @@ By the end of Phase 1 (target: 3 weeks from start):
 
 The brand thesis is *"convenience traded for sovereignty without understanding the cost"* — already articulated in long form. Phase 1 picks a **one-breath version** that fits in a bio, an X profile line, the bottom of an email.
 
-**Candidates to choose from:**
+**Locked (2026-04-28): primary one-breath thesis is T3a:**
 
+> *"Bitcoin custody and inheritance for families and advisors. Bilingual. LATAM-fluent."*
+
+**Why T3a (selection rationale):** passes the stranger-test (*"does this person now know what you do?"*), tight enough for an X bio, **inclusive of non-LATAM clients** (Miami big-law firms, US family offices) by treating *"LATAM-fluent"* as a **capability descriptor**, not an audience boundary. Composes pair #1 (Bitcoin custody architecture × LATAM civil-law/notarial inheritance practice).
+
+**Secondary atmospheric brand lines** (used in essay closings, speaker bios, X threads where T3a already appears as the bio):
 - **T1.** *"I help people see the cost of convenience before they pay it."*
 - **T2.** *"Sovereignty is something you design, not something you buy."*
-- **T3.** *"Bitcoin custody and family planning for people who live in the real Latin America."*
-- **T4.** *Bilingual hybrid — short Spanish + short English on the same line, e.g.,* *"Soberanía financiera, diseñada antes de necesitarla. — Sovereignty designed, not bought."*
 
-**Decision rule for picking:** the chosen thesis must (a) fit on one line of an X profile, (b) be testable on a stranger ("does this person now know what you do?"), (c) compose ≥1 of the 5 named domain pairs. After Phase 1, run it for 6 months before evaluating.
+**Candidates considered and rejected:**
+- **T3** (predecessor of T3a): *"Bitcoin custody and family planning for people who live in the real Latin America."* — rejected because *"who live in"* gates audience by geography rather than capability, excluding Miami / US family offices that are valuable referral channels.
+- **T4** (bilingual hybrid line): too long for one-line slots; useful only as a Substack/website header — deferred.
+- **T5 / T6 / T9** (more action-verb / philosophy-bridged variants): considered, looser stranger-test or more wordy; T3a wins on tightness.
+
+**Decision rule applied** *(retained for future re-evaluation)*: the thesis must (a) fit on one line of an X profile, (b) pass the stranger-test, (c) compose ≥1 of the 5 named domain pairs. Run T3a for 6 months before re-evaluating.
 
 ---
 
 ## 4. The identity hub
 
-### 4.1 Location
+### 4.1 Location — locked
 
-`bitcoinsovereign.academy/dalia` — recommended over a subdomain because (a) BSA already has SEO and trust, (b) keeps everything under one domain for SSL/email/branding sanity. Subdomain `dalia.bitcoinsovereign.academy` is acceptable if the BSA homepage routing is too disruptive.
+**`bitcoinsovereign.academy/dalia`** (locked 2026-04-28). Single domain — leverages existing BSA SEO + SSL, no DNS work required. Subdomain alternative (`dalia.bitcoinsovereign.academy`) considered and deferred — could be revived in Phase 2+ if URL strategy changes.
 
 ### 4.2 Page structure
 
@@ -209,14 +217,11 @@ Existing Foundations infographics, per uploaded artifacts:
 
 The series is 4/5 visually but conceptually broken because #2 is missing — a stranger seeing 1, 3, 4, 5 will assume something is incomplete. **Closing the series in Phase 1 is high-leverage:** it converts an in-progress collection into a complete, shareable, brandable arc.
 
-### 8.2 Foundation #2 — topic
+### 8.2 Foundation #2 — topic — locked
 
-The natural slot between #1 (*Your Wallet Is Not a Vault* — what a wallet is and isn't) and #3 (*Seed Phrase vs Private Keys* — the difference) is something like:
+**Locked title (2026-04-28): *"Anatomy of a Bitcoin Wallet."*** Slots naturally between #1 (*Your Wallet Is Not a Vault* — conceptual: what a wallet IS) and #3 (*Seed Phrase vs Private Keys* — relational: the recovery-vs-signing distinction). Anatomy framing is **first-principles native** (define the parts → show how they combine → derive what the whole does). Composes pair #2 (MPB pedagogy × HNW client psychology) and pair #4 (cypherpunk ethics × consumer-grade understanding).
 
-- *"Public Keys, Private Keys, and Addresses"* — what each is, how they relate, why they're different
-- *"How a Wallet Actually Works (Inside the Black Box)"* — the mechanics one level deeper than #1
-
-User picks the framing. The spec just commits to: **Foundation #2 ships in Phase 1, completing the 1–5 series.** Same visual style, same first-principles structure, same footer.
+Same visual style as #1/#3/#4/#5. Same first-principles internal structure (*What it IS → What its parts DO → How the parts combine → Common misconceptions → Key takeaway*). Same footer convention (*Dalia | bitcoinsovereign.academy*).
 
 ### 8.3 What "completing the series" enables
 
@@ -307,9 +312,14 @@ If ≥7 of 9 are met, Phase 1 is judged successful. If <7, identify the blocker 
 
 ## 14. Open items requiring user action
 
-1. **Pick the one-breath thesis** — T1, T2, T3, T4, or write your own. (5-min decision.)
-2. **Pick Foundation #2 topic** — *"Public Keys, Private Keys, and Addresses"* OR *"How a Wallet Actually Works (Inside the Black Box)"* OR your own.
-3. **Confirm hub URL preference** — `bitcoinsovereign.academy/dalia` (recommended) vs `dalia.bitcoinsovereign.academy`.
+**Locked 2026-04-28** (decisions made during user review):
+
+1. ~~Pick the one-breath thesis~~ — **LOCKED: T3a** (*"Bitcoin custody and inheritance for families and advisors. Bilingual. LATAM-fluent."*) — see §3.
+2. ~~Pick Foundation #2 topic~~ — **LOCKED: *"Anatomy of a Bitcoin Wallet"*** — see §8.2.
+3. ~~Confirm hub URL preference~~ — **LOCKED: `bitcoinsovereign.academy/dalia`** — see §4.1.
+
+**Still open** (will be addressed during implementation, can be carried into the implementation plan as plan steps):
+
 4. **Audit format preference** — markdown at `docs/marketing/asset-audit.md` (recommended) vs Notion / Airtable / Google Sheets.
 5. **Substack URL change** — proceed in Phase 1 (with redirect verification) OR defer to Phase 2. Your judgment on the risk to existing 60 subs.
 6. **Visual mark** — pick one profile photo. Lock for 12 months. (30-min decision.)
