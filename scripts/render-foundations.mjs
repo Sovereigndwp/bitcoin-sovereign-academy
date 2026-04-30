@@ -59,9 +59,20 @@ function wrapText(text, maxChars) {
   return lines;
 }
 
-function extractLogoInner(svg) {
+function extractSvgInner(svg) {
   const m = svg.match(/<svg[^>]*>([\s\S]*?)<\/svg>\s*$/);
   return m ? m[1].trim() : '';
+}
+
+async function loadIcon(rootDir, illustrationId) {
+  if (!illustrationId) return null;
+  const iconPath = path.join(rootDir, 'assets/foundations/icons', `${illustrationId}.svg`);
+  try {
+    const raw = await fs.readFile(iconPath, 'utf8');
+    return extractSvgInner(raw);
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -74,10 +85,16 @@ function preparePortrait(content, logoInner) {
   const W = 1024, H = 1536;
   const M = 60;
 
-  // ---- Header section (tightened single-line title) ----
-  const titleLines = wrapText(content.title, 34).map((text, i) => ({
+  // ---- Header section (tightened single-line title; font scales w/ length) ----
+  // 904px content width, font weight 900. Pick the largest size that keeps the
+  // longest line under 880px, assuming caps width ≈ 0.62 × font-size.
+  const titleLen = content.title.length;
+  const titleFontSize = titleLen <= 28 ? 50 : titleLen <= 34 ? 44 : titleLen <= 40 ? 38 : 34;
+  const titleLineH = Math.round(titleFontSize * 1.08);
+  const titleCharLimit = Math.floor(880 / (titleFontSize * 0.62));
+  const titleLines = wrapText(content.title, titleCharLimit).map((text, i) => ({
     text,
-    y: 122 + i * 54,
+    y: 122 + i * titleLineH,
   }));
   const titleLastY = titleLines.at(-1).y;
 
@@ -118,7 +135,13 @@ function preparePortrait(content, logoInner) {
       y: lastDoesY + 20 + idx * 14,
       first: idx === 0,
     }));
-    return { ...c, card_y, does_lines, if_fails_lines };
+    return {
+      ...c,
+      card_y,
+      does_lines,
+      if_fails_lines,
+      iconInner: c._iconInner ?? null,
+    };
   });
   const cardsEndY = cardsStartY + 5 * cardH + 4 * cardGap;
 
@@ -169,6 +192,7 @@ function preparePortrait(content, logoInner) {
   return {
     ...content,
     titleLines,
+    titleFontSize,
     subtitleLines,
     leadLines,
     dividerY,
@@ -196,6 +220,142 @@ function prepareStub(content, logoInner) {
   return { ...content, logoInner };
 }
 
+/**
+ * Square 1080×1080 layout: header → arc hero → 5 compact rows → key band → footer.
+ */
+function prepareSquare(content, logoInner) {
+  const W = 1080, H = 1080;
+
+  // Title font scaled by length, content max width 960
+  const titleLen = content.title.length;
+  const titleFontSize = titleLen <= 28 ? 50 : titleLen <= 34 ? 44 : titleLen <= 40 ? 38 : 34;
+  const titleLineH = Math.round(titleFontSize * 1.08);
+  const titleCharLimit = Math.floor(940 / (titleFontSize * 0.62));
+  const titleLines = wrapText(content.title, titleCharLimit).map((text, i) => ({
+    text,
+    y: 110 + i * titleLineH,
+  }));
+  const titleLastY = titleLines.at(-1).y;
+
+  const subtitleLines = wrapText(content.subtitle, 64).map((text, i) => ({
+    text,
+    y: titleLastY + 38 + i * 28,
+  }));
+  const subtitleLastY = subtitleLines.at(-1).y;
+
+  // Arc as hero
+  const arcY = subtitleLastY + 36;
+  const arcChipW = 150;
+  const arcArrowW = 28;
+  const steps = content.arc.steps;
+  const arcTotalW = steps.length * arcChipW + (steps.length - 1) * arcArrowW;
+  const arcStartX = (W - arcTotalW) / 2;
+  const arcChips = steps.map((label, i) => ({
+    label,
+    x: arcStartX + i * (arcChipW + arcArrowW),
+    cx: arcChipW / 2,
+    w: arcChipW,
+  }));
+  const arcArrows = [];
+  for (let i = 0; i < steps.length - 1; i++) {
+    const x1 = arcStartX + i * (arcChipW + arcArrowW) + arcChipW + 2;
+    const x2 = x1 + arcArrowW - 8;
+    arcArrows.push({ x1, x2, ax: x2 - 8 });
+  }
+
+  // 5 compact rows
+  const rowH = 74;
+  const rowGap = 10;
+  const rowsStartY = arcY + 80;
+  const components = content.components.map((c, i) => {
+    const row_y = rowsStartY + i * (rowH + rowGap);
+    const does_lines = wrapText(c.does, 72).slice(0, 1).map((text, idx) => ({
+      text,
+      y: 56 + idx * 18,
+    }));
+    return { ...c, row_y, does_lines };
+  });
+
+  // Bottom-anchored
+  const footerY = H - 50;
+  const keyY = footerY - 60;
+
+  return {
+    ...content,
+    titleLines,
+    titleFontSize,
+    subtitleLines,
+    arcY,
+    arcChips,
+    arcArrows,
+    components,
+    keyY,
+    footerY,
+    logoInner,
+  };
+}
+
+/**
+ * Card 1200×627 layout (OG/link-share): header → arc → key band → footer. Compact.
+ */
+function prepareCard(content, logoInner) {
+  const W = 1200, H = 627;
+
+  // Title — narrower vertical so smaller font
+  const titleLen = content.title.length;
+  const titleFontSize = titleLen <= 28 ? 42 : titleLen <= 34 ? 36 : titleLen <= 40 ? 32 : 28;
+  const titleLineH = Math.round(titleFontSize * 1.08);
+  const titleCharLimit = Math.floor(1080 / (titleFontSize * 0.62));
+  const titleLines = wrapText(content.title, titleCharLimit).map((text, i) => ({
+    text,
+    y: 102 + i * titleLineH,
+  }));
+  const titleLastY = titleLines.at(-1).y;
+
+  const subtitleLines = wrapText(content.subtitle, 78).slice(0, 2).map((text, i) => ({
+    text,
+    y: titleLastY + 32 + i * 24,
+  }));
+  const subtitleLastY = subtitleLines.at(-1).y;
+
+  // Arc
+  const arcY = subtitleLastY + 30;
+  const arcChipW = 154;
+  const arcArrowW = 28;
+  const steps = content.arc.steps;
+  const arcTotalW = steps.length * arcChipW + (steps.length - 1) * arcArrowW;
+  const arcStartX = (W - arcTotalW) / 2;
+  const arcChips = steps.map((label, i) => ({
+    label,
+    x: arcStartX + i * (arcChipW + arcArrowW),
+    cx: arcChipW / 2,
+    w: arcChipW,
+  }));
+  const arcArrows = [];
+  for (let i = 0; i < steps.length - 1; i++) {
+    const x1 = arcStartX + i * (arcChipW + arcArrowW) + arcChipW + 2;
+    const x2 = x1 + arcArrowW - 8;
+    arcArrows.push({ x1, x2, ax: x2 - 8 });
+  }
+
+  // Bottom anchored
+  const footerY = H - 40;
+  const keyY = footerY - 48;
+
+  return {
+    ...content,
+    titleLines,
+    titleFontSize,
+    subtitleLines,
+    arcY,
+    arcChips,
+    arcArrows,
+    keyY,
+    footerY,
+    logoInner,
+  };
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.content || !args.template || !args.output) {
@@ -215,11 +375,27 @@ async function main() {
   ]);
 
   const content = JSON.parse(contentRaw);
-  const logoInner = extractLogoInner(logoSvg);
+  const logoInner = extractSvgInner(logoSvg);
 
-  const data = args.template.startsWith('portrait')
-    ? preparePortrait(content, logoInner)
-    : prepareStub(content, logoInner);
+  // Resolve icon SVGs for each component (by illustration_id).
+  const componentsWithIcons = await Promise.all(
+    (content.components || []).map(async (c) => ({
+      ...c,
+      _iconInner: await loadIcon(ROOT, c.illustration_id),
+    })),
+  );
+  const enrichedContent = { ...content, components: componentsWithIcons };
+
+  let data;
+  if (args.template.startsWith('portrait')) {
+    data = preparePortrait(enrichedContent, logoInner);
+  } else if (args.template.startsWith('square')) {
+    data = prepareSquare(enrichedContent, logoInner);
+  } else if (args.template.startsWith('card')) {
+    data = prepareCard(enrichedContent, logoInner);
+  } else {
+    data = prepareStub(enrichedContent, logoInner);
+  }
 
   const tpl = Handlebars.compile(templateSrc);
   const svg = tpl(data);
