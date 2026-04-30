@@ -105,6 +105,24 @@ Deployed in every channel bio, every lead magnet, every outreach intro, every Su
 4. **Financially Sovereign Academy** — proof of mission beyond commerce
 5. *"Native Colombian, only Spanish-speaking adviser at TBA"* — defensible niche
 
+### 6.1 Canonical footer convention (locked 2026-04-30)
+
+Every visual artifact (infographic, slide, carousel) carries this attribution at the bottom, paired with the locked combined logo (`assets/dalia/logo.svg`) at ~20 px height:
+
+- **EN:** `Created by Dalia · bitcoinsovereign.academy`
+- **ES:** `Creado por Dalia · bitcoinsovereign.academy`
+
+Punctuation note: interpunct `·` (U+00B7), not pipe `|`. The interpunct reads cleaner in small footer type on dark backgrounds.
+
+Every Substack post (closing line):
+
+- **EN:** *"I write about Bitcoin, custody, privacy, and financial sovereignty at bitcoinsovereign.academy."*
+- **ES:** *"Escribo sobre Bitcoin, custodia, privacidad y soberanía financiera en bitcoinsovereign.academy."*
+
+Every LinkedIn post (when relevant): same closing line, in the language of the post.
+
+This convention supersedes the wording in `docs/superpowers/specs/2026-04-28-phase-1-identity-convergence.md` §5.3 (which said `Dalia | bitcoinsovereign.academy`). Decision derivation in `docs/superpowers/specs/2026-04-30-foundation-footer-audit.md` §3.
+
 ---
 
 ## 7. Language tracks (Phase 1 active)
