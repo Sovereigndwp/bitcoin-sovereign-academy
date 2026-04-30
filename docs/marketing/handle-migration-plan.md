@@ -115,7 +115,13 @@ Effort estimate: ~8–12 hours (vs ~3–4 hours for text-only retrofit, but text
 - (b) Do text-only retrofit now in the design tool (5 sessions); accept visual drift; revisit migration later
 - (c) Accept the gap as-is for Phase 1; address in Phase 2
 
-This decision determines whether Task 14 closes "successful" or "deferred to follow-up spec."
+**User decision 2026-04-30: (a).** Migration spec to be drafted at `docs/superpowers/specs/2026-04-30-foundations-pipeline-migration.md`. Task 14 (text-only audit) closes as **deferred to migration spec** — the migration absorbs the gaps recorded above and resolves them in one pass.
+
+### Task 14 close
+
+- Status: **deferred** — gaps documented, migration spec scheduled
+- Phase 1 verification §12 row #14: judged "deferred-pass" (gaps recorded, follow-up tracked)
+- Form B (Substack last 10) — still open, runs as independent workstream
 
 ---
 
