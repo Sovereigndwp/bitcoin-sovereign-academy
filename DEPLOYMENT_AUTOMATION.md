@@ -75,7 +75,7 @@ node -e "
 const fetch = require('node:fetch');
 fetch('https://rdqwoqdvqpedlsbaghtr.supabase.co/rest/v1/users?limit=0', {
   headers: {
-    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkcXdvcWR2cXBlZGxzYmFnaHRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0NjI0NTcsImV4cCI6MjA3ODAzODQ1N30.lv8XIuWyXaxsJ-LavFtHFuEHfBOFz4cEs9ccm4xaDHo'
+    'apikey': 'YOUR_SUPABASE_ANON_KEY_HERE'
   }
 })
 .then(r => r.ok ? console.log('✅ Database schema verified!') : console.log('❌ Schema not applied'))
