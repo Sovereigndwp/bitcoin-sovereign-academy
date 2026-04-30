@@ -74,45 +74,48 @@ function preparePortrait(content, logoInner) {
   const W = 1024, H = 1536;
   const M = 60;
 
-  // ---- Header section ----
-  const titleLines = wrapText(content.title, 24).map((text, i) => ({
+  // ---- Header section (tightened single-line title) ----
+  const titleLines = wrapText(content.title, 34).map((text, i) => ({
     text,
-    y: 138 + i * 60,
+    y: 122 + i * 54,
   }));
   const titleLastY = titleLines.at(-1).y;
 
-  const subtitleLines = wrapText(content.subtitle, 56).map((text, i) => ({
+  const subtitleLines = wrapText(content.subtitle, 60).map((text, i) => ({
     text,
-    y: titleLastY + 36 + i * 28,
+    y: titleLastY + 38 + i * 28,
   }));
   const subtitleLastY = subtitleLines.at(-1).y;
 
-  const leadLines = wrapText(content.lead, 84).map((text, i) => ({
+  const leadLines = wrapText(content.lead, 86).map((text, i) => ({
     text,
-    y: subtitleLastY + 32 + i * 22,
+    y: subtitleLastY + 28 + i * 22,
   }));
   const leadLastY = leadLines.at(-1).y;
 
-  const dividerY = leadLastY + 18;
+  const dividerY = leadLastY + 16;
 
-  // ---- Cards (5 stacked) ----
-  const cardH = 110;
-  const cardGap = 8;
+  // ---- Cards (5 stacked, illustration LEFT of text, taller per option A) ----
+  const cardH = 130;
+  const cardGap = 12;
   const cardCY = cardH / 2;
   const cardNumY = cardCY + 11;
-  const illTop = (cardH - 80) / 2;
+  const illSize = 100;
+  const illX = 110;
+  const illY = (cardH - illSize) / 2;
+  const textX = 230;
 
-  const cardsStartY = dividerY + 16;
+  const cardsStartY = dividerY + 18;
   const components = content.components.map((c, i) => {
     const card_y = cardsStartY + i * (cardH + cardGap);
-    const does_lines = wrapText(c.does, 56).map((text, idx) => ({
+    const does_lines = wrapText(c.does, 62).map((text, idx) => ({
       text,
-      y: 76 + idx * 18,
+      y: 82 + idx * 18,
     }));
     const lastDoesY = does_lines.at(-1).y;
-    const if_fails_lines = wrapText(c.if_fails, 70).map((text, idx) => ({
+    const if_fails_lines = wrapText(c.if_fails, 76).map((text, idx) => ({
       text,
-      y: lastDoesY + 18 + idx * 14,
+      y: lastDoesY + 20 + idx * 14,
       first: idx === 0,
     }));
     return { ...c, card_y, does_lines, if_fails_lines };
@@ -172,7 +175,10 @@ function preparePortrait(content, logoInner) {
     cardH,
     cardCY,
     cardNumY,
-    illTop,
+    illSize,
+    illX,
+    illY,
+    textX,
     components,
     arcY,
     arcChips,
