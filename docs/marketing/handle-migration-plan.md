@@ -27,12 +27,14 @@ For each Foundation, open the source file in your design tool, look at the foote
 
 | # | Surface | Footer text (verbatim, or "matches") | Logo present (Y/N) | Visual drift vs F#2 (none/minor/major) | Source located (Y/N) |
 |---|---|---|---|---|---|
-| F1  | Foundation #1                          |                                            |                    |                                        |                      |
-| F3  | Foundation #3 (original)               |                                            |                    |                                        |                      |
-| F3v2 | Foundation #3v2                       |                                            |                    |                                        |                      |
-| F4  | Foundation #4                          |                                            |                    |                                        |                      |
-| F5  | Foundation #5                          |                                            |                    |                                        |                      |
-| F2  | Foundation #2 (EN portrait, REFERENCE) | matches                                    | Y                  | none                                   | Y                    |
+| F1   | Foundation #1                          | does NOT match                             | N                  | major                                  | (assumed Y)          |
+| F3   | Foundation #3 (original)               | does NOT match                             | N                  | major                                  | (assumed Y)          |
+| F3v2 | Foundation #3v2                        | does NOT match                             | N                  | major                                  | (assumed Y)          |
+| F4   | Foundation #4                          | does NOT match                             | N                  | major                                  | (assumed Y)          |
+| F5   | Foundation #5                          | does NOT match                             | N                  | major                                  | (assumed Y)          |
+| F2   | Foundation #2 (EN portrait, REFERENCE) | matches                                    | Y                  | none                                   | Y                    |
+
+**User report 2026-04-30:** all 5 siblings fail all 3 checks. None match the locked footer text, none carry the logo, none look like part of the same series as F#2.
 
 **Filling tips:**
 - "Footer text" — copy the exact characters. If it matches the reference verbatim, just write `matches`.
@@ -88,9 +90,32 @@ Open `https://sovereigndwp.substack.com/`. For each of the 10 most recent posts 
 
 ### Gap log
 
-(Filled as gaps are found. Format: `[surface] — [gap] — [tier: cheap/medium/expensive] — [target date or "out of scope"]`)
+Format: `[surface] — [gap] — [tier] — [resolution]`
 
-- *(none yet)*
+- **F1, F3, F3v2, F4, F5 — footer text drift** — medium tier (each requires re-export from design tool) — *resolution pending §8 strategic decision below.*
+- **F1, F3, F3v2, F4, F5 — logo missing** — medium tier — *resolution pending §8 strategic decision.*
+- **F1, F3, F3v2, F4, F5 — visual drift vs F#2** — expensive tier (style/typography/composition reconciliation) — *out of scope per spec §7. Either accept gap or trigger §8 migration.*
+
+### §8 — Strategic decision needed (escalates from spec)
+
+Audit found that fixing the 5 siblings *individually* would require 5 separate design-tool sessions (~30–45 min each = 2.5–4 hours) and would only resolve text + logo, not visual drift. The visual drift is the bigger problem: a viewer scanning #1 → #5 sees five different design languages.
+
+The cheaper, higher-quality path: **migrate siblings 1, 3v2, 4, 5 into the Path B v2 pipeline** that just shipped Foundation #2. This means:
+
+- Lift each sibling's content into a `foundation-N.{en,es}.json` file (one per sibling, EN + ES = 8 JSONs)
+- Re-render through the same template/script that produced Foundation #2
+- All 5 outputs become guaranteed-consistent: same footer, same logo, same typography, same color palette, same composition, multi-ratio + multi-language for free
+
+Effort estimate: ~8–12 hours (vs ~3–4 hours for text-only retrofit, but text-only leaves visual drift).
+
+**Recommendation:** spec the migration as a separate task before doing any text-only retrofit work. Otherwise the retrofit is throwaway labor.
+
+**Decision required from user:**
+- (a) Spec the Path B v2 sibling migration; defer text retrofit until then
+- (b) Do text-only retrofit now in the design tool (5 sessions); accept visual drift; revisit migration later
+- (c) Accept the gap as-is for Phase 1; address in Phase 2
+
+This decision determines whether Task 14 closes "successful" or "deferred to follow-up spec."
 
 ---
 
