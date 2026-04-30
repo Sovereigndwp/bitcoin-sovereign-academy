@@ -19,40 +19,72 @@
 **Scope:** 5 sibling Foundations + 10 Substack posts + 1 hub HTML.
 **Hard cap:** 90 minutes.
 
-### Audit table
+### Form A — Sibling Foundations (visual artifacts)
 
-| # | Surface | Type | Footer text correct? | Logo present? | Notes |
+**Reference text:** `Created by Dalia · bitcoinsovereign.academy` (EN) / `Creado por Dalia · …` (ES)
+
+For each Foundation, open the source file in your design tool, look at the footer, fill the row.
+
+| # | Surface | Footer text (verbatim, or "matches") | Logo present (Y/N) | Visual drift vs F#2 (none/minor/major) | Source located (Y/N) |
 |---|---|---|---|---|---|
-| 1 | Foundation #1 | infographic-EN | ? | ? | Open in design tool. Check footer text matches `Created by Dalia · bitcoinsovereign.academy` exactly. |
-| 2 | Foundation #2 (EN portrait) | infographic-EN | ✅ reference | ✅ reference | Shipped 2026-04-30 with locked text + logo. `assets/foundations/foundation-2-en-portrait.png`. |
-| 3 | Foundation #2 (ES portrait) | infographic-ES | ✅ reference | ✅ reference | `assets/foundations/foundation-2-es-portrait.png`. |
-| 4 | Foundation #3 (original) | infographic-EN | ? | ? | If superseded by 3v2, mark as deprecated; do not audit. |
-| 5 | Foundation #3v2 | infographic-EN | ? | ? | Per content brief, this is the "polished template" sibling. |
-| 6 | Foundation #4 | infographic-EN | ? | ? | "From Seed Phrase to Address" per brief. |
-| 7 | Foundation #5 | infographic-EN | ? | ? | Final in 1–5 series. |
-| 8 | Substack post 1 (most recent) | written | ? | N/A | Closing line: *"I write about Bitcoin, custody…"* (EN) or *"Escribo sobre Bitcoin…"* (ES). |
-| 9 | Substack post 2 | written | ? | N/A | |
-| 10 | Substack post 3 | written | ? | N/A | |
-| 11 | Substack post 4 | written | ? | N/A | |
-| 12 | Substack post 5 | written | ? | N/A | |
-| 13 | Substack post 6 | written | ? | N/A | |
-| 14 | Substack post 7 | written | ? | N/A | |
-| 15 | Substack post 8 | written | ? | N/A | |
-| 16 | Substack post 9 | written | ? | N/A | |
-| 17 | Substack post 10 | written | ? | N/A | |
-| 18 | `dalia/index.html` (identity hub) | hub | ✅ appropriate | N/A | Uses thesis-line variant per spec §4.5 (bio + thesis, not Substack closing line). Lines 118–121. |
+| F1  | Foundation #1                          |                                            |                    |                                        |                      |
+| F3  | Foundation #3 (original)               |                                            |                    |                                        |                      |
+| F3v2 | Foundation #3v2                       |                                            |                    |                                        |                      |
+| F4  | Foundation #4                          |                                            |                    |                                        |                      |
+| F5  | Foundation #5                          |                                            |                    |                                        |                      |
+| F2  | Foundation #2 (EN portrait, REFERENCE) | matches                                    | Y                  | none                                   | Y                    |
+
+**Filling tips:**
+- "Footer text" — copy the exact characters. If it matches the reference verbatim, just write `matches`.
+- "Logo present" — any BSA logo (old or new diamond+stroke) counts as Y. The audit only fails this if no logo is present at all.
+- "Visual drift" — judgment call. `none` = looks like the same series. `minor` = font weight or accent color slightly off. `major` = clearly different design language.
+- "Source located" — N if the source file is missing/lost. The "fix path" for source-not-located is to re-render through Path B v2 (separate task, out of scope here).
+
+If F3 (original) is fully superseded by F3v2 and you don't use it anywhere, write `superseded` in the text column and skip the rest of the row.
+
+### Form B — Substack closing line (last 10 posts)
+
+**Reference EN:** *"I write about Bitcoin, custody, privacy, and financial sovereignty at bitcoinsovereign.academy."*
+**Reference ES:** *"Escribo sobre Bitcoin, custodia, privacidad y soberanía financiera en bitcoinsovereign.academy."*
+
+Open `https://sovereigndwp.substack.com/`. For each of the 10 most recent posts (top of homepage), open the post, scroll to the bottom, and check whether the closing line is present.
+
+| # | Post slug or date | Lang (EN/ES) | Closing line present (Y/N) | If N — what's there instead? |
+|---|---|---|---|---|
+| 1  |                   |              |                            |                              |
+| 2  |                   |              |                            |                              |
+| 3  |                   |              |                            |                              |
+| 4  |                   |              |                            |                              |
+| 5  |                   |              |                            |                              |
+| 6  |                   |              |                            |                              |
+| 7  |                   |              |                            |                              |
+| 8  |                   |              |                            |                              |
+| 9  |                   |              |                            |                              |
+| 10 |                   |              |                            |                              |
+
+**Filling tips:**
+- "Post slug" — the URL fragment, e.g. `/p/the-recovery-binder` — or just the post date if easier.
+- "Lang" — primary language of the post body (most are EN, some ES).
+- "Closing line present" — Y if the canonical line is the LAST sentence of the post (or close to it). N if missing or different.
+- If N — paste the actual closing sentence so we can decide whether to retrofit or accept.
+
+### Form C — Identity hub footer (auto-audited)
+
+| # | Surface | Footer text correct? | Logo present? | Notes |
+|---|---|---|---|---|
+| H1 | `dalia/index.html` (lines 118–121) | ✅ appropriate | N/A | Uses thesis-line variant per spec §4.5 (bio + thesis, not Substack closing line). |
 
 ### Findings (filled in as audit progresses)
 
 #### In-repo surfaces (auto-audited 2026-04-30)
 
-- **Foundation #2 EN/ES (all ratios)** — `footer` field in both content JSONs equals canonical text exactly. Logo (`assets/dalia/logo.svg`) inlined via render pipeline at ~20 px. ✅ Pass, set as reference.
-- **`dalia/index.html`** — hub footer at lines 118–121 carries the BSA · FSA · TBA brand line + thesis subtext. Per spec §4.5, hubs use a different variant from artifacts/posts. ✅ Pass.
+- **Foundation #2 EN/ES (all 6 outputs)** — `footer` field in both content JSONs equals canonical text exactly. Logo (`assets/dalia/logo.svg`) inlined via render pipeline at ~20 px. ✅ Pass, set as reference.
+- **`dalia/index.html`** — hub footer at lines 118–121 uses the thesis-line variant. Per spec §4.5, hubs use a different convention from artifacts/posts. ✅ Pass (appropriate for surface type).
 
-#### External surfaces (pending user audit)
+#### External surfaces (pending — fill Forms A + B above)
 
-- 5 sibling Foundations — *open in your design tool, report findings below.*
-- Last 10 Substack posts — *open https://sovereigndwp.substack.com/, scroll homepage, report findings below.*
+- Form A — 5 sibling Foundations
+- Form B — 10 Substack posts
 
 ### Gap log
 
