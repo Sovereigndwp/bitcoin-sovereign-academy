@@ -51,18 +51,22 @@ If F3 (original) is fully superseded by F3v2 and you don't use it anywhere, writ
 
 Open `https://sovereigndwp.substack.com/`. For each of the 10 most recent posts (top of homepage), open the post, scroll to the bottom, and check whether the closing line is present.
 
-| # | Post slug or date | Lang (EN/ES) | Closing line present (Y/N) | If N — what's there instead? |
-|---|---|---|---|---|
-| 1  |                   |              |                            |                              |
-| 2  |                   |              |                            |                              |
-| 3  |                   |              |                            |                              |
-| 4  |                   |              |                            |                              |
-| 5  |                   |              |                            |                              |
-| 6  |                   |              |                            |                              |
-| 7  |                   |              |                            |                              |
-| 8  |                   |              |                            |                              |
-| 9  |                   |              |                            |                              |
-| 10 |                   |              |                            |                              |
+| # | Post slug | Date | Lang | Closing line? | Actual final sentence |
+|---|---|---|---|---|---|
+| 1 | tres-llaves-tres-jurisdicciones-una | Apr 29 | ES | N | "Y la intención no firma transacciones." |
+| 2 | your-family-does-not-inherit-your | Apr 24 | EN | N | "Next to each one, add two short lines: what it is, and what it is not." |
+| 3 | the-law-can-tell-you-who-should-receive | Apr 21 | EN | N | "That may be the gap worth fixing first." |
+| 4 | the-theft-often-begins-before-the | Apr 19 | EN | N | "They follow the person." |
+| 5 | owning-bitcoin-and-owning-bitcoin | Apr 16 | EN | N | "…until the differences are the only thing that matter." |
+| 6 | this-was-never-just-about-the-wallet | Apr 13 | EN | N | "…what it actually means to hold bitcoin in a way that can endure pressure, complexity, and time." |
+| 7 | what-becomes-visible-becomes-vulnerable | Apr 10 | EN | N | "A visible one can turn into an invitation." |
+| 8 | your-phone-can-hold-your-life-without | Apr 8 | EN | N | "…more of your financial life than you ever meant to give it." |
+| 9 | the-easiest-way-to-lose-bitcoin-is | Apr 6 | EN | N | "…without letting speed, irritation, or confidence take over." |
+| 10 | complexity-can-become-its-own-risk | Apr 3 | EN | N | "And once you lose the thread, trust follows quickly behind." |
+
+**Result: 0/10 carry the closing line. Audited 2026-04-30 by fetching each post.**
+
+**Pattern observation:** every post ends with an essay-style punchline that does editorial work — these are *good* closings, voice-spec compliant (inform, not convince). The §5.3 convention asks for a separate one-line sign-off appended *after* the essay closes, like a signature block. That signature block is currently missing on all 10.
 
 **Filling tips:**
 - "Post slug" — the URL fragment, e.g. `/p/the-recovery-binder` — or just the post date if easier.
@@ -92,9 +96,10 @@ Open `https://sovereigndwp.substack.com/`. For each of the 10 most recent posts 
 
 Format: `[surface] — [gap] — [tier] — [resolution]`
 
-- **F1, F3, F3v2, F4, F5 — footer text drift** — medium tier (each requires re-export from design tool) — *resolution pending §8 strategic decision below.*
-- **F1, F3, F3v2, F4, F5 — logo missing** — medium tier — *resolution pending §8 strategic decision.*
-- **F1, F3, F3v2, F4, F5 — visual drift vs F#2** — expensive tier (style/typography/composition reconciliation) — *out of scope per spec §7. Either accept gap or trigger §8 migration.*
+- **F1, F3, F3v2, F4, F5 — footer text drift** — medium tier — *absorbed by Path B v2 migration (decision a, 2026-04-30).*
+- **F1, F3, F3v2, F4, F5 — logo missing** — medium tier — *absorbed by migration.*
+- **F1, F3, F3v2, F4, F5 — visual drift vs F#2** — expensive tier — *absorbed by migration.*
+- **Substack last 10 posts — closing line missing on all 10** — cheap-to-medium tier — *requires editorial decision: retrofit existing posts, or apply forward-only?* See §Substack closing-line decision below.
 
 ### §8 — Strategic decision needed (escalates from spec)
 
@@ -117,11 +122,28 @@ Effort estimate: ~8–12 hours (vs ~3–4 hours for text-only retrofit, but text
 
 **User decision 2026-04-30: (a).** Migration spec to be drafted at `docs/superpowers/specs/2026-04-30-foundations-pipeline-migration.md`. Task 14 (text-only audit) closes as **deferred to migration spec** — the migration absorbs the gaps recorded above and resolves them in one pass.
 
+### Substack closing-line decision
+
+The §5.3 convention asks for a one-line sign-off after each post: *"I write about Bitcoin, custody, privacy, and financial sovereignty at bitcoinsovereign.academy."* (EN) or its ES equivalent.
+
+Audit found **0/10** recent posts carry it. Every post instead ends with an essay-style punchline that does editorial work — these are *not violations of voice*, but they are missing the explicit attribution.
+
+**Three resolution options:**
+
+- (A) **Retrofit + forward** — edit the last 10 posts to append the closing line as a separate paragraph after the editorial ending; commit forward-cadence to applying it on every new post. Cost: ~30 min for retrofit (Substack inline edit), ongoing 30-second add per post going forward.
+- (B) **Forward-only** — accept retrofit as out of scope; apply the convention starting with the next post. Cost: 30s per new post. Loses 10 posts of attribution, but no rework.
+- (C) **Revise the convention** — the audit revealed that essay-style endings are doing real editorial work; the §5.3 convention may have been spec'd without seeing actual cadence. Option: amend voice-spec §6.1 to make the closing line *optional* on Substack (mandatory on infographics, recommended for advisor-audience long-form, optional for essay-style narrative posts).
+
+**My read:** (B) is the right default — past posts stay as published, going forward the convention applies. (C) is a reasonable amendment if you find on reflection that you don't want to dilute essay endings; in that case, the closing line stays a *visual artifact* convention only.
+
+(A) is over-engineering: ten retrofitted posts won't move any meaningful needle, and editing live Substack posts can re-trigger email sends in some configurations.
+
 ### Task 14 close
 
-- Status: **deferred** — gaps documented, migration spec scheduled
-- Phase 1 verification §12 row #14: judged "deferred-pass" (gaps recorded, follow-up tracked)
-- Form B (Substack last 10) — still open, runs as independent workstream
+- **Visual artifacts** (Form A): 5/5 fail → absorbed by Path B v2 migration spec (decision a)
+- **Substack** (Form B): 0/10 pass → decision pending (A/B/C above)
+- **Identity hub** (Form C): ✅ appropriate per spec §4.5
+- Phase 1 verification §12 row #14: **deferred-pass** — gaps recorded, follow-up paths tracked
 
 ---
 
