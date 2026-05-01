@@ -101,10 +101,10 @@ You'll be setting up a PostgreSQL database on Supabase to store:
    ```
    Project URL: https://xxxxxxxxxxxxx.supabase.co
 
-   anon public key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   anon public key: <YOUR-SUPABASE-KEY>
    (starts with "eyJ" - very long string)
 
-   service_role key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   service_role key: <YOUR-SUPABASE-KEY>
    (also starts with "eyJ" - different from anon key)
    ```
 
@@ -134,8 +134,8 @@ You'll be setting up a PostgreSQL database on Supabase to store:
 ```bash
 # Supabase Database
 SUPABASE_URL=https://xxxxxxxxxxxxx.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_ANON_KEY=<YOUR-SUPABASE-KEY>
+SUPABASE_SERVICE_ROLE_KEY=<YOUR-SUPABASE-KEY>
 DATABASE_URL=postgresql://postgres.[project-ref]:[YOUR-PASSWORD]@aws-0-us-west-1.pooler.supabase.com:6543/postgres
 
 # JWT Secret (generate a random 32+ character string)
@@ -166,11 +166,11 @@ STRIPE_WEBHOOK_SECRET=
    **Environment:** Production, Preview, Development (check all 3)
 
    **Variable Name:** `SUPABASE_ANON_KEY`
-   **Value:** `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+   **Value:** `<YOUR-SUPABASE-KEY>`
    **Environment:** Production, Preview, Development
 
    **Variable Name:** `SUPABASE_SERVICE_ROLE_KEY`
-   **Value:** `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+   **Value:** `<YOUR-SUPABASE-KEY>`
    **Environment:** Production, Preview, Development
 
    **Variable Name:** `DATABASE_URL`

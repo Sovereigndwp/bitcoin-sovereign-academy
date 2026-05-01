@@ -189,7 +189,7 @@ Retrieve JWT token after successful payment.
 ```json
 {
   "success": true,
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token": "<YOUR-SUPABASE-KEY>",
   "email": "user@example.com",
   "modules": ["curious-what-is-money", "curious-bitcoin-basics"],
   "paths": ["curious"],

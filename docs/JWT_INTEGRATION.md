@@ -140,7 +140,7 @@ The system checks access in this priority order:
 **Manual token entry (advanced users):**
 ```javascript
 // In browser console
-BSASubdomainAccess.setAccessToken('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...');
+BSASubdomainAccess.setAccessToken('<YOUR-SUPABASE-KEY>');
 // Page reloads with access granted
 ```
 

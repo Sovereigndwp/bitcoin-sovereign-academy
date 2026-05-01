@@ -82,8 +82,8 @@ In Supabase Dashboard:
 2. Copy these values (you'll need them later):
    ```
    Project URL: https://xxxxx.supabase.co
-   anon public key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-   service_role key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... (keep secret!)
+   anon public key: <YOUR-SUPABASE-KEY>
+   service_role key: <YOUR-SUPABASE-KEY> (keep secret!)
    ```
 
 3. Go to **Project Settings** → **Database**
@@ -231,7 +231,7 @@ Name: SUPABASE_URL
 Value: https://xxxxx.supabase.co
 
 Name: SUPABASE_ANON_KEY
-Value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Value: <YOUR-SUPABASE-KEY>
 
 Name: DATABASE_URL (optional - for direct connection)
 Value: postgresql://postgres:[PASSWORD]@db.xxxxx.supabase.co:5432/postgres

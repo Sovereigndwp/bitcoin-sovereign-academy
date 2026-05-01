@@ -38,11 +38,11 @@ After creating your Supabase project, you need these 4 values:
 
 2. **SUPABASE_ANON_KEY**
    - Location: Settings → API → Project API keys → anon public
-   - Format: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (very long)
+   - Format: `<YOUR-SUPABASE-KEY>` (very long)
 
 3. **SUPABASE_SERVICE_ROLE_KEY** ⚠️ SECRET!
    - Location: Settings → API → Project API keys → service_role
-   - Format: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (very long, different from anon)
+   - Format: `<YOUR-SUPABASE-KEY>` (very long, different from anon)
 
 4. **DATABASE_URL**
    - Location: Settings → Database → Connection string → URI
@@ -72,8 +72,8 @@ Create `/Users/dalia/projects/bitcoin-sovereign-academy/.env`:
 ```bash
 # Supabase
 SUPABASE_URL=https://xxxxxxxxxxxxx.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_ANON_KEY=<YOUR-SUPABASE-KEY>
+SUPABASE_SERVICE_ROLE_KEY=<YOUR-SUPABASE-KEY>
 DATABASE_URL=postgresql://postgres.[ref]:[password]@...
 
 # JWT
