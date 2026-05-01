@@ -27,14 +27,16 @@ For each Foundation, open the source file in your design tool, look at the foote
 
 | # | Surface | Footer text (verbatim, or "matches") | Logo present (Y/N) | Visual drift vs F#2 (none/minor/major) | Source located (Y/N) |
 |---|---|---|---|---|---|
-| F1   | Foundation #1                          | does NOT match                             | N                  | major                                  | (assumed Y)          |
-| F3   | Foundation #3 (original)               | does NOT match                             | N                  | major                                  | (assumed Y)          |
-| F3v2 | Foundation #3v2                        | does NOT match                             | N                  | major                                  | (assumed Y)          |
-| F4   | Foundation #4                          | does NOT match                             | N                  | major                                  | (assumed Y)          |
-| F5   | Foundation #5                          | does NOT match                             | N                  | major                                  | (assumed Y)          |
+| F1   | Foundation #1                          | matches                                    | N                  | none                                   | Y                    |
+| F3   | Foundation #3 (original)               | matches                                    | N                  | none                                   | Y                    |
+| F3v2 | Foundation #3v2                        | matches                                    | N                  | none                                   | Y                    |
+| F4   | Foundation #4                          | matches                                    | N                  | none                                   | Y                    |
+| F5   | Foundation #5                          | matches                                    | N                  | none                                   | Y                    |
 | F2   | Foundation #2 (EN portrait, REFERENCE) | matches                                    | Y                  | none                                   | Y                    |
 
-**User report 2026-04-30:** all 5 siblings fail all 3 checks. None match the locked footer text, none carry the logo, none look like part of the same series as F#2.
+**User report 2026-04-30 (revised 2026-05-01):** all 5 siblings already carry the locked footer text and are visually consistent with F#2. Only gap: the BSA logo is missing from the footer area on every sibling. F#2 is the only piece in the series that has the logo (because it shipped after the logo was locked).
+
+**Series visual identity:** intact. The 1–5 series reads as one body of work in everything except logo presence.
 
 **Filling tips:**
 - "Footer text" — copy the exact characters. If it matches the reference verbatim, just write `matches`.
@@ -96,31 +98,31 @@ Open `https://sovereigndwp.substack.com/`. For each of the 10 most recent posts 
 
 Format: `[surface] — [gap] — [tier] — [resolution]`
 
-- **F1, F3, F3v2, F4, F5 — footer text drift** — medium tier — *absorbed by Path B v2 migration (decision a, 2026-04-30).*
-- **F1, F3, F3v2, F4, F5 — logo missing** — medium tier — *absorbed by migration.*
-- **F1, F3, F3v2, F4, F5 — visual drift vs F#2** — expensive tier — *absorbed by migration.*
-- **Substack last 10 posts — closing line missing on all 10** — cheap-to-medium tier — *requires editorial decision: retrofit existing posts, or apply forward-only?* See §Substack closing-line decision below.
+**Revised 2026-05-01** — Form A findings corrected. Original report flagged all 3 checks as failing; actual finding is footer text + visual consistency PASS, only logo missing.
 
-### §8 — Strategic decision needed (escalates from spec)
+- ~~F1, F3, F3v2, F4, F5 — footer text drift~~ — **NO GAP** (text matches across all 5).
+- **F1, F3, F3v2, F4, F5 — logo missing in footer area** — medium tier (5 separate design-tool sessions to add logo + re-export) — *resolution: drop locked logo into footer area of each sibling, re-export. Target: when next opening each file for any other reason.*
+- ~~F1, F3, F3v2, F4, F5 — visual drift vs F#2~~ — **NO GAP** (series visual identity intact).
+- **Substack last 10 posts — closing line missing on all 10** — pattern observation, not necessarily a gap — *requires editorial decision (A/B/C below).*
 
-Audit found that fixing the 5 siblings *individually* would require 5 separate design-tool sessions (~30–45 min each = 2.5–4 hours) and would only resolve text + logo, not visual drift. The visual drift is the bigger problem: a viewer scanning #1 → #5 sees five different design languages.
+### §8 — Strategic decision (revised 2026-05-01)
 
-The cheaper, higher-quality path: **migrate siblings 1, 3v2, 4, 5 into the Path B v2 pipeline** that just shipped Foundation #2. This means:
+**Original premise (2026-04-30):** all 5 siblings failed all 3 checks → decision (a) chosen, full Path B v2 migration scheduled.
 
-- Lift each sibling's content into a `foundation-N.{en,es}.json` file (one per sibling, EN + ES = 8 JSONs)
-- Re-render through the same template/script that produced Foundation #2
-- All 5 outputs become guaranteed-consistent: same footer, same logo, same typography, same color palette, same composition, multi-ratio + multi-language for free
+**Revised premise (2026-05-01):** Form A findings were incorrect. Siblings already pass footer text + visual consistency. Only logo is missing.
 
-Effort estimate: ~8–12 hours (vs ~3–4 hours for text-only retrofit, but text-only leaves visual drift).
+This collapses the strategic decision. The migration is no longer urgent — it'd be over-engineering for a single missing element. The actual remaining work:
 
-**Recommendation:** spec the migration as a separate task before doing any text-only retrofit work. Otherwise the retrofit is throwaway labor.
+**Resolution path: logo-only retrofit.** Open each of F1, F3v2, F4, F5 in source design tool, drop the locked logo (`assets/dalia/logo.svg`) into the footer area at the same scale/position used on F#2, re-export. ~10–15 min per sibling (logo file is ready, no design decisions needed). Total: ~50–75 min.
 
-**Decision required from user:**
-- (a) Spec the Path B v2 sibling migration; defer text retrofit until then
-- (b) Do text-only retrofit now in the design tool (5 sessions); accept visual drift; revisit migration later
-- (c) Accept the gap as-is for Phase 1; address in Phase 2
+If F3 (original) is fully superseded by F3v2, skip it (4 siblings instead of 5).
 
-**User decision 2026-04-30: (a).** Migration spec to be drafted at `docs/superpowers/specs/2026-04-30-foundations-pipeline-migration.md`. Task 14 (text-only audit) closes as **deferred to migration spec** — the migration absorbs the gaps recorded above and resolves them in one pass.
+**Decision (a) — Path B v2 migration — is no longer triggered by this audit.** The migration remains a "nice to have" for future-proofing (multi-ratio rendering, ES variants without re-design, future Foundations) but it is not justified by the gaps recorded here. It can be revisited when:
+- The first sibling needs an ES variant (would otherwise require new design work)
+- A new Foundation #6+ is planned
+- The series gets bundled as a lead magnet (PDF) and per-page consistency matters
+
+For Phase 1: just add the logo. Cheap, fast, done.
 
 ### Substack closing-line decision
 
@@ -138,12 +140,12 @@ Audit found **0/10** recent posts carry it. Every post instead ends with an essa
 
 (A) is over-engineering: ten retrofitted posts won't move any meaningful needle, and editing live Substack posts can re-trigger email sends in some configurations.
 
-### Task 14 close
+### Task 14 close (revised 2026-05-01)
 
-- **Visual artifacts** (Form A): 5/5 fail → absorbed by Path B v2 migration spec (decision a)
-- **Substack** (Form B): 0/10 pass → decision pending (A/B/C above)
-- **Identity hub** (Form C): ✅ appropriate per spec §4.5
-- Phase 1 verification §12 row #14: **deferred-pass** — gaps recorded, follow-up paths tracked
+- **Visual artifacts** (Form A): 5/5 carry correct footer text + consistent visual treatment. 5/5 missing logo. → Logo-only retrofit (medium tier, ~50–75 min, single batch).
+- **Substack** (Form B): 0/10 carry the closing line. → Editorial decision (A/B/C above) pending.
+- **Identity hub** (Form C): ✅ appropriate per spec §4.5.
+- Phase 1 verification §12 row #14: **conditional pass** — once siblings get the logo retrofit, Task 14 closes clean. Substack convention is a separate editorial call.
 
 ---
 
