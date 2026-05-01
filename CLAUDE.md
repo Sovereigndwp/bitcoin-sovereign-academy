@@ -1,189 +1,105 @@
-- Perfect — here’s your Bitcoin Sovereign Academy Project Memory Sheet
-(short, structured, and ready to share in Notion, Google Docs, or GitHub README.md):
+# CLAUDE.md
 
-⸻
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-🧠 Bitcoin Sovereign Academy
+## Project
 
-Project Memory Sheet – Vision, Context, and Development Framework
+Bitcoin Sovereign Academy is an interactive Bitcoin education platform.
 
-⸻
+- **Identity (canonical, locked 2026-04-28):** *"Bitcoin custody and inheritance for families and advisors. Bilingual. LATAM-fluent."*
+- **Voice:** First-principles, inform-not-convince, composable. See **`docs/marketing/voice-spec.md`** (canonical, supersedes any prior voice guidance).
+- **Tagline:** *Don't Trust, Verify.*
+- **Languages:** English primary, Spanish secondary (LATAM / Colombia niche). Spanish content lives at `paths/curious/stage-1/es/` and other path subdirectories.
 
-🎯 Mission & Core Identity
+The platform is created by Dalia, who also runs Financially Sovereign Academy (`/Users/dalia/projects/financially-sovereign-academy`), advises at The Bitcoin Adviser (collaborative 1-of-3 multisig), and authored the curriculum for The Bitcoin Diploma (Mi Primer Bitcoin).
 
-Goal: Empower individuals to understand and use Bitcoin through interactive learning and real-world simulations.
-Tagline: Learn Bitcoin. Achieve Sovereignty.
-Essence: Simple. Engaging. Independent.
+## Architecture
 
-Core Values:
-    •    Truth over trust
-    •    Financial sovereignty
-    •    Education through experience
-    •    Privacy and open access
+**Static site + serverless functions.** Frontend is HTML/CSS/JS with no build step for the main site. `api/` holds Vercel serverless functions (TypeScript) for payments, auth, analytics, tutor, webhooks. A local Express server (`server-local.js`) serves the same content + API for development.
 
-Voice:
-    •    Socratic (ask before telling)
-    •    Conversational, visual, and sharp
-    •    Avoid jargon and long paragraphs
+```
+/                      → homepage
+/paths/<path>/         → learning paths (curious, builder, sovereign, principled, ...)
+  stage-N/module-N.html  Each path: 4 stages × multiple modules
+  stage-1/es/            Spanish localization (Curious Stage 1 currently)
+/interactive-demos/    → 50+ standalone HTML demos
+/deep-dives/           → long-form explainers
+/dalia/                → identity hub (Phase 1 — voice spec referenced as canonical)
+/api/                  → Vercel serverless: tutor, payments, auth, analytics, track
+```
 
-⸻
+**Deployment:** Vercel auto-deploys from `main` (primary at bitcoinsovereign.academy); GitHub Pages secondary.
 
-🧩 Structure & Learning Framework
+**Live data:** mempool.space, CoinGecko, Blockchain.info, Kraken. Multi-source fallback in `js/bitcoin-data-reliable.js`. Bind live values via `data-btc-live="<key>"` attribute.
 
-Paths
+**Analytics:** First-party only via `/api/track` → Supabase. No third-party trackers. Canonical entry: `js/analytics.js`. Legacy `track()` / `trackEvent()` / `abVariant()` revived via shim (`e9ca8b1f`). See `reports/funnel-diagnosis-2026-04-27.md` for instrumentation context.
 
-Path    Purpose    Level
-Curious    Understand money and Bitcoin fundamentals    Beginner
-Builder    Learn tools, Lightning, and practical setups    Intermediate
-Sovereign    Deep security, custody, and inheritance mastery    Advanced
-Principled    Explore money ethics and philosophy    Reflective
-(Optional personas)    Business Owner / Investor / Parent / Developer / Global Citizen    Custom
+**Iframes:** `vercel.json` sets `X-Frame-Options: SAMEORIGIN` for `/paths/` (allows same-domain demo embedding); other paths `DENY`. Demos use absolute CSS paths (`/css/brand.css`), never relative.
 
-Each Path has 4 Stages → Each Stage has multiple Modules (5–10 min, interactive).
-Modules include Questions → Reflection → Activity → Summary → Next Step.
+## Commands
 
-⸻
+### Local dev
 
-🧠 Key Systems
+- `npm run dev` — Express at `http://localhost:3000` (opens browser)
+- `npm run start` — production mode
+- `npm run serve:static` — Python static server on port 8080
+- `npm run dev:api` — Vercel dev (serverless function testing)
 
-Component    Purpose    Core Files
-Onboarding Flow    Identify learner persona    onboarding-flow.js, .css
-Dynamic CTA Chips    Show personalized calls-to-action    hero-cta.js, chips.css
-Learning Path Engine    Manage progress, checkpoints, and achievements    learning-path.js
-Bitcoin Data Fallback    Fetch real-time Bitcoin stats with failover    bitcoin-data-fallback.js
-Interactive Demos    Core of hands-on learning    /interactive-demos/*.html
-3D Hero Experience    Visual engagement with subtle animation    hero3d.js, .css
-Analytics / A/B Logic    Privacy-safe usage tracking    script.js, ab-home.js
+### Tests
 
+Node's built-in `node:test` + `jsdom`. No Jest/Mocha.
 
-⸻
+- `npm run test` — smoke test (`/api/health`)
+- `npm run test:modules` — module gating tests
+- `npm run tutor:evals` — tutor SYSTEM_PROMPT regression suite (run after every prompt change — see TASKS.md M1)
+- Single test: `node --test path/to/test.mjs`
 
-🎨 Branding & Design
+### Audits + lint
 
-Palette:
-    •    Orange #f7931a – highlight
-    •    Dark Gray #1a1a1a – background
-    •    Secondary Dark #2d2d2d
-    •    Accent Greens, Purples, Reds per Path (--path-curious, --path-builder, etc.)
+No single `lint` command.
 
-Style:
-    •    Minimalist, cinematic gradients
-    •    Rounded corners, soft shadows
-    •    Light motion (respect prefers-reduced-motion)
-    •    Icons and buttons consistent with brand colors
+- `npm run audit:all` — SEO + security + content validation
+- `npm run audit:html` — html-validate on all `.html`
+- `npm run audit:seo` — Lighthouse CI
+- `npm run lint:services` — defunct-services lint (Paxful, Caravan, etc.)
+- `npm run lint:analytics` — analytics-coverage lint
+- `npm run build:utils` — typecheck util TS
 
-⸻
+### Deploy
 
-⚙️ Technical Infrastructure
-    •    Static Frontend: GitHub Pages → redirects to bitcoinsovereign.academy
-    •    Client-side Only: No backend (MCP integration planned)
-    •    Data Sources: CoinGecko, Mempool.space, Blockchain.info, Kraken
-    •    Privacy: No invasive analytics; only optional Plausible tracking
-    •    Accessibility: Keyboard navigation, reduced motion, high contrast
+- `git push origin main` — Vercel auto-deploys within ~60s
+- `npm run deploy` — programmatic via `tools/deploy-automation.js`
 
-⸻
+## Conventions
 
-🧑‍💻 Roles & Responsibilities
+**Brand voice (canonical):** `docs/marketing/voice-spec.md`. Three-part synthesis check (composability + first-principles + epistemic) applies pre-publish to every artifact. Operating frame is **unbounded mode** — no quizzes, no badges, no completion percentages.
 
-Editor:
-    •    Simplify and refine content flow
-    •    Maintain voice, eliminate redundancy
-    •    Add Socratic questions & reflection prompts
-    •    Align all lessons to learning outcomes
-    •    Oversee localization (Spanish / Colombia focus)
+**CSS tokens:** `--color-brand` (#f7931a), `--color-bg` (#0b0e14), `--color-surface`, `--color-border`, `--color-text`, `--color-muted` + `--gradient-*` / `--radius-*` / `--shadow-*` / `--space-*`. Defined in `css/brand.css`. Never introduce new design tokens — extend.
 
-Code Creator:
-    •    Keep all JS modular & maintainable
-    •    Integrate persona logic across modules
-    •    Maintain failover structure for APIs
-    •    Document new components in /docs/ or JSON format
-    •    Ensure responsive design, fast loading, no layout shifts
+**Sanitization:** All external API data sanitized before innerHTML via `safeInt()` / `safeNum()`. External URLs and labels via `escHtml()`. No `eval`. No user-controlled innerHTML except through sanitizer.
 
-⸻
+**Lab guide system:** `/css/lab-guide.css` + `/js/lab-guide.js`. 16 labs, localStorage key `bsa_lab_completions`. Add via `<div class="lab-card" data-lab="<id>" onclick="openLab('<id>')">`.
 
-📈 Future Integrations
-    •    MCP Agent Kit: Personalized guidance & AI explainers
-    •    Progressive Web App: Offline-first learning
-    •    Scenario Engine: Interactive labs (e.g., Inflation Lab, Custody Drill)
-    •    Gamified Achievements: Badges, XP progress, and shareable certificates
+**Reflect widget (Socratic AI):** `/js/reflect-widget.js`. Auto-inits via MutationObserver. Already on all 50 demos, 10 deep dives, 110 path modules. Add via `<div class="reflect-widget" data-topic="X" data-path="Y" data-title="Z">`.
 
-⸻
+**Live context bar:** `/js/bitcoin-context.js`. Sticky bar — block height, fees, mempool, halving countdown. 90s refresh.
 
-📋 Notes for New Collaborators
-    •    Always check persona context before editing code or text.
-    •    Keep all interactivity purposeful — every click should teach something.
-    •    Optimize for clarity and performance.
-    •    Never add tracking that compromises user privacy.
-    •    Document changes in plain English in /docs/changelog.md.
+**Accessibility:** WCAG 2.1 AA. Keyboard nav, `prefers-reduced-motion` respected, `:focus-visible` outlines, ARIA roles on interactive components.
 
-⸻
+**Privacy:** No third-party trackers, no ad pixels. Email tracking (opens/clicks) disabled in Resend. Server-side analytics first-party + anonymized.
 
-Would you like me to output this in Markdown format (ready to paste into your GitHub /docs/ folder or Notion page), or as a beautiful branded PDF (with your colors, logo, and headings)?
-- remember that The vercel.json configuration had X-Frame-Options: DENY for all pages, which prevented the demos from being embedded in iframes - even on the same
-  domain!
+## Active context
 
-  The Solution:
-  1. ✅ Added specific header rules for /paths/ (module pages)
-  2. ✅ Set X-Frame-Options: SAMEORIGIN (allows same-domain iframe embedding)
-  3. ✅ Added frame-src 'self' to Content-Security-Policy
-  4. ✅ Kept absolute paths (/interactive-demos/...) which work correctly on Vercel
-  5. ✅ Maintained security: only same-origin iframes allowed, external sites still blocked
-- Improved Card Structure & Spacing
+- **Active spec:** `docs/superpowers/specs/2026-04-28-phase-1-identity-convergence.md` (Identity Convergence + Asset Surfacing)
+- **Active plan:** `docs/superpowers/plans/2026-04-28-phase-1-identity-convergence-plan.md` (16 tasks; 1/2/3/8 shipped; 4–7 + 9–16 user-execution pending)
+- **Phase 2 candidates:** `2026-04-28-distribution-engine-phase-1-design.md` (Plan A: Spanish consumer) + `2026-04-28-distribution-engine-phase-1-design-plan-b.md` (Plan B: English professional)
+- **Funnel context:** `reports/funnel-diagnosis-2026-04-27.md` — ~190 sessions/month, traffic is the upstream bottleneck
+- **Tasks tracker:** `TASKS.md`
 
-  - Container: Increased max-width to 1200px, padding to
-  3rem 2rem
-  - Assessment Form: Increased padding from 2rem to 3rem
-  - Station Cards: Increased padding to 2.5rem, added
-  box-shadow
-  - Score Card: Increased padding to 3rem, added larger
-  box-shadow
-  - Scenario Boxes: Increased padding to 2.5rem, added
-  box-shadow
-  - Simulator Boxes: Increased padding to 2.5rem, added
-  box-shadow
-  - Resource Cards: Increased padding to 1.75rem
+## Sister project
 
-  3. Enhanced Form Elements
+`/Users/dalia/projects/financially-sovereign-academy` → financiallysovereign.academy. Mostly mirrors BSA conventions. Distinct lab-guide green theme; localStorage key `fsa_lab_completions`. FSA is mission-driven (underbanked) and explicitly not monetized.
 
-  - Radio Options:
-    - Increased padding to 1.25rem
-    - Enhanced hover state with lift effect and glow
-    - Better visual feedback on interaction
-  - Checkbox Options:
-    - Increased padding to 1rem 1.25rem
-    - Added hover lift and glow effects
-  - Scenario Options:
-    - Added explicit text color for readability
-    - Improved hover state with slide animation
+## Untracked items policy
 
-  4. Improved Interactivity
-
-  - Added subtle transform effects on hover for all
-  interactive elements
-  - Consistent box-shadow usage across cards (0 4px 12px
-  rgba(0, 0, 0, 0.2))
-  - Enhanced hover states with brand-colored glows
-
-  5. Mobile Responsiveness
-
-  - Optimized padding for mobile screens (< 768px)
-  - Container: 2rem 1.5rem
-  - Hero section: 2rem 1.5rem
-  - Forms and cards: Reduced padding for smaller screens
-  - All grids properly collapse to single column
-
-  6. Platform Consistency
-
-  - Uses brand CSS variables throughout
-  - Consistent border-radius (12px-20px depending on
-  element size)
-  - Proper use of var(--color-brand), var(--color-text),
-  var(--color-surface)
-  - Orange accent color (#f7931a) consistently applied
-
-  7. Visual Hierarchy
-
-  - Clear distinction between background levels
-  - Proper elevation through box-shadows
-  - Consistent spacing rhythm (1rem, 1.5rem, 2rem, 3rem)
-  - Better breathing room between sections
+`.claude/`, `.cursor/` are tooling dirs — never committed by default (TASKS.md M3). Always review `git status` before `git add`. Single-file drafts at repo root are not committed by default — review first.
