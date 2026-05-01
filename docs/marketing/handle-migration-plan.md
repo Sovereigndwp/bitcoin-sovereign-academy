@@ -140,6 +140,8 @@ Audit found **0/10** recent posts carry it. Every post instead ends with an essa
 
 (A) is over-engineering: ten retrofitted posts won't move any meaningful needle, and editing live Substack posts can re-trigger email sends in some configurations.
 
+**User decision 2026-05-01: (B) — forward-only.** Claude applies the closing line to every new Substack draft going forward (when drafting through Claude). Claude appends the line as a separate paragraph after the editorial ending so it doesn't dilute the essay closing.
+
 ### Task 14 close (revised 2026-05-01)
 
 - **Visual artifacts** (Form A): 5/5 carry correct footer text + consistent visual treatment. 5/5 missing logo. → Logo-only retrofit (medium tier, ~50–75 min, single batch).
