@@ -90,7 +90,6 @@
         const isDemos = path.startsWith('/interactive-demos/');
         const isDeep = path.startsWith('/deep-dives/');
         const isMembership = path === '/membership.html';
-        const isFSA = path.startsWith('/fsa/');
 
         function activeClass(condition) { return condition ? ' active' : ''; }
 
@@ -132,7 +131,7 @@
                 <li><a href="/paths/curious/"${activeClass(isPaths)}>Paths</a></li>
                 <li><a href="/interactive-demos/"${activeClass(isDemos)}>Demos</a></li>
                 <li><a href="/deep-dives/"${activeClass(isDeep)}>Deep Dives</a></li>
-                <li><a href="/fsa/"${activeClass(isFSA)}>Financial Literacy</a></li>
+                <li><a href="https://financiallysovereign.academy/" target="_blank" rel="noopener">Financial Literacy ↗</a></li>
                 <li><a href="/membership.html" class="bsa-nav__cta${activeClass(isMembership)}">Membership</a></li>
             </ul>
             ${progressHTML}
@@ -170,11 +169,6 @@
             window.bsaAnalytics.track('path_start', { pathId: pathMatch[1] });
         }
 
-        // Auto-track FSA bridge views
-        if (path.startsWith('/fsa/bridge/')) {
-            const bridgeId = path.replace('/fsa/bridge/', '').replace('.html', '');
-            if (bridgeId) window.bsaAnalytics.track('bridge_view', { bridgeId });
-        }
     }
 
     // Init
