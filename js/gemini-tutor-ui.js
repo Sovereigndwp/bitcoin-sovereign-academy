@@ -51,30 +51,30 @@ class GeminiTutorUI {
             bottom: 24px;
             right: 24px;
             z-index: 10000;
-            padding: 14px 24px;
-            background: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
-            color: white;
-            border: none;
-            border-radius: 50px;
+            padding: 12px 20px;
+            background: #1a1f29;
+            color: #f7931a;
+            border: 2px solid #f7931a;
+            border-radius: 8px;
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(247, 147, 26, 0.4);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
             display: flex;
             align-items: center;
             gap: 10px;
-            transition: all 0.3s ease;
-            min-height: 48px;
+            transition: background 0.2s ease, transform 0.2s ease;
+            min-height: 44px;
         `;
 
         button.addEventListener('mouseenter', () => {
-            button.style.transform = 'translateY(-2px) scale(1.02)';
-            button.style.boxShadow = '0 6px 25px rgba(247, 147, 26, 0.6)';
+            button.style.background = 'rgba(247, 147, 26, 0.1)';
+            button.style.transform = 'translateY(-1px)';
         });
 
         button.addEventListener('mouseleave', () => {
-            button.style.transform = 'translateY(0) scale(1)';
-            button.style.boxShadow = '0 4px 20px rgba(247, 147, 26, 0.4)';
+            button.style.background = '#1a1f29';
+            button.style.transform = 'translateY(0)';
         });
 
         document.body.appendChild(button);
