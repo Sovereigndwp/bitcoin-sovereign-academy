@@ -307,7 +307,7 @@
         lockOverlay.innerHTML = `
             <div style="max-width: 500px; text-align: center; color: white; font-family: system-ui;" tabindex="-1">
                 <div style="font-size: 4rem; margin-bottom: 1rem;" aria-hidden="true">🔒</div>
-                <h2 id="module-lock-title" style="font-size: 2rem; margin: 0 0 1rem; color: #f7931a;">Module Locked</h2>
+                <h2 id="module-lock-title" style="font-size: 2rem; margin: 0 0 1rem; color: #C8922A;">Module Locked</h2>
                 <p id="module-lock-desc" style="font-size: 1.1rem; color: #e0e0e0; line-height: 1.6; margin-bottom: 2rem;">
                     This module is available to Bitcoin Sovereign Academy members.
                     <br><br>
@@ -319,11 +319,11 @@
                         Access as Member →
                     </a>
                     <a href="/"
-                       style="display: inline-block; color: #f7931a; text-decoration: none; font-weight: 600; padding: 0.75rem 1.5rem; border: 2px solid #f7931a; border-radius: 999px;">
+                       style="display: inline-block; color: #C8922A; text-decoration: none; font-weight: 600; padding: 0.75rem 1.5rem; border: 2px solid #C8922A; border-radius: 999px;">
                         ← Back to Home
                     </a>
                     <p style="color: #b5b5b5; font-size: 0.9rem; margin-top: 1rem;">
-                        Not a member? <a href="/#unlock" style="color: #f7931a; text-decoration: underline;">Join now</a>
+                        Not a member? <a href="/#unlock" style="color: #C8922A; text-decoration: underline;">Join now</a>
                     </p>
                 </div>
             </div>
@@ -526,7 +526,7 @@
                 max-width: 520px;
                 padding: 2rem;
                 background: rgba(18, 18, 18, 0.95);
-                border: 1px solid rgba(247, 147, 26, 0.65);
+                border: 1px solid rgba(200, 146, 42, 0.65);
                 border-radius: 16px;
                 display: flex;
                 flex-direction: column;
@@ -538,7 +538,7 @@
             }
             .module-lock-overlay h3 {
                 font-size: 1.6rem;
-                color: #f7931a;
+                color: #C8922A;
                 margin: 0;
             }
             .module-lock-overlay p {
@@ -558,7 +558,7 @@
                 font-size: 0.95rem;
             }
             .module-lock-cta {
-                background: linear-gradient(135deg, #f7931a, #ffb347);
+                background: linear-gradient(135deg, #C8922A, #ffb347);
                 color: #121212;
                 font-weight: 700;
                 border: none;
@@ -569,21 +569,21 @@
             }
             .module-lock-cta:hover {
                 transform: translateY(-1px);
-                box-shadow: 0 12px 25px rgba(247, 147, 26, 0.35);
+                box-shadow: 0 12px 25px rgba(200, 146, 42, 0.35);
             }
             .module-lock-overlay small {
                 font-size: 0.8rem;
                 color: #b0bec5;
             }
             .module-lock-overlay a {
-                color: #f7931a;
+                color: #C8922A;
                 text-decoration: underline;
             }
             
             /* Gate Warning Banner */
             .gate-warning {
                 background: rgba(45, 45, 45, 0.6);
-                border: 1px dashed rgba(247, 147, 26, 0.4);
+                border: 1px dashed rgba(200, 146, 42, 0.4);
                 border-radius: 12px;
                 padding: 1.5rem;
                 margin-bottom: 2rem;
@@ -619,17 +619,17 @@
                 margin-top: 0.5rem;
             }
             .warning-cta-small {
-                color: #f7931a;
+                color: #C8922A;
                 font-weight: bold;
                 text-decoration: none;
-                border: 1px solid #f7931a;
+                border: 1px solid #C8922A;
                 padding: 0.4rem 1rem;
                 border-radius: 20px;
                 font-size: 0.9rem;
                 transition: all 0.2s;
             }
             .warning-cta-small:hover {
-                background: rgba(247, 147, 26, 0.1);
+                background: rgba(200, 146, 42, 0.1);
             }
             .gate-warning small {
                 color: #666;
@@ -659,7 +659,7 @@
                 text-align: left;
             }
             .unlock-preview h4 {
-                color: #f7931a;
+                color: #C8922A;
                 margin: 0 0 1rem 0;
                 font-size: 1rem;
                 text-transform: uppercase;
@@ -707,7 +707,7 @@
                 margin-bottom: 1.5rem;
             }
             .price-detail {
-                color: #f7931a;
+                color: #C8922A;
                 font-weight: bold;
                 font-size: 1.1rem;
             }

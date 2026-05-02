@@ -96,11 +96,11 @@
                             Access as Member →
                         </a>
                         <a href="/"
-                           style="display:inline-block;color:#f7931a;text-decoration:none;font-weight:600;font-size:1rem;padding:8px 16px;border:2px solid #f7931a;border-radius:8px;transition:all 0.2s;">
+                           style="display:inline-block;color:#C8922A;text-decoration:none;font-weight:600;font-size:1rem;padding:8px 16px;border:2px solid #C8922A;border-radius:8px;transition:all 0.2s;">
                             ← Back to Home
                         </a>
                         <p style="color:#666;font-size:0.85rem;margin-top:12px;">
-                            Not a member? <a href="/#unlock" style="color:#f7931a;text-decoration:underline;">Learn more</a>
+                            Not a member? <a href="/#unlock" style="color:#C8922A;text-decoration:underline;">Learn more</a>
                         </p>
                     </div>
                 </div>

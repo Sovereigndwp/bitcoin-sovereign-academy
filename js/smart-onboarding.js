@@ -113,7 +113,7 @@ class SmartOnboarding {
                 right: 2rem;
                 max-width: 320px;
                 background: rgba(26, 26, 26, 0.95);
-                border: 2px solid ${suggestion.color || '#f7931a'};
+                border: 2px solid ${suggestion.color || '#C8922A'};
                 border-radius: 1rem;
                 padding: 1.5rem;
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
@@ -149,7 +149,7 @@ class SmartOnboarding {
                 ">${suggestion.description}</p>
                 
                 <button class="notification-cta" data-suggestion='${JSON.stringify(suggestion)}' style="
-                    background: ${suggestion.color || '#f7931a'};
+                    background: ${suggestion.color || '#C8922A'};
                     color: white;
                     border: none;
                     padding: 0.6rem 1.25rem;
@@ -226,7 +226,7 @@ class SmartOnboarding {
             'bitcoin-basics': {
                 title: '🪙 What is Bitcoin?',
                 description: 'Interactive 2-minute demo',
-                iframe: '<div style="padding: 2rem; text-align: center; background: rgba(76, 175, 80, 0.1); border-radius: 0.5rem; border: 1px solid rgba(76, 175, 80, 0.3);"><h3 style="color: #4CAF50; margin-bottom: 1rem;">Bitcoin Demo Preview</h3><p style="color: rgba(224, 224, 224, 0.8); margin-bottom: 1.5rem;">This would be an interactive demo where you learn by doing, not reading.</p><div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;"><div style="background: rgba(247, 147, 26, 0.1); padding: 1rem; border-radius: 0.5rem; border: 1px solid rgba(247, 147, 26, 0.3);"><div style="font-size: 1.5rem; margin-bottom: 0.5rem;">⚡</div><div style="font-size: 0.8rem; color: rgba(224, 224, 224, 0.7);">Instant</div></div><div style="background: rgba(33, 150, 243, 0.1); padding: 1rem; border-radius: 0.5rem; border: 1px solid rgba(33, 150, 243, 0.3);"><div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🌍</div><div style="font-size: 0.8rem; color: rgba(224, 224, 224, 0.7);">Global</div></div><div style="background: rgba(229, 57, 53, 0.1); padding: 1rem; border-radius: 0.5rem; border: 1px solid rgba(229, 57, 53, 0.3);"><div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔒</div><div style="font-size: 0.8rem; color: rgba(224, 224, 224, 0.7);">Secure</div></div></div><p style="color: rgba(224, 224, 224, 0.6); font-size: 0.85rem;">This preview shows how our interactive demos work. Real demos include hands-on practice, step-by-step guidance, and immediate feedback.</p></div>',
+                iframe: '<div style="padding: 2rem; text-align: center; background: rgba(76, 175, 80, 0.1); border-radius: 0.5rem; border: 1px solid rgba(76, 175, 80, 0.3);"><h3 style="color: #4CAF50; margin-bottom: 1rem;">Bitcoin Demo Preview</h3><p style="color: rgba(224, 224, 224, 0.8); margin-bottom: 1.5rem;">This would be an interactive demo where you learn by doing, not reading.</p><div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;"><div style="background: rgba(200, 146, 42, 0.1); padding: 1rem; border-radius: 0.5rem; border: 1px solid rgba(200, 146, 42, 0.3);"><div style="font-size: 1.5rem; margin-bottom: 0.5rem;">⚡</div><div style="font-size: 0.8rem; color: rgba(224, 224, 224, 0.7);">Instant</div></div><div style="background: rgba(33, 150, 243, 0.1); padding: 1rem; border-radius: 0.5rem; border: 1px solid rgba(33, 150, 243, 0.3);"><div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🌍</div><div style="font-size: 0.8rem; color: rgba(224, 224, 224, 0.7);">Global</div></div><div style="background: rgba(229, 57, 53, 0.1); padding: 1rem; border-radius: 0.5rem; border: 1px solid rgba(229, 57, 53, 0.3);"><div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔒</div><div style="font-size: 0.8rem; color: rgba(224, 224, 224, 0.7);">Secure</div></div></div><p style="color: rgba(224, 224, 224, 0.6); font-size: 0.85rem;">This preview shows how our interactive demos work. Real demos include hands-on practice, step-by-step guidance, and immediate feedback.</p></div>',
                 fullLink: '/interactive-demos/#path-your-first-bitcoin'
             }
         };
@@ -255,7 +255,7 @@ class SmartOnboarding {
             ">
                 <div class="modal-content" style="
                     background: rgba(26, 26, 26, 0.95);
-                    border: 2px solid rgba(247, 147, 26, 0.3);
+                    border: 2px solid rgba(200, 146, 42, 0.3);
                     border-radius: 1rem;
                     max-width: 600px;
                     width: 100%;
@@ -304,7 +304,7 @@ class SmartOnboarding {
                             flex-wrap: wrap;
                         ">
                             <a href="${content.fullLink}" style="
-                                background: #f7931a;
+                                background: #C8922A;
                                 color: white;
                                 text-decoration: none;
                                 padding: 0.75rem 1.5rem;
@@ -457,7 +457,7 @@ class SmartOnboarding {
         if (returningUserDiv && this.userProfile.lastPath) {
             returningUserDiv.style.display = 'block';
             returningUserDiv.innerHTML = `
-                <a href="/my-learning/" style="color: rgba(247, 147, 26, 0.8); text-decoration: none; font-size: 0.9rem;">
+                <a href="/my-learning/" style="color: rgba(200, 146, 42, 0.8); text-decoration: none; font-size: 0.9rem;">
                     ← Continue ${this.userProfile.lastPath} Path
                 </a>
             `;

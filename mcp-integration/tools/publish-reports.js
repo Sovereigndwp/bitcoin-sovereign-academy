@@ -274,7 +274,7 @@ function formatHTML(summary) {
       padding: 2rem;
       line-height: 1.6;
     }
-    h1 { color: #1a1a1a; border-bottom: 3px solid #f7931a; padding-bottom: 0.5rem; }
+    h1 { color: #1a1a1a; border-bottom: 3px solid #C8922A; padding-bottom: 0.5rem; }
     h2 { color: #333; margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: 0.3rem; }
     table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
     th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #ddd; }

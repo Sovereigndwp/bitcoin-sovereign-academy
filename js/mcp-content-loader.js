@@ -499,7 +499,7 @@ const loadingCSS = `
     }
     
     .suggestion-btn {
-        background: rgba(247, 147, 26, 0.2);
+        background: rgba(200, 146, 42, 0.2);
         border: 1px solid var(--primary-orange);
         color: var(--primary-orange);
         padding: 0.5rem 1rem;
@@ -527,14 +527,14 @@ const loadingCSS = `
     }
     
     .message-bubble {
-        background: rgba(247, 147, 26, 0.1);
+        background: rgba(200, 146, 42, 0.1);
         padding: 0.5rem 1rem;
         border-radius: 10px;
         color: var(--text-light);
     }
     
     .chat-message.agent .message-bubble {
-        background: rgba(247, 147, 26, 0.2);
+        background: rgba(200, 146, 42, 0.2);
     }
     
     .chat-input {

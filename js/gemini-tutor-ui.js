@@ -53,8 +53,8 @@ class GeminiTutorUI {
             z-index: 10000;
             padding: 12px 20px;
             background: #1a1f29;
-            color: #f7931a;
-            border: 2px solid #f7931a;
+            color: #C8922A;
+            border: 2px solid #C8922A;
             border-radius: 8px;
             font-size: 15px;
             font-weight: 600;
@@ -68,7 +68,7 @@ class GeminiTutorUI {
         `;
 
         button.addEventListener('mouseenter', () => {
-            button.style.background = 'rgba(247, 147, 26, 0.1)';
+            button.style.background = 'rgba(200, 146, 42, 0.1)';
             button.style.transform = 'translateY(-1px)';
         });
 
@@ -96,25 +96,25 @@ class GeminiTutorUI {
             max-height: calc(100vh - 140px);
             background: #1a1a1a;
             border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(247, 147, 26, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(200, 146, 42, 0.2);
             z-index: 9999;
             display: none;
             flex-direction: column;
             overflow: hidden;
-            border: 2px solid rgba(247, 147, 26, 0.3);
+            border: 2px solid rgba(200, 146, 42, 0.3);
         `;
 
         container.innerHTML = `
             <div class="chat-header" style="
                 padding: 16px 20px;
-                background: linear-gradient(135deg, rgba(247, 147, 26, 0.15) 0%, rgba(247, 147, 26, 0.05) 100%);
-                border-bottom: 1px solid rgba(247, 147, 26, 0.2);
+                background: linear-gradient(135deg, rgba(200, 146, 42, 0.15) 0%, rgba(200, 146, 42, 0.05) 100%);
+                border-bottom: 1px solid rgba(200, 146, 42, 0.2);
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
             ">
                 <div>
-                    <h3 style="margin: 0; font-size: 16px; color: #f7931a; font-weight: 700;">🎓 AI Bitcoin Tutor</h3>
+                    <h3 style="margin: 0; font-size: 16px; color: #C8922A; font-weight: 700;">🎓 AI Bitcoin Tutor</h3>
                     <p id="tutor-context-display" style="margin: 4px 0 0 0; font-size: 12px; color: #999;">Bitcoin Learning</p>
                 </div>
                 <div style="display: flex; gap: 8px;">
@@ -197,7 +197,7 @@ class GeminiTutorUI {
                         style="
                             flex: 1;
                             padding: 12px 16px;
-                            border: 2px solid rgba(247, 147, 26, 0.2);
+                            border: 2px solid rgba(200, 146, 42, 0.2);
                             border-radius: 12px;
                             background: #1a1a1a;
                             color: #e0e0e0;
@@ -207,7 +207,7 @@ class GeminiTutorUI {
                     />
                     <button type="button" id="send-btn" aria-label="Send message" style="
                         padding: 12px 20px;
-                        background: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
+                        background: linear-gradient(135deg, #C8922A 0%, #ffb347 100%);
                         border: none;
                         border-radius: 12px;
                         color: white;
@@ -218,7 +218,7 @@ class GeminiTutorUI {
                     ">Send</button>
                 </div>
                 <div id="api-key-notice" style="margin-top: 10px; font-size: 11px; color: #666; display: none;">
-                    <a href="#" id="api-key-link" style="color: #f7931a;">⚙️ Configure API Key</a> to enable AI responses
+                    <a href="#" id="api-key-link" style="color: #C8922A;">⚙️ Configure API Key</a> to enable AI responses
                 </div>
             </div>
         `;
@@ -256,10 +256,10 @@ class GeminiTutorUI {
 
         // Input focus styling
         this.chatInput.addEventListener('focus', () => {
-            this.chatInput.style.borderColor = 'rgba(247, 147, 26, 0.5)';
+            this.chatInput.style.borderColor = 'rgba(200, 146, 42, 0.5)';
         });
         this.chatInput.addEventListener('blur', () => {
-            this.chatInput.style.borderColor = 'rgba(247, 147, 26, 0.2)';
+            this.chatInput.style.borderColor = 'rgba(200, 146, 42, 0.2)';
         });
 
         // API key link
@@ -346,8 +346,8 @@ I use the Socratic method - I'll ask questions to help you discover insights you
             btn.setAttribute('aria-label', `Ask: ${q}`);
             btn.style.cssText = `
                 padding: 6px 12px;
-                background: rgba(247, 147, 26, 0.1);
-                border: 1px solid rgba(247, 147, 26, 0.2);
+                background: rgba(200, 146, 42, 0.1);
+                border: 1px solid rgba(200, 146, 42, 0.2);
                 border-radius: 16px;
                 color: #e0e0e0;
                 font-size: 11px;
@@ -360,12 +360,12 @@ I use the Socratic method - I'll ask questions to help you discover insights you
                 this.sendMessage();
             });
             btn.addEventListener('mouseenter', () => {
-                btn.style.background = 'rgba(247, 147, 26, 0.2)';
-                btn.style.borderColor = 'rgba(247, 147, 26, 0.4)';
+                btn.style.background = 'rgba(200, 146, 42, 0.2)';
+                btn.style.borderColor = 'rgba(200, 146, 42, 0.4)';
             });
             btn.addEventListener('mouseleave', () => {
-                btn.style.background = 'rgba(247, 147, 26, 0.1)';
-                btn.style.borderColor = 'rgba(247, 147, 26, 0.2)';
+                btn.style.background = 'rgba(200, 146, 42, 0.1)';
+                btn.style.borderColor = 'rgba(200, 146, 42, 0.2)';
             });
             container.appendChild(btn);
         });
@@ -441,7 +441,7 @@ I use the Socratic method - I'll ask questions to help you discover insights you
             border-radius: ${isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px'};
             max-width: 88%;
             align-self: ${isUser ? 'flex-end' : 'flex-start'};
-            background: ${isUser ? 'linear-gradient(135deg, #f7931a 0%, #e88a17 100%)' : isError ? 'rgba(244, 67, 54, 0.15)' : 'rgba(255, 255, 255, 0.05)'};
+            background: ${isUser ? 'linear-gradient(135deg, #C8922A 0%, #e88a17 100%)' : isError ? 'rgba(244, 67, 54, 0.15)' : 'rgba(255, 255, 255, 0.05)'};
             color: ${isUser ? 'white' : isError ? '#ff6b6b' : '#e0e0e0'};
             word-wrap: break-word;
             line-height: 1.6;
@@ -474,9 +474,9 @@ I use the Socratic method - I'll ask questions to help you discover insights you
         indicator.setAttribute('aria-hidden', 'true');
         indicator.innerHTML = `
             <div style="display: flex; gap: 5px;">
-                <div class="dot" style="width: 8px; height: 8px; background: #f7931a; border-radius: 50%; animation: typing 1.4s infinite;"></div>
-                <div class="dot" style="width: 8px; height: 8px; background: #f7931a; border-radius: 50%; animation: typing 1.4s infinite 0.2s;"></div>
-                <div class="dot" style="width: 8px; height: 8px; background: #f7931a; border-radius: 50%; animation: typing 1.4s infinite 0.4s;"></div>
+                <div class="dot" style="width: 8px; height: 8px; background: #C8922A; border-radius: 50%; animation: typing 1.4s infinite;"></div>
+                <div class="dot" style="width: 8px; height: 8px; background: #C8922A; border-radius: 50%; animation: typing 1.4s infinite 0.2s;"></div>
+                <div class="dot" style="width: 8px; height: 8px; background: #C8922A; border-radius: 50%; animation: typing 1.4s infinite 0.4s;"></div>
             </div>
         `;
 

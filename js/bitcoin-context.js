@@ -181,7 +181,7 @@
     top: 0;
     z-index: 900;
     background: linear-gradient(90deg, #1a1a1a 0%, #212121 100%);
-    border-bottom: 1px solid rgba(247,147,26,0.25);
+    border-bottom: 1px solid rgba(200, 146, 42,0.25);
     font-size: 0.78rem;
     font-family: 'JetBrains Mono', 'Courier New', monospace;
     color: #ccc;
@@ -197,7 +197,7 @@
     margin: 0 auto;
 }
 .ctx-brand {
-    color: #f7931a;
+    color: #C8922A;
     font-weight: 700;
     letter-spacing: 0.03em;
     margin-right: 0.4rem;
@@ -233,7 +233,7 @@
 .ctx-loading { color: #a0a0a0; font-style: italic; }
 .ctx-err     { color: #f87171; }
 .ctx-explorer {
-    color: #f7931a;
+    color: #C8922A;
     text-decoration: none;
     opacity: 0.85;  /* was 0.75 — subtle bump for legibility */
     margin-left: auto;
@@ -244,7 +244,7 @@
 }
 .ctx-explorer:hover { opacity: 1; }
 .ctx-explorer:focus-visible {
-    outline: 2px solid #f7931a;
+    outline: 2px solid #C8922A;
     outline-offset: 2px;
     opacity: 1;
 }
@@ -264,7 +264,7 @@
 }
 .ctx-close:hover { color: #fff; background: rgba(255,255,255,0.06); }
 .ctx-close:focus-visible {
-    outline: 2px solid #f7931a;
+    outline: 2px solid #C8922A;
     outline-offset: 2px;
     color: #fff;
 }

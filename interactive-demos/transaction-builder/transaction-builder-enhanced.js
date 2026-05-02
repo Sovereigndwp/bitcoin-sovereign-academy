@@ -53,19 +53,19 @@ class TransactionBuilderEnhanced {
       <div class="difficulty-selector" style="margin-top: 1.5rem;">
         <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--text-light);">Choose Your Learning Mode</h3>
         <div class="difficulty-buttons" style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
-          <button class="difficulty-btn active" data-difficulty="guided" style="background: rgba(247, 147, 26, 0.2); border: 2px solid var(--primary-orange); color: var(--text-light); padding: 0.75rem 1.25rem; border-radius: 10px; cursor: pointer; transition: all 0.3s; font-size: 0.9rem;">
+          <button class="difficulty-btn active" data-difficulty="guided" style="background: rgba(200, 146, 42, 0.2); border: 2px solid var(--primary-orange); color: var(--text-light); padding: 0.75rem 1.25rem; border-radius: 10px; cursor: pointer; transition: all 0.3s; font-size: 0.9rem;">
             🎓 Guided
             <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Step-by-step with hints</div>
           </button>
-          <button class="difficulty-btn" data-difficulty="interactive" style="background: rgba(0, 0, 0, 0.3); border: 2px solid rgba(247, 147, 26, 0.3); color: var(--text-light); padding: 0.75rem 1.25rem; border-radius: 10px; cursor: pointer; transition: all 0.3s; font-size: 0.9rem;">
+          <button class="difficulty-btn" data-difficulty="interactive" style="background: rgba(0, 0, 0, 0.3); border: 2px solid rgba(200, 146, 42, 0.3); color: var(--text-light); padding: 0.75rem 1.25rem; border-radius: 10px; cursor: pointer; transition: all 0.3s; font-size: 0.9rem;">
             🔧 Interactive
             <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Hands-on learning</div>
           </button>
-          <button class="difficulty-btn" data-difficulty="challenge" style="background: rgba(0, 0, 0, 0.3); border: 2px solid rgba(247, 147, 26, 0.3); color: var(--text-light); padding: 0.75rem 1.25rem; border-radius: 10px; cursor: pointer; transition: all 0.3s; font-size: 0.9rem;">
+          <button class="difficulty-btn" data-difficulty="challenge" style="background: rgba(0, 0, 0, 0.3); border: 2px solid rgba(200, 146, 42, 0.3); color: var(--text-light); padding: 0.75rem 1.25rem; border-radius: 10px; cursor: pointer; transition: all 0.3s; font-size: 0.9rem;">
             🏆 Challenge
             <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Quiz mode</div>
           </button>
-          <button class="difficulty-btn" data-difficulty="expert" style="background: rgba(0, 0, 0, 0.3); border: 2px solid rgba(247, 147, 26, 0.3); color: var(--text-light); padding: 0.75rem 1.25rem; border-radius: 10px; cursor: pointer; transition: all 0.3s; font-size: 0.9rem;">
+          <button class="difficulty-btn" data-difficulty="expert" style="background: rgba(0, 0, 0, 0.3); border: 2px solid rgba(200, 146, 42, 0.3); color: var(--text-light); padding: 0.75rem 1.25rem; border-radius: 10px; cursor: pointer; transition: all 0.3s; font-size: 0.9rem;">
             ⚡ Expert
             <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Full control</div>
           </button>
@@ -81,10 +81,10 @@ class TransactionBuilderEnhanced {
         document.querySelectorAll('.difficulty-btn').forEach(b => {
           b.classList.remove('active');
           b.style.background = 'rgba(0, 0, 0, 0.3)';
-          b.style.borderColor = 'rgba(247, 147, 26, 0.3)';
+          b.style.borderColor = 'rgba(200, 146, 42, 0.3)';
         });
         e.currentTarget.classList.add('active');
-        e.currentTarget.style.background = 'rgba(247, 147, 26, 0.2)';
+        e.currentTarget.style.background = 'rgba(200, 146, 42, 0.2)';
         e.currentTarget.style.borderColor = 'var(--primary-orange)';
         this.difficulty = e.currentTarget.dataset.difficulty;
         this.updateForDifficulty();
@@ -97,10 +97,10 @@ class TransactionBuilderEnhanced {
       document.querySelectorAll('.difficulty-btn').forEach(b => {
         b.classList.remove('active');
         b.style.background = 'rgba(0, 0, 0, 0.3)';
-        b.style.borderColor = 'rgba(247, 147, 26, 0.3)';
+        b.style.borderColor = 'rgba(200, 146, 42, 0.3)';
       });
       initialBtn.classList.add('active');
-      initialBtn.style.background = 'rgba(247, 147, 26, 0.2)';
+      initialBtn.style.background = 'rgba(200, 146, 42, 0.2)';
       initialBtn.style.borderColor = 'var(--primary-orange)';
       this.updateForDifficulty(); // Apply initial difficulty settings
     }
@@ -270,7 +270,7 @@ This is why selecting fewer, larger UTXOs saves on fees!`
           <!-- Transaction -->
           <div style="flex: 1; min-width: 150px;">
             <div style="text-align: center; margin-bottom: 0.5rem; color: var(--text-light); font-weight: 600;">TRANSACTION</div>
-            <div style="background: rgba(247, 147, 26, 0.2); border: 2px solid var(--primary-orange); padding: 1rem; border-radius: 8px; text-align: center; min-height: 100px; display: flex; flex-direction: column; justify-content: center;">
+            <div style="background: rgba(200, 146, 42, 0.2); border: 2px solid var(--primary-orange); padding: 1rem; border-radius: 8px; text-align: center; min-height: 100px; display: flex; flex-direction: column; justify-content: center;">
               <div style="font-size: 0.85rem; color: var(--text-light);">
                 <div id="viz-tx-size">~0 vBytes</div>
                 <div id="viz-tx-fee" style="margin-top: 0.25rem;">Fee: 0 sats</div>

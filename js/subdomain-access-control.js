@@ -287,7 +287,7 @@
                 `;
             } else if (accessLevel === CONFIG.accessLevels.PREVIEW) {
                 bannerHTML = `
-                    <div id="subdomain-access-banner" style="background: linear-gradient(135deg, #f7931a, #ffb347); color: #121212; padding: 0.75rem 1.5rem; text-align: center; font-weight: 600; position: fixed; top: 0; left: 0; right: 0; z-index: 10000; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+                    <div id="subdomain-access-banner" style="background: linear-gradient(135deg, #C8922A, #ffb347); color: #121212; padding: 0.75rem 1.5rem; text-align: center; font-weight: 600; position: fixed; top: 0; left: 0; right: 0; z-index: 10000; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
                         <span style="font-size: 1.1rem;">👁️ Preview Mode Active</span>
                         <span style="margin: 0 1rem; opacity: 0.7;">|</span>
                         <span style="font-size: 0.9rem;">Demo access enabled</span>

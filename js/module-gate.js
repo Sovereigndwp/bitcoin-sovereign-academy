@@ -427,8 +427,8 @@
         style.textContent = `
             /* Paywall Warning Styles */
             .paywall-warning {
-                background: linear-gradient(135deg, rgba(247, 147, 26, 0.15), rgba(255, 179, 71, 0.1));
-                border: 2px solid rgba(247, 147, 26, 0.4);
+                background: linear-gradient(135deg, rgba(200, 146, 42, 0.15), rgba(255, 179, 71, 0.1));
+                border: 2px solid rgba(200, 146, 42, 0.4);
                 border-radius: 12px;
                 padding: 1.5rem;
                 margin: 2rem 0;
@@ -447,7 +447,7 @@
             }
             .paywall-warning-content h4 {
                 margin: 0 0 0.5rem 0;
-                color: #f7931a;
+                color: #C8922A;
                 font-size: 1.2rem;
             }
             .paywall-warning-content p {
@@ -462,7 +462,7 @@
                 flex-wrap: wrap;
             }
             .btn-primary-small {
-                background: linear-gradient(135deg, #f7931a, #ffb347);
+                background: linear-gradient(135deg, #C8922A, #ffb347);
                 color: #121212;
                 font-weight: 600;
                 padding: 0.6rem 1.25rem;
@@ -473,14 +473,14 @@
             }
             .btn-primary-small:hover {
                 transform: translateY(-1px);
-                box-shadow: 0 8px 20px rgba(247, 147, 26, 0.3);
+                box-shadow: 0 8px 20px rgba(200, 146, 42, 0.3);
             }
             .paywall-warning-or {
                 color: #9aa4b2;
                 font-size: 0.9rem;
             }
             .paywall-warning-continue {
-                color: #f7931a;
+                color: #C8922A;
                 text-decoration: none;
                 font-size: 0.95rem;
                 transition: color 0.2s ease;
@@ -513,7 +513,7 @@
                 overflow-y: auto;
                 padding: 2.5rem;
                 background: rgba(18, 18, 18, 0.98);
-                border: 1px solid rgba(247, 147, 26, 0.65);
+                border: 1px solid rgba(200, 146, 42, 0.65);
                 border-radius: 16px;
                 display: flex;
                 flex-direction: column;
@@ -552,7 +552,7 @@
             }
             .module-lock-overlay h3 {
                 font-size: 1.8rem;
-                color: #f7931a;
+                color: #C8922A;
                 margin: 0;
                 line-height: 1.3;
             }
@@ -563,15 +563,15 @@
                 line-height: 1.5;
             }
             .module-unlock-benefits {
-                background: rgba(247, 147, 26, 0.05);
-                border: 1px solid rgba(247, 147, 26, 0.2);
+                background: rgba(200, 146, 42, 0.05);
+                border: 1px solid rgba(200, 146, 42, 0.2);
                 border-radius: 12px;
                 padding: 1.5rem;
                 text-align: left;
             }
             .module-unlock-benefits h4 {
                 margin: 0 0 1rem 0;
-                color: #f7931a;
+                color: #C8922A;
                 font-size: 1.1rem;
                 text-align: center;
             }
@@ -641,7 +641,7 @@
             .price {
                 font-size: 2.5rem;
                 font-weight: 700;
-                color: #f7931a;
+                color: #C8922A;
                 line-height: 1;
             }
             .price-detail {
@@ -649,7 +649,7 @@
                 font-size: 0.9rem;
             }
             .module-lock-cta {
-                background: linear-gradient(135deg, #f7931a, #ffb347);
+                background: linear-gradient(135deg, #C8922A, #ffb347);
                 color: #121212;
                 font-weight: 700;
                 font-size: 1.1rem;
@@ -662,7 +662,7 @@
             }
             .module-lock-cta:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 12px 30px rgba(247, 147, 26, 0.4);
+                box-shadow: 0 12px 30px rgba(200, 146, 42, 0.4);
             }
             .module-lock-overlay small {
                 font-size: 0.85rem;
@@ -670,7 +670,7 @@
                 margin-top: 0.5rem;
             }
             .module-lock-overlay a {
-                color: #f7931a;
+                color: #C8922A;
                 text-decoration: underline;
             }
 

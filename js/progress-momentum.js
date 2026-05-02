@@ -55,7 +55,7 @@ class ProgressMomentum {
                 top: 100px;
                 right: 2rem;
                 background: rgba(26, 26, 26, 0.95);
-                border: 1px solid rgba(247, 147, 26, 0.3);
+                border: 1px solid rgba(200, 146, 42, 0.3);
                 border-radius: 12px;
                 padding: 1rem;
                 min-width: 200px;
@@ -72,7 +72,7 @@ class ProgressMomentum {
                     margin-bottom: 0.75rem;
                 ">
                     <h4 style="
-                        color: #f7931a;
+                        color: #C8922A;
                         margin: 0;
                         font-size: 0.9rem;
                         display: flex;
@@ -127,9 +127,9 @@ class ProgressMomentum {
                     <div class="progress-actions" style="margin-top: 0.75rem;">
                         <a href="/my-learning/" style="
                             display: block;
-                            background: rgba(247, 147, 26, 0.15);
-                            border: 1px solid rgba(247, 147, 26, 0.3);
-                            color: #f7931a;
+                            background: rgba(200, 146, 42, 0.15);
+                            border: 1px solid rgba(200, 146, 42, 0.3);
+                            color: #C8922A;
                             text-decoration: none;
                             padding: 0.5rem;
                             border-radius: 6px;

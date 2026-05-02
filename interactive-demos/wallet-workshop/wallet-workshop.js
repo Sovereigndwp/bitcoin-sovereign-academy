@@ -846,7 +846,7 @@ class WalletWorkshop {
               <!-- Simplified elliptic curve visualization -->
               <defs>
                 <linearGradient id="curveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" style="stop-color:#f7931a;stop-opacity:1" />
+                  <stop offset="0%" style="stop-color:#C8922A;stop-opacity:1" />
                   <stop offset="100%" style="stop-color:#ff6b00;stop-opacity:1" />
                 </linearGradient>
               </defs>
@@ -1547,12 +1547,12 @@ class WalletWorkshop {
         border-radius: 12px;
         padding: 2rem;
         margin-bottom: 2rem;
-        border: 1px solid rgba(247, 147, 26, 0.2);
+        border: 1px solid rgba(200, 146, 42, 0.2);
       }
 
       .difficulty-selector h3 {
         text-align: center;
-        color: #f7931a;
+        color: #C8922A;
         margin-bottom: 1.5rem;
       }
 
@@ -1564,7 +1564,7 @@ class WalletWorkshop {
 
       .difficulty-btn {
         background: rgba(255, 255, 255, 0.05);
-        border: 2px solid rgba(247, 147, 26, 0.3);
+        border: 2px solid rgba(200, 146, 42, 0.3);
         border-radius: 8px;
         padding: 1rem;
         cursor: pointer;
@@ -1578,13 +1578,13 @@ class WalletWorkshop {
       }
 
       .difficulty-btn:hover {
-        border-color: #f7931a;
+        border-color: #C8922A;
         transform: translateY(-2px);
       }
 
       .difficulty-btn.active {
-        background: linear-gradient(135deg, #f7931a, #ff6b00);
-        border-color: #f7931a;
+        background: linear-gradient(135deg, #C8922A, #ff6b00);
+        border-color: #C8922A;
       }
 
       .difficulty-btn small {
@@ -1622,14 +1622,14 @@ class WalletWorkshop {
         align-items: center;
         justify-content: center;
         font-size: 1.5rem;
-        border: 3px solid rgba(247, 147, 26, 0.3);
+        border: 3px solid rgba(200, 146, 42, 0.3);
         transition: all 0.3s ease;
       }
 
       .progress-step.active .step-icon {
-        background: linear-gradient(135deg, #f7931a, #ff6b00);
-        border-color: #f7931a;
-        box-shadow: 0 0 20px rgba(247, 147, 26, 0.5);
+        background: linear-gradient(135deg, #C8922A, #ff6b00);
+        border-color: #C8922A;
+        box-shadow: 0 0 20px rgba(200, 146, 42, 0.5);
       }
 
       .progress-step.completed .step-icon {
@@ -1644,7 +1644,7 @@ class WalletWorkshop {
       }
 
       .progress-step.active .step-title {
-        color: #f7931a;
+        color: #C8922A;
         font-weight: 600;
       }
 
@@ -1652,7 +1652,7 @@ class WalletWorkshop {
         position: absolute;
         top: 0;
         right: 0;
-        background: #f7931a;
+        background: #C8922A;
         color: white;
         width: 20px;
         height: 20px;
@@ -1667,7 +1667,7 @@ class WalletWorkshop {
       .progress-connector {
         flex: 1;
         height: 3px;
-        background: rgba(247, 147, 26, 0.2);
+        background: rgba(200, 146, 42, 0.2);
         margin: 0 -1rem;
         position: relative;
         top: -30px;
@@ -1679,7 +1679,7 @@ class WalletWorkshop {
         border-radius: 12px;
         padding: 2rem;
         margin: 2rem 0;
-        border: 1px solid rgba(247, 147, 26, 0.2);
+        border: 1px solid rgba(200, 146, 42, 0.2);
       }
 
       .step-header {
@@ -1688,7 +1688,7 @@ class WalletWorkshop {
       }
 
       .step-header h2 {
-        color: #f7931a;
+        color: #C8922A;
         margin-bottom: 0.5rem;
       }
 
@@ -1746,7 +1746,7 @@ class WalletWorkshop {
       }
 
       .interactive-section h3 {
-        color: #f7931a;
+        color: #C8922A;
         margin-bottom: 1rem;
       }
 
@@ -1763,7 +1763,7 @@ class WalletWorkshop {
         gap: 0.75rem;
         padding: 0.85rem 1.5rem;
         border-radius: 999px;
-        border: 1px solid rgba(247, 147, 26, 0.4);
+        border: 1px solid rgba(200, 146, 42, 0.4);
         background: rgba(255, 255, 255, 0.05);
         color: #fff;
         cursor: pointer;
@@ -1772,14 +1772,14 @@ class WalletWorkshop {
       }
 
       .toggle-btn:hover {
-        border-color: #f7931a;
+        border-color: #C8922A;
         transform: translateY(-1px);
       }
 
       .toggle-btn.active {
-        background: linear-gradient(135deg, #f7931a, #ff6b00);
+        background: linear-gradient(135deg, #C8922A, #ff6b00);
         color: #1a1a1a;
-        box-shadow: 0 10px 25px rgba(247, 147, 26, 0.35);
+        box-shadow: 0 10px 25px rgba(200, 146, 42, 0.35);
       }
 
       .toggle-icon {
@@ -1794,7 +1794,7 @@ class WalletWorkshop {
 
       .entropy-panel {
         background: rgba(0, 0, 0, 0.25);
-        border: 1px solid rgba(247, 147, 26, 0.25);
+        border: 1px solid rgba(200, 146, 42, 0.25);
         border-radius: 12px;
         padding: 1.5rem;
       }
@@ -1841,7 +1841,7 @@ class WalletWorkshop {
       }
 
       .iframe-attrib a {
-        color: #f7931a;
+        color: #C8922A;
         text-decoration: none;
       }
 
@@ -1868,7 +1868,7 @@ class WalletWorkshop {
       }
 
       .demo-header h3 {
-        color: #f7931a;
+        color: #C8922A;
         font-size: 1.5rem;
         margin-bottom: 0.5rem;
       }
@@ -1933,7 +1933,7 @@ class WalletWorkshop {
       }
 
       .flip-btn {
-        background: linear-gradient(135deg, #f7931a, #ff6b00);
+        background: linear-gradient(135deg, #C8922A, #ff6b00);
         color: white;
         border: none;
         padding: 0.85rem 1.5rem;
@@ -1946,17 +1946,17 @@ class WalletWorkshop {
 
       .flip-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(247, 147, 26, 0.4);
+        box-shadow: 0 8px 20px rgba(200, 146, 42, 0.4);
       }
 
       .flip-btn.secondary {
         background: rgba(255, 255, 255, 0.1);
-        border: 2px solid rgba(247, 147, 26, 0.4);
+        border: 2px solid rgba(200, 146, 42, 0.4);
       }
 
       .flip-btn.secondary:hover {
         background: rgba(255, 255, 255, 0.15);
-        border-color: #f7931a;
+        border-color: #C8922A;
       }
 
       .coin-stats {
@@ -1984,7 +1984,7 @@ class WalletWorkshop {
         display: block;
         font-size: 1.5rem;
         font-weight: 700;
-        color: #f7931a;
+        color: #C8922A;
       }
 
       .coin-grid {
@@ -2018,7 +2018,7 @@ class WalletWorkshop {
 
       .coin.unflipped:hover {
         background: rgba(255, 255, 255, 0.2);
-        border-color: #f7931a;
+        border-color: #C8922A;
         transform: scale(1.1);
       }
 
@@ -2038,7 +2038,7 @@ class WalletWorkshop {
 
       .coin.heads:hover, .coin.tails:hover {
         transform: scale(1.15);
-        box-shadow: 0 0 15px rgba(247, 147, 26, 0.5);
+        box-shadow: 0 0 15px rgba(200, 146, 42, 0.5);
       }
 
       @keyframes flipIn {
@@ -2060,12 +2060,12 @@ class WalletWorkshop {
         background: rgba(0, 0, 0, 0.3);
         padding: 1.25rem;
         border-radius: 8px;
-        border: 2px solid rgba(247, 147, 26, 0.3);
+        border: 2px solid rgba(200, 146, 42, 0.3);
         margin-bottom: 1rem;
       }
 
       .entropy-output h4 {
-        color: #f7931a;
+        color: #C8922A;
         margin-bottom: 0.75rem;
         font-size: 1.1rem;
       }
@@ -2242,7 +2242,7 @@ class WalletWorkshop {
       }
 
       .dice-btn {
-        background: linear-gradient(135deg, #f7931a, #ff6b00);
+        background: linear-gradient(135deg, #C8922A, #ff6b00);
         border: none;
         padding: 1.5rem 3rem;
         border-radius: 12px;
@@ -2255,7 +2255,7 @@ class WalletWorkshop {
 
       .dice-btn:hover {
         transform: scale(1.05);
-        box-shadow: 0 10px 30px rgba(247, 147, 26, 0.4);
+        box-shadow: 0 10px 30px rgba(200, 146, 42, 0.4);
       }
 
       .dice {
@@ -2284,7 +2284,7 @@ class WalletWorkshop {
 
       .progress-text {
         text-align: center;
-        color: #f7931a;
+        color: #C8922A;
         font-size: 1.1rem;
         font-weight: 600;
       }
@@ -2349,7 +2349,7 @@ class WalletWorkshop {
 
       .seed-word-item {
         background: rgba(0, 0, 0, 0.3);
-        border: 2px solid #f7931a;
+        border: 2px solid #C8922A;
         border-radius: 8px;
         padding: 1rem;
         display: flex;
@@ -2358,7 +2358,7 @@ class WalletWorkshop {
       }
 
       .word-number {
-        background: #f7931a;
+        background: #C8922A;
         color: white;
         width: 30px;
         height: 30px;
@@ -2371,7 +2371,7 @@ class WalletWorkshop {
       }
 
       .word-text {
-        color: #f7931a;
+        color: #C8922A;
         font-weight: 600;
         font-size: 1.1rem;
       }
@@ -2412,7 +2412,7 @@ class WalletWorkshop {
 
       .nav-btn {
         padding: 1rem 2rem;
-        border: 2px solid rgba(247, 147, 26, 0.3);
+        border: 2px solid rgba(200, 146, 42, 0.3);
         background: rgba(255, 255, 255, 0.05);
         color: white;
         border-radius: 8px;
@@ -2423,7 +2423,7 @@ class WalletWorkshop {
       }
 
       .nav-btn:hover:not(:disabled) {
-        border-color: #f7931a;
+        border-color: #C8922A;
         transform: translateY(-2px);
       }
 
@@ -2433,8 +2433,8 @@ class WalletWorkshop {
       }
 
       .nav-btn.primary {
-        background: linear-gradient(135deg, #f7931a, #ff6b00);
-        border-color: #f7931a;
+        background: linear-gradient(135deg, #C8922A, #ff6b00);
+        border-color: #C8922A;
       }
 
       @media (max-width: 768px) {

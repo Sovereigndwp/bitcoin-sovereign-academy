@@ -55,8 +55,8 @@ substackUrl: '',
             styles.id = 'email-capture-styles';
             styles.textContent = `
                 .email-capture-inline {
-                    background: linear-gradient(135deg, rgba(247, 147, 26, 0.1) 0%, rgba(247, 147, 26, 0.05) 100%);
-                    border: 2px solid rgba(247, 147, 26, 0.25);
+                    background: linear-gradient(135deg, rgba(200, 146, 42, 0.1) 0%, rgba(200, 146, 42, 0.05) 100%);
+                    border: 2px solid rgba(200, 146, 42, 0.25);
                     border-radius: 16px;
                     padding: 1.5rem 2rem;
                     margin: 2rem 0;
@@ -64,7 +64,7 @@ substackUrl: '',
                 }
 
                 .email-capture-inline h3 {
-                    color: #f7931a;
+                    color: #C8922A;
                     font-size: 1.25rem;
                     margin-bottom: 0.5rem;
                 }
@@ -97,12 +97,12 @@ substackUrl: '',
 
                 .email-capture-form input[type="email"]:focus {
                     outline: none;
-                    border-color: #f7931a;
+                    border-color: #C8922A;
                 }
 
                 .email-capture-form button {
                     padding: 0.75rem 1.5rem;
-                    background: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
+                    background: linear-gradient(135deg, #C8922A 0%, #ffb347 100%);
                     color: #000;
                     border: none;
                     border-radius: 10px;
@@ -114,7 +114,7 @@ substackUrl: '',
 
                 .email-capture-form button:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 4px 15px rgba(247, 147, 26, 0.4);
+                    box-shadow: 0 4px 15px rgba(200, 146, 42, 0.4);
                 }
 
                 .email-capture-privacy {
@@ -124,7 +124,7 @@ substackUrl: '',
                 }
 
                 .email-capture-privacy a {
-                    color: #f7931a;
+                    color: #C8922A;
                 }
 
                 .email-capture-success {
@@ -154,7 +154,7 @@ substackUrl: '',
 
                 .email-capture-modal {
                     background: #1a1a1a;
-                    border: 2px solid #f7931a;
+                    border: 2px solid #C8922A;
                     border-radius: 20px;
                     padding: 2.5rem;
                     max-width: 480px;
@@ -175,7 +175,7 @@ substackUrl: '',
                 }
 
                 .email-capture-modal h3 {
-                    color: #f7931a;
+                    color: #C8922A;
                     font-size: 1.5rem;
                     margin-bottom: 0.75rem;
                 }

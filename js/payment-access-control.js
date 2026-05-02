@@ -345,7 +345,7 @@ const AccessControl = (function() {
       position: absolute;
       top: 10px;
       right: 10px;
-      background: linear-gradient(135deg, #f7931a, #ff8c00);
+      background: linear-gradient(135deg, #C8922A, #ff8c00);
       color: white;
       padding: 6px 12px;
       border-radius: 20px;
@@ -444,7 +444,7 @@ const AccessControl = (function() {
         position: fixed;
         width: 10px;
         height: 10px;
-        background: ${['#f7931a', '#4CAF50', '#9333ea'][Math.floor(Math.random() * 3)]};
+        background: ${['#C8922A', '#4CAF50', '#9333ea'][Math.floor(Math.random() * 3)]};
         top: -10px;
         left: ${Math.random() * 100}vw;
         animation: confettiFall ${2 + Math.random() * 3}s linear forwards;
@@ -514,7 +514,7 @@ style.textContent = `
 
   .lock-content h3 {
     font-size: 1.75rem;
-    color: #f7931a;
+    color: #C8922A;
     margin-bottom: 0.5rem;
   }
 
@@ -524,7 +524,7 @@ style.textContent = `
   }
 
   .btn-unlock-premium {
-    background: linear-gradient(135deg, #f7931a, #ff8c00);
+    background: linear-gradient(135deg, #C8922A, #ff8c00);
     color: white;
     border: none;
     padding: 1rem 2rem;
@@ -537,7 +537,7 @@ style.textContent = `
 
   .btn-unlock-premium:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(247, 147, 26, 0.5);
+    box-shadow: 0 8px 24px rgba(200, 146, 42, 0.5);
   }
 
   @keyframes pulse {

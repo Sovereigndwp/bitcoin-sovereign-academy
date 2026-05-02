@@ -92,7 +92,7 @@ class MiningSimulatorEnhanced {
     style.textContent = `
       .difficulty-btn {
         background: rgba(0, 0, 0, 0.3);
-        border: 2px solid rgba(247, 147, 26, 0.3);
+        border: 2px solid rgba(200, 146, 42, 0.3);
         color: var(--text-light);
         padding: 0.75rem 1.25rem;
         border-radius: 10px;
@@ -103,10 +103,10 @@ class MiningSimulatorEnhanced {
       }
       .difficulty-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(247, 147, 26, 0.3);
+        box-shadow: 0 4px 12px rgba(200, 146, 42, 0.3);
       }
       .difficulty-btn.active {
-        background: rgba(247, 147, 26, 0.2);
+        background: rgba(200, 146, 42, 0.2);
         border-color: var(--primary-orange);
       }
     `;
@@ -127,10 +127,10 @@ class MiningSimulatorEnhanced {
       document.querySelectorAll('.difficulty-btn').forEach(b => {
         b.classList.remove('active');
         b.style.background = 'rgba(0, 0, 0, 0.3)';
-        b.style.borderColor = 'rgba(247, 147, 26, 0.3)';
+        b.style.borderColor = 'rgba(200, 146, 42, 0.3)';
       });
       initialBtn.classList.add('active');
-      initialBtn.style.background = 'rgba(247, 147, 26, 0.2)';
+      initialBtn.style.background = 'rgba(200, 146, 42, 0.2)';
       initialBtn.style.borderColor = 'var(--primary-orange)';
       this.updateForDifficulty();
     }
@@ -159,7 +159,7 @@ class MiningSimulatorEnhanced {
           <label style="color: var(--text-light); font-weight: 600; display: block; margin-bottom: 0.75rem;">
             Difficulty: <span id="difficulty-level" style="color: var(--primary-orange);">3 leading zeros</span>
           </label>
-          <input type="range" id="difficulty-slider" min="1" max="4" value="3" style="width: 100%; height: 8px; border-radius: 5px; background: rgba(247, 147, 26, 0.2); outline: none; margin-bottom: 0.5rem;">
+          <input type="range" id="difficulty-slider" min="1" max="4" value="3" style="width: 100%; height: 8px; border-radius: 5px; background: rgba(200, 146, 42, 0.2); outline: none; margin-bottom: 0.5rem;">
           <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-dim);">
             <span>1 zero (easiest)</span>
             <span>2 zeros</span>
@@ -295,7 +295,7 @@ class MiningSimulatorEnhanced {
               <span class="field-label">Difficulty Target:</span>
               <span class="field-value" id="block-difficulty">---</span>
             </div>
-            <div class="block-field" style="background: rgba(247, 147, 26, 0.1); border-left: 3px solid var(--primary-orange);">
+            <div class="block-field" style="background: rgba(200, 146, 42, 0.1); border-left: 3px solid var(--primary-orange);">
               <span class="field-label">🔢 Nonce:</span>
               <span class="field-value" id="block-nonce" style="color: var(--primary-orange); font-weight: bold; font-size: 1.2rem;">0</span>
             </div>
@@ -356,7 +356,7 @@ class MiningSimulatorEnhanced {
         animation: slideIn 0.3s ease;
       }
       .tx-item.pending {
-        background: rgba(247, 147, 26, 0.1);
+        background: rgba(200, 146, 42, 0.1);
         border-left-color: var(--primary-orange);
       }
       @keyframes slideIn {

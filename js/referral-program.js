@@ -74,8 +74,8 @@
         style.id = 'referral-program-styles';
         style.textContent = `
             .referral-section {
-                background: linear-gradient(135deg, rgba(147, 51, 234, 0.08) 0%, rgba(247, 147, 26, 0.08) 100%);
-                border: 2px solid rgba(247, 147, 26, 0.25);
+                background: linear-gradient(135deg, rgba(147, 51, 234, 0.08) 0%, rgba(200, 146, 42, 0.08) 100%);
+                border: 2px solid rgba(200, 146, 42, 0.25);
                 border-radius: 20px;
                 padding: 2.5rem;
                 margin: 3rem 0;
@@ -83,7 +83,7 @@
             .referral-section h2 {
                 font-size: 1.5rem;
                 margin-bottom: 0.5rem;
-                color: #f7931a;
+                color: #C8922A;
             }
             .referral-section .subtitle {
                 color: #999;
@@ -106,7 +106,7 @@
                 font-size: 0.85rem;
             }
             .referral-link-box button {
-                background: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
+                background: linear-gradient(135deg, #C8922A 0%, #ffb347 100%);
                 color: #000;
                 border: none;
                 padding: 0.75rem 1.25rem;
@@ -118,7 +118,7 @@
             }
             .referral-link-box button:hover {
                 transform: translateY(-1px);
-                box-shadow: 0 4px 16px rgba(247, 147, 26, 0.3);
+                box-shadow: 0 4px 16px rgba(200, 146, 42, 0.3);
             }
             .referral-stats {
                 display: flex;
@@ -138,7 +138,7 @@
             .referral-stat .num {
                 font-size: 1.75rem;
                 font-weight: 800;
-                color: #f7931a;
+                color: #C8922A;
                 display: block;
             }
             .referral-stat .lbl {
@@ -196,7 +196,7 @@
         if (!linkData && !getAuthToken()) {
             section.innerHTML += `
                 <p style="color:#999;text-align:center;padding:1rem;">
-                    <a href="/account.html" style="color:#f7931a;text-decoration:underline;">Sign in</a> to get your personal referral link.
+                    <a href="/account.html" style="color:#C8922A;text-decoration:underline;">Sign in</a> to get your personal referral link.
                 </p>`;
             return;
         }

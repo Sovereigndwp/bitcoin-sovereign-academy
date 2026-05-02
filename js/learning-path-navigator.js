@@ -270,7 +270,7 @@
                 z-index: 9999;
                 background: linear-gradient(135deg, rgba(26, 26, 26, 0.98) 0%, rgba(45, 45, 45, 0.98) 100%);
                 backdrop-filter: blur(10px);
-                border-bottom: 2px solid rgba(247, 147, 26, 0.3);
+                border-bottom: 2px solid rgba(200, 146, 42, 0.3);
                 padding: 1rem 2rem;
                 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
                 animation: slideDown 0.3s ease;
@@ -334,14 +334,14 @@
             }
 
             .lpn-btn-primary {
-                background: linear-gradient(135deg, #f7931a, #ffb347);
+                background: linear-gradient(135deg, #C8922A, #ffb347);
                 color: white;
-                box-shadow: 0 2px 10px rgba(247, 147, 26, 0.3);
+                box-shadow: 0 2px 10px rgba(200, 146, 42, 0.3);
             }
 
             .lpn-btn-primary:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 4px 15px rgba(247, 147, 26, 0.4);
+                box-shadow: 0 4px 15px rgba(200, 146, 42, 0.4);
             }
 
             .lpn-btn-secondary {
@@ -367,7 +367,7 @@
             }
 
             .lpn-close:hover {
-                color: #f7931a;
+                color: #C8922A;
             }
 
             /* Mobile Responsive */

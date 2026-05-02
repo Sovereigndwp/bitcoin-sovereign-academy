@@ -33,7 +33,7 @@
                 right: 0;
                 background: rgba(18, 23, 35, 0.95);
                 backdrop-filter: blur(10px);
-                border-bottom: 1px solid rgba(247, 147, 26, 0.2);
+                border-bottom: 1px solid rgba(200, 146, 42, 0.2);
                 z-index: 1000;
                 transform: translateY(-100%);
                 transition: transform 0.3s ease;
@@ -81,14 +81,14 @@
 
             .progress-fill-bar {
                 height: 100%;
-                background: linear-gradient(90deg, #f7931a, #ffb347);
+                background: linear-gradient(90deg, #C8922A, #ffb347);
                 width: 0%;
                 transition: width 0.1s linear;
             }
 
             .time-remaining-badge {
-                background: rgba(247, 147, 26, 0.15);
-                color: #f7931a;
+                background: rgba(200, 146, 42, 0.15);
+                color: #C8922A;
                 padding: 0.25rem 0.75rem;
                 border-radius: 12px;
                 font-size: 0.8rem;
@@ -106,7 +106,7 @@
                     bottom: 0;
                     transform: translateY(100%);
                     border-bottom: none;
-                    border-top: 1px solid rgba(247, 147, 26, 0.2);
+                    border-top: 1px solid rgba(200, 146, 42, 0.2);
                 }
             }
         `;

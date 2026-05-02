@@ -99,23 +99,23 @@
                 top: 10px;
                 right: 10px;
                 padding: 8px 16px;
-                background: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
+                background: linear-gradient(135deg, #C8922A 0%, #ffb347 100%);
                 color: white;
                 border: none;
                 border-radius: 20px;
                 font-size: 12px;
                 font-weight: 600;
                 cursor: pointer;
-                box-shadow: 0 2px 8px rgba(247, 147, 26, 0.4);
+                box-shadow: 0 2px 8px rgba(200, 146, 42, 0.4);
                 transition: all 0.2s ease;
                 z-index: 100;
             `;
         } else {
             button.style.cssText = `
                 padding: 8px 16px;
-                background: rgba(247, 147, 26, 0.1);
-                color: #f7931a;
-                border: 1px solid rgba(247, 147, 26, 0.3);
+                background: rgba(200, 146, 42, 0.1);
+                color: #C8922A;
+                border: 1px solid rgba(200, 146, 42, 0.3);
                 border-radius: 8px;
                 font-size: 13px;
                 font-weight: 500;
@@ -128,13 +128,13 @@
         button.addEventListener('mouseenter', () => {
             button.style.transform = 'translateY(-1px)';
             button.style.boxShadow = style === 'floating' 
-                ? '0 4px 12px rgba(247, 147, 26, 0.5)'
-                : '0 2px 8px rgba(247, 147, 26, 0.3)';
+                ? '0 4px 12px rgba(200, 146, 42, 0.5)'
+                : '0 2px 8px rgba(200, 146, 42, 0.3)';
         });
         button.addEventListener('mouseleave', () => {
             button.style.transform = 'translateY(0)';
             button.style.boxShadow = style === 'floating'
-                ? '0 2px 8px rgba(247, 147, 26, 0.4)'
+                ? '0 2px 8px rgba(200, 146, 42, 0.4)'
                 : 'none';
         });
 
@@ -185,9 +185,9 @@
                 flex-wrap: wrap;
                 margin-top: 16px;
                 padding: 12px;
-                background: rgba(247, 147, 26, 0.05);
+                background: rgba(200, 146, 42, 0.05);
                 border-radius: 8px;
-                border: 1px solid rgba(247, 147, 26, 0.1);
+                border: 1px solid rgba(200, 146, 42, 0.1);
             `;
 
             const label = document.createElement('span');

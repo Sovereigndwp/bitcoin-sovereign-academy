@@ -92,14 +92,14 @@
                 }
 
                 .tip-cta-btn.primary {
-                    background: linear-gradient(135deg, #f7931a 0%, #ffb347 100%);
+                    background: linear-gradient(135deg, #C8922A 0%, #ffb347 100%);
                     color: #000;
                     border: none;
                 }
 
                 .tip-cta-btn.primary:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 4px 15px rgba(247, 147, 26, 0.4);
+                    box-shadow: 0 4px 15px rgba(200, 146, 42, 0.4);
                 }
 
                 .tip-cta-btn.secondary {
@@ -145,8 +145,8 @@
 
                 /* Footer variant */
                 .tip-cta.footer {
-                    background: rgba(247, 147, 26, 0.05);
-                    border-color: rgba(247, 147, 26, 0.2);
+                    background: rgba(200, 146, 42, 0.05);
+                    border-color: rgba(200, 146, 42, 0.2);
                     justify-content: center;
                     text-align: center;
                     flex-direction: column;
@@ -154,7 +154,7 @@
                 }
 
                 .tip-cta.footer .tip-cta-content h4 {
-                    color: #f7931a;
+                    color: #C8922A;
                 }
 
                 /* Lightning QR Modal */
@@ -178,7 +178,7 @@
 
                 .tip-modal {
                     background: #1a1a1a;
-                    border: 2px solid #f7931a;
+                    border: 2px solid #C8922A;
                     border-radius: 20px;
                     padding: 2rem;
                     max-width: 400px;
@@ -199,7 +199,7 @@
                 }
 
                 .tip-modal h3 {
-                    color: #f7931a;
+                    color: #C8922A;
                     margin-bottom: 0.5rem;
                 }
 
@@ -228,7 +228,7 @@
                     border-radius: 8px;
                     font-family: monospace;
                     font-size: 0.8rem;
-                    color: #f7931a;
+                    color: #C8922A;
                     word-break: break-all;
                     margin-bottom: 1rem;
                 }
@@ -266,14 +266,14 @@
                 }
 
                 .tip-amount-btn:hover {
-                    border-color: #f7931a;
-                    color: #f7931a;
+                    border-color: #C8922A;
+                    color: #C8922A;
                 }
 
                 .tip-amount-btn.selected {
-                    background: rgba(247, 147, 26, 0.2);
-                    border-color: #f7931a;
-                    color: #f7931a;
+                    background: rgba(200, 146, 42, 0.2);
+                    border-color: #C8922A;
+                    color: #C8922A;
                 }
             `;
             document.head.appendChild(styles);

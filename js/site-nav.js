@@ -31,7 +31,7 @@
     }
     .bsa-nav__brand {
         display: flex; align-items: center; gap: 0.5rem;
-        text-decoration: none; color: #f7931a; font-weight: 700; font-size: 1rem;
+        text-decoration: none; color: #C8922A; font-weight: 700; font-size: 1rem;
         white-space: nowrap;
     }
     .bsa-nav__brand:hover { color: #ffb347; }
@@ -43,14 +43,14 @@
         color: #9aa4b2; text-decoration: none; font-weight: 500;
         transition: color 0.2s;
     }
-    .bsa-nav__links a:hover, .bsa-nav__links a.active { color: #f7931a; }
+    .bsa-nav__links a:hover, .bsa-nav__links a.active { color: #C8922A; }
     .bsa-nav__cta {
-        background: linear-gradient(135deg, #f7931a, #ffb347);
+        background: linear-gradient(135deg, #C8922A, #ffb347);
         color: #000 !important; font-weight: 700 !important;
         padding: 0.35rem 1rem; border-radius: 999px;
         font-size: 0.85rem; white-space: nowrap;
     }
-    .bsa-nav__cta:hover { box-shadow: 0 2px 12px rgba(247,147,26,0.4); color: #000 !important; }
+    .bsa-nav__cta:hover { box-shadow: 0 2px 12px rgba(200, 146, 42,0.4); color: #000 !important; }
     .bsa-nav__progress {
         display: flex; align-items: center; gap: 0.5rem;
         font-size: 0.8rem; color: #9aa4b2;
@@ -59,7 +59,7 @@
         width: 60px; height: 6px; background: #202938; border-radius: 3px; overflow: hidden;
     }
     .bsa-nav__progress-fill {
-        height: 100%; background: linear-gradient(90deg, #f7931a, #ffb347); border-radius: 3px;
+        height: 100%; background: linear-gradient(90deg, #C8922A, #ffb347); border-radius: 3px;
         transition: width 0.3s;
     }
     .bsa-nav__hamburger {
