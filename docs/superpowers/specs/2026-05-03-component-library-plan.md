@@ -8,6 +8,18 @@
 
 ---
 
+## 0. Where to start (next session)
+
+1. Read this spec end-to-end + `2026-05-03-site-wide-ia-audit.md` (cascade plan + decisions).
+2. Audit `index.html` — list every inline `<style>` block + every class defined inline that this spec promotes to a component (eyebrow, section-tag, editorial-title, editorial-subtitle, editorial-2col, cream-section, dark-section, hero-radial-gold, inverted-card, hairline-divider, mono-pill, page-cream).
+3. Propose the extraction plan **before** editing `brand.css` — which inline blocks move where, what gets renamed, what stays homepage-specific. Confirm with Dalia.
+4. Then: extract → refactor `index.html` to consume the named classes → verify zero visual regression (preview before/after; pay attention to the cream-paper hero, gold-diamond section tags, and the editorial 2-col grid).
+5. Commit + push. Update this spec's status from `Draft` → `Shipped`.
+
+**Don't:** start cascading to other pages (about, dalia, start, …) in the same session. P1 cascade is its own session, gated on this extraction landing cleanly.
+
+---
+
 ## 1. Why this exists
 
 After the homepage cream-paper conversion (commit `021dc680`), the visual system is fully realized in one place but **not extracted as reusable components**. Every other strategic page (about, dalia, start, weekly, institutional landings) needs the same treatment. Doing it page-by-page without a shared component vocabulary will produce:

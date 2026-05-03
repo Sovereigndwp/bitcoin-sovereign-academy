@@ -3,7 +3,7 @@
 > Shared roadmap + task list. Check this file at the start of every session.
 > See `CLAUDE.md` for values and voice. See `weekly/index.html` for shipped-changelog.
 
-Last updated: 2026-04-27 (A1 + A3 confirmed done after stale-status sweep; institutional analytics-coverage shipped + CI lint added)
+Last updated: 2026-05-03 (visual-system cascade thread added as B6; component library + IA audit specs landed in `43dc0d6f`)
 
 ---
 
@@ -80,6 +80,28 @@ Ranked by leverage × feasibility. Pull from the top.
 **Why we stopped:** the rate-limiter is in-memory (`Map<string, count>` in `api/rate-limiter.ts`), which resets on every cold start. Vercel functions are stateless, so "5 per 15min" is closer to "5 per warm-instance lifetime" — real protection against opportunistic abuse, ~zero protection against a motivated attacker who rotates IPs or triggers cold starts. CORS allow-listing only blocks browser-based CSRF; payment endpoints flow through Stripe / BTCPay / Zaprite which do their own server-side verification. P3+P4 was diminishing-returns plumbing while B1 / B2 (content + tiered reflection) compound for every learner.
 
 **Residual risk accepted:** the Phase 3 (4 endpoints) and Phase 4 (12 endpoints) targets retain whatever CORS / rate-limit they had pre-revert. If we ever revisit, the right move is to (a) understand why Phase 3 was reverted before re-shipping and (b) replace the in-memory limiter with Upstash Redis or a Supabase row-counter so the limits actually mean what they say.
+
+### B6. Visual-system cascade — sovereign-editorial across the site 🎨
+
+**Status:** specs landed (`43dc0d6f`); execution starts next session.
+
+**What:** the homepage cream-paper conversion (`021dc680`) realized the new visual system in one place. Every other strategic page (about, dalia, start, weekly, institutional landings, paths/* indexes, ~10 pages in P1) needs the same treatment. Done page-by-page without a shared component vocabulary it produces token drift + reinvented patterns + an unmaintainable system.
+
+**Specs (canonical refs):**
+- [`docs/superpowers/specs/2026-05-03-component-library-plan.md`](docs/superpowers/specs/2026-05-03-component-library-plan.md) — 12 named components extracted from the homepage. §0 has the entry-criteria for the next session.
+- [`docs/superpowers/specs/2026-05-03-site-wide-ia-audit.md`](docs/superpowers/specs/2026-05-03-site-wide-ia-audit.md) — 14-category audit + cascade plan with decisions baked in (page tiers, what's P1 vs P2, what gets de-duped first).
+
+**Sequence (one bet at a time, don't combine):**
+- [ ] **B6.1 Component extraction** — pull homepage inline CSS into named classes in `brand.css`. Refactor `index.html` to consume them. Zero visual regression. ~1 hour. Sets up everything below.
+- [ ] **B6.2 P1 strategic-pages cascade** — apply component classes to ~10 pages (about, dalia, start, weekly, institutional landings, top-of-funnel path indexes). One session, one commit per page or one commit per cluster — TBD when we get there. Gated on B6.1 landing cleanly.
+- [ ] **B6.3 P2 prerequisites** — demo de-duplication audit + advisor cert content audit (move `day-N` → `modules/`). Pre-P2 because applying the new style to redundant content compounds the cleanup cost. See IA-audit spec for scope.
+- [ ] **B6.4 P2 cascade** — interactive demos + path modules (~150 pages). Likely templatized via a shared head/foot include or a `lab-guide`-style auto-injector. Gated on B6.3.
+
+**Backlog (separate specs when prioritized — not gating cascade):**
+- Embedded interactive on homepage (path-recommender quiz + new structure/style).
+- Popup audit + style cascade — every popup either adopts the new style or gets removed.
+
+**Why this matters:** the visual system is the second-order lever after content truthfulness (B1) and tutor quality (A1). Pages with editorial polish + first-principles voice convert advisors and parents in ways that feature-bullet pages don't. Without the component layer the cascade either drifts or doesn't ship.
 
 ---
 
