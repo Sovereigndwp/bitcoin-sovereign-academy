@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Florida pre-construction Bitcoin deposit calculator | Bitcoin Sovereign Academy</title>
+<meta name="description" content="Compare the financial outcomes of selling Bitcoin versus borrowing against it to fund a Florida pre-construction property deposit.">
+<style>
+  :root {
+    --primary:#f7931a; --primary-soft:#ffb04a; --dark:#1a1a1a; --dark2:#2d2d2d;
+    --dark3:#383838; --light:#e0e0e0; --dim:#b3b3b3; --faint:#7a7a7a;
+    --grad:linear-gradient(135deg,#f7931a,#ffb04a);
+    --green:#3ccb7f; --red:#ff6b6b; --yellow:#ffcb57;
+    --border:rgba(255,255,255,0.1); --border-strong:rgba(247,147,26,0.45);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+       background:var(--dark);color:var(--light);line-height:1.6;}
+
+  .header{background:rgba(45,45,45,0.97);backdrop-filter:blur(10px);padding:1rem 0;
+          border-bottom:2px solid var(--primary);position:sticky;top:0;z-index:100;}
+  .header-inner{max-width:1200px;margin:0 auto;padding:0 2rem;display:flex;
+                justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
+  .logo{display:flex;align-items:center;gap:0.75rem;text-decoration:none;color:var(--light);}
+  .logo-icon{width:34px;height:34px;background:var(--grad);border-radius:50%;
+             display:flex;align-items:center;justify-content:center;font-weight:bold;color:white;}
+  .logo-text{font-weight:bold;font-size:0.95rem;}
+  .header-cta{padding:0.5rem 1.2rem;background:var(--grad);color:white;
+              text-decoration:none;border-radius:20px;font-weight:600;font-size:0.9rem;}
+
+  .container{max-width:1200px;margin:0 auto;padding:2rem;}
+  .hero{padding:3rem 2rem 1rem;text-align:center;max-width:900px;margin:0 auto;}
+  .hero .eyebrow{color:var(--primary);font-size:0.8rem;letter-spacing:0.1em;
+                 text-transform:uppercase;font-weight:700;margin-bottom:1rem;}
+  .hero h1{font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:700;line-height:1.15;margin-bottom:1rem;}
+  .hero h1 span{background:var(--grad);-webkit-background-clip:text;
+                -webkit-text-fill-color:transparent;background-clip:text;}
+  .hero p{color:var(--dim);max-width:60ch;margin:0 auto 1rem;font-size:1.05rem;}
+
+  .calc-grid{display:grid;grid-template-columns:1fr;gap:2rem;margin-top:2rem;}
+  @media(min-width:1000px){.calc-grid{grid-template-columns:380px 1fr;}}
+
+  .panel{background:var(--dark2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;}
+  .panel h2{font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:1.25rem;
+            padding-bottom:0.75rem;border-bottom:1px solid var(--border);}
+  .panel h3{font-size:0.85rem;color:var(--faint);text-transform:uppercase;
+            letter-spacing:0.06em;margin:1.25rem 0 0.5rem;font-weight:700;}
+
+  .input-row{margin-bottom:1rem;}
+  .input-row label{display:flex;justify-content:space-between;font-size:0.85rem;
+                   color:var(--dim);margin-bottom:0.4rem;}
+  .input-row label .val{color:var(--primary);font-weight:600;font-variant-numeric:tabular-nums;}
+  .input-row input[type="text"],.input-row input[type="number"]{
+    width:100%;padding:0.6rem 0.75rem;background:var(--dark3);
+    border:1px solid var(--border);border-radius:6px;color:var(--light);font-size:0.95rem;}
+  .input-row input[type="text"]:focus,.input-row input[type="number"]:focus{
+    outline:none;border-color:var(--primary);}
+  .input-row input[type="range"]{width:100%;accent-color:var(--primary);}
+
+  .scenario-btns{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.4rem;}
+  .scenario-btn{padding:0.35rem 0.7rem;background:var(--dark3);border:1px solid var(--border);
+                color:var(--dim);border-radius:5px;cursor:pointer;font-size:0.8rem;
+                transition:all 0.15s;}
+  .scenario-btn.active{background:rgba(247,147,26,0.18);border-color:var(--primary);color:var(--primary);}
+  .scenario-btn:hover{border-color:var(--primary);}
+
+  .results-panel{display:flex;flex-direction:column;gap:1rem;}
+  .strategy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;}
+  .strategy-card{background:var(--dark2);border:2px solid var(--border);border-radius:12px;
+                 padding:1.5rem;position:relative;transition:border-color 0.2s;}
+  .strategy-card.winner{border-color:var(--green);background:linear-gradient(180deg,rgba(60,203,127,0.06),var(--dark2));}
+  .strategy-card.loser{border-color:rgba(255,107,107,0.3);}
+  .strategy-card .badge{position:absolute;top:-10px;right:1rem;padding:0.2rem 0.6rem;
+                        background:var(--green);color:var(--dark);border-radius:4px;
+                        font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;}
+  .strategy-card.loser .badge{background:var(--red);color:white;}
+  .strategy-card h3{color:var(--light);font-size:1rem;margin-bottom:0.4rem;text-transform:none;letter-spacing:0;}
+  .strategy-card .subtitle{color:var(--faint);font-size:0.8rem;margin-bottom:1rem;}
+  .strategy-card .net{font-size:1.6rem;font-weight:700;color:var(--primary);
+                      font-variant-numeric:tabular-nums;margin-bottom:0.25rem;}
+  .strategy-card .net-label{font-size:0.75rem;color:var(--faint);text-transform:uppercase;
+                            letter-spacing:0.06em;margin-bottom:1rem;}
+  .strategy-card .breakdown{display:flex;flex-direction:column;gap:0.4rem;font-size:0.85rem;}
+  .strategy-card .breakdown-row{display:flex;justify-content:space-between;
+                                 padding:0.3rem 0;border-bottom:1px dashed rgba(255,255,255,0.05);}
+  .strategy-card .breakdown-row:last-child{border:none;}
+  .strategy-card .breakdown-row .lbl{color:var(--faint);}
+  .strategy-card .breakdown-row .v{color:var(--dim);font-variant-numeric:tabular-nums;font-weight:500;}
+  .strategy-card .breakdown-row .v.pos{color:var(--green);}
+  .strategy-card .breakdown-row .v.neg{color:var(--red);}
+
+  .delta-banner{background:var(--dark2);border:1px solid var(--border-strong);border-radius:12px;
+                padding:1.25rem 1.5rem;margin-top:0.5rem;}
+  .delta-banner h3{color:var(--primary);font-size:0.85rem;margin-bottom:0.5rem;
+                   text-transform:uppercase;letter-spacing:0.06em;font-weight:700;}
+  .delta-banner .delta-value{font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums;}
+  .delta-banner .delta-value.pos{color:var(--green);}
+  .delta-banner .delta-value.neg{color:var(--red);}
+  .delta-banner p{font-size:0.9rem;color:var(--dim);margin-top:0.5rem;line-height:1.5;}
+
+  .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:0.75rem;
+              background:var(--dark3);border:1px solid var(--border);border-radius:8px;
+              margin-bottom:0.75rem;cursor:pointer;}
+  .toggle-row:hover{border-color:var(--border-strong);}
+  .toggle-row .toggle-label{font-size:0.9rem;color:var(--light);}
+  .toggle-row .toggle-sub{font-size:0.75rem;color:var(--faint);}
+  .toggle-row .switch{position:relative;width:42px;height:22px;background:var(--dark);
+                       border-radius:12px;transition:background 0.2s;border:1px solid var(--border);}
+  .toggle-row .switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;
+                              background:var(--dim);border-radius:50%;transition:all 0.2s;}
+  .toggle-row.on .switch{background:var(--primary);}
+  .toggle-row.on .switch::after{left:22px;background:white;}
+
+  .breakeven-section{background:var(--dark2);border:1px solid var(--border);border-radius:12px;
+                     padding:1.25rem 1.5rem;margin-top:1rem;}
+  .breakeven-section h3{color:var(--primary);font-size:0.85rem;margin-bottom:0.5rem;
+                        text-transform:uppercase;letter-spacing:0.06em;font-weight:700;}
+  .breakeven-section p{font-size:0.9rem;color:var(--dim);line-height:1.6;}
+  .breakeven-section .strong{color:var(--light);font-weight:600;}
+
+  .disclaimer{margin-top:2rem;padding:1.25rem 1.5rem;border:1px solid rgba(255,107,107,0.25);
+              border-radius:8px;background:rgba(255,107,107,0.04);}
+  .disclaimer h4{color:var(--red);font-size:0.8rem;margin-bottom:0.5rem;text-transform:uppercase;
+                 letter-spacing:0.05em;font-weight:700;}
+  .disclaimer p{color:var(--dim);font-size:0.82rem;line-height:1.6;margin-bottom:0.5rem;}
+  .disclaimer p:last-child{margin-bottom:0;}
+
+  .cta-block{margin:2.5rem 0 1rem;padding:2rem;background:rgba(247,147,26,0.08);
+             border:1px solid var(--border-strong);border-radius:12px;text-align:center;}
+  .cta-block h3{color:var(--primary);margin-bottom:0.75rem;font-size:1.2rem;font-weight:700;
+                text-transform:none;letter-spacing:0;}
+  .cta-block p{color:var(--dim);max-width:55ch;margin:0 auto 1.25rem;}
+  .cta-block .btn{display:inline-block;padding:0.85rem 1.75rem;background:var(--grad);color:white;
+                  text-decoration:none;border-radius:50px;font-weight:700;
+                  box-shadow:0 4px 20px rgba(247,147,26,0.35);transition:all 0.2s;}
+  .cta-block .btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(247,147,26,0.5);}
+
+  footer{padding:2rem;text-align:center;border-top:1px solid var(--border);margin-top:3rem;}
+  footer p{color:var(--faint);font-size:0.82rem;}
+  footer a{color:var(--primary);text-decoration:none;}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="https://bitcoinsovereign.academy/institutional/real-estate-developers/" class="logo">
+      <div class="logo-icon">&#x20BF;</div>
+      <span class="logo-text">Florida Pre-Construction Calculator</span>
+    </a>
+    <a href="https://meetings.hubspot.com/dalia-platt" class="header-cta">Book a 30-min call</a>
+  </div>
+</header>
+
+<section class="hero">
+  <p class="eyebrow">Florida pre-construction</p>
+  <h1>Should you sell your Bitcoin <span>or borrow against it?</span></h1>
+  <p>An interactive calculator showing the financial outcomes of three strategies for funding a Florida pre-construction deposit. For buyers with meaningful long-term Bitcoin holdings considering luxury Florida real estate.</p>
+</section>
+
+<div class="container">
+  <div class="calc-grid">
+
+    <!-- INPUTS -->
+    <div class="panel">
+      <h2>Your situation</h2>
+
+      <h3>The property</h3>
+      <div class="input-row">
+        <label>Property purchase price <span class="val" id="lbl-price">$5,000,000</span></label>
+        <input type="range" id="price" min="1000000" max="20000000" step="500000" value="5000000">
+      </div>
+      <div class="input-row">
+        <label>Statutory deposit (Florida §718.202) <span class="val">10% (fixed)</span></label>
+      </div>
+      <div class="input-row">
+        <label>Additional deposit <span class="val" id="lbl-addtl">10%</span></label>
+        <input type="range" id="addtl-pct" min="0" max="20" step="1" value="10">
+      </div>
+      <div class="input-row">
+        <label>Construction period (months) <span class="val" id="lbl-months">24</span></label>
+        <input type="range" id="months" min="12" max="48" step="3" value="24">
+      </div>
+
+      <h3>Your Bitcoin</h3>
+      <div class="input-row">
+        <label>Total BTC owned</label>
+        <input type="number" id="btc-owned" value="50" min="0" step="1">
+      </div>
+      <div class="input-row">
+        <label>Average cost basis per BTC ($)</label>
+        <input type="number" id="cost-basis" value="20000" min="0" step="1000">
+      </div>
+      <div class="input-row">
+        <label>Current BTC price ($)</label>
+        <input type="number" id="btc-price" value="100000" min="0" step="1000">
+      </div>
+
+      <h3>Tax & assumptions</h3>
+      <div class="input-row">
+        <label>Long-term capital gains rate <span class="val" id="lbl-tax">20%</span></label>
+        <input type="range" id="tax-rate" min="0" max="35" step="1" value="20">
+      </div>
+      <div class="input-row">
+        <label>BTC price at end of construction <span class="val" id="lbl-future">+30%</span></label>
+        <input type="range" id="future-pct" min="-50" max="200" step="5" value="30">
+        <div class="scenario-btns">
+          <span class="scenario-btn" data-pct="-50">Bear (-50%)</span>
+          <span class="scenario-btn" data-pct="0">Flat</span>
+          <span class="scenario-btn active" data-pct="30">+30%</span>
+          <span class="scenario-btn" data-pct="100">+100%</span>
+          <span class="scenario-btn" data-pct="200">+200%</span>
+        </div>
+      </div>
+
+      <h3>Optional structure</h3>
+      <div class="toggle-row" id="toggle-multisig">
+        <div>
+          <div class="toggle-label">Add multisig collateral overlay</div>
+          <div class="toggle-sub">Route 2 — supplemental BTC security to developer</div>
+        </div>
+        <div class="switch"></div>
+      </div>
+
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-panel">
+
+      <div class="strategy-grid" id="strategies">
+        <!-- populated by JS -->
+      </div>
+
+      <div class="delta-banner" id="delta-banner">
+        <!-- populated by JS -->
+      </div>
+
+      <div class="breakeven-section" id="breakeven">
+        <!-- populated by JS -->
+      </div>
+
+      <div class="cta-block">
+        <h3>Want to walk through your specific numbers?</h3>
+        <p>The calculator captures the major variables, but every transaction has specifics — your tax basis, your developer's contract terms, your custody preferences, your timing. The first 30 minutes is no-cost discovery.</p>
+        <a href="https://meetings.hubspot.com/dalia-platt" class="btn">Book a 30-min call</a>
+      </div>
+
+      <div class="disclaimer">
+        <h4>Important caveats — please read</h4>
+        <p><strong style="color:var(--light);">This is a financial-modeling tool, not financial, legal, or tax advice.</strong> The calculations are simplified and assume idealized loan and tax mechanics; actual outcomes depend on your specific tax basis, state of residence, contract terms, market conditions, and the precise structure of any loan or collateral arrangement.</p>
+        <p>Pledging Bitcoin as collateral is generally not, by itself, a taxable disposition under current IRS guidance, but tax treatment depends on the specifics. Selling borrowed Bitcoin for fiat may create a separate tax event. Liquidation, default, repayment with appreciated crypto, or transfers of beneficial control may trigger consequences not captured here. <strong style="color:var(--light);">Every buyer should consult a qualified CPA before relying on any structure described here for a specific transaction.</strong></p>
+        <p>Florida pre-construction transactions are governed by §718.202 and other state statutes. The supplemental BTC collateral structure (Route 2) requires drafting by qualified Florida real-estate-and-crypto counsel before any specific transaction; the structure is not plug-and-play and is presented here for modeling only.</p>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>Built by <a href="https://thebitcoinadviser.com/dalia">Dalia</a> · adviser at The Bitcoin Adviser and Loan My Coins · part of <a href="https://thesovereign.academy">The Sovereign Academy</a></p>
+  <p style="margin-top:0.5rem;"><a href="https://bitcoinsovereign.academy/institutional/real-estate-developers/">Back to the practice page</a></p>
+</footer>
+
+<script>
+// Helper: format USD
+const usd = n => {
+  if (Math.abs(n) >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+  if (Math.abs(n) >= 1e3) return '$' + (n/1e3).toFixed(0) + 'k';
+  return '$' + n.toFixed(0);
+};
+const usdSigned = n => (n >= 0 ? '+' : '') + usd(n);
+
+// Get input values
+function readInputs() {
+  return {
+    price: +document.getElementById('price').value,
+    addtlPct: +document.getElementById('addtl-pct').value / 100,
+    months: +document.getElementById('months').value,
+    btcOwned: +document.getElementById('btc-owned').value,
+    costBasis: +document.getElementById('cost-basis').value,
+    btcPrice: +document.getElementById('btc-price').value,
+    taxRate: +document.getElementById('tax-rate').value / 100,
+    futurePct: +document.getElementById('future-pct').value / 100,
+    multisigOn: document.getElementById('toggle-multisig').classList.contains('on'),
+  };
+}
+
+// Compute strategies
+function compute(i) {
+  const statutoryDeposit = i.price * 0.10;
+  const additionalDeposit = i.price * i.addtlPct;
+  const totalDeposit = statutoryDeposit + additionalDeposit;
+  const futurePrice = i.btcPrice * (1 + i.futurePct);
+
+  // Strategy A: Sell BTC for full deposit
+  const btcSold_A = totalDeposit / i.btcPrice;
+  const gain_A = btcSold_A * Math.max(0, i.btcPrice - i.costBasis);
+  const tax_A = gain_A * i.taxRate;
+  const btcRetained_A = i.btcOwned - btcSold_A;
+  const btcValue_A = btcRetained_A * futurePrice;
+  const netWealth_A = btcValue_A - tax_A;
+
+  // Strategy B: LMC liquidity for full deposit (Route 1)
+  // Loan principal needed (gross of fee) = totalDeposit / 0.95 so that net of 5% fee = totalDeposit
+  const loanPrincipal_B = totalDeposit / 0.95;
+  const borrowedBTC_B = loanPrincipal_B / i.btcPrice;
+  const pledgedBTC_B = borrowedBTC_B / 0.95;
+  const lmcFee_B = loanPrincipal_B * 0.05;
+  const buybackCost_B = borrowedBTC_B * futurePrice;
+  const saleProceeds_B = borrowedBTC_B * i.btcPrice;
+  const buybackDelta_B = buybackCost_B - saleProceeds_B; // extra cash needed at maturity
+  const btcRetained_B = i.btcOwned;
+  const btcValue_B = btcRetained_B * futurePrice;
+  const netWealth_B = btcValue_B - lmcFee_B - buybackDelta_B;
+
+  // Strategy C: B + multisig overlay (Route 2 supplemental collateral)
+  // Assume multisig collateral = 150% of additional deposit value, locked for construction period
+  const multisigBTCValue = additionalDeposit * 1.50;
+  const multisigBTC = multisigBTCValue / i.btcPrice;
+  // TBA AUM fee 1% annually on locked BTC value (simplified — uses initial value)
+  const tbaFee = multisigBTCValue * 0.01 * (i.months / 12);
+  // Multisig setup + trustee fees (one-time + annual)
+  const setupFees = 4000 + (1000 * (i.months / 12));
+  const multisigCost = tbaFee + setupFees;
+  const netWealth_C = netWealth_B - multisigCost;
+
+  return {
+    inputs: i,
+    statutoryDeposit, additionalDeposit, totalDeposit, futurePrice,
+    A: { btcSold: btcSold_A, gain: gain_A, tax: tax_A, btcRetained: btcRetained_A,
+         btcValue: btcValue_A, netWealth: netWealth_A },
+    B: { loanPrincipal: loanPrincipal_B, borrowedBTC: borrowedBTC_B, pledgedBTC: pledgedBTC_B,
+         lmcFee: lmcFee_B, buybackDelta: buybackDelta_B, btcRetained: btcRetained_B,
+         btcValue: btcValue_B, netWealth: netWealth_B },
+    C: { multisigBTCValue, multisigBTC, tbaFee, setupFees, multisigCost, netWealth: netWealth_C },
+  };
+}
+
+// Determine winner among visible strategies
+function rankStrategies(r, multisigOn) {
+  const candidates = multisigOn
+    ? [{ key: 'A', net: r.A.netWealth }, { key: 'B', net: r.B.netWealth }, { key: 'C', net: r.C.netWealth }]
+    : [{ key: 'A', net: r.A.netWealth }, { key: 'B', net: r.B.netWealth }];
+  const sorted = [...candidates].sort((a,b) => b.net - a.net);
+  return { winner: sorted[0].key, loser: sorted[sorted.length-1].key };
+}
+
+// Render strategies
+function render(r) {
+  const i = r.inputs;
+  const { winner, loser } = rankStrategies(r, i.multisigOn);
+
+  const cards = [];
+
+  // Card A: Sell BTC
+  cards.push(`
+    <div class="strategy-card ${winner==='A'?'winner':''} ${loser==='A'?'loser':''}">
+      ${winner==='A'?'<span class="badge">Best</span>':loser==='A'?'<span class="badge">Worst</span>':''}
+      <h3>Sell BTC</h3>
+      <div class="subtitle">Liquidate enough Bitcoin to fund the full deposit in cash. Pay capital gains tax.</div>
+      <div class="net">${usd(r.A.netWealth)}</div>
+      <div class="net-label">Net BTC + cash position at end of construction</div>
+      <div class="breakdown">
+        <div class="breakdown-row"><span class="lbl">BTC sold</span><span class="v">${r.A.btcSold.toFixed(2)} BTC</span></div>
+        <div class="breakdown-row"><span class="lbl">Capital gain realized</span><span class="v neg">${usd(r.A.gain)}</span></div>
+        <div class="breakdown-row"><span class="lbl">Tax paid (now)</span><span class="v neg">−${usd(r.A.tax)}</span></div>
+        <div class="breakdown-row"><span class="lbl">BTC retained</span><span class="v">${r.A.btcRetained.toFixed(2)} BTC</span></div>
+        <div class="breakdown-row"><span class="lbl">BTC value at end</span><span class="v pos">${usd(r.A.btcValue)}</span></div>
+      </div>
+    </div>
+  `);
+
+  // Card B: LMC for full deposit
+  cards.push(`
+    <div class="strategy-card ${winner==='B'?'winner':''} ${loser==='B'?'loser':''}">
+      ${winner==='B'?'<span class="badge">Best</span>':loser==='B'?'<span class="badge">Worst</span>':''}
+      <h3>LMC for full deposit (Route 1)</h3>
+      <div class="subtitle">Pledge BTC to Loan My Coins. Borrowed BTC sells for fiat that funds the deposit. Keep all BTC.</div>
+      <div class="net">${usd(r.B.netWealth)}</div>
+      <div class="net-label">Net BTC + cash position at end of construction</div>
+      <div class="breakdown">
+        <div class="breakdown-row"><span class="lbl">BTC pledged to LMC</span><span class="v">${r.B.pledgedBTC.toFixed(2)} BTC</span></div>
+        <div class="breakdown-row"><span class="lbl">Borrowed BTC (sold for cash)</span><span class="v">${r.B.borrowedBTC.toFixed(2)} BTC</span></div>
+        <div class="breakdown-row"><span class="lbl">LMC upfront fee (5%)</span><span class="v neg">−${usd(r.B.lmcFee)}</span></div>
+        <div class="breakdown-row"><span class="lbl">Loan buyback cost vs sale</span><span class="v ${r.B.buybackDelta>=0?'neg':'pos'}">${r.B.buybackDelta>=0?'−':'+'}${usd(Math.abs(r.B.buybackDelta))}</span></div>
+        <div class="breakdown-row"><span class="lbl">BTC retained</span><span class="v">${r.B.btcRetained.toFixed(2)} BTC</span></div>
+        <div class="breakdown-row"><span class="lbl">BTC value at end</span><span class="v pos">${usd(r.B.btcValue)}</span></div>
+      </div>
+    </div>
+  `);
+
+  // Card C: B + multisig overlay (only if toggled on)
+  if (i.multisigOn) {
+    cards.push(`
+      <div class="strategy-card ${winner==='C'?'winner':''} ${loser==='C'?'loser':''}">
+        ${winner==='C'?'<span class="badge">Best</span>':loser==='C'?'<span class="badge">Worst</span>':''}
+        <h3>LMC + multisig (Routes 1 + 2)</h3>
+        <div class="subtitle">LMC funds the deposit AND BTC pledged to a 2-of-3 multisig as supplemental security to the developer (typically 150% of additional deposit).</div>
+        <div class="net">${usd(r.C.netWealth)}</div>
+        <div class="net-label">Net position — financial cost of multisig overlay</div>
+        <div class="breakdown">
+          <div class="breakdown-row"><span class="lbl">BTC in multisig (locked)</span><span class="v">${r.C.multisigBTC.toFixed(2)} BTC</span></div>
+          <div class="breakdown-row"><span class="lbl">TBA fee (${i.months}mo)</span><span class="v neg">−${usd(r.C.tbaFee)}</span></div>
+          <div class="breakdown-row"><span class="lbl">Setup + trustee fees</span><span class="v neg">−${usd(r.C.setupFees)}</span></div>
+          <div class="breakdown-row"><span class="lbl">Plus all costs from Route 1</span><span class="v">(see middle card)</span></div>
+        </div>
+        <p style="margin-top:0.85rem;font-size:0.78rem;color:var(--faint);line-height:1.5;font-style:italic;">
+          The multisig overlay isn't primarily a money-saver — it's a structural feature.
+          The buyer gains cryptographic enforcement of milestone-based release rights;
+          the developer gains supplemental security above the statutory escrow.
+          The cost above is what the structure adds in pure financial terms.
+        </p>
+      </div>
+    `);
+  }
+
+  document.getElementById('strategies').innerHTML = cards.join('');
+
+  // Delta banner
+  const delta = r.B.netWealth - r.A.netWealth;
+  let bannerHTML = `<h3>LMC vs Sell BTC — financial difference</h3>
+                    <div class="delta-value ${delta>=0?'pos':'neg'}">${usdSigned(delta)}</div>`;
+  if (delta >= 0) {
+    bannerHTML += `<p>Under these inputs, borrowing against your Bitcoin (Route 1) leaves you ${usd(Math.abs(delta))} better off at the end of construction than selling. The benefit comes mainly from <strong style="color:var(--light);">retaining ${r.A.btcSold.toFixed(2)} BTC of upside exposure</strong> plus avoiding the immediate tax of ${usd(r.A.tax)} — partially offset by the LMC fee (${usd(r.B.lmcFee)}) and the cost of buying back the loan principal at the end-of-construction price.</p>`;
+  } else {
+    bannerHTML += `<p>Under these specific inputs, selling Bitcoin to fund the deposit comes out ahead by ${usd(Math.abs(delta))}. This typically happens when BTC depreciates significantly during the construction period — the loan buyback cost saves money, but the lost BTC upside is also smaller. Most buyers use Route 1 because they expect Bitcoin to appreciate over the construction period; this calculator lets you stress-test that assumption.</p>`;
+  }
+  document.getElementById('delta-banner').innerHTML = bannerHTML;
+
+  // Break-even analysis
+  // Find the BTC price multiplier where Strategy B = Strategy A
+  // netWealth_A(P1) = (B - D/P0) × P1 - tax_A
+  // netWealth_B(P1) = B × P1 - lmc_fee - X_b × (P1 - P0)
+  //                = B × P1 - lmc_fee - (D/0.95/P0) × P1 + (D/0.95)
+  // Setting equal:
+  // (B - D/P0) × P1 - tax_A = B × P1 - lmc_fee - (D/(0.95 × P0)) × P1 + D/0.95
+  // -D/P0 × P1 - tax_A = -lmc_fee - (D/(0.95 × P0)) × P1 + D/0.95
+  // (D/(0.95 × P0)) × P1 - (D/P0) × P1 = D/0.95 - lmc_fee + tax_A
+  // P1 × D/P0 × (1/0.95 - 1) = D/0.95 - lmc_fee + tax_A
+  // P1 × D/P0 × (0.05/0.95) = D/0.95 - lmc_fee + tax_A
+  // P1 = [D/0.95 - lmc_fee + tax_A] × P0 × 19 / D
+  const lmcFee = r.totalDeposit / 0.95 * 0.05;
+  const tax_A_value = r.A.tax;
+  const breakevenPrice = ((r.totalDeposit / 0.95 - lmcFee + tax_A_value) * i.btcPrice * 19) / r.totalDeposit;
+  const breakevenPct = (breakevenPrice / i.btcPrice - 1) * 100;
+
+  let beHTML = `<h3>Break-even analysis</h3>`;
+  if (i.taxRate === 0 || i.btcPrice <= i.costBasis) {
+    beHTML += `<p>With your current inputs, there's no capital gain on the sale, so the only difference between strategies is BTC price exposure during construction and the LMC fee. <span class="strong">If BTC ends roughly flat or higher, LMC wins; if BTC drops significantly, selling wins.</span></p>`;
+  } else if (breakevenPct < -90 || !isFinite(breakevenPct)) {
+    beHTML += `<p>With your tax basis and the magnitude of the deferred tax, <span class="strong">Route 1 (LMC) beats selling under almost any realistic BTC price scenario</span> — the avoided capital gains tax (${usd(tax_A_value)}) alone exceeds what you'd gain from selling.</p>`;
+  } else {
+    beHTML += `<p>Under these inputs, Route 1 (LMC) and selling produce equal outcomes when BTC ends construction at <span class="strong">${(breakevenPct).toFixed(0)}% ${breakevenPct>=0?'above':'below'} the current price</span>. Above that threshold, LMC wins; below it, selling wins. Your current scenario assumes ${(i.futurePct*100).toFixed(0)}% — slide the assumption to test how robust the conclusion is to your view on Bitcoin's path.</p>`;
+  }
+  document.getElementById('breakeven').innerHTML = beHTML;
+}
+
+// Update labels
+function updateLabels() {
+  document.getElementById('lbl-price').textContent = usd(+document.getElementById('price').value);
+  document.getElementById('lbl-addtl').textContent = document.getElementById('addtl-pct').value + '%';
+  document.getElementById('lbl-months').textContent = document.getElementById('months').value;
+  document.getElementById('lbl-tax').textContent = document.getElementById('tax-rate').value + '%';
+  const fp = +document.getElementById('future-pct').value;
+  document.getElementById('lbl-future').textContent = (fp >= 0 ? '+' : '') + fp + '%';
+  // Update scenario buttons
+  document.querySelectorAll('.scenario-btn').forEach(btn => {
+    btn.classList.toggle('active', +btn.dataset.pct === fp);
+  });
+}
+
+function refresh() {
+  updateLabels();
+  render(compute(readInputs()));
+}
+
+// Wire up inputs
+document.querySelectorAll('input').forEach(el => el.addEventListener('input', refresh));
+document.querySelectorAll('.scenario-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('future-pct').value = btn.dataset.pct;
+    refresh();
+  });
+});
+document.getElementById('toggle-multisig').addEventListener('click', () => {
+  document.getElementById('toggle-multisig').classList.toggle('on');
+  refresh();
+});
+
+// Initial render
+refresh();
+</script>
+
+</body>
+</html>
