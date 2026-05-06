@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Florida pre-construction Bitcoin deposit calculator | Bitcoin Sovereign Academy</title>
-<meta name="description" content="Compare the financial outcomes of selling Bitcoin versus borrowing against it to fund a Florida pre-construction property deposit.">
+<title>Florida pre-construction Bitcoin deposit calculator (v2) | Bitcoin Sovereign Academy</title>
+<meta name="description" content="Honest financial modeling for buyers funding a Florida pre-construction property deposit with Bitcoin holdings. Models loan-closure mechanics, tax timing, and BTC appreciation dynamics.">
 <style>
   :root {
     --primary:#f7931a; --primary-soft:#ffb04a; --dark:#1a1a1a; --dark2:#2d2d2d;
     --dark3:#383838; --light:#e0e0e0; --dim:#b3b3b3; --faint:#7a7a7a;
     --grad:linear-gradient(135deg,#f7931a,#ffb04a);
-    --green:#3ccb7f; --red:#ff6b6b; --yellow:#ffcb57;
+    --green:#3ccb7f; --red:#ff6b6b; --yellow:#ffcb57; --blue:#6bb4ff;
     --border:rgba(255,255,255,0.1); --border-strong:rgba(247,147,26,0.45);
   }
   *{margin:0;padding:0;box-sizing:border-box;}
@@ -19,16 +19,18 @@
 
   .header{background:rgba(45,45,45,0.97);backdrop-filter:blur(10px);padding:1rem 0;
           border-bottom:2px solid var(--primary);position:sticky;top:0;z-index:100;}
-  .header-inner{max-width:1200px;margin:0 auto;padding:0 2rem;display:flex;
+  .header-inner{max-width:1400px;margin:0 auto;padding:0 2rem;display:flex;
                 justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
   .logo{display:flex;align-items:center;gap:0.75rem;text-decoration:none;color:var(--light);}
   .logo-icon{width:34px;height:34px;background:var(--grad);border-radius:50%;
              display:flex;align-items:center;justify-content:center;font-weight:bold;color:white;}
   .logo-text{font-weight:bold;font-size:0.95rem;}
+  .header-meta{font-size:0.75rem;color:var(--faint);background:var(--dark3);
+               padding:0.25rem 0.6rem;border-radius:12px;}
   .header-cta{padding:0.5rem 1.2rem;background:var(--grad);color:white;
               text-decoration:none;border-radius:20px;font-weight:600;font-size:0.9rem;}
 
-  .container{max-width:1200px;margin:0 auto;padding:2rem;}
+  .container{max-width:1400px;margin:0 auto;padding:2rem;}
   .hero{padding:3rem 2rem 1rem;text-align:center;max-width:900px;margin:0 auto;}
   .hero .eyebrow{color:var(--primary);font-size:0.8rem;letter-spacing:0.1em;
                  text-transform:uppercase;font-weight:700;margin-bottom:1rem;}
@@ -38,13 +40,13 @@
   .hero p{color:var(--dim);max-width:60ch;margin:0 auto 1rem;font-size:1.05rem;}
 
   .calc-grid{display:grid;grid-template-columns:1fr;gap:2rem;margin-top:2rem;}
-  @media(min-width:1000px){.calc-grid{grid-template-columns:380px 1fr;}}
+  @media(min-width:1100px){.calc-grid{grid-template-columns:380px 1fr;}}
 
   .panel{background:var(--dark2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;}
   .panel h2{font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:1.25rem;
             padding-bottom:0.75rem;border-bottom:1px solid var(--border);}
   .panel h3{font-size:0.85rem;color:var(--faint);text-transform:uppercase;
-            letter-spacing:0.06em;margin:1.25rem 0 0.5rem;font-weight:700;}
+            letter-spacing:0.06em;margin:1.5rem 0 0.5rem;font-weight:700;}
 
   .input-row{margin-bottom:1rem;}
   .input-row label{display:flex;justify-content:space-between;font-size:0.85rem;
@@ -56,16 +58,34 @@
   .input-row input[type="text"]:focus,.input-row input[type="number"]:focus{
     outline:none;border-color:var(--primary);}
   .input-row input[type="range"]{width:100%;accent-color:var(--primary);}
+  .input-help{font-size:0.75rem;color:var(--faint);margin-top:0.25rem;line-height:1.4;}
 
-  .scenario-btns{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.4rem;}
-  .scenario-btn{padding:0.35rem 0.7rem;background:var(--dark3);border:1px solid var(--border);
-                color:var(--dim);border-radius:5px;cursor:pointer;font-size:0.8rem;
-                transition:all 0.15s;}
-  .scenario-btn.active{background:rgba(247,147,26,0.18);border-color:var(--primary);color:var(--primary);}
-  .scenario-btn:hover{border-color:var(--primary);}
+  .radio-group{display:flex;flex-direction:column;gap:0.5rem;}
+  .radio-row{display:flex;align-items:flex-start;gap:0.6rem;padding:0.6rem 0.75rem;
+             background:var(--dark3);border:1px solid var(--border);border-radius:6px;
+             cursor:pointer;transition:border-color 0.15s;}
+  .radio-row:hover{border-color:var(--border-strong);}
+  .radio-row.checked{border-color:var(--primary);background:rgba(247,147,26,0.06);}
+  .radio-row input{margin-top:0.2rem;accent-color:var(--primary);}
+  .radio-row .rlabel{font-size:0.85rem;color:var(--light);font-weight:500;}
+  .radio-row .rsub{font-size:0.75rem;color:var(--faint);margin-top:0.2rem;line-height:1.4;}
 
-  .results-panel{display:flex;flex-direction:column;gap:1rem;}
-  .strategy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;}
+  .results-panel{display:flex;flex-direction:column;gap:1.5rem;}
+
+  .scenario-tabs{display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:1rem;
+                 padding:0.4rem;background:var(--dark2);border-radius:8px;}
+  .scenario-tab{flex:1;min-width:80px;padding:0.5rem 0.75rem;background:transparent;
+                border:1px solid transparent;color:var(--dim);border-radius:5px;cursor:pointer;
+                font-size:0.85rem;text-align:center;transition:all 0.15s;font-family:inherit;
+                font-weight:600;}
+  .scenario-tab.active{background:var(--dark3);border-color:var(--primary);color:var(--primary);}
+  .scenario-tab .pct{display:block;font-size:0.75rem;color:var(--faint);font-weight:400;
+                     margin-top:0.15rem;}
+  .scenario-tab.active .pct{color:var(--dim);}
+
+  .strategy-grid{display:grid;grid-template-columns:1fr;gap:1rem;}
+  @media(min-width:900px){.strategy-grid{grid-template-columns:repeat(3,1fr);}}
+
   .strategy-card{background:var(--dark2);border:2px solid var(--border);border-radius:12px;
                  padding:1.5rem;position:relative;transition:border-color 0.2s;}
   .strategy-card.winner{border-color:var(--green);background:linear-gradient(180deg,rgba(60,203,127,0.06),var(--dark2));}
@@ -75,48 +95,47 @@
                         font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;}
   .strategy-card.loser .badge{background:var(--red);color:white;}
   .strategy-card h3{color:var(--light);font-size:1rem;margin-bottom:0.4rem;text-transform:none;letter-spacing:0;}
-  .strategy-card .subtitle{color:var(--faint);font-size:0.8rem;margin-bottom:1rem;}
-  .strategy-card .net{font-size:1.6rem;font-weight:700;color:var(--primary);
+  .strategy-card .subtitle{color:var(--faint);font-size:0.78rem;margin-bottom:1rem;line-height:1.4;}
+  .strategy-card .net{font-size:1.5rem;font-weight:700;color:var(--primary);
                       font-variant-numeric:tabular-nums;margin-bottom:0.25rem;}
-  .strategy-card .net-label{font-size:0.75rem;color:var(--faint);text-transform:uppercase;
+  .strategy-card .net-label{font-size:0.72rem;color:var(--faint);text-transform:uppercase;
                             letter-spacing:0.06em;margin-bottom:1rem;}
-  .strategy-card .breakdown{display:flex;flex-direction:column;gap:0.4rem;font-size:0.85rem;}
+  .strategy-card .breakdown{display:flex;flex-direction:column;gap:0.3rem;font-size:0.82rem;}
   .strategy-card .breakdown-row{display:flex;justify-content:space-between;
-                                 padding:0.3rem 0;border-bottom:1px dashed rgba(255,255,255,0.05);}
+                                 padding:0.25rem 0;border-bottom:1px dashed rgba(255,255,255,0.05);}
   .strategy-card .breakdown-row:last-child{border:none;}
   .strategy-card .breakdown-row .lbl{color:var(--faint);}
   .strategy-card .breakdown-row .v{color:var(--dim);font-variant-numeric:tabular-nums;font-weight:500;}
   .strategy-card .breakdown-row .v.pos{color:var(--green);}
   .strategy-card .breakdown-row .v.neg{color:var(--red);}
+  .strategy-card .breakdown-row.head{font-weight:700;color:var(--light);border-color:var(--border);
+                                      padding-top:0.5rem;margin-top:0.25rem;}
+  .strategy-card .breakdown-row.head .lbl{color:var(--light);}
 
-  .delta-banner{background:var(--dark2);border:1px solid var(--border-strong);border-radius:12px;
-                padding:1.25rem 1.5rem;margin-top:0.5rem;}
-  .delta-banner h3{color:var(--primary);font-size:0.85rem;margin-bottom:0.5rem;
-                   text-transform:uppercase;letter-spacing:0.06em;font-weight:700;}
-  .delta-banner .delta-value{font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums;}
-  .delta-banner .delta-value.pos{color:var(--green);}
-  .delta-banner .delta-value.neg{color:var(--red);}
-  .delta-banner p{font-size:0.9rem;color:var(--dim);margin-top:0.5rem;line-height:1.5;}
+  .scenario-table{background:var(--dark2);border:1px solid var(--border);border-radius:12px;
+                  padding:1.25rem 1.5rem;overflow-x:auto;}
+  .scenario-table h3{color:var(--primary);font-size:0.9rem;margin-bottom:0.75rem;
+                     text-transform:uppercase;letter-spacing:0.06em;font-weight:700;}
+  .scenario-table table{width:100%;border-collapse:collapse;font-size:0.85rem;
+                        font-variant-numeric:tabular-nums;}
+  .scenario-table th{text-align:left;padding:0.5rem 0.6rem;color:var(--faint);
+                     font-weight:600;font-size:0.75rem;text-transform:uppercase;
+                     letter-spacing:0.05em;border-bottom:1px solid var(--border);}
+  .scenario-table th:first-child{text-align:left;}
+  .scenario-table th:not(:first-child){text-align:right;}
+  .scenario-table td{padding:0.5rem 0.6rem;border-bottom:1px solid var(--border);}
+  .scenario-table td:not(:first-child){text-align:right;color:var(--dim);}
+  .scenario-table td:first-child{color:var(--light);font-weight:500;}
+  .scenario-table tr.winner-row td:first-child{color:var(--green);font-weight:700;}
+  .scenario-table tr.winner-row td:not(:first-child){color:var(--green);}
 
-  .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:0.75rem;
-              background:var(--dark3);border:1px solid var(--border);border-radius:8px;
-              margin-bottom:0.75rem;cursor:pointer;}
-  .toggle-row:hover{border-color:var(--border-strong);}
-  .toggle-row .toggle-label{font-size:0.9rem;color:var(--light);}
-  .toggle-row .toggle-sub{font-size:0.75rem;color:var(--faint);}
-  .toggle-row .switch{position:relative;width:42px;height:22px;background:var(--dark);
-                       border-radius:12px;transition:background 0.2s;border:1px solid var(--border);}
-  .toggle-row .switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;
-                              background:var(--dim);border-radius:50%;transition:all 0.2s;}
-  .toggle-row.on .switch{background:var(--primary);}
-  .toggle-row.on .switch::after{left:22px;background:white;}
-
-  .breakeven-section{background:var(--dark2);border:1px solid var(--border);border-radius:12px;
-                     padding:1.25rem 1.5rem;margin-top:1rem;}
-  .breakeven-section h3{color:var(--primary);font-size:0.85rem;margin-bottom:0.5rem;
-                        text-transform:uppercase;letter-spacing:0.06em;font-weight:700;}
-  .breakeven-section p{font-size:0.9rem;color:var(--dim);line-height:1.6;}
-  .breakeven-section .strong{color:var(--light);font-weight:600;}
+  .insight-box{background:var(--dark2);border:1px solid var(--border-strong);border-radius:12px;
+               padding:1.25rem 1.5rem;}
+  .insight-box h3{color:var(--primary);font-size:0.85rem;margin-bottom:0.75rem;
+                  text-transform:uppercase;letter-spacing:0.06em;font-weight:700;}
+  .insight-box p{font-size:0.9rem;color:var(--dim);line-height:1.6;margin-bottom:0.6rem;}
+  .insight-box p:last-child{margin-bottom:0;}
+  .insight-box .strong{color:var(--light);font-weight:600;}
 
   .disclaimer{margin-top:2rem;padding:1.25rem 1.5rem;border:1px solid rgba(255,107,107,0.25);
               border-radius:8px;background:rgba(255,107,107,0.04);}
@@ -146,16 +165,17 @@
   <div class="header-inner">
     <a href="https://bitcoinsovereign.academy/institutional/real-estate-developers/" class="logo">
       <div class="logo-icon">&#x20BF;</div>
-      <span class="logo-text">Florida Pre-Construction Calculator</span>
+      <span class="logo-text">FL Pre-Construction BTC Calculator</span>
+      <span class="header-meta">v2 — honest accounting</span>
     </a>
     <a href="https://meetings.hubspot.com/dalia-platt" class="header-cta">Book a 30-min call</a>
   </div>
 </header>
 
 <section class="hero">
-  <p class="eyebrow">Florida pre-construction</p>
-  <h1>Should you sell your Bitcoin <span>or borrow against it?</span></h1>
-  <p>An interactive calculator showing the financial outcomes of three strategies for funding a Florida pre-construction deposit. For buyers with meaningful long-term Bitcoin holdings considering luxury Florida real estate.</p>
+  <p class="eyebrow">Florida pre-construction · v2</p>
+  <h1>Sell BTC, borrow against BTC, or use BTC <span>as collateral?</span></h1>
+  <p>An interactive calculator that models the actual financial outcomes — including loan-closure mechanics, tax timing, and BTC price dynamics during the construction period — for a buyer funding a Florida pre-construction deposit with Bitcoin holdings.</p>
 </section>
 
 <div class="container">
@@ -167,25 +187,27 @@
 
       <h3>The property</h3>
       <div class="input-row">
-        <label>Property purchase price <span class="val" id="lbl-price">$5,000,000</span></label>
-        <input type="range" id="price" min="1000000" max="20000000" step="500000" value="5000000">
+        <label>Property purchase price ($)</label>
+        <input type="number" id="price" value="5000000" min="100000" step="100000">
       </div>
       <div class="input-row">
-        <label>Statutory deposit (Florida §718.202) <span class="val">10% (fixed)</span></label>
+        <label>Statutory deposit (§718.202) <span class="val">10% (fixed)</span></label>
+        <div class="input-help">Florida law requires the first 10% of the sale price in a §718.202 escrow account. This part is non-negotiable.</div>
       </div>
       <div class="input-row">
         <label>Additional deposit <span class="val" id="lbl-addtl">10%</span></label>
-        <input type="range" id="addtl-pct" min="0" max="20" step="1" value="10">
+        <input type="range" id="addtl-pct" min="0" max="40" step="1" value="10">
+        <div class="input-help">The deposit tranche above the statutory 10%. Typical luxury pre-construction is another 10–20%.</div>
       </div>
       <div class="input-row">
         <label>Construction period (months) <span class="val" id="lbl-months">24</span></label>
-        <input type="range" id="months" min="12" max="48" step="3" value="24">
+        <input type="range" id="months" min="6" max="60" step="3" value="24">
       </div>
 
       <h3>Your Bitcoin</h3>
       <div class="input-row">
         <label>Total BTC owned</label>
-        <input type="number" id="btc-owned" value="50" min="0" step="1">
+        <input type="number" id="btc-owned" value="50" min="0" step="0.1">
       </div>
       <div class="input-row">
         <label>Average cost basis per BTC ($)</label>
@@ -195,31 +217,69 @@
         <label>Current BTC price ($)</label>
         <input type="number" id="btc-price" value="100000" min="0" step="1000">
       </div>
+      <div class="input-row">
+        <label>BTC price at LMC loan buyback ($)</label>
+        <input type="number" id="btc-buyback-price" value="" placeholder="(blank = same as end-of-construction)" step="1000">
+        <div class="input-help">If the buyer plans to close the LMC loan at a price different from the end-of-construction price (e.g., closing the loan earlier when BTC is lower). Leave blank to use the scenario price.</div>
+      </div>
 
-      <h3>Tax & assumptions</h3>
+      <h3>Tax assumptions</h3>
       <div class="input-row">
         <label>Long-term capital gains rate <span class="val" id="lbl-tax">20%</span></label>
         <input type="range" id="tax-rate" min="0" max="35" step="1" value="20">
-      </div>
-      <div class="input-row">
-        <label>BTC price at end of construction <span class="val" id="lbl-future">+30%</span></label>
-        <input type="range" id="future-pct" min="-50" max="200" step="5" value="30">
-        <div class="scenario-btns">
-          <span class="scenario-btn" data-pct="-50">Bear (-50%)</span>
-          <span class="scenario-btn" data-pct="0">Flat</span>
-          <span class="scenario-btn active" data-pct="30">+30%</span>
-          <span class="scenario-btn" data-pct="100">+100%</span>
-          <span class="scenario-btn" data-pct="200">+200%</span>
-        </div>
+        <div class="input-help">Combined federal + state. FL has no state income tax (use 20% if FL resident).</div>
       </div>
 
-      <h3>Optional structure</h3>
-      <div class="toggle-row" id="toggle-multisig">
-        <div>
-          <div class="toggle-label">Add multisig collateral overlay</div>
-          <div class="toggle-sub">Route 2 — supplemental BTC security to developer</div>
-        </div>
-        <div class="switch"></div>
+      <h3>Loan & service parameters</h3>
+      <div class="input-row">
+        <label>LMC upfront interest <span class="val" id="lbl-lmc-fee">5%</span></label>
+        <input type="range" id="lmc-fee" min="0" max="15" step="0.5" value="5">
+        <div class="input-help">Standard Loan My Coins fee on the loan principal, paid at origination.</div>
+      </div>
+      <div class="input-row">
+        <label>LMC loan-to-value (LTV) <span class="val" id="lbl-lmc-ltv">95%</span></label>
+        <input type="range" id="lmc-ltv" min="50" max="100" step="1" value="95">
+        <div class="input-help">Borrower receives this fraction of pledged BTC as borrowed BTC.</div>
+      </div>
+      <div class="input-row">
+        <label>TBA collaborative custody fee <span class="val" id="lbl-tba">1%</span></label>
+        <input type="range" id="tba-fee" min="0" max="3" step="0.05" value="1">
+        <div class="input-help">Annual % of AUM in collaborative custody. Default is TBA's standard 1%.</div>
+      </div>
+      <div class="input-row">
+        <label>Multisig setup cost (one-time, $)</label>
+        <input type="number" id="setup-cost" value="4000" min="0" step="500">
+        <div class="input-help">Legal docs + multisig configuration. Reusable template across deals.</div>
+      </div>
+      <div class="input-row">
+        <label>Trustee annual fee ($)</label>
+        <input type="number" id="trustee-fee" value="1000" min="0" step="500">
+        <div class="input-help">Annual fee to the third-party key holder (attorney trustee, escrow agent).</div>
+      </div>
+
+      <h3>LMC loan closure</h3>
+      <div class="radio-group">
+        <label class="radio-row checked" data-closure="external">
+          <input type="radio" name="closure" value="external" checked>
+          <div>
+            <div class="rlabel">Pay from external cash</div>
+            <div class="rsub">Buyer has liquid cash at maturity (savings, mortgage proceeds) to buy back the borrowed BTC at the future price. No additional tax event.</div>
+          </div>
+        </label>
+        <label class="radio-row" data-closure="sell">
+          <input type="radio" name="closure" value="sell">
+          <div>
+            <div class="rlabel">Sell BTC at maturity</div>
+            <div class="rsub">Buyer transfers BTC from existing holdings to close the loan. Triggers capital gain at the maturity-time BTC price (often more tax than selling now if BTC appreciated).</div>
+          </div>
+        </label>
+        <label class="radio-row" data-closure="roll">
+          <input type="radio" name="closure" value="roll">
+          <div>
+            <div class="rlabel">Roll the loan annually</div>
+            <div class="rsub">Pay another 5% upfront fee per year, defer the closure question. Multiplies the LMC fee by the number of years.</div>
+          </div>
+        </label>
       </div>
 
     </div>
@@ -227,29 +287,55 @@
     <!-- RESULTS -->
     <div class="results-panel">
 
-      <div class="strategy-grid" id="strategies">
-        <!-- populated by JS -->
+      <!-- BTC scenario tabs -->
+      <div>
+        <div style="font-size:0.85rem;color:var(--faint);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.06em;font-weight:700;">BTC price at end of construction</div>
+        <div class="scenario-tabs" id="scenarios">
+          <button class="scenario-tab" data-pct="-50">Bear<span class="pct">−50%</span></button>
+          <button class="scenario-tab" data-pct="-25">Down<span class="pct">−25%</span></button>
+          <button class="scenario-tab" data-pct="0">Flat<span class="pct">0%</span></button>
+          <button class="scenario-tab active" data-pct="30">Mild bull<span class="pct">+30%</span></button>
+          <button class="scenario-tab" data-pct="100">Bull<span class="pct">+100%</span></button>
+          <button class="scenario-tab" data-pct="200">Very bull<span class="pct">+200%</span></button>
+        </div>
       </div>
 
-      <div class="delta-banner" id="delta-banner">
-        <!-- populated by JS -->
+      <!-- Three strategies for selected scenario -->
+      <div class="strategy-grid" id="strategies"></div>
+
+      <!-- Side-by-side scenario table -->
+      <div class="scenario-table">
+        <h3>All scenarios at a glance — net wealth at end of construction</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Strategy</th>
+              <th>Bear (−50%)</th>
+              <th>Down (−25%)</th>
+              <th>Flat</th>
+              <th>+30%</th>
+              <th>+100%</th>
+              <th>+200%</th>
+            </tr>
+          </thead>
+          <tbody id="scenario-rows"></tbody>
+        </table>
       </div>
 
-      <div class="breakeven-section" id="breakeven">
-        <!-- populated by JS -->
-      </div>
+      <!-- Insight box -->
+      <div class="insight-box" id="insight"></div>
 
       <div class="cta-block">
         <h3>Want to walk through your specific numbers?</h3>
-        <p>The calculator captures the major variables, but every transaction has specifics — your tax basis, your developer's contract terms, your custody preferences, your timing. The first 30 minutes is no-cost discovery.</p>
+        <p>The calculator captures the major variables, but every transaction has specifics — your cost basis, your developer's contract terms, your custody preferences, your timing, and crucially your loan-closure plan at maturity. The first 30 minutes is no-cost discovery.</p>
         <a href="https://meetings.hubspot.com/dalia-platt" class="btn">Book a 30-min call</a>
       </div>
 
       <div class="disclaimer">
         <h4>Important caveats — please read</h4>
-        <p><strong style="color:var(--light);">This is a financial-modeling tool, not financial, legal, or tax advice.</strong> The calculations are simplified and assume idealized loan and tax mechanics; actual outcomes depend on your specific tax basis, state of residence, contract terms, market conditions, and the precise structure of any loan or collateral arrangement.</p>
-        <p>Pledging Bitcoin as collateral is generally not, by itself, a taxable disposition under current IRS guidance, but tax treatment depends on the specifics. Selling borrowed Bitcoin for fiat may create a separate tax event. Liquidation, default, repayment with appreciated crypto, or transfers of beneficial control may trigger consequences not captured here. <strong style="color:var(--light);">Every buyer should consult a qualified CPA before relying on any structure described here for a specific transaction.</strong></p>
-        <p>Florida pre-construction transactions are governed by §718.202 and other state statutes. The supplemental BTC collateral structure (Route 2) requires drafting by qualified Florida real-estate-and-crypto counsel before any specific transaction; the structure is not plug-and-play and is presented here for modeling only.</p>
+        <p><strong style="color:var(--light);">This is a financial-modeling tool, not financial, legal, or tax advice.</strong> The calculations are simplified; actual outcomes depend on your specific tax basis, state of residence, contract terms, market conditions, BTC price path during construction (not just endpoints), and the precise structure of any loan or collateral arrangement.</p>
+        <p>Pledging Bitcoin as collateral is generally not, by itself, a taxable disposition under current IRS guidance, but tax treatment depends on the specifics. Selling borrowed Bitcoin for fiat at origination, repaying a loan with appreciated Bitcoin, transferring Bitcoin to satisfy a loan obligation, or default-triggered liquidation may all create tax events. <strong style="color:var(--light);">Every buyer should consult a qualified CPA before relying on any structure described here for a specific transaction.</strong></p>
+        <p>Florida pre-construction transactions are governed by §718.202 and other state statutes. The supplemental BTC collateral structure (Route 2) requires drafting by qualified Florida real-estate-and-crypto counsel. Whether BTC in 2-of-3 multisig satisfies UCC perfection requirements, and whether the §718.202 division director would accept BTC as alternative assurance for deposits above 10%, are open questions that require legal review before any specific transaction.</p>
       </div>
 
     </div>
@@ -263,16 +349,18 @@
 </footer>
 
 <script>
-// Helper: format USD
 const usd = n => {
-  if (Math.abs(n) >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
-  if (Math.abs(n) >= 1e3) return '$' + (n/1e3).toFixed(0) + 'k';
-  return '$' + n.toFixed(0);
+  const sign = n < 0 ? '−' : '';
+  const abs = Math.abs(n);
+  if (abs >= 1e6) return sign + '$' + (abs/1e6).toFixed(2) + 'M';
+  if (abs >= 1e3) return sign + '$' + (abs/1e3).toFixed(0) + 'k';
+  return sign + '$' + abs.toFixed(0);
 };
 const usdSigned = n => (n >= 0 ? '+' : '') + usd(n);
 
-// Get input values
 function readInputs() {
+  const closure = document.querySelector('input[name="closure"]:checked').value;
+  const buybackOverride = document.getElementById('btc-buyback-price').value;
   return {
     price: +document.getElementById('price').value,
     addtlPct: +document.getElementById('addtl-pct').value / 100,
@@ -280,212 +368,361 @@ function readInputs() {
     btcOwned: +document.getElementById('btc-owned').value,
     costBasis: +document.getElementById('cost-basis').value,
     btcPrice: +document.getElementById('btc-price').value,
+    btcBuybackPrice: buybackOverride === '' ? null : +buybackOverride,
     taxRate: +document.getElementById('tax-rate').value / 100,
-    futurePct: +document.getElementById('future-pct').value / 100,
-    multisigOn: document.getElementById('toggle-multisig').classList.contains('on'),
+    lmcFeeRate: +document.getElementById('lmc-fee').value / 100,
+    lmcLtv: +document.getElementById('lmc-ltv').value / 100,
+    tbaFeeRate: +document.getElementById('tba-fee').value / 100,
+    setupCost: +document.getElementById('setup-cost').value,
+    trusteeFee: +document.getElementById('trustee-fee').value,
+    closure,
+    selectedScenarioPct: +document.querySelector('.scenario-tab.active').dataset.pct / 100,
   };
 }
 
-// Compute strategies
-function compute(i) {
+// Compute net wealth at end for a given strategy and BTC future price
+function computeStrategy(i, futurePct, strategy) {
+  const P0 = i.btcPrice;
+  const P1 = P0 * (1 + futurePct);
+  // Buyback price defaults to end-of-construction price if not overridden
+  const Pbuyback = i.btcBuybackPrice !== null ? i.btcBuybackPrice : P1;
   const statutoryDeposit = i.price * 0.10;
   const additionalDeposit = i.price * i.addtlPct;
   const totalDeposit = statutoryDeposit + additionalDeposit;
-  const futurePrice = i.btcPrice * (1 + i.futurePct);
+  const yearsConstruction = i.months / 12;
+  const lmcLtv = i.lmcLtv;
+  const lmcFeeRate = i.lmcFeeRate;
 
-  // Strategy A: Sell BTC for full deposit
-  const btcSold_A = totalDeposit / i.btcPrice;
-  const gain_A = btcSold_A * Math.max(0, i.btcPrice - i.costBasis);
-  const tax_A = gain_A * i.taxRate;
-  const btcRetained_A = i.btcOwned - btcSold_A;
-  const btcValue_A = btcRetained_A * futurePrice;
-  const netWealth_A = btcValue_A - tax_A;
+  if (strategy === 'A') {
+    // Sell BTC for full deposit at origination
+    const btcSold = totalDeposit / P0;
+    const gain = btcSold * Math.max(0, P0 - i.costBasis);
+    const tax = gain * i.taxRate;
+    const btcRetained = i.btcOwned - btcSold;
+    const btcValueEnd = btcRetained * P1;
+    const netWealth = btcValueEnd - tax;
+    return {
+      strategy: 'A',
+      label: 'Sell BTC',
+      sublabel: 'Liquidate enough Bitcoin to fund the full deposit. Pay capital gains tax now.',
+      btcSold, gain, tax, btcRetained, btcValueEnd, netWealth,
+      // For display
+      rows: [
+        ['BTC sold (at origination)', btcSold.toFixed(2) + ' BTC', 'neutral'],
+        ['Capital gain realized', usd(gain), 'neg'],
+        ['Tax paid (now)', '−' + usd(tax), 'neg'],
+        ['BTC retained at end', btcRetained.toFixed(2) + ' BTC', 'neutral'],
+        ['BTC value at end', usd(btcValueEnd), 'pos'],
+      ],
+      summary: 'Net = BTC value − tax paid',
+    };
+  }
 
-  // Strategy B: LMC liquidity for full deposit (Route 1)
-  // Loan principal needed (gross of fee) = totalDeposit / 0.95 so that net of 5% fee = totalDeposit
-  const loanPrincipal_B = totalDeposit / 0.95;
-  const borrowedBTC_B = loanPrincipal_B / i.btcPrice;
-  const pledgedBTC_B = borrowedBTC_B / 0.95;
-  const lmcFee_B = loanPrincipal_B * 0.05;
-  const buybackCost_B = borrowedBTC_B * futurePrice;
-  const saleProceeds_B = borrowedBTC_B * i.btcPrice;
-  const buybackDelta_B = buybackCost_B - saleProceeds_B; // extra cash needed at maturity
-  const btcRetained_B = i.btcOwned;
-  const btcValue_B = btcRetained_B * futurePrice;
-  const netWealth_B = btcValue_B - lmcFee_B - buybackDelta_B;
+  if (strategy === 'B') {
+    // LMC for full deposit
+    // Loan principal grossed up so net of fee = totalDeposit
+    const loanPrincipalFiat = totalDeposit / (1 - lmcFeeRate);
+    const lmcFee = loanPrincipalFiat * lmcFeeRate;
+    const borrowedBTC = loanPrincipalFiat / P0;
+    const pledgedBTC = borrowedBTC / lmcLtv;
 
-  // Strategy C: B + multisig overlay (Route 2 supplemental collateral)
-  // Assume multisig collateral = 150% of additional deposit value, locked for construction period
-  const multisigBTCValue = additionalDeposit * 1.50;
-  const multisigBTC = multisigBTCValue / i.btcPrice;
-  // TBA AUM fee 1% annually on locked BTC value (simplified — uses initial value)
-  const tbaFee = multisigBTCValue * 0.01 * (i.months / 12);
-  // Multisig setup + trustee fees (one-time + annual)
-  const setupFees = 4000 + (1000 * (i.months / 12));
-  const multisigCost = tbaFee + setupFees;
-  const netWealth_C = netWealth_B - multisigCost;
+    let closureCash = 0;
+    let closureTax = 0;
+    let btcSoldAtMaturity = 0;
+    let totalLmcFee = lmcFee;
+    let btcRetained = i.btcOwned;
 
-  return {
-    inputs: i,
-    statutoryDeposit, additionalDeposit, totalDeposit, futurePrice,
-    A: { btcSold: btcSold_A, gain: gain_A, tax: tax_A, btcRetained: btcRetained_A,
-         btcValue: btcValue_A, netWealth: netWealth_A },
-    B: { loanPrincipal: loanPrincipal_B, borrowedBTC: borrowedBTC_B, pledgedBTC: pledgedBTC_B,
-         lmcFee: lmcFee_B, buybackDelta: buybackDelta_B, btcRetained: btcRetained_B,
-         btcValue: btcValue_B, netWealth: netWealth_B },
-    C: { multisigBTCValue, multisigBTC, tbaFee, setupFees, multisigCost, netWealth: netWealth_C },
-  };
+    if (i.closure === 'external') {
+      // Buyer buys borrowedBTC at Pbuyback from external cash
+      closureCash = borrowedBTC * Pbuyback - borrowedBTC * P0; // net cash beyond what was received from sale
+      closureTax = 0;
+    } else if (i.closure === 'sell') {
+      // Buyer transfers borrowedBTC from existing holdings — taxable disposition at Pbuyback
+      btcSoldAtMaturity = borrowedBTC;
+      // Gain or loss depending on price
+      const gainOrLossPerBTC = Pbuyback - i.costBasis;
+      const totalGainOrLoss = btcSoldAtMaturity * gainOrLossPerBTC;
+      closureTax = totalGainOrLoss * i.taxRate; // negative if loss (TLH benefit)
+      closureCash = 0;
+      btcRetained = i.btcOwned - btcSoldAtMaturity;
+    } else if (i.closure === 'roll') {
+      // Roll loan annually for the construction period; pay fee per year
+      const years = Math.max(1, Math.ceil(yearsConstruction));
+      totalLmcFee = lmcFee * years;
+      // At end, still need to close — model as sell BTC at end
+      btcSoldAtMaturity = borrowedBTC;
+      const gainOrLossPerBTC = Pbuyback - i.costBasis;
+      const totalGainOrLoss = btcSoldAtMaturity * gainOrLossPerBTC;
+      closureTax = totalGainOrLoss * i.taxRate;
+      btcRetained = i.btcOwned - btcSoldAtMaturity;
+    }
+
+    const btcValueEnd = btcRetained * P1;
+    const netWealth = btcValueEnd - totalLmcFee - closureCash - closureTax;
+
+    const rows = [
+      ['BTC pledged to LMC', pledgedBTC.toFixed(2) + ' BTC', 'neutral'],
+      ['Borrowed BTC (sold for cash)', borrowedBTC.toFixed(2) + ' BTC', 'neutral'],
+      ['LMC upfront fee' + (i.closure==='roll' ? ' (×' + Math.max(1, Math.ceil(yearsConstruction)) + 'yr)' : ''), '−' + usd(totalLmcFee), 'neg'],
+    ];
+    if (i.closure === 'external') {
+      const cashSign = closureCash >= 0 ? 'neg' : 'pos';
+      const cashLabel = closureCash >= 0 ? 'Buyback cost vs origination sale' : 'Buyback gain vs origination sale';
+      rows.push([cashLabel, (closureCash >= 0 ? '−' : '+') + usd(Math.abs(closureCash)), cashSign]);
+      rows.push(['BTC retained at end', i.btcOwned.toFixed(2) + ' BTC', 'pos']);
+    } else if (i.closure === 'sell') {
+      rows.push(['BTC transferred at maturity', borrowedBTC.toFixed(2) + ' BTC', 'neg']);
+      const taxLabel = closureTax >= 0 ? 'Tax at maturity (gain)' : 'Tax credit (loss harvested)';
+      rows.push([taxLabel, (closureTax >= 0 ? '−' : '+') + usd(Math.abs(closureTax)), closureTax >= 0 ? 'neg' : 'pos']);
+      rows.push(['BTC retained at end', btcRetained.toFixed(2) + ' BTC', 'neutral']);
+    } else if (i.closure === 'roll') {
+      rows.push(['Eventual closure (sell BTC)', borrowedBTC.toFixed(2) + ' BTC', 'neg']);
+      const taxLabel = closureTax >= 0 ? 'Tax at eventual closure' : 'Tax credit (loss harvested)';
+      rows.push([taxLabel, (closureTax >= 0 ? '−' : '+') + usd(Math.abs(closureTax)), closureTax >= 0 ? 'neg' : 'pos']);
+      rows.push(['BTC retained at end', btcRetained.toFixed(2) + ' BTC', 'neutral']);
+    }
+    rows.push(['BTC value at end', usd(btcValueEnd), 'pos']);
+
+    return {
+      strategy: 'B',
+      label: 'LMC for full deposit',
+      sublabel: 'Borrow against pledged BTC via Loan My Coins. Funds the full deposit. Closure mechanics depend on cash plan at maturity.',
+      pledgedBTC, borrowedBTC, lmcFee: totalLmcFee, closureCash, closureTax, btcSoldAtMaturity,
+      btcRetained, btcValueEnd, netWealth,
+      rows,
+      summary: 'Net = BTC value − LMC fee − closure cost − closure tax',
+    };
+  }
+
+  if (strategy === 'C') {
+    // LMC for statutory only + multisig for additional
+    // (assumes Approach B — BTC as alternative assurance for the additional tranche, paid at closing via mortgage)
+    const lmcLoanFiat = statutoryDeposit / (1 - lmcFeeRate);
+    const lmcFee = lmcLoanFiat * lmcFeeRate;
+    const lmcBorrowedBTC = lmcLoanFiat / P0;
+    const lmcPledgedBTC = lmcBorrowedBTC / lmcLtv;
+
+    // Multisig collateral for additional deposit — 100% of additional value at origination
+    const multisigBTC = additionalDeposit / P0;
+    const multisigBTCValue = additionalDeposit;
+    const tbaFee = multisigBTCValue * i.tbaFeeRate * yearsConstruction;
+    const setupFees = i.setupCost + i.trusteeFee * yearsConstruction;
+
+    let lmcClosureCash = 0;
+    let lmcClosureTax = 0;
+    let totalLmcFee = lmcFee;
+    let btcSoldForLmcClosure = 0;
+    let btcRetained = i.btcOwned;
+
+    if (i.closure === 'external') {
+      lmcClosureCash = lmcBorrowedBTC * (Pbuyback - P0);
+    } else if (i.closure === 'sell') {
+      btcSoldForLmcClosure = lmcBorrowedBTC;
+      const gainOrLossPerBTC = Pbuyback - i.costBasis;
+      lmcClosureTax = btcSoldForLmcClosure * gainOrLossPerBTC * i.taxRate;
+      btcRetained = i.btcOwned - btcSoldForLmcClosure;
+    } else if (i.closure === 'roll') {
+      const years = Math.max(1, Math.ceil(yearsConstruction));
+      totalLmcFee = lmcFee * years;
+      btcSoldForLmcClosure = lmcBorrowedBTC;
+      const gainOrLossPerBTC = Pbuyback - i.costBasis;
+      lmcClosureTax = btcSoldForLmcClosure * gainOrLossPerBTC * i.taxRate;
+      btcRetained = i.btcOwned - btcSoldForLmcClosure;
+    }
+
+    // At closing, buyer pays additional deposit value via mortgage (modeled as cost = additionalDeposit)
+    // Multisig BTC unlocks at end at P1 — buyer keeps BTC and its appreciation
+    // This means the additional deposit cash is paid at closing (typically from mortgage proceeds)
+    // For the calculator, we treat that cash payment as just a wash (paid via mortgage = property cost)
+    // The net difference vs Strategy B is: smaller LMC loan + TBA fees + buyer keeps BTC ownership intact
+
+    const btcValueEnd = btcRetained * P1;
+    const netWealth = btcValueEnd - totalLmcFee - lmcClosureCash - lmcClosureTax - tbaFee - setupFees;
+
+    const rows = [
+      ['LMC loan (statutory only)', usd(lmcLoanFiat), 'neutral'],
+      ['LMC upfront fee' + (i.closure==='roll' ? ' (×' + Math.max(1, Math.ceil(yearsConstruction)) + 'yr)' : ''), '−' + usd(totalLmcFee), 'neg'],
+      ['BTC in multisig (additional)', multisigBTC.toFixed(2) + ' BTC', 'neutral'],
+      ['TBA fee (' + i.months + 'mo)', '−' + usd(tbaFee), 'neg'],
+      ['Setup + trustee fees', '−' + usd(setupFees), 'neg'],
+    ];
+    if (i.closure === 'external') {
+      const cashSign = lmcClosureCash >= 0 ? 'neg' : 'pos';
+      const cashLabel = lmcClosureCash >= 0 ? 'LMC buyback cost vs origination' : 'LMC buyback gain vs origination';
+      rows.push([cashLabel, (lmcClosureCash >= 0 ? '−' : '+') + usd(Math.abs(lmcClosureCash)), cashSign]);
+    } else {
+      rows.push(['BTC sold to close LMC', btcSoldForLmcClosure.toFixed(2) + ' BTC', 'neg']);
+      const taxLabel = lmcClosureTax >= 0 ? 'Tax at LMC closure' : 'Tax credit (loss harvested)';
+      rows.push([taxLabel, (lmcClosureTax >= 0 ? '−' : '+') + usd(Math.abs(lmcClosureTax)), lmcClosureTax >= 0 ? 'neg' : 'pos']);
+    }
+    rows.push(['BTC retained at end', btcRetained.toFixed(2) + ' BTC', i.closure === 'external' ? 'pos' : 'neutral']);
+    rows.push(['BTC value at end', usd(btcValueEnd), 'pos']);
+
+    return {
+      strategy: 'C',
+      label: 'LMC + Multisig (Routes 1+2)',
+      sublabel: 'LMC funds statutory 10% only. BTC pledged to 2-of-3 multisig for additional %. Smaller LMC loan, but TBA fees on locked BTC. (Approach B; requires §718.202 division approval.)',
+      lmcLoanFiat, lmcFee: totalLmcFee, lmcBorrowedBTC, lmcPledgedBTC, multisigBTC, multisigBTCValue,
+      tbaFee, setupFees, lmcClosureCash, lmcClosureTax, btcRetained, btcValueEnd, netWealth,
+      rows,
+      summary: 'Net = BTC value − LMC fee (smaller) − TBA fees − closure costs',
+    };
+  }
 }
 
-// Determine winner among visible strategies
-function rankStrategies(r, multisigOn) {
-  const candidates = multisigOn
-    ? [{ key: 'A', net: r.A.netWealth }, { key: 'B', net: r.B.netWealth }, { key: 'C', net: r.C.netWealth }]
-    : [{ key: 'A', net: r.A.netWealth }, { key: 'B', net: r.B.netWealth }];
-  const sorted = [...candidates].sort((a,b) => b.net - a.net);
-  return { winner: sorted[0].key, loser: sorted[sorted.length-1].key };
+function rankByNet(results) {
+  const sorted = [...results].sort((a, b) => b.netWealth - a.netWealth);
+  return { winner: sorted[0].strategy, loser: sorted[sorted.length-1].strategy };
 }
 
-// Render strategies
-function render(r) {
-  const i = r.inputs;
-  const { winner, loser } = rankStrategies(r, i.multisigOn);
+function renderStrategyCards(i, futurePct) {
+  const A = computeStrategy(i, futurePct, 'A');
+  const B = computeStrategy(i, futurePct, 'B');
+  const C = computeStrategy(i, futurePct, 'C');
+  const all = [A, B, C];
+  const { winner, loser } = rankByNet(all);
 
-  const cards = [];
-
-  // Card A: Sell BTC
-  cards.push(`
-    <div class="strategy-card ${winner==='A'?'winner':''} ${loser==='A'?'loser':''}">
-      ${winner==='A'?'<span class="badge">Best</span>':loser==='A'?'<span class="badge">Worst</span>':''}
-      <h3>Sell BTC</h3>
-      <div class="subtitle">Liquidate enough Bitcoin to fund the full deposit in cash. Pay capital gains tax.</div>
-      <div class="net">${usd(r.A.netWealth)}</div>
-      <div class="net-label">Net BTC + cash position at end of construction</div>
-      <div class="breakdown">
-        <div class="breakdown-row"><span class="lbl">BTC sold</span><span class="v">${r.A.btcSold.toFixed(2)} BTC</span></div>
-        <div class="breakdown-row"><span class="lbl">Capital gain realized</span><span class="v neg">${usd(r.A.gain)}</span></div>
-        <div class="breakdown-row"><span class="lbl">Tax paid (now)</span><span class="v neg">−${usd(r.A.tax)}</span></div>
-        <div class="breakdown-row"><span class="lbl">BTC retained</span><span class="v">${r.A.btcRetained.toFixed(2)} BTC</span></div>
-        <div class="breakdown-row"><span class="lbl">BTC value at end</span><span class="v pos">${usd(r.A.btcValue)}</span></div>
-      </div>
-    </div>
-  `);
-
-  // Card B: LMC for full deposit
-  cards.push(`
-    <div class="strategy-card ${winner==='B'?'winner':''} ${loser==='B'?'loser':''}">
-      ${winner==='B'?'<span class="badge">Best</span>':loser==='B'?'<span class="badge">Worst</span>':''}
-      <h3>LMC for full deposit (Route 1)</h3>
-      <div class="subtitle">Pledge BTC to Loan My Coins. Borrowed BTC sells for fiat that funds the deposit. Keep all BTC.</div>
-      <div class="net">${usd(r.B.netWealth)}</div>
-      <div class="net-label">Net BTC + cash position at end of construction</div>
-      <div class="breakdown">
-        <div class="breakdown-row"><span class="lbl">BTC pledged to LMC</span><span class="v">${r.B.pledgedBTC.toFixed(2)} BTC</span></div>
-        <div class="breakdown-row"><span class="lbl">Borrowed BTC (sold for cash)</span><span class="v">${r.B.borrowedBTC.toFixed(2)} BTC</span></div>
-        <div class="breakdown-row"><span class="lbl">LMC upfront fee (5%)</span><span class="v neg">−${usd(r.B.lmcFee)}</span></div>
-        <div class="breakdown-row"><span class="lbl">Loan buyback cost vs sale</span><span class="v ${r.B.buybackDelta>=0?'neg':'pos'}">${r.B.buybackDelta>=0?'−':'+'}${usd(Math.abs(r.B.buybackDelta))}</span></div>
-        <div class="breakdown-row"><span class="lbl">BTC retained</span><span class="v">${r.B.btcRetained.toFixed(2)} BTC</span></div>
-        <div class="breakdown-row"><span class="lbl">BTC value at end</span><span class="v pos">${usd(r.B.btcValue)}</span></div>
-      </div>
-    </div>
-  `);
-
-  // Card C: B + multisig overlay (only if toggled on)
-  if (i.multisigOn) {
-    cards.push(`
-      <div class="strategy-card ${winner==='C'?'winner':''} ${loser==='C'?'loser':''}">
-        ${winner==='C'?'<span class="badge">Best</span>':loser==='C'?'<span class="badge">Worst</span>':''}
-        <h3>LMC + multisig (Routes 1 + 2)</h3>
-        <div class="subtitle">LMC funds the deposit AND BTC pledged to a 2-of-3 multisig as supplemental security to the developer (typically 150% of additional deposit).</div>
-        <div class="net">${usd(r.C.netWealth)}</div>
-        <div class="net-label">Net position — financial cost of multisig overlay</div>
+  const html = all.map(s => {
+    const isWin = s.strategy === winner;
+    const isLose = s.strategy === loser && winner !== loser;
+    return `
+      <div class="strategy-card ${isWin?'winner':''} ${isLose?'loser':''}">
+        ${isWin?'<span class="badge">Best</span>':isLose?'<span class="badge">Worst</span>':''}
+        <h3>${s.label}</h3>
+        <div class="subtitle">${s.sublabel}</div>
+        <div class="net">${usd(s.netWealth)}</div>
+        <div class="net-label">Net wealth at end of construction (excl. property)</div>
         <div class="breakdown">
-          <div class="breakdown-row"><span class="lbl">BTC in multisig (locked)</span><span class="v">${r.C.multisigBTC.toFixed(2)} BTC</span></div>
-          <div class="breakdown-row"><span class="lbl">TBA fee (${i.months}mo)</span><span class="v neg">−${usd(r.C.tbaFee)}</span></div>
-          <div class="breakdown-row"><span class="lbl">Setup + trustee fees</span><span class="v neg">−${usd(r.C.setupFees)}</span></div>
-          <div class="breakdown-row"><span class="lbl">Plus all costs from Route 1</span><span class="v">(see middle card)</span></div>
+          ${s.rows.map(([lbl, v, cls]) => `
+            <div class="breakdown-row"><span class="lbl">${lbl}</span><span class="v ${cls==='pos'?'pos':cls==='neg'?'neg':''}">${v}</span></div>
+          `).join('')}
+          <div class="breakdown-row head"><span class="lbl">${s.summary}</span><span class="v"></span></div>
         </div>
-        <p style="margin-top:0.85rem;font-size:0.78rem;color:var(--faint);line-height:1.5;font-style:italic;">
-          The multisig overlay isn't primarily a money-saver — it's a structural feature.
-          The buyer gains cryptographic enforcement of milestone-based release rights;
-          the developer gains supplemental security above the statutory escrow.
-          The cost above is what the structure adds in pure financial terms.
-        </p>
       </div>
-    `);
-  }
+    `;
+  }).join('');
 
-  document.getElementById('strategies').innerHTML = cards.join('');
-
-  // Delta banner
-  const delta = r.B.netWealth - r.A.netWealth;
-  let bannerHTML = `<h3>LMC vs Sell BTC — financial difference</h3>
-                    <div class="delta-value ${delta>=0?'pos':'neg'}">${usdSigned(delta)}</div>`;
-  if (delta >= 0) {
-    bannerHTML += `<p>Under these inputs, borrowing against your Bitcoin (Route 1) leaves you ${usd(Math.abs(delta))} better off at the end of construction than selling. The benefit comes mainly from <strong style="color:var(--light);">retaining ${r.A.btcSold.toFixed(2)} BTC of upside exposure</strong> plus avoiding the immediate tax of ${usd(r.A.tax)} — partially offset by the LMC fee (${usd(r.B.lmcFee)}) and the cost of buying back the loan principal at the end-of-construction price.</p>`;
-  } else {
-    bannerHTML += `<p>Under these specific inputs, selling Bitcoin to fund the deposit comes out ahead by ${usd(Math.abs(delta))}. This typically happens when BTC depreciates significantly during the construction period — the loan buyback cost saves money, but the lost BTC upside is also smaller. Most buyers use Route 1 because they expect Bitcoin to appreciate over the construction period; this calculator lets you stress-test that assumption.</p>`;
-  }
-  document.getElementById('delta-banner').innerHTML = bannerHTML;
-
-  // Break-even analysis
-  // Find the BTC price multiplier where Strategy B = Strategy A
-  // netWealth_A(P1) = (B - D/P0) × P1 - tax_A
-  // netWealth_B(P1) = B × P1 - lmc_fee - X_b × (P1 - P0)
-  //                = B × P1 - lmc_fee - (D/0.95/P0) × P1 + (D/0.95)
-  // Setting equal:
-  // (B - D/P0) × P1 - tax_A = B × P1 - lmc_fee - (D/(0.95 × P0)) × P1 + D/0.95
-  // -D/P0 × P1 - tax_A = -lmc_fee - (D/(0.95 × P0)) × P1 + D/0.95
-  // (D/(0.95 × P0)) × P1 - (D/P0) × P1 = D/0.95 - lmc_fee + tax_A
-  // P1 × D/P0 × (1/0.95 - 1) = D/0.95 - lmc_fee + tax_A
-  // P1 × D/P0 × (0.05/0.95) = D/0.95 - lmc_fee + tax_A
-  // P1 = [D/0.95 - lmc_fee + tax_A] × P0 × 19 / D
-  const lmcFee = r.totalDeposit / 0.95 * 0.05;
-  const tax_A_value = r.A.tax;
-  const breakevenPrice = ((r.totalDeposit / 0.95 - lmcFee + tax_A_value) * i.btcPrice * 19) / r.totalDeposit;
-  const breakevenPct = (breakevenPrice / i.btcPrice - 1) * 100;
-
-  let beHTML = `<h3>Break-even analysis</h3>`;
-  if (i.taxRate === 0 || i.btcPrice <= i.costBasis) {
-    beHTML += `<p>With your current inputs, there's no capital gain on the sale, so the only difference between strategies is BTC price exposure during construction and the LMC fee. <span class="strong">If BTC ends roughly flat or higher, LMC wins; if BTC drops significantly, selling wins.</span></p>`;
-  } else if (breakevenPct < -90 || !isFinite(breakevenPct)) {
-    beHTML += `<p>With your tax basis and the magnitude of the deferred tax, <span class="strong">Route 1 (LMC) beats selling under almost any realistic BTC price scenario</span> — the avoided capital gains tax (${usd(tax_A_value)}) alone exceeds what you'd gain from selling.</p>`;
-  } else {
-    beHTML += `<p>Under these inputs, Route 1 (LMC) and selling produce equal outcomes when BTC ends construction at <span class="strong">${(breakevenPct).toFixed(0)}% ${breakevenPct>=0?'above':'below'} the current price</span>. Above that threshold, LMC wins; below it, selling wins. Your current scenario assumes ${(i.futurePct*100).toFixed(0)}% — slide the assumption to test how robust the conclusion is to your view on Bitcoin's path.</p>`;
-  }
-  document.getElementById('breakeven').innerHTML = beHTML;
+  document.getElementById('strategies').innerHTML = html;
 }
 
-// Update labels
+function renderScenarioTable(i) {
+  const scenarios = [-0.5, -0.25, 0, 0.3, 1.0, 2.0];
+  const stratLabels = { A: 'Sell BTC', B: 'LMC for full', C: 'LMC + Multisig' };
+  const rows = [];
+
+  // Compute all 18 cells (3 strategies × 6 scenarios)
+  const matrix = {};
+  ['A','B','C'].forEach(s => {
+    matrix[s] = scenarios.map(pct => computeStrategy(i, pct, s));
+  });
+
+  // For each scenario, find winner
+  const winners = scenarios.map((_, idx) => {
+    const vals = ['A','B','C'].map(s => matrix[s][idx].netWealth);
+    const max = Math.max(...vals);
+    return ['A','B','C'][vals.indexOf(max)];
+  });
+
+  ['A','B','C'].forEach(s => {
+    const isAlwaysWinner = winners.every(w => w === s);
+    const cellsHtml = matrix[s].map((cell, idx) =>
+      `<td${winners[idx] === s ? ' style="color:var(--green);font-weight:700;"' : ''}>${usd(cell.netWealth)}</td>`
+    ).join('');
+    rows.push(`<tr${isAlwaysWinner?' class="winner-row"':''}><td>${stratLabels[s]}</td>${cellsHtml}</tr>`);
+  });
+
+  document.getElementById('scenario-rows').innerHTML = rows.join('');
+}
+
+function renderInsight(i, futurePct) {
+  const A = computeStrategy(i, futurePct, 'A');
+  const B = computeStrategy(i, futurePct, 'B');
+  const C = computeStrategy(i, futurePct, 'C');
+  const { winner } = rankByNet([A, B, C]);
+  const winnerObj = { A, B, C }[winner];
+  const stratLabels = { A: 'Sell BTC', B: 'LMC for full deposit', C: 'LMC + Multisig' };
+
+  const closureLabel = {
+    'external': 'pay the LMC loan from external cash at maturity',
+    'sell': 'sell BTC at maturity to close the LMC loan',
+    'roll': 'roll the LMC loan annually'
+  }[i.closure];
+
+  let html = `<h3>What this scenario tells you</h3>`;
+
+  // Compare top vs bottom
+  const allVals = [A.netWealth, B.netWealth, C.netWealth];
+  const sorted = [...allVals].sort((a, b) => b - a);
+  const range = sorted[0] - sorted[sorted.length-1];
+
+  html += `<p>Under your inputs and a ${(futurePct*100).toFixed(0)}% BTC price scenario at end of construction, with a closure plan to <span class="strong">${closureLabel}</span>, the best strategy is <span class="strong">${stratLabels[winner]}</span> with a net wealth of <span class="strong">${usd(winnerObj.netWealth)}</span>. The spread between best and worst strategy is ${usd(range)}.</p>`;
+
+  // Closure-source insight
+  if (i.closure === 'sell' && futurePct > 0.5) {
+    html += `<p>Note: because you've selected "sell BTC at maturity" and BTC has appreciated significantly (${(futurePct*100).toFixed(0)}%), the LMC strategies pay tax at maturity on a higher gain than you'd have paid at origination. <span class="strong">In strong-bull scenarios with this closure plan, selling now (Strategy A) often beats LMC.</span> If you have access to external cash for closure, switch to that option above to see a different result.</p>`;
+  } else if (i.closure === 'external' && winner !== 'A') {
+    html += `<p>You've assumed external cash for LMC closure — meaning no tax at maturity. This is the most LMC-favorable assumption. <span class="strong">If your actual plan involves selling BTC at maturity to close the loan, switch the closure option to see how that changes the picture.</span></p>`;
+  } else if (i.closure === 'roll' && i.months >= 24) {
+    html += `<p>You've selected "roll the loan annually" — note that the LMC fee multiplies by the number of years. The eventual closure (modeled as selling BTC at end) still triggers tax at the maturity-time price. Rolling defers the question rather than solves it.</p>`;
+  }
+
+  // Tax loss harvesting opportunity
+  const Pbuyback = i.btcBuybackPrice !== null ? i.btcBuybackPrice : (i.btcPrice * (1 + futurePct));
+  if (Pbuyback < i.costBasis && (i.closure === 'sell' || i.closure === 'roll')) {
+    const lossPerBTC = i.costBasis - Pbuyback;
+    html += `<p><span class="strong">Tax-loss harvesting opportunity:</span> Your buyback price ($${usd(Pbuyback).replace('$','')}) is below your cost basis ($${usd(i.costBasis).replace('$','')}), meaning a transfer of BTC at maturity would realize a loss of ~${usd(lossPerBTC)} per BTC. That loss can offset other capital gains in the same tax year — potentially substantial savings depending on your other investment activity. <span class="strong">This is a real planning opportunity worth discussing with your CPA.</span> The calculator already models the tax credit (negative tax) above; in practice, the value depends on what other gains you have to offset.</p>`;
+  } else if (i.btcBuybackPrice !== null && i.btcBuybackPrice < i.btcPrice && (i.closure === 'sell' || i.closure === 'roll')) {
+    html += `<p>You've set a buyback price (${usd(i.btcBuybackPrice)}) below the current BTC price (${usd(i.btcPrice)}) but above your cost basis (${usd(i.costBasis)}). This models a scenario where BTC dips during construction and you close the loan at the lower price — saving on the buyback. The realized gain at maturity is smaller than at the current price, but still positive. If BTC dropped <em>below</em> your cost basis, you'd have a tax-loss-harvesting opportunity to offset other gains.</p>`;
+  }
+
+  // Lot-basis caveat
+  if ((Pbuyback < i.costBasis * 1.2) && i.btcOwned > 10) {
+    html += `<p style="font-size:0.82rem;color:var(--faint);font-style:italic;margin-top:1rem;">Note: this calculator uses a single average cost basis. In practice, your BTC may be in lots with different cost bases. If you have any lots with cost basis above the maturity-time price, you can specifically sell those (using HIFO accounting) to maximize tax-loss harvesting. This requires lot-by-lot tracking — a CPA conversation.</p>`;
+  }
+
+  // Strategy C specific
+  if (winner === 'C') {
+    html += `<p>Strategy C wins by combining a smaller LMC loan (only the statutory 10%) with multisig collateral for the additional deposit. The buyer pays the additional deposit cash at closing (typically from mortgage proceeds), so during construction less capital is tied up in cash. <span class="strong">Note: this Approach B structure requires Florida §718.202 division director approval and is not yet established in practice.</span> Refer to the legal memo for the open questions.</p>`;
+  }
+
+  document.getElementById('insight').innerHTML = html;
+}
+
 function updateLabels() {
-  document.getElementById('lbl-price').textContent = usd(+document.getElementById('price').value);
   document.getElementById('lbl-addtl').textContent = document.getElementById('addtl-pct').value + '%';
   document.getElementById('lbl-months').textContent = document.getElementById('months').value;
   document.getElementById('lbl-tax').textContent = document.getElementById('tax-rate').value + '%';
-  const fp = +document.getElementById('future-pct').value;
-  document.getElementById('lbl-future').textContent = (fp >= 0 ? '+' : '') + fp + '%';
-  // Update scenario buttons
-  document.querySelectorAll('.scenario-btn').forEach(btn => {
-    btn.classList.toggle('active', +btn.dataset.pct === fp);
+  document.getElementById('lbl-lmc-fee').textContent = (+document.getElementById('lmc-fee').value).toFixed(1) + '%';
+  document.getElementById('lbl-lmc-ltv').textContent = document.getElementById('lmc-ltv').value + '%';
+  document.getElementById('lbl-tba').textContent = (+document.getElementById('tba-fee').value).toFixed(2) + '%';
+  // Update closure radio rows visual state
+  document.querySelectorAll('.radio-row').forEach(row => {
+    const radio = row.querySelector('input[type="radio"]');
+    row.classList.toggle('checked', radio.checked);
   });
 }
 
 function refresh() {
   updateLabels();
-  render(compute(readInputs()));
+  const i = readInputs();
+  renderStrategyCards(i, i.selectedScenarioPct);
+  renderScenarioTable(i);
+  renderInsight(i, i.selectedScenarioPct);
 }
 
 // Wire up inputs
-document.querySelectorAll('input').forEach(el => el.addEventListener('input', refresh));
-document.querySelectorAll('.scenario-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.getElementById('future-pct').value = btn.dataset.pct;
+document.querySelectorAll('input[type="range"], input[type="number"], input[type="text"]').forEach(el =>
+  el.addEventListener('input', refresh)
+);
+document.querySelectorAll('input[type="radio"]').forEach(el =>
+  el.addEventListener('change', refresh)
+);
+document.querySelectorAll('.scenario-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.scenario-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
     refresh();
   });
-});
-document.getElementById('toggle-multisig').addEventListener('click', () => {
-  document.getElementById('toggle-multisig').classList.toggle('on');
-  refresh();
 });
 
 // Initial render
