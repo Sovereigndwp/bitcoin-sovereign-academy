@@ -1,0 +1,772 @@
+{
+  "schemaVersion": "1.0",
+  "lastUpdated": "2026-05-11",
+  "description": "Canonical source-of-truth for Bitcoin-backed lending provider terms. Referenced by all Bitcoin Capital deep dives. Update here, all pages reflect new data. Every claim has a lastVerified date and a verificationSource URL.",
+  "providers": [
+    {
+      "id": "lmc",
+      "name": "Loan My Coins",
+      "parent": "The Bitcoin Adviser",
+      "tier": 1,
+      "structure": {
+        "denominator": "BTC",
+        "disbursementAsset": "BTC",
+        "custodyModel": "collaborative-multisig",
+        "rehypothecation": false,
+        "marginCalls": false,
+        "creditCheck": false
+      },
+      "terms": {
+        "ltv": 0.95,
+        "ltvUnit": "BTC-denominated",
+        "feeStructure": "fixed-upfront",
+        "feeAmount": 0.05,
+        "feeUnit": "fraction of pledged BTC",
+        "interestType": "none (single upfront fee)",
+        "termBase": "12 months",
+        "termMax": "5 years (via rollover)",
+        "minimum": 1,
+        "minimumUnit": "BTC",
+        "maximum": null,
+        "prepaymentPenalty": null
+      },
+      "jurisdictions": ["global"],
+      "founderBackground": "Andy and Peter (The Bitcoin Adviser, since 2016)",
+      "url": "https://loanmycoins.com",
+      "lastVerified": "2026-05-11",
+      "verificationSource": "https://loanmycoins.com/",
+      "notes": "BTC-for-BTC loan. Pledge BTC, receive BTC (95% LTV), 5% fixed upfront fee, no compounding interest. No margin calls — BTC-denominated structure means LTV is constant. Multisig collaborative custody via TBA. LMC is an introducer; actual loan provider independent. Affiliated with BSA via Dalia's adviser relationship at TBA.",
+      "positioning": {
+        "audience": "Terminal Bitcoiner",
+        "audienceDefinition": "A holder who has maxed out accumulation via traditional savings, salary, and direct purchase. At that stage, further accumulation requires leveraging existing BTC rather than acquiring more from outside capital.",
+        "coreStrategy": "Outperform BTC by using LMC to convert pledged BTC into liquidity (without triggering LTCG), wait for a meaningful BTC drawdown within the 12mo–5yr term, buy back BTC at the lower price, deliver original BTC quantity to LMC at term end, and pocket the surplus.",
+        "strategyMechanics": {
+          "step1": "Pledge X BTC to LMC. Receive 0.95X BTC. No taxable event — pledging is not selling.",
+          "step2": "Sell the 0.95X BTC for fiat. Park in T-bills or short-term yield.",
+          "step3": "Wait for a meaningful BTC drawdown within the loan term (high probability over 5 years given historical volatility).",
+          "step4": "Buy back BTC at the lower price. A $950K cash position from a 10 BTC pledge buys 19 BTC if BTC halves.",
+          "step5": "Deliver X BTC to LMC at term end. Original X BTC collateral returns.",
+          "step6": "Net result: more BTC than the holder started with, accomplished without triggering capital gains."
+        },
+        "exampleMath": {
+          "start": "10 BTC at $100K",
+          "pledge": "10 BTC to LMC collateral",
+          "receive": "9.5 BTC into spot wallet",
+          "sell": "9.5 BTC for $950K cash",
+          "drawdown": "BTC drops to $50K",
+          "buyback": "Buy 10 BTC for $500K cash",
+          "deliverLMC": "Deliver 10 BTC to LMC for repayment",
+          "collateralReturned": "10 BTC original collateral released",
+          "finalPosition": "10 BTC + $450K cash (equivalent to 19 BTC at $50K BTC price)",
+          "delta": "+9 BTC vs. simply holding"
+        },
+        "whenItWorks": [
+          "BTC has a meaningful drawdown within the loan term",
+          "Borrower has discipline to deploy cash at the dip, not panic-sell or chase rallies",
+          "Borrower's cost basis is low enough that LTCG deferral has material value",
+          "Long-term BTC conviction — this is accumulation, not exit"
+        ],
+        "whenItFails": [
+          "BTC rallies steadily without significant drawdowns (5% upfront fee + lost upside on pledged BTC during the loan term)",
+          "Borrower can't time the buyback effectively (cash sits in T-bills earning 4–5% while BTC compounds higher)",
+          "BTC has risen meaningfully at term end and borrower can't roll OR repay — collateral forfeit, taxable event at FMV",
+          "Borrower has high cost basis — tax deferral benefit is small"
+        ],
+        "honestFraming": "This is not a hedge. It is a directional bet on BTC volatility with a 5-year window. Works for terminal holders who already maxed accumulation and want exposure to BTC's drawdown cycle as an accumulation mechanism. Wrong for new entrants, those in the wealth-building phase, or anyone trying to hedge a separate mortgage's margin-call risk."
+      },
+      "wrongFitWhen": [
+        "Needs fiat (must sell received BTC, friction)",
+        "30-year horizon (compounding 5% rolls add up)",
+        "Wants margin call protection through hedge (it's not a hedge)",
+        "High cost basis (small tax-deferral benefit)"
+      ],
+      "custodyAnalysis": {
+        "model": "collaborative-2-of-3-multisig",
+        "keyDistribution": {
+          "borrower": "1 of 3 keys, held personally (hardware wallet, seed-phrase backup)",
+          "lender": "1 of 3 keys, held by TBA on behalf of LMC",
+          "keyAgent": "1 of 3 keys, held by independent regulated trust or qualified third party"
+        },
+        "signatureThreshold": "2 of 3",
+        "proofOfFunds": {
+          "method": "on-chain verifiable",
+          "realTime": true,
+          "borrowerCanVerify": true,
+          "auditCycleDependency": false
+        },
+        "spofsForCollateral": [],
+        "failureModes": {
+          "lenderInsolvency": "Borrower + Key Agent recover via 2-of-3. Bankruptcy estate has no claim on multisig.",
+          "borrowerKeyLoss": "TBA + Key Agent co-sign with identity verification to recover.",
+          "keyAgentFails": "Borrower + TBA co-sign to recover.",
+          "twoOfThreeCollusion": "Theoretically possible; mitigated by separate legal entities with fiduciary duties + on-chain visibility making any movement immediately detectable.",
+          "borrowerDefault": "TBA + Key Agent co-sign liquidation per loan agreement (contractual, not unilateral)."
+        },
+        "rehypothecation": false,
+        "bankruptcyRemoteness": "strong — LMC/TBA never had sole control, so BTC is never on their balance sheet",
+        "trackRecord": "TBA collaborative custody architecture in production since 2016 with no reported losses"
+      }
+    },
+    {
+      "id": "ledn",
+      "name": "Ledn",
+      "parent": null,
+      "tier": 1,
+      "structure": {
+        "denominator": "USD",
+        "disbursementAsset": "USD / USDC",
+        "custodyModel": "qualified-custodian-with-options",
+        "rehypothecation": "borrower-toggleable",
+        "marginCalls": true,
+        "creditCheck": false
+      },
+      "terms": {
+        "ltv": 0.50,
+        "ltvUnit": "fiat-denominated",
+        "feeStructure": "variable-apr",
+        "apr": {
+          "standard": {
+            "small": 0.124,
+            "tier1M": 0.0999,
+            "rehypothecation": "yes — collateral lent to institutions"
+          },
+          "custodied": {
+            "small": 0.139,
+            "tier1M": 0.0999,
+            "rehypothecation": "no — collateral ring-fenced"
+          }
+        },
+        "interestType": "monthly interest, no required monthly payments",
+        "termBase": "open-ended, repay anytime",
+        "termMax": null,
+        "minimum": 1000,
+        "minimumUnit": "USD-equivalent BTC",
+        "maximum": null,
+        "prepaymentPenalty": null,
+        "fundingTime": "24 hours"
+      },
+      "jurisdictions": ["US (most states)", "Canada", "global with restrictions"],
+      "founderBackground": "Adam Reeds, Mauricio Di Bartolomeo (Canadian-founded, BTC-focused since 2018, survived 2022 cohort collapse)",
+      "url": "https://www.ledn.io",
+      "lastVerified": "2026-05-11",
+      "verificationSource": "https://www.ledn.io/bitcoin-backed-loans",
+      "notes": "BTC-for-fiat loan. Borrower chooses Standard (rehypothecation allowed, 12.4% APR) or Custodied (ring-fenced, 13.9% APR) at origination. Segregated on-chain addresses, legally ring-fenced from funding partner bankruptcy. Tiered rates scale down with loan size. No credit check, no required monthly payments.",
+      "bestFitWhen": [
+        "Need USD or USDC liquidity",
+        "Want regulated, mainstream BTC lender",
+        "Comfortable with margin call mechanics",
+        "Loan size $1M+ for best rate tier"
+      ],
+      "wrongFitWhen": [
+        "Want zero margin-call exposure",
+        "Prefer self-custody or multisig",
+        "Sovereignty-first borrower uncomfortable with rehypothecation (use Custodied option but accept higher rate)"
+      ],
+      "custodyAnalysis": {
+        "model": "qualified-custodian",
+        "custodian": "BitGo (regulated trust company, $250M insurance, audited cold storage)",
+        "keyDistribution": {
+          "borrower": "no keys held",
+          "lender": "Ledn directs operations but does not hold custody keys",
+          "custodian": "BitGo holds keys via internal multisig (3-of-N internal, not split with borrower)"
+        },
+        "signatureThreshold": "internal to BitGo — not borrower-shared",
+        "proofOfFunds": {
+          "method": "periodic third-party-audited attestation",
+          "realTime": false,
+          "borrowerCanVerify": "indirectly via audit reports",
+          "auditCycleDependency": true,
+          "cadence": "typically quarterly"
+        },
+        "spofsForCollateral": {
+          "custodied": ["Ledn's funding partner failure (mitigated by ring-fenced segregated addresses)", "BitGo failure (mitigated by insurance + regulatory protection)"],
+          "standard": ["All Custodied SPOFs", "PLUS counterparty institutions that BTC is rehypothecated to"]
+        },
+        "failureModes": {
+          "lenderInsolvency_custodied": "Ring-fenced segregated addresses; collateral should be returnable via bankruptcy-remote structure",
+          "lenderInsolvency_standard": "Rehypothecated collateral may be trapped if counterparty also affected; recovery depends on counterparty solvency chain",
+          "custodianInsolvency": "BitGo insurance ($250M) + regulatory protection; collateral recovery via insolvency proceeding",
+          "borrowerLosesAccountAccess": "KYC/identity recovery; collateral remains accessible after re-verification",
+          "rehypothecationCounterpartyFails_standardOnly": "Loss event for Ledn; could pass through to borrowers if Ledn lacks capital reserves to cover"
+        },
+        "rehypothecation": {
+          "custodied": false,
+          "standard": true,
+          "tradeoff": "1.5% APR premium for non-rehypothecation (13.9% Custodied vs 12.4% Standard)"
+        },
+        "bankruptcyRemoteness": {
+          "custodied": "strong in theory — ring-fenced segregated addresses with legal opinion",
+          "standard": "weaker — rehypothecated portion is off the protected addresses, recovery depends on counterparty solvency"
+        },
+        "trackRecord": "Survived the 2022 cohort collapse (Celsius, BlockFi, Voyager, Genesis) due to: term-matched book, limited rehypothecation, counterparty diversification, and the qualified-custodian structure"
+      }
+    },
+    {
+      "id": "unchained",
+      "name": "Unchained Capital",
+      "parent": null,
+      "tier": 1,
+      "structure": {
+        "denominator": "USD",
+        "disbursementAsset": "USD",
+        "custodyModel": "collaborative-multisig",
+        "rehypothecation": false,
+        "marginCalls": true,
+        "creditCheck": false,
+        "productPositioning": "Commercial loans (B2B) — pivoted from personal loans"
+      },
+      "terms": {
+        "ltv": 0.50,
+        "ltvUnit": "fiat-denominated (200% Collateral-to-Principal required)",
+        "feeStructure": "fixed-interest-with-origination",
+        "interestRate": 0.14,
+        "apr": 0.1621,
+        "interestType": "interest-only every 30 days, 12-payment term",
+        "termBase": "12 months",
+        "termMax": "renewable",
+        "minimum": 150000,
+        "minimumUnit": "USD",
+        "maximum": null,
+        "prepaymentPenalty": null,
+        "multisigStructure": "2-of-3 (borrower holds 1 key, Unchained 1, Fortis Bank 1)",
+        "fundingTime": "as little as 2 business days"
+      },
+      "jurisdictions": ["US (state restrictions apply)"],
+      "founderBackground": "Joe Kelly, Dhruv Bansal (Bitcoin-focused since 2016, pioneers of collaborative custody)",
+      "trackRecord": "$1B+ in loan originations, 1,000+ loans originated, zero lost bitcoin (per company claim)",
+      "url": "https://www.unchained.com/loans",
+      "lastVerified": "2026-05-11",
+      "verificationSource": "https://www.unchained.com/loans (live publicly listed pricing page)",
+      "verifyNote": "Unchained pivoted to commercial (B2B) loans. Current public terms: 14% interest rate, 16.21% APR (origination included), $150K minimum, 12-payment terms. NMLS ID: 1900773. Previously offered tiered personal loan rates 9.99%-11.49%; that product appears to be discontinued in favor of the commercial loans product.",
+      "notes": "BTC-for-fiat commercial loan with collaborative 2-of-3 multisig custody. Borrower holds 1 key, Unchained 1, Fortis Bank 1 (key partner shift from prior independent key agent). Collateral in segregated multisig address, fully verifiable on-chain. No rehypothecation. Interest-only monthly payments over 12-payment term. $150K minimum. Now positioned as business/commercial product, not retail/personal.",
+      "bestFitWhen": [
+        "Need USD with sovereignty-leaning custody",
+        "Loan size $150K+",
+        "Want 2-of-3 multisig with own key custody",
+        "Already familiar with Unchained's collaborative-custody architecture (existing vault customers)"
+      ],
+      "wrongFitWhen": [
+        "Loan under $150K (minimum is binding)",
+        "Want fully passive (interest-only payments still required monthly)",
+        "International (US-only)"
+      ],
+      "custodyAnalysis": {
+        "model": "collaborative-2-of-3-multisig",
+        "keyDistribution": {
+          "borrower": "1 of 3 keys, held personally",
+          "lender": "1 of 3 keys, held by Unchained",
+          "keyAgent": "1 of 3 keys, held by independent key agent"
+        },
+        "signatureThreshold": "2 of 3",
+        "proofOfFunds": {
+          "method": "on-chain verifiable via Unchained dashboard + independent block explorer",
+          "realTime": true,
+          "borrowerCanVerify": true,
+          "auditCycleDependency": false
+        },
+        "spofsForCollateral": [],
+        "failureModes": {
+          "lenderInsolvency": "Borrower + Key Agent recover via 2-of-3. Same architecture as LMC.",
+          "borrowerKeyLoss": "Unchained + Key Agent co-sign with identity verification to recover.",
+          "keyAgentFails": "Borrower + Unchained co-sign to recover.",
+          "twoOfThreeCollusion": "Same risk profile as LMC; mitigated by separate legal entities + on-chain visibility.",
+          "borrowerDefault": "Unchained + Key Agent co-sign liquidation per loan agreement."
+        },
+        "rehypothecation": false,
+        "bankruptcyRemoteness": "strong — same structure as LMC",
+        "trackRecord": "Unchained pioneered collaborative custody for retail Bitcoin in 2017. Multisig vault architecture battle-tested across the BTC space for nearly a decade.",
+        "structuralDifferencesFromLMC": "Operational differences only: longer track record, different key-agent counterparty, larger institutional client base, different fee/rate model"
+      }
+    },
+    {
+      "id": "lava",
+      "name": "Lava",
+      "parent": null,
+      "tier": 1,
+      "structure": {
+        "denominator": "USD",
+        "disbursementAsset": "USD",
+        "custodyModel": "self-custody-dlc",
+        "rehypothecation": false,
+        "marginCalls": true,
+        "creditCheck": false
+      },
+      "terms": {
+        "ltv": 0.60,
+        "ltvUnit": "fiat-denominated",
+        "feeStructure": "step-up-apr",
+        "apr": {
+          "month1": 0.05,
+          "month12": 0.115,
+          "stepUp": "rate increases monthly to incentivize quick repayment",
+          "openEndedAfterY1": true
+        },
+        "interestType": "step-up APR, no required monthly payments",
+        "termBase": "open-ended",
+        "termMax": "open-ended (no fixed maturity)",
+        "minimum": 100,
+        "minimumUnit": "USD",
+        "maximum": "1000000000+",
+        "prepaymentPenalty": null,
+        "processingTime": "~400ms (fastest in category)",
+        "technology": "Discreet Log Contracts (DLCs) — on-chain settlement, no custodian"
+      },
+      "jurisdictions": ["US (most states)", "limited international"],
+      "founderBackground": "Shehzan Maredia (raised $17.5M, Bitcoin-only self-custody focus)",
+      "url": "https://www.lava.xyz/",
+      "lastVerified": "2026-05-11",
+      "verificationSource": "https://www.lava.xyz/",
+      "verifyTodo": "LTV figure (60%) from third-party source — confirm directly with Lava",
+      "notes": "BTC-for-fiat loan via Discreet Log Contracts (DLCs). Fully self-custodial — borrower retains full key control of BTC via on-chain contract. Step-up APR (5% → 11.5% over 12 months) incentivizes quick repayment. Visa card available with up to 5% BTC cashback. Newest entrant; less track record than Ledn/Unchained but most sovereignty-aligned custody model.",
+      "bestFitWhen": [
+        "Want full self-custody of BTC even during loan term",
+        "Comfortable with DLC technology and step-up APR",
+        "Need fast processing or small loan amounts ($100+)",
+        "Plan to repay quickly to lock in low early-month rates"
+      ],
+      "wrongFitWhen": [
+        "Want long-term low-rate borrowing (rate climbs to 11.5% by month 12)",
+        "Uncomfortable with DLC technology / newer protocol",
+        "Want established track record (Lava is newer than Ledn/Unchained)"
+      ],
+      "custodyAnalysis": {
+        "model": "self-custody-dlc",
+        "technology": "Discreet Log Contracts (DLCs) — on-chain Bitcoin smart contract construct using oracle attestations",
+        "keyDistribution": {
+          "borrower": "sole custody — borrower funds the DLC and holds all relevant keys",
+          "lender": "no keys over the BTC — Lava is counterparty to the DLC, not custodian",
+          "oracle": "price oracle attests to BTC price for triggering DLC settlement events (e.g., liquidation thresholds)"
+        },
+        "signatureThreshold": "borrower-only for movement outside DLC terms; DLC executes per encoded logic",
+        "proofOfFunds": {
+          "method": "fully on-chain, public DLC address",
+          "realTime": true,
+          "borrowerCanVerify": true,
+          "auditCycleDependency": false,
+          "note": "strongest proof-of-funds model in the matrix — Lava cannot lie about reserves because they don't hold them"
+        },
+        "spofsForCollateral": ["borrower's own private key — no recovery if lost"],
+        "spofsForProtocol": [
+          "Oracle failure or compromise (settlement disruption)",
+          "DLC implementation bugs (newer technology, less battle-tested than multisig)",
+          "Lava insolvency mid-loan (DLC continues but loan servicing may be impaired)"
+        ],
+        "failureModes": {
+          "lavaInsolvency": "Borrower retains full custody. DLC runs independently. Loan obligation may become unenforceable or transferred to a receiver. Risk: USD liquidity Lava was supposed to provide stops, but pledged BTC is safe.",
+          "borrowerKeyLoss": "BTC is permanently lost. No recovery mechanism — Lava has no keys to help. This is the trade-off for full self-custody.",
+          "oracleAttack": "DLC settlement may be disrupted or manipulated. Lava has implemented oracle redundancy but this is a category of risk that doesn't exist in multisig.",
+          "priceBasedLiquidation": "DLC executes per contract: Lava receives the BTC, borrower keeps the USD already disbursed. Automatic, on-chain, no cure window.",
+          "borrowerDefault": "Same as price-based liquidation — DLC settlement executes per contract."
+        },
+        "rehypothecation": "impossible by design — Lava never has the keys",
+        "bankruptcyRemoteness": "strongest of all models — Lava's bankruptcy is structurally irrelevant to the BTC; the legal claim is encoded in the DLC, not on Lava's balance sheet",
+        "trackRecord": "Newest of the four; raised $17.5M; growing user base; less stress-tested than multisig models",
+        "tradeoffSummary": "Maximum sovereignty (no third-party signature at all), but borrower bears full key-loss risk and protocol-edge-case risk"
+      }
+    }
+  ],
+  "tier2Providers": [
+    {
+      "id": "coinbase-morpho",
+      "name": "Coinbase (via Morpho)",
+      "parent": "Coinbase + Morpho Labs",
+      "tier": 2,
+      "structure": {
+        "denominator": "USDC",
+        "disbursementAsset": "USDC",
+        "custodyModel": "hybrid-wrapped-defi",
+        "rehypothecation": false,
+        "marginCalls": true,
+        "creditCheck": false
+      },
+      "terms": {
+        "ltv": 0.75,
+        "liquidationLTV": 0.86,
+        "liquidationPenalty": 0.0438,
+        "ltvUnit": "fiat-denominated (cbBTC to USDC)",
+        "feeStructure": "variable-apr-defi",
+        "apr": "variable, set by Morpho protocol supply/demand, updates per-block on Base",
+        "interestType": "compounding per-block on Base blockchain",
+        "termBase": "open-ended",
+        "minimum": "low (effectively no minimum on Morpho)",
+        "maximum": 5000000,
+        "maximumUnit": "USDC against BTC ($1M against ETH; multi-asset support)",
+        "wrappedAsset": "cbBTC (Coinbase Wrapped Bitcoin) — ERC-20 token 1:1 backed by BTC in Coinbase custody"
+      },
+      "jurisdictions": ["US (most states)", "UK", "global with restrictions"],
+      "url": "https://www.coinbase.com/borrow",
+      "lastVerified": "2026-05-11",
+      "verificationSource": "https://morpho.org/coinbase-loans/",
+      "notes": "BTC-backed loan via Coinbase Wrapped BTC (cbBTC) locked in Morpho smart contract on Base blockchain. $2.17B originated as of April 14, 2026. Structurally a hybrid — centralized custody (Coinbase holds actual BTC) + DeFi mechanics (Morpho handles lending logic). Not a pure BTC-only product since cbBTC is an ERC-20 wrapper, but Coinbase's institutional credibility and Morpho's protocol maturity make it a meaningful market presence.",
+      "bestFitWhen": [
+        "Already a Coinbase customer with BTC on the platform",
+        "Want regulated-exchange + DeFi-mechanics combination",
+        "Loan size $5M+ ceiling needed",
+        "Comfortable with wrapped BTC (cbBTC) and Base blockchain"
+      ],
+      "wrongFitWhen": [
+        "Want BTC-native lending (avoid wrapped tokens)",
+        "Uncomfortable with smart contract risk (Morpho protocol)",
+        "Self-custody priority (your BTC becomes cbBTC then locked in smart contract)",
+        "Want fixed-rate predictability (rates change per block)"
+      ],
+      "custodyAnalysis": {
+        "model": "hybrid-wrapped-defi",
+        "keyDistribution": {
+          "borrower": "no keys over the underlying BTC; controls Coinbase account",
+          "custodian": "Coinbase holds the actual BTC backing the cbBTC tokens",
+          "smartContract": "Morpho smart contract on Base holds the cbBTC during the loan"
+        },
+        "signatureThreshold": "Coinbase account access (centralized) + smart contract execution (deterministic)",
+        "proofOfFunds": {
+          "method": "on-chain cbBTC + Coinbase proof-of-reserves attestations",
+          "realTime": true,
+          "borrowerCanVerify": "indirectly — borrower verifies cbBTC, must trust Coinbase's 1:1 backing claim",
+          "auditCycleDependency": "yes for BTC backing, no for cbBTC supply"
+        },
+        "spofsForCollateral": [
+          "Coinbase failure (custodian of underlying BTC)",
+          "Morpho protocol smart contract bugs",
+          "Base blockchain Layer 2 reliability",
+          "cbBTC peg failure (theoretical depeg from underlying BTC)"
+        ],
+        "failureModes": {
+          "coinbaseInsolvency": "Underlying BTC backing cbBTC at risk; cbBTC could depeg or become unredeemable. Major risk vector.",
+          "morphoSmartContractBug": "Funds locked in contract could be exposed to exploit; Morpho is audited but smart contract risk is real",
+          "baseChainHalt": "Loan operations may pause; collateral safe but liquidations may not trigger normally",
+          "cbBTCPegFailure": "If cbBTC trades below 1:1 with BTC, borrowers face complex unwinding",
+          "borrowerDefault": "Smart contract auto-liquidates at 86% LTV with 4.38% penalty"
+        },
+        "rehypothecation": "false at the loan level (cbBTC locked in smart contract); unclear what Coinbase does with underlying BTC reserves",
+        "bankruptcyRemoteness": "weaker — Coinbase holds the underlying BTC. In Coinbase bankruptcy, the cbBTC backing is a legal claim, not a direct asset.",
+        "trackRecord": "Re-entrant product (Coinbase exited lending in 2022 with Coinbase Borrow shutdown); current Morpho integration grew rapidly"
+      }
+    },
+    {
+      "id": "salt-lending",
+      "name": "SALT Lending",
+      "parent": null,
+      "tier": 2,
+      "structure": {
+        "denominator": "USD",
+        "disbursementAsset": "USD",
+        "custodyModel": "qualified-custodian-with-rehypothecation",
+        "rehypothecation": true,
+        "rehypothecationDisclosure": "Explicitly permitted in loan agreement: SALT may 'repledge, sell or otherwise transfer or use Stored Coins'",
+        "marginCalls": true,
+        "creditCheck": false
+      },
+      "terms": {
+        "ltv": "borrower-selectable: 30%, 50%, or 70%",
+        "ltvUnit": "fiat-denominated",
+        "feeStructure": "variable-apr-by-ltv-and-term",
+        "apr": "8.95–14.45%",
+        "interestType": "interest-only or principal+interest, borrower-selectable",
+        "originationFee": "0–1%",
+        "termOptions": "1, 3, or 5 years",
+        "termBase": "12 months fixed-term most common",
+        "minimum": null,
+        "prepaymentPenalty": null,
+        "supportedCollateral": "Multi-asset (BTC primary, also ETH and others)"
+      },
+      "jurisdictions": ["US", "limited international"],
+      "founderBackground": "Founded 2016 — original BTC-backed lender, predates Ledn",
+      "url": "https://saltlending.com",
+      "lastVerified": "2026-05-11",
+      "verificationSource": "https://saltlending.com/rates-and-fees/",
+      "notes": "Original BTC-backed lender (2016). Multi-asset (not BTC-only), which is why we tier-2 them rather than tier-1. Rehypothecation explicitly allowed in terms — borrowers should understand this is structurally similar to the 2022 cohort's risk profile, although SALT survived 2022. Custody via BitGo and/or Fireblocks (qualified custodians). Borrower-selectable LTV (30/50/70%) is a useful flexibility feature.",
+      "bestFitWhen": [
+        "Want flexible LTV selection (30/50/70%)",
+        "Comfortable with rehypothecation in exchange for competitive rates",
+        "Need multi-year term (1, 3, or 5 year options)",
+        "Already familiar with SALT from pre-2022 era"
+      ],
+      "wrongFitWhen": [
+        "Sovereignty-first priority — rehypothecation is a non-starter",
+        "Concerned about 2022-style cohort risks",
+        "Want BTC-only lender (SALT is multi-asset)",
+        "Prefer modern multisig custody"
+      ],
+      "custodyAnalysis": {
+        "model": "qualified-custodian",
+        "custodian": "BitGo and/or Fireblocks (rotating use)",
+        "keyDistribution": {
+          "borrower": "no keys",
+          "lender": "SALT directs operations, does not hold keys directly",
+          "custodian": "BitGo/Fireblocks holds keys via internal multisig"
+        },
+        "signatureThreshold": "internal to custodian",
+        "proofOfFunds": {
+          "method": "custodian SOC 2 Type 2 audits; no independent audit of SALT's application layer per Zone21",
+          "realTime": false,
+          "borrowerCanVerify": "via custodian audits indirectly",
+          "auditCycleDependency": true,
+          "audit": "Custodians audited (SOC 2 Type 2); SALT itself has periodic pen-tests, no independent app-layer audit per third-party reviewers"
+        },
+        "spofsForCollateral": [
+          "SALT failure (mitigated only partially — rehypothecated collateral has exposure to counterparty institutions)",
+          "BitGo or Fireblocks failure",
+          "Rehypothecation counterparty failure (the 2022 vector)"
+        ],
+        "failureModes": {
+          "saltInsolvency": "Rehypothecated collateral may be trapped in bankruptcy if counterparty institutions are also affected. Higher recovery risk than non-rehypothecating peers.",
+          "custodianInsolvency": "BitGo/Fireblocks have insurance and regulatory protection; recovery via insolvency proceeding",
+          "rehypothecationCounterpartyFails": "Loss event; recovery depends on SALT's capital adequacy and the failed institution's bankruptcy estate"
+        },
+        "rehypothecation": true,
+        "bankruptcyRemoteness": "weak — rehypothecation moves collateral off any segregated structure; recovery in bankruptcy depends on counterparty solvency chain",
+        "trackRecord": "Survived 2022 cohort failures despite rehypothecation model; longest track record (since 2016) but less sovereignty-aligned than 2022-onward entrants"
+      }
+    },
+    {
+      "id": "arch-lending",
+      "name": "Arch Lending",
+      "parent": null,
+      "tier": 2,
+      "structure": {
+        "denominator": "USD",
+        "disbursementAsset": "USD",
+        "custodyModel": "qualified-custodian",
+        "rehypothecation": false,
+        "marginCalls": true,
+        "creditCheck": false
+      },
+      "terms": {
+        "ltv": 0.60,
+        "ltvUnit": "fiat-denominated",
+        "feeStructure": "variable-apr-tiered",
+        "apr": "7.25% (best) to ~14% effective (BTC program: 12.5% interest + 1.5% origination)",
+        "originationFee": 0.015,
+        "interestType": "monthly interest",
+        "termBase": "up to 24 months",
+        "termMax": "24 months",
+        "minimum": null,
+        "prepaymentPenalty": null,
+        "refinanceOption": true,
+        "supportedCollateral": "BTC (60% LTV), ETH (55% LTV), SOL (45% LTV)"
+      },
+      "jurisdictions": ["US"],
+      "url": "https://archlending.com/crypto-loans",
+      "lastVerified": "2026-05-11",
+      "verificationSource": "https://archlending.com/crypto-loans",
+      "notes": "Multi-asset lender (BTC, ETH, SOL) with strict no-rehypothecation policy. Custody via Anchorage Digital — a federally chartered bank — with segregated wallets and $100M Lloyd's of London insurance. Effective APR on BTC program ~14% when combining 12.5% interest + 1.5% origination, despite 7.25% headline rate (which is for largest tiers). Cleanest Tier 2 sovereignty option besides Debifi.",
+      "bestFitWhen": [
+        "Want regulated qualified-custodian model without rehypothecation",
+        "Need 24-month term (longer than Bitfinex, shorter than SALT's 5yr)",
+        "BTC loan size where 60% LTV makes sense",
+        "Want refinance optionality"
+      ],
+      "wrongFitWhen": [
+        "Want multi-year term beyond 24 months",
+        "Want BTC-only lender (Arch is multi-asset)",
+        "Need very low APR (effective rate ~14% on BTC program)",
+        "Want multisig collaborative custody"
+      ],
+      "custodyAnalysis": {
+        "model": "qualified-custodian",
+        "custodian": "Anchorage Digital — federally chartered bank, $100M Lloyd's of London insurance",
+        "keyDistribution": {
+          "borrower": "no keys",
+          "lender": "Arch directs operations",
+          "custodian": "Anchorage holds keys via internal multisig in segregated wallets"
+        },
+        "signatureThreshold": "internal to Anchorage",
+        "proofOfFunds": {
+          "method": "Anchorage's federal-chartered-bank status + Lloyd's insurance attestations",
+          "realTime": false,
+          "borrowerCanVerify": "via Anchorage attestations",
+          "auditCycleDependency": true
+        },
+        "spofsForCollateral": [
+          "Arch failure (mitigated by segregated wallets at Anchorage)",
+          "Anchorage failure (federally chartered bank with insurance — lower risk than typical custodian)"
+        ],
+        "failureModes": {
+          "archInsolvency": "Collateral in segregated wallets at Anchorage; bankruptcy-remote in principle",
+          "anchorageInsolvency": "Federal banking regulatory protection + $100M insurance; one of the lowest-risk custodians available",
+          "borrowerDefault": "Arch uses tiered safeguards: starting LTV conservative, early notifications, margin calls, partial liquidations to restore loan health"
+        },
+        "rehypothecation": false,
+        "bankruptcyRemoteness": "strong — segregated wallets at federally chartered bank",
+        "trackRecord": "Newer entrant (post-2022 era); Anchorage Digital custody is one of the strongest qualified-custodian options available"
+      }
+    },
+    {
+      "id": "bitfinex-borrow",
+      "name": "Bitfinex Borrow",
+      "parent": "Bitfinex / iFinex",
+      "tier": 2,
+      "structure": {
+        "denominator": "USD",
+        "disbursementAsset": "USD (typically) or USDT",
+        "custodyModel": "exchange-custody",
+        "rehypothecation": "implicit (exchange-pooled funds)",
+        "marginCalls": true,
+        "creditCheck": false
+      },
+      "terms": {
+        "ltv": 0.90,
+        "ltvUnit": "fiat-denominated (derived from 111.11% margin requirement)",
+        "feeStructure": "variable-or-fixed-rate-p2p",
+        "apr": "variable: USD lending 5–15% APR typically, spiking 30%+ in volatility",
+        "interestType": "P2P market-determined",
+        "termBase": "2–120 days (very short)",
+        "termMax": "120 days",
+        "minimum": 175,
+        "minimumUnit": "USD-equivalent",
+        "prepaymentPenalty": null,
+        "marketStructure": "P2P matching of borrowers and lenders on Bitfinex platform"
+      },
+      "jurisdictions": ["global (with US restrictions)"],
+      "url": "https://www.bitfinex.com/borrow/",
+      "lastVerified": "2026-05-11",
+      "verificationSource": "https://www.bitfinex.com/borrow/",
+      "notes": "Fundamentally different from the other Tier 1/2 lenders. This is exchange margin lending, not a traditional loan product. Loans are 2-120 days, P2P matched, with margin call mechanics built into the exchange. Notable: 2016 Bitfinex hack lost 119,756 BTC — exchange custody risk is real and historically demonstrated. Tether/USDT parent association brings regulatory uncertainty. Useful for short-term traders, not for hodlers seeking multi-year liquidity.",
+      "bestFitWhen": [
+        "Need short-term USD liquidity (days to weeks)",
+        "Already active on Bitfinex with BTC on the platform",
+        "Comfortable with exchange custody risk",
+        "Can manage frequent rollover (2–120 day terms)"
+      ],
+      "wrongFitWhen": [
+        "Need multi-year liquidity (terms are too short)",
+        "Hodler-style sovereignty priority (exchange custody is the antithesis)",
+        "US-based and risk-averse on regulatory exposure",
+        "Want predictable fixed-term loan product"
+      ],
+      "custodyAnalysis": {
+        "model": "exchange-custody",
+        "custodian": "Bitfinex (centralized exchange) — borrower's BTC sits in exchange wallet/margin system",
+        "keyDistribution": {
+          "borrower": "no keys",
+          "exchange": "Bitfinex holds all keys via internal custody system"
+        },
+        "signatureThreshold": "internal to Bitfinex",
+        "proofOfFunds": {
+          "method": "Bitfinex periodic proof-of-reserves (post-2022 industry norm)",
+          "realTime": false,
+          "borrowerCanVerify": "via Bitfinex attestations only",
+          "auditCycleDependency": true
+        },
+        "spofsForCollateral": [
+          "Bitfinex itself (the entire exchange = single point of failure for all customer funds)",
+          "Historical precedent: 2016 hack lost 119,756 BTC",
+          "Tether/USDT parent regulatory uncertainty"
+        ],
+        "failureModes": {
+          "bitfinexInsolvency": "All customer funds at risk; recovery via insolvency proceeding (questionable given offshore jurisdiction)",
+          "bitfinexHack": "Historical precedent (2016) — customer losses were partially repaid via BFX tokens, but recovery was lengthy and contentious",
+          "regulatoryAction": "US regulatory pressure on Tether/Bitfinex affiliates could disrupt operations",
+          "marginCallExecution": "P2P automated margin enforcement; borrower has limited recourse"
+        },
+        "rehypothecation": "exchange-pooled — Bitfinex effectively has full control of collateral",
+        "bankruptcyRemoteness": "weak — offshore exchange, customer funds historically commingled",
+        "trackRecord": "2016 hack is the major event; survived with controversial repayment via BFX tokens; long operational history but high regulatory uncertainty",
+        "structuralCaveat": "This is exchange margin lending, NOT a dedicated lending product. Categorically different risk profile from the other providers in this deep dive."
+      }
+    },
+    {
+      "id": "debifi",
+      "name": "Debifi",
+      "parent": null,
+      "tier": 2,
+      "structure": {
+        "denominator": "USD or stablecoin",
+        "disbursementAsset": "fiat or stablecoins",
+        "custodyModel": "non-custodial-3-of-4-multisig",
+        "rehypothecation": false,
+        "marginCalls": true,
+        "creditCheck": false
+      },
+      "terms": {
+        "ltv": "tiered margin call alerts (75%, 80%, 85% LTV)",
+        "liquidationLTV": 0.90,
+        "ltvUnit": "fiat-denominated",
+        "feeStructure": "lender-set-apr-plus-borrower-fee",
+        "apr": "10–14% (lender earns; borrower pays)",
+        "originationFee": 0.015,
+        "originationFeeUnit": "1.5% to borrower",
+        "interestType": "lender-set",
+        "termBase": "up to 5 years",
+        "termMax": "5 years",
+        "minimum": null,
+        "minimumUnit": "institutional-focused, sizes vary",
+        "audience": "institutional clients"
+      },
+      "jurisdictions": ["EU primary", "Switzerland via Sygnum partnership", "limited US"],
+      "url": "https://debifi.com",
+      "lastVerified": "2026-05-11",
+      "verificationSource": "https://debifi.com/",
+      "notes": "Non-custodial P2P bitcoin-backed lending with 3-of-4 multisig. Borrower, lender, Debifi, and AnchorWatch (independent key holder) each hold one key. Institutional-focused. Notable 2026 development: Sygnum Bank partnership (MultiSYG) launching H1 2026 — first regulated-bank-backed multisig BTC lending. Newer entrant; institutional focus means less retail availability but strong sovereignty model.",
+      "bestFitWhen": [
+        "Institutional borrower (HNW, family office, business)",
+        "Want non-custodial multisig with borrower key",
+        "European or Swiss jurisdiction preference",
+        "Looking for regulated-bank-backed option (via Sygnum partnership)"
+      ],
+      "wrongFitWhen": [
+        "Retail borrower (institutional-focused)",
+        "Need US-domiciled lender",
+        "Want established multi-year operational track record",
+        "Need fast onboarding (institutional KYC takes longer)"
+      ],
+      "custodyAnalysis": {
+        "model": "non-custodial-3-of-4-multisig",
+        "keyDistribution": {
+          "borrower": "1 of 4 keys",
+          "lender": "1 of 4 keys (the actual liquidity provider, varies per loan)",
+          "debifi": "1 of 4 keys (platform operator)",
+          "independentKeyHolder": "1 of 4 keys (AnchorWatch — independent custody specialist)"
+        },
+        "signatureThreshold": "3 of 4",
+        "proofOfFunds": {
+          "method": "on-chain verifiable multisig address",
+          "realTime": true,
+          "borrowerCanVerify": true,
+          "auditCycleDependency": false
+        },
+        "spofsForCollateral": [],
+        "failureModes": {
+          "debifiInsolvency": "Borrower + lender + AnchorWatch can recover via 3 of 4 keys without Debifi",
+          "borrowerKeyLoss": "Lender + Debifi + AnchorWatch can recover via 3 of 4 with verification",
+          "lenderFails": "Borrower + Debifi + AnchorWatch can recover",
+          "anchorWatchFails": "Borrower + lender + Debifi can recover",
+          "borrowerDefault": "Lender + Debifi + AnchorWatch sign liquidation per loan terms"
+        },
+        "rehypothecation": false,
+        "bankruptcyRemoteness": "strong — multisig with no single-party control",
+        "trackRecord": "Newer than LMC/Unchained; Sygnum partnership (H1 2026) brings regulated-bank credibility; structurally most redundant multisig in the market (3-of-4 vs. 2-of-3)",
+        "structuralAdvantageOverLMCUnchained": "3-of-4 vs 2-of-3 gives more redundancy — any one party can fail without blocking the others; trade-off is more coordination complexity for routine operations"
+      }
+    }
+  ],
+  "excluded": {
+    "note": "Mentioned with reason in deep dive; not covered in depth.",
+    "providers": [
+      {
+        "id": "nexo",
+        "reason": "Multi-asset crypto lender — dilutes Bitcoin focus"
+      },
+      {
+        "id": "binance-loans",
+        "reason": "Multi-asset crypto lender, exchange-centric"
+      },
+      {
+        "id": "sovryn-zero",
+        "reason": "DeFi / on-chain — separate deep dive eventually"
+      },
+      {
+        "id": "strike",
+        "reason": "Primarily payments; credit experiments not core product"
+      },
+      {
+        "id": "salt-lending-historical",
+        "reason": "Multi-asset; BTC is included but not BTC-only positioning"
+      },
+      {
+        "id": "block-earner",
+        "reason": "Australian focus, limited US relevance"
+      }
+    ]
+  }
+}

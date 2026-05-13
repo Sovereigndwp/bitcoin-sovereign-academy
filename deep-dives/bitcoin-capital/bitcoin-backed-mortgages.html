@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin-Backed Mortgages: A First-Principles Deep Dive | Bitcoin Sovereign Academy</title>
+<meta name="description" content="A first-principles, math-driven deep dive on Bitcoin-backed mortgages. Interactive calculator, projection scenarios, risk decomposition, and lender evaluation framework.">
+<link rel="canonical" href="https://bitcoinsovereign.academy/deep-dives/bitcoin-capital/bitcoin-backed-mortgages.html">
+<meta property="og:title" content="Bitcoin-Backed Mortgages: A First-Principles Deep Dive">
+<meta property="og:description" content="Should you pledge or sell? Run the numbers honestly. Interactive calculator + structural analysis.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://bitcoinsovereign.academy/deep-dives/bitcoin-capital/bitcoin-backed-mortgages.html">
+<meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Bitcoin-Backed Mortgages: A First-Principles Deep Dive",
+  "description": "A first-principles, math-driven deep dive on Bitcoin-backed mortgages with interactive calculator.",
+  "author": { "@type": "Organization", "name": "Bitcoin Sovereign Academy" },
+  "publisher": { "@type": "Organization", "name": "Bitcoin Sovereign Academy", "logo": { "@type": "ImageObject", "url": "https://bitcoinsovereign.academy/assets/og-image.jpg" } },
+  "datePublished": "2026-05-11",
+  "mainEntityOfPage": "https://bitcoinsovereign.academy/deep-dives/bitcoin-capital/bitcoin-backed-mortgages.html"
+}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Chart.js bundled locally to avoid CDN/network blocking. Fallback to CDN if local missing. -->
+<script src="chart.umd.js" onerror="this.onerror=null; const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'; document.head.appendChild(s);"></script>
+<style>
+  :root {
+    --primary: #f7931a;
+    --primary-soft: #ffb04a;
+    --primary-deep: #b45309;
+    --dark: #0b0e14;
+    --dark2: #121723;
+    --dark3: #1b2433;
+    --dark4: #202938;
+    --light: #e6edf3;
+    --dim: #cbd2da;
+    --muted: #9aa4b2;
+    --faint: #6b7280;
+    --grad: linear-gradient(135deg, #f7931a 0%, #ffd700 100%);
+    --grad-soft: linear-gradient(135deg, rgba(247,147,26,0.15), rgba(255,215,0,0.05));
+    --green: #10b981;
+    --green-soft: rgba(16,185,129,0.15);
+    --red: #ef4444;
+    --red-soft: rgba(239,68,68,0.12);
+    --yellow: #f59e0b;
+    --blue: #3b82f6;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(247,147,26,0.35);
+    --serif: 'Source Serif 4', Georgia, serif;
+    --sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    background: var(--dark);
+    color: var(--light);
+    line-height: 1.65;
+    font-size: 16px;
+    font-feature-settings: 'cv11', 'ss03';
+  }
+
+  /* ------- Header ------- */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(11,14,20,0.92);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    max-width: 1400px; margin: 0 auto;
+    padding: 0.9rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 0.7rem;
+    text-decoration: none; color: var(--light);
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--grad);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: var(--dark);
+    font-family: var(--mono);
+  }
+  .logo-text { font-weight: 600; font-size: 0.95rem; letter-spacing: 0.01em; }
+  .logo-sub { color: var(--faint); font-size: 0.78rem; }
+  .header-meta {
+    font-size: 0.72rem; color: var(--muted);
+    background: var(--dark3); padding: 0.3rem 0.7rem;
+    border-radius: 999px; border: 1px solid var(--border);
+  }
+  .header-nav { display: flex; gap: 1.5rem; font-size: 0.85rem; }
+  .header-nav a { color: var(--dim); text-decoration: none; transition: color 0.15s; }
+  .header-nav a:hover { color: var(--primary); }
+
+  /* ------- Hero ------- */
+  .hero {
+    padding: 4rem 2rem 3rem;
+    max-width: 980px; margin: 0 auto;
+    text-align: center;
+    background: radial-gradient(ellipse at 50% 0%, rgba(247,147,26,0.08), transparent 65%);
+  }
+  .eyebrow {
+    color: var(--primary);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 span {
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero .lede {
+    color: var(--dim); max-width: 66ch;
+    margin: 0 auto 1.5rem;
+    font-size: 1.13rem; line-height: 1.65;
+  }
+  .hero-meta {
+    color: var(--faint); font-size: 0.85rem;
+    margin-top: 1.5rem;
+    display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;
+  }
+  .hero-meta span { display: flex; align-items: center; gap: 0.4rem; }
+  .hero-meta strong { color: var(--dim); font-weight: 500; }
+
+  /* ------- Container ------- */
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
+  .container-narrow { max-width: 760px; margin: 0 auto; padding: 0 2rem; }
+
+  /* ------- Section ------- */
+  section.part {
+    padding: 4rem 0;
+    border-top: 1px solid var(--border);
+  }
+  section.part.no-border { border-top: none; }
+  .part-label {
+    color: var(--primary);
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .part h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.5rem;
+    max-width: 26ch;
+  }
+  .part h3 {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 2rem 0 1rem;
+    color: var(--light);
+  }
+  .part p { color: var(--dim); margin-bottom: 1.1rem; max-width: 70ch; }
+  .part p strong { color: var(--light); font-weight: 600; }
+  .part ul, .part ol { color: var(--dim); margin-left: 1.5rem; margin-bottom: 1.25rem; max-width: 68ch; }
+  .part ul li, .part ol li { margin-bottom: 0.5rem; }
+  .part code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--dark3);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    color: var(--primary-soft);
+  }
+
+  /* ------- Property comparison table ------- */
+  .taxonomy-table {
+    width: 100%; border-collapse: collapse;
+    margin: 2rem 0;
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 0.88rem;
+  }
+  .taxonomy-table th, .taxonomy-table td {
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  .taxonomy-table thead th {
+    background: var(--dark3);
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .taxonomy-table tbody td:first-child { color: var(--dim); font-weight: 500; }
+  .taxonomy-table tbody td:not(:first-child) { color: var(--muted); text-align: center; }
+  .taxonomy-table tbody tr:hover { background: rgba(247,147,26,0.03); }
+  .pill-yes { color: var(--green); font-weight: 600; }
+  .pill-no  { color: var(--red); font-weight: 600; }
+
+  /* ------- Drawdown table ------- */
+  .stat-table {
+    width: 100%; border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.9rem;
+  }
+  .stat-table th, .stat-table td {
+    padding: 0.65rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .stat-table thead th {
+    color: var(--faint);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    text-align: left;
+  }
+  .stat-table thead th:not(:first-child) { text-align: right; }
+  .stat-table tbody td { color: var(--dim); }
+  .stat-table tbody td:first-child { color: var(--light); font-weight: 500; }
+  .stat-table tbody td:not(:first-child) { text-align: right; }
+  .stat-table tbody tr:last-child td { border-bottom: none; }
+  .stat-table .median-row td { font-weight: 600; color: var(--primary); border-top: 2px solid var(--border-strong); padding-top: 0.85rem; }
+
+  /* ------- Calculator ------- */
+  .calc-section {
+    background: linear-gradient(180deg, var(--dark) 0%, #07090e 100%);
+    padding: 5rem 0;
+    border-top: 1px solid var(--border-strong);
+    border-bottom: 1px solid var(--border-strong);
+  }
+  .calc-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 3rem;
+    padding: 0 2rem;
+  }
+  .calc-header h2 {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    margin-bottom: 1rem;
+    max-width: none;
+  }
+  .calc-header h2 span {
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .calc-header p { color: var(--dim); font-size: 1.05rem; }
+
+  .calc-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+  @media (min-width: 1024px) {
+    .calc-grid { grid-template-columns: 380px 1fr; }
+    .input-panel { position: sticky; top: 80px; max-height: calc(100vh - 100px); overflow-y: auto; }
+  }
+
+  .panel {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+  }
+  .panel h3 {
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 1.5rem 0 0.75rem;
+    font-weight: 700;
+  }
+  .panel h3:first-child { margin-top: 0; }
+  .panel-title {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ------- Inputs ------- */
+  .input-row { margin-bottom: 1.1rem; }
+  .input-row label {
+    display: flex; justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.85rem; color: var(--dim);
+    margin-bottom: 0.4rem; font-weight: 500;
+  }
+  .input-row .val {
+    color: var(--primary); font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+  }
+  .input-row input[type="number"] {
+    width: 100%; padding: 0.6rem 0.75rem;
+    background: var(--dark3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--light);
+    font-size: 0.95rem;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .input-row input[type="number"]:focus { outline: none; border-color: var(--primary); }
+  .input-row input[type="range"] {
+    width: 100%; accent-color: var(--primary);
+    height: 4px; cursor: pointer;
+  }
+  .input-help { font-size: 0.74rem; color: var(--faint); margin-top: 0.3rem; line-height: 1.5; }
+
+  .scenario-tabs {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0.35rem;
+    background: var(--dark3);
+    padding: 0.35rem;
+    border-radius: 8px;
+  }
+  .scenario-tab {
+    padding: 0.55rem 0.4rem;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--muted);
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .scenario-tab .pct {
+    display: block; font-size: 0.7rem;
+    color: var(--faint); font-weight: 400;
+    margin-top: 0.15rem;
+    font-family: var(--mono);
+  }
+  .scenario-tab.active { background: var(--dark); border-color: var(--primary); color: var(--primary); }
+  .scenario-tab.active .pct { color: var(--dim); }
+  .scenario-tab:hover:not(.active) { color: var(--light); }
+
+  /* ------- Results ------- */
+  .results { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .headline-cards {
+    display: grid; grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  @media (min-width: 700px) {
+    .headline-cards { grid-template-columns: repeat(3, 1fr); }
+  }
+  .headline-card {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .headline-card.winner { border-color: var(--green); background: linear-gradient(180deg, rgba(16,185,129,0.06), var(--dark2)); }
+  .headline-card.loser { border-color: var(--red); background: linear-gradient(180deg, rgba(239,68,68,0.05), var(--dark2)); }
+  .headline-card .label {
+    color: var(--faint);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .headline-card .value {
+    font-family: var(--mono);
+    font-size: 1.65rem;
+    font-weight: 600;
+    color: var(--light);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    margin-bottom: 0.4rem;
+  }
+  .headline-card .value.pos { color: var(--green); }
+  .headline-card .value.neg { color: var(--red); }
+  .headline-card .sub {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .headline-card .badge {
+    position: absolute; top: 0.85rem; right: 0.85rem;
+    background: var(--green);
+    color: var(--dark);
+    font-size: 0.65rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .headline-card.loser .badge { background: var(--red); color: white; }
+
+  .chart-panel {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+  }
+  .chart-panel h4 {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--light);
+    margin-bottom: 0.3rem;
+  }
+  .chart-panel .chart-sub {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+  .chart-wrap { position: relative; height: 320px; }
+
+  .insight-box {
+    background: var(--dark2);
+    border-left: 3px solid var(--primary);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+  }
+  .insight-box h4 {
+    color: var(--primary);
+    font-size: 0.78rem;
+    margin-bottom: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    font-family: var(--sans);
+  }
+  .insight-box p {
+    font-size: 0.93rem;
+    color: var(--dim);
+    line-height: 1.6;
+    margin: 0;
+    max-width: none;
+  }
+  .insight-box p + p { margin-top: 0.6rem; }
+
+  .year-table-wrap {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+  }
+  .year-table-wrap h4 {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 0.85rem;
+  }
+  .year-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+  .year-table th {
+    text-align: right; padding: 0.5rem 0.6rem;
+    color: var(--faint); font-weight: 600;
+    font-size: 0.72rem; text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+  }
+  .year-table th:first-child { text-align: left; }
+  .year-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); text-align: right; color: var(--dim); }
+  .year-table td:first-child { text-align: left; color: var(--light); font-weight: 500; }
+  .year-table tr.margin-call td { background: rgba(239,68,68,0.08); }
+  .year-table tr.margin-call td:first-child { color: var(--red); font-weight: 600; }
+
+  /* ------- CTA + Disclaimer ------- */
+  .cta-block {
+    margin: 4rem auto;
+    max-width: 800px;
+    padding: 2.5rem;
+    background: var(--grad-soft);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    text-align: center;
+  }
+  .cta-block h3 {
+    color: var(--primary);
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .cta-block p { color: var(--dim); max-width: 56ch; margin: 0 auto 1.5rem; }
+  .cta-block .btn {
+    display: inline-block;
+    padding: 0.85rem 1.8rem;
+    background: var(--grad);
+    color: var(--dark);
+    text-decoration: none;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    box-shadow: 0 6px 24px rgba(247,147,26,0.4);
+    transition: transform 0.15s;
+  }
+  .cta-block .btn:hover { transform: translateY(-2px); }
+  .cta-block .btn-ghost {
+    background: transparent;
+    color: var(--primary);
+    border: 1px solid var(--border-strong);
+    box-shadow: none;
+    margin-left: 0.75rem;
+  }
+
+  .disclaimer {
+    max-width: 800px; margin: 3rem auto 0;
+    padding: 1.5rem 2rem;
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 10px;
+    background: rgba(239,68,68,0.04);
+  }
+  .disclaimer h4 {
+    color: var(--red);
+    font-size: 0.78rem;
+    margin-bottom: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+  }
+  .disclaimer p { color: var(--muted); font-size: 0.83rem; line-height: 1.65; margin-bottom: 0.5rem; max-width: none; }
+  .disclaimer p:last-child { margin-bottom: 0; }
+
+  footer {
+    padding: 3rem 2rem;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    color: var(--faint);
+    font-size: 0.85rem;
+  }
+  footer a { color: var(--primary); text-decoration: none; }
+  footer .footer-meta { margin-top: 0.5rem; font-family: var(--mono); font-size: 0.78rem; }
+
+  /* ------- Drawdown bars ------- */
+  .drawdown-viz { display: flex; flex-direction: column; gap: 0.5rem; margin: 1.5rem 0 2rem; }
+  .dd-row { display: grid; grid-template-columns: 110px 1fr 60px; align-items: center; gap: 0.8rem; }
+  .dd-label { color: var(--dim); font-size: 0.85rem; font-family: var(--mono); }
+  .dd-bar-track { background: var(--dark3); border-radius: 4px; height: 24px; position: relative; overflow: hidden; }
+  .dd-bar-fill { background: linear-gradient(90deg, #ef4444, #f59e0b); height: 100%; border-radius: 4px; }
+  .dd-threshold { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--primary); left: calc(65% * 0.9); }
+  .dd-pct { color: var(--red); font-family: var(--mono); font-size: 0.85rem; font-weight: 600; text-align: right; }
+
+  /* ------- Risk surface diagram ------- */
+  .risk-tree {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem 1.75rem;
+    margin: 1.5rem 0;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: var(--dim);
+    overflow-x: auto;
+  }
+  .risk-tree .root { color: var(--primary); font-weight: 600; }
+  .risk-tree .branch { color: var(--light); font-weight: 600; }
+  .risk-tree .leaf { color: var(--muted); }
+
+  @media (max-width: 768px) {
+    .header-inner { padding: 0.85rem 1rem; }
+    .header-nav { display: none; }
+    .container, .container-narrow { padding: 0 1rem; }
+    .hero { padding: 3rem 1rem 2rem; }
+    section.part { padding: 3rem 0; }
+    .calc-grid { padding: 0 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;color:#fff;background:#f7931a;padding:.35rem .75rem;border-radius:0 0 4px 0;text-decoration:none;font-weight:600;z-index:9999;" onfocus="this.style.left='0';this.style.top='0';this.style.width='auto';this.style.height='auto';" onblur="this.style.left='-9999px';this.style.width='1px';this.style.height='1px';">Skip to main content</a>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <div class="logo-icon">&#x20BF;</div>
+      <div>
+        <div class="logo-text">Bitcoin Sovereign Academy</div>
+        <div class="logo-sub">Deep Dive · Bitcoin Capital</div>
+      </div>
+    </a>
+    <nav class="header-nav">
+      <a href="#ontology">Ontology</a>
+      <a href="#models">Models</a>
+      <a href="#mechanics">Mechanics</a>
+      <a href="#statistics">Stats</a>
+      <a href="#calculator">Calculator</a>
+      <a href="#risk">Risk</a>
+      <a href="#decision">Decision</a>
+    </nav>
+    <span class="header-meta"><a href="/deep-dives/" style="color:inherit;text-decoration:none;">← Deep Dives</a></span>
+  </div>
+</header>
+
+<div id="main-content" style="max-width:1400px;margin:0 auto;padding:1rem 2rem 0;font-size:0.85rem;color:var(--muted);">
+  <a href="/" style="color:var(--primary);text-decoration:none;">Home</a> ›
+  <a href="/deep-dives/" style="color:var(--primary);text-decoration:none;">Deep Dives</a> ›
+  <a href="/deep-dives/bitcoin-capital/" style="color:var(--primary);text-decoration:none;">Bitcoin Capital</a> ›
+  <span style="color:var(--dim);">Bitcoin-Backed Mortgages</span>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">A First-Principles Deep Dive</div>
+  <h1>Should you pledge or sell your Bitcoin <span>to buy a home?</span></h1>
+  <p class="lede">Bitcoin-backed mortgages are no longer experimental — Milo has originated $100M+, Better and Coinbase launched a conforming product, and 20% of US adults have owned digital assets. But the product trades one set of risks for another. This deep dive builds the category from primitives, runs the math, and gives you an interactive calculator to find out where you actually stand.</p>
+  <div class="hero-meta">
+    <span>📐 <strong>10 sections</strong> · ~25 min read</span>
+    <span>🧮 <strong>Live calculator</strong> · 4 scenarios</span>
+    <span>📊 <strong>5 interactive charts</strong></span>
+  </div>
+</section>
+
+<!-- PART I — ONTOLOGY -->
+<section class="part" id="ontology">
+  <div class="container-narrow">
+    <div class="part-label">Part I</div>
+    <h2>The ontology — what these things actually are</h2>
+    <p>Most writing on this product starts with the marketing label ("Bitcoin mortgage") and works outward. That is backwards. The label encodes assumptions you should derive, not import. Start from primitives.</p>
+
+    <h3>What Bitcoin is, structurally</h3>
+    <p>Bitcoin is a digital bearer instrument with five essential properties: <strong>scarce</strong> (21M cap), <strong>bearer</strong> (key control = asset control), <strong>liquid</strong> (24/7 global markets), <strong>volatile</strong> (50–80% annualized realized vol vs. 12–18% for broad equities), and <strong>non-sovereign</strong> (no issuer, no central counterparty).</p>
+    <p>Two of these dominate the mortgage product: <strong>bearer</strong> makes custody the central design question, and <strong>volatile</strong> makes the loan structure exotic.</p>
+
+    <h3>What a mortgage is, structurally</h3>
+    <p>A mortgage is a long-duration secured loan with four essential properties: long-duration (15–30 years), secured by specific collateral, amortizing on a schedule, and recorded with a public lien registry. Its native collateral — real estate — is <strong>illiquid</strong>, <strong>slow-moving</strong>, has recorded title, and is use-coupled (the borrower lives in it).</p>
+
+    <h3>What a Bitcoin-backed mortgage is, derived</h3>
+    <p>Combining the primitives: a Bitcoin-backed mortgage is a long-duration amortizing loan secured by <strong>two collateral assets with maximally different liquidity and volatility profiles</strong>. The lender holds illiquid real estate (with a slow recorded lien) and liquid Bitcoin (with conditional fast custody). No traditional secured loan structure pairs collateral with such different time constants. That dual-collateral structure is the thing to understand — everything else is downstream.</p>
+  </div>
+</section>
+
+<!-- PART II — TAXONOMY -->
+<section class="part" id="taxonomy">
+  <div class="container-narrow">
+    <div class="part-label">Part II</div>
+    <h2>The taxonomy</h2>
+    <p>Three products get blurred under the "Bitcoin mortgage" label. They are different from first principles.</p>
+
+    <table class="taxonomy-table">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Crypto-Assisted</th>
+          <th>BTC-Collateralized Loan</th>
+          <th>BTC-Backed Mortgage</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Taxable event at origination</td><td class="pill-no">No</td><td class="pill-yes">Sale required → Yes</td><td class="pill-no">No</td></tr>
+        <tr><td>BTC retained by borrower</td><td class="pill-no">No</td><td class="pill-yes">Yes (pledged)</td><td class="pill-yes">Yes (pledged)</td></tr>
+        <tr><td>Secured by real estate</td><td class="pill-yes">Yes</td><td class="pill-no">No</td><td class="pill-yes">Yes</td></tr>
+        <tr><td>Secured by BTC</td><td class="pill-no">No</td><td class="pill-yes">Yes</td><td class="pill-yes">Yes (both)</td></tr>
+        <tr><td>Typical term</td><td>15–30 yr</td><td>1–3 yr</td><td>30 yr</td></tr>
+        <tr><td>Typical LTV vs. collateral</td><td>80–95%</td><td>30–50%</td><td>up to 100% vs. BTC</td></tr>
+        <tr><td>Margin call risk</td><td class="pill-no">No</td><td class="pill-yes">Yes</td><td class="pill-yes">Yes</td></tr>
+      </tbody>
+    </table>
+
+    <p>Only the third column — <strong>Bitcoin-Backed Mortgage</strong> — is the subject of this deep dive. The other two are useful reference points for the trade-offs.</p>
+  </div>
+</section>
+
+<!-- PART II½ — TWO STRUCTURAL MODELS -->
+<section class="part" id="models">
+  <div class="container-narrow">
+    <div class="part-label">Part II½</div>
+    <h2>Within BTC-backed mortgages, two structural models</h2>
+    <p>Not every Bitcoin-backed mortgage uses the same risk-transfer mechanism. As of 2026 there are two distinct structural models in market, and the choice between them is one of the most important decisions a borrower makes.</p>
+
+    <h3>Model A — Price-based margin call (Milo, Better/Coinbase)</h3>
+    <p>The mortgage rate is <strong>fixed</strong>. The lender monitors the LTV ratio. If Bitcoin's price drops below a defined threshold (Milo: 65% drawdown from origination), the lender issues a margin call. The borrower must add collateral, pay down principal, or accept forced liquidation of pledged BTC at the bottom of the cycle.</p>
+    <p>This is the structure most US-licensed Bitcoin-backed mortgage products use today. The borrower trades certainty on payments for tail risk of forced liquidation. Milo originated $100M+ on this model; Better Home and Finance + Coinbase launched a conforming variant in March 2026.</p>
+
+    <h3>Model B — Dynamic-rate adjustment (Peoples Reserve)</h3>
+    <p>The mortgage rate is <strong>variable</strong>, tied to the collateral ratio and Bitcoin's price. If Bitcoin appreciates, the rate falls — rewarding the borrower with cheaper capital. If Bitcoin drops, the rate rises — compensating the lender for the added risk. There is <strong>no price-triggered margin call</strong>. Liquidation occurs only if the borrower defaults on payments, not on a BTC price move.</p>
+    <p>Peoples Reserve's <strong>Bitcoin Powered Mortgage (BPM)</strong> is the leading example as of 2026. Reported rates start at prime + 1 and can fall as low as ~3.5% APR with sufficient collateral. Custody uses multisignature wallets with no rehypothecation. The borrower never faces a forced sale of pledged BTC — instead, monthly payment uncertainty becomes the variable that absorbs price moves.</p>
+    <p>Peoples Reserve also offers adjacent products in the same structural family: a <strong>Home Equity Bitcoin Line of Credit (HEBLOC)</strong> that converts home equity into BTC exposure, and a <strong>Bitcoin-powered bond</strong> blending Treasury principal protection with BTC upside.</p>
+
+    <h3>The structural trade-off — first principles</h3>
+    <p>Both models address the same problem (BTC holder wants real estate without selling BTC) but transfer risk through different mechanisms:</p>
+
+    <table class="taxonomy-table">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Model A — Price-based</th>
+          <th>Model B — Dynamic-rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Mortgage rate</td><td>Fixed</td><td>Variable, tied to BTC price + collateral ratio</td></tr>
+        <tr><td>Margin call risk</td><td class="pill-yes">Yes</td><td class="pill-no">No (price-based)</td></tr>
+        <tr><td>Forced liquidation of BTC</td><td class="pill-yes">Possible</td><td class="pill-no">Only on borrower default</td></tr>
+        <tr><td>Monthly payment certainty</td><td class="pill-yes">High</td><td class="pill-no">Low (depends on BTC path)</td></tr>
+        <tr><td>Headline APR (2026)</td><td>6.5–8.5%</td><td>as low as ~3.5%</td></tr>
+        <tr><td>Custody model</td><td>Lender-held or qualified custodian</td><td>Multisig, no rehypothecation</td></tr>
+        <tr><td>Risk absorbed by</td><td>Borrower (via collateral)</td><td>Borrower (via rate variability)</td></tr>
+        <tr><td>Worst-case for borrower</td><td>Forced sale at cycle bottom</td><td>Spike in monthly payment</td></tr>
+        <tr><td>Example lenders</td><td>Milo, Better+Coinbase</td><td>Peoples Reserve</td></tr>
+      </tbody>
+    </table>
+
+    <p>Model A's risk lives in the asset (forced liquidation). Model B's risk lives in the cash flow (variable payment). Neither is universally better — they fit different borrower preferences. A holder with stable, scalable income and high BTC-price conviction may prefer Model B (lower expected rate, cash flow flexibility absorbs volatility). A holder with fixed income and lower BTC conviction may prefer Model A (predictable payments, accept the tail risk).</p>
+
+    <p>The remainder of this deep dive — including the formal mechanics in Part III and the interactive calculator in Part V — primarily models <strong>Model A</strong>, because it is the structure most widely used by US-licensed lenders today and produces the cleanest closed-form math. Model B's projection requires a stochastic interest-rate model that depends on BTC's path, which is best evaluated case-by-case with the originating lender.</p>
+  </div>
+</section>
+
+<!-- PART III — MECHANICS -->
+<section class="part" id="mechanics">
+  <div class="container-narrow">
+    <div class="part-label">Part III</div>
+    <h2>Mechanics, formalized</h2>
+    <p>The product can be described by a small set of state variables. Stating them formally clarifies what is and is not at risk.</p>
+
+    <ul>
+      <li><code>P(t)</code> — price of Bitcoin at time t (USD per BTC)</li>
+      <li><code>Q</code> — quantity of BTC pledged (fixed at origination)</li>
+      <li><code>L(t)</code> — outstanding loan balance at time t (decreases via amortization)</li>
+      <li><code>LTV(t) = L(t) / (P(t) × Q)</code> — current loan-to-value</li>
+      <li><code>M</code> — margin-call LTV threshold (Milo's 65% drop translates to LTV ≥ 2.86)</li>
+    </ul>
+
+    <p>The borrower is in good standing as long as <code>LTV(t) &lt; M</code>. When <code>LTV(t) ≥ M</code>, the lender issues a margin call. The borrower can add to <code>Q</code>, reduce <code>L(t)</code>, or do both — or the lender liquidates pledged BTC to restore the LTV.</p>
+
+    <p>Three observations from the dynamics:</p>
+    <ul>
+      <li><strong>Amortization is your friend.</strong> Even with flat BTC price, LTV improves every month because L(t) falls. By year 10 of a 30Y at 7.5%, L(t) is ~88% of original. By year 20, ~56%.</li>
+      <li><strong>Margin-call risk is front-loaded.</strong> The first 3–5 years are where LTV is highest and amortization has not built cushion. A drawdown in year 1 is far more dangerous than the same drawdown in year 15.</li>
+      <li><strong>Risk falls off a cliff as time passes.</strong> By year 10–15, the loan is shrinking and the collateral has had time to compound. Only a near-total wipeout can trigger a margin call from there.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- PART IV — STATISTICS -->
+<section class="part" id="statistics">
+  <div class="container-narrow">
+    <div class="part-label">Part IV</div>
+    <h2>Statistics — Bitcoin's drawdown history</h2>
+    <p>The 65% margin threshold sounds far away. Bitcoin's history says it has happened every cycle.</p>
+
+    <table class="stat-table">
+      <thead>
+        <tr><th>Cycle</th><th>Peak</th><th>Trough</th><th>Drawdown</th><th>Recovery to peak</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>2011</td><td>~$32</td><td>~$2</td><td>−94%</td><td>~22 mo</td></tr>
+        <tr><td>2013–15</td><td>~$1,150</td><td>~$170</td><td>−85%</td><td>~36 mo</td></tr>
+        <tr><td>2017–18</td><td>~$19,800</td><td>~$3,200</td><td>−84%</td><td>~36 mo</td></tr>
+        <tr><td>2021–22</td><td>~$69,000</td><td>~$15,500</td><td>−77%</td><td>~24 mo</td></tr>
+        <tr class="median-row"><td>Median</td><td>—</td><td>—</td><td>−85%</td><td>~30 mo</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Drawdowns vs. the 65% margin threshold</h3>
+    <p>Every major cycle has produced a drawdown <strong>larger than the 65% threshold</strong>. The orange line shows where Milo's margin call would trigger.</p>
+
+    <div class="drawdown-viz">
+      <div class="dd-row">
+        <div class="dd-label">2011</div>
+        <div class="dd-bar-track"><div class="dd-bar-fill" style="width: 94%"></div><div class="dd-threshold"></div></div>
+        <div class="dd-pct">−94%</div>
+      </div>
+      <div class="dd-row">
+        <div class="dd-label">2013–15</div>
+        <div class="dd-bar-track"><div class="dd-bar-fill" style="width: 85%"></div><div class="dd-threshold"></div></div>
+        <div class="dd-pct">−85%</div>
+      </div>
+      <div class="dd-row">
+        <div class="dd-label">2017–18</div>
+        <div class="dd-bar-track"><div class="dd-bar-fill" style="width: 84%"></div><div class="dd-threshold"></div></div>
+        <div class="dd-pct">−84%</div>
+      </div>
+      <div class="dd-row">
+        <div class="dd-label">2021–22</div>
+        <div class="dd-bar-track"><div class="dd-bar-fill" style="width: 77%"></div><div class="dd-threshold"></div></div>
+        <div class="dd-pct">−77%</div>
+      </div>
+    </div>
+
+    <p>Recovery has taken 22–36 months. A margin call near the bottom forces liquidation at the worst price, exactly when waiting 12–24 months would have restored LTV organically. <strong>Anyone holding a 30-year BTC-backed mortgage should plan around the assumption that one or more margin events will occur during the life of the loan, not assume none will.</strong></p>
+
+    <p>The strongest defense is mechanical: <strong>front-loaded principal paydown</strong>. Extra payments in years 1–5 are functionally identical to buying margin-call insurance.</p>
+  </div>
+</section>
+
+<!-- ============ INTERACTIVE CALCULATOR ============ -->
+<section class="calc-section" id="calculator">
+  <div class="calc-header">
+    <div class="part-label">Part V · Interactive</div>
+    <h2>Run the math on your <span>actual situation</span></h2>
+    <p>Adjust the inputs to your stack, the property, and the lender's terms. The model projects 30 years of LTV evolution, net worth under each scenario, and tax efficiency — and tells you the break-even BTC return.</p>
+    <p style="margin-top:1rem;font-size:0.85rem;color:var(--muted);max-width:60ch;margin-left:auto;margin-right:auto;border:1px dashed rgba(247,147,26,0.3);padding:0.75rem 1rem;border-radius:8px;">
+      <strong style="color:var(--primary);">Model:</strong> This calculator projects <strong>Model A</strong> (price-based margin call, Milo-style — fixed rate, margin call at BTC drawdown threshold). For <strong>Model B</strong> (dynamic-rate, Peoples Reserve-style — variable rate, no price-based liquidation), see the Models section above and run the comparison with the originating lender.
+    </p>
+  </div>
+
+  <div class="calc-grid">
+
+    <!-- INPUT PANEL -->
+    <div class="panel input-panel">
+      <div class="panel-title">Your situation</div>
+
+      <h3>The mortgage</h3>
+      <div class="input-row">
+        <label>Home / mortgage amount ($) <span class="val" id="lbl-loan">$500,000</span></label>
+        <input type="range" id="loan" min="100000" max="5000000" step="50000" value="500000">
+      </div>
+      <div class="input-row">
+        <label>Mortgage APR (%) <span class="val" id="lbl-apr">7.5%</span></label>
+        <input type="range" id="apr" min="3" max="12" step="0.1" value="7.5">
+      </div>
+      <div class="input-row">
+        <label>Term (years) <span class="val" id="lbl-term">30</span></label>
+        <input type="range" id="term" min="10" max="30" step="5" value="30">
+      </div>
+      <div class="input-row">
+        <label>Home appreciation (%/yr) <span class="val" id="lbl-home">3.0%</span></label>
+        <input type="range" id="home-app" min="0" max="8" step="0.5" value="3">
+      </div>
+
+      <h3>Your Bitcoin</h3>
+      <div class="input-row">
+        <label>BTC pledged as collateral <span class="val" id="lbl-btc">5.0</span></label>
+        <input type="range" id="btc-qty" min="1" max="50" step="0.5" value="5">
+      </div>
+      <div class="input-row">
+        <label>Current BTC price ($) <span class="val" id="lbl-price">$100,000</span></label>
+        <input type="range" id="btc-price" min="20000" max="500000" step="5000" value="100000">
+      </div>
+      <div class="input-row">
+        <label>Cost basis per BTC ($) <span class="val" id="lbl-basis">$20,000</span></label>
+        <input type="range" id="basis" min="0" max="100000" step="1000" value="20000">
+      </div>
+
+      <h3>Tax & structure</h3>
+      <div class="input-row">
+        <label>Combined LTCG rate (%) <span class="val" id="lbl-tax">25%</span></label>
+        <input type="range" id="tax" min="0" max="40" step="1" value="25">
+        <div class="input-help">Federal LTCG (15–20%) + state. Florida, Texas, Wyoming have no state cap gains; California adds ~13%.</div>
+      </div>
+      <div class="input-row">
+        <label>Margin call threshold (% BTC drop) <span class="val" id="lbl-margin">65%</span></label>
+        <input type="range" id="margin" min="30" max="80" step="5" value="65">
+        <div class="input-help">Milo uses 65%. Other lenders set this tighter (40–55% is common).</div>
+      </div>
+
+      <h3>BTC price scenario</h3>
+      <div class="scenario-tabs">
+        <button class="scenario-tab" data-cagr="-5">Bear<span class="pct">−5%</span></button>
+        <button class="scenario-tab active" data-cagr="5">Base<span class="pct">+5%</span></button>
+        <button class="scenario-tab" data-cagr="12">Bull<span class="pct">+12%</span></button>
+        <button class="scenario-tab" data-cagr="20">Super<span class="pct">+20%</span></button>
+      </div>
+      <div class="input-help" style="margin-top:0.75rem;">Annualized CAGR applied as a smooth path. Historical BTC has been more volatile; the calculator below also tests stress paths.</div>
+    </div>
+
+    <!-- RESULTS PANEL -->
+    <div class="results">
+
+      <!-- Headline cards -->
+      <div class="headline-cards">
+        <div class="headline-card" id="card-pledge">
+          <div class="label">Pledge — net worth at term</div>
+          <div class="value" id="val-pledge">$0</div>
+          <div class="sub">Keep BTC. Pay mortgage. Subject to margin call.</div>
+        </div>
+        <div class="headline-card" id="card-sell">
+          <div class="label">Sell — net worth at term</div>
+          <div class="value" id="val-sell">$0</div>
+          <div class="sub">Liquidate BTC. Pay tax. Buy home. No BTC exposure.</div>
+        </div>
+        <div class="headline-card" id="card-delta">
+          <div class="label">Advantage of pledging</div>
+          <div class="value" id="val-delta">$0</div>
+          <div class="sub" id="sub-delta">Difference at end of mortgage term.</div>
+        </div>
+      </div>
+
+      <!-- Chart 1: LTV evolution -->
+      <div class="chart-panel">
+        <h4>LTV evolution + margin call threshold</h4>
+        <div class="chart-sub">How your loan-to-value moves over time under three BTC paths. Dashed line is the margin call threshold.</div>
+        <div class="chart-wrap"><canvas id="chart-ltv"></canvas></div>
+      </div>
+
+      <!-- Chart 2: Net worth comparison -->
+      <div class="chart-panel">
+        <h4>Net worth: pledge vs. sell, over time</h4>
+        <div class="chart-sub">Combined value of BTC + home equity − mortgage balance, year by year, for the selected scenario.</div>
+        <div class="chart-wrap"><canvas id="chart-nw"></canvas></div>
+      </div>
+
+      <!-- Chart 3: Scenario comparison -->
+      <div class="chart-panel">
+        <h4>Net worth at term across BTC scenarios</h4>
+        <div class="chart-sub">How the pledge-vs-sell outcome shifts with different BTC return paths over the full mortgage term.</div>
+        <div class="chart-wrap"><canvas id="chart-scenarios"></canvas></div>
+      </div>
+
+      <!-- Chart 4: Cost of capital decomposition -->
+      <div class="chart-panel">
+        <h4>Cumulative interest paid vs. tax saved</h4>
+        <div class="chart-sub">The pledge structure trades a one-time tax cost (avoided) for a stream of interest payments (incurred). When does the interest exceed the deferred tax?</div>
+        <div class="chart-wrap"><canvas id="chart-costs"></canvas></div>
+      </div>
+
+      <!-- Decision insight -->
+      <div class="insight-box">
+        <h4>What the math says</h4>
+        <p id="insight-text">Adjust the inputs to see the decision logic for your situation.</p>
+      </div>
+
+      <!-- Year-by-year table -->
+      <div class="year-table-wrap">
+        <h4>Year-by-year detail (selected scenario)</h4>
+        <table class="year-table" id="year-table">
+          <thead>
+            <tr>
+              <th>Year</th><th>BTC Price</th><th>BTC Value</th><th>Loan Balance</th><th>LTV</th><th>Pledge NW</th><th>Sell NW</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PART VI — RISK SURFACE -->
+<section class="part" id="risk">
+  <div class="container-narrow">
+    <div class="part-label">Part VI</div>
+    <h2>The risk surface, decomposed</h2>
+    <p>Risk on this product is not one-dimensional. Decomposing it makes the evaluation tractable.</p>
+
+    <div class="risk-tree">
+<span class="root">Total risk to borrower</span>
+│
+├── <span class="branch">Market risk (BTC price)</span>
+│   ├── <span class="leaf">Magnitude of drawdown</span>
+│   ├── <span class="leaf">Timing within loan term</span>
+│   └── <span class="leaf">Recovery speed</span>
+│
+├── <span class="branch">Counterparty risk</span>
+│   ├── <span class="leaf">Lender solvency</span>
+│   ├── <span class="leaf">Custodian solvency</span>
+│   └── <span class="leaf">Rehypothecation cascade</span>
+│
+├── <span class="branch">Custody risk</span>
+│   ├── <span class="leaf">Key compromise</span>
+│   ├── <span class="leaf">Operational failure</span>
+│   └── <span class="leaf">Jurisdictional seizure</span>
+│
+├── <span class="branch">Tax cliff risk</span>
+│   ├── <span class="leaf">Forced liquidation triggers LTCG</span>
+│   ├── <span class="leaf">At inopportune time</span>
+│   └── <span class="leaf">In a year of impaired liquidity</span>
+│
+├── <span class="branch">Cash flow risk</span>
+│   ├── <span class="leaf">Payment due regardless of BTC price</span>
+│   └── <span class="leaf">Job loss + BTC drawdown compound</span>
+│
+└── <span class="branch">Regulatory risk</span>
+    ├── <span class="leaf">State licensing changes</span>
+    ├── <span class="leaf">Federal tax treatment changes</span>
+    └── <span class="leaf">Securities classification changes</span>
+    </div>
+
+    <p>The risks are correlated. A BTC drawdown that triggers a margin call typically arrives in the same macro environment as job-loss risk and lender-stress risk. Diversifying across them is harder than it sounds.</p>
+
+    <h3>Counterparty risk is the deepest cut</h3>
+    <p>Market risk is publicly observable. You can model it, hedge it, watch it. Counterparty risk hides until it ruptures, and then ruptures fully. The 2022 cohort (Celsius, Voyager, BlockFi, Genesis) proved this — all failed for the same four structural reasons: maturity mismatch, rehypothecation, counterparty concentration, and pooled non-segregated custody. Ledn and Milo survived because they had term-matched books, no or limited rehypothecation, counterparty diversification, and bankruptcy-remote custody.</p>
+
+    <p>The lesson for lender evaluation today: <strong>structural questions, not promotional claims</strong>. Marketing about "safety" is noise. What matters is the legal structure of custody, the disclosure of rehypothecation, and the published bankruptcy-remoteness arrangements.</p>
+  </div>
+</section>
+
+<!-- PART VII — DECISION -->
+<section class="part" id="decision">
+  <div class="container-narrow">
+    <div class="part-label">Part VII</div>
+    <h2>Decision framework</h2>
+    <p>The product fits a specific borrower profile cleanly. Outside that profile it ranges from suboptimal to catastrophic.</p>
+
+    <h3>The product is a good fit when</h3>
+    <ul>
+      <li>Unrealized gain on the BTC is large enough that the tax cost of selling exceeds 2+ years of mortgage interest.</li>
+      <li>The pledged BTC is a minority of your total BTC stack, so a forced liquidation is not catastrophic.</li>
+      <li>You have stable, predictable income to service the monthly payment regardless of BTC price.</li>
+      <li>The lender offers self-custody multisig or bankruptcy-remote qualified custody with no rehypothecation.</li>
+      <li>You can make principal prepayments in years 1–5 to compress the LTV before the first cycle drawdown.</li>
+    </ul>
+
+    <h3>The product is a bad fit when</h3>
+    <ul>
+      <li>You would be pledging most or all of your stack.</li>
+      <li>Your income is variable or BTC-correlated (working in the industry, BTC-denominated revenue).</li>
+      <li>The lender's custody arrangement is opaque or pooled.</li>
+      <li>You would be financially fragile if forced to liquidate at the bottom of a cycle.</li>
+      <li>Your cost basis is close to current price — small unrealized gain, small tax-deferral benefit, same downside.</li>
+    </ul>
+
+    <p>The strongest version of the trade is for a holder who is <strong>already past the wealth-building phase</strong> with respect to Bitcoin, has multiple stacks across different storage arrangements, has stable income from non-Bitcoin sources, and is using the mortgage to deploy a small slice of their stack into housing without disturbing the rest.</p>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-block">
+  <h3>Want the full written deep dive?</h3>
+  <p>The markdown companion goes deeper on lender evaluation, the 2022 failure autopsy, and the open questions worth watching as the category matures.</p>
+  <a href="bitcoin-backed-mortgages-deep-dive.md" class="btn">Read the full piece →</a>
+  <a href="/deep-dives/" class="btn btn-ghost">All Deep Dives</a>
+</div>
+
+<!-- DISCLAIMER -->
+<div class="disclaimer">
+  <h4>Educational only — not advice</h4>
+  <p>This calculator and accompanying piece are educational. They do not constitute legal, tax, or financial advice. Specific decisions require a CPA, attorney, or financial professional with Bitcoin experience.</p>
+  <p>Projections are scenario analyses, not predictions. Bitcoin's future return distribution is unknown. The calculator uses simplified compounding (smooth CAGR) and does not model intra-year volatility or stochastic margin call events. Real lender terms — rates, margin thresholds, custody structure — vary; verify with the originating lender before relying on any figure.</p>
+</div>
+
+<footer>
+  <p style="margin-bottom:1rem;"><a href="/deep-dives/bitcoin-capital/#start-here" style="color:var(--primary);text-decoration:none;font-weight:600;">← Back to Bitcoin Capital Start Here</a></p>
+  <p><a href="/" style="color:var(--primary);text-decoration:none;">Bitcoin Sovereign Academy</a> · <a href="/deep-dives/" style="color:var(--primary);text-decoration:none;">Deep Dives</a> · <a href="/deep-dives/bitcoin-capital/" style="color:var(--primary);text-decoration:none;">Bitcoin Capital</a></p>
+  <p class="footer-meta">v1.0 · Published May 2026 · Last updated <span id="today"></span></p>
+</footer>
+
+<script>
+// =============================================================
+// State
+// =============================================================
+const state = {
+  loan: 500000,
+  apr: 7.5,
+  term: 30,
+  homeApp: 3,
+  btcQty: 5,
+  btcPrice: 100000,
+  basis: 20000,
+  tax: 25,
+  margin: 65,
+  cagr: 5  // selected scenario CAGR
+};
+
+// All scenarios we project for the cross-scenario chart
+const SCENARIOS = [
+  { key: 'bear',  label: 'Bear',  cagr: -5,  color: '#ef4444' },
+  { key: 'base',  label: 'Base',  cagr:  5,  color: '#f59e0b' },
+  { key: 'bull',  label: 'Bull',  cagr: 12,  color: '#10b981' },
+  { key: 'super', label: 'Super', cagr: 20,  color: '#3b82f6' }
+];
+
+// =============================================================
+// Math
+// =============================================================
+function monthlyPayment(P, aprPct, years) {
+  const r = (aprPct/100) / 12;
+  const n = years * 12;
+  if (r === 0) return P / n;
+  return P * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
+}
+
+function balanceAtMonth(P, aprPct, years, k) {
+  const r = (aprPct/100) / 12;
+  const n = years * 12;
+  const M = monthlyPayment(P, aprPct, years);
+  if (r === 0) return P - M * k;
+  return P * Math.pow(1+r, k) - M * (Math.pow(1+r, k) - 1) / r;
+}
+
+function balanceAtYear(P, aprPct, years, t) {
+  if (t >= years) return 0;
+  return Math.max(0, balanceAtMonth(P, aprPct, years, t * 12));
+}
+
+function cumulativeInterest(P, aprPct, years, t) {
+  const M = monthlyPayment(P, aprPct, years);
+  const paid = M * Math.min(t,years) * 12;
+  const principalPaid = P - balanceAtYear(P, aprPct, years, t);
+  return Math.max(0, paid - principalPaid);
+}
+
+// Project a single scenario over T years
+function project(scenarioCagr) {
+  const years = state.term;
+  const path = [];
+  const cagrDecimal = scenarioCagr / 100;
+  const homeAppDecimal = state.homeApp / 100;
+  const homePrice = state.loan; // approximation: home price = mortgage amount (100% LTV)
+  const initBtcValue = state.btcQty * state.btcPrice;
+  const unrealizedGain = Math.max(0, initBtcValue - state.btcQty * state.basis);
+  const taxOwed = unrealizedGain * (state.tax / 100);
+  const netSellProceeds = initBtcValue - taxOwed;
+
+  // SELL path: cash out, buy home with proceeds + small mortgage if needed
+  // If proceeds >= home price → cash buyer, no mortgage, leftover cash invested at risk-free 4%
+  // If proceeds < home price → take small mortgage on the gap at same APR/term
+  let sellMortgage = 0;
+  let sellLeftoverCash = 0;
+  if (netSellProceeds >= homePrice) {
+    sellLeftoverCash = netSellProceeds - homePrice;
+  } else {
+    sellMortgage = homePrice - netSellProceeds;
+  }
+
+  let marginCallYear = null;
+
+  for (let t = 0; t <= years; t++) {
+    const btcPriceT = state.btcPrice * Math.pow(1 + cagrDecimal, t);
+    const btcValueT = state.btcQty * btcPriceT;
+    const loanBalT = balanceAtYear(state.loan, state.apr, state.term, t);
+    const ltvT = btcValueT > 0 ? loanBalT / btcValueT : 999;
+    const homeValueT = homePrice * Math.pow(1 + homeAppDecimal, t);
+
+    // Margin call check: trigger when BTC price drops by margin% from origination
+    const drawdownPct = (state.btcPrice - btcPriceT) / state.btcPrice;
+    const inMarginCall = drawdownPct >= state.margin / 100 && loanBalT > 0;
+    if (inMarginCall && marginCallYear === null) marginCallYear = t;
+
+    // PLEDGE: BTC value + home equity − loan balance
+    const pledgeNW = btcValueT + homeValueT - loanBalT;
+
+    // SELL: home equity − small mortgage balance + cash leftover (assume 4% risk-free growth)
+    const sellLoanBalT = sellMortgage > 0 ? balanceAtYear(sellMortgage, state.apr, state.term, t) : 0;
+    const cashGrown = sellLeftoverCash * Math.pow(1.04, t);
+    const sellNW = homeValueT - sellLoanBalT + cashGrown;
+
+    path.push({
+      year: t,
+      btcPrice: btcPriceT,
+      btcValue: btcValueT,
+      loanBal: loanBalT,
+      ltv: ltvT,
+      homeValue: homeValueT,
+      pledgeNW: pledgeNW,
+      sellNW: sellNW,
+      marginCall: inMarginCall,
+      cumInterest: cumulativeInterest(state.loan, state.apr, state.term, t)
+    });
+  }
+
+  return {
+    path,
+    marginCallYear,
+    taxOwed,
+    netSellProceeds,
+    sellMortgage,
+    sellLeftoverCash
+  };
+}
+
+function fmtMoney(n) {
+  const abs = Math.abs(n);
+  if (abs >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if (abs >= 1e3) return (n/1e3).toFixed(0) + 'K';
+  return n.toFixed(0);
+}
+function fmt$(n) {
+  if (n < 0) return '-$' + fmtMoney(Math.abs(n));
+  return '$' + fmtMoney(n);
+}
+function fmt$Full(n) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+}
+
+// =============================================================
+// Charts
+// =============================================================
+Chart.defaults.color = '#9aa4b2';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.08)';
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+
+let ltvChart, nwChart, scenarioChart, costsChart;
+
+function buildCharts() {
+  const ctxLtv = document.getElementById('chart-ltv').getContext('2d');
+  ltvChart = new Chart(ctxLtv, {
+    type: 'line',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#cbd2da', font: { size: 11 } } },
+        tooltip: {
+          backgroundColor: '#121723', borderColor: '#202938', borderWidth: 1,
+          titleColor: '#f7931a', bodyColor: '#e6edf3'
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Years from origination', color: '#6b7280', font: { size: 11 } },
+             grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { title: { display: true, text: 'Loan-to-value (LTV)', color: '#6b7280', font: { size: 11 } },
+             grid: { color: 'rgba(255,255,255,0.04)' },
+             ticks: { callback: v => v.toFixed(1) + 'x' } }
+      }
+    }
+  });
+
+  const ctxNw = document.getElementById('chart-nw').getContext('2d');
+  nwChart = new Chart(ctxNw, {
+    type: 'line',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#cbd2da', font: { size: 11 } } },
+        tooltip: {
+          backgroundColor: '#121723', borderColor: '#202938', borderWidth: 1,
+          titleColor: '#f7931a', bodyColor: '#e6edf3',
+          callbacks: { label: ctx => ctx.dataset.label + ': ' + fmt$(ctx.parsed.y) }
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Years from origination', color: '#6b7280', font: { size: 11 } },
+             grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { title: { display: true, text: 'Net worth ($)', color: '#6b7280', font: { size: 11 } },
+             grid: { color: 'rgba(255,255,255,0.04)' },
+             ticks: { callback: v => '$' + fmtMoney(v) } }
+      }
+    }
+  });
+
+  const ctxScen = document.getElementById('chart-scenarios').getContext('2d');
+  scenarioChart = new Chart(ctxScen, {
+    type: 'bar',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#cbd2da', font: { size: 11 } } },
+        tooltip: {
+          backgroundColor: '#121723', borderColor: '#202938', borderWidth: 1,
+          titleColor: '#f7931a', bodyColor: '#e6edf3',
+          callbacks: { label: ctx => ctx.dataset.label + ': ' + fmt$(ctx.parsed.y) }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { title: { display: true, text: 'Net worth at term ($)', color: '#6b7280', font: { size: 11 } },
+             grid: { color: 'rgba(255,255,255,0.04)' },
+             ticks: { callback: v => '$' + fmtMoney(v) } }
+      }
+    }
+  });
+
+  const ctxCost = document.getElementById('chart-costs').getContext('2d');
+  costsChart = new Chart(ctxCost, {
+    type: 'line',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#cbd2da', font: { size: 11 } } },
+        tooltip: {
+          backgroundColor: '#121723', borderColor: '#202938', borderWidth: 1,
+          titleColor: '#f7931a', bodyColor: '#e6edf3',
+          callbacks: { label: ctx => ctx.dataset.label + ': ' + fmt$(ctx.parsed.y) }
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Years', color: '#6b7280', font: { size: 11 } },
+             grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { title: { display: true, text: 'Cumulative $', color: '#6b7280', font: { size: 11 } },
+             grid: { color: 'rgba(255,255,255,0.04)' },
+             ticks: { callback: v => '$' + fmtMoney(v) } }
+      }
+    }
+  });
+}
+
+// =============================================================
+// Update
+// =============================================================
+function update() {
+  // Update labels
+  document.getElementById('lbl-loan').textContent = fmt$Full(state.loan);
+  document.getElementById('lbl-apr').textContent = state.apr.toFixed(1) + '%';
+  document.getElementById('lbl-term').textContent = state.term;
+  document.getElementById('lbl-home').textContent = state.homeApp.toFixed(1) + '%';
+  document.getElementById('lbl-btc').textContent = state.btcQty.toFixed(1);
+  document.getElementById('lbl-price').textContent = fmt$Full(state.btcPrice);
+  document.getElementById('lbl-basis').textContent = fmt$Full(state.basis);
+  document.getElementById('lbl-tax').textContent = state.tax + '%';
+  document.getElementById('lbl-margin').textContent = state.margin + '%';
+
+  // Project all scenarios for cross-scenario chart
+  const projections = {};
+  SCENARIOS.forEach(s => { projections[s.key] = project(s.cagr); });
+
+  // Find selected scenario
+  const sel = SCENARIOS.find(s => s.cagr === state.cagr) || SCENARIOS[1];
+  const selProj = projections[sel.key];
+
+  const finalIdx = selProj.path.length - 1;
+  const final = selProj.path[finalIdx];
+
+  // Headline cards
+  document.getElementById('val-pledge').textContent = fmt$(final.pledgeNW);
+  document.getElementById('val-sell').textContent = fmt$(final.sellNW);
+  const delta = final.pledgeNW - final.sellNW;
+  document.getElementById('val-delta').textContent = (delta >= 0 ? '+' : '') + fmt$(delta);
+
+  // Card styling
+  const cP = document.getElementById('card-pledge');
+  const cS = document.getElementById('card-sell');
+  const cD = document.getElementById('card-delta');
+  const vP = document.getElementById('val-pledge');
+  const vS = document.getElementById('val-sell');
+  const vD = document.getElementById('val-delta');
+  cP.classList.remove('winner', 'loser'); cS.classList.remove('winner', 'loser');
+  vP.classList.remove('pos', 'neg'); vS.classList.remove('pos', 'neg'); vD.classList.remove('pos', 'neg');
+  if (delta > 0) {
+    cP.classList.add('winner'); vD.classList.add('pos');
+  } else if (delta < 0) {
+    cS.classList.add('winner'); vD.classList.add('neg');
+  }
+  document.getElementById('sub-delta').textContent =
+    delta >= 0
+      ? `Pledging wins under ${sel.label} scenario at year ${state.term}.`
+      : `Selling wins under ${sel.label} scenario at year ${state.term}.`;
+
+  // LTV chart — show bear, base, bull
+  const ltvScenarios = ['bear', 'base', 'bull'];
+  ltvChart.data.labels = selProj.path.map(p => 'Y' + p.year);
+  ltvChart.data.datasets = ltvScenarios.map(k => {
+    const s = SCENARIOS.find(x => x.key === k);
+    return {
+      label: s.label + ' (' + (s.cagr > 0 ? '+' : '') + s.cagr + '%/yr)',
+      data: projections[k].path.map(p => p.ltv > 5 ? 5 : p.ltv),
+      borderColor: s.color,
+      backgroundColor: s.color + '22',
+      borderWidth: 2,
+      pointRadius: 0,
+      tension: 0.25,
+      fill: false
+    };
+  });
+  // Margin threshold line — LTV at the moment of margin call
+  // Convert: if BTC drops X%, value is (1-X)*P0*Q. Initial LTV0 = L0/(P0*Q). At drop X, LTV = L/( (1-X)*P0*Q ) = LTV_at_t / (1-X).
+  // Margin trigger: when BTC drops by margin%, the "threshold LTV" rises to LTV_at_origination / (1 - margin%).
+  const ltvAtOrigination = state.loan / (state.btcQty * state.btcPrice);
+  const marginLTV = ltvAtOrigination / (1 - state.margin / 100);
+  ltvChart.data.datasets.push({
+    label: 'Margin call threshold',
+    data: selProj.path.map(_ => marginLTV),
+    borderColor: '#f7931a',
+    borderDash: [6, 4],
+    borderWidth: 2,
+    pointRadius: 0,
+    fill: false
+  });
+  ltvChart.options.scales.y.max = Math.max(marginLTV * 1.4, 3);
+  ltvChart.update();
+
+  // Net worth chart — selected scenario, pledge vs sell
+  nwChart.data.labels = selProj.path.map(p => 'Y' + p.year);
+  nwChart.data.datasets = [
+    {
+      label: 'Pledge — net worth',
+      data: selProj.path.map(p => p.pledgeNW),
+      borderColor: '#f7931a',
+      backgroundColor: 'rgba(247,147,26,0.1)',
+      borderWidth: 2.5, pointRadius: 0, tension: 0.25, fill: true
+    },
+    {
+      label: 'Sell — net worth',
+      data: selProj.path.map(p => p.sellNW),
+      borderColor: '#9aa4b2',
+      backgroundColor: 'rgba(154,164,178,0.06)',
+      borderWidth: 2.5, pointRadius: 0, tension: 0.25, fill: true,
+      borderDash: [5, 5]
+    }
+  ];
+  nwChart.update();
+
+  // Scenario comparison bar chart
+  scenarioChart.data.labels = SCENARIOS.map(s => s.label + ' (' + (s.cagr > 0 ? '+' : '') + s.cagr + '%/yr)');
+  scenarioChart.data.datasets = [
+    {
+      label: 'Pledge',
+      data: SCENARIOS.map(s => projections[s.key].path[finalIdx].pledgeNW),
+      backgroundColor: 'rgba(247,147,26,0.85)',
+      borderColor: '#f7931a',
+      borderWidth: 1, borderRadius: 4
+    },
+    {
+      label: 'Sell',
+      data: SCENARIOS.map(s => projections[s.key].path[finalIdx].sellNW),
+      backgroundColor: 'rgba(154,164,178,0.5)',
+      borderColor: '#9aa4b2',
+      borderWidth: 1, borderRadius: 4
+    }
+  ];
+  scenarioChart.update();
+
+  // Cost decomposition — cumulative interest vs avoided tax (constant line)
+  costsChart.data.labels = selProj.path.map(p => 'Y' + p.year);
+  costsChart.data.datasets = [
+    {
+      label: 'Cumulative mortgage interest paid',
+      data: selProj.path.map(p => p.cumInterest),
+      borderColor: '#ef4444',
+      backgroundColor: 'rgba(239,68,68,0.12)',
+      borderWidth: 2.5, pointRadius: 0, tension: 0.25, fill: true
+    },
+    {
+      label: 'Tax saved by not selling (one-time, locked in)',
+      data: selProj.path.map(_ => selProj.taxOwed),
+      borderColor: '#10b981',
+      borderDash: [6, 4],
+      borderWidth: 2.5, pointRadius: 0, fill: false
+    }
+  ];
+  costsChart.update();
+
+  // Year-by-year table
+  const tbody = document.querySelector('#year-table tbody');
+  tbody.innerHTML = '';
+  const shownYears = [0, 1, 2, 3, 5, 7, 10, 15, 20, 25, state.term].filter((y, i, a) => y <= state.term && a.indexOf(y) === i);
+  shownYears.forEach(y => {
+    const p = selProj.path[y];
+    if (!p) return;
+    const tr = document.createElement('tr');
+    if (p.marginCall) tr.classList.add('margin-call');
+    tr.innerHTML = `
+      <td>Y${p.year}${p.marginCall ? ' ⚠' : ''}</td>
+      <td>${fmt$(p.btcPrice)}</td>
+      <td>${fmt$(p.btcValue)}</td>
+      <td>${fmt$(p.loanBal)}</td>
+      <td>${p.ltv > 5 ? '5.0+' : p.ltv.toFixed(2)}x</td>
+      <td>${fmt$(p.pledgeNW)}</td>
+      <td>${fmt$(p.sellNW)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Insight text
+  const insight = document.getElementById('insight-text');
+  const mcLines = [];
+  SCENARIOS.forEach(s => {
+    if (projections[s.key].marginCallYear !== null) {
+      mcLines.push(`${s.label} (${s.cagr}%/yr): margin call at year ${projections[s.key].marginCallYear}`);
+    }
+  });
+
+  const initBtcValue = state.btcQty * state.btcPrice;
+  const taxOwed = selProj.taxOwed;
+  const cumInt30 = selProj.path[finalIdx].cumInterest;
+  const breakevenCagr = computeBreakEven();
+
+  let txt = `<strong>Pledging beats selling by ${fmt$(Math.abs(delta))}</strong> at year ${state.term} under the ${sel.label} scenario `;
+  txt += delta >= 0 ? '— a clear win for pledging. ' : '— but selling is better here. ';
+
+  txt += `Selling now would trigger <strong>${fmt$(taxOwed)}</strong> in immediate LTCG tax, locking in that cost. Pledging avoids it but pays <strong>${fmt$(cumInt30)}</strong> in cumulative mortgage interest over the full ${state.term}-year term.`;
+
+  if (mcLines.length > 0) {
+    txt += `<br><br><strong style="color:var(--red);">Margin call risk in scenarios:</strong> ${mcLines.join('; ')}. In a real margin call, the lender liquidates pledged BTC at the worst price — and you owe LTCG on that forced sale.`;
+  } else {
+    txt += `<br><br><strong style="color:var(--green);">No margin call</strong> is triggered in any of the four scenarios at the current ${state.margin}% drop threshold. Your collateral has structural buffer.`;
+  }
+
+  if (breakevenCagr !== null) {
+    txt += `<br><br>The break-even BTC return for pledging to beat selling over ${state.term} years is approximately <strong>${breakevenCagr.toFixed(1)}% CAGR</strong>. Bitcoin has historically compounded well above this, but past performance does not guarantee future returns.`;
+  }
+
+  insight.innerHTML = txt;
+}
+
+function computeBreakEven() {
+  // Find the CAGR (-10% to +30%) where pledge NW = sell NW at year T
+  let lo = -10, hi = 30;
+  for (let i = 0; i < 40; i++) {
+    const mid = (lo + hi) / 2;
+    const proj = project(mid);
+    const f = proj.path[proj.path.length - 1];
+    if (f.pledgeNW < f.sellNW) lo = mid;
+    else hi = mid;
+  }
+  const result = (lo + hi) / 2;
+  if (result <= -9.5 || result >= 29.5) return null;
+  return result;
+}
+
+// =============================================================
+// Wire up controls
+// =============================================================
+function bind(id, key, isFloat) {
+  const el = document.getElementById(id);
+  if (!el) { console.warn('[BSA] Missing input element:', id); return; }
+  el.addEventListener('input', () => {
+    state[key] = parseFloat(el.value);
+    try { update(); } catch (e) { showCalcError('Update error: ' + e.message); console.error(e); }
+  });
+}
+
+bind('loan', 'loan', false);
+bind('apr', 'apr', true);
+bind('term', 'term', false);
+bind('home-app', 'homeApp', true);
+bind('btc-qty', 'btcQty', true);
+bind('btc-price', 'btcPrice', false);
+bind('basis', 'basis', false);
+bind('tax', 'tax', false);
+bind('margin', 'margin', false);
+
+document.querySelectorAll('.scenario-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.scenario-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    state.cagr = parseFloat(tab.dataset.cagr);
+    update();
+  });
+});
+
+// Footer date
+document.getElementById('today').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+// =============================================================
+// Init — defensive, with Chart.js wait + visible error reporting
+// =============================================================
+function showCalcError(msg) {
+  const wraps = document.querySelectorAll('.chart-wrap');
+  wraps.forEach(w => {
+    w.innerHTML = '<div style="padding:1.5rem;color:#ef4444;font-size:0.85rem;text-align:center;border:1px dashed rgba(239,68,68,0.3);border-radius:8px;height:100%;display:flex;align-items:center;justify-content:center;">⚠ Calculator error<br><span style="color:#9aa4b2;font-size:0.78rem;margin-top:0.5rem;display:block;">' + msg + '</span></div>';
+  });
+  console.error('[BSA Calculator]', msg);
+}
+
+function initCalculator() {
+  try {
+    buildCharts();
+    update();
+  } catch (e) {
+    showCalcError('Init error: ' + e.message);
+    console.error(e);
+  }
+}
+
+// Wait for Chart.js to be available (handles both primary CDN and async fallback).
+let chartWait = 0;
+function waitForChart() {
+  if (typeof Chart !== 'undefined') {
+    initCalculator();
+  } else if (chartWait++ < 60) {  // ~6 seconds max
+    setTimeout(waitForChart, 100);
+  } else {
+    showCalcError('Chart.js could not load after 6 seconds. Check the browser console (F12) and your network — an ad blocker or corporate proxy may be blocking cdn.jsdelivr.net and unpkg.com.');
+  }
+}
+
+if (document.readyState === 'complete') {
+  waitForChart();
+} else {
+  window.addEventListener('load', waitForChart);
+}
+</script>
+
+</body>
+</html>

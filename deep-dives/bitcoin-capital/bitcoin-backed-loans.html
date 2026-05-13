@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin-Backed Loans: A First-Principles Deep Dive | Bitcoin Sovereign Academy</title>
+<meta name="description" content="Centralized Bitcoin-only lending — providers, structures, and how to pick the right product. Comparative analysis of 9 lenders, hedge misconception decoded, options strategies comparison.">
+<link rel="canonical" href="https://bitcoinsovereign.academy/deep-dives/bitcoin-capital/bitcoin-backed-loans.html">
+<meta property="og:title" content="Bitcoin-Backed Loans: A First-Principles Deep Dive">
+<meta property="og:description" content="Pick the right BTC lender for your situation. 9 providers compared. Math-driven decision framework.">
+<meta property="og:url" content="https://bitcoinsovereign.academy/deep-dives/bitcoin-capital/bitcoin-backed-loans.html">
+<meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Bitcoin-Backed Loans: A First-Principles Deep Dive",
+  "description": "Comparative analysis of centralized Bitcoin-only lending — 9 providers, custody architectures, hedge analysis, options strategies.",
+  "author": { "@type": "Organization", "name": "Bitcoin Sovereign Academy" },
+  "publisher": { "@type": "Organization", "name": "Bitcoin Sovereign Academy" },
+  "datePublished": "2026-05-11",
+  "mainEntityOfPage": "https://bitcoinsovereign.academy/deep-dives/bitcoin-capital/bitcoin-backed-loans.html"
+}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #f7931a;
+    --primary-soft: #ffb04a;
+    --dark: #0b0e14;
+    --dark2: #121723;
+    --dark3: #1b2433;
+    --dark4: #202938;
+    --light: #e6edf3;
+    --dim: #cbd2da;
+    --muted: #9aa4b2;
+    --faint: #6b7280;
+    --grad: linear-gradient(135deg, #f7931a 0%, #ffd700 100%);
+    --grad-soft: linear-gradient(135deg, rgba(247,147,26,0.12), rgba(255,215,0,0.04));
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --blue: #3b82f6;
+    --red: #ef4444;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(247,147,26,0.35);
+    --serif: 'Source Serif 4', Georgia, serif;
+    --sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    background: var(--dark);
+    color: var(--light);
+    line-height: 1.65;
+    font-size: 16px;
+  }
+
+  /* SKIP LINK */
+  .skip-link {
+    position: absolute; left: -9999px;
+    background: var(--primary); color: #fff;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    z-index: 9999;
+  }
+  .skip-link:focus { left: 0; top: 0; }
+
+  /* HEADER */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(11,14,20,0.92);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    max-width: 1200px; margin: 0 auto;
+    padding: 0.9rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .logo { display: flex; align-items: center; gap: 0.7rem; text-decoration: none; color: var(--light); }
+  .logo-icon {
+    width: 32px; height: 32px; background: var(--grad);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: var(--dark); font-weight: 700; font-family: var(--mono);
+  }
+  .logo-text { font-weight: 600; font-size: 0.95rem; }
+  .logo-sub { color: var(--faint); font-size: 0.78rem; }
+  .header-nav { display: flex; gap: 1.5rem; font-size: 0.85rem; }
+  .header-nav a { color: var(--dim); text-decoration: none; }
+  .header-nav a:hover { color: var(--primary); }
+  .header-meta { font-size: 0.78rem; color: var(--muted); }
+
+  /* DISCLOSURE BANNER */
+  .disclosure {
+    background: linear-gradient(180deg, rgba(247,147,26,0.08), rgba(247,147,26,0.04));
+    border-bottom: 1px solid rgba(247,147,26,0.2);
+    padding: 0.85rem 0;
+  }
+  .disclosure.hidden { display: none; }
+  .disclosure-inner {
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 2rem;
+    display: flex; align-items: flex-start; gap: 1rem;
+    font-size: 0.85rem; color: var(--dim); line-height: 1.55;
+  }
+  .disclosure-icon { color: var(--primary); font-weight: 700; flex-shrink: 0; font-family: var(--mono); }
+  .disclosure-text strong { color: var(--primary); }
+  .disclosure-dismiss {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); cursor: pointer;
+    padding: 0.2rem 0.5rem; border-radius: 4px;
+    font-size: 0.85rem; flex-shrink: 0;
+  }
+  .disclosure-dismiss:hover { color: var(--light); border-color: var(--border-strong); }
+
+  /* HERO */
+  .hero {
+    padding: 4rem 2rem 3rem;
+    max-width: 980px; margin: 0 auto;
+    text-align: center;
+    background: radial-gradient(ellipse at 50% 0%, rgba(247,147,26,0.08), transparent 65%);
+  }
+  .breadcrumb { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
+  .breadcrumb a { color: var(--primary); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .eyebrow {
+    color: var(--primary); font-size: 0.78rem; letter-spacing: 0.14em;
+    text-transform: uppercase; font-weight: 600; margin-bottom: 1.25rem;
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 600; line-height: 1.12;
+    letter-spacing: -0.01em; margin-bottom: 1.5rem;
+  }
+  .hero h1 span {
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero .lede {
+    color: var(--dim); max-width: 66ch;
+    margin: 0 auto 1.5rem;
+    font-size: 1.13rem; line-height: 1.65;
+  }
+  .hero-meta {
+    color: var(--faint); font-size: 0.85rem;
+    margin-top: 1.5rem;
+    display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;
+  }
+  .hero-meta strong { color: var(--dim); font-weight: 500; }
+
+  /* CONTAINER */
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
+  .container-narrow { max-width: 760px; margin: 0 auto; padding: 0 2rem; }
+
+  /* SECTION */
+  section.part { padding: 4rem 0; border-top: 1px solid var(--border); }
+  section.part.no-border { border-top: none; }
+  .part-label {
+    color: var(--primary); font-family: var(--mono);
+    font-size: 0.78rem; letter-spacing: 0.18em;
+    text-transform: uppercase; margin-bottom: 0.75rem;
+  }
+  .part h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+    font-weight: 600; line-height: 1.2;
+    letter-spacing: -0.01em; margin-bottom: 1.5rem;
+    max-width: 30ch;
+  }
+  .part h3 {
+    font-family: var(--serif);
+    font-size: 1.4rem; font-weight: 600;
+    line-height: 1.3; margin: 2.25rem 0 1rem;
+    color: var(--light);
+  }
+  .part h4 {
+    font-family: var(--sans);
+    font-size: 1rem; font-weight: 700;
+    color: var(--primary-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 1.5rem 0 0.75rem;
+  }
+  .part p { color: var(--dim); margin-bottom: 1.1rem; max-width: 70ch; }
+  .part p strong { color: var(--light); font-weight: 600; }
+  .part p em { color: var(--primary-soft); font-style: italic; }
+  .part ul, .part ol {
+    color: var(--dim); margin-left: 1.5rem;
+    margin-bottom: 1.25rem; max-width: 68ch;
+  }
+  .part ul li, .part ol li { margin-bottom: 0.5rem; }
+  .part code {
+    font-family: var(--mono); font-size: 0.86em;
+    background: var(--dark3); padding: 0.15em 0.4em;
+    border-radius: 4px; color: var(--primary-soft);
+  }
+  .part a { color: var(--primary); text-decoration: none; }
+  .part a:hover { text-decoration: underline; }
+
+  /* CALLOUT */
+  .callout {
+    background: linear-gradient(180deg, rgba(245,158,11,0.08), rgba(245,158,11,0.02));
+    border-left: 3px solid var(--yellow);
+    padding: 1.25rem 1.5rem;
+    border-radius: 0 8px 8px 0;
+    margin: 1.5rem 0;
+  }
+  .callout strong { color: var(--yellow); }
+
+  /* TAXONOMY / DATA TABLE */
+  .data-table {
+    width: 100%; border-collapse: collapse;
+    margin: 1.5rem 0;
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 0.88rem;
+  }
+  .data-table th, .data-table td {
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+  .data-table thead th {
+    background: var(--dark3);
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .data-table tbody td:first-child {
+    color: var(--dim); font-weight: 500;
+  }
+  .data-table tbody td:not(:first-child) {
+    color: var(--muted);
+  }
+  .data-table tbody tr:hover { background: rgba(247,147,26,0.03); }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+
+  /* PROVIDER CARDS */
+  .provider-card {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 2rem;
+    margin: 2.5rem 0;
+  }
+  .provider-card.specialized {
+    border-color: rgba(245,158,11,0.4);
+    background: linear-gradient(180deg, rgba(245,158,11,0.04), var(--dark2));
+  }
+  .provider-card .provider-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;
+  }
+  .provider-card h3 {
+    margin: 0;
+    font-size: 1.45rem;
+    color: var(--primary);
+  }
+  .provider-card.specialized h3 {
+    color: var(--yellow);
+  }
+  .provider-card .provider-tags {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+  }
+  .tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+  .tag-btc { background: rgba(247,147,26,0.15); color: var(--primary); border: 1px solid var(--primary); }
+  .tag-fiat { background: rgba(59,130,246,0.15); color: var(--blue); border: 1px solid var(--blue); }
+  .tag-multisig { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid var(--green); }
+  .tag-custodian { background: rgba(154,164,178,0.15); color: var(--muted); border: 1px solid var(--muted); }
+  .tag-selfcustody { background: rgba(247,147,26,0.15); color: var(--primary-soft); border: 1px solid var(--primary-soft); }
+  .tag-specialized { background: rgba(245,158,11,0.15); color: var(--yellow); border: 1px solid var(--yellow); }
+
+  .fit-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    margin: 1.5rem 0;
+  }
+  @media (min-width: 700px) {
+    .fit-grid { grid-template-columns: 1fr 1fr; }
+  }
+  .fit-card {
+    background: var(--dark3);
+    border-radius: 10px;
+    padding: 1.25rem;
+    border-left: 3px solid var(--border);
+  }
+  .fit-card.fit-good { border-left-color: var(--green); }
+  .fit-card.fit-bad { border-left-color: var(--red); }
+  .fit-card h4 {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin: 0 0 0.85rem;
+    letter-spacing: 0.06em;
+  }
+  .fit-card.fit-good h4 { color: var(--green); }
+  .fit-card.fit-bad h4 { color: var(--red); }
+  .fit-card ul {
+    margin: 0; padding-left: 1.2rem;
+    font-size: 0.88rem;
+  }
+  .fit-card li { margin-bottom: 0.4rem; }
+
+  /* SCENARIO BOX */
+  .scenario-box {
+    background: var(--dark3);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    font-size: 0.9rem;
+    border: 1px solid var(--border);
+  }
+  .scenario-box strong { color: var(--primary); }
+
+  /* RISK TREE / FLOWCHART */
+  .ascii-tree {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem 1.75rem;
+    margin: 1.5rem 0;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: var(--dim);
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .ascii-tree .root, .ascii-tree .start { color: var(--primary); font-weight: 600; }
+  .ascii-tree .branch { color: var(--light); font-weight: 600; }
+  .ascii-tree .leaf, .ascii-tree .answer { color: var(--muted); }
+  .ascii-tree .yes { color: var(--green); }
+  .ascii-tree .no { color: var(--red); }
+
+  /* FOOTER */
+  footer {
+    padding: 3rem 2rem;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    color: var(--faint);
+    font-size: 0.85rem;
+  }
+  footer a { color: var(--primary); text-decoration: none; }
+  footer .footer-meta { margin-top: 0.85rem; font-family: var(--mono); font-size: 0.78rem; }
+
+  @media (max-width: 768px) {
+    .header-nav { display: none; }
+    .container, .container-narrow { padding: 0 1rem; }
+    .hero { padding: 3rem 1rem 2rem; }
+    section.part { padding: 3rem 0; }
+    .provider-card { padding: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <div class="logo-icon">&#x20BF;</div>
+      <div>
+        <div class="logo-text">Bitcoin Sovereign Academy</div>
+        <div class="logo-sub">Deep Dive · Bitcoin-Backed Loans</div>
+      </div>
+    </a>
+    <nav class="header-nav">
+      <a href="#ontology">Ontology</a>
+      <a href="#taxonomy">Taxonomy</a>
+      <a href="#providers">Providers</a>
+      <a href="#custody">Custody</a>
+      <a href="#hedge">Hedge</a>
+      <a href="#options">Options</a>
+      <a href="#decision">Decision</a>
+    </nav>
+    <span class="header-meta"><a href="/deep-dives/bitcoin-capital/" style="color:inherit;text-decoration:none;">← Bitcoin Capital</a></span>
+  </div>
+</header>
+
+<!-- DISCLOSURE BANNER -->
+<div class="disclosure" id="disclosure-banner">
+  <div class="disclosure-inner">
+    <span class="disclosure-icon">ⓘ</span>
+    <div class="disclosure-text">
+      <strong>Heads-up before you read.</strong> BSA's founder Dalia advises at The Bitcoin Adviser (TBA), the company behind <strong>Loan My Coins</strong> — one of the nine BTC-backed lenders compared in this piece. We've made a deliberate choice to scrutinize LMC the same way we scrutinize every other product, including pointing out where it isn't the right fit. The math is the math regardless of who built the product.
+    </div>
+    <button class="disclosure-dismiss" id="disclosure-dismiss" aria-label="Dismiss disclosure">Dismiss ×</button>
+  </div>
+</div>
+
+<main id="main-content">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="breadcrumb">
+    <a href="/">Home</a> › <a href="/deep-dives/">Deep Dives</a> › <a href="/deep-dives/bitcoin-capital/">Bitcoin Capital</a> › Bitcoin-Backed Loans
+  </div>
+  <div class="eyebrow">A First-Principles Deep Dive</div>
+  <h1>A Bitcoin-backed loan is not one product. <span>It's a bundle of trade-offs.</span></h1>
+  <p class="lede">Denomination, custody, rehypothecation, margin risk, tax timing, and human behavior — every BTC-backed loan involves all of them. The loan that looks cheapest can be the most expensive mistake. This deep dive gives you the framework, the verified math, and a decision tree so you can match a product to your situation.</p>
+  <div class="hero-meta">
+    <span><strong>~30 min</strong> read</span>
+    <span><strong>14 sections</strong></span>
+    <span><strong>9 providers</strong></span>
+    <span><strong>Custody-first</strong> framing</span>
+  </div>
+</section>
+
+<!-- WHAT THIS PIECE IS NOT -->
+<section style="max-width:880px;margin:0 auto;padding:1rem 2rem 0;">
+  <div style="background:linear-gradient(180deg, rgba(239,68,68,0.06), rgba(239,68,68,0.02));border-left:3px solid var(--red);border-radius:0 10px 10px 0;padding:1.25rem 1.5rem;">
+    <h3 style="color:var(--red);font-family:var(--sans);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.65rem;font-weight:700;">What this piece is not</h3>
+    <p style="margin:0;color:var(--dim);font-size:0.92rem;line-height:1.6;">This is not a recommendation to borrow against bitcoin. It is a framework for comparing structures. Borrowing against bitcoin can preserve upside, but it can also create forced selling, tax problems, custody risk, and emotional mistakes. The product matters. The borrower matters more.</p>
+  </div>
+</section>
+
+<!-- PART I — ONTOLOGY -->
+<section class="part" id="ontology">
+  <div class="container-narrow">
+    <div class="part-label">Part I · Ontology</div>
+    <h2>The three choices that decide everything</h2>
+    <p>A Bitcoin-backed loan is, structurally, a secured loan with three essential design choices baked into its DNA:</p>
+    <ol>
+      <li><strong>The loan denominator.</strong> What is the borrower's obligation denominated in? If it's USD, the borrower owes a fixed dollar amount and the collateral's USD value is the variable that creates margin-call dynamics. If it's BTC, the obligation is in BTC and price-based liquidation is mathematically impossible.</li>
+      <li><strong>The custody model.</strong> Who holds the keys to the pledged Bitcoin during the loan term? This single choice determines whether the borrower is a creditor with claims (pooled lender custody) or a co-owner with cryptographic veto power (multisig with borrower-held key). 2022 made the cost of getting this wrong unambiguous.</li>
+      <li><strong>The rehypothecation policy.</strong> Can the lender lend out the pledged collateral while the loan is outstanding? This is the structural feature that took down Celsius, BlockFi, Voyager, and Genesis in 2022 — collateral that was supposed to back loans got vaporized in counterparty cascades.</li>
+    </ol>
+    <p>Most public coverage focuses on rates and LTV. Those matter, but they're downstream of the three structural choices. A 9% loan from a rehypothecating lender holding your BTC in a pooled wallet is a fundamentally different product from a 14% loan with no rehypothecation and 2-of-3 multisig custody. <strong>Comparing them on rate alone is the kind of mistake the 2022 cohort's customers made.</strong></p>
+    <p>The remainder of this deep dive treats these three axes as primary and rates/LTV as secondary.</p>
+  </div>
+</section>
+
+<!-- PART II — TAXONOMY -->
+<section class="part" id="taxonomy">
+  <div class="container-narrow">
+    <div class="part-label">Part II · Taxonomy</div>
+    <h2>The map: every loan fits somewhere</h2>
+    <p>Two independent design choices give us a 2×4 matrix that every BTC-backed lending product sits in cleanly.</p>
+
+    <h4>Axis 1 — Loan denominator</h4>
+    <ul>
+      <li><strong>BTC-denominated</strong> (you pledge BTC, receive BTC, owe BTC)</li>
+      <li><strong>Fiat-denominated</strong> (you pledge BTC, receive USD/USDC, owe USD)</li>
+    </ul>
+
+    <h4>Axis 2 — Custody model (most to least sovereign)</h4>
+    <ul>
+      <li><strong>Self-custody DLC</strong> (borrower retains sole key authority via on-chain contracts)</li>
+      <li><strong>Collaborative 2-of-3 / 3-of-4 multisig</strong> (borrower holds 1 of N keys, no single-party control)</li>
+      <li><strong>Qualified custodian</strong> (regulated third party holds the keys; borrower has no key)</li>
+      <li><strong>Pooled lender custody</strong> (lender holds collateral directly; the 2022 failure pattern)</li>
+    </ul>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>Custody / Denominator</th><th>BTC-Denominated</th><th>Fiat-Denominated</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Self-custody DLC</td><td>—</td><td><strong>Lava</strong></td></tr>
+        <tr><td>Collaborative multisig</td><td><strong>LMC</strong> (2-of-3)</td><td><strong>Unchained</strong> (2-of-3), <strong>Debifi</strong> (3-of-4)</td></tr>
+        <tr><td>Qualified custodian (no rehypothecation)</td><td>—</td><td><strong>Ledn Custodied</strong>, <strong>Arch</strong></td></tr>
+        <tr><td>Qualified custodian (rehypothecation)</td><td>—</td><td><strong>Ledn Standard</strong>, <strong>SALT</strong></td></tr>
+        <tr><td>Exchange / hybrid / pooled</td><td>—</td><td><strong>Bitfinex</strong> (exchange), <strong>Coinbase/Morpho</strong> (hybrid wrapped)</td></tr>
+      </tbody>
+    </table>
+
+    <p>The taxonomy makes one thing immediately obvious: <strong>among the providers reviewed here, LMC is the only BTC-denominated structure.</strong> Every other provider issues fiat-denominated loans, which creates margin-call dynamics by design. This is the structural reason LMC has no fiat-denominated margin calls — not generosity, mathematics. <em>(There may be private bilateral or offshore products that also denominate in BTC; this matrix covers the public retail-accessible providers.)</em></p>
+    <p>The second observation: among reviewed providers, there is no Bitcoin-denominated, self-custody DLC option today. That looks like an obvious gap. I would not be surprised if someone tries to fill it soon.</p>
+  </div>
+</section>
+
+<!-- PART III — LANDSCAPE -->
+<section class="part" id="landscape">
+  <div class="container-narrow">
+    <div class="part-label">Part III</div>
+    <h2>The 2026 provider landscape</h2>
+    <p>Nine providers worth knowing, organized by depth of treatment.</p>
+
+    <h4>Tier 1 — Four distinct structural archetypes (deep coverage)</h4>
+    <ul>
+      <li><strong>Ledn</strong> — BTC-for-fiat, qualified custodian, regulated mainstream</li>
+      <li><strong>Unchained Capital</strong> — BTC-for-fiat, collaborative multisig, sovereignty-leaning centralized</li>
+      <li><strong>Lava</strong> — BTC-for-fiat, self-custody DLC, newest model</li>
+      <li><strong>Loan My Coins (LMC)</strong> — BTC-for-BTC, TBA collaborative multisig, 5% upfront fee — <em>the most specialized product, presented last</em></li>
+    </ul>
+    <p>Every other BTC-backed lender is a variant of one of these. We present them in order of mainstream familiarity to specialized use case — LMC last because it is structurally different from the other three and works in a narrower set of borrower profiles.</p>
+
+    <h4>Tier 2 — Matrix-only coverage</h4>
+    <ul>
+      <li><strong>Coinbase via Morpho</strong> — hybrid centralized custody + DeFi smart contract; $2.17B originated by April 2026</li>
+      <li><strong>SALT Lending</strong> — multi-asset; rehypothecation explicitly permitted in terms; longest track record (2016)</li>
+      <li><strong>Arch Lending</strong> — Anchorage Digital custody, no rehypothecation, $100M Lloyd's insurance</li>
+      <li><strong>Bitfinex Borrow</strong> — exchange margin lending; 2–120 day terms; 2016 hack precedent</li>
+      <li><strong>Debifi</strong> — non-custodial 3-of-4 multisig; institutional focus; Sygnum Bank partnership (MultiSYG, H1 2026)</li>
+    </ul>
+
+    <h4>Out of scope and why</h4>
+    <ul>
+      <li>Multi-asset crypto lenders (Nexo, Binance Loans) — dilute the Bitcoin focus</li>
+      <li>DeFi BTC lending (Sovryn Zero, flash loans) — separate deep dive eventually</li>
+      <li>Institutional undercollateralized credit (TrueFi, Maple, Goldfinch, Clearpool) — not retail-relevant</li>
+    </ul>
+  </div>
+</section>
+
+<!-- PART IV — PROVIDER DEEP-DIVES -->
+<section class="part" id="providers">
+  <div class="container-narrow">
+    <div class="part-label">Part IV</div>
+    <h2>Provider deep-dives</h2>
+    <p style="color:var(--muted);font-style:italic;">Order: most mainstream → most specialized. Ledn first (the regulated reference), Unchained (collaborative multisig with US licensing), Lava (newest self-custody model), and LMC last (the most specialized product, works only in specific market conditions).</p>
+
+    <!-- LEDN -->
+    <div class="provider-card">
+      <div class="provider-header">
+        <h3>Ledn — BTC-for-fiat, qualified custodian</h3>
+        <div class="provider-tags">
+          <span class="tag tag-fiat">Fiat-denominated</span>
+          <span class="tag tag-custodian">Qualified custodian</span>
+        </div>
+      </div>
+      <p><strong>Structurally:</strong> the most mainstream BTC-backed lender. Qualified third-party custody (BitGo), regulated, established. Borrowers choose between two custody tiers at origination.</p>
+
+      <h4>Publicly listed terms (as of May 2026 — verify before signing)</h4>
+      <ul>
+        <li>50% LTV (fiat-denominated)</li>
+        <li><strong>Two product variants:</strong>
+          <ul>
+            <li><strong>Custodied</strong> — ring-fenced segregated addresses, <strong>no rehypothecation</strong> (higher APR)</li>
+            <li><strong>Standard</strong> — same custody architecture, <strong>rehypothecation to institutions allowed</strong> (lower APR)</li>
+          </ul>
+        </li>
+        <li>Headline rates: <strong>starts at 11.49% APR, scaling down with loan size to 9.99% at $1M+</strong> (per Ledn's current pricing page). Custodied carries a premium over Standard — verify exact spread at quote time.</li>
+        <li>$1,000 USD-equivalent BTC minimum</li>
+        <li>24-hour typical funding time</li>
+        <li>No credit check, no required monthly payments — interest accrues</li>
+        <li>Illustrative cost at $250K / 24 months: <strong>~$60–70K range</strong> depending on Custodied vs Standard tier selected. Get a current quote — the Custodied premium is the price of sovereignty.</li>
+      </ul>
+
+      <div class="callout">
+        <p><strong>The Custodied vs. Standard choice is the most important decision a Ledn borrower makes.</strong> The 1.5% APR delta is the price of sovereignty at Ledn. Most borrowers default into Standard without knowing what they're trading. <strong>Break-even math:</strong> The Custodied premium (≈3% of loan over 2 years) pays off if you believe the rehypothecation counterparty failure probability over 2 years exceeds 6%. Given 2022's cohort failures, that's not a stretch — it's a base rate.</p>
+      </div>
+
+      <div class="fit-grid">
+        <div class="fit-card fit-good">
+          <h4>Best fit when</h4>
+          <ul>
+            <li>Need USD or USDC liquidity (not BTC)</li>
+            <li>Want regulated, mainstream BTC lender with track record</li>
+            <li>Loan size $1M+ for best rate tier</li>
+            <li>Comfortable with margin-call mechanics</li>
+          </ul>
+        </div>
+        <div class="fit-card fit-bad">
+          <h4>Wrong fit when</h4>
+          <ul>
+            <li>Sovereignty-first priority (use multisig instead)</li>
+            <li>Want zero margin-call exposure (use LMC instead)</li>
+            <li>Uncomfortable with rehypothecation but unwilling to pay the Custodied premium</li>
+          </ul>
+        </div>
+      </div>
+
+      <p><strong>Custody:</strong> BitGo holds keys (qualified custodian, $250M insurance, audited cold storage). Borrower has no key. Proof-of-funds via periodic third-party-audited attestation, not real-time on-chain. <strong>Single point of failure: BitGo + Ledn's funding partner.</strong> Mitigated by ring-fenced addresses (Custodied) or insurance (always).</p>
+    </div>
+
+    <!-- UNCHAINED -->
+    <div class="provider-card">
+      <div class="provider-header">
+        <h3>Unchained Capital — Commercial (B2B) BTC-for-fiat, collaborative multisig</h3>
+        <div class="provider-tags">
+          <span class="tag tag-fiat">Fiat-denominated</span>
+          <span class="tag tag-multisig">2-of-3 multisig</span>
+          <span class="tag tag-custodian">Commercial / B2B</span>
+        </div>
+      </div>
+      <p><strong>Structurally:</strong> the sovereignty-leaning alternative to Ledn. Same fiat disbursement, same fiat-denominated margin-call dynamics, but custody is 2-of-3 multisig with the borrower holding 1 key. <strong>Note: as of late 2025/2026, Unchained pivoted from retail personal loans to a commercial (B2B) loans product</strong> — same architecture, B2B-only positioning.</p>
+
+      <h4>Publicly listed terms (as of November 2025 pricing page)</h4>
+      <ul>
+        <li>50% LTV (200% Collateral-to-Principal required, fiat-denominated)</li>
+        <li><strong>14% interest rate, 16.21% APR</strong> (origination included in APR)</li>
+        <li>12-payment term (12 months); renewable</li>
+        <li>$150,000 USD minimum</li>
+        <li>Interest-only monthly payments; principal due with final interest payment</li>
+        <li>Funded in as little as 2 business days</li>
+        <li>US only, with state restrictions</li>
+        <li>Cost at $250K / 12 months (one term): <strong>~$40,500</strong> (interest + origination). For 24 months: renewal required, adding another origination fee — ~$80K total.</li>
+      </ul>
+
+      <div class="callout">
+        <p><strong>What changed:</strong> Unchained previously offered tiered personal loan rates (9.99%–11.49%). That product appears to have been discontinued in favor of the commercial loans positioning. <strong>If you're a retail/personal borrower, this product may no longer fit your use case</strong> — verify directly with Unchained whether a personal product is still available. Track record: <strong>$1B+ in loan originations, 1,000+ loans, zero lost bitcoin</strong> (per company claim).</p>
+      </div>
+
+      <div class="fit-grid">
+        <div class="fit-card fit-good">
+          <h4>Best fit when</h4>
+          <ul>
+            <li>Business or commercial borrower (LLC, S-Corp, etc.) — the new positioning</li>
+            <li>Loan size $150K+ (minimum is binding)</li>
+            <li>Want 2-of-3 multisig with personal/company-held key authority but in a regulated US lender</li>
+            <li>Existing Unchained vault customer transitioning to business needs</li>
+          </ul>
+        </div>
+        <div class="fit-card fit-bad">
+          <h4>Wrong fit when</h4>
+          <ul>
+            <li>Retail/personal borrower (product may no longer be available for individuals)</li>
+            <li>Loan under $150K</li>
+            <li>International borrower (US only)</li>
+            <li>Need lowest-rate commercial lending (16.21% APR is higher than several Tier 1 alternatives)</li>
+          </ul>
+        </div>
+      </div>
+
+      <p><strong>Custody:</strong> 2-of-3 multisig — borrower + Unchained + Fortis Bank (as the key partner in the commercial product). Unchained pioneered this architecture for retail Bitcoin custody in 2017–18 and adapted it for the loan product. Battle-tested across nearly a decade of Bitcoin operations. Borrower verifies collateral on-chain at any time using a key they control.</p>
+    </div>
+
+    <!-- LAVA -->
+    <div class="provider-card">
+      <div class="provider-header">
+        <h3>Lava — BTC-for-fiat, self-custody via DLC</h3>
+        <div class="provider-tags">
+          <span class="tag tag-fiat">Fiat-denominated</span>
+          <span class="tag tag-selfcustody">Self-custody DLC</span>
+        </div>
+      </div>
+      <p><strong>Structurally:</strong> the newest and most sovereignty-extreme model. Uses <strong>Discreet Log Contracts (DLCs)</strong> — Bitcoin-native smart contract constructs that let the borrower retain full key authority over the collateral. Lava never holds the keys.</p>
+
+      <h4>Company-quoted terms (pending direct confirmation)</h4>
+      <ul>
+        <li><strong>LTV: 50%–60%</strong> — third-party comparisons cite both figures; verification email pending direct confirmation with Lava</li>
+        <li><strong>Step-up APR</strong> starting at 5% (month 1), climbing toward 11.5% by month 12 — exact ramp schedule per Lava's public materials</li>
+        <li>Approximate year-1 average APR: <strong>~8%</strong> (illustrative, depends on Lava's published step schedule)</li>
+        <li>$100 USD minimum (lowest in category), $1B+ ceiling</li>
+        <li>Open-ended terms</li>
+        <li>Fast processing (sub-second typical per Lava materials)</li>
+        <li>Visa card with up to 5% BTC cashback</li>
+        <li>Illustrative cost at $250K / 24 months: <strong>~$49K</strong> (year 1 at ~8% average + year 2 at higher rate). Real cost depends on exact step schedule and any modifications.</li>
+      </ul>
+
+      <div class="fit-grid">
+        <div class="fit-card fit-good">
+          <h4>Best fit when</h4>
+          <ul>
+            <li>Want full self-custody of BTC even during the loan term</li>
+            <li>Plan to repay quickly to lock in low early-month rates (1–3 months optimal)</li>
+            <li>Comfortable with DLC technology and newer protocol</li>
+            <li>Need fast processing or small loan amounts ($100+ floor)</li>
+          </ul>
+        </div>
+        <div class="fit-card fit-bad">
+          <h4>Wrong fit when</h4>
+          <ul>
+            <li>Want long-term low-rate borrowing (rate climbs to 11.5% by month 12)</li>
+            <li>Want established multi-year operational track record</li>
+            <li>Uncomfortable with DLC edge cases (oracle attacks, contract bugs)</li>
+          </ul>
+        </div>
+      </div>
+
+      <p><strong>Custody:</strong> Self-custody DLC. Lava never has keys. Strongest proof-of-funds in the market — fully on-chain, fully transparent. <strong>The trade-off: if the borrower loses their key, BTC is permanently lost.</strong> No recovery mechanism. This is the structural cost of maximum sovereignty.</p>
+    </div>
+
+    <!-- LMC — REFRAMED: STRUCTURAL DIFFERENCE, NOT JUST A DIRECTIONAL BET -->
+    <div class="provider-card specialized">
+      <div class="provider-header">
+        <h3>Loan My Coins (LMC) — BTC-for-BTC, collaborative multisig <span style="color:var(--yellow);font-size:0.85em;">(structurally distinct)</span></h3>
+        <div class="provider-tags">
+          <span class="tag tag-btc">BTC-denominated</span>
+          <span class="tag tag-multisig">2-of-3 multisig</span>
+          <span class="tag tag-specialized">Implicit BTC exposure</span>
+        </div>
+      </div>
+
+      <div class="callout">
+        <p><strong>The structural fact most readers need to understand first:</strong> LMC's BTC-denominated structure removes fiat-denominated margin-call risk by mathematics. That is a real and meaningful advantage. But it does not remove all risk — it transforms it. When a borrower takes LMC and sells the received BTC for fiat, they have <strong>structurally taken a forward-short on BTC</strong>. They owe BTC at term end. Whether the borrower intends a directional bet or not, the structure embeds one. That implicit BTC price exposure over the loan term is the central thing to understand before signing.</p>
+      </div>
+
+      <p><strong>Structurally:</strong> among reviewed providers, LMC is the BTC-denominated product. You pledge BTC, receive 95% of pledged amount back in BTC, choose what to do with the received BTC (hold, sell for cash, use directly), and at term end deliver the original BTC amount to LMC. Original collateral is released back to you.</p>
+
+      <h4>How the mechanics actually work</h4>
+      <div style="background:var(--dark3);border:1px solid var(--border);border-radius:10px;padding:1.25rem 1.5rem;margin:1.25rem 0;font-family:var(--mono);font-size:0.85rem;line-height:1.7;color:var(--dim);">
+<strong style="color:var(--primary);">At origination (T=0):</strong>
+  Borrower locks <strong style="color:var(--light);">10 BTC</strong> as collateral (held in 2-of-3 multisig)
+  Borrower receives <strong style="color:var(--light);">9.5 BTC</strong> from LMC
+  The <strong style="color:var(--yellow);">0.5 BTC difference</strong> is the upfront fee (5%)
+
+<strong style="color:var(--primary);">During the term:</strong>
+  Borrower can hold the 9.5 BTC, or sell it for fiat, or use it
+  Collateral remains locked, on-chain, verifiable
+  No margin calls — BTC price moves don't change the obligation
+
+<strong style="color:var(--primary);">At maturity (T=12 months, or up to 5 years via rollover):</strong>
+  Borrower returns <strong style="color:var(--light);">10 BTC</strong> to LMC
+  Original 10 BTC collateral is released back to borrower
+  Net economic result: borrower ends with original collateral back,
+    minus the cost of sourcing the repayment BTC.
+
+<strong style="color:var(--yellow);">The key question:</strong> where does the repayment BTC come from?
+  • If still held: same 9.5 BTC + 0.5 BTC from elsewhere = -0.5 BTC cost
+  • If sold for fiat: must repurchase 10 BTC at whatever future price
+  • The cost depends entirely on BTC's price path during the term
+      </div>
+
+      <h4>Publicly listed terms (as of May 2026)</h4>
+      <ul>
+        <li><strong>95% disbursement against pledged BTC</strong> (behaves like 95% LTV in BTC terms — but cannot be compared casually to fiat LTV because there is no USD price-based liquidation trigger)</li>
+        <li><strong>5% fixed upfront fee</strong> deducted from disbursement — no variable interest, no compounding within a period, but <strong>fee compounds across rollover periods</strong></li>
+        <li>12-month base term, <strong>rollable up to 5 years total</strong> (each roll incurs another 5% fee)</li>
+        <li>1 BTC minimum</li>
+        <li>Custody: TBA's 2-of-3 collaborative multisig (borrower + TBA + independent key agent)</li>
+        <li>No fiat-denominated margin calls — by structure, not policy</li>
+        <li>No rehypothecation</li>
+      </ul>
+
+      <h4>What the BTC-denominated structure actually does for the borrower</h4>
+      <p>Three distinct uses, each genuinely structural rather than tactical:</p>
+      <ol>
+        <li><strong>Liquidity without selling BTC.</strong> Like every loan in this comparison, LMC lets the borrower access value without triggering a taxable disposition. The difference: LMC denominates in BTC, so the borrower receives BTC and chooses what to do with it. This matters most for borrowers whose current cost basis would create a heavy tax bill on direct sale.</li>
+        <li><strong>Liquidity without fiat-denominated margin calls.</strong> Because the obligation is denominated in BTC and the collateral is BTC, the LTV ratio does not move with BTC's USD price. The borrower never faces a Milo-style "BTC dropped 65%, post more collateral or get liquidated" event. <strong>This is the single most important structural advantage over fiat-denominated alternatives.</strong></li>
+        <li><strong>Optional tactical redeployment if BTC falls within the term.</strong> If a borrower has converted the disbursement BTC to fiat and BTC drops during the loan, the borrower can buy back BTC at a lower price than origination and end up with more BTC at term end. This is an optional secondary use that becomes interesting in drawdown scenarios — but it is not the product's primary structural purpose.</li>
+      </ol>
+
+      <h4>The BTC price-path risk borrowers must internalize</h4>
+      <p>Selling the disbursement BTC for fiat creates implicit forward-short exposure: the borrower has effectively "sold" 9.5 BTC at origination price and committed to "buying back" 10 BTC at term-end price. Whether that's good or bad depends on BTC's path.</p>
+
+      <table class="data-table">
+        <thead><tr><th>BTC at term end</th><th>Cost in BTC equivalent</th><th>Outcome vs. just holding</th></tr></thead>
+        <tbody>
+          <tr><td>Drops to $50K (−50%)</td><td>Repurchase cost: $500K; cash buffer: $992K</td><td style="color:var(--green);">Strategy gains ~9.84 BTC equivalent</td></tr>
+          <tr><td>Sideways at $100K</td><td>Repurchase cost: $1M; cash buffer: $992K</td><td style="color:var(--muted);">Strategy ≈ flat (small ~$8K cost from net fee minus T-bill yield)</td></tr>
+          <tr><td>Rises to $200K (+100%)</td><td>Repurchase cost: $2M; cash buffer: $992K</td><td style="color:var(--red);">Strategy loses $1M+ (forfeit collateral or source external capital)</td></tr>
+        </tbody>
+      </table>
+
+      <p>The asymmetry is genuine, but it's important to read it precisely: <strong>this is not a hedge.</strong> A hedge would have defined max loss and asymmetric payoff. The forward-short structure has unlimited downside in the rally case. The 5-year rollover option helps — borrowers can wait through a BTC rally to a more favorable repurchase moment — but every additional roll costs another 5% in BTC terms.</p>
+
+      <h4>Cost in BTC terms over multiple rolls</h4>
+      <table class="data-table">
+        <thead><tr><th>Holding period</th><th>Cumulative BTC-denominated fee</th></tr></thead>
+        <tbody>
+          <tr><td>12 months</td><td>5% of pledged BTC</td></tr>
+          <tr><td>24 months (1 roll)</td><td>10% of pledged BTC</td></tr>
+          <tr><td>36 months (2 rolls)</td><td>15% of pledged BTC</td></tr>
+          <tr><td>48 months (3 rolls)</td><td>20% of pledged BTC</td></tr>
+          <tr><td>60 months (max, 4 rolls)</td><td>25% of pledged BTC</td></tr>
+        </tbody>
+      </table>
+
+      <p>For multi-year holds, the cumulative fee meaningfully compounds against any BTC appreciation. A borrower planning to use LMC across the full 5-year rollover window should be confident their use of the disbursement (liquidity deployed, tax savings, BTC accumulation tactic) creates more than 25% of pledged-BTC value over that span. In a steady bull market without drawdowns, simply holding outright would outperform.</p>
+
+      <div class="fit-grid">
+        <div class="fit-card fit-good">
+          <h4>Best fit when</h4>
+          <ul>
+            <li>Need BTC-denominated liquidity for a 1–3 year purpose without fiat margin-call exposure</li>
+            <li>Low cost basis (LTCG deferral has material value)</li>
+            <li>Sophisticated holder who understands the implicit BTC price exposure from converting disbursement to fiat</li>
+            <li>Sovereignty preference matches collaborative multisig custody</li>
+            <li>Use case for the disbursement creates value greater than the cumulative fee</li>
+          </ul>
+        </div>
+        <div class="fit-card fit-bad">
+          <h4>Wrong fit when</h4>
+          <ul>
+            <li>30-year horizon (compounding 5% rolls become prohibitive)</li>
+            <li>Strong conviction BTC will rise meaningfully within the term (the forward-short exposure works against you)</li>
+            <li>New to Bitcoin or risk-averse — the structural implications require sophisticated understanding</li>
+            <li>Wants a hedge against another mortgage's margin-call risk (LMC isn't a hedge — see Part VIII)</li>
+            <li>High cost basis (tax deferral benefit is small; the fee dominates)</li>
+          </ul>
+        </div>
+      </div>
+
+      <p><strong>Positioning — "Terminal Bitcoin."</strong> TBA explicitly positions LMC for the Terminal Bitcoiner — a holder who has maxed out accumulation through traditional savings, salary, and direct purchase. The framing is honest about the niche: this is not for new Bitcoiners building a position. It is for sophisticated holders past the accumulation phase who want a BTC-denominated capital tool with no fiat margin-call surface.</p>
+
+      <p><strong>Custody:</strong> 2-of-3 multisig. Borrower holds 1 key. TBA holds 1. Independent key agent holds 1. No single party can move funds. Borrower verifies collateral on-chain in real time — no audit-cycle dependency. TBA's collaborative custody has run since 2016 with no reported losses.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PART V — DENOMINATOR FIRST PRINCIPLES -->
+<section class="part" id="denominator">
+  <div class="container-narrow">
+    <div class="part-label">Part V</div>
+    <h2>Why denominator drives margin-call structure</h2>
+    <p>The single most important structural fact about BTC-backed lending: <strong>whether you have margin-call risk depends entirely on what your loan is denominated in.</strong></p>
+    <p>Consider a borrower pledging 5 BTC at $100K (collateral value $500K) to back a $250K loan.</p>
+
+    <h4>Fiat-denominated structure (Ledn, Unchained, Lava, Arch, SALT, most others)</h4>
+    <ul>
+      <li>Borrower owes $250K (fixed in USD)</li>
+      <li>Collateral value = 5 × P(t), where P(t) is BTC price in USD</li>
+      <li>LTV(t) = $250K / (5 × P(t))</li>
+      <li>LTV moves with BTC price. When P drops, LTV rises.</li>
+      <li>At some threshold (e.g., LTV = 0.80 at Ledn), margin call triggers.</li>
+      <li><strong>The denominator is the variable. Price moves break the LTV ratio.</strong></li>
+    </ul>
+
+    <h4>BTC-denominated structure (LMC)</h4>
+    <ul>
+      <li>Borrower owes a fixed amount of BTC</li>
+      <li>Collateral is the same BTC amount</li>
+      <li>LTV in BTC terms: 1.0 (constant)</li>
+      <li>LTV in USD terms: still 1.0 because numerator and denominator move together</li>
+      <li><strong>No price-based liquidation surface. No margin call. By mathematics, not policy.</strong></li>
+    </ul>
+
+    <p>This is why LMC's "no margin call" feature isn't generous lender policy — it's the natural consequence of denominating the loan in the same unit as the collateral.</p>
+    <p><strong>The corollary:</strong> any fiat-denominated loan has margin-call risk regardless of how the lender markets the product. "We have no margin calls" claims for fiat-denominated loans should be read with skepticism — the lender is either using a different definition or has hidden the risk somewhere else (e.g., rate adjustments that price the risk into cost rather than triggering a liquidation event).</p>
+    <p>The Peoples Reserve mortgage Model B (covered in the <a href="bitcoin-backed-mortgages.html#models">Mortgages deep dive</a>) uses this trick: rate adjusts as BTC drops, no liquidation triggered, but the borrower pays for the risk through variable monthly payments. The risk is in the cash flow rather than the asset, but it's still there.</p>
+  </div>
+</section>
+
+<!-- PART VI — CUSTODY ARCHITECTURES -->
+<section class="part" id="custody">
+  <div class="container-narrow">
+    <div class="part-label">Part VI</div>
+    <h2>Custody architectures, decoded</h2>
+    <p>The 2022 BTC lender failures weren't credit failures on the BTC-backed loan books — those were over-collateralized. What killed Celsius, BlockFi, Voyager, and Genesis was the <strong>funding side</strong>: pooled customer deposits, rehypothecation cascades, and counterparty concentration with players like 3AC and FTX. Customers became unsecured creditors in bankruptcy proceedings that are still unwinding four years later. <strong>Custody architecture is what protected (or failed to protect) the borrower's collateral from getting pulled into those cascades.</strong></p>
+    <p>Every Tier 1 provider in this deep dive has moved past that model. But the <em>direction</em> they moved matters for sovereignty-aware borrowers.</p>
+
+    <h3>The five custody models, ranked</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>Rank</th><th>Model</th><th>Provider(s)</th><th>Borrower holds keys?</th><th>Proof of funds</th><th>Catastrophic SPOF</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Self-custody DLC</td><td><strong>Lava</strong></td><td>Yes (sole)</td><td>Real-time on-chain</td><td>Borrower's own key loss</td></tr>
+        <tr><td>2</td><td>Collaborative 2-of-3 multisig</td><td><strong>LMC, Unchained</strong></td><td>Yes (1 of 3)</td><td>Real-time on-chain</td><td>None for movement</td></tr>
+        <tr><td>2</td><td>Non-custodial 3-of-4 multisig</td><td><strong>Debifi</strong></td><td>Yes (1 of 4)</td><td>Real-time on-chain</td><td>None for movement</td></tr>
+        <tr><td>3</td><td>Qualified custodian (ring-fenced)</td><td><strong>Ledn Custodied, Arch</strong></td><td>No</td><td>Periodic attestation</td><td>Custodian failure</td></tr>
+        <tr><td>4</td><td>Qualified custodian + rehypothecation</td><td><strong>Ledn Standard, SALT</strong></td><td>No</td><td>Periodic attestation</td><td>Custodian + 3rd-party institutions</td></tr>
+        <tr><td>5</td><td>Exchange / hybrid wrapped</td><td><strong>Bitfinex, Coinbase/Morpho</strong></td><td>No</td><td>Exchange / smart contract</td><td>Exchange / wrapper layer</td></tr>
+        <tr><td>6</td><td>Pooled lender custody (eliminated)</td><td>2022 cohort</td><td>No</td><td>None / opaque</td><td>Lender failure (catastrophic)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>What collaborative multisig actually delivers (LMC, Unchained)</h3>
+    <ol>
+      <li><strong>Borrower-held key is real custody, not nominal.</strong> The borrower doesn't just "see" the BTC — they hold an actual cryptographic signing key. They can refuse to co-sign any movement. This is not theoretical authority; it's mathematical authority.</li>
+      <li><strong>Recovery without lender cooperation.</strong> If the lender disappeared entirely tomorrow, the borrower and the independent key agent can recover the BTC using their two keys. <strong>Independent counterparties = independent recovery paths.</strong></li>
+      <li><strong>Continuous on-chain proof of funds.</strong> Not "we audit quarterly" — verifiable second-by-second on the public blockchain via any block explorer. Trust requirement collapses to "do I trust math?" rather than "do I trust the lender's audit cycle?"</li>
+      <li><strong>Operationally proven.</strong> TBA's architecture has run since 2016; Unchained's since 2017. Multisig has been battle-tested across the Bitcoin space for nearly a decade.</li>
+    </ol>
+
+    <h3>The Lava trade-off worth being honest about</h3>
+    <p>DLC self-custody is <em>more</em> sovereign than multisig — Lava literally never holds keys to your BTC. The borrower retains sole authority through Bitcoin's native scripting.</p>
+    <p>But: if the borrower loses their key, <strong>BTC is permanently lost.</strong> No key agent. No recovery path. Multisig's 2-of-3 (LMC, Unchained) and 3-of-4 (Debifi) trade some sovereignty for recovery — if you lose your key, the other parties can co-sign to restore your access (with appropriate verification). For most borrowers, that's the right trade.</p>
+
+    <h3>The Ledn Custodied vs. Standard decision</h3>
+    <p>For borrowers using qualified-custodian providers, the most important sovereignty decision is whether to opt into rehypothecation.</p>
+    <ul>
+      <li><strong>Ledn Custodied (13.9% APR):</strong> Ring-fenced segregated addresses, no rehypothecation. Your specific BTC sits in a specific Bitcoin address attributable to your loan.</li>
+      <li><strong>Ledn Standard (12.4% APR):</strong> Same custodian, but Ledn can lend your BTC out to institutions while you're repaying. Your collateral may be tied up in another counterparty's loan.</li>
+    </ul>
+    <p>The 1.5% APR delta is the price of saying "I'm not okay with my BTC being rehypothecated." Over 2 years on $250K, that's $7,500. Compared to the historical base rate of crypto-lender counterparty failures, paying $7,500 to avoid the rehypothecation chain is rational unless your time preference for cash is extreme.</p>
+    <p><strong>SALT Lending is the only major BTC-backed lender where rehypothecation is the default and not toggleable</strong> — their loan agreement explicitly permits SALT to "repledge, sell or otherwise transfer or use Stored Coins." Borrowers should understand this is structurally similar to the 2022 cohort's risk profile (though SALT survived 2022).</p>
+
+    <h3>The 2022 lesson, restated</h3>
+    <p>A lender's solvency is your risk surface, not just the price of Bitcoin. The custody architecture is what stands between you and the lender's bankruptcy estate. <strong>Properly structured multisig collateral with a borrower-held key can reduce the risk that pledged Bitcoin is treated like pooled lender property in bankruptcy</strong> — but the legal outcome depends on how the loan agreement, security interest, perfection, jurisdiction, and the specific collateral arrangement are documented. Talk to counsel about the specifics of any structure before relying on its bankruptcy-remoteness claims.</p>
+  </div>
+</section>
+
+<!-- PART VII — CALCULATOR PLACEHOLDER -->
+<section class="part" id="calculator-placeholder">
+  <div class="container-narrow">
+    <div class="part-label">Part VII</div>
+    <h2>Comparative calculator</h2>
+    <div class="callout">
+      <p><strong>Interactive calculator coming in Phase 3.</strong> Inputs: BTC quantity, current BTC price, cost basis, loan need, horizon, risk tolerance, BTC price scenario. Outputs: ranked provider recommendation across all 9 providers with full cost breakdown, side-by-side comparison table, and toggle for options-hedge overlay.</p>
+    </div>
+    <h3>Headline cost comparison at $250K loan / 24 months</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>Provider</th><th>BTC Pledged</th><th>Direct Cost</th><th>Margin Call Risk</th><th>Custody</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>LMC</td><td>2.63 BTC</td><td>$26,316 (BTC-denominated)</td><td>None</td><td>2-of-3 multisig</td></tr>
+        <tr><td>Coinbase / Morpho</td><td>3.33 BTC</td><td>~$40,000 (variable)</td><td>Yes (86% LTV)</td><td>Wrapped + smart contract</td></tr>
+        <tr><td>Lava</td><td>4.17 BTC</td><td>~$49,375 (step-up)</td><td>Yes (80% LTV)</td><td>Self-custody DLC</td></tr>
+        <tr><td>Bitfinex</td><td>2.78 BTC</td><td>~$50,000 (10% mid)</td><td>Yes (95%)</td><td>Exchange</td></tr>
+        <tr><td>Unchained (Commercial)</td><td>5.00 BTC</td><td>~$80,000 over 24 months (renewal needed; 14% interest + 16.21% APR with origination)</td><td>Yes (200% CTP)</td><td>2-of-3 multisig with Fortis Bank</td></tr>
+        <tr><td>SALT</td><td>5.00 BTC</td><td>$59,750 (mid-tier)</td><td>Yes</td><td>Qualified custodian + rehypo</td></tr>
+        <tr><td>Ledn Standard</td><td>5.00 BTC</td><td>$62,000 (12.4%)</td><td>Yes</td><td>Qualified custodian + rehypo</td></tr>
+        <tr><td>Arch</td><td>4.17 BTC</td><td>$66,250 (12.5% + origination)</td><td>Yes (80% LTV)</td><td>Anchorage (no rehypo)</td></tr>
+        <tr><td>Ledn Custodied</td><td>5.00 BTC</td><td>$69,500 (13.9%)</td><td>Yes</td><td>Qualified custodian (no rehypo)</td></tr>
+        <tr><td>Debifi</td><td>N/A</td><td>N/A (institutional)</td><td>—</td><td>3-of-4 multisig</td></tr>
+      </tbody>
+    </table>
+    <p>LMC has the lowest direct cost. But direct cost alone is the wrong frame. The decision involves cost, margin-call risk, custody quality, term structure, and what you're using the funds for. The calculator will handle all of these dimensions.</p>
+  </div>
+</section>
+
+<!-- PART VIII — HEDGE MISCONCEPTION -->
+<section class="part" id="hedge">
+  <div class="container-narrow">
+    <div class="part-label">Part VIII</div>
+    <h2>The hedge misconception, fully decoded</h2>
+    <p>A common framing in BTC capital-structure discussions: <em>"Use a BTC-backed loan to hedge against a BTC-backed mortgage's margin-call risk."</em> The argument typically goes: take an LMC loan, sell the received BTC for cash, hold the cash as a margin-call buffer for your Milo mortgage, deploy the cash to buy more BTC if BTC drops.</p>
+    <p><strong>This is not a hedge in any structural sense.</strong> Let me walk through the three variations of the structure and why each fails, then show what an actual hedge looks like.</p>
+
+    <h3>Structure 1 — Direct use at the moment of margin call</h3>
+    <p>You're already in margin call on your Milo Model A mortgage. Can you use LMC to borrow BTC to top up your collateral?</p>
+    <p><strong>No.</strong> To borrow BTC from LMC, you need BTC to pledge. If you had spare BTC available to pledge to LMC, you would just send it directly to Milo and skip the 5% fee. LMC adds friction without adding capacity.</p>
+
+    <h3>Structure 2 — Pre-positioned forward short with T-bill buffer</h3>
+    <p>This is the structurally interesting variation. At origination, pledge BTC to LMC, receive the disbursement BTC, sell it for cash, hold the cash in T-bills. If BTC drops later, deploy the cash to satisfy Milo's margin call.</p>
+    <p><strong>Verified scenario math:</strong></p>
+    <table class="data-table">
+      <thead>
+        <tr><th>Scenario</th><th>BTC Path</th><th>Net BTC delta</th><th>Net $ delta</th><th>Winner</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>V-shaped drop</strong></td><td>$100K → $35K → $100K</td><td>+4.52 BTC</td><td>+$287,101</td><td style="color:var(--green)">Hedge wins</td></tr>
+        <tr><td><strong>Flat</strong></td><td>$100K → $100K → $100K</td><td>0.00 BTC</td><td>-$3,385</td><td style="color:var(--muted)">Roughly neutral</td></tr>
+        <tr><td><strong>Moon</strong></td><td>$100K → $200K → $200K</td><td>0.00 BTC</td><td>-$503,385</td><td style="color:var(--red)">Hedge loses big</td></tr>
+      </tbody>
+    </table>
+    <p><strong>The hedge works in the drop scenario.</strong> The cash buffer can be deployed at the dip — buying more BTC at $35K than the same dollars would have bought at $100K. Combined with the LMC collateral returning at term end, the borrower ends up with <strong>4.52 more BTC</strong> than the no-hedge counterfactual.</p>
+    <p><strong>But the moon scenario is catastrophic.</strong> If BTC rises to $200K, the borrower owes 5 BTC = $1M to LMC at term end. The cash buffer is $485K. <strong>Shortfall: $515K.</strong> Either forfeit the pledged collateral (5 BTC, now worth $1M) or source $515K externally. Forfeiture also triggers an LTCG event at FMV.</p>
+    <p>The structure is <strong>a directional bet on BTC volatility, not a hedge.</strong> A real hedge has defined max loss and asymmetric payoff. This has unlimited downside in the rally case.</p>
+
+    <h3>Structure 3 — LMC replaces the mortgage entirely</h3>
+    <p>Instead of a Milo mortgage, take an LMC loan, sell the BTC for cash, buy a house in cash. No mortgage. No margin call surface.</p>
+    <p><strong>This works for short horizons.</strong> A 12-month LMC structure replacing a 12-month bridge loan is clean. The 5% fee is the price.</p>
+    <p><strong>It fails for long horizons.</strong> A 30-year mortgage replaced by LMC requires 30 annual rolls. (1.05)^30 = <strong>4.32× decay of the pledged stack</strong> over 30 years.</p>
+
+    <h3>What actually hedges Model A mortgage liquidation risk</h3>
+    <ol>
+      <li><strong>Long BTC put option at the margin threshold strike.</strong> Defined premium, defined max loss, pays off precisely when BTC drops, <strong>keeps all upside intact.</strong> Cost: ~1.7–5% of notional for 12-month tenors.</li>
+      <li><strong>Cash reserve at origination</strong> equal to the margin-call requirement.</li>
+      <li><strong>Front-loaded principal paydown</strong> in years 1–5 of the mortgage.</li>
+      <li><strong>Switch to Model B (Peoples Reserve)</strong> at origination.</li>
+      <li><strong>Reserve BTC stack outside the mortgage</strong> held in cold storage or your own multisig.</li>
+    </ol>
+    <p><strong>Not on the list:</strong> any BTC-backed loan. They are not hedges; they are liquidity primitives.</p>
+  </div>
+</section>
+
+<!-- PART IX — OPTIONS STRATEGIES -->
+<section class="part" id="options">
+  <div class="container-narrow">
+    <div class="part-label">Part IX</div>
+    <h2>Options strategies — the actual hedges</h2>
+    <p>For a Bitcoin holder worried about margin-call risk or forced liquidation, the structurally correct hedge is a long put option (or a put-based spread/collar). Options give defined cost, asymmetric payoff, and upside preservation. None of those properties exist in a loan.</p>
+
+    <h3>Five-strategy cost comparison (illustrative, not a quote)</h3>
+    <div class="callout">
+      <p><strong>Important:</strong> All option prices below are <strong>illustrative estimates</strong> using a simplified Black-Scholes-style model with assumed inputs (80% implied volatility, 4.5% risk-free rate, 5 BTC notional at $100K, 12-month tenor). <strong>Real pricing varies materially by venue, liquidity, skew, tenor, execution size, and counterparty.</strong> Always get a current quote on a real options venue (Deribit, CME, etc.) before relying on any specific number.</p>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr><th>Strategy</th><th>Strike(s)</th><th>Total Cost</th><th>% of Notional</th><th>Keeps Upside?</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Long put 35% OTM</strong></td><td>$35K</td><td><strong>$8,594</strong></td><td><strong>1.7%</strong></td><td style="color:var(--green)">Yes</td></tr>
+        <tr><td>Long put 50% OTM</td><td>$50K</td><td>$25,357</td><td>5.1%</td><td style="color:var(--green)">Yes</td></tr>
+        <tr><td>Put spread 50/25</td><td>$50K long, $25K short</td><td>$22,658</td><td>4.5%</td><td style="color:var(--green)">Yes</td></tr>
+        <tr><td>Collar (50/50)</td><td>$50K put, $150K call</td><td>-$72,950 (premium received)</td><td>-14.6%</td><td style="color:var(--red)">No (capped)</td></tr>
+        <tr><td>LMC forward-short</td><td>—</td><td>$25,000</td><td>5.0%</td><td style="color:var(--red)">No (capped at zero)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Why the 35% OTM put is the headline finding</h3>
+    <p>Using a simplified Black-Scholes-style estimate with 80% implied volatility and a 4.5% risk-free rate, a 12-month put at strike $35K — the level that would trigger a Milo Model A margin call — may cost roughly <strong>1.7% of notional</strong>. For a $500K BTC position, that's approximately $8,500. <strong>If real-world pricing is close to this estimate, that's a surgical hedge for margin-call risk at less than two percent of the position.</strong></p>
+    <p>The structural logic: BTC's implied volatility skew means deep-OTM puts can be surprisingly affordable. The market doesn't fully price 65%+ drawdowns because they're rare in any given 12-month window — but they happen often enough across multi-year horizons to be the central risk for a 30-year mortgage borrower. <strong>Pricing varies; get a live quote before relying on any specific figure.</strong></p>
+
+    <h3>The verdict on hedging Model A risk</h3>
+    <p>A long put at 35% OTM is the structurally cleanest hedge for margin-call risk. It pays off precisely when the margin call would trigger, and for a naked long put (not financed by selling calls), it preserves all BTC upside. <strong>Anything else — including loan-based "hedges" — trades structure for cost.</strong></p>
+    <p style="font-size:0.88rem;color:var(--muted);"><em>Note: "preserves all upside" applies only to a naked long put. Collars and put spreads trade away or cap upside in exchange for lower premium cost.</em></p>
+  </div>
+</section>
+
+<!-- PART X — TAX -->
+<section class="part" id="tax">
+  <div class="container-narrow">
+    <div class="part-label">Part X</div>
+    <h2>Tax considerations</h2>
+    <p>Three things every BTC-backed-loan borrower should understand about US tax treatment.</p>
+    <ol>
+      <li><strong>Pledging crypto as collateral is generally not a taxable event.</strong> IRS guidance treats it similarly to pledging stock for a loan. You retain beneficial ownership; no realized gain.</li>
+      <li><strong>Forfeiture is a taxable event.</strong> If you fail to repay a BTC-backed loan and the lender liquidates your pledged BTC, that's treated as a disposition at FMV at the moment of forfeiture. You owe LTCG on the gain — at a time when your BTC has likely dropped. <strong>The tax bill arrives in a year of impaired liquidity.</strong> Plan for this.</li>
+      <li><strong>Buying BTC to repay an LMC loan does not trigger gains.</strong> If you used LMC's BTC disbursement for cash purposes and need to buy back BTC at term end, the new BTC has its new cost basis. Acquiring and immediately transferring to LMC doesn't constitute a disposition on your side.</li>
+    </ol>
+    <p><strong>State variations matter.</strong> Florida, Texas, Wyoming, Tennessee — no state LTCG. California adds ~13%. New York is similarly hostile.</p>
+    <p style="color:var(--muted);font-size:0.85rem;">This section is not tax advice. Run your specific situation with a CPA who has worked with Bitcoin holders.</p>
+  </div>
+</section>
+
+<!-- PART XI — RISK DECOMPOSITION -->
+<section class="part" id="risk">
+  <div class="container-narrow">
+    <div class="part-label">Part XI</div>
+    <h2>Risk decomposition</h2>
+    <p>Risk on a BTC-backed loan is not one-dimensional. Decomposing it makes evaluation tractable.</p>
+    <div class="ascii-tree"><span class="root">Total risk to BTC-backed-loan borrower</span>
+│
+├── <span class="branch">Market risk (BTC price)</span>
+│   ├── <span class="leaf">Magnitude of drawdown (margin-call trigger)</span>
+│   ├── <span class="leaf">Timing within loan term</span>
+│   └── <span class="leaf">Recovery speed</span>
+│
+├── <span class="branch">Counterparty risk</span>
+│   ├── <span class="leaf">Lender solvency</span>
+│   ├── <span class="leaf">Custodian solvency (qualified-custodian models)</span>
+│   └── <span class="leaf">Rehypothecation cascade (Standard custody models, SALT)</span>
+│
+├── <span class="branch">Custody risk</span>
+│   ├── <span class="leaf">Key compromise (self-custody DLC, multisig partial)</span>
+│   ├── <span class="leaf">Operational failure (lost device, forgotten passphrase)</span>
+│   └── <span class="leaf">Jurisdictional seizure</span>
+│
+├── <span class="branch">Tax cliff risk</span>
+│   ├── <span class="leaf">Forced liquidation triggers LTCG at FMV</span>
+│   ├── <span class="leaf">At inopportune time (BTC at low)</span>
+│   └── <span class="leaf">In a year of impaired liquidity</span>
+│
+├── <span class="branch">Cash flow risk</span>
+│   ├── <span class="leaf">Interest payments due (Unchained monthly)</span>
+│   ├── <span class="leaf">Rollover fees (LMC, every 12 months)</span>
+│   └── <span class="leaf">Term-end repayment lumps (LMC, SALT)</span>
+│
+├── <span class="branch">Protocol risk (smart contract / DLC)</span>
+│   ├── <span class="leaf">Smart contract bugs (Coinbase/Morpho, Lava)</span>
+│   ├── <span class="leaf">Oracle compromise (Lava)</span>
+│   └── <span class="leaf">Layer 2 reliability (Coinbase/Morpho on Base)</span>
+│
+└── <span class="branch">Regulatory risk</span>
+    ├── <span class="leaf">BTC-backed lending classification (still evolving)</span>
+    ├── <span class="leaf">State-level licensing changes</span>
+    └── <span class="leaf">Cross-border tax treatment</span></div>
+    <p>The relevant question is not "is there risk?" but <strong>"which provider's risk profile matches my actual risk tolerance?"</strong> A sovereignty-first borrower fears counterparty + custody risk more than rate. A cost-minimizer fears interest cost more than custody. A protocol-skeptic avoids DLC and wrapped-BTC models. No single product wins on all dimensions.</p>
+  </div>
+</section>
+
+<!-- PART XII — DECISION FRAMEWORK -->
+<section class="part" id="decision">
+  <div class="container-narrow">
+    <div class="part-label">Part XII</div>
+    <h2>Decision framework</h2>
+    <p>A plain-language flowchart for picking the right BTC-backed loan, derived from the analysis above.</p>
+    <div class="ascii-tree"><span class="start">You have Bitcoin. You need liquidity. You don't want to sell. Start here.</span>
+
+│
+├── <span class="branch">DO YOU NEED FIAT OR BITCOIN AS THE DISBURSEMENT?</span>
+│   ├── Fiat → <span class="answer">Continue below</span>
+│   └── BTC → <span class="answer">LMC (only BTC-denominated option)</span>
+│
+├── <span class="branch">HOW LONG IS YOUR HORIZON?</span>
+│   ├── Days to weeks → <span class="answer">Bitfinex (short P2P margin lending)</span>
+│   ├── 1–12 months → <span class="answer">Lava (step-up rate optimal for short holds)</span>
+│   ├── 1–2 years → <span class="answer">Ledn, Unchained, Arch (term loans, ongoing interest)</span>
+│   ├── 2–5 years → <span class="answer">Debifi (5-yr term); LMC only if you understand annual BTC fee drag and have a clear use case</span>
+│   └── 5+ years → <span class="answer">Reconsider whether a loan is right; mortgage may fit</span>
+│
+├── <span class="branch">WHAT'S YOUR CUSTODY PRIORITY?</span>
+│   ├── Self-custody (you keep all keys) → <span class="answer">Lava</span>
+│   ├── Collaborative multisig (you hold 1 key) → <span class="answer">LMC, Unchained, Debifi</span>
+│   ├── Qualified custodian, no rehypothecation → <span class="answer">Ledn Custodied, Arch</span>
+│   ├── Qualified custodian, rehypothecation OK → <span class="answer">Ledn Standard, SALT</span>
+│   └── Exchange-based → <span class="answer">Bitfinex (2016 hack precedent)</span>
+│
+├── <span class="branch">WHAT'S YOUR LOAN SIZE?</span>
+│   ├── &lt; $1K → <span class="answer">Lava, Bitfinex</span>
+│   ├── $1K–$150K → <span class="answer">Ledn, Lava, Arch, SALT, Coinbase/Morpho</span>
+│   ├── $150K–$500K → <span class="answer">All Tier 1 + Unchained, Arch, SALT</span>
+│   ├── $500K–$5M → <span class="answer">All providers; rate tiers favor Unchained at $1M+ and Ledn at $1M+</span>
+│   └── $5M+ → <span class="answer">Coinbase/Morpho ($5M ceiling), Unchained, Debifi (institutional)</span>
+│
+└── <span class="branch">WORRIED ABOUT MARGIN CALL?</span>
+    ├── Want zero margin-call risk → <span class="answer">LMC (BTC-denominated, no margin call by structure)</span>
+    ├── Willing to manage margin → <span class="answer">Any fiat-denominated provider + monitoring</span>
+    └── Want hedge protection → <span class="answer">Long put at margin threshold (NOT another loan)</span></div>
+    <p><strong>The shortcut:</strong> match the product to the most important constraint for your situation. <strong>Ledn Custodied</strong> for regulated mainstream with no rehypothecation — the safe default. <strong>Unchained</strong> for collaborative multisig with fiat liquidity. <strong>Lava</strong> for fast/small/self-custody where you want to retain full key authority. <strong>LMC</strong> as a specialized choice when you have a high-conviction view that BTC will drop within the loan term — recognize this is a directional bet, not a default product.</p>
+  </div>
+</section>
+
+<!-- PART XIII — NON-COLLATERALIZED BRIEF -->
+<section class="part" id="non-collateralized">
+  <div class="container-narrow">
+    <div class="part-label">Part XIII</div>
+    <h2>Non-collateralized crypto loans — a brief note</h2>
+    <p>For completeness: not every "crypto loan" is collateralized.</p>
+    <p><strong>Flash loans (DeFi)</strong> are zero-collateral loans where the borrowed amount must be repaid in the same transaction block. They exist for arbitrage and atomic-transaction strategies. Not relevant for individual hodlers seeking liquidity.</p>
+    <p><strong>Undercollateralized institutional credit</strong> (TrueFi, Maple Finance, Clearpool, Goldfinch) extends credit to professional borrowers based on identity verification and credit underwriting. These are not retail products and require institutional KYC.</p>
+    <p><strong>The honest framing:</strong> if you're an individual Bitcoiner reading this deep dive, you have overcollateralized loans (everything covered in Parts I–XII). Non-collateralized lending is institutional infrastructure, not consumer infrastructure. <strong>If a product promises "Bitcoin loan, no collateral" to a retail borrower, treat it with skepticism</strong> — likely either a hidden fee structure or a scam.</p>
+  </div>
+</section>
+
+<!-- PART XIV — OPEN QUESTIONS -->
+<section class="part" id="open-questions">
+  <div class="container-narrow">
+    <div class="part-label">Part XIV</div>
+    <h2>Open questions and what to watch</h2>
+    <ol>
+      <li><strong>Regulatory clarity on BTC-backed lending.</strong> US state-level licensing varies wildly. Federal classification still evolving.</li>
+      <li><strong>The DLC adoption curve.</strong> Lava's bet is that DLC-based self-custody becomes dominant over the next 5 years. If it works, expect competitors. If it fails, multisig wins by default.</li>
+      <li><strong>Conforming-market integration.</strong> Better/Coinbase showed Fannie/Freddie acceptance is possible for mortgages. If extended to BTC-collateralized non-mortgage loans, rates compress.</li>
+      <li><strong>The next stress test.</strong> The next deep bear market will reveal whether post-2022 custody architectures hold under conditions worse than 2022.</li>
+      <li><strong>Cross-border lending denomination.</strong> Sygnum + Debifi's MultiSYG is the leading edge. If regulatory questions get answered, international BTC-backed lending scales dramatically.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- BOTTOM LINE -->
+<section class="part" id="bottom-line">
+  <div class="container-narrow">
+    <div class="part-label">Bottom Line</div>
+    <h2>The decision, distilled</h2>
+    <p>A BTC-backed loan is, structurally, a choice across three axes: <strong>denominator</strong> (BTC vs. fiat), <strong>custody</strong> (self / multisig / qualified custodian / pooled), and <strong>rehypothecation</strong> (yes / no). Those three choices matter more than rate or LTV for the long-term cost of being wrong.</p>
+
+    <h3>The default-fit decision tree</h3>
+    <ul>
+      <li>For a regulated mainstream borrower wanting USD with no margin-call panic → <strong>Ledn Custodied</strong></li>
+      <li>For a sovereignty-first borrower wanting USD with personal key authority → <strong>Unchained</strong></li>
+      <li>For the maximalist who wants to never let go of their keys → <strong>Lava</strong></li>
+      <li>For an institutional borrower wanting the most redundant custody → <strong>Debifi</strong></li>
+    </ul>
+
+    <h3>The structurally distinct case</h3>
+    <ul>
+      <li>For a sophisticated Terminal Bitcoiner who wants BTC-denominated liquidity without fiat margin-call exposure → <strong>LMC</strong>. The BTC-denominated structure removes price-based liquidation by mathematics. <strong>But selling the disbursement for fiat creates implicit forward-short BTC exposure</strong> — read Part IV's LMC section carefully to internalize the price-path risk. The 5% per-period fee compounds across rolls (up to 25% of pledged BTC over the 5-year max), so a clear use case for the disbursement liquidity matters more than market-timing assumptions.</li>
+    </ul>
+
+    <p>The wrong move is to optimize for rate alone. <strong>The 2022 cohort customers did that. They got 8% APR. They lost their BTC.</strong></p>
+    <p>The right move is to match the product to your situation across all three structural axes, verify the lender's actual custody architecture (not their marketing claims), and treat margin-call protection — if you need it — as the job of options, not another loan.</p>
+  </div>
+</section>
+
+<!-- SOURCES & VERIFICATION APPENDIX -->
+<section class="part" id="sources">
+  <div class="container-narrow">
+    <div class="part-label">Appendix · Sources & Verification</div>
+    <h2>Where the numbers come from</h2>
+    <p>This deep dive is built on dated public sources. Every provider term in the body is publicly listed pricing as of the dates below. Rates and product structures change; <strong>always verify directly with each provider before signing.</strong></p>
+
+    <table class="data-table">
+      <thead><tr><th>Provider</th><th>Source</th><th>Verified</th><th>Verification note</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Ledn</strong></td>
+          <td><a href="https://www.ledn.io/bitcoin-backed-loans">ledn.io/bitcoin-backed-loans</a></td>
+          <td>May 2026</td>
+          <td>Headline rates start at 11.49% APR, scale to 9.99% at $1M+. Custodied vs Standard tier spread varies — get a current quote.</td>
+        </tr>
+        <tr>
+          <td><strong>Unchained</strong></td>
+          <td><a href="https://www.unchained.com/loans">unchained.com/loans</a></td>
+          <td>Nov 2025 (pricing page) / May 2026 (re-verified)</td>
+          <td>Pivoted to commercial (B2B) loans. 14% interest, 16.21% APR, $150K min, 12-payment term. Personal loan product may no longer be available — verify before applying.</td>
+        </tr>
+        <tr>
+          <td><strong>Lava</strong></td>
+          <td><a href="https://www.lava.xyz/">lava.xyz</a></td>
+          <td>May 2026 (pending direct confirmation)</td>
+          <td>LTV figures (50%–60%) sourced from third-party comparisons and Lava materials. Verification email sent; pending direct confirmation of current LTV cap, step-up schedule, and any product updates.</td>
+        </tr>
+        <tr>
+          <td><strong>LMC</strong></td>
+          <td><a href="https://loanmycoins.com/">loanmycoins.com</a></td>
+          <td>May 2026</td>
+          <td>95% disbursement against pledged BTC, 5% upfront fee, 12-month base term rollable to 5 years total, 1 BTC minimum, 2-of-3 multisig custody via TBA. Confirmed directly on company site.</td>
+        </tr>
+        <tr>
+          <td><strong>Coinbase / Morpho</strong></td>
+          <td><a href="https://morpho.org/coinbase-loans/">morpho.org/coinbase-loans</a></td>
+          <td>April 2026</td>
+          <td>cbBTC wrapped Bitcoin on Base; Morpho smart contract custody. $2.17B originated by April 2026 (Morpho disclosure). Variable APR set per-block.</td>
+        </tr>
+        <tr>
+          <td><strong>SALT Lending</strong></td>
+          <td><a href="https://saltlending.com/rates-and-fees/">saltlending.com/rates-and-fees</a></td>
+          <td>May 2026</td>
+          <td>Borrower-selectable LTV (30/50/70%). APR 8.95–14.45%. Rehypothecation explicitly permitted in loan agreement language. Multi-asset.</td>
+        </tr>
+        <tr>
+          <td><strong>Arch Lending</strong></td>
+          <td><a href="https://archlending.com/crypto-loans">archlending.com/crypto-loans</a></td>
+          <td>May 2026</td>
+          <td>60% LTV on BTC. Anchorage Digital custody, $100M Lloyd's insurance, explicit no rehypothecation. Effective BTC-program APR ~14% (12.5% interest + 1.5% origination).</td>
+        </tr>
+        <tr>
+          <td><strong>Bitfinex Borrow</strong></td>
+          <td><a href="https://www.bitfinex.com/borrow/">bitfinex.com/borrow</a></td>
+          <td>May 2026</td>
+          <td>Exchange P2P margin lending; 2–120 day terms; 111.11% margin requirement (~90% LTV). USD lending typically 5–15% APR. Historical exchange custody risk (2016 hack).</td>
+        </tr>
+        <tr>
+          <td><strong>Debifi</strong></td>
+          <td><a href="https://debifi.com/">debifi.com</a></td>
+          <td>May 2026</td>
+          <td>3-of-4 multisig: borrower + lender + Debifi + AnchorWatch. 10–14% APR + 1.5% origination. Up to 5-year terms. Institutional focus. Sygnum Bank partnership (MultiSYG) launching H1 2026.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Numerical computations</h3>
+    <p>All cost-comparison and scenario-math figures in this deep dive are reproducible from a Python worksheet at <code>_drafts/loans-math-worksheet.py</code> in the BSA repository, with output captured in <code>data/loans-math-output.json</code>. Worksheet includes: comparative provider costs across multiple loan sizes and horizons, hedge scenario math (drop/flat/moon), Black-Scholes-style options strategy pricing (illustrative only — see Part IX caveat), LMC outperform-BTC scenarios, and break-even analyses.</p>
+
+    <h3>Options strategy caveats</h3>
+    <p>The options pricing figures in Part IX are <strong>illustrative estimates</strong> using simplified Black-Scholes-style math with 80% implied volatility and a 4.5% risk-free rate. Real options pricing varies materially by venue, liquidity, skew, tenor, execution size, and counterparty. <strong>Always get a current quote on a real options venue (Deribit, CME, etc.) before relying on any specific number.</strong></p>
+
+    <h3>Legal disclaimers</h3>
+    <p>This piece is educational and not legal, tax, or financial advice. Specific decisions about borrowing against Bitcoin should be made with a CPA, attorney, or financial professional who has worked with Bitcoin holders. Statements about bankruptcy-remoteness, rehypothecation, and tax treatment are general and depend on specific loan agreement terms, security interest perfection, jurisdiction, and bankruptcy facts. Verify all legal claims with counsel.</p>
+
+    <h3>What we do when sources are unclear</h3>
+    <p>Where direct verification is incomplete or pending (currently: Lava LTV cap), this deep dive uses the label "company-quoted terms, pending direct confirmation" rather than presenting figures as verified. When a provider's product structure changes materially (e.g., Unchained's pivot from personal to commercial loans), we note the change explicitly and flag the deprecation of prior figures.</p>
+
+    <p style="margin-top:1.5rem;font-size:0.88rem;color:var(--muted);">If you spot an error or a current figure that has shifted, email <a href="mailto:dalia@thesovereign.academy">dalia@thesovereign.academy</a>. Corrections are logged with attribution and dated.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p style="margin-bottom:1rem;"><a href="/deep-dives/bitcoin-capital/#start-here" style="color:var(--primary);text-decoration:none;font-weight:600;">← Back to Bitcoin Capital Start Here</a></p>
+  <p><a href="/">Bitcoin Sovereign Academy</a> · <a href="/deep-dives/">Deep Dives</a> · <a href="/deep-dives/bitcoin-capital/">Bitcoin Capital</a></p>
+  <p class="footer-meta">v1.0 (prose) · Calculator coming in Phase 3 · Published May 2026 · Last updated <span id="today"></span></p>
+</footer>
+
+<script>
+  document.getElementById('today').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  (function() {
+    const banner = document.getElementById('disclosure-banner');
+    const dismissBtn = document.getElementById('disclosure-dismiss');
+    const key = 'bsa-loans-disclosure-dismissed';
+    try { if (localStorage.getItem(key) === '1') banner.classList.add('hidden'); } catch (e) {}
+    if (dismissBtn) {
+      dismissBtn.addEventListener('click', function() {
+        banner.classList.add('hidden');
+        try { localStorage.setItem(key, '1'); } catch (e) {}
+      });
+    }
+  })();
+</script>
+
+</body>
+</html>
