@@ -49,7 +49,7 @@ The platform is created by Dalia, who also runs Financially Sovereign Academy (`
 
 Node's built-in `node:test` + `jsdom`. No Jest/Mocha.
 
-- `npm run test` — smoke test (`/api/health`)
+- `npm run test` — smoke test (`curl /api/health`). Requires the dev server already running on `:3000`; otherwise fails with `curl` exit 7.
 - `npm run test:modules` — module gating tests
 - `npm run tutor:evals` — tutor SYSTEM_PROMPT regression suite (run after every prompt change — see TASKS.md M1)
 - Single test: `node --test path/to/test.mjs`
@@ -87,6 +87,28 @@ No single `lint` command.
 **Accessibility:** WCAG 2.1 AA. Keyboard nav, `prefers-reduced-motion` respected, `:focus-visible` outlines, ARIA roles on interactive components.
 
 **Privacy:** No third-party trackers, no ad pixels. Email tracking (opens/clicks) disabled in Resend. Server-side analytics first-party + anonymized.
+
+## Locked conventions (do not redesign without explicit ask)
+
+- **Logo system:** Diamond = BSA, stroke = Dalia. Production SVGs at `assets/dalia/`.
+- **Footer:** `Created by Dalia · bitcoinsovereign.academy` (EN) / `Creado por Dalia · …` (ES) on every visual artifact.
+- **Color carries meaning.** Default to neutral surfaces/borders. Reserve colored borders for path differentiation, genuine semantic distinction, or marking something important.
+- **A–D format for design decisions.** Visual/aesthetic questions default to a 4-option A–D comparison with side-by-side mockups and a recommendation.
+
+## Audience + design references
+
+- **7 audience segments** drive path routing: curious, builder, sovereign, principled, hurried, pragmatist, observer. The "Find Your Path" widget on the homepage routes among them.
+- **Canonical design reference:** `os.thesovereign.academy` — editorial-asymmetric, left-indented column hero, sectional bg differentiation, Playfair Display headlines + JetBrains Mono labels, 2px corners, restrained gold/orange. Read before any layout/typography work on strategic pages.
+- **Visual system canonical (2026-05-03, supersedes parts of the 2026-05-01 spec):** Playfair Display + Crimson Pro + JetBrains Mono, burnished gold `#C8922A`, cream paper. See `docs/superpowers/specs/2026-05-03-component-library-plan.md` + `2026-05-03-site-wide-ia-audit.md`.
+
+## Gotchas
+
+- **Absolute CSS paths only.** Demos and embedded pages MUST use `/css/brand.css`, never `../css/brand.css` — relative paths break under iframe embedding and at non-root URLs.
+- **`brand.css` isn't linked from `index.html`.** Homepage uses `css/tokens.css` + `css/design-tokens.css`. Edits to `brand.css` won't affect the homepage unless you add the link first.
+- **Data-attribute auto-init components.** Many pages mount components from empty `<div data-*>` placeholders with auto-injection scripts. Content-grep misses them — also grep for the component's data-attr and verify with a before/after screenshot when slimming any page.
+- **Unscoped feature CSS.** Some feature stylesheets (e.g. `safety-assessment.css`) define global `.btn` / `.btn-primary` rules. Grep before editing button classes anywhere.
+- **`curl -I` vs `curl -i`.** Method-restricted endpoints return 405 on HEAD. Use `curl -i` (GET) when diagnosing headers, or you'll mislead yourself.
+- **Push after every commit.** Vercel deploys from `origin/main`, not local. Before claiming "shipped," verify `git status -b --short` shows main NOT ahead of origin.
 
 ## Active context
 
