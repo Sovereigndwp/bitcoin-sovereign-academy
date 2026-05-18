@@ -15,17 +15,15 @@
   }
 
   function getPersonaId() {
-    // Prefer MCP service if available
     try {
       if (window.mcpService && window.mcpService.currentPersona) {
-        return window.mcpService.currentPersona; // e.g. 'student'
+        return window.mcpService.currentPersona;
       }
     } catch {}
 
-    // Fallback to stored persona mapping
     try {
       const stored = localStorage.getItem('btc-academy-persona');
-      if (stored) return stored; // e.g. 'student', 'business-owner'
+      if (stored) return stored;
     } catch {}
 
     return null;
@@ -62,7 +60,7 @@
       { href: '/deep-dives/first-principles/', label: 'Basics in Plain English' },
       { href: '/interactive-demos/consensus-game/', label: 'Consensus Game' },
     ],
-'developer': [
+    'developer': [
       { href: '/interactive-demos/transaction-builder/', label: 'Build a TX' },
       { href: '/interactive-demos/consensus-game/', label: 'Consensus Game' },
       { href: '/interactive-demos/mining-simulator/', label: 'Mining Simulator' },
@@ -91,7 +89,6 @@
 
   try {
     const pid = getPersonaId();
-    // Prepend Philosophy & Economics for investor/skeptic personas
     if (map['investor']) {
       map['investor'] = [
         { href: '/deep-dives/philosophy-economics/', label: 'Philosophy & Economics' },
@@ -109,5 +106,27 @@
     render(chips);
   } catch {
     render(defaults);
+  }
+})();
+
+(function () {
+  function updateHomepageHeroCopy() {
+    const title = document.querySelector('.hero-sovereign__title');
+    const subtitle = document.querySelector('.hero-sovereign__sub');
+
+    if (title) {
+      title.innerHTML = 'Bitcoin education,<br>without the confusion.';
+      title.setAttribute('aria-label', 'Bitcoin education, without the confusion.');
+    }
+
+    if (subtitle) {
+      subtitle.textContent = 'Interactive lessons for understanding money, Bitcoin, self custody, recovery, inheritance, privacy, and security before mistakes become expensive.';
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateHomepageHeroCopy);
+  } else {
+    updateHomepageHeroCopy();
   }
 })();
