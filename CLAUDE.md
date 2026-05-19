@@ -117,6 +117,7 @@ No single `lint` command.
 - **Phase 2 candidates:** `2026-04-28-distribution-engine-phase-1-design.md` (Plan A: Spanish consumer) + `2026-04-28-distribution-engine-phase-1-design-plan-b.md` (Plan B: English professional)
 - **Funnel context:** `reports/funnel-diagnosis-2026-04-27.md` — ~190 sessions/month, traffic is the upstream bottleneck
 - **Tasks tracker:** `TASKS.md`
+- **Foundational-Layer Thesis state (May 2026):** **v4** is canonical. v4 spans `thesis-v4.md`, `executive-tldr.md/.html`, `newcomer-onepager.md/.html`, `falsification-framework-v4.md`, `dashboard.html`, `field-guide.md`, `regulatory-deep-dive.md`, `quantum-scenario.md`, plus the four `assets/*.svg` figures. v3 (`thesis-v3.md`, `falsification-framework-v3.md`) is archived in-place — do not edit. v4 changes are definitional/clarifying; thresholds and methodology-immutability rule are unchanged from v3. See `memory/projects/foundational-layer-thesis.md` for the per-document v4 snapshot and audit-fix map.
 
 ## Sister project
 
