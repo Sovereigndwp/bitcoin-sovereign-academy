@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Falsification Framework v4 Dashboard — The Sovereign Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange: #F7931A; --orange-warm: #FFA94D;
+    --bg: #0B0F14; --surface: #141A22; --surface-2: #1D2530;
+    --border: #2A3440; --border-strong: #3D4856;
+    --text: #F0EAE0; --text-2: #B4BCC8; --text-muted: #6C7684;
+    --blue: #5BA3FF; --purple: #B084FF;
+    --green: #7BD389; --amber: #FFC857; --red: #E8616B; --gray: #8A93A1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 32px; -webkit-font-smoothing: antialiased; }
+  .container { max-width: 1400px; margin: 0 auto; }
+  .eyebrow { color: var(--orange); font-size: 13px; font-weight: 600; letter-spacing: 4px; margin-bottom: 14px; }
+  h1 { font-size: 36px; font-weight: 700; line-height: 1.15; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .lede { font-size: 16px; color: var(--text-2); max-width: 800px; line-height: 1.6; margin-bottom: 36px; }
+  .verdict { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px 32px; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 2fr; gap: 20px; align-items: center; margin-bottom: 36px; }
+  .stat .label { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 2px; margin-bottom: 6px; }
+  .stat .value { font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 600; }
+  .stat .value.intact { color: var(--green); }
+  .stat .value.pressure { color: var(--amber); }
+  .stat .value.fired { color: var(--red); }
+  .stat .value.indeterminate { color: var(--gray); }
+  .verdict-box { text-align: right; }
+  .verdict-box .label { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 2px; margin-bottom: 6px; }
+  .verdict-pill { display: inline-block; padding: 8px 18px; border-radius: 16px; font-size: 14px; font-weight: 700; letter-spacing: 1.5px; }
+  .verdict-pill.intact { background: rgba(123,211,137,0.15); color: var(--green); border: 1px solid rgba(123,211,137,0.3); }
+  .verdict-pill.partial { background: rgba(255,200,87,0.15); color: var(--amber); border: 1px solid rgba(255,200,87,0.3); }
+  .verdict-pill.rejected { background: rgba(232,97,107,0.15); color: var(--red); border: 1px solid rgba(232,97,107,0.3); }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+  .filter-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill { padding: 8px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text-2); font-size: 12px; font-weight: 600; letter-spacing: 1px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+  .pill:hover { border-color: var(--orange); color: var(--text); }
+  .pill.active { background: var(--orange); color: var(--bg); border-color: var(--orange); }
+  .pill .count { font-family: 'JetBrains Mono', monospace; font-size: 11px; margin-left: 4px; opacity: 0.7; }
+  .actions { display: flex; gap: 8px; }
+  .actions button { padding: 8px 16px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text-2); font-size: 12px; font-weight: 600; letter-spacing: 1px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .actions button:hover { border-color: var(--orange); color: var(--orange); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 18px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-left-width: 3px; border-radius: 12px; padding: 24px; transition: transform 0.2s; }
+  .card.intact { border-left-color: var(--green); }
+  .card.pressure { border-left-color: var(--amber); }
+  .card.fired { border-left-color: var(--red); }
+  .card.indeterminate { border-left-color: var(--gray); }
+  .card:hover { transform: translateY(-2px); }
+  .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .card .id { font-family: 'JetBrains Mono', monospace; color: var(--orange); font-size: 11px; font-weight: 600; letter-spacing: 2px; }
+  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; }
+  .status-badge.intact { background: rgba(123,211,137,0.15); color: var(--green); border: 1px solid rgba(123,211,137,0.3); }
+  .status-badge.pressure { background: rgba(255,200,87,0.15); color: var(--amber); border: 1px solid rgba(255,200,87,0.3); }
+  .status-badge.fired { background: rgba(232,97,107,0.15); color: var(--red); border: 1px solid rgba(232,97,107,0.3); }
+  .status-badge.indeterminate { background: rgba(138,147,161,0.15); color: var(--gray); border: 1px solid rgba(138,147,161,0.3); }
+  .card h3 { font-size: 17px; font-weight: 700; margin-bottom: 12px; line-height: 1.3; }
+  .card .claim { color: var(--text-2); font-size: 13px; line-height: 1.55; margin-bottom: 14px; }
+  .card .meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; padding: 14px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); }
+  .meta-item .label { font-size: 10px; color: var(--text-muted); font-weight: 600; letter-spacing: 1.5px; margin-bottom: 4px; }
+  .meta-item .val { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text); }
+  .meta-item .val.conf-high { color: var(--green); }
+  .meta-item .val.conf-medium { color: var(--amber); }
+  .meta-item .val.conf-low { color: var(--red); }
+  .card .source-note { font-size: 11px; color: var(--text-2); line-height: 1.5; margin-bottom: 12px; padding: 8px 10px; background: rgba(91,163,255,0.05); border-left: 2px solid var(--blue); border-radius: 0 6px 6px 0; }
+  .card .threshold { background: rgba(232,97,107,0.06); border-left: 2px solid var(--red); padding: 10px 12px; font-size: 12px; color: var(--text-2); margin-bottom: 14px; border-radius: 0 6px 6px 0; }
+  .threshold strong { color: var(--red); font-weight: 600; letter-spacing: 1px; margin-right: 6px; }
+  .card .source { font-size: 11px; color: var(--text-muted); margin-bottom: 14px; }
+  .source a { color: var(--text-2); text-decoration: none; }
+  .source a:hover { color: var(--orange); }
+  .controls { display: flex; gap: 6px; border-top: 1px solid var(--border); padding-top: 14px; }
+  .controls button { flex: 1; padding: 8px 6px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-size: 10px; font-weight: 700; letter-spacing: 1px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .controls button:hover { color: var(--text); border-color: var(--border-strong); }
+  .controls button.active.intact { background: rgba(123,211,137,0.15); color: var(--green); border-color: var(--green); }
+  .controls button.active.pressure { background: rgba(255,200,87,0.15); color: var(--amber); border-color: var(--amber); }
+  .controls button.active.fired { background: rgba(232,97,107,0.15); color: var(--red); border-color: var(--red); }
+  .controls button.active.indeterminate { background: rgba(138,147,161,0.15); color: var(--gray); border-color: var(--gray); }
+  footer { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 12px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  footer a { color: var(--text-2); text-decoration: none; }
+  footer a:hover { color: var(--orange); }
+  .card.hidden { display: none; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 100; }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 36px; max-width: 720px; max-height: 80vh; overflow-y: auto; }
+  .modal h2 { margin-bottom: 14px; }
+  .modal p { color: var(--text-2); font-size: 14px; line-height: 1.65; margin-bottom: 12px; }
+  .modal p strong { color: var(--text); }
+  .modal button.close { margin-top: 18px; padding: 10px 20px; background: var(--orange); color: var(--bg); border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: inherit; letter-spacing: 1px; font-size: 12px; }
+  @media (max-width: 720px) { body { padding: 16px; } h1 { font-size: 26px; } .verdict { grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; } .verdict-box { text-align: left; grid-column: span 2; } }
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <div class="eyebrow">THE SOVEREIGN ACADEMY · FALSIFICATION FRAMEWORK · v4</div>
+  <h1>Seventeen falsifiers. Quarterly reviews. Methodology immutability.</h1>
+  <p class="lede">
+    Activity moves to the fastest rail. Trust moves to the hardest asset. The symbiotic-sovereign thesis is testable in public: each card below states a positive prediction the thesis depends on, the quantitative threshold that would falsify it, the deadline, the public measurement source, and (new in v4) a confidence rating on the underlying data quality. Statuses update manually each quarter. The verdict updates live. If six or more falsifiers fire by end of 2028, the thesis is rejected and a successor article is published. F17 covers quantum threat materialization — the only single-event falsifier that could unilaterally invalidate Bitcoin's SoV claim, and now ties activation tracking to BIP-360 (P2MR) specifically, not the contested BIP-361 freeze proposal.
+  </p>
+</header>
+
+<div class="verdict" id="verdict">
+  <div class="stat"><div class="label">INTACT</div><div class="value intact" id="cnt-intact">0</div></div>
+  <div class="stat"><div class="label">PRESSURE</div><div class="value pressure" id="cnt-pressure">0</div></div>
+  <div class="stat"><div class="label">FIRED</div><div class="value fired" id="cnt-fired">0</div></div>
+  <div class="stat"><div class="label">INDETERMINATE</div><div class="value indeterminate" id="cnt-indeterminate">0</div></div>
+  <div class="stat"><div class="label">TOTAL</div><div class="value" id="cnt-total">17</div></div>
+  <div class="verdict-box">
+    <div class="label">CURRENT VERDICT</div>
+    <span class="verdict-pill intact" id="verdict-pill">THESIS INTACT</span>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="filter-pills">
+    <button class="pill active" data-filter="all">ALL <span class="count" id="f-all">17</span></button>
+    <button class="pill" data-filter="intact">INTACT <span class="count" id="f-intact">0</span></button>
+    <button class="pill" data-filter="pressure">PRESSURE <span class="count" id="f-pressure">0</span></button>
+    <button class="pill" data-filter="fired">FIRED <span class="count" id="f-fired">0</span></button>
+    <button class="pill" data-filter="indeterminate">INDETERMINATE <span class="count" id="f-indeterminate">0</span></button>
+  </div>
+  <div class="actions">
+    <button id="btn-methodology">METHODOLOGY</button>
+    <button id="btn-export">EXPORT STATE</button>
+    <button id="btn-reset">RESET</button>
+  </div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<footer>
+  <div>
+    <div style="color: var(--orange); font-weight: 700; letter-spacing: 3px; margin-bottom: 6px;">THE SOVEREIGN ACADEMY</div>
+    Falsification Framework v4.0 · Published May 2026 · Definitional rewrite per v4 audit · Thresholds unchanged from v3
+  </div>
+  <div style="text-align: right;">
+    <div style="margin-bottom: 6px;"><a href="falsification-framework-v4.md">Full framework document (v4)</a></div>
+    <div><a href="thesis-v4.md">← Back to thesis v4</a></div>
+  </div>
+</footer>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h2>Methodology — How this dashboard works</h2>
+    <p><strong>Status definitions.</strong> INTACT means the data is consistent with the thesis. PRESSURE means trending against the thesis but threshold not yet breached. FIRED means the threshold has been breached by the deadline. INDETERMINATE means contested, data unavailable, or deadline not yet arrived.</p>
+    <p><strong>Verdict rules (v4, 17 falsifiers).</strong> 0–4 fired by end of 2028 = thesis intact. 5 fired = partial; substantive amendment article required. 6+ fired = thesis rejected; full retraction-and-rebuild published.</p>
+    <p><strong>F17 special case.</strong> Quantum threat firing is unilaterally invalidating. If F17 fires alone, the thesis is rejected regardless of other falsifiers' status.</p>
+    <p><strong>Confidence rating (v4).</strong> Each falsifier carries a data-quality confidence — High / Medium / Low. This is not a probability the falsifier will fire; it is the framework's confidence that the underlying data is measurable and uncontested enough to settle the question by deadline. Low-confidence falsifiers warrant especially careful narrative interpretation.</p>
+    <p><strong>v4 definitional rewrites.</strong> Thresholds and deadlines are unchanged from v3. v4 rewrites every falsifier's <em>definition</em> for operational clarity (trust-tier reporting in F3 + F4, six-test sovereign rubric in F8, expanded jurisdiction set in F10, F9/F16 separation, BIP-360 reconciliation in F17, and others). Methodology-immutability rule preserved: definitions are tightened or clarified, never loosened.</p>
+    <p><strong>Methodology immutability.</strong> Once a falsifier's measurement source and threshold are committed in a quarterly update, they cannot be revised downward to save the thesis. Revisions must be conservative (tightening) and disclosed.</p>
+    <p><strong>Quarterly cadence.</strong> Public status review in March, June, September, December. Annual deep review in January. Any single falsifier firing triggers an out-of-cycle post within 14 days.</p>
+    <p><strong>Correlated failures.</strong> Each quarterly review explicitly distinguishes correlated fires (one root cause cascading) from independent fires (multiple structural failures). Correlated fires are recoverable; independent fires usually are not.</p>
+    <p><strong>State persistence.</strong> This dashboard saves your status edits in your browser only. Export to JSON for archiving or sharing.</p>
+    <button class="close" id="btn-close">CLOSE</button>
+  </div>
+</div>
+
+<script>
+const FALSIFIERS = [
+  { id: 1, title: "Bitcoin retains dominant share of crypto-native non-state monetary supply", claim: "BTC remains the dominant crypto-native non-state monetary asset. v4 disambiguation: share-of-crypto-native-supply, not share-of-global-SoV markets.", threshold: "BTC dominance < 35% (12-mo MA, stablecoins excluded from denominator) before Dec 31, 2030", deadline: "2030-12-31", source: "CoinGecko / CMC dominance index, stablecoin-adjusted", sourceUrl: "https://www.coingecko.com/en/global-charts", status: "intact", confidence: "High", lastReviewed: "2026-05", sourceNote: "v4: denominator excludes stablecoins (dollar liabilities, not crypto-native monetary supply)." },
+  { id: 2, title: "Lightning/L2 volume scales — self-custodial + operator-assisted", claim: "Combined volume across Lightning + Ark + Spark + Arkade reaches mid-tier remittance scale. v4 reporting splits self-custodial from operator-assisted.", threshold: "Combined monthly < $20B by Q4 2028 (self-custodial and operator-assisted fractions reported separately)", deadline: "2028-12-31", source: "River, Lightning Labs, Spark, Ark Labs, Arkade, Lightspark, Strike", sourceUrl: "https://river.com/learn", status: "intact", confidence: "Medium", lastReviewed: "2026-05", sourceNote: "v4: $20B combined remains the threshold; verdict narrative must publish self-custodial vs operator-assisted split." },
+  { id: 3, title: "Bitcoin-rail stablecoin volume grows — reported by trust tier", claim: "USDT + USDC + USAT + ctUSD + USDB on Bitcoin rails reach material share. v4 reports by trust tier (overlay / sidechain / adjacent / bridge / wrapper).", threshold: "Combined monthly < $15B by Q4 2028. Tether/Circle SPOF exposure named.", deadline: "2028-12-31", source: "Liquid explorer, Taproot Assets, Boltz, Citrea, RGB, Botanix", sourceUrl: "https://blockstream.info/liquid", status: "intact", confidence: "Medium", lastReviewed: "2026-05", sourceNote: "v4: trust-tier reporting prevents collapsing Taproot Assets overlay with Citrea bridge into a single number." },
+  { id: 4, title: "Bitcoin-anchored L3 reaches material TVL — by taxonomy tier", claim: "Programmable execution anchored to Bitcoin reaches scale. v4 applies four-way taxonomy: Bitcoin-native / Bitcoin-secured / Bitcoin-adjacent / Bitcoin-branded.", threshold: "Combined TVL across first three tiers < $5B by Q4 2027 (Bitcoin-branded excluded from TVL count)", deadline: "2027-12-31", source: "DefiLlama Bitcoin section + project dashboards + tier-coded labels", sourceUrl: "https://defillama.com/chain/Bitcoin", status: "intact", confidence: "Medium", lastReviewed: "2026-05", sourceNote: "v4: TVL is reported by tier, not aggregated without it. Bridge-secured TVL is not counted as base-layer security." },
+  { id: 5, title: "Trust-minimized bridges survive adversarial pressure", claim: "BitVM-class bridges achieve production-grade security without catastrophic exploits. v4 adds emergency-pause condition.", threshold: "Single exploit > $50M (unrecovered at 30 days), OR cumulative > $200M (unrecovered), OR no 24mo survival at $500M+ TVL", deadline: "2028-12-31", source: "Rekt News, Chainalysis, project post-mortems, on-chain forensics", sourceUrl: "https://rekt.news/leaderboard/", status: "intact", confidence: "Medium", lastReviewed: "2026-05", sourceNote: "v4: pause-and-recover within 30 days does not count toward cumulative threshold; pause-with-loss counts at unrecovered value." },
+  { id: 6, title: "Covenant OR operationally-defined L2 escape hatch", claim: "Either a major covenant activates by end 2028, OR L2 ecosystem demonstrates user-side unilateral exit at scale. v4 defines 'escape hatch' operationally.", threshold: "Neither (a) CTV/LNHANCE/OP_CAT/OP_PAIRCOMMIT/BIP-448 activated NOR (b) 2-of-3 counted L2 systems demonstrate >10K user-initiated unilateral L1 exits in a 30-day window under non-degenerate fee conditions, by end 2028", deadline: "2028-12-31", source: "Bitcoin Core releases, Amboss, Mempool.space, operator disclosures", sourceUrl: "https://bitcoinops.org/en/newsletters/", status: "intact", confidence: "Medium", lastReviewed: "2026-05", sourceNote: "v4: 'unilateral exit' = user produces valid L1 transaction without operator cooperation; threshold-signed wallets without user-held key share do not qualify." },
+  { id: 7, title: "Bitcoin captures stablecoin share — defined universe", claim: "Bitcoin-anchored rails grow share of total global stablecoin volume. v4 specifies the stablecoin universe explicitly.", threshold: "Bitcoin-rail share < 5% (12-mo MA) through end of 2028 over USDT+USDC+USAT+ctUSD+USDB+EURC+FDUSD+PYUSD universe", deadline: "2028-12-31", source: "Artemis, Visa Onchain Analytics, per-rail explorers", sourceUrl: "https://defillama.com/stablecoins", status: "intact", confidence: "Medium", lastReviewed: "2026-05", sourceNote: "v4: algorithmic and reflexive stablecoins excluded. Same Tether/Circle SPOF exposure as F3." },
+  { id: 8, title: "Sovereign-level BTC adoption expands — six-test rubric", claim: "Net new sovereigns materially adopt BTC despite El Salvador's mandatory-acceptance rollback. v4 operationalizes 'materially adopts' with six tests.", threshold: "< 3 net new sovereigns meet any 3-of-6 tests (reserve, legal-recognition, strategic-reserve, mining, tax-and-payments, sovereign-debt) by end of 2030", deadline: "2030-12-31", source: "IMF reports, central bank disclosures, Bitcoin Treasuries, national legislation", sourceUrl: "https://bitcointreasuries.net/entities/state", status: "intact", confidence: "Medium", lastReviewed: "2026-05", sourceNote: "v4: US Strategic Reserve (~200K BTC from forfeiture; total federal ~328K) alone meets the threshold. ETF custody concentration is implicit risk." },
+  { id: 9, title: "Post-halving security budget holds (post-April-2028 measurement)", claim: "Miner revenue + hashrate sustain Bitcoin's security after April 2028 halving. v4: F9 measures post-halving reality; F16 measures the trajectory.", threshold: "12 months following April 2028 halving: real-terms revenue < ~$15B (CPI-2025) AND hashrate negative 6+ months AND L1 fees < 15% revenue (all three)", deadline: "2029-04-30", source: "mempool.space, Hashrate Index, Coin Metrics, miner SEC filings", sourceUrl: "https://mempool.space/mining", status: "indeterminate", confidence: "High", lastReviewed: "2026-05", sourceNote: "v4: F9 is INDETERMINATE until April 2029 by design — data not yet measurable. F16 firing makes F9 firing more likely but does not satisfy F9." },
+  { id: 10, title: "Non-custodial layer remains legal — expanded jurisdiction set", claim: "Non-custodial Bitcoin payment infrastructure stays viable. v4 expands test set beyond US/EU.", threshold: "By end 2028, any 2 of 8 qualifying events across US, EU, UK, Japan, Singapore + FATF gray-listing of any G20 jurisdiction", deadline: "2028-12-31", source: "FinCEN, FATF, MiCA, OFAC, UK FCA, JFSA, MAS", sourceUrl: "https://www.fincen.gov/news", status: "intact", confidence: "Medium", lastReviewed: "2026-05", sourceNote: "v4: Tornado Cash framed as multi-vector enforcement template (operators, frontends, developers, infrastructure, liquidity providers) — not only protocol-level sanctions." },
+  { id: 11, title: "L2 tokens don't dilute BTC dominance", claim: "Native Bitcoin-anchored L2 tokens stay economically subordinate to BTC.", threshold: "Combined FDV (STX, CTR, BTNX, BOS, SPRK, ARK, BCT, BVM + future Bitcoin-anchored-L2 tokens) > 10% of BTC mcap (12-mo MA) by Q4 2028", deadline: "2028-12-31", source: "CoinGecko, CMC", sourceUrl: "https://www.coingecko.com/", status: "intact", confidence: "High", lastReviewed: "2026-05", sourceNote: "v4: utility-tokenized L2 tokens (gas, governance) are still counted — falsifier is about market-cap dilution, not narrative positioning." },
+  { id: 12, title: "Solana doesn't close the SoV gap", claim: "SOL doesn't displace Bitcoin's claim to dominant crypto-native non-state SoV.", threshold: "SOL mcap > 50% of BTC mcap (12-mo MA) sustained 4 consecutive quarters before end 2030", deadline: "2030-12-31", source: "CoinGecko, CMC", sourceUrl: "https://www.coingecko.com/", status: "intact", confidence: "High", lastReviewed: "2026-05", sourceNote: "v4: market cap understates Bitcoin's monetary properties (no inflation, no premine, longer track record) but is the cleanest public measure." },
+  { id: 13, title: "Bitcoin captures Tron USDT corridors (expected to fire — humility flagged)", claim: "Bitcoin-rail stablecoin volume captures share of emerging-market remittance corridors. v4: F13 is expected to fire; firing is not by itself thesis-disqualifying.", threshold: "Bitcoin-rail share in any of {AR, NG, PH, VE, TR} corridors < 10% by end 2029", deadline: "2029-12-31", source: "Chainalysis, Tether transparency, Strike, World Bank remittance data", sourceUrl: "https://www.chainalysis.com/blog/", status: "intact", confidence: "Medium", lastReviewed: "2026-05", sourceNote: "v4 humility: F13 firing confirms a structural disadvantage v4 explicitly names. Tron's $7.9T 2025 USDT volume is real; Bitcoin's claim is on the assets users exit to when stablecoin exposure feels fragile — a different question F13 does not measure." },
+  { id: 14, title: "Bitcoin L2 stack reaches mid-tier ETH L2 scale", claim: "Bitcoin-anchored programmability layer reaches scale comparable to mid-tier Ethereum L2s. v4 uses F4's taxonomy: Bitcoin-secured + Bitcoin-adjacent tiers.", threshold: "Combined Bitcoin L3 TVL (Bitcoin-secured + Bitcoin-adjacent) < Optimism + Linea combined by end 2029", deadline: "2029-12-31", source: "DefiLlama Bitcoin + Ethereum L2 dashboards", sourceUrl: "https://defillama.com/chain/Bitcoin", status: "intact", confidence: "High", lastReviewed: "2026-05", sourceNote: "v4: inherits F4 taxonomy tiers; economic-activity proxies published alongside TVL." },
+  { id: 15, title: "TON / Telegram doesn't structurally outrun Bitcoin retail", claim: "Bitcoin's stack maintains relevance in consumer crypto despite TON's distribution.", threshold: "TON-native wallets > 5x combined Bitcoin LN consumer wallets (Phoenix, Zeus, Strike, Cash App LN, WoS, Blink, Breez, Aqua) by end 2028", deadline: "2028-12-31", source: "Telegram TON metrics, Lightning wallet disclosures", sourceUrl: "https://ton.org/", status: "intact", confidence: "Low", lastReviewed: "2026-05", sourceNote: "v4: low confidence — wallet user counts include heavy bot/duplicate traffic on TON side and dormant installs on Lightning side. Report ranges, not point estimates." },
+  { id: 16, title: "Miner fee revenue trajectory holds through 2027 (clean F9 separation)", claim: "Bitcoin miner fee revenue rises enough — and public miners hold enough BTC — that post-2028 security budget is achievable. v4 separates F16 (trajectory) from F9 (post-halving reality).", threshold: "Through end 2027: L1 fees < 15% of miner revenue (12-mo MA) AND public miners cumulatively liquidate > 50K BTC for non-mining capex since Jan 2025 (both)", deadline: "2027-12-31", source: "mempool.space + Coin Metrics; Bitcoin Treasuries + miner SEC filings", sourceUrl: "https://mempool.space/mining", status: "pressure", confidence: "High", lastReviewed: "2026-05", sourceNote: "v4: Q1 2026 alone saw 32K+ BTC liquidated — 64% of condition (b) met in one quarter. September 2026 review is load-bearing." },
+  { id: 17, title: "Quantum threat doesn't materialize (BIP-360 tied; BIP-361 separated)", claim: "Bitcoin's quantum-resistance migration tracks ahead of CRQC capability. The only single-event falsifier that could unilaterally invalidate Bitcoin's SoV claim. v4 ties F17(a) to BIP-360 activation specifically — BIP-361 (contested freeze proposal) is not required for F17 to stay INTACT.", threshold: "EITHER (a) CRQC breaking ECDSA publicly demonstrated before end 2032 AND BIP-360 (P2MR) not activated on mainnet, OR (b) any successful quantum theft of BTC before end 2032", deadline: "2032-12-31", source: "IBM/Google/academic quantum roadmaps, Bitcoin BIPs repo, NIST PQ standardization, on-chain forensics", sourceUrl: "https://github.com/bitcoin/bips/blob/master/bip-0360.mediawiki", status: "indeterminate", confidence: "Low", lastReviewed: "2026-05", sourceNote: "v4 reconciliation: BIP-360 = quantum-resistant address type (P2MR); BIP-361 = contested freeze-quantum-vulnerable-coins proposal. F17(a) tracks BIP-360 only. BIP-361 status reported for context but is not a falsifier input." }
+];
+
+const STORAGE_KEY = 'bsa-falsifiers-v4';
+const STATUSES = ['intact', 'pressure', 'fired', 'indeterminate'];
+let state = loadState();
+let currentFilter = 'all';
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return FALSIFIERS.map(f => ({ ...f, status: parsed[f.id] || f.status }));
+    }
+  } catch (e) {}
+  return [...FALSIFIERS];
+}
+function saveState() {
+  try {
+    const obj = {};
+    state.forEach(f => { obj[f.id] = f.status; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+  } catch (e) {}
+}
+function daysUntil(dateStr) {
+  const target = new Date(dateStr + 'T00:00:00Z');
+  const now = new Date();
+  return Math.floor((target - now) / (1000 * 60 * 60 * 24));
+}
+function formatDeadline(dateStr) {
+  const target = new Date(dateStr + 'T00:00:00Z');
+  return target.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+function render() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  state.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'card ' + f.status;
+    if (currentFilter !== 'all' && currentFilter !== f.status) card.classList.add('hidden');
+    const days = daysUntil(f.deadline);
+    const daysText = days > 0 ? `${days.toLocaleString()} days` : days === 0 ? 'today' : `${Math.abs(days).toLocaleString()} days past`;
+    const confClass = f.confidence ? 'conf-' + f.confidence.toLowerCase() : '';
+    const sourceNoteHtml = f.sourceNote ? `<div class="source-note">${f.sourceNote}</div>` : '';
+    card.innerHTML = `
+      <div class="card-head">
+        <span class="id">F · ${String(f.id).padStart(2, '0')}</span>
+        <span class="status-badge ${f.status}">${f.status.toUpperCase()}</span>
+      </div>
+      <h3>${f.title}</h3>
+      <p class="claim">${f.claim}</p>
+      <div class="meta-row">
+        <div class="meta-item"><div class="label">DEADLINE</div><div class="val">${formatDeadline(f.deadline)}</div></div>
+        <div class="meta-item"><div class="label">REMAINING</div><div class="val">${daysText}</div></div>
+        <div class="meta-item"><div class="label">CONFIDENCE</div><div class="val ${confClass}">${f.confidence || '—'}</div></div>
+        <div class="meta-item"><div class="label">LAST REVIEWED</div><div class="val">${f.lastReviewed || '—'}</div></div>
+      </div>
+      <div class="threshold"><strong>FIRES IF:</strong>${f.threshold}</div>
+      ${sourceNoteHtml}
+      <div class="source">Source: <a href="${f.sourceUrl}" target="_blank" rel="noopener">${f.source} ↗</a></div>
+      <div class="controls">
+        ${STATUSES.map(s => `<button data-id="${f.id}" data-status="${s}" class="${f.status === s ? 'active ' + s : ''}">${s === 'indeterminate' ? 'INDET' : s.toUpperCase()}</button>`).join('')}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+  document.querySelectorAll('.card .controls button').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const id = parseInt(e.target.dataset.id, 10);
+      const status = e.target.dataset.status;
+      const item = state.find(f => f.id === id);
+      if (item) { item.status = status; saveState(); render(); updateCounts(); }
+    });
+  });
+}
+function updateCounts() {
+  const counts = { intact: 0, pressure: 0, fired: 0, indeterminate: 0 };
+  state.forEach(f => { counts[f.status]++; });
+  document.getElementById('cnt-intact').textContent = counts.intact;
+  document.getElementById('cnt-pressure').textContent = counts.pressure;
+  document.getElementById('cnt-fired').textContent = counts.fired;
+  document.getElementById('cnt-indeterminate').textContent = counts.indeterminate;
+  document.getElementById('cnt-total').textContent = state.length;
+  document.getElementById('f-all').textContent = state.length;
+  document.getElementById('f-intact').textContent = counts.intact;
+  document.getElementById('f-pressure').textContent = counts.pressure;
+  document.getElementById('f-fired').textContent = counts.fired;
+  document.getElementById('f-indeterminate').textContent = counts.indeterminate;
+  // Verdict logic (v3: 17 falsifiers; F17 firing alone is unilaterally invalidating)
+  const fired = counts.fired;
+  const f17 = state.find(f => f.id === 17);
+  const pill = document.getElementById('verdict-pill');
+  if (f17 && f17.status === 'fired') {
+    pill.className = 'verdict-pill rejected';
+    pill.textContent = 'THESIS REJECTED (F17 fired)';
+  } else if (fired >= 6) {
+    pill.className = 'verdict-pill rejected';
+    pill.textContent = 'THESIS REJECTED';
+  } else if (fired === 5) {
+    pill.className = 'verdict-pill partial';
+    pill.textContent = 'THESIS PARTIALLY INTACT';
+  } else {
+    pill.className = 'verdict-pill intact';
+    pill.textContent = 'THESIS INTACT';
+  }
+}
+document.querySelectorAll('.pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    currentFilter = pill.dataset.filter;
+    render();
+  });
+});
+document.getElementById('btn-methodology').addEventListener('click', () => document.getElementById('modal-bg').classList.add('open'));
+document.getElementById('btn-close').addEventListener('click', () => document.getElementById('modal-bg').classList.remove('open'));
+document.getElementById('modal-bg').addEventListener('click', e => { if (e.target.id === 'modal-bg') document.getElementById('modal-bg').classList.remove('open'); });
+document.getElementById('btn-export').addEventListener('click', () => {
+  const obj = {};
+  state.forEach(f => { obj[f.id] = { title: f.title, status: f.status }; });
+  const data = { framework: 'BSA Symbiotic-Sovereign Thesis Falsification v4', exportedAt: new Date().toISOString(), falsifiers: obj };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'bsa-falsification-v4-snapshot-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('btn-reset').addEventListener('click', () => {
+  if (confirm('Reset all falsifiers to their v4 default status (most INTACT, F9 + F17 INDETERMINATE, F16 PRESSURE)?')) {
+    state = FALSIFIERS.map(f => ({ ...f }));
+    saveState();
+    render();
+    updateCounts();
+  }
+});
+render();
+updateCounts();
+</script>
+</body>
+</html>
