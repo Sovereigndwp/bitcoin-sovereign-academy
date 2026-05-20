@@ -296,9 +296,9 @@
                     text-align: center;
                 }
                 .stripe-verification-banner.pending {
-                    background: rgba(200, 146, 42, 0.12);
-                    color: #C8922A;
-                    border: 1px solid rgba(200, 146, 42, 0.35);
+                    background: rgba(255, 122, 0, 0.12);
+                    color: #FF7A00;
+                    border: 1px solid rgba(255, 122, 0, 0.35);
                 }
                 .stripe-verification-banner.success {
                     background: rgba(76, 175, 80, 0.12);
@@ -311,7 +311,7 @@
                     border: 1px solid rgba(239, 68, 68, 0.35);
                 }
                 #stripe-verification-status[data-state="pending"] {
-                    color: var(--accent, #C8922A);
+                    color: var(--accent, #FF7A00);
                 }
                 #stripe-verification-status[data-state="success"] {
                     color: var(--success, #4CAF50);

@@ -474,19 +474,19 @@
                 }
 
                 .gate-option:hover {
-                    border-color: rgba(200, 146, 42, 0.5);
+                    border-color: rgba(255, 122, 0, 0.5);
                     transform: translateY(-2px);
                 }
 
                 .gate-option.apprentice {
-                    border-color: rgba(200, 146, 42, 0.3);
+                    border-color: rgba(255, 122, 0, 0.3);
                 }
 
                 .option-badge {
                     position: absolute;
                     top: -10px;
                     right: 15px;
-                    background: #C8922A;
+                    background: #FF7A00;
                     color: #000;
                     padding: 3px 10px;
                     border-radius: 10px;
@@ -503,7 +503,7 @@
                 .option-price {
                     font-size: 1.5rem;
                     font-weight: 700;
-                    color: #C8922A;
+                    color: #FF7A00;
                     margin-bottom: 0.5rem;
                 }
 
@@ -525,13 +525,13 @@
                 }
 
                 .gate-btn.primary {
-                    background: linear-gradient(135deg, #C8922A 0%, #ffb347 100%);
+                    background: linear-gradient(135deg, #FF7A00 0%, #FFD400 100%);
                     color: #000;
                 }
 
                 .gate-btn.primary:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 4px 15px rgba(200, 146, 42, 0.4);
+                    box-shadow: 0 4px 15px rgba(255, 122, 0, 0.4);
                 }
 
                 .gate-btn.secondary {
@@ -559,7 +559,7 @@
                 }
 
                 .gate-link {
-                    color: #C8922A;
+                    color: #FF7A00;
                     text-decoration: none;
                 }
 

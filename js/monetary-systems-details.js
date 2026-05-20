@@ -265,7 +265,7 @@ const MonetarySystems = {
         name: "Bitcoin",
         icon: "₿",
         tagline: "Open, decentralized protocol",
-        color: "#C8922A", // Orange
+        color: "#FF7A00", // Orange
 
         overview: {
             definition: "A decentralized digital currency operating on a public blockchain, with no central issuer and fixed supply cap of 21 million coins.",
@@ -396,7 +396,7 @@ class MonetarySystemsModal {
 
             .modal-content {
                 background: var(--secondary-dark, #1a1a1a);
-                border: 2px solid var(--primary-orange, #C8922A);
+                border: 2px solid var(--primary-orange, #FF7A00);
                 border-radius: 16px;
                 max-width: 800px;
                 width: 100%;
@@ -412,7 +412,7 @@ class MonetarySystemsModal {
                 right: 1rem;
                 background: none;
                 border: none;
-                color: var(--primary-orange, #C8922A);
+                color: var(--primary-orange, #FF7A00);
                 font-size: 2rem;
                 cursor: pointer;
                 line-height: 1;
@@ -429,7 +429,7 @@ class MonetarySystemsModal {
             }
 
             .modal-body h2 {
-                color: var(--primary-orange, #C8922A);
+                color: var(--primary-orange, #FF7A00);
                 display: flex;
                 align-items: center;
                 gap: 0.5rem;
@@ -437,10 +437,10 @@ class MonetarySystemsModal {
             }
 
             .modal-body h3 {
-                color: var(--primary-orange, #C8922A);
+                color: var(--primary-orange, #FF7A00);
                 margin-top: 2rem;
                 margin-bottom: 1rem;
-                border-bottom: 2px solid rgba(200, 146, 42, 0.2);
+                border-bottom: 2px solid rgba(255, 122, 0, 0.2);
                 padding-bottom: 0.5rem;
             }
 
@@ -455,15 +455,15 @@ class MonetarySystemsModal {
             }
 
             .example-card {
-                background: rgba(200, 146, 42, 0.05);
-                border-left: 3px solid var(--primary-orange, #C8922A);
+                background: rgba(255, 122, 0, 0.05);
+                border-left: 3px solid var(--primary-orange, #FF7A00);
                 padding: 1rem;
                 margin: 1rem 0;
                 border-radius: 4px;
             }
 
             .example-card h4 {
-                color: var(--primary-orange, #C8922A);
+                color: var(--primary-orange, #FF7A00);
                 margin: 0 0 0.5rem 0;
             }
 

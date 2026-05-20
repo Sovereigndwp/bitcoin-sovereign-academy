@@ -155,13 +155,13 @@
 
                     #contentLockOverlay .lock-card {
                         background: #1a1a1a;
-                        border: 2px solid #C8922A;
+                        border: 2px solid #FF7A00;
                         border-radius: 24px;
                         padding: 3rem;
                         max-width: 500px;
                         width: 90%;
                         text-align: center;
-                        box-shadow: 0 8px 32px rgba(200, 146, 42, 0.3);
+                        box-shadow: 0 8px 32px rgba(255, 122, 0, 0.3);
                     }
 
                     #contentLockOverlay .lock-icon {
@@ -201,7 +201,7 @@
                     }
 
                     #contentLockOverlay .pricing-option:hover {
-                        border-color: #C8922A;
+                        border-color: #FF7A00;
                         transform: translateY(-4px);
                     }
 
@@ -216,7 +216,7 @@
                     #contentLockOverlay .pricing-option .price {
                         font-size: 2rem;
                         font-weight: 800;
-                        color: #C8922A;
+                        color: #FF7A00;
                         margin-bottom: 0.25rem;
                     }
 
@@ -238,23 +238,23 @@
                     }
 
                     #contentLockOverlay .btn-unlock {
-                        background: linear-gradient(135deg, #C8922A, #ff8c00);
+                        background: linear-gradient(135deg, #FF7A00, #ff8c00);
                         color: white;
                     }
 
                     #contentLockOverlay .btn-unlock:hover {
                         transform: translateY(-2px);
-                        box-shadow: 0 4px 12px rgba(200, 146, 42, 0.5);
+                        box-shadow: 0 4px 12px rgba(255, 122, 0, 0.5);
                     }
 
                     #contentLockOverlay .btn-signin {
                         background: transparent;
-                        color: #C8922A;
-                        border: 2px solid #C8922A;
+                        color: #FF7A00;
+                        border: 2px solid #FF7A00;
                     }
 
                     #contentLockOverlay .btn-signin:hover {
-                        background: rgba(200, 146, 42, 0.1);
+                        background: rgba(255, 122, 0, 0.1);
                     }
 
                     @media (max-width: 768px) {
