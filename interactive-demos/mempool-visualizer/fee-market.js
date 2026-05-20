@@ -134,7 +134,7 @@ class FeeMarketVisualizer {
         ctx.fillRect(0, barY, indicatorX, barHeight);
 
         // Draw position marker
-        ctx.fillStyle = '#C8922A';
+        ctx.fillStyle = '#FF7A00';
         ctx.beginPath();
         ctx.moveTo(indicatorX, barY - 10);
         ctx.lineTo(indicatorX + 8, barY);
@@ -159,7 +159,7 @@ class FeeMarketVisualizer {
         ctx.fillText('Highest Fees', width - 10, barY + barHeight / 2 + 5);
 
         // Draw percentile label
-        ctx.fillStyle = '#C8922A';
+        ctx.fillStyle = '#FF7A00';
         ctx.font = 'bold 16px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(`${position}th percentile`, indicatorX, barY - 15);

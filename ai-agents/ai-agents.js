@@ -673,7 +673,7 @@ class VisualConceptAgent {
 
     getBitcoinColorScheme() {
         return {
-            primary: '#C8922A',     // Bitcoin orange
+            primary: '#FF7A00',     // Bitcoin orange
             secondary: '#4A4A4A',   // Dark gray
             accent: '#FFF',         // White
             success: '#00D4AA',     // Green for confirmations
