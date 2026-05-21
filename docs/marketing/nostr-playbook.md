@@ -104,7 +104,7 @@ curl -sSI https://bitcoinsovereign.academy/.well-known/nostr.json | grep -i acce
 
 ### How NIP-57 works in one paragraph
 
-A zap is a normal Lightning payment with a Nostr "zap request" event (kind 9734) attached as a description. The recipient's Lightning Address (e.g. `dulcetsurf67367@getalby.com`) must point at an LNURL-pay endpoint that returns `allowsNostr: true` and the recipient's `nostrPubkey` (hex). When the payment settles, the LSP / zapper publishes a **zap receipt** (kind 9735) to the recipient's relays. Clients then display the receipt as a zap on the original post. Source: [NIP-57](https://github.com/nostr-protocol/nips/blob/master/57.md).
+A zap is a normal Lightning payment with a Nostr "zap request" event (kind 9734) attached as a description. The recipient's Lightning Address (e.g. `sovereigndwp@getalby.com`) must point at an LNURL-pay endpoint that returns `allowsNostr: true` and the recipient's `nostrPubkey` (hex). When the payment settles, the LSP / zapper publishes a **zap receipt** (kind 9735) to the recipient's relays. Clients then display the receipt as a zap on the original post. Source: [NIP-57](https://github.com/nostr-protocol/nips/blob/master/57.md).
 
 ### Options evaluated
 
@@ -119,7 +119,7 @@ A zap is a normal Lightning payment with a Nostr "zap request" event (kind 9734)
 
 ### Recommendation
 
-- **Beginner-friendly (start today):** Create `dulcetsurf67367@getalby.com` at https://coinos.io. Free, has a Lightning address by default, and is run by Nostr-friendly people.
+- **Beginner-friendly (start today):** Create `sovereigndwp@getalby.com` at https://coinos.io. Free, has a Lightning address by default, and is run by Nostr-friendly people.
 - **More sovereign (target within 90 days):** Migrate to [Alby Hub](https://albyhub.com/) on a small VPS or on the existing infrastructure. Lightning address becomes `bsa@<your-domain>` via the Alby Hub LNAddress route.
 - **Best current for BSA right now:** start with **Coinos** so the account is live and zappable on day one, **sweep balance weekly** to BSA cold storage (or to a dedicated 1-of-3 multisig managed via The Bitcoin Adviser) so the custodial balance stays small. Plan the Alby Hub migration into the 90-day roadmap.
 
@@ -141,7 +141,7 @@ The Lightning address goes into your kind 0 metadata as the `lud16` field. Examp
   "banner": "https://bitcoinsovereign.academy/assets/dalia/bsa-banner-1500x500.png",
   "website": "https://bitcoinsovereign.academy",
   "nip05": "_@bitcoinsovereign.academy",
-  "lud16": "dulcetsurf67367@getalby.com"
+  "lud16": "sovereigndwp@getalby.com"
 }
 ```
 
@@ -402,7 +402,7 @@ Pinned "Start here" post (npub bio + lud16)
    │       │
    │       └─▶ "If this saved you confusion, zaps welcome" (1 in 5 posts)
    │              │
-   │              └─▶ Lightning zap to dulcetsurf67367@getalby.com  → value-for-value loop
+   │              └─▶ Lightning zap to sovereigndwp@getalby.com  → value-for-value loop
    │
    └─▶ Advisor / family CTA (1–2x/week max)
             │
@@ -659,7 +659,7 @@ Phase B — account (this week):
 - [ ] Generate BSA Nostr keypair
 - [ ] Store nsec in password manager + paper backup
 - [ ] Replace `REPLACE_WITH_BSA_PUBKEY_HEX_LOWERCASE` in `.well-known/nostr.json` with the real hex pubkey
-- [ ] Create `dulcetsurf67367@getalby.com` Lightning address
+- [ ] Create `sovereigndwp@getalby.com` Lightning address
 - [ ] Verify NIP-05 + lud16 resolve via `scripts/nostr/zap-profile-check.mjs`
 - [ ] Publish kind 0 profile metadata via `set-profile.mjs`
 - [ ] Publish pinned "Start here" post manually
@@ -674,7 +674,7 @@ Phase C — content (week 2 onward):
 
 Phase D — optimization (month 2+):
 
-- [ ] Migrate Lightning address from `dulcetsurf67367@getalby.com` to self-hosted Alby Hub on `bsa@bitcoinsovereign.academy`
+- [ ] Migrate Lightning address from `sovereigndwp@getalby.com` to self-hosted Alby Hub on `bsa@bitcoinsovereign.academy`
 - [ ] Add paid relay `wss://nostr.wine` once readership is real
 - [ ] Cross-post weekly recap to Substack / LinkedIn (manual, not automated)
 

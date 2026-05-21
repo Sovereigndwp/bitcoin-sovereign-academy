@@ -7,7 +7,7 @@
  * Body: { amount, description, expirySeconds }
  */
 
-const LIGHTNING_ADDRESS = process.env.LIGHTNING_ADDRESS || 'dulcetsurf67367@getalby.com';
+const LIGHTNING_ADDRESS = process.env.LIGHTNING_ADDRESS || 'sovereigndwp@getalby.com';
 const APPRENTICE_DEPOSIT_SATS = 50_000;
 const APPRENTICE_DEPOSIT_MSATS = APPRENTICE_DEPOSIT_SATS * 1000;
 

@@ -79,7 +79,7 @@ System updates user's membership status
 
 ## 💡 Your Lightning Address
 
-Your Lightning address `dulcetsurf67367@getalby.com` is already configured in the frontend for receiving tips and smaller payments.
+Your Lightning address `sovereigndwp@getalby.com` is already configured in the frontend for receiving tips and smaller payments.
 
 ## 🛠 Troubleshooting
 
