@@ -14,7 +14,7 @@
 
     const CONFIG = {
         // Lightning address for tips
-        lightningAddress: 'dulcetsurf67367@getalby.com',
+        lightningAddress: 'sovereigndwp@getalby.com',
         
         // Hide after user dismisses (session only)
         hideAfterDismiss: true,
