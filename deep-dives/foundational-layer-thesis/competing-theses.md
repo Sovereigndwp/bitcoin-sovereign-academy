@@ -2,7 +2,7 @@
 
 ### Where the Symbiotic-Sovereign Thesis disagrees with the Cypherpunk Maximalist, Institutional Store-of-Value, and Bitcoin-Will-Fail positions. Honest engagement with each.
 
-*The Sovereign Academy · v3 companion · May 2026*
+*The Sovereign Academy · v4 companion · May 2026*
 
 ---
 
@@ -12,7 +12,7 @@ The original v1 and v2 of this deep dive engaged Bitcoin maximalism implicitly a
 
 This companion presents three competing theses in their strongest forms. Each disagrees with the Symbiotic-Sovereign Thesis (SST) in a different direction. Each has serious advocates and serious arguments. The goal is honest representation, not steel-man-ing for sport.
 
-A fourth competing position — **multi-chain maximalism** (a16z, Multicoin Capital, "Bitcoin is one of many") — is mentioned briefly at the end but not given full treatment in v3. It may receive its own treatment in a future version.
+A fourth competing position — **multi-chain maximalism** (a16z, Multicoin Capital, "Bitcoin is one of many") — is mentioned briefly at the end but not given full treatment in v4. It may receive its own treatment in a future version.
 
 ---
 
@@ -213,4 +213,4 @@ This deserves its own treatment in a future version. For now, the multi-chain po
 - [The Guardian: Top three leading Bitcoin critics](https://guardian.ng/news/top-three-leading-bitcoin-critics/) `[PRESS]`
 - [CoinMarketCap: Bitcoin's Security Model deep dive](https://coinmarketcap.com/academy/article/the-ultimate-deep-dive-into-bitcoin-s-security-model) `[PRESS]`
 
-*Companion to v3 of "Bitcoin Is No Longer Just the Foundational Layer." Each competing thesis is presented in its strongest form. Readers are invited to weigh them independently. If you find the cypherpunk thesis more compelling than SST, that is a legitimate intellectual position and the SST author respects it.*
+*Companion to v4 of "Bitcoin Is No Longer Just the Foundational Layer." Each competing thesis is presented in its strongest form. Readers are invited to weigh them independently. If you find the cypherpunk thesis more compelling than the symbiotic-sovereign thesis, that is a legitimate intellectual position and the author respects it.*

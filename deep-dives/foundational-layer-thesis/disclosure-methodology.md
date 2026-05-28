@@ -69,7 +69,7 @@ This v3 deep dive draws on data as recent as May 17, 2026. Older data points are
 **Where the analysis is strong:**
 
 - The six-layer Bitcoin stack ontology is a structural argument that does not depend on volatile data points.
-- The three-patterns-of-symbiosis frame (settlement anchor, custody spine, trust source) is architecture-level reasoning.
+- The three-patterns-of-connection frame (settlement anchor, dollar access carrier, settlement reference where exit rights are real) is architecture-level reasoning.
 - The five-front Counter-Map names specific incumbents and specific structural advantages — these are stable claims that survive short-term volatility.
 - The 17-falsifier framework is the discipline that makes the rest of the thesis testable.
 
