@@ -40,11 +40,11 @@ function inferTier(session: Stripe.Checkout.Session, expectedTier?: string): 'ap
   }
 
   const currency = session.currency?.toLowerCase();
-  if (expectedTier === 'apprentice' && session.amount_total === APPRENTICE_PRICE_CENTS && currency === 'usd') {
+  if (session.amount_total === APPRENTICE_PRICE_CENTS && currency === 'usd') {
     return 'apprentice';
   }
 
-  if (expectedTier === 'sovereign' && session.amount_total === SOVEREIGN_PRICE_CENTS && currency === 'usd') {
+  if (session.amount_total === SOVEREIGN_PRICE_CENTS && currency === 'usd') {
     return 'sovereign';
   }
 
