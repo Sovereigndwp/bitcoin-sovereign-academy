@@ -9,8 +9,31 @@
     let mobileMenuButton;
     let navMenu;
     let isMenuOpen = false;
+
+    function insertProductsDropdown() {
+        const navList = document.getElementById('nav-links-list');
+        if (!navList || document.getElementById('dd-products')) return;
+
+        const productsDropdown = document.createElement('li');
+        productsDropdown.className = 'nav-dropdown';
+        productsDropdown.id = 'dd-products';
+        productsDropdown.innerHTML = `
+            <a href="/products/self-custody-starter-kit/" class="nav-link" aria-haspopup="true" aria-expanded="false">Products <span class="caret" aria-hidden="true">▼</span></a>
+            <div class="dropdown-menu">
+                <a href="/products/self-custody-starter-kit/"><span class="dd-icon">🔐</span><span class="dd-label">Self-Custody Starter Kit</span><span class="dd-badge">$49</span></a>
+                <a href="/products/family-bitcoin-recovery-kit/"><span class="dd-icon">🏠</span><span class="dd-label">Family Recovery Kit</span><span class="dd-badge">$149</span></a>
+                <a href="/products/advisor-bitcoin-client-kit/"><span class="dd-icon">💼</span><span class="dd-label">Continuity Operational Packet</span><span class="dd-badge">$499</span></a>
+            </div>
+        `;
+
+        const pathsDropdown = document.getElementById('dd-paths');
+        const institutionalDropdown = document.getElementById('dd-institutional');
+        navList.insertBefore(productsDropdown, pathsDropdown || institutionalDropdown || null);
+    }
     
     function initMobileMenu() {
+        insertProductsDropdown();
+
         mobileMenuButton = document.getElementById('mobileMenu');
         navMenu = document.getElementById('nav-links-list');
         
@@ -56,6 +79,7 @@
         
         // Handle dropdown toggles on mobile
         setupMobileDropdowns();
+        setupMenuItemClose();
     }
     
     function toggleMenu() {
@@ -92,6 +116,8 @@
         const openDropdowns = navMenu.querySelectorAll('.nav-dropdown.open');
         openDropdowns.forEach(dropdown => {
             dropdown.classList.remove('open');
+            const trigger = dropdown.querySelector('.nav-link');
+            if (trigger) trigger.setAttribute('aria-expanded', 'false');
         });
         
         // Restore body scroll
@@ -114,19 +140,34 @@
                         dropdowns.forEach(otherDropdown => {
                             if (otherDropdown !== dropdown) {
                                 otherDropdown.classList.remove('open');
+                                const otherTrigger = otherDropdown.querySelector('.nav-link');
+                                if (otherTrigger) otherTrigger.setAttribute('aria-expanded', 'false');
                             }
                         });
                         
                         // Toggle current dropdown
-                        dropdown.classList.toggle('open');
+                        const willOpen = !dropdown.classList.contains('open');
+                        dropdown.classList.toggle('open', willOpen);
+                        trigger.setAttribute('aria-expanded', String(willOpen));
                     }
                 });
             }
         });
     }
+
+    function setupMenuItemClose() {
+        const menuLinks = navMenu.querySelectorAll('.dropdown-menu a');
+        menuLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) closeMenu();
+            });
+        });
+    }
     
     // Focus trap for mobile menu accessibility
     function setupFocusTrap() {
+        if (!navMenu) return;
+
         const focusableElements = navMenu.querySelectorAll(
             'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
         );
