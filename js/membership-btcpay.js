@@ -127,6 +127,7 @@
     const apprentice = document.getElementById('btn-apprentice');
     if (apprentice) {
       apprentice.textContent = '⚡ Pay with Bitcoin or Lightning';
+      apprentice.removeAttribute('onclick');
       apprentice.onclick = function () { startCheckout('apprentice'); };
     }
 
@@ -143,8 +144,20 @@
     }
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
+  function boot() {
     verifyReturn();
     injectButtons();
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+
+  window.BSAMembershipBTCPay = {
+    startCheckout,
+    verifyReturn,
+    injectButtons
+  };
 })();
