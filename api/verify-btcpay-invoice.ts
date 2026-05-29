@@ -10,7 +10,7 @@ import {
 } from './lib/premium-route-access';
 
 const PREMIUM_ROUTE_COOKIE_MAX_AGE_SECONDS = 365 * 24 * 60 * 60;
-const ALLOWED_STATUSES = new Set(['Settled', 'Processing']);
+const SETTLED_STATUS = 'Settled';
 const INVOICE_ID_PATTERN = /^[A-Za-z0-9_-]{8,128}$/;
 
 function getBTCPayConfig() {
@@ -68,8 +68,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Unknown BTCPay invoice' });
     }
 
-    if (!ALLOWED_STATUSES.has(invoice.status)) {
-      return res.status(400).json({ error: `Invoice not paid yet. Current status: ${invoice.status}` });
+    if (invoice.status !== SETTLED_STATUS) {
+      return res.status(400).json({ error: `Invoice not settled yet. Current status: ${invoice.status}` });
     }
 
     const tier = inferTier(invoice, expectedTier);
