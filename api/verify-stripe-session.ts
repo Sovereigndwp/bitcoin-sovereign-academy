@@ -12,6 +12,7 @@ import {
 
 const EXPECTED_TIERS = new Set(['apprentice', 'sovereign']);
 const SESSION_ID_PATTERN = /^cs_(test|live)_[A-Za-z0-9_]+$/;
+const APPRENTICE_PRICE_CENTS = 3_700;
 const SOVEREIGN_PRICE_CENTS = 39_900;
 const PREMIUM_ROUTE_COOKIE_MAX_AGE_SECONDS = 365 * 24 * 60 * 60;
 
@@ -38,11 +39,12 @@ function inferTier(session: Stripe.Checkout.Session, expectedTier?: string): 'ap
     return metadataTier;
   }
 
-  if (
-    expectedTier === 'sovereign' &&
-    session.amount_total === SOVEREIGN_PRICE_CENTS &&
-    session.currency?.toLowerCase() === 'usd'
-  ) {
+  const currency = session.currency?.toLowerCase();
+  if (expectedTier === 'apprentice' && session.amount_total === APPRENTICE_PRICE_CENTS && currency === 'usd') {
+    return 'apprentice';
+  }
+
+  if (expectedTier === 'sovereign' && session.amount_total === SOVEREIGN_PRICE_CENTS && currency === 'usd') {
     return 'sovereign';
   }
 
