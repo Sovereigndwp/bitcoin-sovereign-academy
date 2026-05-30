@@ -18,13 +18,18 @@
   <span class="sats">~ sats</span>
 </div>
 
-<div class="bsa-checkout" id="bsa-checkout-self-custody-starter-kit">
-  <p class="bsa-step"><strong>1.</strong> Enter the email you want the PDF sent to.</p>
-  <input type="email" placeholder="you@example.com" class="bsa-input" id="bsa-email-self-custody-starter-kit" />
-  <p class="bsa-step"><strong>2.</strong> Click below to pay $49 in sats with Lightning. A wallet popup opens in this window.</p>
-  <button type="button" class="bsa-btn" id="bsa-btn-self-custody-starter-kit">⚡ Pay $49 with Lightning</button>
-  <div id="bsa-error-self-custody-starter-kit" style="display:none;margin-top:10px;padding:10px;border:1px solid #c33;border-radius:4px;color:#c33;font-family:monospace;font-size:13px;white-space:pre-wrap;"></div>
-  <div id="bsa-status-self-custody-starter-kit" style="display:none;margin-top:10px;padding:10px;border:1px solid #888;border-radius:4px;color:#444;font-size:13px;"></div>
+<div class="bsa-checkout">
+  <p><strong>Pay $49 in sats with Lightning</strong></p>
+
+  <p style="margin:1em 0;">Lightning Address: <code style="background:#f4f4f4;padding:2px 6px;border-radius:3px;font-size:0.95em;">sovereigndwp@getalby.com</code></p>
+
+  <img src="https://api.qrserver.com/v1/create-qr-code/?data=lightning%3Asovereigndwp%40getalby.com&size=300x300&margin=10" alt="Lightning QR: sovereigndwp@getalby.com" width="300" height="300" style="display:block;max-width:100%;height:auto;margin:1em 0;border:1px solid #ddd;" loading="lazy" />
+
+  <p>Scan with any Lightning wallet (Phoenix, Wallet of Satoshi, Alby Go, Mutiny, Cash App, Strike, etc.). When prompted, enter <strong>$49</strong>. Wallets that show USD will land on the exact sats equivalent.</p>
+
+  <p style="margin-top:1.5em;padding:1em;background:#f9f9f9;border-left:3px solid #f5a623;border-radius:3px;">
+    <strong>After paying:</strong> email <a href="mailto:thesovereign.academy@proton.me?subject=BSA%20order%20%E2%80%94%20Self-Custody%20Starter%20Kit%20%28%2449%29&body=I%20just%20paid%20%2449%20to%20sovereigndwp%40getalby.com%20for%20the%20Self-Custody%20Starter%20Kit.%0APlease%20send%20the%20PDF%20to%20this%20email%20address.%0A%0ALightning%20payment%20preimage%20or%20screenshot%20%28optional%2C%20helps%20us%20match%20fast%29%3A">thesovereign.academy@proton.me</a> from the address you want the PDF delivered to. Include a screenshot or the payment preimage so we can match it fast. PDF arrives within the hour.
+  </p>
 </div>
 
 <details class="bsa-fallback">
@@ -34,88 +39,6 @@
     <button type="submit" class="bsa-btn-secondary">Pay on-chain via BTCPay</button>
   </form>
 </details>
-
-<script type="module">
-  console.log("[BSA Starter] script tag executing");
-  const errDiv = document.getElementById("bsa-error-self-custody-starter-kit");
-  const statusDiv = document.getElementById("bsa-status-self-custody-starter-kit");
-  const showError = (msg) => { console.error("[BSA Starter]", msg); if (errDiv) { errDiv.textContent = msg; errDiv.style.display = "block"; } };
-  const showStatus = (msg) => { console.log("[BSA Starter]", msg); if (statusDiv) { statusDiv.textContent = msg; statusDiv.style.display = "block"; } };
-
-  let launchPaymentModal;
-  try {
-    showStatus("Loading payment library…");
-    const mod = await import("https://esm.sh/@getalby/bitcoin-connect@3");
-    launchPaymentModal = mod.launchPaymentModal;
-    if (typeof launchPaymentModal !== "function") throw new Error("launchPaymentModal is not a function (got " + typeof launchPaymentModal + ")");
-    showStatus("Payment library loaded — ready.");
-    setTimeout(() => { if (statusDiv) statusDiv.style.display = "none"; }, 1500);
-  } catch (err) {
-    showError("Failed to load Bitcoin Connect: " + (err && err.message ? err.message : err));
-  }
-
-  const btn = document.getElementById("bsa-btn-self-custody-starter-kit");
-  if (!btn) {
-    showError("Internal: button bsa-btn-self-custody-starter-kit not found in DOM.");
-  } else {
-    btn.addEventListener("click", async () => {
-      if (errDiv) errDiv.style.display = "none";
-      const email = document.getElementById("bsa-email-self-custody-starter-kit").value;
-      if (!email) { showError("Enter your email first."); return; }
-      if (!launchPaymentModal) { showError("Payment library did not load. Reload the page."); return; }
-      try {
-        // 1. mailto for order intent
-        try {
-          const subject = "BSA order — Starter Kit ($49)";
-          const body = "Buyer email: " + email + "
-Product: Starter Kit
-Price: $49
-Lightning Address: sovereigndwp@getalby.com";
-          window.open("mailto:thesovereign.academy@proton.me?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body), "_blank");
-        } catch (e) { console.warn("[BSA Starter] mailto open failed (non-fatal):", e); }
-
-        // 2. BTC price
-        showStatus("Fetching current BTC price…");
-        const priceResp = await fetch("https://mempool.space/api/v1/prices");
-        if (!priceResp.ok) throw new Error("Price API HTTP " + priceResp.status);
-        const priceData = await priceResp.json();
-        if (!priceData.USD) throw new Error("Price API returned no USD field");
-        const sats = Math.round((49 / priceData.USD) * 1e8);
-        const millisats = sats * 1000;
-        console.log("[BSA Starter] sats:", sats);
-
-        // 3. LNURL lookup
-        showStatus("Looking up Lightning address (" + sats.toLocaleString() + " sats)…");
-        const lnurlResp = await fetch("https://getalby.com/.well-known/lnurlp/sovereigndwp");
-        if (!lnurlResp.ok) throw new Error("LNURL HTTP " + lnurlResp.status);
-        const lnurl = await lnurlResp.json();
-        if (!lnurl.callback) throw new Error("LNURL response missing callback: " + JSON.stringify(lnurl).slice(0, 300));
-
-        // 4. invoice callback
-        showStatus("Requesting invoice…");
-        const cbUrl = new URL(lnurl.callback);
-        cbUrl.searchParams.set("amount", String(millisats));
-        const cbResp = await fetch(cbUrl.toString());
-        if (!cbResp.ok) throw new Error("Invoice callback HTTP " + cbResp.status);
-        const cb = await cbResp.json();
-        if (!cb.pr) throw new Error("Callback missing pr (invoice): " + JSON.stringify(cb).slice(0, 300));
-
-        // 5. launch modal
-        showStatus("Opening payment modal…");
-        await launchPaymentModal({
-          invoice: cb.pr,
-          onPaid: () => { if (statusDiv) statusDiv.style.display = "none"; alert("Payment received. PDF will arrive at " + email + " within the hour."); },
-        });
-        if (statusDiv) statusDiv.style.display = "none";
-      } catch (err) {
-        showError("Step failed: " + (err && err.message ? err.message : err) + "
-
-Email " + "thesovereign.academy@proton.me" + " from " + email + " for a manual invoice.");
-      }
-    });
-    console.log("[BSA Starter] click handler attached");
-  }
-</script>
 <p class="bsa-meta">Lightning or on-chain. Instant access after payment confirms. 7-day full-sats refund window if it is not what you expected.</p>
 
 <h2>Who this is for</h2>
