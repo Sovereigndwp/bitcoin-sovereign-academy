@@ -18,16 +18,53 @@
   <span class="sats">~ sats</span>
 </div>
 
-<form method="post"
-      action="https://btcpay0.voltageapp.io/apps/2CtKbtyMg3gsuDsokBYEzfKRvUnq/pos"
-      target="_blank"
-      autocomplete="off"
-      class="bsa-btn-form"
-      data-bsa-cta="paid-kit"
-      data-bsa-product="family-bitcoin-recovery-kit">
-  <input type="hidden" name="choiceKey" value="family-bitcoin-recovery-kit" />
-  <button type="submit" class="bsa-btn">Get the Family Recovery Kit — Pay with Bitcoin</button>
+<form class="bsa-checkout" onsubmit="bsaPayFamily(event)">
+  <p class="bsa-step"><strong>1.</strong> Enter the email you want the PDF sent to.</p>
+  <input type="email" name="email" required placeholder="you@example.com" class="bsa-input" id="bsa-email-family-bitcoin-recovery-kit" />
+  <p class="bsa-step"><strong>2.</strong> Click below to pay $149 in sats with Lightning. A wallet popup opens in this window.</p>
+  <button type="submit" class="bsa-btn">⚡ Pay $149 with Lightning</button>
 </form>
+
+<details class="bsa-fallback">
+  <summary>Prefer on-chain Bitcoin? (slower, higher fees)</summary>
+  <form method="post" action="https://btcpay0.voltageapp.io/apps/2CtKbtyMg3gsuDsokBYEzfKRvUnq/pos" target="_blank" autocomplete="off">
+    <input type="hidden" name="choiceKey" value="family-bitcoin-recovery-kit" />
+    <button type="submit" class="bsa-btn-secondary">Pay on-chain via BTCPay</button>
+  </form>
+</details>
+
+<script type="module">
+  import { launchPaymentModal } from "https://esm.sh/@getalby/bitcoin-connect@3";
+  import { LightningAddress } from "https://esm.sh/@getalby/lightning-tools";
+  window.bsaPayFamily = async (event) => {
+    event.preventDefault();
+    const email = document.getElementById("bsa-email-family-bitcoin-recovery-kit").value;
+    if (!email) return;
+    const subject = "BSA order — Family Recovery Kit ($149)";
+    const body = "Buyer email: " + email + "
+Product: Family Recovery Kit
+Price: $149
+Lightning Address: sovereigndwp@getalby.com
+
+Payment in progress via Bitcoin Connect.";
+    window.open("mailto:thesovereign.academy@proton.me?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body), "_blank");
+    let sats;
+    try {
+      const priceData = await fetch("https://mempool.space/api/v1/prices").then(r => r.json());
+      sats = Math.round((149 / priceData.USD) * 1e8);
+    } catch (err) {
+      alert("Could not fetch BTC price. Email " + email + " to thesovereign.academy@proton.me for a manual invoice.");
+      return;
+    }
+    const ln = new LightningAddress("sovereigndwp@getalby.com");
+    await ln.fetch();
+    const invoice = await ln.requestInvoice({ satoshi: sats, comment: "BSA Family Recovery Kit — " + email });
+    launchPaymentModal({
+      invoice: invoice.paymentRequest,
+      onPaid: () => alert("Payment received. PDF will arrive at " + email + " within the hour."),
+    });
+  };
+</script>
 <p class="bsa-meta">Already bought the Starter Kit? Email <a href="mailto:thesovereign.academy@proton.me">thesovereign.academy@proton.me</a> and we apply your $49 toward this kit. No code, no upsell page — just ask.</p>
 
 <h2>Who this is for</h2>
