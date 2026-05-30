@@ -34,35 +34,60 @@
 </details>
 
 <script type="module">
-  import { launchPaymentModal } from "https://esm.sh/@getalby/bitcoin-connect@3";
-  import { LightningAddress } from "https://esm.sh/@getalby/lightning-tools";
+  import { launchPaymentModal } from "https://esm.sh/@getalby/bitcoin-connect@^3.12.0";
+
   window.bsaPayFamily = async (event) => {
     event.preventDefault();
-    const email = document.getElementById("bsa-email-family-bitcoin-recovery-kit").value;
-    if (!email) return;
-    const subject = "BSA order — Family Recovery Kit ($149)";
-    const body = "Buyer email: " + email + "
+    const emailEl = document.getElementById("bsa-email-family-bitcoin-recovery-kit");
+    const email = emailEl ? emailEl.value : "";
+    if (!email) {
+      alert("Please enter your email first.");
+      return;
+    }
+    try {
+      // 1. open mailto so we get the order intent in our inbox
+      const subject = "BSA order — Family Recovery Kit ($149)";
+      const body = "Buyer email: " + email + "
 Product: Family Recovery Kit
 Price: $149
 Lightning Address: sovereigndwp@getalby.com
 
-Payment in progress via Bitcoin Connect.";
-    window.open("mailto:thesovereign.academy@proton.me?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body), "_blank");
-    let sats;
-    try {
-      const priceData = await fetch("https://mempool.space/api/v1/prices").then(r => r.json());
-      sats = Math.round((149 / priceData.USD) * 1e8);
+Payment in progress.";
+      window.open("mailto:thesovereign.academy@proton.me?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body), "_blank");
+
+      // 2. fetch current BTC price (mempool.space, no key needed)
+      const priceResp = await fetch("https://mempool.space/api/v1/prices");
+      if (!priceResp.ok) throw new Error("Price API returned HTTP " + priceResp.status);
+      const priceData = await priceResp.json();
+      if (!priceData.USD) throw new Error("Price API returned no USD field");
+      const sats = Math.round((149 / priceData.USD) * 1e8);
+      const millisats = sats * 1000;
+
+      // 3. resolve Lightning Address via LNURL-pay (manual, no library)
+      const lnurlResp = await fetch("https://getalby.com/.well-known/lnurlp/sovereigndwp");
+      if (!lnurlResp.ok) throw new Error("LNURL endpoint returned HTTP " + lnurlResp.status);
+      const lnurl = await lnurlResp.json();
+      if (!lnurl.callback) throw new Error("LNURL response missing callback field");
+
+      // 4. request a fresh BOLT11 invoice
+      const cbUrl = new URL(lnurl.callback);
+      cbUrl.searchParams.set("amount", String(millisats));
+      const cbResp = await fetch(cbUrl.toString());
+      if (!cbResp.ok) throw new Error("Invoice callback returned HTTP " + cbResp.status);
+      const cb = await cbResp.json();
+      if (!cb.pr) throw new Error("Callback response missing pr (invoice): " + JSON.stringify(cb).slice(0, 200));
+
+      // 5. open Bitcoin Connect modal with the invoice
+      await launchPaymentModal({
+        invoice: cb.pr,
+        onPaid: () => alert("Payment received. Your PDF will arrive at " + email + " within the hour."),
+      });
     } catch (err) {
-      alert("Could not fetch BTC price. Email " + email + " to thesovereign.academy@proton.me for a manual invoice.");
-      return;
+      console.error("BSA payment flow error:", err);
+      alert("Payment failed: " + (err && err.message ? err.message : err) + "
+
+Please email thesovereign.academy@proton.me from " + email + " and we will send a manual Lightning invoice within the hour.");
     }
-    const ln = new LightningAddress("sovereigndwp@getalby.com");
-    await ln.fetch();
-    const invoice = await ln.requestInvoice({ satoshi: sats, comment: "BSA Family Recovery Kit — " + email });
-    launchPaymentModal({
-      invoice: invoice.paymentRequest,
-      onPaid: () => alert("Payment received. PDF will arrive at " + email + " within the hour."),
-    });
   };
 </script>
 <p class="bsa-meta">Already bought the Starter Kit? Email <a href="mailto:thesovereign.academy@proton.me">thesovereign.academy@proton.me</a> and we apply your $49 toward this kit. No code, no upsell page — just ask.</p>
