@@ -18,12 +18,14 @@
   <span class="sats">~ sats</span>
 </div>
 
-<form class="bsa-checkout" onsubmit="bsaPayFamily(event)">
+<div class="bsa-checkout" id="bsa-checkout-family-bitcoin-recovery-kit">
   <p class="bsa-step"><strong>1.</strong> Enter the email you want the PDF sent to.</p>
-  <input type="email" name="email" required placeholder="you@example.com" class="bsa-input" id="bsa-email-family-bitcoin-recovery-kit" />
+  <input type="email" placeholder="you@example.com" class="bsa-input" id="bsa-email-family-bitcoin-recovery-kit" />
   <p class="bsa-step"><strong>2.</strong> Click below to pay $149 in sats with Lightning. A wallet popup opens in this window.</p>
-  <button type="submit" class="bsa-btn">⚡ Pay $149 with Lightning</button>
-</form>
+  <button type="button" class="bsa-btn" id="bsa-btn-family-bitcoin-recovery-kit">⚡ Pay $149 with Lightning</button>
+  <div id="bsa-error-family-bitcoin-recovery-kit" style="display:none;margin-top:10px;padding:10px;border:1px solid #c33;border-radius:4px;color:#c33;font-family:monospace;font-size:13px;white-space:pre-wrap;"></div>
+  <div id="bsa-status-family-bitcoin-recovery-kit" style="display:none;margin-top:10px;padding:10px;border:1px solid #888;border-radius:4px;color:#444;font-size:13px;"></div>
+</div>
 
 <details class="bsa-fallback">
   <summary>Prefer on-chain Bitcoin? (slower, higher fees)</summary>
@@ -34,61 +36,85 @@
 </details>
 
 <script type="module">
-  import { launchPaymentModal } from "https://esm.sh/@getalby/bitcoin-connect@^3.12.0";
+  console.log("[BSA Family] script tag executing");
+  const errDiv = document.getElementById("bsa-error-family-bitcoin-recovery-kit");
+  const statusDiv = document.getElementById("bsa-status-family-bitcoin-recovery-kit");
+  const showError = (msg) => { console.error("[BSA Family]", msg); if (errDiv) { errDiv.textContent = msg; errDiv.style.display = "block"; } };
+  const showStatus = (msg) => { console.log("[BSA Family]", msg); if (statusDiv) { statusDiv.textContent = msg; statusDiv.style.display = "block"; } };
 
-  window.bsaPayFamily = async (event) => {
-    event.preventDefault();
-    const emailEl = document.getElementById("bsa-email-family-bitcoin-recovery-kit");
-    const email = emailEl ? emailEl.value : "";
-    if (!email) {
-      alert("Please enter your email first.");
-      return;
-    }
-    try {
-      // 1. open mailto so we get the order intent in our inbox
-      const subject = "BSA order — Family Recovery Kit ($149)";
-      const body = "Buyer email: " + email + "
+  let launchPaymentModal;
+  try {
+    showStatus("Loading payment library…");
+    const mod = await import("https://esm.sh/@getalby/bitcoin-connect@3");
+    launchPaymentModal = mod.launchPaymentModal;
+    if (typeof launchPaymentModal !== "function") throw new Error("launchPaymentModal is not a function (got " + typeof launchPaymentModal + ")");
+    showStatus("Payment library loaded — ready.");
+    setTimeout(() => { if (statusDiv) statusDiv.style.display = "none"; }, 1500);
+  } catch (err) {
+    showError("Failed to load Bitcoin Connect: " + (err && err.message ? err.message : err));
+  }
+
+  const btn = document.getElementById("bsa-btn-family-bitcoin-recovery-kit");
+  if (!btn) {
+    showError("Internal: button bsa-btn-family-bitcoin-recovery-kit not found in DOM.");
+  } else {
+    btn.addEventListener("click", async () => {
+      if (errDiv) errDiv.style.display = "none";
+      const email = document.getElementById("bsa-email-family-bitcoin-recovery-kit").value;
+      if (!email) { showError("Enter your email first."); return; }
+      if (!launchPaymentModal) { showError("Payment library did not load. Reload the page."); return; }
+      try {
+        // 1. mailto for order intent
+        try {
+          const subject = "BSA order — Family Recovery Kit ($149)";
+          const body = "Buyer email: " + email + "
 Product: Family Recovery Kit
 Price: $149
-Lightning Address: sovereigndwp@getalby.com
+Lightning Address: sovereigndwp@getalby.com";
+          window.open("mailto:thesovereign.academy@proton.me?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body), "_blank");
+        } catch (e) { console.warn("[BSA Family] mailto open failed (non-fatal):", e); }
 
-Payment in progress.";
-      window.open("mailto:thesovereign.academy@proton.me?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body), "_blank");
+        // 2. BTC price
+        showStatus("Fetching current BTC price…");
+        const priceResp = await fetch("https://mempool.space/api/v1/prices");
+        if (!priceResp.ok) throw new Error("Price API HTTP " + priceResp.status);
+        const priceData = await priceResp.json();
+        if (!priceData.USD) throw new Error("Price API returned no USD field");
+        const sats = Math.round((149 / priceData.USD) * 1e8);
+        const millisats = sats * 1000;
+        console.log("[BSA Family] sats:", sats);
 
-      // 2. fetch current BTC price (mempool.space, no key needed)
-      const priceResp = await fetch("https://mempool.space/api/v1/prices");
-      if (!priceResp.ok) throw new Error("Price API returned HTTP " + priceResp.status);
-      const priceData = await priceResp.json();
-      if (!priceData.USD) throw new Error("Price API returned no USD field");
-      const sats = Math.round((149 / priceData.USD) * 1e8);
-      const millisats = sats * 1000;
+        // 3. LNURL lookup
+        showStatus("Looking up Lightning address (" + sats.toLocaleString() + " sats)…");
+        const lnurlResp = await fetch("https://getalby.com/.well-known/lnurlp/sovereigndwp");
+        if (!lnurlResp.ok) throw new Error("LNURL HTTP " + lnurlResp.status);
+        const lnurl = await lnurlResp.json();
+        if (!lnurl.callback) throw new Error("LNURL response missing callback: " + JSON.stringify(lnurl).slice(0, 300));
 
-      // 3. resolve Lightning Address via LNURL-pay (manual, no library)
-      const lnurlResp = await fetch("https://getalby.com/.well-known/lnurlp/sovereigndwp");
-      if (!lnurlResp.ok) throw new Error("LNURL endpoint returned HTTP " + lnurlResp.status);
-      const lnurl = await lnurlResp.json();
-      if (!lnurl.callback) throw new Error("LNURL response missing callback field");
+        // 4. invoice callback
+        showStatus("Requesting invoice…");
+        const cbUrl = new URL(lnurl.callback);
+        cbUrl.searchParams.set("amount", String(millisats));
+        const cbResp = await fetch(cbUrl.toString());
+        if (!cbResp.ok) throw new Error("Invoice callback HTTP " + cbResp.status);
+        const cb = await cbResp.json();
+        if (!cb.pr) throw new Error("Callback missing pr (invoice): " + JSON.stringify(cb).slice(0, 300));
 
-      // 4. request a fresh BOLT11 invoice
-      const cbUrl = new URL(lnurl.callback);
-      cbUrl.searchParams.set("amount", String(millisats));
-      const cbResp = await fetch(cbUrl.toString());
-      if (!cbResp.ok) throw new Error("Invoice callback returned HTTP " + cbResp.status);
-      const cb = await cbResp.json();
-      if (!cb.pr) throw new Error("Callback response missing pr (invoice): " + JSON.stringify(cb).slice(0, 200));
+        // 5. launch modal
+        showStatus("Opening payment modal…");
+        await launchPaymentModal({
+          invoice: cb.pr,
+          onPaid: () => { if (statusDiv) statusDiv.style.display = "none"; alert("Payment received. PDF will arrive at " + email + " within the hour."); },
+        });
+        if (statusDiv) statusDiv.style.display = "none";
+      } catch (err) {
+        showError("Step failed: " + (err && err.message ? err.message : err) + "
 
-      // 5. open Bitcoin Connect modal with the invoice
-      await launchPaymentModal({
-        invoice: cb.pr,
-        onPaid: () => alert("Payment received. Your PDF will arrive at " + email + " within the hour."),
-      });
-    } catch (err) {
-      console.error("BSA payment flow error:", err);
-      alert("Payment failed: " + (err && err.message ? err.message : err) + "
-
-Please email thesovereign.academy@proton.me from " + email + " and we will send a manual Lightning invoice within the hour.");
-    }
-  };
+Email " + "thesovereign.academy@proton.me" + " from " + email + " for a manual invoice.");
+      }
+    });
+    console.log("[BSA Family] click handler attached");
+  }
 </script>
 <p class="bsa-meta">Already bought the Starter Kit? Email <a href="mailto:thesovereign.academy@proton.me">thesovereign.academy@proton.me</a> and we apply your $49 toward this kit. No code, no upsell page — just ask.</p>
 
