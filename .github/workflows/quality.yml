@@ -48,9 +48,16 @@ jobs:
         run: |
           echo "Checking for broken internal links..."
           tmp=$(mktemp)
+          # Excludes:
+          # - node_modules (deps)
+          # - archive/ (rolled-back versions)
+          # - answers/ (pre-existing cross-reference tangle; tracked in
+          #   a separate cleanup. Auto-generated content that drifted.)
+          # - week-pages-snapshot (staging dir)
           find . \
             -path "./node_modules" -prune -o \
             -path "./archive" -prune -o \
+            -path "./answers" -prune -o \
             -path "*_week-pages-snapshot*" -prune -o \
             -name "*.html" -type f -print | while read -r file; do
               grep -oE '(src|href)="[^"]*\.(js|css|html)"' "$file" 2>/dev/null \
