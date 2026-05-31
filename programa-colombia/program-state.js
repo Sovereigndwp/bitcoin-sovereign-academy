@@ -17,6 +17,21 @@
         'Hacer crecer mi dinero'
     ];
 
+    // Cross-week field map: each DOM id maps to a shared storage key.
+    // When a value is entered on any week, it auto-fills the same logical
+    // field on other weeks. Tunable: add/remove ids as the curriculum evolves.
+    const SHARED_FIELDS = {
+        'monthly-income':   'income.monthly',
+        'gross-salary':     'income.monthly',
+        'employer-salary':  'income.monthly',
+        'monthly-expenses': 'expenses.basic',
+        'sim-initial':      'savings.initial',
+        'sim-monthly':      'savings.monthly',
+        'commit-goal':      'goal.amount',
+        'commit-saved':     'goal.saved',
+        'commit-months':    'goal.months'
+    };
+
     const normalizedPath = normalizePath(window.location.pathname);
     const currentWeek = getCurrentWeek(normalizedPath);
     const isWeekPage = currentWeek !== null;
@@ -38,6 +53,8 @@
             markVisited(state, currentWeek);
             initCompletionTracking(state, currentWeek);
             initTextareaAutosave(state, currentWeek);
+            initCrossWeekSync(state);
+            initCopyPlanButton(state, currentWeek);
             if (isWeekTenPage) {
                 renderWeekTenSummary(state);
             }
@@ -75,10 +92,11 @@
         }
 
         return {
-            version: 1,
+            version: 2,
             updatedAt: null,
             weeks,
-            reflections: {}
+            reflections: {},
+            fields: {}
         };
     }
 
@@ -110,6 +128,10 @@
 
             if (parsed.reflections && typeof parsed.reflections === 'object') {
                 merged.reflections = parsed.reflections;
+            }
+
+            if (parsed.fields && typeof parsed.fields === 'object') {
+                merged.fields = parsed.fields;
             }
 
             merged.updatedAt = parsed.updatedAt || null;
@@ -273,6 +295,229 @@
 
     function getReflectionKey(weekNumber, index) {
         return 'week-' + weekNumber + '-textarea-' + index;
+    }
+
+    // === NEW: Cross-week field sync ===
+    // When a value is entered on any week's recognized input, save it to the
+    // shared store. When that week (or another) loads, pre-fill matching
+    // inputs. Triggers a synthetic 'input' event so dependent calculators
+    // refresh automatically.
+    function initCrossWeekSync(state) {
+        if (!state.fields || typeof state.fields !== 'object') {
+            state.fields = {};
+        }
+
+        Object.entries(SHARED_FIELDS).forEach(([id, key]) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            // Restore saved value if the input still has its hard-coded
+            // default (we treat any pre-existing value as "default" since
+            // weeks ship with placeholder examples).
+            const saved = state.fields[key];
+            const currentVal = parseFloat(el.value);
+            const hasDefault = !isNaN(currentVal);
+            // Mark default so we know it was the page-supplied example
+            if (hasDefault && !el.dataset.coloFieldOriginal) {
+                el.dataset.coloFieldOriginal = String(currentVal);
+            }
+
+            if (saved !== undefined && saved !== null && !isNaN(parseFloat(saved))) {
+                // Only override if the current value is the original default
+                // (i.e. user hasn't already typed something different in this
+                // session). This prevents stomping on in-progress edits.
+                const isOriginal = el.dataset.coloFieldOriginal !== undefined &&
+                                   parseFloat(el.value) === parseFloat(el.dataset.coloFieldOriginal);
+                if (!el.value || isOriginal) {
+                    el.value = saved;
+                    el.dataset.coloFieldRestored = 'true';
+                    // Re-run any oninput handler so calculators refresh
+                    try {
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                    } catch (e) { /* swallow */ }
+                }
+            }
+
+            // Persist on subsequent edits
+            el.addEventListener('input', () => {
+                const v = parseFloat(el.value);
+                if (!isNaN(v) && v > 0) {
+                    state.fields[key] = v;
+                    saveState(state);
+                }
+            });
+        });
+
+        // Small one-time toast when fields were restored
+        const restored = document.querySelectorAll('[data-colo-field-restored="true"]');
+        if (restored.length && !document.querySelector('.colombia-carryover-note')) {
+            const note = document.createElement('div');
+            note.className = 'colombia-carryover-note';
+            note.textContent = '✓ Algunos campos se pre-llenaron con datos que guardaste antes.';
+            // Place it just above the first restored input's parent section
+            const firstRestored = restored[0];
+            const section = firstRestored.closest('.section, .calculator-box, .planner-box, .program-lesson-section');
+            if (section) {
+                section.insertAdjacentElement('beforebegin', note);
+            }
+        }
+    }
+
+    // === NEW: Copy-my-plan button ===
+    // Injects a button near the closure / next-week area that gathers the
+    // user's reflections, key calculator outputs and shared fields, then
+    // copies a readable text summary to the clipboard. Falls back to a
+    // selectable textarea if clipboard API is unavailable.
+    function initCopyPlanButton(state, weekNumber) {
+        const closure = document.querySelector('.closure-box, .next-week, .reflection-box, .reflection');
+        if (!closure) return;
+        if (document.querySelector('.colombia-copy-plan-wrap')) return;
+
+        function generateSummary() {
+            const lines = [];
+            const weekTitle = WEEK_LABELS[weekNumber - 1] || ('Semana ' + weekNumber);
+            lines.push('📋 MI PLAN · Semana ' + weekNumber + ' · ' + weekTitle);
+            lines.push('━'.repeat(48));
+            lines.push('');
+
+            // Reflections
+            const filledReflections = Array.from(document.querySelectorAll('textarea'))
+                .filter(t => t.value.trim().length > 0);
+
+            if (filledReflections.length) {
+                lines.push('Mis reflexiones:');
+                filledReflections.forEach(t => {
+                    let q = '';
+                    // Try to find the question associated with this textarea
+                    const card = t.closest('.reflection-q, .program-lesson-question, .refl-item');
+                    if (card) {
+                        const qEl = card.querySelector('.reflection-q-text, .refl-q, p strong, strong');
+                        if (qEl) q = qEl.textContent.trim();
+                    }
+                    if (!q && t.placeholder) q = '(' + t.placeholder.slice(0, 60).replace(/\.\.\.$/, '') + ')';
+                    if (q) lines.push('• ' + q);
+                    lines.push('  ' + t.value.trim().split('\n').join('\n  '));
+                    lines.push('');
+                });
+            }
+
+            // Key calculator results (when visible)
+            const resultBlocks = Array.from(document.querySelectorAll(
+                '.action-result.visible, .planner-result, .calc-result, .final-amount, ' +
+                '.compare-card.focus, .stages-grid, .closure-text, .erosion-box'
+            ));
+            const seen = new Set();
+            const resultLines = [];
+            resultBlocks.forEach(el => {
+                // Skip if a parent block is already captured
+                let p = el.parentElement;
+                while (p) {
+                    if (seen.has(p)) return;
+                    p = p.parentElement;
+                }
+                seen.add(el);
+                const text = el.innerText.replace(/\s+\n/g, '\n').trim();
+                if (text && text.length < 600) {
+                    resultLines.push(text);
+                }
+            });
+            if (resultLines.length) {
+                lines.push('Mis números:');
+                resultLines.forEach(t => {
+                    lines.push(t.split('\n').map(l => '  ' + l).join('\n'));
+                    lines.push('');
+                });
+            }
+
+            // Shared fields (carryover state)
+            if (state.fields && Object.keys(state.fields).length) {
+                lines.push('Mis datos guardados:');
+                const labels = {
+                    'income.monthly':   'Ingreso mensual',
+                    'expenses.basic':   'Gastos básicos mensuales',
+                    'savings.initial':  'Ahorro inicial',
+                    'savings.monthly':  'Ahorro mensual',
+                    'goal.amount':      'Meta total',
+                    'goal.saved':       'Ya guardado',
+                    'goal.months':      'Meses para meta'
+                };
+                Object.entries(state.fields).forEach(([k, v]) => {
+                    const label = labels[k] || k;
+                    const formatted = (k === 'goal.months')
+                        ? Number(v).toLocaleString('es-CO') + ' meses'
+                        : '$' + Number(v).toLocaleString('es-CO');
+                    lines.push('  • ' + label + ': ' + formatted);
+                });
+                lines.push('');
+            }
+
+            lines.push('━'.repeat(48));
+            lines.push('Programa: bitcoinsovereign.academy/programa-colombia');
+            return lines.join('\n');
+        }
+
+        const wrap = document.createElement('div');
+        wrap.className = 'colombia-copy-plan-wrap';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'colombia-copy-plan-btn';
+        btn.innerHTML = '📋 Copiar mi plan de esta semana';
+
+        btn.addEventListener('click', async () => {
+            const text = generateSummary();
+            let ok = false;
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                    ok = true;
+                }
+            } catch (e) { ok = false; }
+
+            if (ok) {
+                btn.innerHTML = '✅ Copiado — pégalo en WhatsApp, notas, o donde quieras';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.innerHTML = '📋 Copiar mi plan de esta semana';
+                    btn.classList.remove('copied');
+                }, 3000);
+            } else {
+                // Fallback: show a textarea the user can manually copy from
+                showFallback(text);
+            }
+        });
+
+        function showFallback(text) {
+            // Avoid stacking multiple fallbacks
+            document.querySelector('.colombia-copy-fallback')?.remove();
+
+            const overlay = document.createElement('div');
+            overlay.className = 'colombia-copy-fallback';
+            overlay.innerHTML = `
+                <div class="colombia-copy-fallback-card">
+                    <div class="colombia-copy-fallback-title">Selecciona y copia (Cmd/Ctrl + C)</div>
+                    <textarea readonly></textarea>
+                    <button type="button" class="colombia-copy-fallback-close">Cerrar</button>
+                </div>
+            `;
+            overlay.querySelector('textarea').value = text;
+            overlay.querySelector('.colombia-copy-fallback-close')
+                .addEventListener('click', () => overlay.remove());
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+            document.body.appendChild(overlay);
+            overlay.querySelector('textarea').select();
+        }
+
+        wrap.appendChild(btn);
+
+        const helper = document.createElement('div');
+        helper.className = 'colombia-copy-plan-helper';
+        helper.textContent = 'Mándatelo por WhatsApp, pégalo en tus notas, o compártelo con tu pareja o tu familia.';
+        wrap.appendChild(helper);
+
+        closure.insertAdjacentElement('beforebegin', wrap);
     }
 
     function getStats(state) {
@@ -578,6 +823,109 @@
             .checklist-item[data-state="complete"] .checklist-check {
                 color: var(--red, #CE1126);
             }
+
+            /* === NEW: carryover toast === */
+            .colombia-carryover-note {
+                background: rgba(34, 197, 94, 0.08);
+                border: 1px solid rgba(34, 197, 94, 0.3);
+                color: #86efac;
+                border-radius: 8px;
+                padding: 0.6rem 0.9rem;
+                font-size: 0.85rem;
+                margin: 0 0 1rem;
+                line-height: 1.55;
+            }
+
+            /* === NEW: copy-my-plan button === */
+            .colombia-copy-plan-wrap {
+                margin: 1.5rem 0;
+                text-align: center;
+            }
+            .colombia-copy-plan-btn {
+                display: block;
+                width: 100%;
+                padding: 0.95rem 1.25rem;
+                background: rgba(252, 209, 22, 0.08);
+                color: var(--primary, #FCD116);
+                border: 1.5px solid rgba(252, 209, 22, 0.32);
+                border-radius: 0.85rem;
+                font-size: 0.96rem;
+                font-weight: 700;
+                cursor: pointer;
+                font-family: inherit;
+                transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+            }
+            .colombia-copy-plan-btn:hover {
+                background: rgba(252, 209, 22, 0.16);
+                border-color: rgba(252, 209, 22, 0.55);
+                transform: translateY(-1px);
+            }
+            .colombia-copy-plan-btn.copied {
+                background: rgba(34, 197, 94, 0.12);
+                color: #86efac;
+                border-color: rgba(34, 197, 94, 0.4);
+            }
+            .colombia-copy-plan-helper {
+                color: var(--dim, #a0a0a0);
+                font-size: 0.82rem;
+                line-height: 1.55;
+                margin-top: 0.5rem;
+            }
+
+            /* === NEW: clipboard fallback overlay === */
+            .colombia-copy-fallback {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 1rem;
+            }
+            .colombia-copy-fallback-card {
+                background: #1a1a1a;
+                border: 1px solid rgba(252, 209, 22, 0.3);
+                border-radius: 12px;
+                padding: 1.25rem;
+                max-width: 560px;
+                width: 100%;
+                max-height: 80vh;
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            .colombia-copy-fallback-title {
+                color: var(--primary, #FCD116);
+                font-weight: 700;
+                font-size: 0.95rem;
+            }
+            .colombia-copy-fallback-card textarea {
+                flex: 1;
+                min-height: 220px;
+                width: 100%;
+                background: #0b0d12;
+                border: 1px solid rgba(252, 209, 22, 0.2);
+                border-radius: 8px;
+                padding: 0.75rem;
+                color: #e8ecf3;
+                font-family: ui-monospace, Menlo, Consolas, monospace;
+                font-size: 0.85rem;
+                line-height: 1.55;
+                resize: none;
+            }
+            .colombia-copy-fallback-close {
+                align-self: flex-end;
+                background: rgba(252, 209, 22, 0.12);
+                color: var(--primary, #FCD116);
+                border: 1px solid rgba(252, 209, 22, 0.3);
+                border-radius: 8px;
+                padding: 0.5rem 1rem;
+                font-weight: 700;
+                cursor: pointer;
+                font-family: inherit;
+            }
+
             @media (max-width: 768px) {
                 .colombia-progress-stats {
                     grid-template-columns: 1fr;
