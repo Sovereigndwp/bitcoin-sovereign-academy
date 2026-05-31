@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semana 4: Mi primer colch&#243;n de emergencia | Ruta de Estabilidad y Crecimiento</title>
-    <meta name="description" content="Calcula tu primer fondo de emergencia y cu&#225;nto separar cada mes para llegar.">
+    <meta name="description" content="Construye tu primer fondo de emergencia. Calculadora, comparaci&#243;n con y sin fondo, y gu&#237;a pr&#225;ctica para empezar desde peque&#241;o.">
     <style>
         :root {
             --primary: #FCD116; --dark: #1a1a1a; --dark2: #2d2d2d;
@@ -27,7 +27,9 @@
 
         /* Mini story */
         .story-opening { background:var(--dark2); border-radius:1rem; padding:1.75rem; }
+        .story-opening-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--dim); margin-bottom:1rem; }
         .story-opening-p { color:var(--light); font-size:1rem; line-height:1.9; margin-bottom:0.6rem; }
+        .story-opening-p.dim { color:var(--dim); font-size:0.97rem; }
         .story-items { display:flex; flex-wrap:wrap; gap:0.6rem; margin:1rem 0; }
         .story-item { background:rgba(252,209,22,0.07); border:1px solid rgba(252,209,22,0.2); border-radius:2rem; padding:0.3rem 0.85rem; font-size:0.88rem; color:var(--dim); }
         .story-closing { color:var(--dim); font-size:0.97rem; line-height:1.8; margin-top:0.75rem; border-top:1px solid rgba(255,255,255,0.06); padding-top:1rem; }
@@ -45,6 +47,15 @@
         .not-for-list li { color:var(--dim); font-size:0.93rem; padding-left:1.2rem; position:relative; }
         .not-for-list li::before { content:"✕"; position:absolute; left:0; color:rgba(239,68,68,0.6); font-weight:700; }
 
+        /* Pick cards (interactive) */
+        .pick-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
+        .pick-card { background:var(--dark2); border:2px solid rgba(252,209,22,0.12); border-radius:0.875rem; padding:1rem 1.1rem; cursor:pointer; transition:border-color 0.15s, background 0.15s; user-select:none; display:flex; align-items:center; gap:0.75rem; }
+        .pick-card:hover { border-color:rgba(252,209,22,0.3); }
+        .pick-card.selected { border-color:var(--primary); background:rgba(252,209,22,0.06); }
+        .pick-icon { font-size:1.4rem; flex-shrink:0; }
+        .pick-label { font-size:0.93rem; font-weight:600; color:var(--light); }
+        .pick-response { margin-top:1rem; background:rgba(252,209,22,0.06); border:1px solid rgba(252,209,22,0.25); border-left:3px solid var(--primary); border-radius:0 0.6rem 0.6rem 0; padding:0.9rem 1.1rem; color:var(--light); font-size:0.93rem; line-height:1.7; display:none; }
+
         /* Con fondo / sin fondo */
         .comparison-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
         .comp-col { border-radius:0.875rem; padding:1.25rem; }
@@ -59,6 +70,9 @@
         .comp-col.with-fund .comp-list li::before { content:"✓"; position:absolute; left:0; color:rgba(252,209,22,0.7); font-weight:700; }
         .comp-scenario { background:var(--dark2); border-radius:0.75rem; padding:0.9rem 1.1rem; margin-bottom:1rem; color:var(--dim); font-size:0.93rem; line-height:1.65; }
         .comp-scenario strong { color:var(--light); }
+
+        /* Tool context */
+        .tool-context { color:var(--dim); font-size:0.95rem; line-height:1.8; margin-bottom:1.25rem; padding:0.9rem 1.1rem; background:rgba(252,209,22,0.04); border-left:3px solid rgba(252,209,22,0.3); border-radius:0 0.5rem 0.5rem 0; }
 
         /* Calculator */
         .calculator-box { background:var(--dark2); border:2px solid rgba(252,209,22,0.2); border-radius:1rem; padding:1.75rem; }
@@ -86,6 +100,14 @@
         .advanced-details[open] .toggle-arrow { transform:rotate(90deg); }
         .advanced-body { background:rgba(252,209,22,0.04); border:1px solid rgba(252,209,22,0.15); border-radius:0.6rem; padding:1rem 1.15rem; margin-top:0.75rem; color:var(--dim); font-size:0.9rem; line-height:1.75; }
 
+        /* Independence section */
+        .independence-card { background:rgba(252,209,22,0.04); border:2px solid rgba(252,209,22,0.2); border-radius:1rem; padding:1.75rem; }
+        .independence-title { font-size:1.15rem; font-weight:700; color:var(--primary); margin-bottom:0.75rem; }
+        .independence-text { color:var(--dim); font-size:0.97rem; line-height:1.8; }
+        .independence-text + .independence-text { margin-top:0.6rem; }
+        .independence-benefits { display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; margin-top:1.1rem; }
+        .benefit-item { background:rgba(252,209,22,0.06); border-radius:0.6rem; padding:0.75rem 0.9rem; font-size:0.9rem; color:var(--light); font-weight:600; }
+
         /* Savings planner */
         .planner-box { background:var(--dark2); border:2px solid rgba(252,209,22,0.2); border-radius:1rem; padding:1.75rem; }
         .planner-title { font-size:1.15rem; color:var(--primary); margin-bottom:0.4rem; }
@@ -97,6 +119,20 @@
         .planner-amount { font-size:2rem; font-weight:900; font-family:'Courier New',monospace; color:var(--primary); }
         .planner-label { color:var(--dim); font-size:0.85rem; margin:0.25rem 0 0.75rem; }
         .planner-advice { background:var(--dark2); border-radius:0.5rem; padding:0.8rem 1rem; color:var(--dim); font-size:0.88rem; line-height:1.65; text-align:left; }
+
+        /* Realidad económica */
+        .re-box { background:rgba(59,130,246,0.06); border:1px solid rgba(59,130,246,0.25); border-left:4px solid #3b82f6; border-radius:0.75rem; padding:1.35rem; }
+        .re-label { color:#3b82f6; font-weight:700; font-size:0.9rem; margin-bottom:0.6rem; }
+        .re-text { color:var(--dim); font-size:0.93rem; line-height:1.75; }
+        .re-text + .re-text { margin-top:0.5rem; }
+
+        /* Variable income */
+        .variable-card { background:var(--dark2); border:1px solid rgba(252,209,22,0.15); border-radius:0.875rem; padding:1.5rem; }
+        .variable-title { font-size:1.05rem; font-weight:700; color:var(--light); margin-bottom:0.65rem; }
+        .variable-text { color:var(--dim); font-size:0.95rem; line-height:1.8; }
+        .variable-text + .variable-text { margin-top:0.5rem; }
+        .start-amounts { display:flex; gap:0.65rem; margin-top:0.9rem; flex-wrap:wrap; }
+        .amount-pill { background:rgba(252,209,22,0.1); border:1px solid rgba(252,209,22,0.3); border-radius:2rem; padding:0.3rem 0.9rem; font-size:0.88rem; font-weight:700; color:var(--yellow); font-family:'Courier New',monospace; }
 
         /* Reflection */
         .reflection-box { background:rgba(252,209,22,0.04); border:2px solid rgba(252,209,22,0.2); border-radius:1rem; padding:1.75rem; }
@@ -114,8 +150,6 @@
         .btn-primary { background:var(--grad); color:#1a1a1a; }
         .btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(252,209,22,0.4); }
 
-        .footnote { color:var(--dim); font-size:0.78rem; line-height:1.55; text-align:center; opacity:0.7; margin-top:1rem; }
-
         @media (max-width:600px) {
             .week-title { font-size:1.75rem; }
             .pick-grid { grid-template-columns:1fr 1fr; }
@@ -123,6 +157,10 @@
             .calc-inputs { grid-template-columns:1fr; }
             .stages-grid { grid-template-columns:1fr; }
             .planner-inputs { grid-template-columns:1fr; }
+            .independence-benefits { grid-template-columns:1fr 1fr; }
+        }
+        @media (max-width:400px) {
+            .pick-grid { grid-template-columns:1fr; }
         }
         body::before { content:""; display:block; height:3px; background:linear-gradient(90deg, #FCD116, #003893 50%, #CE1126); }
     </style>
@@ -142,7 +180,8 @@
         <!-- 1. MINI STORY -->
         <div class="section">
             <div class="story-opening">
-                <p class="story-opening-p">Todo iba normal hasta que algo pas&#243;:</p>
+                <div class="story-opening-label">Una situaci&#243;n muy com&#250;n</div>
+                <p class="story-opening-p">Todo iba normal hasta que algo pas&#243;.</p>
                 <div class="story-items">
                     <span class="story-item">&#128241; Se da&#241;&#243; el celular</span>
                     <span class="story-item">&#128663; La moto no arranc&#243;</span>
@@ -150,52 +189,57 @@
                     <span class="story-item">&#128178; Una semana con menos ingreso</span>
                 </div>
                 <p class="story-closing">
-                    No hace falta una tragedia para descuadrar el mes. Basta un imprevisto sin nada guardado: toca pedir prestado, posponer gastos, o decidir con presi&#243;n. No es mala plata — es falta de colch&#243;n.
+                    No hace falta una gran tragedia para descuadrar los números de un mes entero.
+                    A veces basta con un solo imprevisto.<br><br>
+                    Cuando no hay nada guardado, un problema peque&#241;o puede convertirse en uno m&#225;s grande:
+                    hay que pedir prestado, posponer otros gastos, o tomar decisiones apuradas.
+                    No porque la persona haya hecho algo mal, sino porque no hab&#237;a margen.
                 </p>
             </div>
         </div>
 
-        <!-- 2. IDEA CLAVE -->
+        <!-- 2. CON FONDO Y SIN FONDO -->
         <div class="section">
-            <div class="idea-clave">
-                <div class="idea-clave-label">Idea clave de la semana</div>
-                <p class="idea-clave-text">Un fondo de emergencia no resuelve todo. Pero te da tiempo, margen y mejores opciones.</p>
-            </div>
-        </div>
-
-        <!-- 3. CON FONDO Y SIN FONDO -->
-        <div class="section">
-            <h2 class="section-heading" style="margin-bottom:1rem;">Lo que cambia con un colch&#243;n</h2>
+            <h2 class="section-heading" style="margin-bottom:1rem;">Con fondo y sin fondo</h2>
             <div class="comp-scenario">
-                <strong>Ejemplo:</strong> Se da&#241;a el celular. Arreglarlo cuesta $400.000.
+                <strong>Ejemplo:</strong> Se da&#241;a el celular y arreglarlo cuesta $400.000.
             </div>
             <div class="comparison-grid">
                 <div class="comp-col no-fund">
-                    <div class="comp-title">Sin fondo</div>
+                    <div class="comp-title">Sin fondo de emergencia</div>
                     <ul class="comp-list">
                         <li>toca pedir prestado</li>
                         <li>aparece inter&#233;s o deuda</li>
                         <li>hay presi&#243;n inmediata</li>
-                        <li>otros gastos se complican</li>
+                        <li>otros gastos del mes se complican</li>
                     </ul>
                 </div>
                 <div class="comp-col with-fund">
-                    <div class="comp-title">Con fondo</div>
+                    <div class="comp-title">Con fondo de emergencia</div>
                     <ul class="comp-list">
-                        <li>cubres el gasto</li>
-                        <li>no te endeudas</li>
+                        <li>puedes cubrir el gasto</li>
+                        <li>no necesitas endeudarte</li>
                         <li>ganas tiempo para reorganizarte</li>
-                        <li>el problema no escala a crisis</li>
+                        <li>el problema no se vuelve una crisis</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <!-- 4. ¿QUÉ ES? -->
+        <!-- 3. IDEA CLAVE -->
+        <div class="section">
+            <div class="idea-clave">
+                <div class="idea-clave-label">Idea clave de la semana</div>
+                <p class="idea-clave-text">Un fondo de emergencia no resuelve todo. Pero s&#237; te da tiempo, margen y mejores opciones.</p>
+            </div>
+        </div>
+
+        <!-- 4. ¿QUÉ ES UN FONDO DE EMERGENCIA? -->
         <div class="section">
             <h2 class="section-heading">¿Qué es un fondo de emergencia?</h2>
             <p class="section-body">
-                Dinero reservado <strong style="color:var(--light);">&#250;nicamente</strong> para lo inesperado: una urgencia m&#233;dica, una reparaci&#243;n necesaria, un mes con menos ingreso.
+                Es dinero reservado <strong style="color:var(--light);">&#250;nicamente</strong> para situaciones inesperadas:
+                una urgencia m&#233;dica, una reparaci&#243;n necesaria, un mes con menos ingresos de lo normal.
             </p>
             <p class="section-body">No es para:</p>
             <ul class="not-for-list">
@@ -203,17 +247,27 @@
                 <li>aprovechar una oferta</li>
                 <li>compras por impulso</li>
             </ul>
+            <p class="section-body" style="margin-top:0.75rem;">
+                Est&#225; separado justamente para que est&#233; ah&#237; cuando ocurre lo que no se esperaba.
+            </p>
         </div>
 
         <!-- 5. CALCULADORA Y ETAPAS -->
         <div class="section">
+            <p class="tool-context">
+                Para este ejercicio usaremos un ejemplo hipot&#233;tico. Imagina una persona que quiere calcular
+                cu&#225;nto deber&#237;a empezar a guardar para emergencias seg&#250;n sus gastos b&#225;sicos y la estabilidad
+                de su ingreso. Los n&#250;meros que ver&#225;s aqu&#237; se usan solo para aprender c&#243;mo funciona el ejercicio.
+                No representan la situaci&#243;n real de ninguna persona en particular.
+            </p>
+
             <div class="calculator-box">
-                <h2 class="calc-title">Calcula tu meta por etapas</h2>
-                <p class="calc-desc">Mete tus n&#250;meros. Las tres etapas se ajustan en tiempo real.</p>
+                <h2 class="calc-title">&#129518; Hagamos un ejercicio</h2>
+                <p class="calc-desc">Ingresa los datos del ejemplo hipot&#233;tico para ver las tres etapas del fondo.</p>
 
                 <div class="calc-inputs">
                     <div>
-                        <label class="calc-label" for="monthly-income">Ingreso mensual ($)</label>
+                        <label class="calc-label" for="monthly-income">Ingreso mensual hipot&#233;tico ($)</label>
                         <input type="number" id="monthly-income" class="calc-input" value="1500000" min="0" oninput="calcFund()">
                     </div>
                     <div>
@@ -241,13 +295,13 @@
                         <div class="stage-num">Etapa 2</div>
                         <div class="stage-name">Colch&#243;n b&#225;sico</div>
                         <div class="stage-amount" id="stage2-amount">$500.000</div>
-                        <div class="stage-desc">Tranquilidad real frente a imprevistos.</div>
+                        <div class="stage-desc">Empieza a dar tranquilidad real frente a gastos inesperados.</div>
                     </div>
                     <div class="stage-card">
                         <div class="stage-num">Etapa 3</div>
                         <div class="stage-name">Un mes de gastos b&#225;sicos</div>
                         <div class="stage-amount" id="stage3-amount">$900.000</div>
-                        <div class="stage-desc">Tu primer margen de seguridad real.</div>
+                        <div class="stage-desc">Tu primer verdadero margen de seguridad.</div>
                     </div>
                 </div>
 
@@ -263,8 +317,8 @@
         <!-- 6. PLANEADOR DE AHORRO MENSUAL -->
         <div class="section">
             <div class="planner-box">
-                <h2 class="planner-title">Cu&#225;nto separar cada mes</h2>
-                <p class="planner-desc">Ajusta la meta, lo que ya tienes y los meses. Te muestra el aporte mensual.</p>
+                <h2 class="planner-title">Un pequeño paso práctico</h2>
+                <p class="planner-desc">Si quieres ver cu&#225;nto separar cada mes para llegar a tu meta, este ejercicio lo muestra. Los n&#250;meros son orientativos.</p>
                 <div class="planner-inputs">
                     <div>
                         <label class="calc-label" for="commit-goal">Meta total ($)</label>
@@ -289,10 +343,18 @@
             </div>
         </div>
 
-        <!-- 7. REFLEXIÓN (collapsed to 1 question) -->
+        <!-- 7. ANTES DE SEGUIR (reflection) -->
         <div class="section">
             <div class="reflection-box">
-                <h3 class="reflection-title">&#129710; Una pregunta para terminar</h3>
+                <h3 class="reflection-title">&#129710; Antes de seguir</h3>
+                <div class="reflection-q">
+                    <div class="reflection-q-text">&#191;Qu&#233; gasto inesperado te deja el mes m&#225;s apretado?</div>
+                    <textarea class="reflection-input" placeholder="Puedes describir la situaci&#243;n o el tipo de gasto..."></textarea>
+                </div>
+                <div class="reflection-q">
+                    <div class="reflection-q-text">&#191;Qu&#233; cambiar&#237;a si ya tuvieras una peque&#241;a reserva guardada?</div>
+                    <textarea class="reflection-input" placeholder="&#191;Qu&#233; decisiones o situaciones ser&#237;an diferentes?"></textarea>
+                </div>
                 <div class="reflection-q" style="margin-bottom:0;">
                     <div class="reflection-q-text">&#191;Qu&#233; cantidad s&#237; te parece posible empezar a separar este mes?</div>
                     <textarea class="reflection-input" placeholder="No hay respuesta incorrecta. Cualquier cantidad cuenta."></textarea>
@@ -302,17 +364,19 @@
 
         <!-- 8. SIGUIENTE SEMANA -->
         <div class="next-week">
-            <h3>Semana 5: la inflaci&#243;n</h3>
-            <p>El costo invisible que afecta tu plata aunque no toques nada.</p>
+            <h3>Lo que sigue</h3>
+            <p>
+                Hoy vimos que un peque&#241;o colch&#243;n puede cambiar decisiones grandes.<br><br>
+                La pr&#243;xima semana veremos otro factor que afecta el dinero de todos,
+                incluso cuando parece que todo sigue igual: <strong style="color:var(--primary);">la inflaci&#243;n.</strong>
+            </p>
             <a href="../semana-5/" class="btn btn-primary" style="text-decoration:none; display:inline-block; margin-top:0.25rem;">Continuar a Semana 5 &#8594;</a>
         </div>
-
-        <p class="footnote">Los n&#250;meros y ejemplos son ilustrativos. No representan a ninguna persona en particular.</p>
     </div>
 
     <script>
         function fmt(n) {
-            if (!isFinite(n) || isNaN(n)) return '$—';
+            if (!isFinite(n) || isNaN(n)) return '$\u2014';
             return new Intl.NumberFormat('es-CO', {
                 style:'currency', currency:'COP', minimumFractionDigits:0
             }).format(Math.round(n));
@@ -342,9 +406,9 @@
             document.getElementById('stages-grid').style.display = 'grid';
 
             const recMap = {
-                stable:   'Con ingreso muy estable, la Etapa 3 (' + fmt(stage3) + ') es una meta realista a mediano plazo.',
-                moderate: 'Con ingreso moderadamente estable, llegar a la Etapa 2 primero (' + fmt(stage2) + ') ya marca diferencia.',
-                variable: 'Cuando el ingreso varía, incluso la Etapa 1 (' + fmt(stage1) + ') es un comienzo valioso. Desde ahí creces.'
+                stable:   'Con un ingreso muy estable, la Etapa 3 (' + fmt(stage3) + ') es una meta realista a mediano plazo.',
+                moderate: 'Con un ingreso moderadamente estable, llegar a la Etapa 2 primero (' + fmt(stage2) + ') ya representa una diferencia importante.',
+                variable: 'Cuando el ingreso var\u00eda, incluso la Etapa 1 (' + fmt(stage1) + ') es un comienzo valioso. Desde ah\u00ed puedes ir creciendo.'
             };
             const rec = document.getElementById('calc-recommendation');
             rec.textContent = recMap[stability];
@@ -354,9 +418,9 @@
             const advancedGoal = expenses * multiplier;
             const advBody = document.getElementById('advanced-body');
             advBody.innerHTML =
-                'Para protección más amplia, una meta de <strong style="color:var(--primary);">' + fmt(advancedGoal) + '</strong> ' +
-                '(' + multiplier + ' meses de gastos básicos) cubre períodos largos sin ingreso o varios imprevistos seguidos. ' +
-                'Es una meta avanzada — no el punto de partida.';
+                'Para una protecci\u00f3n m\u00e1s amplia, una meta de <strong style="color:var(--primary);">' + fmt(advancedGoal) + '</strong> ' +
+                '(' + multiplier + ' meses de gastos b\u00e1sicos) ofrece mayor margen frente a situaciones m\u00e1s largas, como un per\u00edodo sin ingreso o varios imprevistos seguidos. ' +
+                'Esta meta es avanzada y no tiene que ser el punto de partida.';
             document.getElementById('advanced-details').style.display = 'block';
 
             // Also update planner goal with stage3
@@ -380,12 +444,12 @@
             document.getElementById('planner-monthly').textContent = fmt(monthly);
             document.getElementById('planner-months-label').textContent = months + ' ' + (months === 1 ? 'mes' : 'meses');
 
-            let advice = 'Llegas a ' + fmt(goal) + ' en ' + months + ' meses separando ' + fmt(monthly) + ' al mes.';
+            let advice = 'Para llegar a ' + fmt(goal) + ' en ' + months + ' meses, separando ' + fmt(monthly) + ' por mes.';
             if (saved > 0) advice += ' Ya tienes ' + fmt(saved) + ' guardado.';
             if (income > 0) {
                 const pct = ((monthly / income) * 100).toFixed(0);
-                advice += ' Eso es el ' + pct + '% del ingreso.';
-                if (pct > 20) advice += ' Si se siente alto, extender el plazo o bajar la meta inicial también es válido.';
+                advice += ' Eso es el ' + pct + '% del ingreso mensual del ejemplo.';
+                if (pct > 20) advice += ' Si ese porcentaje se siente alto, extender el plazo o ajustar la meta inicial tambi\u00e9n es una opci\u00f3n v\u00e1lida.';
             }
             document.getElementById('planner-advice').textContent = advice;
             document.getElementById('planner-result').style.display = 'block';
