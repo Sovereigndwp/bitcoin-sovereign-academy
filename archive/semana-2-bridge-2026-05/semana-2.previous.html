@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semana 2: Entender mi pago con claridad | Programa Colombia</title>
+    <meta name="description" content="Decodificador de comprobante de nómina. Entiende descuentos, retenciones, y cuánto dinero te queda realmente disponible.">
+    <style>
+        :root {
+            --primary: #FCD116;
+            --dark: #1a1a1a;
+            --dark2: #2d2d2d;
+            --light: #e0e0e0;
+            --dim: #b3b3b3;
+            --red: #ef4444;
+            --yellow: #fcd116;
+            --grad: #FCD116;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--dark); color:var(--light); line-height:1.6; padding:1rem; }
+
+        .container { max-width:820px; margin:0 auto; }
+        .back-link { display:inline-flex; align-items:center; gap:0.5rem; color:var(--primary); text-decoration:none; margin-bottom:2rem; font-weight:600; transition:transform 0.2s; }
+        .back-link:hover { transform:translateX(-4px); }
+        
+        .header { text-align:center; margin-bottom:3rem; }
+        .week-title { font-size:2.5rem; color:var(--primary); margin-bottom:0.5rem; }
+        .week-subtitle { font-size:1.2rem; color:var(--dim); margin-bottom:2rem; }
+        
+        .intro-section { background:var(--dark2); border:2px solid rgba(252,209,22,0.2); border-radius:1rem; padding:2rem; margin-bottom:3rem; }
+        .intro-title { font-size:1.8rem; color:var(--primary); margin-bottom:1rem; }
+        .intro-text { color:var(--dim); font-size:1.1rem; margin-bottom:2rem; }
+        
+        .comparison-section { background:linear-gradient(135deg,rgba(252,209,22,0.1) 0%,rgba(252,209,22,0.1) 100%); border:2px solid var(--primary); border-radius:1rem; padding:3rem 2rem; margin:3rem 0; }
+        .comp-title { font-size:2rem; color:var(--primary); margin-bottom:1rem; text-align:center; }
+        .comp-description { color:var(--dim); font-size:1.1rem; margin-bottom:2rem; text-align:center; max-width:600px; margin-left:auto; margin-right:auto; }
+        
+        .employment-types { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1rem; margin-top:2rem; }
+        .employment-card { width:100%; background:var(--dark); border:2px solid rgba(252,209,22,0.15); border-radius:1rem; padding:1.4rem; transition:all 0.3s; text-align:left; color:inherit; cursor:pointer; }
+        .employment-card:hover { border-color:var(--primary); transform:translateY(-2px); }
+        .employment-card.is-active { border-color:var(--primary); background:rgba(252,209,22,0.06); box-shadow:0 10px 24px rgba(0,0,0,0.15); }
+        .employment-card:focus-visible { outline:2px solid rgba(252,209,22,0.5); outline-offset:2px; }
+        .employment-title { color:var(--primary); font-size:1.2rem; font-weight:700; margin-bottom:0.8rem; text-align:left; }
+        .employment-features { display:block; margin-bottom:1.5rem; }
+        .employment-feature { display:block; color:var(--dim); padding:0.5rem 0 0.5rem 1.5rem; position:relative; }
+        .employment-feature::before { content:'•'; position:absolute; left:0; color:var(--primary); font-weight:bold; }
+        .employment-note { color:var(--dim); font-size:0.95rem; line-height:1.7; margin-top:1.2rem; }
+        
+        .calculator-section { background:var(--dark2); border:2px solid rgba(252,209,22,0.15); border-radius:1rem; padding:2rem; margin:2rem 0; }
+        .calc-title { font-size:1.8rem; color:var(--primary); margin-bottom:1rem; text-align:center; }
+        .calc-description { color:var(--dim); font-size:1rem; margin-bottom:2rem; text-align:center; }
+        
+        .calc-input-section { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:2rem; margin-bottom:2rem; }
+        .calc-input-group { }
+        .calc-label { display:block; color:var(--light); font-weight:600; margin-bottom:0.5rem; }
+        .calc-input { width:100%; padding:0.75rem; background:var(--dark); border:2px solid rgba(252,209,22,0.3); border-radius:0.5rem; color:var(--light); font-size:1rem; font-family:'Courier New',monospace; }
+        .calc-input:focus { outline:none; border-color:var(--primary); }
+        .calc-select { width:100%; padding:0.75rem; background:var(--dark); border:2px solid rgba(252,209,22,0.3); border-radius:0.5rem; color:var(--light); font-size:1rem; }
+        .calc-preview { display:block; color:var(--dim); font-size:0.85rem; margin-top:0.5rem; }
+        .mode-summary { background:var(--dark); border:2px solid rgba(252,209,22,0.2); border-radius:0.75rem; padding:1rem; min-height:100%; }
+        .mode-chip { display:inline-flex; align-items:center; gap:0.4rem; padding:0.35rem 0.7rem; background:rgba(252,209,22,0.15); color:var(--primary); border-radius:999px; font-size:0.82rem; font-weight:700; margin-bottom:0.65rem; }
+        .mode-copy { color:var(--dim); font-size:0.92rem; line-height:1.6; }
+        .helper-card { background:rgba(252,209,22,0.06); border:1px solid rgba(252,209,22,0.2); border-radius:0.75rem; padding:1rem; }
+        .helper-card-title { color:var(--light); font-size:0.95rem; font-weight:700; margin-bottom:0.35rem; }
+        .helper-card-copy { color:var(--dim); font-size:0.85rem; line-height:1.6; }
+        
+        .paycheck-breakdown { background:var(--dark); border:2px solid var(--primary); border-radius:1rem; padding:2rem; margin-top:2rem; }
+        .breakdown-title { color:var(--primary); font-size:1.5rem; margin-bottom:1.5rem; text-align:center; }
+        .breakdown-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1rem; }
+        .breakdown-item { background:var(--dark2); border:1px solid rgba(252,209,22,0.2); border-radius:0.5rem; padding:1.5rem; }
+        .breakdown-label { color:var(--dim); font-size:0.9rem; margin-bottom:0.5rem; }
+        .breakdown-amount { color:var(--primary); font-size:1.3rem; font-weight:700; font-family:'Courier New',monospace; }
+        .breakdown-percentage { color:var(--dim); font-size:0.8rem; margin-top:0.25rem; }
+        
+        .final-result { background:linear-gradient(135deg,rgba(252,209,22,0.2) 0%,rgba(252,209,22,0.1) 100%); border:3px solid var(--yellow); border-radius:1rem; padding:2rem; margin-top:2rem; text-align:center; }
+        .final-amount { color:var(--yellow); font-size:3rem; font-weight:900; font-family:'Courier New',monospace; margin-bottom:0.5rem; }
+        .final-label { color:var(--light); font-size:1.2rem; font-weight:600; margin-bottom:1rem; }
+        .final-note { color:var(--dim); font-size:0.9rem; }
+        
+        .deduction-explanation { background:var(--dark2); border:2px solid rgba(252,209,22,0.15); border-radius:1rem; padding:2rem; margin:2rem 0; }
+        .explanation-title { font-size:1.5rem; color:var(--primary); margin-bottom:1rem; }
+        .deduction-grid { display:grid; gap:1rem; margin-top:1rem; }
+        .deduction-item { background:var(--dark); border-left:4px solid var(--primary); padding:1rem; border-radius:0.25rem; }
+        .deduction-name { color:var(--primary); font-weight:600; margin-bottom:0.5rem; }
+        .deduction-description { color:var(--dim); font-size:0.9rem; }
+        .optional-details { border:1px solid rgba(252,209,22,0.24); border-radius:0.9rem; background:rgba(255,255,255,0.02); }
+        .optional-details summary { list-style:none; cursor:pointer; padding:1rem 1.1rem; }
+        .optional-details summary::-webkit-details-marker { display:none; }
+        .optional-summary-title { display:block; color:var(--yellow); font-weight:700; margin-bottom:0.2rem; }
+        .optional-summary-copy { display:block; color:var(--dim); font-size:0.9rem; line-height:1.55; }
+        .optional-body { padding:0 1.1rem 1.1rem; }
+        
+        .tip-box { background:rgba(252,209,22,0.1); border:2px solid var(--yellow); border-radius:0.75rem; padding:1.5rem; margin:2rem 0; }
+        .tip-header { color:var(--yellow); font-weight:700; margin-bottom:0.5rem; display:flex; align-items:center; gap:0.5rem; }
+        
+        .next-week { background:var(--dark2); border:2px solid var(--primary); border-radius:1rem; padding:2rem; margin-top:2rem; text-align:center; }
+        .next-week h3 { color:var(--primary); margin-bottom:1rem; }
+        
+        .btn { padding:1rem 2rem; border:none; border-radius:0.75rem; font-weight:700; font-size:1.1rem; cursor:pointer; transition:all 0.3s; text-decoration:none; display:inline-block; }
+        .btn-primary { background:var(--grad); color:#1a1a1a; }
+        .btn-primary:hover { background:#e6830e; transform:translateY(-2px); }
+        
+        @media (max-width:768px) {
+            .calc-input-section { grid-template-columns:1fr; }
+            .breakdown-grid { grid-template-columns:1fr; }
+            .final-amount { font-size:2.5rem; }
+        }
+        body::before { content:""; display:block; height:3px; background:linear-gradient(90deg, #FCD116, #003893 50%, #CE1126); }
+    </style>
+    <link rel="stylesheet" href="../lesson-structure.css">
+    <link rel="stylesheet" href="../programa-colombia-v2.css">
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Volver al Programa</a>
+        
+        <div class="header">
+            <h1 class="week-title">Semana 2: Entender mi pago con claridad</h1>
+            <p class="week-subtitle">Aprende a leer una nómina o un ingreso variable para saber con cuánto dinero cuentas realmente.</p>
+        </div>
+
+        <div class="intro-section">
+            <p class="intro-text">
+                Llega el pago. Ves el número y sientes alivio. Pero después:<br>
+                ¿Cuánto de esto puedo usar de verdad? ¿Qué parte ya está comprometida? ¿Por qué entra una cantidad y al final queda mucho menos?
+            </p>
+        </div>
+        
+        <div class="tip-box" style="background: rgba(252,209,22,0.15); border: 2px solid var(--yellow); margin: 2rem 0;">
+            <div class="tip-header" style="font-size: 1.1rem; margin-bottom: 0.75rem;">
+                💡 Idea clave de la semana
+            </div>
+            <div style="color: var(--light); font-size: 1rem; font-weight: 600;">
+                No basta con saber cuánto entra. También necesitas saber cuánto queda realmente disponible después de descuentos y compromisos.
+            </div>
+        </div>
+        
+        <div class="comparison-section">
+            <h2 class="comp-title">Empieza por la forma en que te entra el dinero</h2>
+            <p class="comp-description">
+                La idea no es encajarte en una etiqueta. Es elegir la ruta que más se parece a tu realidad para ver dónde se enreda el dinero: en descuentos automáticos o en separaciones que te toca hacer por tu cuenta.
+            </p>
+
+            <div class="employment-types">
+                <button type="button" class="employment-card is-active" id="path-formal" onclick="setIncomeMode('formal')">
+                    <span class="employment-title">🏢 Trabajo formal</span>
+                    <span class="employment-features">
+                        <span class="employment-feature">Sirve si te pagan por nómina o con desprendible</span>
+                        <span class="employment-feature">Salud y pensión suelen salir automáticamente</span>
+                        <span class="employment-feature">El foco es distinguir salario total vs dinero libre</span>
+                    </span>
+                </button>
+                
+                <button type="button" class="employment-card" id="path-informal" onclick="setIncomeMode('informal')">
+                    <span class="employment-title">🚶 Trabajo informal o independiente</span>
+                    <span class="employment-features">
+                        <span class="employment-feature">Sirve si vendes, haces turnos o el ingreso cambia</span>
+                        <span class="employment-feature">El foco es separar primero lo que no conviene gastar</span>
+                        <span class="employment-feature">Ayuda a ver cuánto queda usable en un mes normal</span>
+                    </span>
+                </button>
+            </div>
+            <p class="employment-note" id="employment-note">Ruta activa: nómina formal. Aquí miraremos descuentos automáticos, otros compromisos y el dinero que realmente queda libre.</p>
+        </div>
+
+        <div class="calculator-section">
+            <h2 class="calc-title">🧮 Calculadora de dinero disponible</h2>
+            <p class="calc-description" id="calc-description">Usa esta ruta si quieres mirar un pago de nómina y ver qué parte desaparece antes de que puedas usarla.</p>
+
+            <div class="calc-input-section">
+                <div class="calc-input-group">
+                    <span class="calc-label">Ruta activa</span>
+                    <div class="mode-summary">
+                        <div class="mode-chip" id="employment-type-label">Pago por nómina</div>
+                        <p class="mode-copy" id="employment-type-help">Te mostraremos salud, pensión y otros descuentos que reducen el dinero libre del mes.</p>
+                    </div>
+                    <input type="hidden" id="employment-type" value="formal">
+                </div>
+                
+                <div class="calc-input-group">
+                    <label class="calc-label" for="gross-salary" id="gross-salary-label">Ingreso mensual hipotético:</label>
+                    <input type="number" id="gross-salary" class="calc-input" placeholder="2.000.000" min="0" oninput="calculateTakeHome()">
+                    <small class="calc-preview" id="gross-salary-guidance">Si tienes desprendible, usa el valor antes de descuentos.</small>
+                    <small class="calc-preview" id="gross-salary-preview">$0</small>
+                </div>
+                
+                <div class="calc-input-group" id="formal-options">
+                    <span class="calc-label">Lectura rápida de la nómina</span>
+                    <div class="helper-card">
+                        <div class="helper-card-title" id="salary-range-title">Con este ejemplo, lo más visible suelen ser salud y pensión.</div>
+                        <div class="helper-card-copy" id="salary-range-copy">Si el ingreso sube, también puede empezar a aparecer retención. Aquí la calculadora la estima automáticamente solo como referencia educativa.</div>
+                    </div>
+                </div>
+                
+                <div class="calc-input-group">
+                    <label class="calc-label" for="other-deductions" id="other-deductions-label">Otros descuentos o compromisos mensuales:</label>
+                    <input type="number" id="other-deductions" class="calc-input" placeholder="50.000" min="0" oninput="calculateTakeHome()">
+                    <small class="calc-preview" id="other-deductions-preview">$0</small>
+                    <small style="color:var(--dim); font-size:0.8rem;" id="other-deductions-help">Cooperativa, préstamos, seguros adicionales, etc.</small>
+                </div>
+            </div>
+
+            <div class="paycheck-breakdown" id="breakdown-section" style="display:none;">
+                <h3 class="breakdown-title">💰 Desglose de tu Pago</h3>
+                <div class="breakdown-grid" id="breakdown-grid">
+                    <!-- Se llenará con JavaScript -->
+                </div>
+                
+                <div class="final-result">
+                    <div class="final-amount" id="final-amount">$0</div>
+                    <div class="final-label">Dinero realmente disponible</div>
+                    <div class="final-note">Este es el dinero que realmente puedes gastar o ahorrar cada mes</div>
+                </div>
+            </div>
+            
+            <div id="interpretation-section" style="background: var(--dark2); border: 2px solid rgba(252,209,22,0.15); border-radius: 1rem; padding: 2rem; margin: 2rem 0; display:none;">
+                <h3 style="font-size: 1.5rem; color: var(--primary); margin-bottom: 1rem;" id="interpretation-title">Lo que muestra el ejercicio</h3>
+                <p style="color: var(--dim); font-size: 1.1rem; margin-bottom: 1rem; line-height: 1.7;" id="interpretation-line-1">
+                    El total que entra es solo la mitad de la historia.
+                </p>
+                <p style="color: var(--light); font-size: 1.1rem; font-weight: 600;" id="interpretation-line-3">
+                    Ver el dinero realmente disponible cambia las decisiones del mes.
+                </p>
+            </div>
+        </div>
+
+        <div class="deduction-explanation" id="formal-explanation">
+            <h2 class="explanation-title">¿Qué significa cada descuento?</h2>
+            
+            <div class="deduction-grid">
+                <div class="deduction-item">
+                    <div class="deduction-name">Salud (EPS) - 4%</div>
+                    <div class="deduction-description">
+                        Tu contribución al sistema de salud. Te da derecho a servicios médicos básicos.
+                    </div>
+                </div>
+                
+                <div class="deduction-item">
+                    <div class="deduction-name">Pensión - 4%</div>
+                    <div class="deduction-description">
+                        Ahorro obligatorio para tu jubilación. El empleador aporta 12% adicional.
+                    </div>
+                </div>
+                
+                <div class="deduction-item">
+                    <div class="deduction-name">Retención en la Fuente</div>
+                    <div class="deduction-description">
+                        Anticipo del impuesto de renta. Solo aplica si ganas más de cierto monto.
+                    </div>
+                </div>
+                
+                <div class="deduction-item">
+                    <div class="deduction-name">Prestaciones Sociales</div>
+                    <div class="deduction-description">
+                        Prima, cesantías, vacaciones. No se descuentan del salario - son adicionales.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="deduction-explanation" id="informal-explanation" style="display:none;">
+            <h2 class="explanation-title">¿Qué suele separarse por cuenta propia?</h2>
+            <p style="color: var(--dim); line-height: 1.7; margin-bottom: 1rem;">
+                Si el dinero llega por ventas, turnos, encargos o trabajos independientes, el reto no suele ser leer un descuento automático. El reto es separar a tiempo lo que no conviene gastar de una.
+            </p>
+            <div class="deduction-grid">
+                <div class="deduction-item">
+                    <div class="deduction-name">Salud, aportes o cuidado básico</div>
+                    <div class="deduction-description">
+                        Algunas personas apartan una parte para salud, seguridad social o gastos básicos que no pueden dejar para después.
+                    </div>
+                </div>
+                <div class="deduction-item">
+                    <div class="deduction-name">Mes flojo o semana lenta</div>
+                    <div class="deduction-description">
+                        Cuando el ingreso cambia, guardar una parte para el siguiente bajón da más estabilidad que esperar a que sobre.
+                    </div>
+                </div>
+                <div class="deduction-item">
+                    <div class="deduction-name">Compromisos que salen apenas entra el dinero</div>
+                    <div class="deduction-description">
+                        Deudas, mercado, arriendo o apoyo a la casa pueden comerse el ingreso rápido aunque no aparezcan como descuento formal.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="deduction-explanation" id="employer-cost-section" style="border-color: rgba(252,209,22,0.3); margin-top:0;">
+            <details class="optional-details">
+                <summary>
+                    <span class="optional-summary-title">Opcional: ver el costo total del empleo formal</span>
+                    <span class="optional-summary-copy">Esto no es lo principal de la semana. Ábrelo solo si quieres entender lo que no siempre se ve en el recibo.</span>
+                </summary>
+                <div class="optional-body">
+                    <p style="color: var(--dim); margin-bottom: 1rem; line-height: 1.8; font-size: 1rem;">
+                        Cuando una persona trabaja de forma formal, el valor que recibe no siempre muestra toda la compensación asociada a ese trabajo. Los números de este ejercicio siguen siendo hipotéticos.
+                    </p>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+                        <div>
+                            <label class="calc-label" for="employer-salary">Ingreso mensual hipotético:</label>
+                            <input type="number" id="employer-salary" class="calc-input" value="1500000" oninput="calcEmployerCost()">
+                        </div>
+                        <div style="display:flex; align-items:flex-end; padding-bottom:0.1rem;">
+                            <button type="button" onclick="calcEmployerCost()" style="width:100%; padding:0.75rem; background:#FCD116; color:#1a1a1a; border:none; border-radius:0.5rem; font-weight:700; font-size:1rem; cursor:pointer;">Calcular →</button>
+                        </div>
+                    </div>
+                    <div id="employer-cost-result" style="display:none;">
+                        <div style="background:var(--dark); border:2px solid var(--primary); border-radius:0.75rem; padding:1.5rem; margin-bottom:1rem;">
+                            <div style="display:grid; gap:0.6rem;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem; background:var(--dark2); border-radius:0.4rem;">
+                                <span style="color:var(--dim); font-size:0.9rem;">Tu salario (lo que ves)</span>
+                                <span id="ec-salary" style="color:var(--light); font-family:'Courier New',monospace; font-weight:700;"></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem;">
+                                <span style="color:var(--dim); font-size:0.85rem;">+ Pensión (empleador, 12%)</span>
+                                <span id="ec-pension" style="color:var(--yellow); font-family:'Courier New',monospace;"></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem;">
+                                <span style="color:var(--dim); font-size:0.85rem;">+ Salud (empleador, 8.5%)</span>
+                                <span id="ec-health" style="color:var(--yellow); font-family:'Courier New',monospace;"></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem;">
+                                <span style="color:var(--dim); font-size:0.85rem;">+ Parafiscales (SENA+ICBF+Caja, 9%)</span>
+                                <span id="ec-para" style="color:var(--yellow); font-family:'Courier New',monospace;"></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem;">
+                                <span style="color:var(--dim); font-size:0.85rem;">+ Cesantías (8.33%)</span>
+                                <span id="ec-cesantias" style="color:var(--yellow); font-family:'Courier New',monospace;"></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem;">
+                                <span style="color:var(--dim); font-size:0.85rem;">+ Prima de servicios (8.33%)</span>
+                                <span id="ec-prima" style="color:var(--yellow); font-family:'Courier New',monospace;"></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem;">
+                                <span style="color:var(--dim); font-size:0.85rem;">+ Vacaciones (4.17%)</span>
+                                <span id="ec-vac" style="color:var(--yellow); font-family:'Courier New',monospace;"></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem;">
+                                <span style="color:var(--dim); font-size:0.85rem;">+ ARL (riesgo laboral, ~1.5%)</span>
+                                <span id="ec-arl" style="color:var(--yellow); font-family:'Courier New',monospace;"></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem; background:rgba(252,209,22,0.1); border-radius:0.4rem; border:1px solid rgba(252,209,22,0.3); margin-top:0.5rem;">
+                                <span style="color:var(--light); font-weight:700;">Costo total para el empleador</span>
+                                <span id="ec-total" style="color:var(--primary); font-family:'Courier New',monospace; font-weight:900; font-size:1.2rem;"></span>
+                            </div>
+                        </div>
+                        </div>
+                        <div style="background:rgba(252,209,22,0.08); border:2px solid rgba(252,209,22,0.35); border-radius:0.75rem; padding:1.25rem;">
+                            <div style="color:var(--yellow); font-weight:700; margin-bottom:0.4rem;">💡 ¿Por qué importa saber esto?</div>
+                            <p id="ec-insight" style="color:var(--dim); font-size:0.9rem; line-height:1.7;"></p>
+                        </div>
+                    </div>
+                </div>
+            </details>
+        </div>
+        
+        <div class="program-lesson-section program-lesson-section--soft">
+            <div class="program-lesson-kicker">Un paso práctico</div>
+            <h3 class="program-lesson-title program-lesson-title--small">Tu próximo pago en tres líneas</h3>
+            <div class="program-lesson-action">
+                <p class="program-lesson-text">
+                    Anota: cuánto entra, qué sale o conviene separar de inmediato, con cuánto quedas disponible. Tres líneas. Eso es todo esta semana.
+                </p>
+            </div>
+        </div>
+
+        <div style="background: var(--dark2); border: 2px solid rgba(252,209,22,0.15); border-radius: 1rem; padding: 2rem; margin: 3rem 0;">
+            <h3 style="font-size: 1.5rem; color: var(--primary); margin-bottom: 1.5rem;">Una pregunta para terminar</h3>
+            <div style="background: var(--dark); border-left: 4px solid var(--primary); padding: 1.5rem; border-radius: 0.25rem;">
+                <p style="color: var(--dim); font-size: 1rem; line-height: 1.6; margin: 0;">
+                    ¿Qué cambiaría en tus decisiones del mes si supieras exactamente cuánto te queda disponible desde el primer día?
+                </p>
+            </div>
+        </div>
+
+        <div class="next-week">
+            <h3 style="color: var(--primary); font-size: 1.5rem; margin-bottom: 1rem;">Semana 3: Deuda sin drama</h3>
+            <p style="color: var(--dim); font-size: 1.1rem; line-height: 1.7; margin-bottom: 1.5rem;">
+                Cuál deuda ayuda, cuál no, y cómo salir sin que la cuota se coma la quincena.
+            </p>
+            <a href="../semana-3/" class="btn btn-primary" style="text-decoration: none; margin-top: 1rem; display: inline-block;">Continuar a Semana 3 →</a>
+        </div>
+
+        <p style="color:var(--dim); font-size:0.78rem; line-height:1.55; text-align:center; opacity:0.7; margin-top:1.5rem;">Los números y ejemplos son ilustrativos. No representan a ninguna persona en particular.</p>
+    </div>
+
+    <script>
+        const MODE_COPY = {
+            formal: {
+                note: 'Ruta activa: nómina formal. Aquí miraremos descuentos automáticos, otros compromisos y el dinero que realmente queda libre.',
+                calcDescription: 'Usa esta ruta si quieres mirar un pago de nómina y ver qué parte desaparece antes de que puedas usarla.',
+                chip: 'Pago por nómina',
+                help: 'Te mostraremos salud, pensión y otros descuentos que reducen el dinero libre del mes.',
+                grossLabel: 'Ingreso mensual hipotético:',
+                grossGuidance: 'Si tienes desprendible, usa el valor antes de descuentos.',
+                otherLabel: 'Otros descuentos o compromisos mensuales:',
+                otherHelp: 'Cooperativa, préstamos, seguros adicionales, etc.',
+                interpretationTitle: 'Lo que muestra el ejercicio',
+                interpretationLine1: 'A veces parece que hay suficiente dinero porque miramos solo el total que entra.',
+                interpretationLine2: 'Pero cuando aparecen descuentos, compromisos y gastos que deben separarse, el panorama cambia.',
+                interpretationLine3: 'Ver esto con claridad ayuda a tomar mejores decisiones.'
+            },
+            informal: {
+                note: 'Ruta activa: ingreso variable o independiente. Aquí miraremos cuánto conviene separar apenas entra el dinero para saber qué parte sí queda usable.',
+                calcDescription: 'Usa esta ruta si tus ingresos cambian o si no recibes nómina. El objetivo es separar primero lo que no conviene gastar de una.',
+                chip: 'Ingreso variable',
+                help: 'Aquí no asumimos descuentos automáticos fijos. La clave es apartar compromisos, salud o colchón apenas entra el dinero.',
+                grossLabel: 'Ingreso del mes que quieres revisar:',
+                grossGuidance: 'Si no ganas lo mismo cada mes, usa un promedio reciente o un mes real para practicar.',
+                otherLabel: 'Separaciones y compromisos del mes:',
+                otherHelp: 'Mercado, deuda, ahorro para salud, apoyo a la casa, transporte, etc.',
+                interpretationTitle: 'Lo que muestra esta ruta',
+                interpretationLine1: 'Cuando el ingreso cambia, el primer número tampoco cuenta toda la historia.',
+                interpretationLine2: 'Si no separas rápido lo básico o lo urgente, el dinero parece libre aunque en realidad ya venía comprometido.',
+                interpretationLine3: 'Ver eso a tiempo ayuda a no confundir “entró plata” con “sí puedo gastarla”.'
+            }
+        };
+
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function getSalaryRange(grossSalary) {
+            const smmlvReference = 1423500;
+
+            if (grossSalary < (4 * smmlvReference)) {
+                return 'low';
+            }
+            if (grossSalary < (8 * smmlvReference)) {
+                return 'mid';
+            }
+            return 'high';
+        }
+
+        function updateFormalGuide(grossSalary) {
+            const range = getSalaryRange(grossSalary || 0);
+            const title = document.getElementById('salary-range-title');
+            const copy = document.getElementById('salary-range-copy');
+
+            if (range === 'low') {
+                title.textContent = 'Con este ejemplo, lo más visible suelen ser salud y pensión.';
+                copy.textContent = 'En este rango la calculadora deja la retención aproximada en cero y se concentra en lo que normalmente más pesa en la nómina.';
+            } else if (range === 'mid') {
+                title.textContent = 'Con este ejemplo, la retención ya podría empezar a aparecer.';
+                copy.textContent = 'La calculadora la muestra solo como referencia educativa para recordar que el dinero libre puede bajar más de lo esperado.';
+            } else {
+                title.textContent = 'Con este ejemplo, la retención puede sentirse más clara.';
+                copy.textContent = 'Aquí la calculadora añade una referencia educativa más alta para que veas cómo cambia el dinero realmente usable.';
+            }
+
+            return range;
+        }
+
+        function setIncomeMode(mode) {
+            const nextMode = mode === 'informal' ? 'informal' : 'formal';
+            const copy = MODE_COPY[nextMode];
+
+            document.getElementById('employment-type').value = nextMode;
+            document.getElementById('path-formal').classList.toggle('is-active', nextMode === 'formal');
+            document.getElementById('path-informal').classList.toggle('is-active', nextMode === 'informal');
+            document.getElementById('employment-note').textContent = copy.note;
+            document.getElementById('calc-description').textContent = copy.calcDescription;
+            document.getElementById('employment-type-label').textContent = copy.chip;
+            document.getElementById('employment-type-help').textContent = copy.help;
+            document.getElementById('gross-salary-label').textContent = copy.grossLabel;
+            document.getElementById('gross-salary-guidance').textContent = copy.grossGuidance;
+            document.getElementById('other-deductions-label').textContent = copy.otherLabel;
+            document.getElementById('other-deductions-help').textContent = copy.otherHelp;
+            document.getElementById('formal-options').style.display = nextMode === 'formal' ? 'block' : 'none';
+            document.getElementById('formal-explanation').style.display = nextMode === 'formal' ? 'block' : 'none';
+            document.getElementById('informal-explanation').style.display = nextMode === 'informal' ? 'block' : 'none';
+            document.getElementById('employer-cost-section').style.display = nextMode === 'formal' ? 'block' : 'none';
+
+            calculateTakeHome();
+        }
+
+        function calculateTakeHome() {
+            const employmentType = document.getElementById('employment-type').value;
+            const grossSalary = parseFloat(document.getElementById('gross-salary').value) || 0;
+            const salaryRange = updateFormalGuide(grossSalary);
+            const otherDeductions = parseFloat(document.getElementById('other-deductions').value) || 0;
+            const copy = MODE_COPY[employmentType];
+
+            document.getElementById('gross-salary-preview').textContent = formatMoney(grossSalary);
+            document.getElementById('other-deductions-preview').textContent = formatMoney(otherDeductions);
+            document.getElementById('interpretation-title').textContent = copy.interpretationTitle;
+            document.getElementById('interpretation-line-1').textContent = copy.interpretationLine1;
+            document.getElementById('interpretation-line-2').textContent = copy.interpretationLine2;
+            document.getElementById('interpretation-line-3').textContent = copy.interpretationLine3;
+
+            if (grossSalary === 0) {
+                document.getElementById('breakdown-section').style.display = 'none';
+                document.getElementById('interpretation-section').style.display = 'none';
+                return;
+            }
+
+            let healthContribution = 0;
+            let pensionContribution = 0;
+            let retentionTax = 0;
+            let totalDeductions = otherDeductions;
+
+            if (employmentType === 'formal') {
+                const smmlvReference = 1423500;
+
+                healthContribution = grossSalary * 0.04;
+                pensionContribution = grossSalary * 0.04;
+
+                if (salaryRange === 'mid') {
+                    retentionTax = Math.max(0, (grossSalary - (4 * smmlvReference)) * 0.05);
+                } else if (salaryRange === 'high') {
+                    retentionTax = Math.max(0, (grossSalary - (4 * smmlvReference)) * 0.10);
+                }
+
+                totalDeductions = healthContribution + pensionContribution + retentionTax + otherDeductions;
+            }
+
+            const netSalary = grossSalary - totalDeductions;
+            const breakdownGrid = document.getElementById('breakdown-grid');
+            breakdownGrid.innerHTML = '';
+
+            breakdownGrid.innerHTML += `
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Ingreso total</div>
+                    <div class="breakdown-amount">${formatMoney(grossSalary)}</div>
+                    <div class="breakdown-percentage">100%</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">${employmentType === 'formal' ? 'Descuentos y compromisos' : 'Separaciones y compromisos'}</div>
+                    <div class="breakdown-amount">-${formatMoney(totalDeductions)}</div>
+                    <div class="breakdown-percentage">-${((totalDeductions / grossSalary) * 100).toFixed(1)}%</div>
+                </div>
+            `;
+
+            if (employmentType === 'formal') {
+                breakdownGrid.innerHTML += `
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">Salud (EPS)</div>
+                        <div class="breakdown-amount">-${formatMoney(healthContribution)}</div>
+                        <div class="breakdown-percentage">-4%</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">Pensión</div>
+                        <div class="breakdown-amount">-${formatMoney(pensionContribution)}</div>
+                        <div class="breakdown-percentage">-4%</div>
+                    </div>
+                `;
+
+                if (retentionTax > 0) {
+                    breakdownGrid.innerHTML += `
+                        <div class="breakdown-item">
+                            <div class="breakdown-label">Retención en la Fuente</div>
+                            <div class="breakdown-amount">-${formatMoney(retentionTax)}</div>
+                            <div class="breakdown-percentage">-${((retentionTax / grossSalary) * 100).toFixed(1)}%</div>
+                        </div>
+                    `;
+                }
+            } else {
+                breakdownGrid.innerHTML += `
+                    <div class="breakdown-item" style="grid-column: 1 / -1;">
+                        <div class="breakdown-label">Ingreso variable o independiente</div>
+                        <div class="breakdown-amount">Aquí no asumimos descuentos automáticos fijos</div>
+                        <div class="breakdown-percentage" style="color:var(--yellow);">El ejercicio te ayuda a separar primero lo que no conviene gastar apenas entra el dinero</div>
+                    </div>
+                `;
+            }
+
+            if (otherDeductions > 0) {
+                breakdownGrid.innerHTML += `
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">${employmentType === 'formal' ? 'Otros descuentos' : 'Separaciones que te apartas'}</div>
+                        <div class="breakdown-amount">-${formatMoney(otherDeductions)}</div>
+                        <div class="breakdown-percentage">-${((otherDeductions / grossSalary) * 100).toFixed(1)}%</div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('final-amount').textContent = formatMoney(netSalary);
+            document.getElementById('breakdown-section').style.display = 'block';
+            document.getElementById('interpretation-section').style.display = 'block';
+
+            const finalNote = document.querySelector('.final-note');
+            if (employmentType === 'formal') {
+                finalNote.textContent = 'Este es tu dinero disponible. Recuerda que también recibes prestaciones sociales (prima, cesantías) que no aparecen aquí.';
+            } else {
+                finalNote.textContent = 'Aquí el punto no es un descuento automático, sino cuánto apartas a tiempo para salud, emergencias o meses con ingresos más variables.';
+            }
+        }
+
+        function calcEmployerCost() {
+            const salary = parseFloat(document.getElementById('employer-salary').value) || 0;
+
+            if (salary === 0) {
+                return;
+            }
+
+            const fmt = (value) => new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0
+            }).format(Math.round(value));
+
+            const pension = salary * 0.12;
+            const health = salary * 0.085;
+            const para = salary * 0.09;
+            const ces = salary * 0.0833;
+            const prima = salary * 0.0833;
+            const vac = salary * 0.0417;
+            const arl = salary * 0.015;
+            const extras = pension + health + para + ces + prima + vac + arl;
+            const total = salary + extras;
+            const pct = ((extras / salary) * 100).toFixed(0);
+
+            document.getElementById('ec-salary').textContent = fmt(salary);
+            document.getElementById('ec-pension').textContent = fmt(pension);
+            document.getElementById('ec-health').textContent = fmt(health);
+            document.getElementById('ec-para').textContent = fmt(para);
+            document.getElementById('ec-cesantias').textContent = fmt(ces);
+            document.getElementById('ec-prima').textContent = fmt(prima);
+            document.getElementById('ec-vac').textContent = fmt(vac);
+            document.getElementById('ec-arl').textContent = fmt(arl);
+            document.getElementById('ec-total').textContent = fmt(total);
+            document.getElementById('ec-insight').textContent =
+                `Por cada ${fmt(salary)} que recibes, tu empresa paga ${fmt(total)} en total — un ${pct}% adicional que no ves en tu recibo. ` +
+                `Las prestaciones (cesantías, prima, vacaciones) hacen parte de la compensación, aunque no lleguen como dinero libre inmediato. ` +
+                `En trabajos independientes, muchas personas necesitan organizar por su cuenta una parte para salud, descansos o meses más lentos.`;
+            document.getElementById('employer-cost-result').style.display = 'block';
+        }
+
+        window.onload = function() {
+            document.getElementById('gross-salary').value = '2000000';
+            document.getElementById('other-deductions').value = '50000';
+            document.getElementById('employer-salary').value = '2000000';
+            setIncomeMode('formal');
+            calcEmployerCost();
+        };
+    </script>
+    <script src="../program-state.js"></script>
+</body>
+</html>
