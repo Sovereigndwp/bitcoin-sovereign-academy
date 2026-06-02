@@ -75,7 +75,7 @@ Recommended: **candidate 3** for use in the briefing intro and warm-contact temp
 
 ### 2.4 Brand asset stack (reordered for English/professional audience)
 
-1. *"Bitcoin Adviser, TheBitcoinAdviser.com — collaborative 1-of-3 multisig custody"* — **front and center for professional track** (Plan A had this as #2)
+1. *"Bitcoin Adviser, TheBitcoinAdviser.com — collaborative 2-of-3 multisig custody"* — **front and center for professional track** (Plan A had this as #2)
 2. *"Wrote the curriculum for The Bitcoin Diploma (Mi Primer Bitcoin)"* — credibility, but secondary in English contexts
 3. **Bitcoin Sovereign Academy** — free curriculum (English modules are the relevant ones for this audience)
 4. *"Native Colombian, only Spanish-speaking adviser at TBA"* — niche credential, useful in LATAM-adjacent professional conversations (Miami, NYC family offices with LATAM exposure)

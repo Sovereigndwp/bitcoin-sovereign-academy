@@ -4,7 +4,7 @@
 
 **Org:** The Bitcoin Adviser
 **Relationship to Dalia:** She advises there.
-**Service model:** Collaborative 1-of-3 multisig.
+**Service model:** Collaborative 2-of-3 multisig.
 
 ## To fill in
 

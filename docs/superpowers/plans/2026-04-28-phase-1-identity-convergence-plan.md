@@ -490,7 +490,7 @@ Create `dalia/index.html`:
       <ul class="hub-door-list">
         <!-- 5 surfaced family-audience pieces -->
       </ul>
-      <p class="hub-door-aside">When custody becomes serious, I help families implement collaborative 1-of-3 multisig at <a href="https://thebitcoinadviser.com">The Bitcoin Adviser</a>.</p>
+      <p class="hub-door-aside">When custody becomes serious, I help families implement collaborative 2-of-3 multisig at <a href="https://thebitcoinadviser.com">The Bitcoin Adviser</a>.</p>
     </article>
 
     <article class="hub-door">

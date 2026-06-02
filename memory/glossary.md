@@ -8,7 +8,7 @@
 |------|---------|
 | **BSA** | Bitcoin Sovereign Academy (this repo). Primary at bitcoinsovereign.academy. |
 | **FSA** | Financially Sovereign Academy — sister project (financiallysovereign.academy). Underbanked-focused, not monetized. |
-| **The Bitcoin Adviser** | External advisory partner; collaborative 1-of-3 multisig service. Dalia advises there. |
+| **The Bitcoin Adviser** | External advisory partner; collaborative 2-of-3 multisig service. Dalia advises there. |
 | **Mi Primer Bitcoin** | Spanish-language Bitcoin curriculum source; Dalia authored The Bitcoin Diploma curriculum for them. |
 
 ## Task taxonomy (TASKS.md)
@@ -58,7 +58,7 @@
 | **L0** | "Layer 0" — the Bitcoin base chain as **monetary asset / final settlement** in the foundational-layer thesis taxonomy. (Not the same as the colloquial "L1/L2" usage.) |
 | **DCA** | Dollar-cost averaging. |
 | **Hashrate units** | EH/s = exahash/s. TH/s = terahash/s. |
-| **Multisig** | Multi-signature wallet scheme. The Bitcoin Adviser does 1-of-3 collaborative custody. |
+| **Multisig** | Multi-signature wallet scheme. The Bitcoin Adviser does 2-of-3 collaborative custody. |
 | **WoS** | Wallet of Satoshi (mainstream Lightning custodial wallet). Context: "WoS Nov 2024 correction", "WoS-Spark custody contested" in v4 audit fixes. |
 | **Spark** | Off-chain Bitcoin scaling protocol; WoS-Spark integration's custody model was contested in the v4 audit. |
 | **RGB** | Bitcoin smart-contracts / asset-issuance layer. Tether RGB: announced, not live. |
