@@ -11,7 +11,7 @@
 
 ## Where she advises / contributes
 
-- **The Bitcoin Adviser** — advises there. Collaborative 1-of-3 multisig model.
+- **The Bitcoin Adviser** — advises there. Collaborative 2-of-3 multisig model.
 - **Mi Primer Bitcoin** — authored The Bitcoin Diploma curriculum.
 
 ## Operating preferences

@@ -100,7 +100,7 @@ This brand **informs**, it does not **convince**. The reader decides.
 Deployed in every channel bio, every lead magnet, every outreach intro, every Substack signature, every speaker introduction:
 
 1. *"Wrote the curriculum for The Bitcoin Diploma (Mi Primer Bitcoin)"* — credibility
-2. *"Bitcoin Adviser, TheBitcoinAdviser.com — collaborative 1-of-3 multisig custody"* — offer
+2. *"Bitcoin Adviser, TheBitcoinAdviser.com — collaborative 2-of-3 multisig custody"* — offer
 3. **Bitcoin Sovereign Academy** (free) — proof of teaching, not selling
 4. **Financially Sovereign Academy** — proof of mission beyond commerce
 5. *"Native Colombian, only Spanish-speaking adviser at TBA"* — defensible niche

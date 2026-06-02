@@ -34,7 +34,7 @@ Three domains baked into the wedge: legal/civil-law inheritance practice × cryp
 
 ### 1.3 ICPs
 
-**Primary — consumer track (Spanish):** LATAM upper-middle-class business owners and entrepreneurs (35–60), currently hold BTC via ETFs, futures, exchanges, lending platforms, yield products, or "BTC-in-your-bank-app" — paper exposure across multiple custodial / counterparty-risk products. Don't yet grasp self-custody or the practical answer (collaborative 1-of-3 multisig). Colombia is the primary example, the audience is hemispheric. Engagement size: USD $200–$1,500.
+**Primary — consumer track (Spanish):** LATAM upper-middle-class business owners and entrepreneurs (35–60), currently hold BTC via ETFs, futures, exchanges, lending platforms, yield products, or "BTC-in-your-bank-app" — paper exposure across multiple custodial / counterparty-risk products. Don't yet grasp self-custody or the practical answer (collaborative 2-of-3 multisig). Colombia is the primary example, the audience is hemispheric. Engagement size: USD $200–$1,500.
 
 **Secondary — professional track (English):** Family offices, law firms, tax firms. The user already has warm contacts in this segment. Both direct clients (principals personally hold BTC) AND referral channels (their HNW clients need TBA). Engagement size: USD $1,000–$5,000, recurring possible. **Phase 1 only addresses this ICP via the warm-contact playbook (Component 4); cold prospecting is Phase 2.**
 
@@ -43,7 +43,7 @@ Three domains baked into the wedge: legal/civil-law inheritance practice × cryp
 Deployed in every channel bio, every lead-magnet page, every drip email, every outreach intro:
 
 1. *"Wrote the curriculum for The Bitcoin Diploma (Mi Primer Bitcoin)"* — credibility
-2. *"Bitcoin Adviser, TheBitcoinAdviser.com — collaborative 1-of-3 multisig"* — offer
+2. *"Bitcoin Adviser, TheBitcoinAdviser.com — collaborative 2-of-3 multisig"* — offer
 3. **Bitcoin Sovereign Academy** (free) — proof of teaching, not selling
 4. **Financially Sovereign Academy** — proof of mission beyond commerce
 5. *"Native Colombian, only Spanish-speaking adviser at TBA"* — defensible niche
@@ -161,7 +161,7 @@ The literal "Book a Consult" button on TheBitcoinAdviser.com remains for self-qu
 5. **Lo que aún no sé** — honest uncertainty notes where they apply (e.g., *"No sé cómo la próxima regulación cripto en Colombia tratará BTC en exchanges vs. autocustodia."*)
 6. **Aplicación** — 1–2 questions the reader can ask their adviser / exchange / bank to surface the risk concretely
 
-The closing chapter (Ch. 8) presents the 1-of-3 collaborative custody as **one architecture, not the only one**, with explicit acknowledgment of where it's *not* the right answer (e.g., for very small holdings, single-key may genuinely be simpler and safer; for institutional holdings, qualified custodians may be required by mandate). Soft track-A CTA: *"Si quieres entender cómo se aplicaría — o no se aplicaría — a tu situación específica, responde a este email con tu duda más urgente."*
+The closing chapter (Ch. 8) presents the 2-of-3 collaborative custody as **one architecture, not the only one**, with explicit acknowledgment of where it's *not* the right answer (e.g., for very small holdings, single-key may genuinely be simpler and safer; for institutional holdings, qualified custodians may be required by mandate). Soft track-A CTA: *"Si quieres entender cómo se aplicaría — o no se aplicaría — a tu situación específica, responde a este email con tu duda más urgente."*
 
 ### 2.3 Source layout
 
@@ -282,8 +282,8 @@ All in Spanish. Sender: `dalia@bitcoinsovereign.academy`. Reply-to: same. Tracki
 |---|---|---|---|---|
 | 0 | 0 | "Aquí está tu PDF: Tu Bitcoin no es tuyo aún" | #1 + #5 | Welcome + PDF download link + privacy note + W3 framing as *one lens among several* + what to expect (4 more emails over 12 days, then I stop) |
 | 1 | 2 | "¿Qué tan diferente es un ETF de tener Bitcoin?" | #5 + #2 | Riff on Ch. 1; one example; *"Otra perspectiva"* paragraph (the legitimate case for ETFs); one question for the reader's adviser |
-| 2 | 5 | "Si cae el exchange mañana, ¿qué le dices a tu notario?" | #5 + #1 | Riff on Ch. 3 + Ch. 8 preview; the legal-recognition gap; alternative custody paths besides 1-of-3 multisig |
-| 3 | 8 | "Tres lentes para mirar tu Bitcoin: ¿cuál usas tú?" | #1 + #3 + #5 | Present W3's three lenses as a *thinking tool*, not a verdict; invite the reader to identify which lens they currently use; introduce 1-of-3 collaborative custody as one architecture among several |
+| 2 | 5 | "Si cae el exchange mañana, ¿qué le dices a tu notario?" | #5 + #1 | Riff on Ch. 3 + Ch. 8 preview; the legal-recognition gap; alternative custody paths besides 2-of-3 multisig |
+| 3 | 8 | "Tres lentes para mirar tu Bitcoin: ¿cuál usas tú?" | #1 + #3 + #5 | Present W3's three lenses as a *thinking tool*, not a verdict; invite the reader to identify which lens they currently use; introduce 2-of-3 collaborative custody as one architecture among several |
 | 4 | 12 | "Una pregunta para ti" — track-A CTA | n/a (invitation) | *"Si has llegado hasta aquí, gracias por leer. Una sola pregunta: ¿cuál es la duda más urgente que tienes hoy sobre tu Bitcoin? Responde y la leo personalmente. Si encaja con lo que hago, agendamos 30 min — y si no encaja, te digo eso también."* |
 
 ### 4.2 Source layout

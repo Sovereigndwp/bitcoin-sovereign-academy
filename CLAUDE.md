@@ -11,7 +11,7 @@ Bitcoin Sovereign Academy is an interactive Bitcoin education platform.
 - **Tagline:** *Don't Trust, Verify.*
 - **Languages:** English primary, Spanish secondary (LATAM / Colombia niche). Spanish content lives at `paths/curious/stage-1/es/` and other path subdirectories.
 
-The platform is created by Dalia, who also runs Financially Sovereign Academy (`/Users/dalia/projects/financially-sovereign-academy`), advises at The Bitcoin Adviser (collaborative 1-of-3 multisig), and authored the curriculum for The Bitcoin Diploma (Mi Primer Bitcoin).
+The platform is created by Dalia, who also runs Financially Sovereign Academy (`/Users/dalia/projects/financially-sovereign-academy`), advises at The Bitcoin Adviser (collaborative 2-of-3 multisig), and authored the curriculum for The Bitcoin Diploma (Mi Primer Bitcoin).
 
 ## Architecture
 

@@ -28,7 +28,7 @@ The reader is owed a clear statement of conflicts. Where placeholders appear, co
 
 **Commercial relationships.** [FILL IN: paid speaking, consulting, advisory, or sponsorship relationships with any party that could be affected by the thesis. List "none" if none apply.]
 
-**The Bitcoin Adviser.** Dalia advises at The Bitcoin Adviser (collaborative 1-of-3 multisig service). This is disclosed because the deep dive's "for individual savers" guidance touches on custody architecture relevant to that service's offering.
+**The Bitcoin Adviser.** Dalia advises at The Bitcoin Adviser (collaborative 2-of-3 multisig service). This is disclosed because the deep dive's "for individual savers" guidance touches on custody architecture relevant to that service's offering.
 
 **Financially Sovereign Academy.** Dalia's sister project, mission-driven and not monetized. No commercial conflict applies.
 

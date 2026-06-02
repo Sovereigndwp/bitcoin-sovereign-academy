@@ -121,7 +121,7 @@ A zap is a normal Lightning payment with a Nostr "zap request" event (kind 9734)
 
 - **Beginner-friendly (start today):** Create `sovereigndwp@getalby.com` at https://coinos.io. Free, has a Lightning address by default, and is run by Nostr-friendly people.
 - **More sovereign (target within 90 days):** Migrate to [Alby Hub](https://albyhub.com/) on a small VPS or on the existing infrastructure. Lightning address becomes `bsa@<your-domain>` via the Alby Hub LNAddress route.
-- **Best current for BSA right now:** start with **Coinos** so the account is live and zappable on day one, **sweep balance weekly** to BSA cold storage (or to a dedicated 1-of-3 multisig managed via The Bitcoin Adviser) so the custodial balance stays small. Plan the Alby Hub migration into the 90-day roadmap.
+- **Best current for BSA right now:** start with **Coinos** so the account is live and zappable on day one, **sweep balance weekly** to BSA cold storage (or to a dedicated 2-of-3 multisig managed via The Bitcoin Adviser) so the custodial balance stays small. Plan the Alby Hub migration into the 90-day roadmap.
 
 ### Mixing-funds rule
 
