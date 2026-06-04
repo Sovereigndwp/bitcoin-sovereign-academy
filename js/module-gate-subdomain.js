@@ -20,6 +20,11 @@
         return; // Bypass all gating logic
     }
 
+    // Preview-key sessions (set by /api/preview-access) bypass all module gating.
+    if (document.cookie.split('; ').some(c => c === 'bsa_preview=1')) {
+        return;
+    }
+
     const previewLimit = window.BSA_CONFIG?.FREE_MODULES_LIMIT || 2; // Number of free sections before gate (for allowed modules)
 
     const pathName = normalizePath(window.location.pathname);
