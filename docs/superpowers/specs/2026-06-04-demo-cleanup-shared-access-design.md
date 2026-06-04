@@ -39,16 +39,22 @@ Each catalog already has an `index.html`. This pass redesigns two of them; the o
 
 ## Phase 1 — Shared access (preview-key on main)
 
-**Active gate finding:** `membership-gate.js` is loaded by **171** HTML files — the universal active gate. `module-gate.js` is loaded by only **1** file (this is where the fork mistakenly added the preview-key, explaining inconsistent unlock). `module-gate-subdomain.js` (65) and `demo-lock-subdomain.js` (35) are subdomain-era leftovers (the `learn.` subdomain was deprecated 2026-04-24); `membership-btcpay.js` (0).
+**Gating architecture (corrected after code inspection — supersedes the fork approach):**
+Gating is enforced at **two layers**:
+1. **Server (authoritative for the valuable content):** deep-dives and path stage-2+ / capstone / stage-1 module-2+ are server-protected. The client gate `membership-gate.js` explicitly *defers* to the server for these routes (`shouldDeferToServer()`). Server access is granted by a signed JWT cookie `bsa_premium_route` (signed with `JWT_SECRET`), built by `api/lib/premium-route-access.ts`. An existing endpoint `api/dev/unlock-all.ts` already mints an all-premium cookie but is restricted to localhost.
+2. **Client (demos):** interactive demos are gated only by `membership-gate.js` (loaded by 171 files — the universal gate). `module-gate.js` (1 file) is where the fork mistakenly added its localStorage key, which is why that approach was inconsistent. `module-gate-subdomain.js` (65) / `demo-lock-subdomain.js` (35) are subdomain-era leftovers (`learn.` deprecated 2026-04-24); `membership-btcpay.js` (0).
+
+A client-only localStorage `?preview=` flag (the fork's approach) therefore **cannot** unlock server-protected deep-dives/paths in production. Rejected.
 
 **Design:**
-- Port the `?preview=<key>` unlock into **`membership-gate.js`** (the universal gate), at the top of `init()` before any gating logic runs.
-- Mechanism (same shape as fork commit `6fcc210a`): read `?preview=<key>` from the URL → if key is valid and not expired, write `bsa_preview_unlock` + `bsa_preview_expires` to localStorage and bypass all gating; on subsequent pages, a stored unexpired key bypasses gating; expired keys are cleared.
-- **Key + expiry are set by Dalia** (not the fork's `dalia-beta-2026`). A single buyer key with an explicit expiry date.
-- Confirm the `-subdomain` gate scripts are inert post-deprecation; if they still gate, either remove them from the loaded pages or mirror the bypass. **Resolve during implementation** (first task of Phase 1).
-- Free-vs-gated definition stays as today (`membership-gate.js` CONFIG); no change to what's public.
+- **New endpoint `api/preview-access.ts`** — a key-gated twin of `api/dev/unlock-all.ts`. Reads `?key=<KEY>`, constant-time-compares to `process.env.PREVIEW_ACCESS_KEY`. If valid: build all-premium claims (`buildPremiumRouteClaims({ allPremium: true, deepDives: true, pathIds: ALL_PREMIUM_PATH_IDS, tier: 'developer', source: 'preview-key' })`), sign (`signPremiumRouteToken`, `maxAgeSeconds` = configurable expiry), set the `bsa_premium_route` cookie via `serializePremiumRouteCookie({ isSecure: true, maxAgeSeconds })`. Also set a **readable** marker cookie `bsa_preview=1` (same max-age, not httpOnly) so the client demo gate can recognize the preview session. Redirect to a safe internal `next` (default `/`).
+- **Client tweak in `membership-gate.js`:** at the top of `init()`, if the `bsa_preview` cookie is present, bypass client gating (covers premium demos). No secret in the URL beyond the one-time `/api/preview-access?key=…` hit.
+- **Buyer link:** `https://bitcoinsovereign.academy/api/preview-access?key=<KEY>&next=/` → sets cookies → buyer browses everything until expiry.
+- **Key + expiry set by Dalia** via the `PREVIEW_ACCESS_KEY` env var (Vercel) + the endpoint's max-age. Revoke by rotating/removing the env var.
+- Confirm `-subdomain` gate scripts are inert; if they still gate, mirror the bypass or drop them from loaded pages (resolve in implementation).
+- Free-vs-gated definition is unchanged; no change to what's public.
 
-**Verification:** With no key → public sees the normal gate. With `?preview=<key>` → buyer unlocks everything for the session/until expiry. Run `npm run test:modules` (gating tests).
+**Verification:** No cookie → public sees the normal gate (server + client). After hitting the preview link → buyer unlocks server-protected deep-dives/paths AND client-gated demos until expiry. Wrong key → 403, no cookie. Run `npm run test:modules`.
 
 ## Phase 2a — Catalog redesign (Demos + Deep Dives)
 
