@@ -270,30 +270,11 @@
 
         /**
          * Determine if current page should be gated
+         * TEMPORARILY DISABLED FOR TESTING - returns false to allow all content access
          */
         shouldGatePage() {
-            const path = window.location.pathname;
-
-            // Always free pages
-            if (CONFIG.freePages.some(p => path === p || path === p + 'index.html')) {
-                return false;
-            }
-
-            // Free demos
-            if (CONFIG.freeDemos.some(p => path.startsWith(p))) {
-                return false;
-            }
-
-            // Free module pattern (module-1 of stage-1)
-            if (CONFIG.freeModulePattern.test(path)) {
-                return false;
-            }
-
-            // Check if premium content
-            const isPremium = CONFIG.premiumPatterns.some(pattern => pattern.test(path));
-            
-            // If premium and no access, gate it
-            return isPremium;
+            // Temporarily disabled for testing on the 'test' branch
+            return false;
         }
 
         /**
@@ -343,7 +324,7 @@
                             <h3>⚡ Apprentice</h3>
                             <div class="option-price">50,000 sats</div>
                             <p>Deposit sats, earn up to 80% back as you learn</p>
-                            <button type="button" class="gate-btn primary" onclick="if(window.bsaAnalytics)window.bsaAnalytics.trackMembershipClick('apprentice','gate');window.location.href='/membership.html#apprentice'">
+                            <button type="button" class="gate-btn primary" onclick="if(window.bsaAnalytics)window.bsaAnalytics.trackMembershipClick('apprentice','gate');window.location.href='/mem[...]
                                 Start Earning
                             </button>
                         </div>
@@ -352,7 +333,7 @@
                             <h3>👑 Sovereign</h3>
                             <div class="option-price">$399</div>
                             <p>Lifetime access to everything. No hoops.</p>
-                            <button type="button" class="gate-btn secondary" onclick="if(window.bsaAnalytics)window.bsaAnalytics.trackMembershipClick('sovereign','gate');window.location.href='/membership.html#sovereign'">
+                            <button type="button" class="gate-btn secondary" onclick="if(window.bsaAnalytics)window.bsaAnalytics.trackMembershipClick('sovereign','gate');window.location.href='/me[...]
                                 Get Lifetime Access
                             </button>
                         </div>
