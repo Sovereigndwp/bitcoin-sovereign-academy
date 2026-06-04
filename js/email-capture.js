@@ -29,7 +29,7 @@ substackUrl: '',
         modalDelay: 0,
         
         // Show on exit intent (desktop only)
-        exitIntent: true
+        exitIntent: false
     };
 
     class EmailCapture {
