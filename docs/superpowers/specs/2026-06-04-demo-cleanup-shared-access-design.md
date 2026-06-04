@@ -120,3 +120,19 @@ Split by judgment vs. mechanism:
 2. `demos/` and `tools/` reconciliation method (redirect vs. thin pointer).
 3. Final keeper confirmation for each dedup cluster after direct comparison.
 4. The buyer preview key string + expiry date (Dalia to provide).
+
+## Buyer handoff
+
+A buyer unlocks all premium content (paths stage-2+, deep-dives, capstone, and all gated demos) via a single link backed by `/api/preview-access`.
+
+**Vercel env vars:**
+- `PREVIEW_ACCESS_KEY` (required) — the secret key embedded in the buyer link. The endpoint returns `403` unless this is set and matches.
+- `PREVIEW_ACCESS_MAX_AGE_DAYS` (optional) — cookie lifetime in days. Defaults to `30`.
+
+**Buyer link:**
+```
+https://bitcoinsovereign.academy/api/preview-access?key=<KEY>&next=/
+```
+The endpoint sets two cookies: the signed `bsa_premium_route` cookie (server-authoritative gate) and a `bsa_preview=1` marker cookie that the client gates (`js/membership-gate.js`, `js/module-gate-subdomain.js`, `js/demo-lock-subdomain.js`) honor to bypass demo/module gating. `next` must be a same-site absolute path (defaults to `/`).
+
+**Revoke:** rotate or remove the `PREVIEW_ACCESS_KEY` env var in Vercel. Existing links stop working immediately on the next request (key no longer matches); already-issued cookies expire after the max-age window.
