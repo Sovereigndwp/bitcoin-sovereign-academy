@@ -48,8 +48,14 @@
     document.head.appendChild(style);
   }
 
+  function isEmbedded() {
+    try { return window.self !== window.top; } catch (e) { return true; }
+  }
+
   function mount() {
     if (!document.body || document.querySelector('.bsa-demo-nav')) return;
+    // Demos are iframe-embedded inside path modules; don't show the bar there.
+    if (isEmbedded()) return;
     injectStyles();
 
     var nav = document.createElement('nav');
