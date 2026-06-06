@@ -7,9 +7,10 @@ _Last updated: 2026-06-06. Phase 3 content-accuracy audit complete and merged (P
 - **22 verified mechanical fixes** + **5 flagged procedure/version fixes** + **all 4 cross-cutting patterns** (subsidy, hashrate, defunct/links, live-data bindings).
 - **Preview-key flow** live + hardened (`api/preview-access.ts`, PR #46/#47).
 - **Phase 4 (youth pedagogy) spec + plan + scoring anchors** — staged, not yet run.
+- **API bundle fully hardened (2026-06-06).** `api/package.json` now declares all four external runtime deps (`jsonwebtoken`, `pg`, `stripe`, `@supabase/supabase-js`) so `@vercel/nft` traces them deterministically. Closes the `FUNCTION_INVOCATION_FAILED` class flagged as a follow-up in PR #47. (Commits `7e0ea61` + `561701f`.)
 
 ## 🔴 Do first (housekeeping)
-1. **Rotate `PREVIEW_ACCESS_KEY` in Vercel.** The key tested during the build passed through chat — set a fresh value (Production env) and redeploy. Hand buyers the new key.
+1. **Rotate `PREVIEW_ACCESS_KEY`** — ✅ new key set in Vercel (2026-06-06). **Last confirm:** hit your own buyer link (`…/api/preview-access?key=<NEW_KEY>&next=/`) and check it 302-redirects; the old/leaked key now returns 403. (Note: the rotation redeploy was a cache-reuse "Redeploy" that briefly dropped `pg` and 500'd all db-backed endpoints — fixed by the API bundle hardening above. **Going forward, redeploy with build cache OFF, or push an empty commit, never plain "Redeploy."**)
 2. **Branch cleanup** — merged branches pruned 2026-06-06. Re-check periodically with `git branch --merged main`.
 
 ## 🟢 Biggest next move
