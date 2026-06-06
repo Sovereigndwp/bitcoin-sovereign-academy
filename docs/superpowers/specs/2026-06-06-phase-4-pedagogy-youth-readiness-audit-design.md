@@ -79,6 +79,7 @@ Reference bars per dimension — what each platform does best, and the question:
 | Minecraft Education | Systems thinking |
 | Code.org | Beginner onboarding |
 | Mi Primer Bitcoin | Bitcoin simplicity *(Dalia authored this curriculum)* |
+| learnmeabitcoin.com | Interactive Bitcoin-technical explainers (tx/script/key/hash visualizations) |
 | **BSA** | **Sovereignty, custody, continuity** |
 
 The report names, per weak criterion, which platform's approach to borrow and how to adapt it without importing reward-loop mechanics.
