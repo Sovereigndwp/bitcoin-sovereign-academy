@@ -58,6 +58,12 @@
         async init() {
             if (this.initialized) return;
 
+            // Preview-key sessions (set by /api/preview-access) bypass client demo gating.
+            if (document.cookie.split('; ').some(c => c === 'bsa_preview=1')) {
+                this.initialized = true;
+                return;
+            }
+
             this.clearLegacyOwnerState();
             if (this.shouldDeferToServer()) {
                 this.initialized = true;

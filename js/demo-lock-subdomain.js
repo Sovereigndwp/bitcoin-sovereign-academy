@@ -25,6 +25,11 @@
     function checkAccess() {
         const demoName = getDemoName();
 
+        // Preview-key sessions (set by /api/preview-access) bypass demo locks.
+        if (document.cookie.split('; ').some(c => c === 'bsa_preview=1')) {
+            return true;
+        }
+
         // 1. Check global configuration first (highest priority)
         if (window.BSA_CONFIG?.FULL_ACCESS || !window.BSA_CONFIG?.ENABLE_DEMO_LOCKS) {
             if (window.BSA_CONFIG?.DEBUG) {
