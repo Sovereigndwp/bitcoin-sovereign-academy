@@ -611,17 +611,16 @@ git remote add upstream https://github.com/bitcoin/bitcoin.git</code></pre>
                     <p><span class="step-number">2</span><strong>Build Bitcoin Core</strong></p>
                     <pre style="margin-top: 0.5rem;"><code># Install dependencies (Ubuntu/Debian)
 sudo apt-get update
-sudo apt-get install build-essential libtool autotools-dev automake \
-  pkg-config bsdmainutils python3 libssl-dev libevent-dev libboost-dev \
-  libsqlite3-dev libdb++-dev
+sudo apt-get install build-essential cmake pkgconf python3 \
+  libevent-dev libboost-dev libsqlite3-dev
 
-# Build
-./autogen.sh
-./configure
-make -j$(nproc)
+# Configure and build (out-of-source; in-source builds are not allowed)
+# Bitcoin Core migrated from Autotools to CMake in v29.0 (2025)
+cmake -B build
+cmake --build build -j$(nproc)
 
-# Run tests
-make check</code></pre>
+# Run unit tests
+ctest --test-dir build</code></pre>
                 </div>
 
                 <div class="step-box">
@@ -638,7 +637,7 @@ git checkout -b my-improvement-description</code></pre>
                         Follow the <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/developer-notes.md" style="color: var(--contributor-red);">developer-notes.md</a> coding standards:
                     </p>
                     <ul style="margin-left: 4rem; margin-top: 0.5rem;">
-                        <li>Use consistent formatting (run <code>make lint</code>)</li>
+                        <li>Use consistent formatting (run <code>./ci/lint.py</code>)</li>
                         <li>Write clear, descriptive commit messages</li>
                         <li>Keep commits atomic and logical</li>
                         <li>Add tests for new functionality</li>
@@ -649,13 +648,13 @@ git checkout -b my-improvement-description</code></pre>
                 <div class="step-box">
                     <p><span class="step-number">5</span><strong>Test Thoroughly</strong></p>
                     <pre style="margin-top: 0.5rem;"><code># Run all tests
-make check                           # Unit tests
+ctest --test-dir build               # Unit tests
 test/functional/test_runner.py      # Functional tests
-test/lint/lint-all.sh                # Linting
+./ci/lint.py                         # Linting (or: cd test/lint/test_runner && cargo run)
 
 # Test specific functionality
 test/functional/wallet_basic.py
-src/test/test_bitcoin --run_test=validation_tests</code></pre>
+build/bin/test_bitcoin --run_test=validation_tests</code></pre>
                 </div>
 
                 <div class="step-box">
@@ -786,12 +785,12 @@ test/functional/test_runner.py --extended</code></pre>
                     Critical for security-sensitive code.
                 </p>
 
-                <pre><code># Build with fuzzing enabled
-./configure --enable-fuzz --with-sanitizers=address,fuzzer,undefined
-make
+                <pre><code># Build with fuzzing enabled (CMake; Autotools removed in v29.0)
+cmake --preset=libfuzzer
+cmake --build build_fuzz
 
-# Run fuzzer
-src/test/fuzz/process_message /path/to/seed/corpus</code></pre>
+# Run a fuzz harness (FUZZ selects the target; corpus dir is positional)
+FUZZ=process_message build_fuzz/bin/fuzz /path/to/seed/corpus</code></pre>
 
                 <h3>Writing Tests for Your Changes</h3>
 
