@@ -498,3 +498,24 @@ Of the 22 verified mechanical 🔴 fixes: **17 applied automatically** (single-v
 - 🟡 **L363** (dead-link, _mechanical_): Sats4Likes: Social media tasks for sats — Sats4Likes posted a shutdown notice on its own site (sats4likes.com), asking users to withdraw remaining sats. Presenting it as a live way to earn Bitcoin is now inaccurate.
 - 🟡 **L561** (factual, _mechanical_): Some have no capital gains tax on Bitcoin (e.g., Germany after 1 year, Portugal for individuals) — The Portugal framing 'Portugal for individuals' is stale/over-broad. Since January 2023 Portugal taxes crypto held under 365 days at a flat 28%; only gains on assets held more than 365 days are exempt. The blanket 'for i
 - 🟢 **L591** (unsourced, _needs-decision_): That coffee isn't $5—it's 5,000 sats that could be worth $50 in 10 years — Implies ~10x BTC appreciation over 10 years as an illustrative figure. It is framed hypothetically ('could be'), but it is an unsourced quantitative projection and could read as a price prediction.
+
+---
+
+## Live-data pass (Pattern 4) — disposition
+
+Classified **71 hardcoded live-data values across 23 pages** (read-only workflow). Only a small fraction were genuinely "current-live" displays; the rest are correct and were left untouched:
+
+| Classification | Count | Action |
+|---|---:|---|
+| Historical (tied to a past date/event) | 23 | left as-is |
+| Illustrative (worked-example math) | 31 | left as-is |
+| JS constant (not a DOM text node) | 9 | left as-is (manual wiring only) |
+| **Current-live** | **8** | see below |
+
+**Of the 8 current-live:**
+- ✅ **3 stat cards live-bound** to `data-btc-live="supply"` (+ added `bitcoin-data-reliable.js`): `digital-scarcity.html`, `first-principles/index.html`, `original-question-everything.html` (the "Currently Mined" / "already mined" supply figures, previously frozen at 19.8M).
+- ✅ **1 prose figure refreshed** (de-dated, round numbers) in `curious/s2m2` ("As of Nov 2024, 19.8M (94%)…" → "As of 2026, ~20M (~95%)…") — inline live spans don't fit prose with coupled derived figures.
+- ⏭️ **2 skipped (flagged):** the mining-demo **`btc-price` ($43,000)** is used as the literal `43000` in the profitability JS, so binding the display alone would desync it — needs JS wiring; left illustrative. The **`era-pct` (~94%)** is controlled by the halving-slider JS (`getElementById('era-pct')`), so binding would fight the slider.
+- ➖ **2 left correct:** the two `block-reward` stat cards (3.125 BTC) — no live key for subsidy and only changes at a halving.
+
+**Net:** of 71 values, 4 remediated (3 live-bound + 1 refreshed), 2 flagged for optional JS wiring, 65 correctly left as historical/illustrative/constant. A blind find-replace would have corrupted the 65.
