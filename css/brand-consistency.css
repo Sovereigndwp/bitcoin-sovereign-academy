@@ -1,0 +1,121 @@
+/* ==========================================================================
+   brand-consistency.css — the one homepage-canonical visual system
+   Spec: docs/superpowers/specs/2026-06-07-brand-design-system.md
+   Standard: black/gray surfaces · orange→yellow accent (SPARINGLY) · white
+   text default · RECTANGULAR cards+buttons · outline buttons · Inter.
+   NO green, NO purple. Built on existing design-tokens.css (with fallbacks);
+   does not introduce new tokens.
+   ========================================================================== */
+
+:root {
+  /* Canonical aliases (fall back to homepage values if design-tokens.css absent) */
+  --bsa-bg:        var(--color-bg-primary, #16181c);
+  --bsa-surface:   #101010;
+  --bsa-surface-2: var(--color-bg-tertiary, #2d2d2d);
+  --bsa-text:      var(--color-text-primary, #F7F7F2);
+  --bsa-text-muted:var(--color-text-secondary, #b3b3b3);
+  --bsa-accent:    var(--color-primary, #FF7A00);
+  --bsa-accent-2:  var(--color-primary-hover, #FFD400);
+  --bsa-border:    #2a2a2a;
+  --bsa-radius:    2px;                 /* rectangular */
+  --bsa-grad:      linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);
+  --bsa-font:      var(--font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+}
+
+/* ---------- 1. Canonical primitives (use these on new/normalized markup) ---------- */
+.bsa-card {
+  background: var(--bsa-surface);
+  border: 1px solid var(--bsa-border);
+  border-radius: var(--bsa-radius);
+  padding: 1.5rem;
+  color: var(--bsa-text);
+}
+.bsa-card h2, .bsa-card h3 { color: var(--bsa-accent); }
+
+.bsa-btn,
+.bsa-btn-primary,
+.bsa-btn-secondary {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--bsa-radius);
+  font-weight: 700;
+  font-family: var(--bsa-font);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+}
+/* Outline buttons — readable on dark; never faint-text-on-fill */
+.bsa-btn-primary {
+  background: transparent;
+  color: var(--bsa-text);
+  border: 2px solid var(--bsa-accent);
+}
+.bsa-btn-primary:hover { background: rgba(255,122,0,.12); }
+.bsa-btn-secondary {
+  background: transparent;
+  color: var(--bsa-accent);
+  border: 2px solid rgba(255,122,0,.5);
+}
+
+.bsa-input, .bsa-card input, .bsa-card textarea, .bsa-card select {
+  background: var(--bsa-surface);
+  border: 1px solid var(--bsa-border);
+  border-radius: var(--bsa-radius);
+  color: var(--bsa-text);
+}
+
+/* Accent: gradient title / underline — use sparingly */
+.bsa-accent-text { color: var(--bsa-accent); }
+.bsa-gradient-text {
+  background: var(--bsa-grad);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: var(--bsa-accent);
+}
+
+/* Type scale — smaller, clean */
+.bsa-title    { font-size: 1.85rem; font-weight: 700; letter-spacing: -0.01em; color: var(--bsa-text); }
+.bsa-subtitle { font-size: 1rem; color: var(--bsa-text-muted); }
+.bsa-section-title { font-size: 1.3rem; font-weight: 700; color: var(--bsa-accent); }
+
+/* ---------- 2. Drift-neutralization (opt-in: <body class="bsa-skin">) ----------
+   Forces the canonical look onto a page that adopts it, overriding off-brand
+   page-local theming. Per-page remaps of bespoke vars happen at rollout; this
+   covers the common, repeated drift patterns. */
+body.bsa-skin {
+  background: var(--bsa-bg) !important;
+  color: var(--bsa-text) !important;
+  font-family: var(--bsa-font) !important;
+}
+/* Neutralize the known youth-track green vars site-wide when skinned */
+body.bsa-skin {
+  --primary-green: var(--bsa-accent);
+  --primary-green-dark: var(--color-primary-dark, #E67E00);
+  --dark-bg: var(--bsa-bg);
+  --card-bg: var(--bsa-surface);
+  --border-color: var(--bsa-border);
+  --text-primary: var(--bsa-text);
+}
+/* Rectangular everything that reads as a card/button/field */
+body.bsa-skin :is(.card,[class*="card"],.btn,[class*="btn"],button,
+  .stage,.next-week,.cta-section,[class*="section"],[class*="box"],
+  input,textarea,select) {
+  border-radius: var(--bsa-radius) !important;
+}
+/* White text default for body copy/labels (orange reserved for headings) */
+body.bsa-skin :is(p,li,td,.label,[class*="-name"],[class*="-description"],[class*="-text"]) {
+  color: var(--bsa-text-muted);
+}
+/* Outline-ify solid-fill primary buttons so text stays readable.
+   Explicit selectors (a/button/div + class) to beat page rules that set
+   background via a page-local var; also kill gradient fills. */
+body.bsa-skin .btn-primary,
+body.bsa-skin a.btn-primary,
+body.bsa-skin button.btn-primary,
+body.bsa-skin .cta-primary,
+body.bsa-skin a.cta-primary,
+body.bsa-skin button.cta-primary {
+  background: transparent !important;
+  background-image: none !important;
+  color: var(--bsa-text) !important;
+  border: 2px solid var(--bsa-accent) !important;
+}
