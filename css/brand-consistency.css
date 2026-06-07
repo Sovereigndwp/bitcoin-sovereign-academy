@@ -1,0 +1,170 @@
+/* ==========================================================================
+   brand-consistency.css — the one homepage-canonical visual system
+   Spec: docs/superpowers/specs/2026-06-07-brand-design-system.md
+   Standard: black/gray surfaces · orange→yellow accent (SPARINGLY) · white
+   text default · RECTANGULAR cards+buttons · outline buttons · Inter.
+   NO green, NO purple. Built on existing design-tokens.css (with fallbacks);
+   does not introduce new tokens.
+   ========================================================================== */
+
+:root {
+  /* Canonical aliases (fall back to homepage values if design-tokens.css absent) */
+  --bsa-bg:        var(--color-bg-primary, #16181c);
+  --bsa-surface:   #101010;
+  --bsa-surface-2: var(--color-bg-tertiary, #2d2d2d);
+  --bsa-text:      var(--color-text-primary, #F7F7F2);
+  --bsa-text-muted:var(--color-text-secondary, #b3b3b3);
+  --bsa-accent:    var(--color-primary, #FF7A00);
+  --bsa-accent-2:  var(--color-primary-hover, #FFD400);
+  --bsa-border:    #2a2a2a;
+  --bsa-radius:    2px;                 /* rectangular */
+  /* Canonical homepage accent fade (exact stops, measured from homepage) */
+  --bsa-grad:      linear-gradient(90deg, #FFE600 0%, #FFD400 18%, #FF9A00 48%, #FF7A00 78%, #E85F00 100%);
+  --bsa-ink:       #16181c;             /* dark text for use ON the bright gradient */
+  --bsa-font:      var(--font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+}
+
+/* ---------- 1. Canonical primitives (use these on new/normalized markup) ---------- */
+.bsa-card {
+  background: var(--bsa-surface);
+  border: 1px solid var(--bsa-border);
+  border-radius: var(--bsa-radius);
+  padding: 1.5rem;
+  color: var(--bsa-text);
+}
+.bsa-card h2, .bsa-card h3 { color: var(--bsa-accent); }
+
+.bsa-btn,
+.bsa-btn-primary,
+.bsa-btn-secondary {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--bsa-radius);
+  font-weight: 700;
+  font-family: var(--bsa-font);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+}
+/* Primary = the signature orange→yellow gradient FILL with dark text (high
+   contrast on the bright fade). Secondary = outline. Neither uses faint
+   same-color text on a fill. */
+.bsa-btn-primary {
+  background: var(--bsa-grad);
+  color: #16181c;
+  -webkit-text-fill-color: #16181c;
+  border: none;
+  font-weight: 800;
+}
+.bsa-btn-primary:hover { filter: brightness(1.08); }
+.bsa-btn-secondary {
+  background: transparent;
+  color: var(--bsa-accent);
+  border: 2px solid rgba(255,122,0,.5);
+}
+
+.bsa-input, .bsa-card input, .bsa-card textarea, .bsa-card select {
+  background: var(--bsa-surface);
+  border: 1px solid var(--bsa-border);
+  border-radius: var(--bsa-radius);
+  color: var(--bsa-text);
+}
+
+/* Accent: gradient title / underline — use sparingly */
+.bsa-accent-text { color: var(--bsa-accent); }
+.bsa-gradient-text {
+  background: var(--bsa-grad);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: var(--bsa-accent);
+}
+
+/* Type scale — smaller, clean. Accent titles use the gradient fade. */
+.bsa-title {
+  font-size: 1.85rem; font-weight: 700; letter-spacing: -0.01em;
+  background: var(--bsa-grad);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: var(--bsa-accent);
+}
+.bsa-subtitle { font-size: 1rem; color: var(--bsa-text-muted); }
+.bsa-section-title {
+  font-size: 1.3rem; font-weight: 700;
+  background: var(--bsa-grad);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: var(--bsa-accent);
+}
+
+/* ---------- 2. Drift-neutralization (opt-in: <body class="bsa-skin">) ----------
+   Forces the canonical look onto a page that adopts it, overriding off-brand
+   page-local theming. Per-page remaps of bespoke vars happen at rollout; this
+   covers the common, repeated drift patterns. */
+body.bsa-skin {
+  background: var(--bsa-bg) !important;
+  color: var(--bsa-text) !important;
+  font-family: var(--bsa-font) !important;
+}
+/* Neutralize the known youth-track green vars site-wide when skinned */
+body.bsa-skin {
+  --primary-green: var(--bsa-accent);
+  --primary-green-dark: var(--color-primary-dark, #E67E00);
+  --dark-bg: var(--bsa-bg);
+  --card-bg: var(--bsa-surface);
+  --border-color: var(--bsa-border);
+  --text-primary: var(--bsa-text);
+}
+/* Rectangular everything that reads as a card/button/field */
+body.bsa-skin :is(.card,[class*="card"],.btn,[class*="btn"],button,
+  .stage,.next-week,.cta-section,[class*="section"],[class*="box"],
+  input,textarea,select) {
+  border-radius: var(--bsa-radius) !important;
+}
+/* White text default for body copy/labels (orange reserved for headings) */
+body.bsa-skin :is(p,li,td,.label,[class*="-name"],[class*="-description"],[class*="-text"]) {
+  color: var(--bsa-text-muted);
+}
+/* Buttons -> restrained OUTLINE (orange border + white text), small. The
+   gradient is reserved for titles/borders, not big filled blocks ("too much
+   fade"). A rare hero CTA can opt into the gradient fill via .bsa-btn-primary. */
+body.bsa-skin .btn-primary,
+body.bsa-skin a.btn-primary,
+body.bsa-skin button.btn-primary,
+body.bsa-skin .cta-primary,
+body.bsa-skin a.cta-primary,
+body.bsa-skin button.cta-primary,
+body.bsa-skin .btn,
+body.bsa-skin a.btn {
+  background: transparent !important;
+  background-image: none !important;
+  color: var(--bsa-text) !important;
+  -webkit-text-fill-color: var(--bsa-text) !important;
+  border: 2px solid var(--bsa-accent) !important;
+  padding: 0.5rem 1.1rem !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+}
+
+/* Accent titles -> orange→yellow gradient fade, SMALLER + tighter.
+   Only real headings (h1/h2/h3), NOT card-item labels like .example-title. */
+body.bsa-skin :is(h1,h2,h3):not(.bsa-subtitle):not([class*="subtitle"]) {
+  background: var(--bsa-grad);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--bsa-accent);
+  font-size: clamp(1.2rem, 2.2vw, 1.6rem) !important;
+  line-height: 1.2 !important;
+  margin-bottom: 0.6rem !important;
+}
+/* Card-item labels (divs, not headings) -> white, never the gradient/orange. */
+body.bsa-skin :is([class*="-title"],[class*="-name"],[class*="-label"],[class*="-cost"],[class*="-value"]):not(h1):not(h2):not(h3) {
+  background: none !important;
+  color: var(--bsa-text) !important;
+  -webkit-text-fill-color: var(--bsa-text) !important;
+}
+
+/* Tighter space + flat surfaces (kill faint tint/gradient card backgrounds). */
+body.bsa-skin :is(.cta-section,.intro-section,.stages-section,.next-week,
+  [class*="section"],[class*="card"],[class*="box"]) {
+  padding: 1.25rem 1.5rem !important;
+  background-image: none !important;
+}
+body.bsa-skin .header { margin-bottom: 1rem !important; }
+body.bsa-skin .container { max-width: 1140px !important; }
