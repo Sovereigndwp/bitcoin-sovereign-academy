@@ -18,7 +18,9 @@
   --bsa-accent-2:  var(--color-primary-hover, #FFD400);
   --bsa-border:    #2a2a2a;
   --bsa-radius:    2px;                 /* rectangular */
-  --bsa-grad:      linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);
+  /* Canonical homepage accent fade (exact stops, measured from homepage) */
+  --bsa-grad:      linear-gradient(90deg, #FFE600 0%, #FFD400 18%, #FF9A00 48%, #FF7A00 78%, #E85F00 100%);
+  --bsa-ink:       #16181c;             /* dark text for use ON the bright gradient */
   --bsa-font:      var(--font-sans, 'Inter', system-ui, -apple-system, sans-serif);
 }
 
@@ -44,13 +46,17 @@
   cursor: pointer;
   transition: background .2s, color .2s, border-color .2s;
 }
-/* Outline buttons — readable on dark; never faint-text-on-fill */
+/* Primary = the signature orange→yellow gradient FILL with dark text (high
+   contrast on the bright fade). Secondary = outline. Neither uses faint
+   same-color text on a fill. */
 .bsa-btn-primary {
-  background: transparent;
-  color: var(--bsa-text);
-  border: 2px solid var(--bsa-accent);
+  background: var(--bsa-grad);
+  color: #16181c;
+  -webkit-text-fill-color: #16181c;
+  border: none;
+  font-weight: 800;
 }
-.bsa-btn-primary:hover { background: rgba(255,122,0,.12); }
+.bsa-btn-primary:hover { filter: brightness(1.08); }
 .bsa-btn-secondary {
   background: transparent;
   color: var(--bsa-accent);
@@ -72,10 +78,20 @@
   -webkit-text-fill-color: transparent; color: var(--bsa-accent);
 }
 
-/* Type scale — smaller, clean */
-.bsa-title    { font-size: 1.85rem; font-weight: 700; letter-spacing: -0.01em; color: var(--bsa-text); }
+/* Type scale — smaller, clean. Accent titles use the gradient fade. */
+.bsa-title {
+  font-size: 1.85rem; font-weight: 700; letter-spacing: -0.01em;
+  background: var(--bsa-grad);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: var(--bsa-accent);
+}
 .bsa-subtitle { font-size: 1rem; color: var(--bsa-text-muted); }
-.bsa-section-title { font-size: 1.3rem; font-weight: 700; color: var(--bsa-accent); }
+.bsa-section-title {
+  font-size: 1.3rem; font-weight: 700;
+  background: var(--bsa-grad);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: var(--bsa-accent);
+}
 
 /* ---------- 2. Drift-neutralization (opt-in: <body class="bsa-skin">) ----------
    Forces the canonical look onto a page that adopts it, overriding off-brand
@@ -105,17 +121,26 @@ body.bsa-skin :is(.card,[class*="card"],.btn,[class*="btn"],button,
 body.bsa-skin :is(p,li,td,.label,[class*="-name"],[class*="-description"],[class*="-text"]) {
   color: var(--bsa-text-muted);
 }
-/* Outline-ify solid-fill primary buttons so text stays readable.
-   Explicit selectors (a/button/div + class) to beat page rules that set
-   background via a page-local var; also kill gradient fills. */
+/* Primary buttons -> signature gradient fill + dark text (beats page rules
+   that fill via a page-local var; high contrast on the bright fade). */
 body.bsa-skin .btn-primary,
 body.bsa-skin a.btn-primary,
 body.bsa-skin button.btn-primary,
 body.bsa-skin .cta-primary,
 body.bsa-skin a.cta-primary,
 body.bsa-skin button.cta-primary {
-  background: transparent !important;
-  background-image: none !important;
-  color: var(--bsa-text) !important;
-  border: 2px solid var(--bsa-accent) !important;
+  background: var(--bsa-grad) !important;
+  color: #16181c !important;
+  -webkit-text-fill-color: #16181c !important; /* beats inherited gradient-clip fill */
+  border: none !important;
+  font-weight: 800 !important;
+}
+
+/* Accent titles -> orange→yellow gradient-clipped fade (the homepage signature).
+   Targets page title classes + headings inside skinned pages. */
+body.bsa-skin :is(h1,h2,[class*="title"]):not(.bsa-subtitle):not([class*="subtitle"]) {
+  background: var(--bsa-grad);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--bsa-accent);
 }
