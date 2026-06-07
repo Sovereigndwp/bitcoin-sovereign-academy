@@ -295,7 +295,7 @@ Recommended tools:
 ## Support
 
 For questions or issues:
-- GitHub Issues: https://github.com/your-org/bitcoin-sovereign-academy/issues
+- GitHub Issues: https://github.com/Sovereigndwp/bitcoin-sovereign-academy/issues
 - Email: support@bitcoinsovereign.academy
 
 ## License
