@@ -370,6 +370,7 @@
     </style>
   <link rel="stylesheet" href="/css/brand-consistency.css">
   <link rel="stylesheet" href="/css/youth-skin.css">
+  <link rel="stylesheet" href="/css/youth-engine.css">
 </head>
 <body class="bsa-skin">
     <div class="container">
@@ -386,11 +387,16 @@
                 Got your first job? Congratulations! But here's what nobody tells you: your first paycheck will be smaller than you expect. 
                 Let's break down exactly what happens to your money before it reaches your bank account.
             </p>
-            <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid var(--error); border-radius: 0.5rem; padding: 1rem; text-align: center;">
-                <strong style="color: var(--error);">Reality Check:</strong>
-                <span style="color: var(--text-secondary);"> If your job pays $15/hour and you work 20 hours, you won't get $300. You'll get around $230-250 after taxes and deductions!</span>
+            <div style="background: rgba(245, 158, 11, 0.1); border: 2px solid var(--warning); border-radius: 0.5rem; padding: 1rem; text-align: center;">
+                <strong style="color: var(--warning);">🔮 Reality check:</strong>
+                <span style="color: var(--text-secondary);"> A $15/hour job at 20 hours looks like $300 — but taxes and deductions take a cut before it reaches your bank. How big a cut? Predict it just below, then calculate and see how close you were.</span>
             </div>
         </div>
+
+        <!-- Predict your take-home before the breakdown is revealed -->
+        <div class="yf-predict" data-key="yf-w5-takehome"
+             data-question="Out of every $100 you earn, how much do you think actually reaches your bank account?"
+             data-unit="of $100" style="max-width: 640px; margin: 0 auto 2.5rem;"></div>
 
         <div class="calculator-grid">
             <div class="input-panel">
@@ -440,7 +446,9 @@
                     <div class="gross-pay" id="gross-amount">$300</div>
                     <div class="gross-label">Gross Pay (before deductions)</div>
 
-                    <ul class="deductions-list" id="deductions-list">
+                    <p id="reveal-hint" style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem;">🔒 Lock your prediction above to reveal the deductions and your real take-home pay.</p>
+
+                    <ul class="deductions-list" id="deductions-list" hidden>
                         <li class="deduction-item">
                             <span class="deduction-label">Federal Income Tax</span>
                             <span class="deduction-amount" id="federal-tax">-$30</span>
@@ -459,7 +467,7 @@
                         </li>
                     </ul>
 
-                    <div class="net-pay">
+                    <div class="net-pay" id="net-pay-block" hidden>
                         <div class="net-amount" id="net-amount">$235</div>
                         <div class="net-label">Take-Home Pay (what you actually get)</div>
                     </div>
@@ -538,6 +546,7 @@
         </div>
     </div>
 
+    <script src="/js/youth-engine.js"></script>
     <script>
         const scenarios = {
             'fast-food': { wage: 12, hours: 15, name: 'Fast Food Worker' },
@@ -617,6 +626,7 @@
 
             // Mark week as completed
             markWeekCompleted();
+            if (w5Revealed) saveW5Artifact();
         }
 
         function markWeekCompleted() {
@@ -627,14 +637,64 @@
             }
         }
 
+        // --- Predict → reveal the breakdown (don't spoil the take-home number) ---
+        let w5Revealed = false;
+        const dollars = (id) => parseFloat(document.getElementById(id).textContent.replace(/[^0-9.]/g, '')) || 0;
+
+        function revealPaycheck() {
+            const dl = document.getElementById('deductions-list');
+            const np = document.getElementById('net-pay-block');
+            const hint = document.getElementById('reveal-hint');
+            if (dl) dl.hidden = false;
+            if (np) np.hidden = false;
+            if (hint) hint.style.display = 'none';
+            w5Revealed = true;
+            calculatePaycheck(); // ensure the figures are current before reading them
+            const gross = dollars('gross-amount');
+            const net = dollars('net-amount');
+            const rate = gross ? Math.round((net / gross) * 100) : 0;
+            if (window.YouthLoop && YouthLoop.reveal) {
+                YouthLoop.reveal('yf-w5-takehome', rate, {
+                    unit: 'of $100',
+                    display: '$' + rate + ' of every $100',
+                    note: 'Your take-home is about ' + rate + '% of gross — taxes and deductions take the other ' +
+                          (100 - rate) + '%. Change the wage, hours, or state to watch it shift.'
+                });
+            }
+            saveW5Artifact();
+        }
+        document.addEventListener('yf:predicted', function (e) {
+            if (e.detail && e.detail.key === 'yf-w5-takehome') revealPaycheck();
+        });
+
+        // KEEP artifact → lights up the "First Paycheck Plan" row on the Week-10 dashboard.
+        function saveW5Artifact() {
+            if (!w5Revealed || !window.YouthArtifact) return;
+            const gross = dollars('gross-amount');
+            const net = dollars('net-amount');
+            const rate = gross ? Math.round((net / gross) * 100) : 0;
+            const wage = parseFloat(document.getElementById('hourly-wage').value) || 0;
+            const hours = parseFloat(document.getElementById('hours-worked').value) || 0;
+            YouthArtifact.save('yf-w5-paycheck', {
+                job: '$' + wage + '/hr × ' + hours + ' hrs',
+                per_paycheck: '$' + gross.toFixed(0) + ' gross → $' + net.toFixed(0) + ' take-home',
+                take_home_rate: rate + '%'
+            });
+        }
+
         // Auto-calculate on input changes
         document.getElementById('hourly-wage').addEventListener('input', calculatePaycheck);
         document.getElementById('hours-worked').addEventListener('input', calculatePaycheck);
         document.getElementById('pay-frequency').addEventListener('change', calculatePaycheck);
         document.getElementById('state').addEventListener('change', calculatePaycheck);
 
-        // Calculate on page load
-        window.addEventListener('load', calculatePaycheck);
+        // Calculate on page load (figures populate behind the reveal gate), then
+        // re-reveal for a returning visitor — on load so the engine has mounted the
+        // predict primitive (it mounts on DOMContentLoaded, after end-of-body parse).
+        window.addEventListener('load', function () {
+            calculatePaycheck();
+            try { if (localStorage.getItem('yf-w5-takehome')) revealPaycheck(); } catch (e) {}
+        });
     </script>
     <script src="/js/reflect-widget.js"></script>
 </body>
