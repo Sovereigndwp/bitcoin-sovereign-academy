@@ -339,6 +339,191 @@
       ],
     },
 
+    // ── YOUTH & FAMILIES WEEKS (week-specific, full 3-tier coverage) ───────
+    // One topic per week so each card drives deeper into THAT week's subject,
+    // instead of the generic 'money' set. Age 12–17, Socratic, first-principles;
+    // the "Why it matters" tier touches values / family / sound money lightly.
+
+    'youth-money-basics': {
+      surface: [
+        'What\'s one thing you bought recently that was a want, not a need?',
+        'When you spend money on one thing, what do you give up?',
+        'Name something that\'s a "need" for you but a "want" for someone else.',
+      ],
+      conceptual: [
+        'How do you decide when a "want" is actually worth buying?',
+        'Why might two people disagree about whether something is a need or a want?',
+        'If you only had $20 this week, how would you choose what to spend it on?',
+      ],
+      philosophical: [
+        'If buying one thing always means NOT buying something else, how should that change how you shop?',
+        'Who really decides what counts as a "need" in your life — you, your family, or advertising?',
+        'What would change about your spending if you had to explain every purchase out loud?',
+      ],
+    },
+
+    'youth-money-flow': {
+      surface: [
+        'Name two ways money comes IN to your life, and two ways it goes OUT.',
+        'What\'s the difference between income and expenses?',
+        'Which of your expenses happen every month no matter what?',
+      ],
+      conceptual: [
+        'If more money goes out than comes in, what has to happen eventually?',
+        'When money is tight, which is easier to change — your income or your expenses? Why?',
+        'Why do you think tracking where money goes is harder than it sounds?',
+      ],
+      philosophical: [
+        'If you could see every dollar you\'ll earn and spend this year, what would surprise you most?',
+        'Does money "flowing" digitally make it feel more or less real than cash you can hold?',
+        'What does it say about a person that they know exactly where their money goes?',
+      ],
+    },
+
+    'youth-saving': {
+      surface: [
+        'What\'s one thing you\'re saving up for right now?',
+        'If you save $10 a week, how many weeks until you have $120?',
+        'Where do you keep money you\'re saving — and is it earning anything?',
+      ],
+      conceptual: [
+        'Why is it so hard to wait for something you could buy today?',
+        'If prices rise a little every year, what happens to money you just leave in a drawer?',
+        'What\'s the difference between saving FOR something and just not spending?',
+      ],
+      philosophical: [
+        'The hardest part of saving is the wait. What does being able to wait say about you?',
+        'If money loses value sitting still, is "just saving" actually enough?',
+        'What did someone in your family wait and save for — and was it worth it?',
+      ],
+    },
+
+    'youth-emergency-fund': {
+      surface: [
+        'What\'s an example of a money "emergency" a teen might actually face?',
+        'How much would cover one surprise cost in your life right now?',
+        'Where could an emergency fund live so you can reach it fast but not spend it by accident?',
+      ],
+      conceptual: [
+        'Why keep emergency money separate from your spending money?',
+        'How big should an emergency fund be — and how would you decide?',
+        'What\'s the difference between a real emergency and just wanting something badly?',
+      ],
+      philosophical: [
+        'An emergency fund buys something invisible — calm. Is that worth more than what the money could buy?',
+        'If you never have an emergency, was saving for one a waste?',
+        'How does having a safety net change the choices you\'re willing to make?',
+      ],
+    },
+
+    'youth-first-paycheck': {
+      surface: [
+        'If a job pays $15/hour for 10 hours, what\'s your gross pay?',
+        'What\'s the difference between gross pay and take-home (net) pay?',
+        'Name one thing that gets taken out of a paycheck before you ever see it.',
+      ],
+      conceptual: [
+        'Why is your take-home pay smaller than the wage you were promised?',
+        'Where does the money taken out of your paycheck actually go?',
+        'If you budgeted using your gross pay instead of your net pay, what would go wrong?',
+      ],
+      philosophical: [
+        'You earned it before it was ever taken. How should that change how you think about taxes?',
+        'Is it fair that money is removed before you decide what to do with it? Why or why not?',
+        'What\'s the first thing you\'d want your first real paycheck to prove to yourself?',
+      ],
+    },
+
+    'youth-smart-spending': {
+      surface: [
+        'What\'s one subscription you (or your family) pay for but rarely use?',
+        'Name a trick stores or apps use to get you to buy right now.',
+        'What\'s the last thing you bought on impulse?',
+      ],
+      conceptual: [
+        'Why does waiting 24 hours change whether you still want something?',
+        'How can small monthly subscriptions add up to a big number without you noticing?',
+        'What is "lifestyle inflation," and why is it so sneaky?',
+      ],
+      philosophical: [
+        'Companies spend billions to make you spend. What does it take to spend on YOUR terms instead?',
+        'If you earned more, would you spend more — and who decides that, you or the habit?',
+        'What would you do with the money you\'d save by skipping things you don\'t really want?',
+      ],
+    },
+
+    'youth-banking-safety': {
+      surface: [
+        'What information should you NEVER share about your bank account or card?',
+        'What\'s the difference between a debit card and a credit card?',
+        'How can you tell if a payment app or website is the real one?',
+      ],
+      conceptual: [
+        'When your money is in a bank, who actually holds it — and what are you trusting them to do?',
+        'Why would a scammer pretend to be your bank, and how would you check before acting?',
+        'What\'s the risk of letting an app store your card number and password?',
+      ],
+      philosophical: [
+        'If a bank can freeze your account, how "yours" is the money inside it?',
+        'Convenience usually means trusting someone else with your money. When is that trade worth it?',
+        'What would you want to control yourself, and what are you happy to let a bank handle?',
+      ],
+    },
+
+    'youth-college': {
+      surface: [
+        'Name three costs of college beyond tuition.',
+        'What\'s a scholarship, and how is it different from a loan?',
+        'What does FAFSA help you figure out?',
+      ],
+      conceptual: [
+        'Why can two students pay completely different prices for the same college?',
+        'What\'s the real difference between money you have to pay back and money you don\'t?',
+        'How would you decide whether a particular college is "worth it"?',
+      ],
+      philosophical: [
+        'Is borrowing for college an investment, a gamble, or both — and how would you tell?',
+        'If a cheaper path led to the same goal, what would make the expensive one still worth it?',
+        'Whose money and whose future are really on the line in a college decision?',
+      ],
+    },
+
+    'youth-independence': {
+      surface: [
+        'Name three bills an adult pays that a kid usually never sees.',
+        'What\'s the difference between rent and a utility bill?',
+        'What does insurance actually do for you?',
+      ],
+      conceptual: [
+        'Why is the real cost of living usually higher than just rent?',
+        'What\'s a "fixed" cost versus one you could cut in a tight month?',
+        'How much monthly income would you need to cover the basics where you live?',
+      ],
+      philosophical: [
+        'Independence costs money. Which freedoms are worth paying for, and which aren\'t?',
+        'Is paying for insurance — money for something that might never happen — wise or wasteful?',
+        'What does "being able to support yourself" really mean to you?',
+      ],
+    },
+
+    'youth-family-planning': {
+      surface: [
+        'What\'s one money goal your whole family shares?',
+        'Does your family have a plan if a big surprise cost hits? What is it?',
+        'Name something valuable — money, a skill, or a habit — that\'s been passed down in your family.',
+      ],
+      conceptual: [
+        'Why might a family plan money together instead of everyone managing their own?',
+        'What\'s the difference between leaving someone money and leaving them the skills to handle it?',
+        'How could a plan you make today still matter to your family in 20 years?',
+      ],
+      philosophical: [
+        'What do you want to pass on to the people you love — and is it only money?',
+        'If wealth is what\'s left after you\'re gone, what\'s worth building that lasts longer than you?',
+        'Which money lesson from your family do you want to keep — and which do you want to change?',
+      ],
+    },
+
     'default': {
       surface: [
         'What\'s one thing you\'d want to know about Bitcoin in the next 60 seconds?',
@@ -364,9 +549,10 @@
 
   const CSS = `
 .reflect-widget-inner {
-  background: #1e1e2e;
-  border: 1px solid rgba(255, 122, 0, 0.45); /* WCAG 1.4.11: raised from 0.25 → 0.45 (~3.1:1) */
-  border-radius: 16px;
+  background: #16181c;                         /* homepage surface — was #1e1e2e (off-brand purple) */
+  border: 1px solid #2a2a2a;
+  border-left: 3px solid #FF7A00;             /* brand accent edge (matches youth-engine cards) */
+  border-radius: 2px;                          /* rectangular — homepage standard */
   padding: 1.75rem 2rem;
   margin: 2rem 0;
   font-family: inherit;
@@ -397,7 +583,7 @@
   font-size: 0.82rem;
   font-weight: 600;
   padding: 0.5rem 0.85rem;
-  border-radius: 999px;
+  border-radius: 2px;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
   min-height: 36px;
@@ -427,7 +613,7 @@
   margin-left: 0.15rem;
 }
 .reflect-widget-tier-btn[aria-pressed="true"] .rw-tier-hint {
-  color: #d4a060;
+  color: #FFD400;                              /* brand yellow — was #d4a060 (off-brand brown) */
 }
 .reflect-widget-seeds {
   display: flex;
@@ -442,7 +628,7 @@
   text-align: left;
   background: rgba(255, 122, 0, 0.06);
   border: 1px solid rgba(255, 122, 0, 0.5); /* WCAG 1.4.11: was 0.2 (~1.5:1) → 0.5 (~3:1) */
-  border-radius: 10px;
+  border-radius: 2px;
   padding: 0.8rem 1rem;
   color: #d4d4d4;
   font-size: 0.9rem;
@@ -472,7 +658,7 @@
   flex: 1;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.35); /* WCAG 1.4.11: was 0.12 (~2:1) → 0.35 (~3.1:1) */
-  border-radius: 10px;
+  border-radius: 2px;
   padding: 0.75rem 1rem;
   color: #e0e0e0;
   font-size: 0.95rem;
@@ -489,7 +675,7 @@
 .reflect-widget-send-btn {
   background: #FF7A00;
   border: none;
-  border-radius: 10px;
+  border-radius: 2px;
   padding: 0.75rem 1.2rem;
   color: #1a1a1a; /* WCAG 1.4.3: white (2.30:1) → #1a1a1a (~9:1) */
   font-size: 0.9rem;
@@ -513,7 +699,7 @@
 .reflect-widget-response {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 12px;
+  border-radius: 2px;
   padding: 1rem 1.25rem;
   min-height: 48px;
   font-size: 0.92rem;
