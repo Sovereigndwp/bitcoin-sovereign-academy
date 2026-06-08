@@ -28,8 +28,11 @@ substackUrl: '',
         // Delay before showing modal (ms) - 0 to disable auto-modal
         modalDelay: 0,
         
-        // Show on exit intent (desktop only)
-        exitIntent: true
+        // Show on exit intent (desktop only) — disabled 2026-06-08 per user direction
+        // ("Before You Go…" modal was off-brand and fired on every page; suppression only
+        // kicked in for users who submitted, so closers got it again every page-load).
+        // Inline data-email-capture widgets still work; this only kills the surprise modal.
+        exitIntent: false
     };
 
     class EmailCapture {
