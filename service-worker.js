@@ -3,7 +3,7 @@
  * Enables offline functionality and PWA features
  */
 
-const CACHE_NAME = 'bsa-v1.0.0';
+const CACHE_NAME = 'bsa-v1.0.1';
 const urlsToCache = [
   '/',
   '/index.html',
