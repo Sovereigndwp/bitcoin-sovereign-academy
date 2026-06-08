@@ -19,3 +19,54 @@ body.bsa-skin .week-subtitle { margin-bottom: 1.25rem !important; }
 /* Comfortable reading measure: long intro paragraphs shouldn't span the full
    ~1140px (easier on the eyes). Interactive grids stay full-width. */
 body.bsa-skin .intro-section > p { max-width: 80ch; }
+
+/* ==========================================================================
+   Youth-week brand hardening — applied to ALL 10 weeks via this shared file.
+
+   brand-consistency.css normalizes generic .card/.btn/.section, but each week's
+   bespoke interactive components (game-container, choice-type pills, money-display,
+   budget meters, etc.) carry their own off-brand styling the generic selectors
+   miss. These rules catch those patterns once, so the homepage system (rectangular
+   2px · orange→yellow · JetBrains Mono numerics · no drift greens) holds on every
+   week without per-page edits. Scoped to body.bsa-skin; this file only loads on
+   /youth-families/* so it cannot leak to other rollout groups.
+   ========================================================================== */
+
+/* 1. Rectangular by default: the homepage standard is a 2px corner. Flatten every
+   element in the content column except genuinely circular UI (dots, avatars,
+   toggles, circular icons). A universal rule (not an enumerated class list) so no
+   future bespoke container — rule-tracker, audit-summary, the inline-styled
+   family-conversation, etc. — can escape it. Overrides inline radius via !important. */
+body.bsa-skin .container *:not([class*="round"]):not([class*="circle"]):not([class*="dot"]):not([class*="avatar"]):not([class*="toggle"]):not([class*="switch"]):not(svg):not(svg *) {
+  border-radius: var(--bsa-radius, 2px) !important;
+}
+
+/* 2. Numerics use the canonical mono (JetBrains Mono), not Courier. */
+body.bsa-skin :is(
+  .money-display, [class*="-cost"], [class*="-value"], [class*="-amount"],
+  [class*="-total"], [class*="counter"]
+) {
+  font-family: 'JetBrains Mono', ui-monospace, 'Courier New', monospace !important;
+}
+
+/* 3. De-mud the semantic chips/pills. The NEED/WANT-style tags shipped on a
+   low-opacity colored tint that reads as muddy brown/gold. Strip the tint to a
+   crisp outline in the chip's own (already on-brand) text color — keeps the
+   need≠want distinction (color carries meaning) while staying in the orange→
+   yellow range. Targets pill-shaped chips only, never text-label headings. */
+body.bsa-skin :is(.choice-type, [class*="badge"], [class*="chip"], [class*="pill"]) {
+  background: transparent !important;
+  border: 1px solid currentColor !important;
+  padding: 0.2rem 0.6rem !important;
+  font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+}
+
+/* 4. Kill any drift-green that survived variable remapping by being hardcoded
+   into a gradient (e.g. week-09's budget-fill.good `…, #34d399`). All progress /
+   budget / meter fills use the canonical orange→yellow fade. */
+body.bsa-skin :is(.progress-fill, .budget-fill, [class*="-fill"], [class*="meter-bar"] > span) {
+  background: var(--bsa-grad, linear-gradient(90deg, #FF7A00 0%, #FFD400 100%)) !important;
+}
