@@ -9,10 +9,12 @@ Last updated: 2026-05-03 (visual-system cascade thread added as B6; component li
 
 ## 🔥 Active / in-progress
 
-_Empty as of 2026-04-27. Pull next work from "Next high-leverage bets" below._
+_Pull next work from C1 below, then "Next high-leverage bets"._
 
 | ID | Task | Owner | Status | Notes |
 |---|---|---|---|---|
+| C1 | **Youth content upgrade — Predict→Verify→Keep→Share** | — | **▶ next session** | Engine built & verified (`js/youth-engine.js`, commit `5c8d43cb`); direction signed off. Ordered tasks T1–T6 in [`docs/NEXT-SESSION.md`](docs/NEXT-SESSION.md) → "Biggest next move". **T1 = build Week 3 flagship, stop for sign-off before replicating.** Spec: `docs/superpowers/specs/2026-06-08-youth-pedagogy-differentiation-spec.md`. |
+| C2 | **Brand rollout groups 2–5** | — | **⏸ paused** | Group 1 (youth, 12 pages) LIVE 2026-06-08. Next: paths → deep-dives → demos → standalone, same `bsa-skin` standard (heading-flatten fix hardened). Resume after youth content (C1). |
 | A1 | Run first tutor eval baseline | — | **✅ done** | Baseline shipped 2026-04-24 ([`reports/tutor-evals-2026-04-24.md`](reports/tutor-evals-2026-04-24.md): 10 pass / 1 marginal / 1 fail). Follow-up after MECHANISM-EXPLANATION rule shipped 2026-04-26 ([`reports/tutor-evals-2026-04-26.md`](reports/tutor-evals-2026-04-26.md): **12/12 pass**, dimension averages all ≥8.58). `.env.local` auto-load committed in `5e6a6db5`. M1 (run on every SYSTEM_PROMPT change) now active. |
 | A2 | Consolidate demo-truthfulness audit | — | **✅ done** | See [`reports/demo-audit-2026-04-24.md`](reports/demo-audit-2026-04-24.md). 135 findings across 52 demos (41 🔴 / 59 🟡 / 35 🟢). Top-10 action list inside. |
 | A3 | Tutor live in production? | — | **✅ done** | Smoke-tested 2026-04-27 from `https://bitcoinsovereign.academy` origin. HTTP 200, `text/event-stream`, CORS allow-list working, response is Socratic ("What brings you here today…"), stream terminates with `done`. All security headers present. M4 (monthly API-quota check) is the recurring guardrail. |

@@ -1,6 +1,14 @@
 # 🧭 Next-session guideline — BSA (post Phase 3)
 
-_Last updated: 2026-06-07. Phase 4 youth audit shipped (PR #50); cheap wins (PR #53) + CI hygiene (PR #51/#52) follow-ons done._
+_Last updated: 2026-06-08. Youth front-door redesign + full brand-rollout group 1 shipped live; the youth interactive **engine** is built & verified. **Next session = youth CONTENT/pedagogy upgrade** (deferred by Dalia) — ordered tasks under "🟢 Biggest next move" below._
+
+## ✅ Shipped LIVE this session (2026-06-08, on `main`, deployed)
+- **Brand rollout group 1 (youth, all 12 pages) — LIVE.** Homepage design system applied via `css/brand-consistency.css` (`<body class="bsa-skin">`) + youth-only `css/youth-skin.css`. Commits `b53e537e` → `2958a0d0`.
+  - Front-door (`youth-families/index.html`) density redesign: 4 oversized stat cards → compact metric bar; editorial left-aligned hero + one `Start Week 1` CTA; accent restraint; **green killed at the `:root` source** on all 12 pages (drift `#10b981/#0a1f1a/#1a3a2e/#2a5a4e` → canonical). Semantic `--success` kept but moved to sanctioned `#28a745`.
+  - **Shared-skin bug fixed (helps every future group):** the "flatten section backgrounds" rule was matching `.section-title` headings → invisible gradient text. Now containers-only.
+  - Verified: 0 drift-green on any page, 0 invisible headings, WCAG-AA holds, desktop+mobile.
+- **Youth interactive ENGINE built & verified (committed `5c8d43cb`, NOT yet wired to any page → no live impact).** `js/youth-engine.js` + `css/youth-engine.css`: the **Predict → Verify → Keep → Share** loop + branching `YouthScenario` + Week-10 `YouthPlan` aggregator. Dependency-free, auto-init by data-attribute, on-brand. Live VERIFY confirmed pulling real mempool.space supply. Dev harness (local, uncommitted): `youth-families/_engine-playground.html`.
+- **Differentiation SPEC (signed off):** `docs/superpowers/specs/2026-06-08-youth-pedagogy-differentiation-spec.md`. Dalia approved: **engine-first** + **reuse-first**. Keep sanctioned success-green.
 
 ## ✅ Shipped (on `main`)
 - **Phase 3 content-accuracy audit** — 92 premium pages, 291 findings. Report: `reports/content-audit-premium-2026-06-06.md`.
@@ -16,11 +24,27 @@ _Last updated: 2026-06-07. Phase 4 youth audit shipped (PR #50); cheap wins (PR 
 ## ✅ Phase 4 done (2026-06-07)
 3. **Phase 4 — Youth Pedagogy & Readiness Audit — shipped (PR #50).** Report: `reports/pedagogy-youth-audit-2026-06-06.md`. Headline: the funnel teaches but doesn't make learners *do* — the moat criteria (real-artifact **1.50**, family-conversation **1.90**, discovery **2.11**) are the platform's weakest. Calibration clean (mean |Δ| 0.52). Cross-cutting cheap wins **A + B shipped** in PR #53 (reflect-widget on all 10 youth weeks + family-conversation prompts on 8).
 
-## 🟢 Biggest next move
-**Spec the youth front-door redesign** (`youth-families/index.html`) — the audit's **#1-leverage page** (leverage 17.9; teaches nothing; fails the 12-year-old solo).
-   - **Brief (read this):** `docs/superpowers/specs/2026-06-07-youth-front-door-redesign-brief.md` — full context, constraints, what the spec must contain, and the kickoff prompt.
-   - This is **spec-first** (brainstorm → spec → sign-off → code). A–D mockup format for visual decisions; honor unbounded mode.
-   - **Kickoff prompt:** _"Brainstorm and then write a design spec for redesigning the youth front door per `docs/superpowers/specs/2026-06-07-youth-front-door-redesign-brief.md` — stop at the spec for my sign-off before any code."_
+## 🟢 Biggest next move — YOUTH CONTENT/PEDAGOGY UPGRADE (deferred to next session)
+
+**Goal:** upgrade the 10 youth weeks from "teaches but doesn't make you DO" to the signature **Predict → Verify → Keep → Share** loop, using the now-built engine. Closes the audit's 3 weakest moat criteria (real-artifact 1.50, family-conversation 1.90, discovery 2.11). Direction is **signed off** — this is build work, not re-spec.
+
+**Read first:** the spec `docs/superpowers/specs/2026-06-08-youth-pedagogy-differentiation-spec.md` (thesis, loop, per-week upgrade specs §6, reuse map §5) + re-open the local harness `youth-families/_engine-playground.html` (`npm run dev` → `/youth-families/_engine-playground.html`) to see the engine API in action.
+
+**Engine API (already built — `js/youth-engine.js` + `css/youth-engine.css`):** link both on a week page, then drop in: `.yf-predict[data-key][data-question][data-unit]` (+ `YouthLoop.reveal(key, actual, {note})`), `.yf-verify[data-claim][data-live][data-source]`, `.yf-artifact[data-key][data-title]` (+ `YouthArtifact.save('yf-w<N>-…', {...})`), `.yf-share[data-prompt]`, `.yf-scenario[data-graph]`, `.yf-plan`. localStorage convention `yf-w<N>-<slug>`.
+
+**Ordered tasks (T1 = flagship; validate before replicating):**
+- [ ] **T1 — Build Week 3 (Saving Strategies) end-to-end as the flagship.** It's currently a "🚧 coming soon" stub = biggest gap, all upside. Wire the full loop: predict-the-wait → live verify → **Savings-Goal artifact (`yf-w3-goal`)** → family prompt; embed `interactive-demos/savings-disappear-scenario` for the consequence beat (reuse-first, iframe, SAMEORIGIN). **Stop and show Dalia before replicating.**
+- [ ] **T2 — Week 10 (Family Planning): the "My Sovereign Money Plan" dashboard** (`.yf-plan`) that auto-assembles every `yf-w*` artifact into one printable family keepsake. This retroactively makes all weeks "add up" — second-highest leverage.
+- [ ] **T3 — Week 6 (Smart Spending):** persist the 24-hr wishlist to localStorage (its core mechanic is currently broken across reloads) + add predict-before-reveal to the lifestyle-inflation sim.
+- [ ] **T4 — Week 5 (First Paycheck):** "guess your take-home first" predict step + saved **First-Paycheck-Plan artifact** (`yf-w5-paycheck`).
+- [ ] **T5 — Remaining weeks (W1/2/4/7/8/9):** apply the same wrap + embed mapped demos (W4←`emergency-fifty-scenario`, W7←`bitcoin-vs-banking`+`account-freeze-locked-out`, W1←`money-properties-comparison`). W8 college flow is the only substantial net-new. Per-week upgrade specs are in the differentiation spec §6.
+- [ ] **T6 — 12–14 accessibility pass:** preset chips / example-toggles so a bright 12-year-old can solo each week (audit found the track skews to 15–17).
+- [ ] **Decide:** commit the dev playground as a published "engine reference," or keep it local? (currently uncommitted)
+
+**Then resume the BRAND ROLLOUT (group 2+):** paths entry + free modules → deep-dives → demos → standalone, same `bsa-skin` standard (now with the hardened heading-flatten fix). Map-by-role, preserve semantic colors, before/after screenshots, commit per group.
+
+### (Archived) front-door redesign — ✅ DONE this session
+The audit's #1-leverage page (`youth-families/index.html`, leverage 17.9) was redesigned + shipped live 2026-06-08 (brief: `docs/superpowers/specs/2026-06-07-youth-front-door-redesign-brief.md`).
 
 ## 🟡 Phase 3 follow-ups (optional, report-only)
 4. **159 🟡 + 79 🟢 findings** — batched cleanup pass (esp. remaining stale-data); see the report.
