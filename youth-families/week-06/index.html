@@ -290,6 +290,7 @@
     </style>
   <link rel="stylesheet" href="/css/brand-consistency.css">
   <link rel="stylesheet" href="/css/youth-skin.css">
+  <link rel="stylesheet" href="/css/youth-engine.css">
 </head>
 <body class="bsa-skin">
     <div class="container">
@@ -486,7 +487,12 @@
                     <p style="color: var(--text-dim); font-size: 0.85rem;">If you get a $100 raise, this is how much extra you spend. 80% = you spend $80 more and save $20.</p>
                 </div>
 
-                <div class="lifestyle-result" id="lifestyle-result">
+                <!-- Predict before the 5-year result is revealed -->
+                <div class="yf-predict" data-key="yf-w6-raise-keep"
+                     data-question="Out of a $100 raise, how many dollars do you think end up as savings — not extra spending?"
+                     data-unit="of $100"></div>
+
+                <div class="lifestyle-result" id="lifestyle-result" hidden>
                     <div class="lifestyle-stat">
                         <p style="color: var(--text-secondary); font-size: 0.85rem;">After 5 Years — Inflated Lifestyle</p>
                         <div class="lifestyle-value" style="color: var(--error);" id="inflated-savings">$0</div>
@@ -498,7 +504,7 @@
                         <p style="color: var(--text-dim); font-size: 0.8rem;">Total saved (keep spending flat)</p>
                     </div>
                 </div>
-                <p id="lifestyle-takeaway" style="color: var(--primary-green); font-weight: 600; margin-top: 1rem; text-align: center;"></p>
+                <p id="lifestyle-takeaway" style="color: var(--primary-green); font-weight: 600; margin-top: 1rem; text-align: center;" hidden></p>
             </div>
         </div>
 
@@ -530,10 +536,35 @@
         </div>
     </div>
 
+    <script src="/js/youth-engine.js"></script>
     <script>
         let trapsFound = 0;
         let wishlist = [];
         let savedTotal = 0;
+
+        // --- Persistence (the 24-hr rule only works if it survives reloads/days) ---
+        const W6_LS = { wishlist: 'yf-w6-wishlist', subs: 'yf-w6-subs' };
+        function persistW6() {
+            try {
+                localStorage.setItem(W6_LS.wishlist, JSON.stringify({ items: wishlist, savedTotal }));
+                localStorage.setItem(W6_LS.subs, JSON.stringify(subs));
+            } catch (e) {}
+            saveW6Artifact();
+        }
+        // KEEP artifact → lights up the "Spending Decisions" row on the Week-10 plan.
+        function saveW6Artifact() {
+            const monthly = subs.reduce((t, s) => t + s.cost, 0);
+            const cancelYr = subs.filter(s => s.verdict === 'Cancel').reduce((t, s) => t + s.cost, 0) * 12;
+            const skipped = wishlist.filter(i => i.decided === 'skip');
+            if (subs.length === 0 && skipped.length === 0) return; // nothing decided yet
+            if (window.YouthArtifact) {
+                YouthArtifact.save('yf-w6-plan', {
+                    subscriptions: '$' + monthly.toFixed(2) + '/mo',
+                    cancelling: '$' + cancelYr.toFixed(0) + '/yr',
+                    impulse_skips: skipped.length + ' item' + (skipped.length === 1 ? '' : 's') + ' ($' + savedTotal.toFixed(2) + ' saved)'
+                });
+            }
+        }
 
         function revealTrap(card) {
             if (!card.classList.contains('revealed')) {
@@ -554,6 +585,7 @@
             const item = { name, cost, addedAt: Date.now(), id: Date.now() };
             wishlist.push(item);
             renderWishlist();
+            persistW6();
 
             document.getElementById('want-name').value = '';
             document.getElementById('want-cost').value = '';
@@ -561,13 +593,13 @@
 
         function renderWishlist() {
             const container = document.getElementById('wishlist-container');
-            const empty = document.getElementById('wishlist-empty');
-            
+
             if (wishlist.length === 0) {
-                empty.style.display = 'block';
+                // Build the empty state into the container itself — the previous code
+                // relied on an inner #wishlist-empty node that innerHTML wiped on first render.
+                container.innerHTML = '<p style="color: var(--text-dim); text-align: center; padding: 2rem;">Your 24-hour list is empty. Add something you’re tempted to buy!</p>';
                 return;
             }
-            empty.style.display = 'none';
 
             let html = '';
             wishlist.forEach(item => {
@@ -601,6 +633,7 @@
                 item.decided = decision;
                 if (decision === 'skip') savedTotal += item.cost;
                 renderWishlist();
+                persistW6();
             }
         }
 
@@ -656,6 +689,7 @@
             document.getElementById('sub-name-input').value = '';
             document.getElementById('sub-cost-input').value = '';
             renderSubs();
+            persistW6();
         }
 
         function renderSubs() {
@@ -680,11 +714,13 @@
             const order = ['Review', 'Keep', 'Cancel'];
             s.verdict = order[(order.indexOf(s.verdict) + 1) % 3];
             renderSubs();
+            persistW6();
         }
 
         function removeSub(id) {
             subs = subs.filter(x => x.id !== id);
             renderSubs();
+            persistW6();
         }
 
         function updateSubTotals() {
@@ -738,8 +774,40 @@
             }
         }
 
+        // --- Lifestyle simulator: predict → reveal gate ---
+        function revealLifestyle() {
+            const res = document.getElementById('lifestyle-result');
+            const take = document.getElementById('lifestyle-takeaway');
+            if (res) res.hidden = false;
+            if (take) take.hidden = false;
+            simulateLifestyle();
+            const inflatePct = parseInt(document.getElementById('inflate-pct').value) / 100;
+            const kept = Math.round(100 * (1 - inflatePct));
+            if (window.YouthLoop && YouthLoop.reveal) {
+                YouthLoop.reveal('yf-w6-raise-keep', kept, {
+                    unit: 'of $100',
+                    display: '$' + kept + ' of every $100',
+                    note: 'At ' + (inflatePct * 100).toFixed(0) + '% lifestyle inflation, $' + (100 - kept) +
+                          ' of each $100 raise disappears into a bigger lifestyle. Drag the sliders to see how keeping more changes your 5-year total.'
+                });
+            }
+        }
+        document.addEventListener('yf:predicted', function (e) {
+            if (e.detail && e.detail.key === 'yf-w6-raise-keep') revealLifestyle();
+        });
+
         // Init
         simulateLifestyle();
+        (function restoreState() {
+            try {
+                const w = JSON.parse(localStorage.getItem(W6_LS.wishlist) || 'null');
+                if (w && Array.isArray(w.items)) { wishlist = w.items; savedTotal = w.savedTotal || 0; }
+                const s = JSON.parse(localStorage.getItem(W6_LS.subs) || 'null');
+                if (Array.isArray(s)) subs = s;
+            } catch (e) {}
+            renderWishlist();
+            renderSubs();
+        })();
         (function restoreGuess() {
             let saved = null;
             try { saved = localStorage.getItem('yf-w6-guess'); } catch (e) {}
@@ -749,6 +817,8 @@
                 document.getElementById('guess-locked').style.display = 'inline';
             }
         })();
+        // Returning visitor who already locked the lifestyle prediction → show the result
+        (function () { try { if (localStorage.getItem('yf-w6-raise-keep')) revealLifestyle(); } catch (e) {} })();
     </script>
     <script src="/js/reflect-widget.js"></script>
 </body>
