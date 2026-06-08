@@ -70,6 +70,21 @@ BSA already has 50+ demos; many are iframe-embeddable (SAMEORIGIN) into youth we
 
 **Cross-cutting:** ship `youth-scenario.js` + an artifact/print helper once in Phase B so Phase C is fast.
 
+## 6b. Explicitly REJECTED mechanics (on-brand guardrail)
+
+The research surfaced compulsion-loop mechanics that we deliberately **do not** use:
+- **Streaks / loss-aversion / badges / completion %** (Duolingo-style). These violate the locked **unbounded mode** ("no quizzes, no badges, no completion percentages") and risk the **overjustification effect** — extrinsic rewards eroding the intrinsic, sovereignty-aligned motivation this brand is built on. Engagement comes from *deriving*, *verifying*, and *keeping real things*, not from a streak counter. (The engine ships none of these.)
+
+## 6c. Measurement — make "effectiveness" a live number, not an audit score
+
+The engine emits **first-party** events (`js/analytics.js` `track()`) on every beat: `yf_predict_locked`, `yf_predict_revealed` (+ `close`), `yf_verified`, `yf_artifact_saved`, `yf_shared`, `yf_scenario_outcome`, `yf_plan_viewed`, `yf_artifact_email` / `yf_plan_export`. This converts the audit's static moat scores into a live funnel:
+- **Real-artifact** = `yf_artifact_saved` rate · **Family-conversation** = `yf_shared` rate · **Discovery** = `yf_predict_locked → revealed` completion.
+- The aggregate **predict-vs-actual** data (`close`) is also a distribution asset: e.g. *"83% of teens overestimate their take-home pay"* — credible, shareable, a byproduct of the verify beat.
+
+## 6d. Distribution is built in, not bolted on
+
+The two moat mechanics double as a **growth loop** (the real bottleneck is reach, ~190 sessions/mo): artifacts carry provenance + an **email/share** export, the **pass-the-phone** beat propagates teen→parent, and a **backup-code** export makes artifacts survive a device switch (so the Week-10 dashboard isn't silently empty when a teen moves school↔home). Each act of learning is also an act of sharing.
+
 ## 7. Effort ledger
 - CHEAP (ship first): predict-first prompts, S1 artifact/print, S2 verify-cards (reuse live data), S3 pass-the-phone, persisting existing tools, embedding existing demos.
 - MODERATE: `youth-scenario.js` branching engine; W8 net-new college flow; the W10 aggregator.
