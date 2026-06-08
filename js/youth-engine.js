@@ -273,7 +273,12 @@
   const YouthPlan = {
     collect() {
       const all = Store.artifacts(); const byWeek = {};
-      Object.keys(all).forEach(k => { const m = k.match(/^(yf-w\d+)/); if (m) (byWeek[m[1]] = byWeek[m[1]] || []).push({ key: k, data: all[k] }); });
+      Object.keys(all).forEach(k => {
+        const rec = all[k];
+        if (!rec || !rec._saved) return; // only real KEEP artifacts (YouthArtifact.save), not predict/share/scenario state
+        const m = k.match(/^(yf-w\d+)/);
+        if (m) (byWeek[m[1]] = byWeek[m[1]] || []).push({ key: k, data: rec });
+      });
       return byWeek;
     },
     exportCode() { try { return btoa(unescape(encodeURIComponent(JSON.stringify(Store.artifacts())))); } catch { return ''; } },
