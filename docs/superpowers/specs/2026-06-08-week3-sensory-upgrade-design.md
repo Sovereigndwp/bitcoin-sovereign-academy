@@ -1,93 +1,127 @@
-# Week 3 Sensory Upgrade — Design Spec
+# Week 3 Upgrade — Ownership First, Motion Second
 
-_Date: 2026-06-08 · Status: approved direction, pre-implementation · Page: `youth-families/week-03/index.html` · Engine: `js/youth-engine.js` + `css/youth-engine.css`_
+_Date: 2026-06-08 · Status: revised after educational review, pre-implementation · Page: `youth-families/week-03/index.html` · Engine: `js/youth-engine.js` + `css/youth-engine.css`_
+
+## North star (read this first)
+
+**Optimize for personal ownership, not visual engagement.** Motion makes a moment prettier; *caring* comes from "my goal, my money, my decision, my mistake, my plan." The audit found learner-generated **artifacts (1.50)** are the platform's weakest, most differentiated dimension — so the priority order is:
+
+> **Decision & artifact > reflection > animation > haptics.**
+
+**Rule when trading off effort:** if the choice is between another animation and another learner-generated artifact, **build the artifact.**
 
 ## Problem
 
-Week 3 (the validated flagship) teaches the right loop but feedback is: "a bit boring — more visuals, more senses, more surprise." The page is text-and-input heavy; the two moments with the most pedagogical payload (the prediction *gap* and the inflation *consequence*) are currently static prose. This spec makes those two beats **felt**, not just read.
+Week 3 (the validated flagship) teaches the loop but feedback is "a bit boring." The first-draft fix leaned on motion. The deeper fix: the two highest-payload beats (the prediction *gap* and the savings *consequence*) are currently passive — read, or watched. Make them **chosen** and **owned**.
 
-## Goals
+## Goals (in priority order)
 
-1. Make the **predict→reveal** moment land the gap between intuition and reality with motion.
-2. Make the **savings consequence** visceral: dollars hold their number but lose buying power.
-3. Stay on-brand and inside locked constraints (unbounded mode, restraint, accessibility).
-4. Build the treatments as **reusable engine primitives** (not page-local one-offs) so T5 weeks can adopt them later — but **wire them only on Week 3 for now**, pending re-validation.
+1. **Agency:** the consequence beat is a *decision the learner makes that changes the outcome*, not an animation they watch.
+2. **Durable mental model over statistic:** teach *purchasing-power erosion as a concept* via a learner-controlled low/med/high future — never "inflation is 3%."
+3. **Metacognition:** the learner reflects on *their own judgment* (the prediction-about-the-prediction).
+4. **A 6-month memory artifact** captured in Week 3 and *designed to resurface in Week 10*.
+5. **Motion in service of the above** — the reveal-gap and race→melt visuals stay, but subordinate to the learner's own numbers and choices.
 
 ## Non-goals (YAGNI)
 
-- No audio. (Generated tones read cheap and add no understanding; explicitly cut per owner.)
-- No badges / streaks / % / completion mechanics (unbounded mode — locked).
-- No replication to other weeks in this work (T2–T5 stay on hold).
-- No new third-party libraries or asset files. Pure CSS/JS, dependency-free (matches engine).
-- No changes to the Verify (21M live-supply) step, the artifact, the share beat, or analytics wiring already shipped.
+- No audio (cut — reads cheap, adds no understanding).
+- No badges / streaks / % / completion (unbounded mode — locked).
+- No Bitcoin/asset introduction in Week 3; **no return/yield claims** of any kind.
+- No replication to other weeks here (T2–T5 stay gated on re-validation). **Exception:** the Week-10 surfacing hook for the memory artifact is *designed* now (see §"Week 10 dependency") so T2 can consume it without a retrofit.
+- No new libraries or asset files; pure CSS/JS, dependency-free.
+- No polish budget on haptics.
 
-## Decisions locked
+## The beats (revised)
 
-- **Race/melt uses the learner's own numbers.** Reads `yf-w3-goal` from the saved artifact (their cost). Falls back to the $1,000 example if no goal saved yet. (Owner-approved; matches "learner-generated over hardcoded" principle.)
-- **Inflation assumption unchanged:** ~3%/yr long-run average; savings account 0.5%. No asset price claims anywhere in the animation — the live fixed-supply check remains its own separate step.
-- **Two distinct beats**, sequenced: D (race) flows into C (melt freeze) as one interaction.
+### Beat 1 — Predict → Reveal → Judge yourself
 
-## The two treatments
+The existing goal builder + prediction stays (their goal, their money, their guess). On reveal:
+- The real number counts up; guess vs. real shown on a slim track with the gap shaded and named in words ("8 weeks longer than you thought"). Reduced-motion → final state + caption, instantly.
+- **New — metacognition step:** immediately after reveal, ask *"Was your guess too optimistic, about right, or too pessimistic?"* (three buttons). The engine already computes closeness; this asks the learner to **own the judgment** rather than be told. The choice is **stored** (`yf-w3-judgment`) and folded into the savings-goal artifact.
 
-### Beat 1 — Reveal Gap (enhances existing `YouthLoop.reveal`)
+### Beat 2 — Decide what to do (agency) + explore the future (concept)
 
-When the learner reveals the math, instead of only printing the result note:
-- The real number **counts up** to its value.
-- A slim horizontal track shows the learner's **guess marker** and the **real marker**; the real marker slides to its true position.
-- The span between them **shades** and a caption states the gap in plain words ("8 weeks longer than you thought").
-- A short **haptic buzz** fires on landing (mobile only).
+Replaces the passive "where do you park $1,000" with a real decision over the learner's **own** goal amount (fallback $1,000):
 
-This is an enhancement to the engine's existing reveal rendering, so it benefits every future week's prediction step. It degrades to the current text note under reduced-motion.
+**Decision (changes the outcome):**
+- **Keep it as cash** (drawer)
+- **Savings account** (small interest)
+- **Spend it now** (it's gone — and so is the goal)
+- **Put it toward a skill or tool that earns** (concrete, claim-free: "a tool that helps you earn" / "a skill worth more later" — no markets, no guaranteed numbers)
 
-### Beat 2 — Race → Melt (new engine primitive `yf-timelapse`)
+**Future control (teaches the concept, not the number):**
+- A **low / medium / high** "how much do prices rise?" control. Framing: *"Nobody knows next year's number. Try a calm decade, a normal one, and a rough one."* The takeaway is the **direction and the idea of erosion**, not a fixed %.
 
-A new declarative primitive replacing Step 2's text scenario:
-- Markup: `<div class="yf-timelapse" data-amount-key="yf-w3-goal" data-fallback="1000" data-years="10">`
-- Two choice buttons (drawer / savings account). On choice:
-  1. **Race:** a 10-year time-lapse — a "prices (~3%/yr)" bar pulls ahead of a "your money" bar; year counter ticks.
-  2. **Melt freeze:** the race resolves into a freeze-frame — the saved amount visibly shrinks in scale/saturation while the price grows past it, with a plain caption: "same dollars · now buys ~$X of what it used to."
-- `data-amount-key` pulls the learner's real goal cost; `data-fallback` is the clean example.
+**Outcome:** the race time-lapse + melt freeze play out *for the chosen decision under the chosen future*, ending in plain-words purchasing power ("same dollars · now buys ~$X of what it used to"). The "spend it now" path is its own honest outcome (goal gone, nothing eroded because nothing saved — a different lesson).
+
+### Beat 2b — Make it personal (what changes tomorrow)
+
+After the outcome, one decision the learner actually makes:
+> *"Wait the full N weeks for this goal — or change the goal?"*
+
+Either choice **updates their savings-goal artifact** (keep target / set a new one). The simulation becomes a personal commitment, not a demo.
+
+### Beat 3 — Keep (enriched artifact)
+
+The existing `yf-w3-goal` artifact now carries: goal, cost, weekly save, weeks-to-goal, **their self-judgment**, **their decision**, and **their wait-or-change choice**. Printable keepsake, unchanged mechanics.
+
+### Beat 4 — 6-month memory (new artifact, the big add)
+
+Before the week ends:
+> *"Imagine you come back in six months. What is the one thing you hope you'll remember from today?"*
+
+A short free-text input, stored as `yf-w3-remember`. Designed to be **surfaced in Week 10** ("Six months ago you wrote…"). This is the strongest, most differentiated moment in the week and the spec's top priority after the decision beat.
+
+### Beat 5 — Share (unchanged)
+
+Existing family prompt stays.
 
 ## Architecture & file boundaries
 
 | Unit | Change | Why here |
 |---|---|---|
-| `css/youth-engine.css` | Add `.yf-reveal-gap` styles + `.yf-timelapse` styles | Shared engine stylesheet; only consumer today is week-03, so safe to extend now and reuse for T5. |
-| `js/youth-engine.js` | Enhance `reveal()` to render the gap viz; add `YouthTimelapse` primitive with auto-init by `.yf-timelapse[data-*]` | Keep the engine the single source of loop behavior. New primitive follows the existing auto-init-by-data-attribute pattern. |
-| `youth-families/week-03/index.html` | Replace the Step-2 text scenario block with the `.yf-timelapse` element; keep everything else | Page consumes primitives declaratively, no page-local animation JS. |
-| `tests/youth-engine.test.mjs` | Extend: reveal-gap renders given a guess+actual; timelapse reads amount key with fallback; reduced-motion path produces final state without animation | Engine has a test suite (currently 9/9); keep it green and cover new units. |
+| `js/youth-engine.js` | (a) reveal() renders the gap viz; (b) new `yf-judgment` micro-primitive (3-choice self-assessment, stored); (c) new `YouthTimelapse` primitive: decision buttons + low/med/high control + race→melt, reads learner amount; (d) extend `YouthArtifact` to merge judgment/decision fields; (e) new `yf-memory` free-text artifact primitive | Engine is the single source of loop behavior; only consumer today is week-03, so safe to extend and reuse for T5. |
+| `css/youth-engine.css` | Styles for gap viz, judgment buttons, timelapse decision/future controls, memory input | Shared engine stylesheet. |
+| `youth-families/week-03/index.html` | Replace Step-2 text scenario with `.yf-timelapse`; add `.yf-judgment` after reveal; add Beat-2b decision; add `.yf-memory` before share | Page stays declarative — no page-local animation JS. |
+| `tests/youth-engine.test.mjs` | Cover: gap render; judgment stores; timelapse reads amount + applies low/med/high; memory artifact persists; reduced-motion produces final state | Keep suite green (currently 9/9). |
 
-**Interfaces stay clean:** the page only adds declarative markup; all behavior lives in the engine and is independently testable. `YouthTimelapse` depends only on `YouthLoop.Store` (to read the saved amount) and `YouthLoop.money`/`num` helpers — no new coupling.
+**Clean interfaces:** the page only adds declarative markup; behavior + storage live in the engine and are independently testable. New primitives depend only on `YouthLoop.Store` and the money/num helpers.
+
+## Week 10 dependency (design-for, don't retrofit)
+
+The `yf-w3-remember` and enriched `yf-w3-goal` artifacts use the existing `yf-w<N>-<slug>` localStorage convention so the Week-10 `.yf-plan` aggregator (T2) can collect them unmodified. T2 will add the "six months ago you wrote…" surfacing. **No T2 code in this work** — only the stable key + shape so T2 is a clean read.
 
 ## Accessibility (hard floors)
 
-- **`prefers-reduced-motion: reduce`** → no count-ups, no sliding, no racing. Final states render instantly with the same text captions. (Both treatments specify the reduced-motion branch.)
-- **Meaning never conveyed by motion or color alone** — every animated state has a text caption stating the same fact.
-- **Haptics are progressive enhancement** — `navigator.vibrate` guarded; absent on iOS Safari, which is fine (never load-bearing).
-- WCAG AA contrast preserved (reuse existing tokens: orange `#FF7A00`, yellow `#FFD400`, muted `#9ca3af` on `#0a0b0d`/`#101010`).
+- `prefers-reduced-motion: reduce` → no count-ups/slides/race; final states + identical text captions render instantly.
+- Meaning never by motion/color alone — every state has a text caption.
+- Free-text memory input: labeled, keyboard-accessible, sanitized before any DOM echo (`escHtml`).
+- Haptics: `navigator.vibrate` guarded, progressive-enhancement only, never load-bearing.
+- WCAG AA contrast preserved (existing tokens).
 
-## Analytics (first-party, guarded — matches shipped pattern)
+## Analytics (first-party, guarded; `analytics.js` already linked on week-03)
 
-- Reuse existing `yf_predict_revealed` (already fires); add `close` magnitude already present.
-- New: `yf_timelapse_played` `{ choice: 'cash'|'bank', week: 3 }` via the engine's existing `track()` no-op-guarded helper. `analytics.js` is already linked on week-03 (shipped last session), so events fire.
+- Existing `yf_predict_revealed` retained.
+- New: `yf_judgment` `{ value }`, `yf_timelapse_played` `{ decision, future }`, `yf_goal_committed` `{ kept|changed }`, `yf_memory_saved`.
+- All via the engine's no-op-guarded `track()`.
 
 ## Testing & verification
 
-1. **Unit:** extend `tests/youth-engine.test.mjs`; run `node --test tests/youth-engine.test.mjs` — all green.
-2. **In-browser (preview):** run the full loop; confirm reveal gap renders, both timelapse choices animate→freeze with correct buying-power numbers from the learner's own goal, no console errors.
-3. **Reduced-motion:** emulate `prefers-reduced-motion: reduce`; confirm final states + captions appear with no animation.
-4. **Mobile width:** confirm layout holds at ~390px.
+1. **Unit:** `node --test tests/youth-engine.test.mjs` — all green incl. new units.
+2. **In-browser (preview):** full loop; reveal gap renders; judgment stores; each decision × each future produces a coherent outcome from the learner's own amount; "spend now" path is honest; memory text persists and re-reads; enriched artifact prints; no console errors.
+3. **Reduced-motion:** emulate; final states + captions, no animation.
+4. **Mobile ~390px** layout holds.
 
 ## Validation gate (process)
 
-The page's *look and interaction* changed materially, so the teen/educator checklist (from this session) **re-runs on the upgraded Week 3 before any T2–T5 work**. Pass criteria unchanged. This is still flagship-validation-before-replication.
+The week's interaction model changed materially, so the teen/educator checklist **re-runs on the upgraded Week 3 before any T2–T5 work.** Add one observation: *did the learner make real choices (decision, future, wait-or-change) and write a memory they'd actually want to see again?* This is still flagship-validation-before-replication.
 
 ## Rollout
 
-- Single commit (engine + page + tests), pushed to `main` (Vercel auto-deploy). Verify live `200` + console-clean.
-- `_engine-playground.html` stays local/uncommitted (owner-confirmed).
+Single commit (engine + page + tests) → `main` (Vercel auto-deploy) → verify live `200` + console-clean. `_engine-playground.html` stays local/uncommitted.
 
 ## Risks
 
-- **Shared-engine edit** could in theory affect other consumers — but week-03 is the only page loading the engine today, so blast radius is one page. Tests guard regressions.
-- **Busier Step 2** — mitigated by sequencing (race then freeze, not simultaneous) and reduced-motion fallback.
+- **Shared-engine edit** — blast radius is one page (week-03 is the only engine consumer today); tests guard regressions.
+- **More on-screen** — mitigated by sequencing (decide → future → play → commit, one at a time) and reduced-motion fallback.
+- **Scope creep toward the animation** — guard with the north-star rule: artifact/reflection before polish.
