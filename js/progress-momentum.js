@@ -279,6 +279,10 @@ class ProgressMomentum {
     }
 
     showAchievementUnlock(achievement) {
+        // Disabled 2026-06-08 per brand direction: unbounded mode = no badges/achievement
+        // popups. Achievements are still recorded silently in userProgress; only the
+        // center-screen "Achievement Unlocked!" modal is suppressed. (Progress indicator kept.)
+        return;
         const notification = document.createElement('div');
         notification.className = 'achievement-notification';
         notification.innerHTML = `
@@ -333,6 +337,10 @@ class ProgressMomentum {
     }
 
     showMomentumBoost(message) {
+        // Disabled 2026-06-08 per brand direction: the bottom-left "boost" toast is
+        // gamification + used a non-brand green (#4CAF50). Suppressed entirely; the
+        // top-right "Your Progress" indicator is kept. Tracking calls still run.
+        return;
         const boost = document.createElement('div');
         boost.className = 'momentum-boost';
         boost.innerHTML = `
