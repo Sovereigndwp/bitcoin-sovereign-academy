@@ -1,481 +1,4626 @@
-/**
- * Bitcoin Glossary Data
- *
- * Comprehensive Bitcoin terminology with simple and advanced explanations
- *
- * Categories: basics, technical, lightning, security, privacy
- */
-
-const GLOSSARY_TERMS = [
-    // ===== A =====
-    {
-        term: "Address",
-        category: "basics",
-        aka: ["Bitcoin Address", "Wallet Address"],
-        simple: "A string of letters and numbers where you receive bitcoin, like an email address for money. Each address is unique and can be shared publicly.",
-        advanced: "A cryptographic hash of a public key that represents a destination for a Bitcoin payment. Modern addresses use formats like P2PKH (legacy, starts with '1'), P2SH (starts with '3'), or Bech32 (native SegWit, starts with 'bc1'). Addresses are derived from public keys using hash functions (SHA-256, RIPEMD-160) for security and brevity.",
-        related: ["Public Key", "Private Key", "Wallet"]
-    },
-    {
-        term: "Altcoin",
-        category: "basics",
-        aka: ["Alternative Coin", "Shitcoin"],
-        simple: "Any cryptocurrency that isn't Bitcoin. Examples include Ethereum, Litecoin, and thousands of others.",
-        advanced: "Cryptocurrencies created after Bitcoin, often as experiments with different consensus mechanisms, block times, or features. Most altcoins have failed to achieve Bitcoin's network effects, security, or decentralization. The term 'shitcoin' is used derogatorily for low-quality altcoins with questionable value propositions."
-    },
-
-    // ===== B =====
-    {
-        term: "Bitcoin",
-        category: "basics",
-        aka: ["BTC", "₿"],
-        simple: "A decentralized digital currency that allows peer-to-peer transactions without banks or governments. Created in 2009 by Satoshi Nakamoto.",
-        advanced: "A peer-to-peer electronic cash system combining cryptographic proof, proof-of-work consensus, and a distributed ledger to create censorship-resistant, permissionless digital money. Bitcoin's fixed supply of 21 million coins and programmatic monetary policy make it the world's first truly scarce digital asset. The network achieves Byzantine fault tolerance through Nakamoto Consensus.",
-        related: ["Satoshi Nakamoto", "Blockchain", "Decentralization"]
-    },
-    {
-        term: "Block",
-        category: "technical",
-        simple: "A collection of Bitcoin transactions bundled together and added to the blockchain approximately every 10 minutes. Each block references the previous one, creating a chain.",
-        advanced: "A data structure containing a block header (previous block hash, merkle root, timestamp, nonce, difficulty target) and a list of transactions. Miners compete to find a valid nonce that produces a block hash below the difficulty target. The average block size is ~1-2 MB (4 MB weight limit with SegWit). Block reward halves every 210,000 blocks (~4 years).",
-        related: ["Blockchain", "Mining", "Block Height", "Block Reward"]
-    },
-    {
-        term: "Blockchain",
-        category: "technical",
-        aka: ["Distributed Ledger"],
-        simple: "A public record of all Bitcoin transactions, organized in blocks and linked together in chronological order. Anyone can view it, but no one can change past entries.",
-        advanced: "An append-only data structure where each block cryptographically commits to the previous block via SHA-256 hash, creating an immutable chain. The blockchain achieves consensus through proof-of-work and the longest valid chain rule. Bitcoin's blockchain is the most secure due to its accumulated proof-of-work (hashrate). Each full node independently validates the entire chain.",
-        related: ["Block", "Node", "Proof-of-Work"]
-    },
-    {
-        term: "Block Height",
-        category: "technical",
-        simple: "The number of blocks in the blockchain. The genesis block is height 0, the next is 1, and so on. Current height shows how many blocks have been mined.",
-        advanced: "An integer representing a block's position in the blockchain. Used for timing events (halving at heights 210k, 420k, 630k, etc.), soft fork activation (BIP activation heights), and relative timelocks. Block height is not included in block headers but derived by counting from genesis.",
-        related: ["Block", "Blockchain", "Halving"]
-    },
-    {
-        term: "Block Reward",
-        category: "technical",
-        aka: ["Coinbase Reward", "Mining Reward"],
-        simple: "New bitcoins created and given to miners for successfully mining a block. Started at 50 BTC per block in 2009, currently 3.125 BTC (as of 2024).",
-        advanced: "The sum of the coinbase subsidy (newly minted coins) and transaction fees. The subsidy halves every 210,000 blocks, following the schedule: 50 → 25 → 12.5 → 6.25 → 3.125 BTC. By approximately 2140, subsidy will reach zero and miners will rely entirely on transaction fees. This predictable issuance creates Bitcoin's fixed supply of ~21 million coins.",
-        related: ["Mining", "Halving", "Transaction Fee", "Coinbase Transaction"]
-    },
-    {
-        term: "BIP",
-        category: "technical",
-        aka: ["Bitcoin Improvement Proposal"],
-        simple: "A formal document proposing changes or improvements to Bitcoin. Anyone can submit a BIP, but implementation requires community consensus.",
-        advanced: "A design document providing information to the Bitcoin community, describing new features, processes, or environments. BIPs follow a standardized format and review process. Notable BIPs include: BIP32 (HD wallets), BIP39 (mnemonic seeds), BIP141 (SegWit), BIP340-342 (Taproot). BIPs are categorized as Standards Track, Informational, or Process.",
-        related: ["Soft Fork", "Hard Fork", "SegWit", "Taproot"]
-    },
-
-    // ===== A (continued) =====
-    {
-        term: "ASIC",
-        category: "technical",
-        aka: ["Application-Specific Integrated Circuit"],
-        simple: "Specialized computer chips designed only for Bitcoin mining. They're much faster than regular computers but can only do one thing: mine Bitcoin.",
-        advanced: "Custom silicon designed exclusively for SHA-256 hashing. Modern ASICs achieve ~100+ TH/s (terahashes/second) at ~30 J/TH efficiency. Major manufacturers: Bitmain (Antminer), MicroBT (Whatsminer), Canaan. ASICs made CPU/GPU mining obsolete by 2013. Capital-intensive ($2-10K per unit), require cheap electricity (<$0.05/kWh) for profitability. Lifespan ~3-5 years before obsolescence. Network hashrate ~500+ EH/s.",
-        related: ["Mining", "Hashrate", "Proof-of-Work"]
-    },
-
-    // ===== C =====
-    {
-        term: "CPFP",
-        category: "technical",
-        aka: ["Child Pays for Parent"],
-        simple: "A technique to speed up a stuck transaction by creating a new transaction that spends its outputs with a higher fee. The miner must include both to get the combined fee.",
-        advanced: "Fee-bumping technique where a child transaction spending an unconfirmed parent's output incentivizes miners to confirm both. Child pays enough fee to make combined package attractive. Useful when: (1) you're the recipient and can't RBF, (2) original sender didn't enable RBF. Miners evaluate transaction packages for fee revenue. Implemented in Bitcoin Core mempool policy. Alternative to RBF for stuck transactions.",
-        related: ["RBF", "Transaction Fee", "Mempool", "UTXO"]
-    },
-    {
-        term: "Cold Storage",
-        category: "security",
-        aka: ["Cold Wallet", "Offline Storage"],
-        simple: "Storing bitcoin private keys completely offline, away from internet-connected devices. The safest way to hold large amounts of bitcoin long-term.",
-        advanced: "Air-gapped private key storage using hardware wallets, paper wallets, or dedicated offline computers. Best practices include: multi-signature setups, metal backup storage (fire/water resistant), geographic distribution, and inheritance planning. Cold storage eliminates remote attack vectors but requires careful operational security for transaction signing.",
-        related: ["Hot Wallet", "Hardware Wallet", "Multi-Sig", "Private Key"]
-    },
-    {
-        term: "Coinbase Transaction",
-        category: "technical",
-        aka: ["Generation Transaction"],
-        simple: "The first transaction in every block, which creates new bitcoins and pays them to the miner. It has no inputs, only an output.",
-        advanced: "A special transaction with no inputs that creates the block reward (subsidy + fees). Contains arbitrary data field (witness reserved value) often used for mining pool identification or protocol messages. Must mature for 100 blocks before the newly minted coins can be spent. The term 'coinbase' predates the Coinbase exchange company.",
-        related: ["Block Reward", "Mining", "Block"]
-    },
-    {
-        term: "Confirmation",
-        category: "basics",
-        simple: "When your transaction is included in a block, it has 1 confirmation. Each new block added after that adds another confirmation. More confirmations = more secure.",
-        advanced: "The number of blocks mined after the block containing a transaction. Each confirmation exponentially decreases the probability of a successful double-spend via chain reorganization. Standard security thresholds: 1 confirmation (~99.9% secure for small amounts), 3-6 confirmations (standard), 100 confirmations (coinbase maturity). Confirmation time follows Poisson distribution with 10-minute mean.",
-        related: ["Block", "Double-Spend", "Mempool"]
-    },
-    {
-        term: "Consensus",
-        category: "technical",
-        aka: ["Nakamoto Consensus"],
-        simple: "How Bitcoin nodes agree on which version of the blockchain is correct without trusting any central authority. The longest valid chain wins.",
-        advanced: "A decentralized agreement mechanism combining proof-of-work, longest chain rule, and economic incentives. Nodes independently validate all transactions and blocks against consensus rules (21M supply cap, valid signatures, no double-spends, etc.). In case of chain splits, miners follow the chain with the most accumulated difficulty. This achieves Byzantine fault tolerance without requiring identity or permission.",
-        related: ["Proof-of-Work", "Node", "Mining", "Blockchain"]
-    },
-
-    // ===== D =====
-    {
-        term: "Decentralization",
-        category: "basics",
-        simple: "No single person, company, or government controls Bitcoin. Power is distributed across thousands of participants worldwide.",
-        advanced: "The distribution of control across multiple dimensions: development (open-source, multiple implementations), mining (geographically distributed hashrate), nodes (anyone can validate), and governance (rough consensus). Bitcoin's decentralization provides censorship resistance, seizure resistance, and resilience against state-level attacks. Measured by Nakamoto coefficient and geographic distribution.",
-        related: ["Node", "Mining", "Consensus"]
-    },
-    {
-        term: "Derivation Path",
-        category: "technical",
-        aka: ["HD Path", "BIP32 Path"],
-        simple: "A formula that tells your wallet where to find your Bitcoin addresses within your seed phrase. Different paths lead to different addresses. If you recover with the wrong path, your balance appears as zero (but isn't lost).",
-        advanced: "A hierarchical notation (e.g., m/84'/0'/0'/0/0) defining the tree structure for deterministic key generation from a master seed per BIP32. Path components: purpose (44=Legacy, 49=SegWit-wrapped, 84=Native SegWit, 86=Taproot), coin type (0=Bitcoin), account, change (0=receiving, 1=change), address index. Critical for wallet recovery - same seed with different path produces different addresses. Documenting your derivation path alongside seed backup prevents recovery confusion.",
-        related: ["HD Wallet", "Seed Phrase", "BIP32", "BIP44", "Address"]
-    },
-    {
-        term: "Difficulty",
-        category: "technical",
-        aka: ["Mining Difficulty", "Difficulty Target"],
-        simple: "A measure of how hard it is to mine a new block. Bitcoin automatically adjusts difficulty every 2 weeks to keep block time around 10 minutes.",
-        advanced: "A relative measure of how difficult it is to find a hash below a given target. Difficulty adjusts every 2,016 blocks based on actual time vs. expected time (2,016 blocks × 10 minutes = 2 weeks). Formula: new_difficulty = old_difficulty × (2 weeks / actual_time). This maintains consistent issuance regardless of hashrate changes. Current difficulty ~60 trillion.",
-        related: ["Mining", "Hashrate", "Proof-of-Work", "Block"]
-    },
-    {
-        term: "Double-Spend",
-        category: "technical",
-        simple: "Attempting to spend the same bitcoins twice. Bitcoin's blockchain prevents this by including only one version of a transaction.",
-        advanced: "An attack where the same UTXO is spent in two conflicting transactions. Prevented by proof-of-work consensus and the longest chain rule. Pre-confirmation double-spends exploit zero-conf merchant acceptance. Post-confirmation double-spends require 51% attacks and chain reorganizations. The 10-minute block time and 6-confirmation standard make successful attacks economically irrational.",
-        related: ["Confirmation", "Blockchain", "UTXO", "51% Attack"]
-    },
-
-    // ===== F =====
-    {
-        term: "Fork",
-        category: "technical",
-        simple: "A split in the blockchain, either temporary (competing blocks) or permanent (protocol changes). Can be accidental or intentional.",
-        advanced: "A divergence in blockchain state. Types: (1) Chain split - temporary when two blocks are found simultaneously, resolved by longest chain rule; (2) Soft fork - backward-compatible protocol changes (SegWit, Taproot); (3) Hard fork - non-backward-compatible changes creating new cryptocurrencies (Bitcoin Cash). Soft forks tighten rules, hard forks loosen them.",
-        related: ["Soft Fork", "Hard Fork", "Blockchain", "Consensus"]
-    },
-    {
-        term: "Full Node",
-        category: "technical",
-        aka: ["Bitcoin Node", "Validating Node"],
-        simple: "A computer that downloads and verifies the entire Bitcoin blockchain and enforces all consensus rules. Running a node gives you maximum security and privacy.",
-        advanced: "Software (Bitcoin Core, btcd, etc.) that independently validates every block and transaction against consensus rules without trusting third parties. Stores complete blockchain (~500+ GB), validates signatures, enforces supply cap, rejects invalid blocks. Provides: trustless verification, privacy (no SPV servers), network resilience, and voting power on protocol changes. Requires ~500GB disk, ~5GB RAM.",
-        related: ["Node", "SPV", "Blockchain", "Consensus"]
-    },
-
-    // ===== H =====
-    {
-        term: "HD Wallet",
-        category: "technical",
-        aka: ["Hierarchical Deterministic Wallet", "BIP32 Wallet"],
-        simple: "A wallet that generates all your addresses from a single seed phrase. You only need to back up the seed once, and it can create unlimited addresses.",
-        advanced: "BIP32 wallet architecture deriving an unlimited tree of private/public keys from a master seed. Benefits: single backup recovers all keys, easy address generation without accessing private keys (xpub), account separation (BIP44). Path notation: m/purpose'/coin'/account'/change/index. Modern standards: BIP44 (legacy), BIP49 (wrapped SegWit), BIP84 (native SegWit), BIP86 (Taproot). All major wallets use HD derivation.",
-        related: ["Seed Phrase", "Derivation Path", "BIP32", "BIP44", "xpub"]
-    },
-    {
-        term: "Halving",
-        category: "basics",
-        aka: ["Halvening", "Block Reward Halving"],
-        simple: "Every 210,000 blocks (~4 years), the amount of new Bitcoin created per block is cut in half. This makes Bitcoin increasingly scarce over time.",
-        advanced: "Programmatic reduction of the coinbase subsidy by 50% every 210,000 blocks. Schedule: 50 BTC (2009-2012) → 25 (2012-2016) → 12.5 (2016-2020) → 6.25 (2020-2024) → 3.125 (2024-2028). Implements deflationary monetary policy, ensuring only ~21 million BTC ever exist. Next halving: ~2028. Final satoshi mined: ~2140.",
-        related: ["Block Reward", "Supply Cap", "Mining", "Inflation"]
-    },
-    {
-        term: "Hardware Wallet",
-        category: "security",
-        aka: ["Cold Wallet", "Signing Device"],
-        simple: "A physical device designed specifically to store bitcoin private keys securely. Examples: Ledger, Trezor, Coldcard. Much safer than keeping keys on your computer or phone.",
-        advanced: "A dedicated hardware security module (HSM) that generates and stores private keys in tamper-resistant environment. Signs transactions offline, displaying transaction details on secure screen for verification before signing. Best practices: verify addresses on device screen, use PIN/passphrase, backup seed phrase on metal, consider multi-sig. Popular open-source options: Coldcard, Foundation, BitBox02.",
-        related: ["Cold Storage", "Private Key", "Seed Phrase", "Multi-Sig"]
-    },
-    {
-        term: "Hash",
-        category: "technical",
-        aka: ["Hash Function", "Cryptographic Hash"],
-        simple: "A mathematical function that turns any data into a fixed-length string of characters. Bitcoin uses hashing for security - even tiny changes to input create completely different outputs.",
-        advanced: "A one-way cryptographic function (SHA-256 in Bitcoin) that maps arbitrary input to fixed 256-bit output. Properties: deterministic, collision-resistant, preimage-resistant, avalanche effect. Uses: proof-of-work (block hashing), address derivation (HASH160 = RIPEMD160(SHA256(x))), merkle trees, commitment schemes. Computing hashes is easy; reversing is computationally infeasible.",
-        related: ["SHA-256", "Mining", "Proof-of-Work", "Merkle Tree"]
-    },
-    {
-        term: "Hashrate",
-        category: "technical",
-        aka: ["Hash Power", "Network Hashrate"],
-        simple: "The total computational power being used to mine Bitcoin and secure the network. Measured in hashes per second (currently ~400 EH/s = 400 quintillion hashes/sec).",
-        advanced: "The rate at which miners perform SHA-256 hash computations, measured in H/s, TH/s, or EH/s. Higher hashrate = greater network security and difficulty. Current network hashrate ~400-600 EH/s. Individual miner profitability depends on: hashrate, electricity cost, difficulty, Bitcoin price. Hashrate follows price with lag due to mining investment cycles.",
-        related: ["Mining", "Difficulty", "Proof-of-Work", "SHA-256"]
-    },
-    {
-        term: "Hot Wallet",
-        category: "security",
-        aka: ["Online Wallet", "Connected Wallet"],
-        simple: "A Bitcoin wallet connected to the internet, like a mobile app or desktop software. Convenient for daily use but less secure than cold storage.",
-        advanced: "An internet-connected wallet for everyday transactions. Trade-off: convenience vs. security. Types: mobile (BlueWallet, Phoenix), desktop (Sparrow, Electrum), web (not recommended). Best for small amounts only. Security measures: strong passwords, 2FA, regular updates, encrypted backups. Never store large amounts in hot wallets - use cold storage instead.",
-        related: ["Cold Storage", "Wallet", "Private Key", "Security"]
-    },
-
-    // ===== K =====
-    {
-        term: "KYC",
-        category: "basics",
-        aka: ["Know Your Customer"],
-        simple: "Identity verification required by regulated exchanges and financial services. You typically must provide ID, address proof, and sometimes selfies to use these services.",
-        advanced: "Regulatory requirement for financial institutions to verify customer identity, typically involving government ID, proof of address, and biometric verification. KYC data creates privacy risks (data breaches, surveillance) and excludes underbanked populations. Bitcoin alternatives: P2P trading (Bisq, HodlHodl), Bitcoin ATMs (some limits), earning BTC, mining. 'Non-KYC Bitcoin' trades at slight premium but offers better privacy.",
-        related: ["Privacy", "Exchange", "AML"]
-    },
-
-    // ===== L =====
-    {
-        term: "Lightning Network",
-        category: "lightning",
-        aka: ["LN", "Lightning", "Layer 2"],
-        simple: "A fast payment network built on top of Bitcoin that allows instant, cheap transactions. You open a payment channel, make unlimited transactions, then close it and settle on the main blockchain.",
-        advanced: "A Layer 2 payment channel network enabling instant, low-fee Bitcoin transactions through bidirectional payment channels and hash time-locked contracts (HTLCs). Channels use multi-sig addresses and commitment transactions. Payments route through multiple hops using onion routing. Scales Bitcoin to millions of TPS while maintaining self-custody. Trade-offs: online requirement, channel liquidity management, routing failures.",
-        related: ["Payment Channel", "HTLC", "Layer 2", "Routing"]
-    },
-
-    // ===== M =====
-    {
-        term: "Mempool",
-        category: "technical",
-        aka: ["Memory Pool", "Transaction Pool"],
-        simple: "A waiting room for unconfirmed transactions. Miners pick transactions from the mempool based on fees and include them in the next block.",
-        advanced: "Each node's local cache of unconfirmed transactions waiting for inclusion in a block. Not consensus-critical - each node maintains its own mempool with potentially different contents. Transactions enter via broadcast, leave via block inclusion or expiry (~2 weeks default). Mempool fullness determines fee market. Size limits prevent DoS (default: 300 MB). mempool.space visualizes global mempool state.",
-        related: ["Transaction Fee", "Block", "Confirmation", "RBF"]
-    },
-    {
-        term: "Mining",
-        category: "technical",
-        aka: ["Bitcoin Mining", "Proof-of-Work Mining"],
-        simple: "The process of using computer power to solve complex math problems that verify Bitcoin transactions and add new blocks to the blockchain. Miners earn new bitcoins as a reward.",
-        advanced: "The process of finding a valid nonce such that SHA-256(SHA-256(block_header)) < difficulty_target. Miners collect transactions, construct candidate blocks, and perform trillions of hashes seeking valid proof-of-work. Winner receives block reward (subsidy + fees). Mining secures the network via economic cost, distributes new coins fairly, and achieves decentralized timestamp server. Uses specialized ASICs (~100 TH/s each).",
-        related: ["Proof-of-Work", "Block Reward", "Hashrate", "Difficulty", "ASIC"]
-    },
-    {
-        term: "Mnemonic",
-        category: "security",
-        aka: ["Seed Phrase", "Recovery Phrase", "12/24 Words"],
-        simple: "A list of 12 or 24 words that represent your private key in human-readable form. Write these down and store them safely - they can recover your entire wallet.",
-        advanced: "A BIP39-compliant word list encoding a 128-bit (12 words) or 256-bit (24 words) seed with checksum. Converts entropy into memorable phrase from standardized 2048-word dictionary. Seed derives master extended private key (xprv) via PBKDF2 with optional passphrase (25th word). Mnemonic enables deterministic key generation, easy backups, and wallet recovery. Never store digitally - use metal backups.",
-        related: ["Private Key", "HD Wallet", "BIP39", "Seed Phrase"]
-    },
-    {
-        term: "Multi-Sig",
-        category: "security",
-        aka: ["Multisignature", "Multi-Signature"],
-        simple: "A wallet that requires multiple private keys to authorize a transaction (e.g., 2-of-3 means 2 out of 3 keys needed). Provides extra security and shared control.",
-        advanced: "Pay-to-Script-Hash (P2SH) or Pay-to-Witness-Script-Hash (P2WSH) address requiring M-of-N signatures to spend. Common setups: 2-of-3 (personal backup, shared custody), 3-of-5 (corporate treasury). Benefits: no single point of failure, key compromise tolerance, geographic distribution. Implementations: native Bitcoin Script, Miniscript, or MuSig2 (Schnorr). Trade-offs: complexity, coordination overhead.",
-        related: ["Private Key", "Cold Storage", "Security", "P2SH"]
-    },
-
-    // ===== N =====
-    {
-        term: "Node",
-        category: "technical",
-        aka: ["Bitcoin Node", "Network Node"],
-        simple: "A computer running Bitcoin software that helps maintain the network. Nodes validate transactions, store the blockchain, and relay information to other nodes.",
-        advanced: "Any device running Bitcoin software and participating in the peer-to-peer network. Types: (1) Full nodes - validate all rules, store full blockchain; (2) Pruned nodes - validate all but discard old blocks; (3) Archival nodes - full nodes serving historical data; (4) Lightning nodes - maintain payment channels. Nodes communicate via Bitcoin P2P protocol (port 8333). ~15,000+ reachable nodes globally.",
-        related: ["Full Node", "SPV", "Blockchain", "Network"]
-    },
-    {
-        term: "Nonce",
-        category: "technical",
-        aka: ["Number Used Once"],
-        simple: "A random number miners change repeatedly when trying to mine a block. They keep trying different nonces until they find one that creates a valid block hash.",
-        advanced: "A 32-bit field in the block header that miners increment to search for valid proof-of-work. With current difficulty, 2^32 nonce space is exhausted in milliseconds, so miners also vary timestamp, extra nonce in coinbase, or transaction order. Nonce is the primary variable in the mining puzzle: find nonce where SHA-256(SHA-256(header)) < target.",
-        related: ["Mining", "Proof-of-Work", "Block", "Difficulty"]
-    },
-
-    // ===== P =====
-    {
-        term: "Private Key",
-        category: "security",
-        aka: ["Secret Key", "Signing Key"],
-        simple: "A secret number that proves you own bitcoins at a specific address. Like a password, but impossible to reset if lost. Never share your private keys!",
-        advanced: "A 256-bit random number from which public keys and addresses are derived. Used to create ECDSA/Schnorr signatures proving ownership of UTXOs. Must be cryptographically random and kept secret. Compromise = loss of funds. Modern wallets use HD derivation (BIP32) to generate multiple keys from single seed. Private key → Public key (one-way via elliptic curve multiplication) → Address (one-way via hashing).",
-        related: ["Public Key", "Seed Phrase", "Address", "Wallet"]
-    },
-    {
-        term: "Proof-of-Work",
-        category: "technical",
-        aka: ["PoW", "Hashcash"],
-        simple: "A system requiring miners to solve difficult math problems (using lots of computing power) to add blocks. This work secures Bitcoin and makes attacks expensive.",
-        advanced: "A consensus mechanism requiring computational work to propose blocks. Miners find nonces producing hashes below difficulty target, proving expended energy. PoW properties: (1) hard to produce (energy cost), (2) easy to verify (one hash), (3) progress-free (no advantage from previous attempts). Secures network via economic cost - attacking requires majority hashrate AND sustained energy expense. Bitcoin uses SHA-256-based PoW (Hashcash variant).",
-        related: ["Mining", "Hashrate", "Difficulty", "Consensus"]
-    },
-    {
-        term: "Public Key",
-        category: "technical",
-        aka: ["Pubkey"],
-        simple: "A cryptographic key derived from your private key that can be safely shared. Others can use it to verify your signatures but cannot spend your bitcoins.",
-        advanced: "A point on the secp256k1 elliptic curve derived from the private key via elliptic curve multiplication (pubkey = privkey × G, where G is generator point). Compressed pubkeys (33 bytes) include y-coordinate sign; uncompressed (65 bytes) include full coordinates. Used to: (1) derive addresses (hashed), (2) verify signatures, (3) create multi-sig scripts. Public keys can be safely shared - they cannot reverse to private keys.",
-        related: ["Private Key", "Address", "Signature", "ECDSA"]
-    },
-
-    // ===== R =====
-    {
-        term: "RBF",
-        category: "technical",
-        aka: ["Replace-By-Fee", "BIP125"],
-        simple: "A feature that lets you increase the fee on an unconfirmed transaction to make it confirm faster. Useful if you initially set the fee too low.",
-        advanced: "BIP125 opt-in transaction replacement allowing users to broadcast a new version of an unconfirmed transaction with higher fees. Requires original transaction to signal replaceability (nSequence < 0xfffffffe). Replacement must: (1) pay higher absolute fee, (2) pay higher fee rate, (3) not replace >100 transactions. Prevents fee market deadlocks. Wallets supporting RBF: Electrum, Sparrow, Bitcoin Core.",
-        related: ["Transaction Fee", "Mempool", "CPFP", "Confirmation"]
-    },
-
-    // ===== P =====
-    {
-        term: "P2SH",
-        category: "technical",
-        aka: ["Pay-to-Script-Hash"],
-        simple: "A type of Bitcoin address (starting with '3') that can have complex spending conditions, like requiring multiple signatures. The complexity is hidden until the funds are spent.",
-        advanced: "BIP16 script type where the address commits to a hash of the redeem script rather than the script itself. Script details only revealed at spend time. Used for multi-sig (e.g., 2-of-3), time-locks, and wrapped SegWit (P2SH-P2WPKH/P2WSH). Addresses start with '3' on mainnet. Superceded by native SegWit (P2WPKH/P2WSH, bc1q...) and Taproot (P2TR, bc1p...) for new applications.",
-        related: ["Multi-Sig", "Address", "SegWit", "Script"]
-    },
-    {
-        term: "P2WPKH",
-        category: "technical",
-        aka: ["Pay-to-Witness-Public-Key-Hash", "Native SegWit"],
-        simple: "The most common modern Bitcoin address type (starting with 'bc1q'). Offers the lowest fees for single-signature transactions.",
-        advanced: "BIP84 native SegWit v0 output type for single-signature addresses. Locking script is a 20-byte pubkey hash with OP_0 version byte. Addresses start with 'bc1q' (Bech32 encoding). Benefits: ~38% smaller than P2PKH, lowest fees, no script hash overhead. Default for most modern wallets. Derivation path: m/84'/0'/0'.",
-        related: ["SegWit", "Address", "Derivation Path", "BIP84"]
-    },
-
-    // ===== S =====
-    {
-        term: "Satoshi",
-        category: "basics",
-        aka: ["Sat", "Satoshis"],
-        simple: "The smallest unit of Bitcoin. 1 Bitcoin = 100,000,000 satoshis. Named after Bitcoin's creator.",
-        advanced: "The smallest indivisible unit of Bitcoin (0.00000001 BTC = 1 sat). Named after Satoshi Nakamoto. Allows microtransactions and precise fee calculations. With Bitcoin's price growth, many transactions are denominated in sats rather than BTC. Lightning Network operates primarily in sats. Some propose eventual transition to sat-denominated pricing (1 sat = 1 unit).",
-        related: ["Bitcoin", "Satoshi Nakamoto"]
-    },
-    {
-        term: "Satoshi Nakamoto",
-        category: "basics",
-        aka: ["Satoshi"],
-        simple: "The pseudonymous creator of Bitcoin who published the whitepaper in 2008 and launched the network in 2009. True identity remains unknown.",
-        advanced: "Pseudonymous individual or group that authored the Bitcoin whitepaper (October 31, 2008), implemented the original Bitcoin software (Bitcoin v0.1, January 3, 2009), and mined early blocks (~1 million BTC). Communicated via email/forum until mid-2010, then disappeared. Identity speculation includes Nick Szabo, Hal Finney, Adam Back, or groups of cypherpunks. Likely holds ~1M BTC (Patoshi coins), unmoved since 2010.",
-        related: ["Bitcoin", "Genesis Block", "Whitepaper"]
-    },
-    {
-        term: "SegWit",
-        category: "technical",
-        aka: ["Segregated Witness", "BIP141"],
-        simple: "A 2017 upgrade that reorganized transaction data to fix bugs, enable Lightning Network, and increase block capacity without changing the block size limit.",
-        advanced: "BIP141 soft fork (activated August 2017) separating signature data ('witness') from transaction data. Benefits: (1) fixes transaction malleability enabling Lightning, (2) increases effective block size to ~2-4MB via block weight units, (3) enables script versioning for future upgrades, (4) reduces fees for SegWit transactions. Native SegWit addresses start with 'bc1'. Adoption: ~90%+ of transactions.",
-        related: ["Transaction Malleability", "Lightning Network", "Soft Fork", "Block Weight"]
-    },
-    {
-        term: "Seed Phrase",
-        category: "security",
-        aka: ["Mnemonic", "Recovery Phrase", "Backup Phrase"],
-        simple: "12 or 24 words that back up your entire Bitcoin wallet. Anyone with these words can access your funds, so keep them extremely safe and private.",
-        advanced: "BIP39 mnemonic encoding a cryptographic seed for deterministic wallet derivation. Generated from 128-256 bits entropy + checksum, mapped to word list. Seed is hashed (PBKDF2 with 2048 rounds) with optional passphrase to create master private key (BIP32). From this, infinite hierarchical keys are derived (BIP44). Best practices: metal backups, geographic distribution, never digital storage, test recovery.",
-        related: ["Mnemonic", "Private Key", "HD Wallet", "BIP39"]
-    },
-    {
-        term: "SHA-256",
-        category: "technical",
-        aka: ["Secure Hash Algorithm"],
-        simple: "The cryptographic hash function Bitcoin uses for mining and security. It creates a unique 'fingerprint' for any piece of data.",
-        advanced: "A cryptographic hash function producing 256-bit outputs from arbitrary inputs. Part of SHA-2 family (NSA-designed, 2001). Bitcoin uses double-SHA-256 for mining (SHA-256(SHA-256(header)) < target) and HASH256 for transaction IDs. Properties: deterministic, avalanche effect, collision-resistant (~2^128 operations), preimage-resistant (~2^256 operations). Despite quantum computing advances, SHA-256 remains secure.",
-        related: ["Hash", "Mining", "Proof-of-Work"]
-    },
-    {
-        term: "Soft Fork",
-        category: "technical",
-        simple: "A backward-compatible upgrade to Bitcoin's rules. Old nodes still work, but new nodes enforce stricter rules. Examples: SegWit, Taproot.",
-        advanced: "A protocol change that tightens consensus rules, making previously valid blocks/transactions invalid. Backward-compatible - upgraded nodes reject some blocks that old nodes accept, but never vice versa. Old nodes follow upgraded chain as long as majority hashrate enforces new rules. Activation methods: BIP9 (version bits), BIP8 (user-activated), BIP148 (UASF). Recent soft forks: SegWit (2017), Taproot (2021).",
-        related: ["Hard Fork", "Fork", "BIP", "Taproot", "SegWit"]
-    },
-
-    // ===== T =====
-    {
-        term: "Taproot",
-        category: "technical",
-        aka: ["BIP340-342", "Schnorr"],
-        simple: "A 2021 Bitcoin upgrade that improves privacy, reduces transaction sizes, and enables more complex smart contracts using Schnorr signatures.",
-        advanced: "BIP340-342 soft fork (activated November 2021) implementing Schnorr signatures, MAST (Merkelized Alternative Script Trees), and Tapscript. Benefits: (1) signature aggregation (MuSig2), (2) smaller multi-sig transactions, (3) improved privacy (multi-sig looks like single-sig), (4) more efficient complex scripts. All outputs now pay to Taproot (P2TR, 'bc1p' addresses). Enables future innovations like covenant proposals.",
-        related: ["Schnorr", "Soft Fork", "Multi-Sig", "Privacy"]
-    },
-    {
-        term: "Transaction",
-        category: "basics",
-        aka: ["TX", "Bitcoin Transaction"],
-        simple: "A transfer of Bitcoin from one address to another, recorded permanently on the blockchain. Includes sender, receiver, amount, and fee.",
-        advanced: "A data structure consuming UTXOs (inputs) and creating new UTXOs (outputs), signed by private keys proving ownership. Contains: version, inputs (previous TX refs + signatures), outputs (amounts + locking scripts), locktime. Transaction ID (txid) is double-SHA-256 of serialized transaction. Size measured in bytes or vBytes (SegWit). No 'account balances' - wallet balance is sum of spendable UTXOs.",
-        related: ["UTXO", "Input", "Output", "Transaction Fee"]
-    },
-    {
-        term: "Transaction Fee",
-        category: "basics",
-        aka: ["Miner Fee", "Network Fee"],
-        simple: "A small amount paid to miners for processing your transaction. Higher fees = faster confirmation. Measured in sats per byte.",
-        advanced: "The difference between input and output values, claimed by the miner. Measured in sat/vB (satoshis per virtual byte). Fee market is dynamic - higher mempool congestion = higher fees needed. Typical ranges: 1-5 sat/vB (low priority), 10-50 sat/vB (normal), 100+ sat/vB (urgent). RBF and CPFP allow fee adjustment. Lightning Network bypasses on-chain fees for small transactions.",
-        related: ["Mempool", "Mining", "Confirmation", "RBF", "Satoshi"]
-    },
-
-    // ===== U =====
-    {
-        term: "UASF",
-        category: "technical",
-        aka: ["User-Activated Soft Fork"],
-        simple: "A way for Bitcoin users to enforce protocol upgrades without waiting for miners. If most economic nodes agree, miners must follow or risk mining invalid blocks.",
-        advanced: "A soft fork activation mechanism where economic nodes (exchanges, wallets, businesses) enforce new rules regardless of miner signaling. BIP148 (SegWit UASF, August 1, 2017) demonstrated that users, not miners, hold ultimate authority over consensus rules. Miners who don't upgrade risk mining invalid blocks that economic nodes reject. Represents Bitcoin's ultimate check on miner power.",
-        related: ["Soft Fork", "SegWit", "Node", "Consensus"]
-    },
-    {
-        term: "UTXO",
-        category: "technical",
-        aka: ["Unspent Transaction Output", "UTXO Set"],
-        simple: "A chunk of Bitcoin that hasn't been spent yet, like a bill in your physical wallet. Your wallet balance is the sum of all your UTXOs.",
-        advanced: "An unspent output from a previous transaction, representing spendable Bitcoin. The UTXO model (vs. account model) means there are no 'account balances' - only discrete outputs. Each UTXO has: amount, locking script (pubkey/address), and block height. The UTXO set (~100M entries, ~5GB) is the critical state all full nodes maintain. Spending a UTXO consumes it entirely; change is returned as new UTXO. Consolidation reduces UTXO count and future fees.",
-        related: ["Transaction", "Input", "Output", "Wallet"]
-    },
-
-    // ===== V =====
-    {
-        term: "Vbyte",
-        category: "technical",
-        aka: ["Virtual Byte", "vB"],
-        simple: "A unit for measuring transaction size after SegWit. SegWit transactions are measured in vbytes, which results in lower fees compared to legacy transactions.",
-        advanced: "A weight-normalized unit for transaction size introduced with SegWit (BIP141). Calculated as transaction weight ÷ 4. SegWit witness data weighs 1 weight unit per byte vs. 4 for non-witness data, effectively making SegWit transactions ~75% cheaper for the same actual byte size. Fee rates are typically quoted in sat/vB. A typical P2WPKH transaction is ~140 vbytes.",
-        related: ["SegWit", "Transaction Fee", "Block Weight"]
-    },
-
-    // ===== W =====
-    {
-        term: "Wallet",
-        category: "basics",
-        aka: ["Bitcoin Wallet", "Digital Wallet"],
-        simple: "Software or hardware that stores your private keys and lets you send/receive bitcoin. Your wallet doesn't actually hold bitcoin - it holds the keys to access bitcoin on the blockchain.",
-        advanced: "A collection of private keys and software for signing transactions. Types: (1) Hot wallets (mobile/desktop/web), (2) Cold wallets (hardware/paper), (3) Custodial (exchange-controlled), (4) Non-custodial (self-custody). Modern wallets use BIP32 HD derivation, BIP39 mnemonics, and BIP44 address discovery. Best practice: non-custodial hardware wallet with multi-sig for large amounts, hot wallet for spending money.",
-        related: ["Private Key", "Seed Phrase", "Hot Wallet", "Cold Storage"]
-    },
-    {
-        term: "Whitepaper",
-        category: "basics",
-        aka: ["Bitcoin Whitepaper"],
-        simple: "The original 9-page document written by Satoshi Nakamoto in 2008 titled 'Bitcoin: A Peer-to-Peer Electronic Cash System' that introduced Bitcoin to the world.",
-        advanced: "Satoshi Nakamoto's foundational document (October 31, 2008) describing Bitcoin's design: proof-of-work consensus, UTXO model, Merkle trees, SPV clients, and privacy model. Notably absent: hard-coded supply cap (in code but not paper), scripting capabilities, and many implementation details added later. PDF available at bitcoin.org/bitcoin.pdf. Essential reading for understanding Bitcoin's design philosophy and trade-offs.",
-        related: ["Satoshi Nakamoto", "Bitcoin", "Proof-of-Work"]
-    }
+window.GLOSSARY_TERMS = [
+  {
+    "term": "Seed phrase",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Beginner",
+    "tags": [
+      "custody",
+      "recovery",
+      "family"
+    ],
+    "simple": "A set of words that can restore access to a Bitcoin wallet.",
+    "advanced": "It is recovery access. If someone can use it, they may be able to move the Bitcoin.",
+    "engine": true,
+    "misconception": "It is just a password.",
+    "reality": "It is recovery access. If someone can use it, they may be able to move the Bitcoin.",
+    "why": "Treating it like a normal password leads people to photograph it, email it, store it in the cloud, or hide it so well no one can recover it.",
+    "failure": "A parent writes the words down safely, but nobody knows what they mean or who to call in an emergency.",
+    "proof": "Can you explain why a seed phrase is not like a bank password without revealing your own?",
+    "next": "Create a first-page emergency instruction that says what not to do, who to call, and where the next step lives. Do not include the seed phrase there."
+  },
+  {
+    "term": "Private key",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Intermediate",
+    "tags": [
+      "keys",
+      "cryptography",
+      "custody"
+    ],
+    "simple": "A secret number used to prove the right to spend Bitcoin from a related address or script.",
+    "advanced": "The app or hardware device protects and uses the key, but the key is the actual signing power.",
+    "engine": true,
+    "misconception": "It is a file inside the wallet app.",
+    "reality": "The app or hardware device protects and uses the key, but the key is the actual signing power.",
+    "why": "People may protect the device while exposing the backup that can recreate the keys.",
+    "failure": "Someone keeps a hardware wallet in a safe but stores the seed phrase in a photo folder.",
+    "proof": "Can you explain the difference between a device, a wallet app, a seed phrase, and a private key?",
+    "next": "Map where signing power exists and where recovery power exists. They are related but not the same."
+  },
+  {
+    "term": "Wallet",
+    "category": "Bitcoin basics",
+    "categorySlug": "bitcoin-basics",
+    "level": "Beginner",
+    "tags": [
+      "wallet",
+      "custody"
+    ],
+    "simple": "Software or hardware that helps create, manage, and sign Bitcoin transactions.",
+    "advanced": "Bitcoin lives on the ledger. The wallet manages keys and builds transactions.",
+    "engine": true,
+    "misconception": "A wallet stores Bitcoin the way a leather wallet stores cash.",
+    "reality": "Bitcoin lives on the ledger. The wallet manages keys and builds transactions.",
+    "why": "This mistake makes people think losing a device always means losing Bitcoin, or that having a device always means being safe.",
+    "failure": "A person panics after losing a hardware wallet, not realizing the seed phrase can restore access.",
+    "proof": "Can you explain where the Bitcoin is and what the wallet actually controls?",
+    "next": "Teach the wallet/device/seed phrase distinction before any self-custody setup."
+  },
+  {
+    "term": "Self-custody",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Beginner",
+    "tags": [
+      "custody",
+      "sovereignty"
+    ],
+    "simple": "Holding Bitcoin in a way where you control the keys rather than relying only on a custodian.",
+    "advanced": "Self-custody removes one kind of counterparty risk but creates operational responsibility.",
+    "engine": true,
+    "misconception": "Self-custody means no trust, no process, and no help.",
+    "reality": "Self-custody removes one kind of counterparty risk but creates operational responsibility.",
+    "why": "People can become careless because they think the phrase itself makes them sovereign.",
+    "failure": "Someone moves Bitcoin off an exchange but never tests recovery or explains anything to family.",
+    "proof": "Can you name the risk you removed and the new risk you accepted?",
+    "next": "Run a small recovery test and write a safe emergency instruction."
+  },
+  {
+    "term": "Multisig",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Intermediate",
+    "tags": [
+      "custody",
+      "family",
+      "advisor"
+    ],
+    "simple": "A setup that requires more than one key or signer to authorize spending.",
+    "advanced": "Good multisig can reduce single-point failure. Bad multisig can create confusion, dead ends, or false confidence.",
+    "engine": true,
+    "misconception": "Multisig automatically makes Bitcoin safe.",
+    "reality": "Good multisig can reduce single-point failure. Bad multisig can create confusion, dead ends, or false confidence.",
+    "why": "People may focus on the number of keys and ignore storage, recovery, coordination, and documentation.",
+    "failure": "A family uses 2-of-3 multisig but stores all keys in one house.",
+    "proof": "Can you explain what happens if one key is lost, one signer is unavailable, or the coordinator disappears?",
+    "next": "Document key locations, signer roles, recovery steps, and emergency contacts without placing all secrets together."
+  },
+  {
+    "term": "Custodian",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Beginner",
+    "tags": [
+      "exchange",
+      "counterparty",
+      "custody"
+    ],
+    "simple": "A person or company that holds or controls Bitcoin on someone else’s behalf.",
+    "advanced": "A custodian controls the keys. A self-custody wallet lets you control the keys.",
+    "engine": true,
+    "misconception": "A custodian is the same as a wallet.",
+    "reality": "A custodian controls the keys. A self-custody wallet lets you control the keys.",
+    "why": "This confusion hides counterparty risk.",
+    "failure": "A learner says they own Bitcoin but only has an exchange login.",
+    "proof": "Can you answer: who can move the Bitcoin without asking me?",
+    "next": "Use the question “Who can sign?” to classify every setup."
+  },
+  {
+    "term": "Recovery",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Beginner",
+    "tags": [
+      "recovery",
+      "family",
+      "continuity"
+    ],
+    "simple": "The process for restoring access to Bitcoin after loss, device failure, death, travel, or emergency.",
+    "advanced": "Recovery means the right person can follow a safe process without exposing everything at once.",
+    "engine": true,
+    "misconception": "Recovery means knowing where the seed phrase is.",
+    "reality": "Recovery means the right person can follow a safe process without exposing everything at once.",
+    "why": "A seed phrase without instructions can be dangerous or useless.",
+    "failure": "An executor finds words but does not know whether to type them into a website.",
+    "proof": "Could a trusted helper begin the recovery process without you and without stealing funds?",
+    "next": "Create a separated recovery map: first instruction, trusted contact, device info, and sensitive material kept apart."
+  },
+  {
+    "term": "Inheritance",
+    "category": "Family continuity",
+    "categorySlug": "family-continuity",
+    "level": "Intermediate",
+    "tags": [
+      "family",
+      "estate",
+      "recovery"
+    ],
+    "simple": "The process for passing Bitcoin access and knowledge after death or incapacity.",
+    "advanced": "Legal ownership and technical access are different problems.",
+    "engine": true,
+    "misconception": "Putting Bitcoin in a will is enough.",
+    "reality": "Legal ownership and technical access are different problems.",
+    "why": "A will may identify heirs, but it may not give them safe access to keys.",
+    "failure": "The heir owns the asset legally but cannot recover it technically.",
+    "proof": "Can you separate legal instruction, technical access, and privacy protection?",
+    "next": "Create a plan that coordinates estate documents, custody setup, trusted contacts, and emergency instructions."
+  },
+  {
+    "term": "Bitcoin address",
+    "category": "Bitcoin transactions",
+    "categorySlug": "bitcoin-transactions",
+    "level": "Beginner",
+    "tags": [
+      "transactions",
+      "privacy"
+    ],
+    "simple": "A destination that can receive Bitcoin, usually derived from a public key or script.",
+    "advanced": "Addresses should usually be treated as single-use destinations for privacy and safety.",
+    "engine": true,
+    "misconception": "It is like an account number you reuse forever.",
+    "reality": "Addresses should usually be treated as single-use destinations for privacy and safety.",
+    "why": "Reuse can link payments and reveal balances or habits.",
+    "failure": "A business reuses one donation address and exposes its full incoming payment history.",
+    "proof": "Can you explain why a fresh address improves privacy?",
+    "next": "Use wallets that generate a new receiving address for each payment."
+  },
+  {
+    "term": "UTXO",
+    "category": "Bitcoin transactions",
+    "categorySlug": "bitcoin-transactions",
+    "level": "Intermediate",
+    "tags": [
+      "privacy",
+      "fees",
+      "transactions"
+    ],
+    "simple": "An unspent transaction output. It is a chunk of Bitcoin that can be spent in a future transaction.",
+    "advanced": "A wallet shows one balance, but underneath it may control many separate UTXOs.",
+    "engine": true,
+    "misconception": "Bitcoin works like one account balance.",
+    "reality": "A wallet shows one balance, but underneath it may control many separate UTXOs.",
+    "why": "UTXOs affect fees, privacy, and coin control.",
+    "failure": "A user combines private and public UTXOs and links separate parts of their life.",
+    "proof": "Can you explain why two wallets with the same balance can have different fee and privacy risks?",
+    "next": "Learn coin control before large consolidations or privacy-sensitive spending."
+  },
+  {
+    "term": "Lightning Network",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Intermediate",
+    "tags": [
+      "payments",
+      "lightning"
+    ],
+    "simple": "A payment network built on Bitcoin that uses channels to make fast, low-cost payments.",
+    "advanced": "Lightning uses Bitcoin as its base, but it has different tradeoffs around liquidity, channels, routing, and uptime.",
+    "engine": true,
+    "misconception": "Lightning replaces Bitcoin settlement.",
+    "reality": "Lightning uses Bitcoin as its base, but it has different tradeoffs around liquidity, channels, routing, and uptime.",
+    "why": "People may use Lightning for the wrong job or misunderstand custody in Lightning apps.",
+    "failure": "A learner uses a custodial Lightning wallet and thinks it is the same as self-custody.",
+    "proof": "Can you explain the difference between on-chain Bitcoin, a Lightning channel, and a custodial Lightning balance?",
+    "next": "Classify each Lightning tool by who controls keys and who controls liquidity."
+  },
+  {
+    "term": "Final settlement",
+    "category": "Money and settlement",
+    "categorySlug": "money-and-settlement",
+    "level": "Intermediate",
+    "tags": [
+      "payments",
+      "settlement",
+      "money"
+    ],
+    "simple": "The point where a payment is no longer just a promise and is considered settled under the system’s rules.",
+    "advanced": "Many payments are reversible, delayed, or dependent on intermediaries. Bitcoin settlement follows different rules.",
+    "engine": true,
+    "misconception": "A payment notification means final settlement.",
+    "reality": "Many payments are reversible, delayed, or dependent on intermediaries. Bitcoin settlement follows different rules.",
+    "why": "Confusing authorization with settlement hides risk.",
+    "failure": "A merchant ships goods after a payment appears pending but later reverses.",
+    "proof": "Can you identify who can reverse, block, or delay each payment method?",
+    "next": "Compare card, bank transfer, Lightning, and on-chain Bitcoin settlement in one chart."
+  },
+  {
+    "term": "Inflation",
+    "category": "Economics",
+    "categorySlug": "economics",
+    "level": "Beginner",
+    "tags": [
+      "money",
+      "prices"
+    ],
+    "simple": "A rise in the general price level or a loss of purchasing power, often connected to money supply and demand conditions.",
+    "advanced": "Prices can rise for many reasons, but monetary inflation changes the measuring stick itself.",
+    "engine": true,
+    "misconception": "Inflation only means companies raise prices.",
+    "reality": "Prices can rise for many reasons, but monetary inflation changes the measuring stick itself.",
+    "why": "People blame only stores and miss the deeper money problem.",
+    "failure": "A saver thinks they are staying safe in cash while purchasing power falls.",
+    "proof": "Can you explain the difference between one product becoming expensive and the currency losing value broadly?",
+    "next": "Use a before/after purchasing power example instead of only a CPI chart."
+  },
+  {
+    "term": "Purchasing power",
+    "category": "Money",
+    "categorySlug": "money",
+    "level": "Beginner",
+    "tags": [
+      "savings",
+      "inflation"
+    ],
+    "simple": "How much real goods and services a unit of money can buy.",
+    "advanced": "The number can stay the same while what it buys declines.",
+    "engine": true,
+    "misconception": "If the number in my account is the same, my savings are unchanged.",
+    "reality": "The number can stay the same while what it buys declines.",
+    "why": "People measure savings in nominal terms instead of real terms.",
+    "failure": "A family saves pesos or dollars but ignores how costs moved around them.",
+    "proof": "Can you compare money amount and what that amount buys?",
+    "next": "Add examples that show grocery, rent, transport, and education costs over time."
+  },
+  {
+    "term": "Fiat money",
+    "category": "Money",
+    "categorySlug": "money",
+    "level": "Beginner",
+    "tags": [
+      "money",
+      "state"
+    ],
+    "simple": "Money whose value depends on government decree, legal tender rules, institutional trust, and market acceptance rather than a fixed commodity backing.",
+    "advanced": "Fiat can function, but its supply and rules are controlled by institutions.",
+    "engine": true,
+    "misconception": "Fiat money is worthless because it is not backed by gold.",
+    "reality": "Fiat can function, but its supply and rules are controlled by institutions.",
+    "why": "The key issue is not that it has no use. The issue is who can change supply and access rules.",
+    "failure": "A student dismisses fiat as fake and fails to understand why people still use it.",
+    "proof": "Can you explain both why fiat works day to day and why it can fail savers?",
+    "next": "Teach fiat through tradeoffs: convenience, acceptance, control, inflation, access."
+  },
+  {
+    "term": "Hard money",
+    "category": "Money",
+    "categorySlug": "money",
+    "level": "Intermediate",
+    "tags": [
+      "sound money",
+      "scarcity"
+    ],
+    "simple": "Money that is difficult to create more of, especially compared with demand for it.",
+    "advanced": "Hard money can be volatile in market price while still being hard to inflate in supply.",
+    "engine": true,
+    "misconception": "Hard money means the price never falls.",
+    "reality": "Hard money can be volatile in market price while still being hard to inflate in supply.",
+    "why": "Students confuse price stability with supply discipline.",
+    "failure": "A learner sells because Bitcoin’s price dropped, thinking scarcity failed.",
+    "proof": "Can you separate supply rule from market price?",
+    "next": "Compare issuance schedule, market demand, and purchasing power over time."
+  },
+  {
+    "term": "Central bank",
+    "category": "Fiscal and monetary systems",
+    "categorySlug": "fiscal-and-monetary-systems",
+    "level": "Beginner",
+    "tags": [
+      "banking",
+      "policy"
+    ],
+    "simple": "An institution that manages monetary policy, reserves, and sometimes banking stability for a currency area.",
+    "advanced": "It influences interest rates, liquidity, bank reserves, and currency conditions.",
+    "engine": true,
+    "misconception": "A central bank simply stores a country’s money.",
+    "reality": "It influences interest rates, liquidity, bank reserves, and currency conditions.",
+    "why": "Without this, students cannot understand inflation, bailouts, or currency pressure.",
+    "failure": "A student sees interest rates as random instead of policy tools.",
+    "proof": "Can you name two ways a central bank changes financial conditions?",
+    "next": "Use a simple diagram: government, central bank, commercial banks, households."
+  },
+  {
+    "term": "Bank run",
+    "category": "Banking",
+    "categorySlug": "banking",
+    "level": "Beginner",
+    "tags": [
+      "banking",
+      "fragility"
+    ],
+    "simple": "A rush to withdraw money when depositors fear a bank cannot meet demands.",
+    "advanced": "Panic matters, but fractional reserves, duration mismatch, trust, and liquidity matter too.",
+    "engine": true,
+    "misconception": "A bank run only happens because people panic.",
+    "reality": "Panic matters, but fractional reserves, duration mismatch, trust, and liquidity matter too.",
+    "why": "Students may miss why confidence is part of the system.",
+    "failure": "A bank looks solvent on paper but cannot meet sudden withdrawals.",
+    "proof": "Can you explain why a bank can be solvent and still have liquidity stress?",
+    "next": "Connect to custody: access risk is different from price risk."
+  },
+  {
+    "term": "4x1000",
+    "category": "Colombia reality layer",
+    "categorySlug": "colombia-reality-layer",
+    "level": "Beginner",
+    "tags": [
+      "Colombia",
+      "tax",
+      "banking"
+    ],
+    "simple": "A Colombian financial transaction tax applied to certain movements of money through the banking system.",
+    "advanced": "Small friction repeated across payments can shape behavior and trust in the banking system.",
+    "engine": true,
+    "misconception": "It is too small to matter.",
+    "reality": "Small friction repeated across payments can shape behavior and trust in the banking system.",
+    "why": "It helps Colombian learners feel that monetary friction is not theoretical.",
+    "failure": "A person ignores transaction frictions until they stack up across payroll, transfers, and savings moves.",
+    "proof": "Can you show how a small transaction tax changes behavior when money moves often?",
+    "next": "Use it as a local example in lessons about friction, banking, and alternative settlement."
+  },
+  {
+    "term": "UVT",
+    "category": "Colombia reality layer",
+    "categorySlug": "colombia-reality-layer",
+    "level": "Beginner",
+    "tags": [
+      "Colombia",
+      "tax"
+    ],
+    "simple": "A Colombian tax value unit used to express thresholds, penalties, and tax figures.",
+    "advanced": "It is a unit that changes over time, so thresholds tied to it can move.",
+    "engine": true,
+    "misconception": "It is a normal currency amount.",
+    "reality": "It is a unit that changes over time, so thresholds tied to it can move.",
+    "why": "Students need to know why legal and tax thresholds do not always stay fixed in pesos.",
+    "failure": "A learner compares old and new rules without adjusting for UVT changes.",
+    "proof": "Can you explain why a tax rule might use UVT instead of a fixed peso amount?",
+    "next": "Use UVT in fiscal literacy modules, not as Bitcoin advice."
+  },
+  {
+    "term": "Hash function",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Intermediate",
+    "tags": [
+      "cryptography",
+      "mining",
+      "dev"
+    ],
+    "simple": "A one-way function that turns data into a fixed-size output that changes unpredictably when input changes.",
+    "advanced": "Encryption is meant to be reversed with a key. Hashing is not.",
+    "engine": true,
+    "misconception": "Hashing is encryption.",
+    "reality": "Encryption is meant to be reversed with a key. Hashing is not.",
+    "why": "This mistake confuses mining, addresses, signatures, and password storage.",
+    "failure": "A student says miners decrypt blocks, which is wrong.",
+    "proof": "Can you explain why a hash can prove data changed without revealing a secret?",
+    "next": "Use visual demos for SHA-256 input changes and outputs."
+  },
+  {
+    "term": "Digital signature",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Intermediate",
+    "tags": [
+      "keys",
+      "transactions"
+    ],
+    "simple": "A cryptographic proof that a holder of a private key authorized a message or transaction.",
+    "advanced": "It is mathematical proof tied to a private key and message.",
+    "engine": true,
+    "misconception": "A signature is a scanned name or approval note.",
+    "reality": "It is mathematical proof tied to a private key and message.",
+    "why": "Students must understand that Bitcoin spending is based on valid signatures, not account permission.",
+    "failure": "A learner thinks a miner approves who owns Bitcoin.",
+    "proof": "Can you explain what a signature proves and what it does not prove?",
+    "next": "Connect signatures to private keys, public keys, and transaction validation."
+  },
+  {
+    "term": "Node",
+    "category": "Bitcoin network",
+    "categorySlug": "bitcoin-network",
+    "level": "Intermediate",
+    "tags": [
+      "node",
+      "validation",
+      "sovereignty"
+    ],
+    "simple": "Software that checks Bitcoin rules and communicates with the network.",
+    "advanced": "A node validates rules. Mining is a separate function.",
+    "engine": true,
+    "misconception": "A node mines Bitcoin.",
+    "reality": "A node validates rules. Mining is a separate function.",
+    "why": "This matters because validation is how users avoid trusting someone else’s version of Bitcoin.",
+    "failure": "A student thinks only miners enforce the rules.",
+    "proof": "Can you explain the difference between mining a block and validating a block?",
+    "next": "Show how a wallet connected to your own node changes trust assumptions."
+  },
+  {
+    "term": "Mining",
+    "category": "Bitcoin network",
+    "categorySlug": "bitcoin-network",
+    "level": "Beginner",
+    "tags": [
+      "mining",
+      "proof-of-work"
+    ],
+    "simple": "The process of using energy and computation to propose blocks and secure Bitcoin’s ordering of transactions.",
+    "advanced": "Mining follows Bitcoin’s issuance rules and competes to add valid blocks.",
+    "engine": true,
+    "misconception": "Mining creates Bitcoin out of nothing.",
+    "reality": "Mining follows Bitcoin’s issuance rules and competes to add valid blocks.",
+    "why": "Students miss the difference between arbitrary creation and rule-bound issuance.",
+    "failure": "Someone says miners can create as much Bitcoin as they want.",
+    "proof": "Can you explain why miners cannot change the 21 million limit by themselves?",
+    "next": "Connect mining to nodes, difficulty adjustment, and issuance."
+  },
+  {
+    "term": "Difficulty adjustment",
+    "category": "Bitcoin network",
+    "categorySlug": "bitcoin-network",
+    "level": "Advanced",
+    "tags": [
+      "mining",
+      "protocol"
+    ],
+    "simple": "Bitcoin’s automatic adjustment that keeps blocks averaging about 10 minutes as mining power changes.",
+    "advanced": "More hashpower can temporarily speed blocks, then difficulty adjusts.",
+    "engine": true,
+    "misconception": "More miners make Bitcoin issue faster forever.",
+    "reality": "More hashpower can temporarily speed blocks, then difficulty adjusts.",
+    "why": "This is central to understanding Bitcoin’s supply schedule.",
+    "failure": "A learner thinks mining growth breaks scarcity.",
+    "proof": "Can you explain what happens if hashpower doubles?",
+    "next": "Use a simple time-chain demo with faster blocks and adjustment."
+  },
+  {
+    "term": "Full node",
+    "category": "Bitcoin network",
+    "categorySlug": "bitcoin-network",
+    "level": "Advanced",
+    "tags": [
+      "node",
+      "validation"
+    ],
+    "simple": "A node that independently verifies Bitcoin’s rules and maintains its own view of the chain.",
+    "advanced": "A full node gives validation sovereignty, not mining rewards.",
+    "engine": true,
+    "misconception": "Running a node earns Bitcoin.",
+    "reality": "A full node gives validation sovereignty, not mining rewards.",
+    "why": "People may undervalue nodes because they do not pay income.",
+    "failure": "A user relies only on a third-party explorer and trusts its version of balances.",
+    "proof": "Can you explain what trust is reduced by using your own node?",
+    "next": "Connect full nodes to privacy, rule validation, and wallet verification."
+  },
+  {
+    "term": "PSBT",
+    "category": "Bitcoin transactions",
+    "categorySlug": "bitcoin-transactions",
+    "level": "Advanced",
+    "tags": [
+      "multisig",
+      "hardware wallet",
+      "dev"
+    ],
+    "simple": "Partially Signed Bitcoin Transaction, a format for passing a transaction between wallets or signers before broadcast.",
+    "advanced": "It is a transaction package that may still need signatures or broadcast.",
+    "engine": true,
+    "misconception": "A PSBT is already a sent transaction.",
+    "reality": "It is a transaction package that may still need signatures or broadcast.",
+    "why": "This matters in multisig, airgapped signing, and advisor-assisted workflows.",
+    "failure": "A signer thinks sharing a PSBT means funds moved, when nothing was broadcast.",
+    "proof": "Can you explain the stages: create, sign, combine, broadcast?",
+    "next": "Use PSBTs in multisig lessons and continuity packets."
+  },
+  {
+    "term": "API key",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Intermediate",
+    "tags": [
+      "devops",
+      "security"
+    ],
+    "simple": "A credential used by software to authenticate with a service or API.",
+    "advanced": "It can grant access, usage, billing, or data privileges.",
+    "engine": true,
+    "misconception": "It is harmless configuration text.",
+    "reality": "It can grant access, usage, billing, or data privileges.",
+    "why": "Leaked API keys can compromise systems or create costs.",
+    "failure": "A developer commits an API key to GitHub and triggers secret scanning.",
+    "proof": "Can you explain why `.env.local` should not be committed?",
+    "next": "Add secret scanning, `.gitignore`, and key rotation instructions to dev workflows."
+  },
+  {
+    "term": "Environment variable",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Intermediate",
+    "tags": [
+      "devops",
+      "deployment"
+    ],
+    "simple": "A configuration value provided to software outside the source code.",
+    "advanced": "They reduce hardcoding but still need access control, rotation, and careful logging.",
+    "engine": true,
+    "misconception": "Environment variables are automatically secure.",
+    "reality": "They reduce hardcoding but still need access control, rotation, and careful logging.",
+    "why": "Students building tools need to know that configuration is part of security.",
+    "failure": "A server logs sensitive env values during debugging.",
+    "proof": "Can you name where env vars are set locally, in CI, and in production?",
+    "next": "Document which variables are local, preview, production, and secret."
+  },
+  {
+    "term": "CI",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Intermediate",
+    "tags": [
+      "github",
+      "testing",
+      "deployment"
+    ],
+    "simple": "Continuous integration, a process that runs checks when code changes.",
+    "advanced": "CI only checks what it is configured to check.",
+    "engine": true,
+    "misconception": "CI means the site is correct.",
+    "reality": "CI only checks what it is configured to check.",
+    "why": "A green build can still ship bad content or bad UX.",
+    "failure": "A page passes build but contains a broken educational claim or missing CTA.",
+    "proof": "Can you name one technical check and one content check CI should run?",
+    "next": "Add link checks, accessibility checks, secret scans, and claim freshness checks."
+  },
+  {
+    "term": "Money",
+    "category": "Money",
+    "categorySlug": "money",
+    "level": "Beginner",
+    "tags": [
+      "money"
+    ],
+    "simple": "A tool used to store value, measure prices, and exchange goods or services.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Medium of exchange",
+    "category": "Money",
+    "categorySlug": "money",
+    "level": "Beginner",
+    "tags": [
+      "money"
+    ],
+    "simple": "Something people accept to trade for goods and services.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Store of value",
+    "category": "Money",
+    "categorySlug": "money",
+    "level": "Beginner",
+    "tags": [
+      "money"
+    ],
+    "simple": "Something people hold because they expect it to preserve usefulness or purchasing power over time.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Unit of account",
+    "category": "Money",
+    "categorySlug": "money",
+    "level": "Beginner",
+    "tags": [
+      "money"
+    ],
+    "simple": "The measuring unit people use to quote prices and compare value.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Sound money",
+    "category": "Money",
+    "categorySlug": "money",
+    "level": "Intermediate",
+    "tags": [
+      "sound money"
+    ],
+    "simple": "Money that is hard to debase and reliable across time.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Soft money",
+    "category": "Money",
+    "categorySlug": "money",
+    "level": "Intermediate",
+    "tags": [
+      "money"
+    ],
+    "simple": "Money that can be expanded or debased more easily.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Scarcity",
+    "category": "Economics",
+    "categorySlug": "economics",
+    "level": "Beginner",
+    "tags": [
+      "economics"
+    ],
+    "simple": "Limited availability compared with demand.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Absolute scarcity",
+    "category": "Bitcoin economics",
+    "categorySlug": "bitcoin-economics",
+    "level": "Intermediate",
+    "tags": [
+      "bitcoin",
+      "scarcity"
+    ],
+    "simple": "A supply limit that cannot be exceeded under the system’s rules without rejecting those rules.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Opportunity cost",
+    "category": "Economics",
+    "categorySlug": "economics",
+    "level": "Beginner",
+    "tags": [
+      "economics"
+    ],
+    "simple": "The value of what you give up when you choose one option over another.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Time preference",
+    "category": "Economics",
+    "categorySlug": "economics",
+    "level": "Intermediate",
+    "tags": [
+      "economics"
+    ],
+    "simple": "How much a person values present consumption compared with future consumption.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Capital",
+    "category": "Economics",
+    "categorySlug": "economics",
+    "level": "Beginner",
+    "tags": [
+      "economics"
+    ],
+    "simple": "Resources used to produce more goods, services, or income.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Savings",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "Money or value not spent now so it can be used later.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Debt",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "An obligation to repay borrowed value.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Credit",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "The ability to borrow based on trust, collateral, income, or reputation.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Interest",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "The cost of borrowing or the return paid for lending.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Interest rate",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "The percentage charged or earned over time on borrowed or lent money.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Compound interest",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "Growth where returns are added to principal and then earn returns too.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Nominal value",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "The number amount stated in currency units before adjusting for inflation.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Real value",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "The value after adjusting for purchasing power or inflation.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Cash flow",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "Money moving in and out over time.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Balance sheet",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Intermediate",
+    "tags": [
+      "business"
+    ],
+    "simple": "A snapshot of assets, liabilities, and equity.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Asset",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "Something owned that has value or usefulness.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Liability",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "Something owed to someone else.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Equity",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Intermediate",
+    "tags": [
+      "business"
+    ],
+    "simple": "Ownership value after subtracting liabilities from assets.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Liquidity",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Intermediate",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "How easily something can be turned into spendable money without large loss or delay.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Solvency",
+    "category": "Banking",
+    "categorySlug": "banking",
+    "level": "Intermediate",
+    "tags": [
+      "banking"
+    ],
+    "simple": "Having assets sufficient to cover liabilities over time.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Counterparty risk",
+    "category": "Financial risk",
+    "categorySlug": "financial-risk",
+    "level": "Intermediate",
+    "tags": [
+      "risk"
+    ],
+    "simple": "The risk that the person or institution you depend on fails to do what they owe.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Custody risk",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Beginner",
+    "tags": [
+      "custody"
+    ],
+    "simple": "The risk that access or control fails because of who holds the keys or process.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Price risk",
+    "category": "Financial risk",
+    "categorySlug": "financial-risk",
+    "level": "Beginner",
+    "tags": [
+      "risk"
+    ],
+    "simple": "The risk that market price moves against you.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Access risk",
+    "category": "Financial risk",
+    "categorySlug": "financial-risk",
+    "level": "Beginner",
+    "tags": [
+      "risk"
+    ],
+    "simple": "The risk that you cannot use or move your money when needed.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Reinvestment risk",
+    "category": "Financial risk",
+    "categorySlug": "financial-risk",
+    "level": "Advanced",
+    "tags": [
+      "risk"
+    ],
+    "simple": "The risk that proceeds must be reinvested at worse terms.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Collateral",
+    "category": "Credit",
+    "categorySlug": "credit",
+    "level": "Intermediate",
+    "tags": [
+      "credit"
+    ],
+    "simple": "Value pledged to secure a loan.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Loan-to-value",
+    "category": "Credit",
+    "categorySlug": "credit",
+    "level": "Intermediate",
+    "tags": [
+      "credit"
+    ],
+    "simple": "A ratio comparing loan size to collateral value.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Margin call",
+    "category": "Credit",
+    "categorySlug": "credit",
+    "level": "Intermediate",
+    "tags": [
+      "credit"
+    ],
+    "simple": "A demand for more collateral or repayment when collateral value falls.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "No margin call loan",
+    "category": "Bitcoin credit",
+    "categorySlug": "bitcoin-credit",
+    "level": "Advanced",
+    "tags": [
+      "credit",
+      "bitcoin"
+    ],
+    "simple": "A loan structure designed not to force collateral sale from short-term price movement, subject to contract terms.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Principal",
+    "category": "Credit",
+    "categorySlug": "credit",
+    "level": "Beginner",
+    "tags": [
+      "credit"
+    ],
+    "simple": "The original amount borrowed or invested.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Default",
+    "category": "Credit",
+    "categorySlug": "credit",
+    "level": "Intermediate",
+    "tags": [
+      "credit"
+    ],
+    "simple": "Failure to meet the terms of a debt obligation.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Collateralized loan",
+    "category": "Credit",
+    "categorySlug": "credit",
+    "level": "Intermediate",
+    "tags": [
+      "credit"
+    ],
+    "simple": "A loan backed by pledged assets.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Treasury policy",
+    "category": "Corporate Bitcoin",
+    "categorySlug": "corporate-bitcoin",
+    "level": "Advanced",
+    "tags": [
+      "business",
+      "bitcoin"
+    ],
+    "simple": "A written rule set for how an organization holds, moves, approves, and reports treasury assets.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Corporate treasury",
+    "category": "Corporate Bitcoin",
+    "categorySlug": "corporate-bitcoin",
+    "level": "Advanced",
+    "tags": [
+      "business"
+    ],
+    "simple": "The cash and reserve assets managed by a company.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Signatory",
+    "category": "Governance",
+    "categorySlug": "governance",
+    "level": "Intermediate",
+    "tags": [
+      "business"
+    ],
+    "simple": "A person authorized to approve or sign a transaction or document.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Quorum",
+    "category": "Governance",
+    "categorySlug": "governance",
+    "level": "Intermediate",
+    "tags": [
+      "governance"
+    ],
+    "simple": "The minimum number of approvals needed for a decision or action.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Audit trail",
+    "category": "Governance",
+    "categorySlug": "governance",
+    "level": "Intermediate",
+    "tags": [
+      "governance"
+    ],
+    "simple": "Records showing what happened, when, and who approved it.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Policy exception",
+    "category": "Governance",
+    "categorySlug": "governance",
+    "level": "Advanced",
+    "tags": [
+      "governance"
+    ],
+    "simple": "A documented departure from normal rules.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "AML",
+    "category": "Regulation",
+    "categorySlug": "regulation",
+    "level": "Intermediate",
+    "tags": [
+      "regulation"
+    ],
+    "simple": "Anti-money-laundering rules and processes meant to detect or prevent illicit finance.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "KYC",
+    "category": "Regulation",
+    "categorySlug": "regulation",
+    "level": "Beginner",
+    "tags": [
+      "regulation"
+    ],
+    "simple": "Know-your-customer identity checks used by financial institutions.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Sanctions screening",
+    "category": "Regulation",
+    "categorySlug": "regulation",
+    "level": "Advanced",
+    "tags": [
+      "regulation"
+    ],
+    "simple": "Checking names, addresses, or transactions against restricted-party lists.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Taxable event",
+    "category": "Fiscal",
+    "categorySlug": "fiscal",
+    "level": "Intermediate",
+    "tags": [
+      "tax"
+    ],
+    "simple": "An action or event that may create a tax obligation.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Capital gains",
+    "category": "Fiscal",
+    "categorySlug": "fiscal",
+    "level": "Intermediate",
+    "tags": [
+      "tax"
+    ],
+    "simple": "Profit from selling an asset for more than its cost basis.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Cost basis",
+    "category": "Fiscal",
+    "categorySlug": "fiscal",
+    "level": "Intermediate",
+    "tags": [
+      "tax"
+    ],
+    "simple": "The reference value used to calculate gain or loss.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Wealth tax",
+    "category": "Fiscal",
+    "categorySlug": "fiscal",
+    "level": "Intermediate",
+    "tags": [
+      "tax"
+    ],
+    "simple": "A tax based on net wealth or assets rather than only income or transactions.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Withholding tax",
+    "category": "Fiscal",
+    "categorySlug": "fiscal",
+    "level": "Intermediate",
+    "tags": [
+      "tax"
+    ],
+    "simple": "Tax taken at the source before money reaches the recipient.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Fiscal policy",
+    "category": "Fiscal",
+    "categorySlug": "fiscal",
+    "level": "Intermediate",
+    "tags": [
+      "fiscal"
+    ],
+    "simple": "Government decisions about spending, taxes, borrowing, and deficits.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Monetary policy",
+    "category": "Fiscal and monetary systems",
+    "categorySlug": "fiscal-and-monetary-systems",
+    "level": "Intermediate",
+    "tags": [
+      "policy"
+    ],
+    "simple": "Central bank decisions that affect money supply, rates, credit, and liquidity.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Deficit",
+    "category": "Fiscal",
+    "categorySlug": "fiscal",
+    "level": "Beginner",
+    "tags": [
+      "fiscal"
+    ],
+    "simple": "When spending exceeds revenue over a period.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Public debt",
+    "category": "Fiscal",
+    "categorySlug": "fiscal",
+    "level": "Intermediate",
+    "tags": [
+      "fiscal"
+    ],
+    "simple": "Debt owed by a government.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Sovereign debt",
+    "category": "Fiscal",
+    "categorySlug": "fiscal",
+    "level": "Advanced",
+    "tags": [
+      "fiscal"
+    ],
+    "simple": "Debt issued or owed by a national government.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Legal tender",
+    "category": "Money",
+    "categorySlug": "money",
+    "level": "Intermediate",
+    "tags": [
+      "money",
+      "law"
+    ],
+    "simple": "Money that law recognizes for settling debts or payments.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Capital controls",
+    "category": "Fiscal and monetary systems",
+    "categorySlug": "fiscal-and-monetary-systems",
+    "level": "Advanced",
+    "tags": [
+      "policy"
+    ],
+    "simple": "Rules that limit movement of money across borders or currencies.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Exchange rate",
+    "category": "Money",
+    "categorySlug": "money",
+    "level": "Beginner",
+    "tags": [
+      "money"
+    ],
+    "simple": "The price of one currency in terms of another.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Devaluation",
+    "category": "Money",
+    "categorySlug": "money",
+    "level": "Intermediate",
+    "tags": [
+      "money"
+    ],
+    "simple": "A fall in a currency’s value compared with other currencies or goods.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Dollarization",
+    "category": "Money",
+    "categorySlug": "money",
+    "level": "Intermediate",
+    "tags": [
+      "money"
+    ],
+    "simple": "Use of the U.S. dollar in place of, or alongside, local currency.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Stablecoin",
+    "category": "Bitcoin context",
+    "categorySlug": "bitcoin-context",
+    "level": "Intermediate",
+    "tags": [
+      "contrast"
+    ],
+    "simple": "A token designed to track another asset, often the U.S. dollar. Not Bitcoin.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Altcoin",
+    "category": "Bitcoin context",
+    "categorySlug": "bitcoin-context",
+    "level": "Beginner",
+    "tags": [
+      "contrast"
+    ],
+    "simple": "Any cryptocurrency other than Bitcoin.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Crypto",
+    "category": "Bitcoin context",
+    "categorySlug": "bitcoin-context",
+    "level": "Beginner",
+    "tags": [
+      "contrast"
+    ],
+    "simple": "A broad term for digital tokens and systems. BSA should use it carefully and distinguish Bitcoin.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Block",
+    "category": "Bitcoin network",
+    "categorySlug": "bitcoin-network",
+    "level": "Beginner",
+    "tags": [
+      "bitcoin"
+    ],
+    "simple": "A batch of Bitcoin transactions linked into the timechain.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Blockchain",
+    "category": "Bitcoin network",
+    "categorySlug": "bitcoin-network",
+    "level": "Beginner",
+    "tags": [
+      "bitcoin"
+    ],
+    "simple": "A chain of blocks containing the transaction history under Bitcoin’s rules.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Timechain",
+    "category": "Bitcoin network",
+    "categorySlug": "bitcoin-network",
+    "level": "Intermediate",
+    "tags": [
+      "bitcoin"
+    ],
+    "simple": "A Bitcoin-native way to describe the ordered chain of blocks over time.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Block height",
+    "category": "Bitcoin network",
+    "categorySlug": "bitcoin-network",
+    "level": "Beginner",
+    "tags": [
+      "bitcoin"
+    ],
+    "simple": "The number of blocks before a given block in the chain.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Mempool",
+    "category": "Bitcoin network",
+    "categorySlug": "bitcoin-network",
+    "level": "Intermediate",
+    "tags": [
+      "bitcoin"
+    ],
+    "simple": "A node’s waiting area for valid transactions not yet confirmed in a block.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Confirmation",
+    "category": "Bitcoin transactions",
+    "categorySlug": "bitcoin-transactions",
+    "level": "Beginner",
+    "tags": [
+      "transactions"
+    ],
+    "simple": "A transaction’s inclusion in a block, plus more blocks after it as settlement confidence grows.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Transaction fee",
+    "category": "Bitcoin transactions",
+    "categorySlug": "bitcoin-transactions",
+    "level": "Beginner",
+    "tags": [
+      "transactions"
+    ],
+    "simple": "The fee paid to miners to include a transaction in a block.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Fee rate",
+    "category": "Bitcoin transactions",
+    "categorySlug": "bitcoin-transactions",
+    "level": "Intermediate",
+    "tags": [
+      "fees"
+    ],
+    "simple": "The fee paid per unit of transaction weight, often shown as sats/vB.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Sats",
+    "category": "Bitcoin basics",
+    "categorySlug": "bitcoin-basics",
+    "level": "Beginner",
+    "tags": [
+      "bitcoin"
+    ],
+    "simple": "Short for satoshis, the smallest standard unit of Bitcoin.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Satoshi",
+    "category": "Bitcoin basics",
+    "categorySlug": "bitcoin-basics",
+    "level": "Beginner",
+    "tags": [
+      "bitcoin"
+    ],
+    "simple": "One hundred-millionth of one bitcoin.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Bitcoin supply cap",
+    "category": "Bitcoin economics",
+    "categorySlug": "bitcoin-economics",
+    "level": "Beginner",
+    "tags": [
+      "bitcoin"
+    ],
+    "simple": "Bitcoin’s rule that limits total issuance to 21 million bitcoin.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Halving",
+    "category": "Bitcoin economics",
+    "categorySlug": "bitcoin-economics",
+    "level": "Intermediate",
+    "tags": [
+      "bitcoin"
+    ],
+    "simple": "The programmed event that cuts the new bitcoin subsidy per block roughly every 210,000 blocks.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Block subsidy",
+    "category": "Bitcoin economics",
+    "categorySlug": "bitcoin-economics",
+    "level": "Intermediate",
+    "tags": [
+      "mining"
+    ],
+    "simple": "New bitcoin issued to miners in a valid block, separate from transaction fees.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Coinbase transaction",
+    "category": "Bitcoin mining",
+    "categorySlug": "bitcoin-mining",
+    "level": "Advanced",
+    "tags": [
+      "mining"
+    ],
+    "simple": "The special transaction in a block that pays the miner subsidy and fees.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Proof of work",
+    "category": "Bitcoin mining",
+    "categorySlug": "bitcoin-mining",
+    "level": "Intermediate",
+    "tags": [
+      "mining"
+    ],
+    "simple": "A system where miners prove costly computation to propose blocks.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Hashrate",
+    "category": "Bitcoin mining",
+    "categorySlug": "bitcoin-mining",
+    "level": "Intermediate",
+    "tags": [
+      "mining"
+    ],
+    "simple": "The total estimated computing power securing Bitcoin mining.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Nonce",
+    "category": "Bitcoin mining",
+    "categorySlug": "bitcoin-mining",
+    "level": "Advanced",
+    "tags": [
+      "mining"
+    ],
+    "simple": "A number miners change while searching for a valid block hash.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Merkle tree",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Advanced",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "A tree of hashes that summarizes transactions efficiently.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Merkle root",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Advanced",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "The hash at the top of a Merkle tree included in a block header.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Block header",
+    "category": "Bitcoin mining",
+    "categorySlug": "bitcoin-mining",
+    "level": "Advanced",
+    "tags": [
+      "mining"
+    ],
+    "simple": "The compact block data miners hash when doing proof of work.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Consensus rules",
+    "category": "Bitcoin network",
+    "categorySlug": "bitcoin-network",
+    "level": "Advanced",
+    "tags": [
+      "validation"
+    ],
+    "simple": "Rules that nodes enforce to decide what blocks and transactions are valid.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Soft fork",
+    "category": "Bitcoin protocol",
+    "categorySlug": "bitcoin-protocol",
+    "level": "Advanced",
+    "tags": [
+      "protocol"
+    ],
+    "simple": "A backward-compatible tightening of consensus rules.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Hard fork",
+    "category": "Bitcoin protocol",
+    "categorySlug": "bitcoin-protocol",
+    "level": "Advanced",
+    "tags": [
+      "protocol"
+    ],
+    "simple": "A rule change that can split compatibility if not universally adopted.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "BIP",
+    "category": "Bitcoin protocol",
+    "categorySlug": "bitcoin-protocol",
+    "level": "Advanced",
+    "tags": [
+      "protocol"
+    ],
+    "simple": "Bitcoin Improvement Proposal, a document proposing or describing changes or standards.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Taproot",
+    "category": "Bitcoin protocol",
+    "categorySlug": "bitcoin-protocol",
+    "level": "Advanced",
+    "tags": [
+      "protocol"
+    ],
+    "simple": "A Bitcoin upgrade improving scripting flexibility, privacy, and efficiency for certain spending conditions.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "SegWit",
+    "category": "Bitcoin protocol",
+    "categorySlug": "bitcoin-protocol",
+    "level": "Advanced",
+    "tags": [
+      "protocol"
+    ],
+    "simple": "A Bitcoin upgrade that changed transaction structure and helped fix malleability while increasing effective capacity.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Script",
+    "category": "Bitcoin protocol",
+    "categorySlug": "bitcoin-protocol",
+    "level": "Advanced",
+    "tags": [
+      "protocol"
+    ],
+    "simple": "Bitcoin’s spending condition language.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Miniscript",
+    "category": "Bitcoin development",
+    "categorySlug": "bitcoin-development",
+    "level": "Advanced",
+    "tags": [
+      "dev"
+    ],
+    "simple": "A structured way to write and analyze Bitcoin scripts.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Descriptor",
+    "category": "Bitcoin development",
+    "categorySlug": "bitcoin-development",
+    "level": "Advanced",
+    "tags": [
+      "dev"
+    ],
+    "simple": "A machine-readable description of how wallet addresses and scripts are derived.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "xpub",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Advanced",
+    "tags": [
+      "privacy"
+    ],
+    "simple": "An extended public key that can derive many public addresses without spending funds.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Derivation path",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Advanced",
+    "tags": [
+      "keys"
+    ],
+    "simple": "A standard path for deriving keys from a seed.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "BIP39",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Advanced",
+    "tags": [
+      "keys"
+    ],
+    "simple": "A common standard for mnemonic seed phrases.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "BIP32",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Advanced",
+    "tags": [
+      "keys"
+    ],
+    "simple": "A standard for hierarchical deterministic wallets.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "BIP84",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Advanced",
+    "tags": [
+      "keys"
+    ],
+    "simple": "A derivation standard for native SegWit single-signature wallets.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Passphrase",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Advanced",
+    "tags": [
+      "custody"
+    ],
+    "simple": "An extra secret sometimes added to a seed phrase to create different wallet access.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Hardware wallet",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Beginner",
+    "tags": [
+      "custody"
+    ],
+    "simple": "A device designed to protect private keys and sign transactions safely.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Airgapped signing",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Advanced",
+    "tags": [
+      "custody"
+    ],
+    "simple": "Signing transactions on a device that does not directly connect to the internet.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Cold storage",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Intermediate",
+    "tags": [
+      "custody"
+    ],
+    "simple": "Keeping signing keys offline or separated from internet-connected systems.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Hot wallet",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Beginner",
+    "tags": [
+      "custody"
+    ],
+    "simple": "A wallet connected to the internet or used for frequent spending.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Watch-only wallet",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Intermediate",
+    "tags": [
+      "custody"
+    ],
+    "simple": "A wallet that can view balances and create receiving addresses but cannot sign transactions.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Collaborative custody",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Intermediate",
+    "tags": [
+      "custody"
+    ],
+    "simple": "A custody setup where the owner keeps control while a service helps with backup, recovery, or coordination.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "2-of-3",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Intermediate",
+    "tags": [
+      "multisig"
+    ],
+    "simple": "A multisig policy where any two of three keys can spend.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Single point of failure",
+    "category": "Risk",
+    "categorySlug": "risk",
+    "level": "Beginner",
+    "tags": [
+      "risk"
+    ],
+    "simple": "One thing whose failure can break the whole system.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Key rotation",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Advanced",
+    "tags": [
+      "custody"
+    ],
+    "simple": "Replacing keys or signers in a controlled way.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Test transaction",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Beginner",
+    "tags": [
+      "custody"
+    ],
+    "simple": "A small transaction used to verify that a setup works before moving larger funds.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Recovery drill",
+    "category": "Bitcoin custody",
+    "categorySlug": "bitcoin-custody",
+    "level": "Intermediate",
+    "tags": [
+      "custody"
+    ],
+    "simple": "A practice run to confirm people and tools can recover access safely.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Emergency access document",
+    "category": "Family continuity",
+    "categorySlug": "family-continuity",
+    "level": "Intermediate",
+    "tags": [
+      "family"
+    ],
+    "simple": "A document that tells trusted people the first safe steps in an emergency without exposing all secrets.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Executor",
+    "category": "Family continuity",
+    "categorySlug": "family-continuity",
+    "level": "Intermediate",
+    "tags": [
+      "family"
+    ],
+    "simple": "A person responsible for carrying out estate instructions after death.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Trusted contact",
+    "category": "Family continuity",
+    "categorySlug": "family-continuity",
+    "level": "Beginner",
+    "tags": [
+      "family"
+    ],
+    "simple": "Someone designated to help in an emergency or recovery process.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Family custody review",
+    "category": "Family continuity",
+    "categorySlug": "family-continuity",
+    "level": "Intermediate",
+    "tags": [
+      "family"
+    ],
+    "simple": "A review of whether family members can safely understand and execute the custody plan.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Operational continuity",
+    "category": "Family continuity",
+    "categorySlug": "family-continuity",
+    "level": "Advanced",
+    "tags": [
+      "family"
+    ],
+    "simple": "The ability of a system or family process to keep working when a key person is unavailable.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Lightning channel",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Intermediate",
+    "tags": [
+      "lightning"
+    ],
+    "simple": "A funding setup between participants that enables many Lightning payments before final settlement on-chain.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Channel liquidity",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Advanced",
+    "tags": [
+      "lightning"
+    ],
+    "simple": "The ability to send or receive over Lightning based on available channel balances.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Inbound liquidity",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Advanced",
+    "tags": [
+      "lightning"
+    ],
+    "simple": "Lightning capacity that lets you receive payments.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Outbound liquidity",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Advanced",
+    "tags": [
+      "lightning"
+    ],
+    "simple": "Lightning capacity that lets you send payments.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Routing node",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Advanced",
+    "tags": [
+      "lightning"
+    ],
+    "simple": "A Lightning node that forwards payments between channels.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "HTLC",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Advanced",
+    "tags": [
+      "lightning"
+    ],
+    "simple": "Hashed Timelock Contract, a conditional payment mechanism used in Lightning routing.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Invoice",
+    "category": "Bitcoin payments",
+    "categorySlug": "bitcoin-payments",
+    "level": "Beginner",
+    "tags": [
+      "payments"
+    ],
+    "simple": "A payment request, often used in Lightning or merchant flows.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "On-chain",
+    "category": "Bitcoin transactions",
+    "categorySlug": "bitcoin-transactions",
+    "level": "Beginner",
+    "tags": [
+      "transactions"
+    ],
+    "simple": "A transaction recorded directly in Bitcoin blocks.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Off-chain",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Intermediate",
+    "tags": [
+      "layers"
+    ],
+    "simple": "Activity that does not immediately settle directly in the base chain.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Layer 2",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Intermediate",
+    "tags": [
+      "layers"
+    ],
+    "simple": "A system built above Bitcoin’s base layer to add payment or application capabilities with different tradeoffs.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Liquid",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Advanced",
+    "tags": [
+      "layers"
+    ],
+    "simple": "A federated Bitcoin sidechain used for faster settlement and issued assets, with different trust assumptions than Bitcoin base layer.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Sidechain",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Advanced",
+    "tags": [
+      "layers"
+    ],
+    "simple": "A separate chain connected to Bitcoin in some way, usually with additional trust or federation assumptions.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Federation",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Advanced",
+    "tags": [
+      "layers"
+    ],
+    "simple": "A group of parties that jointly operate or secure a system.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Fedimint",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Advanced",
+    "tags": [
+      "layers"
+    ],
+    "simple": "A federated e-cash system that can use Bitcoin or Lightning while adding community custody tradeoffs.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "E-cash",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Advanced",
+    "tags": [
+      "layers"
+    ],
+    "simple": "Digital bearer-style claims, often privacy-focused, issued by a mint or federation.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "RGB",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Advanced",
+    "tags": [
+      "layers"
+    ],
+    "simple": "A client-side validated smart contract and asset protocol connected to Bitcoin concepts.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Taproot Assets",
+    "category": "Bitcoin layers",
+    "categorySlug": "bitcoin-layers",
+    "level": "Advanced",
+    "tags": [
+      "layers"
+    ],
+    "simple": "A protocol for issuing assets using Taproot-related structures, often discussed with Lightning.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Privacy",
+    "category": "Bitcoin privacy",
+    "categorySlug": "bitcoin-privacy",
+    "level": "Beginner",
+    "tags": [
+      "privacy"
+    ],
+    "simple": "Control over what others can learn about your identity, balances, and transactions.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Pseudonymity",
+    "category": "Bitcoin privacy",
+    "categorySlug": "bitcoin-privacy",
+    "level": "Intermediate",
+    "tags": [
+      "privacy"
+    ],
+    "simple": "Using identifiers that are not directly names but can still be linked through behavior or data.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Coin control",
+    "category": "Bitcoin privacy",
+    "categorySlug": "bitcoin-privacy",
+    "level": "Intermediate",
+    "tags": [
+      "privacy"
+    ],
+    "simple": "Choosing which UTXOs to spend to manage fees and privacy.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Address reuse",
+    "category": "Bitcoin privacy",
+    "categorySlug": "bitcoin-privacy",
+    "level": "Beginner",
+    "tags": [
+      "privacy"
+    ],
+    "simple": "Using the same Bitcoin address more than once, which can damage privacy.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Change output",
+    "category": "Bitcoin transactions",
+    "categorySlug": "bitcoin-transactions",
+    "level": "Intermediate",
+    "tags": [
+      "transactions"
+    ],
+    "simple": "The part of a transaction that returns unspent value back to the sender’s wallet.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "CoinJoin",
+    "category": "Bitcoin privacy",
+    "categorySlug": "bitcoin-privacy",
+    "level": "Advanced",
+    "tags": [
+      "privacy"
+    ],
+    "simple": "A collaborative transaction technique that can make ownership links harder to trace, with tool-specific and legal-context tradeoffs.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Chain surveillance",
+    "category": "Bitcoin privacy",
+    "categorySlug": "bitcoin-privacy",
+    "level": "Advanced",
+    "tags": [
+      "privacy"
+    ],
+    "simple": "Analysis of public blockchain data to infer identity, behavior, or relationships.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "KYC trail",
+    "category": "Bitcoin privacy",
+    "categorySlug": "bitcoin-privacy",
+    "level": "Intermediate",
+    "tags": [
+      "privacy"
+    ],
+    "simple": "The identity record created when buying or using Bitcoin through regulated services.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Whirlpool",
+    "category": "Bitcoin privacy",
+    "categorySlug": "bitcoin-privacy",
+    "level": "Advanced",
+    "tags": [
+      "privacy"
+    ],
+    "simple": "A privacy tool formerly associated with Samourai Wallet; references should be framed historically and carefully.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Wasabi",
+    "category": "Bitcoin privacy",
+    "categorySlug": "bitcoin-privacy",
+    "level": "Advanced",
+    "tags": [
+      "privacy"
+    ],
+    "simple": "A Bitcoin wallet known for CoinJoin privacy features; references need current context and caution.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Samourai Wallet",
+    "category": "Bitcoin privacy",
+    "categorySlug": "bitcoin-privacy",
+    "level": "Advanced",
+    "tags": [
+      "privacy"
+    ],
+    "simple": "A Bitcoin wallet project associated with privacy tooling; references should be framed historically and legally carefully.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Encryption",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Intermediate",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "A method of transforming data so it can only be read with the right key.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Public key",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Intermediate",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "A key that can be shared and used to verify signatures or derive addresses.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Elliptic curve cryptography",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Advanced",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "A cryptographic method based on elliptic curve math used in Bitcoin signatures.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "ECDSA",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Advanced",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "A digital signature algorithm used in legacy Bitcoin signatures.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Schnorr signature",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Advanced",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "A signature scheme used in Taproot that supports efficiency and new construction patterns.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "SHA-256",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Advanced",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "A cryptographic hash function used in Bitcoin mining and data commitments.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "RIPEMD-160",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Advanced",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "A hash function used in some Bitcoin address constructions.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "HMAC",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Advanced",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "A keyed hash method used in some wallet/key derivation contexts.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Entropy",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Intermediate",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "Randomness used to make secrets hard to guess.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Random number generator",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Intermediate",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "A system that creates unpredictable values used for keys or security.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Checksum",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Intermediate",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "Extra data used to detect mistakes or corruption.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Commitment",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Advanced",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "A cryptographic way to lock in data while revealing it later or proving consistency.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Zero-knowledge proof",
+    "category": "Cryptography",
+    "categorySlug": "cryptography",
+    "level": "Advanced",
+    "tags": [
+      "cryptography"
+    ],
+    "simple": "A proof that shows something is true without revealing the underlying secret.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "DevOps",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Intermediate",
+    "tags": [
+      "devops"
+    ],
+    "simple": "The practice of building, deploying, monitoring, and maintaining software systems reliably.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Repository",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Beginner",
+    "tags": [
+      "devops"
+    ],
+    "simple": "A storage place for code and project history.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Git",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Beginner",
+    "tags": [
+      "devops"
+    ],
+    "simple": "A version-control system that tracks changes to files.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Commit",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Beginner",
+    "tags": [
+      "devops"
+    ],
+    "simple": "A saved set of file changes in Git.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Branch",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Beginner",
+    "tags": [
+      "devops"
+    ],
+    "simple": "A separate line of work in Git.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Pull request",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Beginner",
+    "tags": [
+      "devops"
+    ],
+    "simple": "A proposed set of code changes for review and merge.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Merge conflict",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Intermediate",
+    "tags": [
+      "devops"
+    ],
+    "simple": "A conflict when different changes affect the same part of a file.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Rollback",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Intermediate",
+    "tags": [
+      "devops"
+    ],
+    "simple": "Returning a system or codebase to an earlier safe state.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Deployment",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Beginner",
+    "tags": [
+      "devops"
+    ],
+    "simple": "Publishing software or a site so users can access it.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Preview deploy",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Intermediate",
+    "tags": [
+      "devops"
+    ],
+    "simple": "A temporary deployment used to review changes before production.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Production",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Beginner",
+    "tags": [
+      "devops"
+    ],
+    "simple": "The live environment users actually visit.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Secret scanning",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Intermediate",
+    "tags": [
+      "security"
+    ],
+    "simple": "Automatic checking for leaked keys, tokens, or credentials.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Index lock",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Intermediate",
+    "tags": [
+      "git"
+    ],
+    "simple": "A Git lock file that prevents simultaneous changes to the index; stale locks may need safe removal.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Dependency",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Intermediate",
+    "tags": [
+      "devops"
+    ],
+    "simple": "External code or packages a project relies on.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Security advisory",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Advanced",
+    "tags": [
+      "security"
+    ],
+    "simple": "A notice about a vulnerability in software or dependencies.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Static site",
+    "category": "DevOps",
+    "categorySlug": "devops",
+    "level": "Beginner",
+    "tags": [
+      "devops"
+    ],
+    "simple": "A site served mostly as HTML, CSS, and JavaScript without a server app per page.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Accessibility",
+    "category": "Web",
+    "categorySlug": "web",
+    "level": "Beginner",
+    "tags": [
+      "web"
+    ],
+    "simple": "Designing content so people with different abilities and tools can use it.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Skip link",
+    "category": "Web",
+    "categorySlug": "web",
+    "level": "Beginner",
+    "tags": [
+      "web"
+    ],
+    "simple": "A link that lets keyboard or screen-reader users jump directly to main content.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "ARIA",
+    "category": "Web",
+    "categorySlug": "web",
+    "level": "Advanced",
+    "tags": [
+      "web"
+    ],
+    "simple": "Attributes that help assistive technologies understand web interfaces.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Canonical URL",
+    "category": "Web",
+    "categorySlug": "web",
+    "level": "Intermediate",
+    "tags": [
+      "web"
+    ],
+    "simple": "The preferred URL for a page, used to avoid duplication confusion.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Hreflang",
+    "category": "Web",
+    "categorySlug": "web",
+    "level": "Advanced",
+    "tags": [
+      "web"
+    ],
+    "simple": "Markup that tells search engines about language or regional versions of a page.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "CTA",
+    "category": "Content strategy",
+    "categorySlug": "content-strategy",
+    "level": "Beginner",
+    "tags": [
+      "content"
+    ],
+    "simple": "Call to action, the next step a page asks the reader to take.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Lead magnet",
+    "category": "Content strategy",
+    "categorySlug": "content-strategy",
+    "level": "Intermediate",
+    "tags": [
+      "marketing"
+    ],
+    "simple": "A useful free resource offered in exchange for a next step such as email capture.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Funnel",
+    "category": "Content strategy",
+    "categorySlug": "content-strategy",
+    "level": "Intermediate",
+    "tags": [
+      "marketing"
+    ],
+    "simple": "A path that moves someone from awareness to trust, action, or purchase.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Conversion",
+    "category": "Content strategy",
+    "categorySlug": "content-strategy",
+    "level": "Intermediate",
+    "tags": [
+      "marketing"
+    ],
+    "simple": "A user taking the desired action, such as signing up, downloading, or buying.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Email capture",
+    "category": "Content strategy",
+    "categorySlug": "content-strategy",
+    "level": "Beginner",
+    "tags": [
+      "marketing"
+    ],
+    "simple": "Collecting an email address in exchange for value or updates.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Misunderstanding Engine",
+    "category": "BSA product layer",
+    "categorySlug": "bsa-product-layer",
+    "level": "Intermediate",
+    "tags": [
+      "bsa"
+    ],
+    "simple": "A glossary pattern that teaches terms by exposing the mistake people usually make and how it fails in real life.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Proof of Understanding",
+    "category": "BSA product layer",
+    "categorySlug": "bsa-product-layer",
+    "level": "Intermediate",
+    "tags": [
+      "bsa"
+    ],
+    "simple": "A checkpoint that asks learners to apply an idea rather than repeat a definition.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Family Table Mode",
+    "category": "BSA product layer",
+    "categorySlug": "bsa-product-layer",
+    "level": "Intermediate",
+    "tags": [
+      "bsa"
+    ],
+    "simple": "A learning mode that turns a lesson into safe family discussion prompts.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Colombia Reality Check",
+    "category": "BSA product layer",
+    "categorySlug": "bsa-product-layer",
+    "level": "Intermediate",
+    "tags": [
+      "bsa"
+    ],
+    "simple": "A local context block that shows how a global money principle appears in Colombia.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "What Would You Do scenario",
+    "category": "BSA product layer",
+    "categorySlug": "bsa-product-layer",
+    "level": "Intermediate",
+    "tags": [
+      "bsa"
+    ],
+    "simple": "A scenario prompt that forces a learner to choose, see consequences, and reflect.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Anti-lesson",
+    "category": "BSA product layer",
+    "categorySlug": "bsa-product-layer",
+    "level": "Intermediate",
+    "tags": [
+      "bsa"
+    ],
+    "simple": "A lesson that teaches by showing the wrong path clearly.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Receipt box",
+    "category": "BSA product layer",
+    "categorySlug": "bsa-product-layer",
+    "level": "Intermediate",
+    "tags": [
+      "bsa"
+    ],
+    "simple": "A small claim-support block that explains what kind of evidence grounds a strong claim.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "One-page field guide",
+    "category": "BSA product layer",
+    "categorySlug": "bsa-product-layer",
+    "level": "Intermediate",
+    "tags": [
+      "bsa"
+    ],
+    "simple": "A compact action guide that turns a lesson into next steps.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Sovereign Vault",
+    "category": "BSA product",
+    "categorySlug": "bsa-product",
+    "level": "Intermediate",
+    "tags": [
+      "bsa",
+      "product"
+    ],
+    "simple": "A BSA custody management experience focused on operational readiness and family continuity.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Self-Custody Starter Kit",
+    "category": "BSA product",
+    "categorySlug": "bsa-product",
+    "level": "Beginner",
+    "tags": [
+      "bsa",
+      "product"
+    ],
+    "simple": "A BSA product for people beginning to move from exchange dependence toward responsible custody.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Family Bitcoin Recovery Kit",
+    "category": "BSA product",
+    "categorySlug": "bsa-product",
+    "level": "Beginner",
+    "tags": [
+      "bsa",
+      "product"
+    ],
+    "simple": "A BSA product for helping families understand and prepare safe Bitcoin recovery steps.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Bitcoin Continuity Operational Packet",
+    "category": "BSA product",
+    "categorySlug": "bsa-product",
+    "level": "Advanced",
+    "tags": [
+      "bsa",
+      "product"
+    ],
+    "simple": "A BSA product for advisors, families, or businesses that need documented operational continuity.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Institutional Program",
+    "category": "BSA product",
+    "categorySlug": "bsa-product",
+    "level": "Advanced",
+    "tags": [
+      "bsa",
+      "product"
+    ],
+    "simple": "A BSA offering for businesses or institutions learning treasury, custody, and governance.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Natillera",
+    "category": "Colombia reality layer",
+    "categorySlug": "colombia-reality-layer",
+    "level": "Beginner",
+    "tags": [
+      "Colombia"
+    ],
+    "simple": "A Colombian savings pool or informal group savings practice often used for goals or year-end needs.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Peso devaluation",
+    "category": "Colombia reality layer",
+    "categorySlug": "colombia-reality-layer",
+    "level": "Beginner",
+    "tags": [
+      "Colombia"
+    ],
+    "simple": "A decline in the Colombian peso’s purchasing power or exchange value.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Bancolombia",
+    "category": "Colombia reality layer",
+    "categorySlug": "colombia-reality-layer",
+    "level": "Beginner",
+    "tags": [
+      "Colombia"
+    ],
+    "simple": "A major Colombian bank often relevant in local banking examples.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Wenia",
+    "category": "Colombia reality layer",
+    "categorySlug": "colombia-reality-layer",
+    "level": "Intermediate",
+    "tags": [
+      "Colombia"
+    ],
+    "simple": "A Colombia-linked digital asset platform contextually relevant to onramp discussions.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "COPW",
+    "category": "Colombia reality layer",
+    "categorySlug": "colombia-reality-layer",
+    "level": "Intermediate",
+    "tags": [
+      "Colombia"
+    ],
+    "simple": "A peso-linked digital asset used in some Colombian digital money contexts; not Bitcoin.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Formal employment cost",
+    "category": "Colombia reality layer",
+    "categorySlug": "colombia-reality-layer",
+    "level": "Intermediate",
+    "tags": [
+      "Colombia"
+    ],
+    "simple": "The full cost to employ someone, including salary plus required benefits, contributions, and taxes.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Payroll deduction",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "Money taken out of gross pay before the worker receives net pay.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Gross income",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "Income before deductions and taxes.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Net income",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "Income after deductions and taxes.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Budget",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "A plan for how money will be received, spent, saved, or invested.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Emergency fund",
+    "category": "Financial literacy",
+    "categorySlug": "financial-literacy",
+    "level": "Beginner",
+    "tags": [
+      "financial literacy"
+    ],
+    "simple": "Savings set aside for unexpected needs before long-term investing.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "DCA",
+    "category": "Bitcoin strategy",
+    "categorySlug": "bitcoin-strategy",
+    "level": "Beginner",
+    "tags": [
+      "bitcoin"
+    ],
+    "simple": "Dollar-cost averaging, buying a fixed amount over time rather than all at once.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Volatility",
+    "category": "Financial risk",
+    "categorySlug": "financial-risk",
+    "level": "Beginner",
+    "tags": [
+      "risk"
+    ],
+    "simple": "How much and how quickly a price moves up and down.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Drawdown",
+    "category": "Financial risk",
+    "categorySlug": "financial-risk",
+    "level": "Intermediate",
+    "tags": [
+      "risk"
+    ],
+    "simple": "A decline from a prior peak value.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Risk tolerance",
+    "category": "Financial planning",
+    "categorySlug": "financial-planning",
+    "level": "Beginner",
+    "tags": [
+      "planning"
+    ],
+    "simple": "How much uncertainty or loss a person can emotionally and financially handle.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Time horizon",
+    "category": "Financial planning",
+    "categorySlug": "financial-planning",
+    "level": "Beginner",
+    "tags": [
+      "planning"
+    ],
+    "simple": "How long money can remain invested before it is needed.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Estate plan",
+    "category": "Family continuity",
+    "categorySlug": "family-continuity",
+    "level": "Intermediate",
+    "tags": [
+      "family"
+    ],
+    "simple": "A legal and practical plan for what happens to assets and responsibilities after death or incapacity.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Beneficiary",
+    "category": "Family continuity",
+    "categorySlug": "family-continuity",
+    "level": "Beginner",
+    "tags": [
+      "family"
+    ],
+    "simple": "A person or entity designated to receive an asset or benefit.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Power of attorney",
+    "category": "Family continuity",
+    "categorySlug": "family-continuity",
+    "level": "Intermediate",
+    "tags": [
+      "family"
+    ],
+    "simple": "Legal authority given to someone to act on another person’s behalf.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Trust",
+    "category": "Family continuity",
+    "categorySlug": "family-continuity",
+    "level": "Intermediate",
+    "tags": [
+      "family"
+    ],
+    "simple": "A legal arrangement where assets are managed for beneficiaries under stated rules.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Fiduciary",
+    "category": "Advisor",
+    "categorySlug": "advisor",
+    "level": "Intermediate",
+    "tags": [
+      "advisor"
+    ],
+    "simple": "A person required to act in another party’s best interest under applicable duties.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Suitability",
+    "category": "Advisor",
+    "categorySlug": "advisor",
+    "level": "Intermediate",
+    "tags": [
+      "advisor"
+    ],
+    "simple": "A standard asking whether a recommendation fits a person’s situation.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Disclosure",
+    "category": "Advisor",
+    "categorySlug": "advisor",
+    "level": "Intermediate",
+    "tags": [
+      "advisor"
+    ],
+    "simple": "Clear communication of risks, conflicts, terms, or important facts.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Verification date",
+    "category": "Content governance",
+    "categorySlug": "content-governance",
+    "level": "Intermediate",
+    "tags": [
+      "content"
+    ],
+    "simple": "The date a claim or source was last checked.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Source tier",
+    "category": "Content governance",
+    "categorySlug": "content-governance",
+    "level": "Intermediate",
+    "tags": [
+      "content"
+    ],
+    "simple": "A ranking of evidence quality, such as primary source, official documentation, reputable reporting, or internal analysis.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Stale claim",
+    "category": "Content governance",
+    "categorySlug": "content-governance",
+    "level": "Intermediate",
+    "tags": [
+      "content"
+    ],
+    "simple": "A claim that may be outdated and needs review.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Hardcoded price",
+    "category": "Content governance",
+    "categorySlug": "content-governance",
+    "level": "Intermediate",
+    "tags": [
+      "content"
+    ],
+    "simple": "A fixed number in content that may become stale if it represents changing market data.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  },
+  {
+    "term": "Live data binder",
+    "category": "Content governance",
+    "categorySlug": "content-governance",
+    "level": "Advanced",
+    "tags": [
+      "content"
+    ],
+    "simple": "A page mechanism that replaces stale fixed data with current or updateable values.",
+    "advanced": "",
+    "engine": false,
+    "misconception": "",
+    "reality": "",
+    "why": "",
+    "failure": "",
+    "proof": "",
+    "next": ""
+  }
 ];
-
-// Make available globally
-if (typeof window !== 'undefined') {
-    window.GLOSSARY_TERMS = GLOSSARY_TERMS;
-}
-
-// Export for Node.js if needed
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { GLOSSARY_TERMS };
-}
