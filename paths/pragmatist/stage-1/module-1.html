@@ -1038,6 +1038,27 @@
                         console.log('Using fallback blockchain data');
                     }
 
+                    try {
+                        const hashResponse = await fetch('https://mempool.space/api/v1/mining/hashrate/3d');
+                        if (hashResponse.ok) {
+                            const hashData = await hashResponse.json();
+                            if (hashData.currentHashrate) hashrate = '~' + Math.round(hashData.currentHashrate / 1e18) + ' EH/s';
+                            if (hashData.currentDifficulty) difficulty = '~' + (hashData.currentDifficulty / 1e12).toFixed(1) + 'T';
+                        }
+                    } catch (e) {
+                        console.log('Using fallback hashrate data');
+                    }
+
+                    try {
+                        const mempoolResponse = await fetch('https://mempool.space/api/mempool');
+                        if (mempoolResponse.ok) {
+                            const mempoolData = await mempoolResponse.json();
+                            if (mempoolData.vsize) mempool = '~' + Math.round(mempoolData.vsize / 1e6) + ' vMB';
+                        }
+                    } catch (e) {
+                        console.log('Using fallback mempool data');
+                    }
+
                     // Create ticker items
                     const items = [
                         {
