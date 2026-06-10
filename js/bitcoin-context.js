@@ -228,7 +228,7 @@
 .ctx-fee-low strong  { color: #4ade80; }
 .ctx-fee-mid strong  { color: #facc15; }
 .ctx-fee-high strong { color: #f87171; }
-.ctx-halving strong  { color: #c084fc; }
+.ctx-halving strong  { color: #FF7A00; }
 /* WCAG 1.4.3: was #666 (2.85:1) → #a0a0a0 (~5:1) */
 .ctx-loading { color: #a0a0a0; font-style: italic; }
 .ctx-err     { color: #f87171; }
