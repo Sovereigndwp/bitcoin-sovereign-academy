@@ -180,7 +180,7 @@ const MonetarySystems = {
         name: "Corporate Coins",
         icon: "🏢",
         tagline: "Platform-based value systems",
-        color: "#8b5cf6", // Purple
+        color: "#2dd4bf", // Teal (category palette)
 
         overview: {
             definition: "Digital currencies or point systems created by tech platforms and corporations for use within their ecosystems.",
