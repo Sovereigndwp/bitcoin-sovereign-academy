@@ -2646,7 +2646,7 @@ window.GLOSSARY_TERMS = [
     "tags": [
       "family"
     ],
-    "simple": "A review of whether family members can safely understand and execute the custody plan.",
+    "simple": "A review of whether family members can safely understand and execute the custody plan. Usually performed with a qualified Bitcoin custody adviser. BSA explains the concept but does not provide this service.",
     "advanced": "",
     "engine": false,
     "misconception": "",
