@@ -1556,6 +1556,21 @@ bind('term', 'term', false);
 bind('home-app', 'homeApp', true);
 bind('btc-qty', 'btcQty', true);
 bind('btc-price', 'btcPrice', false);
+
+// Initialize BTC price slider from live price (fallback: keep $100k default)
+window.addEventListener('load', async () => {
+  try {
+    if (!window.bitcoinData || typeof window.bitcoinData.getPrice !== 'function') return;
+    const live = await window.bitcoinData.getPrice();
+    const price = live && live.price;
+    if (!price) return;
+    const el = document.getElementById('btc-price');
+    if (!el) return;
+    const clamped = Math.min(parseFloat(el.max), Math.max(parseFloat(el.min), Math.round(price / 5000) * 5000));
+    el.value = clamped;
+    el.dispatchEvent(new Event('input'));
+  } catch (e) { /* keep default */ }
+});
 bind('basis', 'basis', false);
 bind('tax', 'tax', false);
 bind('margin', 'margin', false);
@@ -1613,5 +1628,6 @@ if (document.readyState === 'complete') {
 </script>
 
     <script src="/js/demo-nav.js"></script>
+    <script src="/js/bitcoin-data-reliable.js" defer></script>
 </body>
 </html>
