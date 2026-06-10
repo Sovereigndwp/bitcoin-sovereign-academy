@@ -17,7 +17,7 @@
   --bsa-accent:    var(--color-primary, #FF7A00);
   --bsa-accent-2:  var(--color-primary-hover, #FFD400);
   --bsa-border:    #2a2a2a;
-  --bsa-radius:    2px;                 /* rectangular */
+  --bsa-radius:    10px;                /* rounded (homepage-matched 2026-06-09) */
   /* Canonical homepage accent fade (exact stops, measured from homepage) */
   --bsa-grad:      linear-gradient(90deg, #FFE600 0%, #FFD400 18%, #FF9A00 48%, #FF7A00 78%, #E85F00 100%);
   --bsa-ink:       #16181c;             /* dark text for use ON the bright gradient */
@@ -46,17 +46,34 @@
   cursor: pointer;
   transition: background .2s, color .2s, border-color .2s;
 }
-/* Primary = the signature orange→yellow gradient FILL with dark text (high
-   contrast on the bright fade). Secondary = outline. Neither uses faint
-   same-color text on a fill. */
+/* Primary = gradient OUTLINE + gradient (faded) text on the near-black surface.
+   The box is transparent (page/card #16181C reads as the background); the gradient
+   border is drawn by ::before with a mask so it RESPECTS the rounded radius (unlike
+   border-image, which squares the corners). Secondary = solid orange outline. */
 .bsa-btn-primary {
+  position: relative;
   background: var(--bsa-grad);
-  color: #16181c;
-  -webkit-text-fill-color: #16181c;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--bsa-accent);
   border: none;
+  border-radius: var(--bsa-radius);
   font-weight: 800;
 }
-.bsa-btn-primary:hover { filter: brightness(1.08); }
+.bsa-btn-primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: var(--bsa-grad);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.bsa-btn-primary:hover { filter: brightness(1.12); }
 .bsa-btn-secondary {
   background: transparent;
   color: var(--bsa-accent);
