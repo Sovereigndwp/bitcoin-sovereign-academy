@@ -1,6 +1,6 @@
 # Advisor Bitcoin Readiness Package — Offer Brief
 
-**Status: REVISED DRAFT v2 — Dalia's five decisions (2026-06-11) incorporated. One open item remains (§10). D2 CTA work stays blocked until this brief is approved and merged.**
+**Status: APPROVED v3 (Dalia, 2026-06-11). All decisions locked. This is the offer brief of record; D2 CTA work plans against it.**
 *Category: **Advisor/Educator Training** (allowed BSA monetization). Source of truth for the boundary: the 2026-06-10/11 conflict-of-interest ruleset.*
 
 ## 1. The problem this offer solves
@@ -72,9 +72,18 @@ v1 avoids formal "certification" claims. Approved vocabulary: **"readiness train
 
 **Spelling rule:** advisor (-or) = the professionals this package teaches; Adviser (-er) = The Bitcoin Adviser and the custody-service role.
 
-## 10. The one remaining open decision
+## 10. Bitcoin Client Readiness Session — v1 positioning (DECIDED 2026-06-11)
 
-**Pricing/placement of the Bitcoin Client Readiness Session:** standalone paid session (price?), included in Tier 3, or kept as an unpriced qualification call behind "Schedule an Education Consultation." Decision needed before the D2 CTA on the Advisor Toolkit page is finalized.
+For v1, the Bitcoin Client Readiness Session is **not sold as a standalone paid product**. It is an **unpriced qualification / education consultation** behind the public CTA **"Schedule an Education Consultation."**
+
+**Purpose of the call:**
+- understand the advisor's client-facing Bitcoin questions
+- identify which ABRP tier fits
+- explain what BSA/TSA can teach
+- clarify what is out of scope
+- decide whether the advisor should use the Advisor Toolkit, Advisor Bitcoin Readiness Training, Advisor Practice Readiness — or refer a client to The Bitcoin Adviser where appropriate
+
+**Prohibited descriptions:** the session must never be described as a custody review, client case review, key-management review, inheritance planning, recovery help, or implementation support.
 
 ## 11. CE/CPE (DECIDED)
 
@@ -84,7 +93,7 @@ v1 avoids formal "certification" claims. Approved vocabulary: **"readiness train
 
 | Page | CTA | Destination |
 |---|---|---|
-| `products/advisor-bitcoin-client-kit/` | "Part of the Advisor Bitcoin Readiness Package" + buy $499 Advisor Toolkit; "Bitcoin Client Readiness Session" line per §10 | self / wealth-advisors |
+| `products/advisor-bitcoin-client-kit/` | "Part of the Advisor Bitcoin Readiness Package" + buy $499 Advisor Toolkit; "Schedule an Education Consultation" line per §10 | self / wealth-advisors |
 | `institutional/wealth-advisors/` | ABRP positioning line above tiers (tier names per §6); "Schedule an Education Consultation" | HubSpot |
 | `guides/advisor-pre-discovery/` | "Go deeper: Advisor Bitcoin Readiness Package →" | wealth-advisors |
 | readiness-training index | "Schedule an Education Consultation" | HubSpot |
