@@ -1,7 +1,7 @@
 # Advisor Bitcoin Readiness Package — Offer Brief
 
-**Status: DRAFT — awaiting Dalia's approval. D2 CTA work is blocked on this document.**
-*Category: Advisor/Educator Training (allowed BSA monetization). Source of truth for the boundary: the 2026-06-10/11 conflict-of-interest ruleset.*
+**Status: REVISED DRAFT v2 — Dalia's five decisions (2026-06-11) incorporated. One open item remains (§10). D2 CTA work stays blocked until this brief is approved and merged.**
+*Category: **Advisor/Educator Training** (allowed BSA monetization). Source of truth for the boundary: the 2026-06-10/11 conflict-of-interest ruleset.*
 
 ## 1. The problem this offer solves
 
@@ -36,28 +36,31 @@ An advisor who completes the program can:
 - Execute a clean referral handoff to a qualified Bitcoin custody adviser, with the engagement-letter language to match.
 - Choose the right BSA/TSA resource to send a client for self-education.
 
-## 6. The reconciliation problem (why this brief exists)
+## 6. Offer architecture (DECIDED 2026-06-11)
 
-Three overlapping paid advisor offers currently coexist, with no stated relationship:
+**Advisor Bitcoin Readiness Package (ABRP)** is the **umbrella brand**, sitting under Advisor/Educator Training. It is professional education for wealth advisors, tax advisors, lawyers, and related professionals — **not** individual custody service. The existing assets become its tiers (no new product; naming, positioning, and CTA consistency only):
 
-| Asset | Price | What it is today |
-|---|---|---|
-| Bitcoin Continuity Operational Packet (`products/advisor-bitcoin-client-kit/`) | $499 | self-serve toolkit: intake questions, custody classifier, scorecard, engagement-letter language |
-| Bitcoin Advisor Certification — Individual (`institutional/wealth-advisors/`) | $1,997 | 13-module curriculum + toolkit |
-| Practice Partnership | $3,997 | everything + TBA connection, referral-process setup, educator support |
-| "BSA Advisor Desk" working session (advisor-kit page) | unpriced | HubSpot working session — currently ambiguous |
-| Pre-discovery guide + advisor toolkit | free | lead magnets |
+| Tier | Name (decided) | Price | What it is |
+|---|---|---|---|
+| Free | **Readiness Check** | — | pre-discovery guide + advisor toolkit (lead magnets; optional email capture) |
+| 1 | **Advisor Toolkit** | $499 | the Continuity Operational Packet, repositioned as the ABRP self-serve edition: intake questions, custody classifier, scorecard, engagement-letter language |
+| 2 | **Advisor Bitcoin Readiness Training** | $1,997 | the 13-module program; Advisor Toolkit included; concludes with a **certificate of completion** (see §8) |
+| 3 | **Advisor Practice Readiness** | $3,997 | everything in Tier 2, plus: referral-process training and setup guidance for the advisor's own practice, a collaborative-custody education session (how 2-of-3 models work, what risks to spot, and when to refer), and ongoing educator support with a referral path to The Bitcoin Adviser where appropriate |
 
-**Proposed structure: ABRP is the umbrella brand, with the existing assets as its three tiers.**
+**Language guard for Tier 3 (Dalia's rule):** nothing in Advisor Practice Readiness may suggest BSA provides custody implementation, recovery, inheritance planning, or personalized key-management services to the advisor's client. Every Tier-3 deliverable is education for the *advisor's practice*; client implementation is always a referral.
 
-- **Free — Readiness Check:** pre-discovery guide + advisor toolkit (lead magnets; optional email capture).
-- **Tier 1 — Toolkit ($499):** the Continuity Operational Packet, repositioned as the ABRP self-serve edition.
-- **Tier 2 — Certification ($1,997):** the 13-module program; Toolkit included.
-- **Tier 3 — Practice Partnership ($3,997):** Certification + referral-line setup + collaborative-custody education session + ongoing educator support.
+## 7. Bitcoin Client Readiness Session (DECIDED — replaces "BSA Advisor Desk")
 
-This requires **no new product** — only naming, page positioning, and CTA consistency (which becomes Batch D2).
+The HubSpot working session is renamed **Bitcoin Client Readiness Session** (public name; "Advisor Education Session" acceptable as a generic descriptor).
 
-## 7. Boundary rules (non-negotiable, applies to every tier)
+**Scope:** helps an advisor understand a client's Bitcoin question, identify the risks in play, know what questions to ask, know what not to advise on, and know when to refer out.
+**Explicitly out of scope:** designing or reviewing a client's real custody setup as a BSA service.
+
+## 8. Certification language (DECIDED)
+
+v1 avoids formal "certification" claims. Approved vocabulary: **"readiness training"** and **"certificate of completion"** — always framed as BSA's own educational certificate, never an official credential. (Note for D2 planning: the live `bitcoin-advisor-certification/` pages and URL use "Certification" — copy updates fall under D2 scope; URL/directory renaming is heavier and should be decided separately, since redirects would be required.)
+
+## 9. Boundary rules (non-negotiable, applies to every tier)
 
 **Allowed:** paid advisor education, workshops for wealth/tax/legal professionals, advisor readiness sessions, client-question frameworks, referral training, Bitcoin literacy for professional advisors.
 
@@ -69,23 +72,23 @@ This requires **no new product** — only naming, page positioning, and CTA cons
 
 **Spelling rule:** advisor (-or) = the professionals this package teaches; Adviser (-er) = The Bitcoin Adviser and the custody-service role.
 
-## 8. CTA destinations (feeds Batch D2 — do not implement before approval)
+## 10. The one remaining open decision
+
+**Pricing/placement of the Bitcoin Client Readiness Session:** standalone paid session (price?), included in Tier 3, or kept as an unpriced qualification call behind "Schedule an Education Consultation." Decision needed before the D2 CTA on the Advisor Toolkit page is finalized.
+
+## 11. CE/CPE (DECIDED)
+
+**Not in v1.** Marked as future exploration only — it must not block the offer or add compliance complexity before there are buyers. No CE/CPE language appears anywhere in v1 copy.
+
+## 12. CTA destinations (feeds Batch D2 — do not implement before this brief is approved)
 
 | Page | CTA | Destination |
 |---|---|---|
-| `products/advisor-bitcoin-client-kit/` | "Part of the Advisor Bitcoin Readiness track" + buy $499 | self / wealth-advisors |
-| `institutional/wealth-advisors/` | ABRP positioning line above tiers; "Schedule an Education Consultation" | HubSpot |
-| `guides/advisor-pre-discovery/` | "Go deeper: Advisor Bitcoin Readiness →" | wealth-advisors |
-| certification index | "Schedule an Education Consultation" | HubSpot |
+| `products/advisor-bitcoin-client-kit/` | "Part of the Advisor Bitcoin Readiness Package" + buy $499 Advisor Toolkit; "Bitcoin Client Readiness Session" line per §10 | self / wealth-advisors |
+| `institutional/wealth-advisors/` | ABRP positioning line above tiers (tier names per §6); "Schedule an Education Consultation" | HubSpot |
+| `guides/advisor-pre-discovery/` | "Go deeper: Advisor Bitcoin Readiness Package →" | wealth-advisors |
+| readiness-training index | "Schedule an Education Consultation" | HubSpot |
 
-## 9. Disclaimer (every tier, every page)
+## 13. Disclaimer (every tier, every page)
 
 Professional education only. The program does not provide advice about any specific client, and completing it does not qualify anyone to design custody setups. Client implementation work belongs with a qualified Bitcoin custody adviser.
-
-## 10. Open decisions for Dalia
-
-1. **Umbrella naming:** does "Advisor Bitcoin Readiness Package" name the umbrella (recommended) or only one tier?
-2. **The Advisor Desk session:** price it as a standalone readiness session, fold it into Tier 3, or keep it as an unpriced qualification call?
-3. **Tier pricing:** confirm $499 / $1,997 / $3,997 stand, and whether Toolkit is included in Certification (recommended).
-4. **Delivery format for the Certification:** self-paced as-is, or cohort-based (affects the promise wording, not the boundary).
-5. **CE/CPE credit:** worth exploring for CPAs/CFPs? (Unverified — would need accreditation research before claiming anything.)
