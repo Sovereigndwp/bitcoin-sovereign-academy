@@ -83,15 +83,37 @@
 
         <div class="interactive-tool">
             <h3 class="tool-title">Interactive Tool: Vehicle Selector</h3>
-            <p style="text-align:center;margin-bottom:1.5rem;">Choose the three priorities that matter most and generate a starting point for the implementation conversation.</p>
+            <p style="text-align:center;margin-bottom:1.5rem;">Two questions. The second depends on the first, so nothing is asked twice in different words.</p>
             <div class="tool-grid">
                 <div>
-                    <div class="form-group"><label for="toolA">Primary client priority</label><select id="toolA"><option value="">Select a priority</option><option value="simplicity">Simplicity</option><option value="control">Direct control</option><option value="legacy">Inheritance flexibility</option></select></div>
-                    <div class="form-group"><label for="toolB">Where will most exposure sit?</label><select id="toolB"><option value="">Select account context</option><option value="brokerage">Brokerage / retirement account</option><option value="taxable">Taxable account</option><option value="mixed">Multiple account types</option></select></div>
-                    <div class="form-group"><label for="toolC">Operational tolerance</label><select id="toolC"><option value="">Select tolerance</option><option value="low">Keep it simple</option><option value="medium">Comfortable with some complexity</option><option value="high">Prepared for higher operational responsibility</option></select></div>
-                    <button type="button" class="tool-btn" onclick="runTool()">Generate Guidance</button>
+                    <div class="form-group"><label for="vsQ1">What is the client actually trying to solve?</label><select id="vsQ1">
+                        <option value="">Select the underlying goal</option>
+                        <option value="exposure">Bitcoin in the portfolio, without new operations</option>
+                        <option value="ownership">Owning the asset itself, under their own control</option>
+                        <option value="inheritance">Making sure the family could recover it</option>
+                    </select></div>
+                    <div class="form-group" id="vsQ2-exposure" style="display:none;"><label for="vsQ2a">Where would the exposure sit?</label><select id="vsQ2a">
+                        <option value="">Select account context</option>
+                        <option value="retirement">Brokerage or retirement account</option>
+                        <option value="taxable">Taxable account</option>
+                        <option value="mixed">Several account types</option>
+                    </select></div>
+                    <div class="form-group" id="vsQ2-ownership" style="display:none;"><label for="vsQ2b">If the client could not act, who else must be able to?</label><select id="vsQ2b">
+                        <option value="">Select continuity need</option>
+                        <option value="nobody">Nobody yet, and the client knows it</option>
+                        <option value="family">A spouse or family member</option>
+                        <option value="support">The client wants professional support involved</option>
+                    </select></div>
+                    <div class="form-group" id="vsQ2-inheritance" style="display:none;"><label for="vsQ2c">Does the client already hold Bitcoin?</label><select id="vsQ2c">
+                        <option value="">Select current state</option>
+                        <option value="selfcustody">Yes, in self custody</option>
+                        <option value="platform">Yes, on an exchange or in an ETF</option>
+                        <option value="notyet">Not yet</option>
+                    </select></div>
                 </div>
-                <div class="result-box"><h4>Vehicle fit</h4><div id="toolResult"><p style="color:var(--dim);font-style:italic;">Choose your inputs and generate tailored guidance.</p></div></div>
+                <div class="result-box"><h4>Starting point for the conversation</h4><div id="toolResult"><p style="color:var(--dim);font-style:italic;">Answer the first question to begin.</p></div></div>
+            </div>
+        </div>
             </div>
         </div>
 
@@ -146,20 +168,75 @@
             }
         });
 
+        function vsResult(html) {
+            document.getElementById('toolResult').innerHTML = html;
+        }
+        function vsBlock(fit, why, tradeoff, escalate) {
+            return '<p><strong>Likely starting point:</strong> ' + fit + '</p>'
+                 + '<p><strong>Why:</strong> ' + why + '</p>'
+                 + '<p><strong>What this lane trades away:</strong> ' + tradeoff + '</p>'
+                 + (escalate ? '<p><strong>When to bring in a specialist:</strong> ' + escalate + '</p>' : '');
+        }
         function runTool() {
-            const a = document.getElementById('toolA').value;
-            const b = document.getElementById('toolB').value;
-            const c = document.getElementById('toolC').value;
-            if (!a || !b || !c) {
-                document.getElementById('toolResult').innerHTML = '<p style="color:#f44336;">Please complete all three inputs to generate guidance.</p>';
-                return false;
+            var q1 = document.getElementById('vsQ1').value;
+            ['exposure','ownership','inheritance'].forEach(function(k){
+                document.getElementById('vsQ2-' + k).style.display = (q1 === k) ? '' : 'none';
+            });
+            if (!q1) { vsResult('<p style="color:var(--dim);font-style:italic;">Answer the first question to begin.</p>'); return; }
+            if (q1 === 'exposure') {
+                var a = document.getElementById('vsQ2a').value;
+                if (!a) { vsResult('<p style="color:var(--dim);font-style:italic;">One more question: where would the exposure sit?</p>'); return; }
+                var note = a === 'retirement' ? 'Inside a brokerage or retirement account, a listed wrapper is usually the only practical fit anyway, which keeps this conversation short.'
+                         : a === 'taxable' ? 'In a taxable account the wrapper choice is more open, so fees, tracking, and tax treatment deserve a closer look with the client\'s tax professional.'
+                         : 'With several account types, the wrapper can differ per account; the planning question is consistency of records across them.';
+                vsResult(vsBlock('a spot Bitcoin ETF or similar listed wrapper',
+                    'the client wants portfolio exposure with familiar operations, and that is exactly what a listed wrapper provides. ' + note,
+                    'no direct access to the coins, and counterparty plus fund-structure considerations that should be documented in the file.',
+                    'only if the client later wants to convert exposure into directly held coins.'));
+            } else if (q1 === 'ownership') {
+                var b = document.getElementById('vsQ2b').value;
+                if (!b) { vsResult('<p style="color:var(--dim);font-style:italic;">One more question: who else must be able to act?</p>'); return; }
+                if (b === 'nobody') {
+                    vsResult(vsBlock('direct ownership, starting simple, with the continuity gap named out loud',
+                        'the client values control and accepts the responsibility that comes with it.',
+                        'convenience, and recovery help: if keys and backups are lost, nobody can restore them. Right now the plan also dies with the client, and the file should say the client knows that.',
+                        'before implementation, and again the moment the client wants anyone else to have a role.'));
+                } else if (b === 'family') {
+                    vsResult(vsBlock('direct ownership designed for continuity from day one, which usually means a collaborative or multi-key conversation',
+                        'one person holding everything is exactly the single point of failure the family question exposes.',
+                        'simplicity: a continuity-ready setup has more moving parts and needs a written recovery process that never exposes key material.',
+                        'now. Designing who can act, with which keys, under what circumstances, is specialist work, not advisor work.'));
+                } else {
+                    vsResult(vsBlock('a collaborative custody arrangement, where signing authority is distributed across independent parties',
+                        'the client wants control of the asset and support around it, and collaborative models are built for precisely that mix.',
+                        'some self-sufficiency and ongoing fees, in exchange for fewer single points of failure.',
+                        'this lane is the escalation: a qualified Bitcoin custody adviser implements and maintains it.'));
+                }
+            } else {
+                var c = document.getElementById('vsQ2c').value;
+                if (!c) { vsResult('<p style="color:var(--dim);font-style:italic;">One more question: does the client already hold Bitcoin?</p>'); return; }
+                if (c === 'selfcustody') {
+                    vsResult(vsBlock('keep the holding, fix the recovery path first, before any wrapper discussion',
+                        'the asset already exists; the inheritance risk is the absence of a written recovery process. A will names the heir. It does not move the Bitcoin.',
+                        'nothing yet: building the process costs a few conversations, not a restructuring.',
+                        'now, for the recovery design. The advisor documents and coordinates; the specialist builds.'));
+                } else if (c === 'platform') {
+                    vsResult(vsBlock('map the platform\'s actual estate process before deciding whether to move anything',
+                        'exchange and ETF holdings inherit through account and estate paperwork, which is workable when documented and slow or stuck when it is not.',
+                        'directness: the family\'s access depends on the platform\'s process and timelines.',
+                        'if the client decides direct ownership fits the inheritance goal better, the transition is the moment for a custody specialist.'));
+                } else {
+                    vsResult(vsBlock('choose the wrapper with continuity in mind from the start, rather than retrofitting it later',
+                        'starting fresh is the cheapest moment to decide who must be able to act, because nothing has to be unwound.',
+                        'a little speed: deciding continuity first takes one extra conversation before any purchase.',
+                        'when the client leans toward holding actual coins, bring the custody specialist into the design before implementation.'));
+                }
             }
-            var guidance=''; if (a==='simplicity' || b==='brokerage' || c==='low') { guidance='<p><strong>Likely fit:</strong> spot bitcoin ETF or similar listed wrapper.</p><p><strong>Why:</strong> this gives portfolio exposure while keeping operations familiar for both advisor and client.</p>'; } else if (a==='control' && c!=='low') { guidance='<p><strong>Likely fit:</strong> direct ownership.</p><p><strong>Why:</strong> the client values control enough to justify a more serious custody conversation.</p><p><strong>Specialist trigger:</strong> involve a custody specialist before implementation.</p>'; } else { guidance='<p><strong>Likely fit:</strong> hybrid approach.</p><p><strong>Why:</strong> some clients benefit from core ETF exposure plus a smaller directly owned position with specialist support.</p>'; } document.getElementById('toolResult').innerHTML = guidance;
             return true;
         }
 
         function moduleSmokeTest() {
-            const selects = ['toolA','toolB','toolC'].map(id => document.getElementById(id));
+            const selects = ['vsQ1','vsQ2a','vsQ2b','vsQ2c'].map(id => document.getElementById(id));
             selects.forEach(sel => { if (sel.options.length > 1) sel.selectedIndex = 1; });
             return runTool() && document.getElementById('toolResult').textContent.trim().length > 0;
         }
@@ -211,7 +288,12 @@
             results.style.display = 'block';
             document.getElementById('checkAnswers').disabled = true;
         }
-    </script>
+    
+        ['vsQ1','vsQ2a','vsQ2b','vsQ2c'].forEach(function(id){
+            var el = document.getElementById(id);
+            if (el) el.addEventListener('change', runTool);
+        });
+</script>
 <script src="/js/analytics.js" defer></script>
 </body>
 </html>
