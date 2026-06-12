@@ -59,12 +59,13 @@ Entry 0 leads. The "found device" post (4.1) follows second, after Dalia supplie
 
 ## Theme 1 — Discovery before allocation
 
-**1.1 · The quiet majority of Bitcoin ETF holders are advisors' clients**
-- **Story:** Q1 2026 13F analyses report that registered investment advisors represent the largest reported cohort of spot Bitcoin ETF holdings (~58% of 13F-reported BTC), and trimmed least during the spring drawdown. *(coinpaprika.com cohort analysis; verify against primary 13F data before publishing.)*
-- **Hidden connection:** the average advisory book already contains Bitcoin exposure. Discovery is not a niche question; it is a books-and-records question.
+**1.1 · REWRITTEN (Entry 0 pattern) · Someone else's book**
+- **Opening (human-first):** the assumption, stated plainly: most advisors treat Bitcoin as someone else's book. A niche thing. A younger colleague's problem. OPTIONAL PERSONAL MOMENT FROM DALIA (strengthens it, not required). Prompts: (1) What does an advisor usually say in the first minute when you bring up Bitcoin in their client base? (2) Can you recall an advisor discovering, mid-conversation, that a client already held it?
+- **Story (verifiable, second):** Q1 2026 13F analyses place registered investment advisors as the largest reported cohort of spot Bitcoin ETF holdings, around 58% of 13F-reported BTC, and the cohort that trimmed least in the spring drawdown. *(coinpaprika.com; MUST be verified against primary 13F data before drafting.)*
+- **Hidden connection:** if the filings are right, Bitcoin is not someone else's book. It is sitting inside ordinary advisory relationships, mostly unexamined, because nobody asked the intake question.
 - **Lesson:** discovery before allocation.
 - **Asset:** 10 Questions lead magnet.
-- **Draft direction:** Hook: "The biggest holders of Bitcoin ETFs are not hedge funds. They are advisory clients." Personal angle: what surprised me in the cohort data. Key point: you cannot plan around what you have not inventoried. Soft CTA: "Ten questions worth adding to intake." Target: /guides/advisor-10-questions/. **Category: awareness.**
+- **Draft direction:** key point: you cannot plan around what you have not inventoried. Soft CTA: ten questions, first comment. **Category: awareness.**
 
 **1.2 · The estate detail families discover too late**
 - **Story:** Mainstream coverage (TheStreet, 2026) of families discovering, post-death, that critical financial information lived inside locked email and online accounts; executors barred by terms of service. *(thestreet.com "digital estate issue families discover too late"; cybernews.com probate piece.)*
@@ -82,12 +83,13 @@ Entry 0 leads. The "found device" post (4.1) follows second, after Dalia supplie
 
 ## Theme 2 — Allocation before custody
 
-**2.1 · A record outflow streak, and the question nobody asks**
-- **Story:** US spot Bitcoin ETFs posted their longest outflow streak since launch, 13 days and ~$4.3B (May 15 to June 3, 2026). *(bitcoinfoundation.org / hedgeco.net; verify totals against Farside before publishing.)*
-- **Hidden connection:** flows are the headline; custody is the substrate. When a client exits an ETF and "buys the dip directly," the planning problem changes shape entirely.
-- **Lesson:** allocation before custody.
+**2.1 · REWRITTEN (Entry 0 pattern, absorbs 7.1) · The phone call behind the red headlines**
+- **Opening (human-first):** the moment a drawdown stops being a chart: the phone rings. PERSONAL MOMENT NEEDED FROM DALIA. Prompts: (1) What is one question a client or advisor actually asked you during a drawdown week, in their words, any cycle? (2) What did you check first on the morning a selling streak made the news? (3) Has anyone ever told you they had "gotten out," and then stumbled when you asked where the coins went?
+- **Story (verifiable, second):** US spot Bitcoin ETFs posted their longest outflow streak since launch, 13 days and roughly $4.3B, May 15 to June 3, 2026. *(bitcoinfoundation.org / hedgeco.net; verify totals against Farside or SoSoValue before drafting.)*
+- **Hidden connection:** the news covered the selling. It did not cover what selling an ETF and "buying the dip directly" does to a client's planning picture. Exposure and coins are different problems wearing the same word.
+- **Lesson:** allocation before custody; client questions are already arriving.
 - **Asset:** Custody Lanes at a Glance.
-- **Draft direction:** Hook: "Thirteen straight days of ETF outflows. The headlines covered the selling. Nobody covered where some of it went." Personal angle: a client question from a red week. Key point: exposure and coins are different planning problems. Soft CTA: the one-table comparison. Target: advisor-toolkit custody table. **Category: trust-building.**
+- **Draft direction:** key point: when the wrapper changes, the planning problem changes with it. Soft CTA: the one-table comparison, first comment. **Category: trust-building.** *(7.1 is retired; its red-week-call idea lives here.)*
 
 **2.2 · Banks added Bitcoin exposure while hedge funds cut**
 - **Story:** Q1 2026 13F data: banks including JPMorgan, Wells Fargo, BofA and Citi grew Bitcoin ETF positions (+339% YoY by one count) while hedge funds cut sharply. *(kucoin.com / coinpaprika.com; verify against filings.)*
@@ -96,14 +98,13 @@ Entry 0 leads. The "found device" post (4.1) follows second, after Dalia supplie
 - **Asset:** Custody Lanes at a Glance.
 - **Draft direction:** Hook: "Banks and hedge funds disagree about Bitcoin right now. Both know exactly which wrapper they hold. Most clients do not." Personal angle: the client who said "I own Bitcoin" and meant three different things. Key point: the wrapper decides the risks. Soft CTA: the lanes table. Target: advisor-toolkit. **Category: awareness.**
 
-**2.3 · The SEC now examines crypto through a suitability lens**
-- **Story:** SEC 2026 examination priorities treat crypto products through liquidity, risk, cost and suitability review for retail recommendations. *(armstrongteasdale.com summary of SEC 2026 exam priorities.)*
-- **Hidden connection:** if examiners ask how a recommendation fit the client, the custody facts behind the position belong in the file too.
+**2.3 · REWRITTEN (Entry 0 pattern) · What the file remembers**
+- **Opening (human-first):** every client file tells a story about what seemed important at the time. Years later, the file is the only witness. It remembers the allocation discussion. It rarely remembers anyone asking where the asset actually lives.
+- **Story (verifiable, second):** the SEC's 2026 examination priorities review crypto products recommended to retail investors through liquidity, risk, cost, and suitability. *(armstrongteasdale.com summary; verify against the SEC's published 2026 priorities before drafting.)*
+- **Hidden connection:** suitability review reaches the position. The custody facts beneath the position belong in the same file, written down before anyone asks, not reconstructed after.
 - **Lesson:** allocation before custody.
-- **Asset:** $1,997 Advisor Bitcoin Readiness Training.
-- **Draft direction:** Hook: "Suitability reviews now reach crypto positions. Most files document the allocation and say nothing about the custody." Personal angle: what a clean file looks like. Key point: documentation is the cheapest protection. Soft CTA: readiness training exists for this. Target: /institutional/wealth-advisors/. **Category: conversion.**
-
-## Theme 3 — Custody before implementation
+- **Asset:** Custody Lanes at a Glance (free), with the training as a quiet secondary.
+- **Draft direction:** key point: documentation is protection that costs a paragraph. Soft CTA: the one-table comparison, first comment; no training pitch in the post body. **Category: trust-building.**
 
 **3.1 · Ledger's breach was not Ledger's wallet**
 - **Story:** Ledger customers' personal data leaked via Global-e, a third-party payment processor (January 2026). *(pymnts.com.)*
@@ -129,6 +130,7 @@ Entry 0 leads. The "found device" post (4.1) follows second, after Dalia supplie
 ## Theme 4 — Escalation when keys, recovery, inheritance, or setup enter the room
 
 **4.1 · The drawer, the device, and the first irreversible mistake**
+- **STRUCTURE PREPARED (2026-06-12), DRAFT HELD: PERSONAL MOMENT NEEDED FROM DALIA.** Planned shape, Entry 0 pattern: (1) her lived moment, supplied by Dalia, no composite client scene without explicit approval and a composite label; (2) the verifiable backdrop: 2026 estate coverage of families finding devices and word lists; (3) the connection: irreversible systems punish improvisation, and the most expensive mistakes happen in the week after death; (4) the protocol in one breath: nobody touches the device, write down who has seen what, sequence the professionals; (5) soft CTA in first comment: the eight-scenario activity. Prompts for Dalia: (1) Without identifying anyone: describe the room, the object, or the sentence you remember from a moment when a family was one step from an irreversible Bitcoin mistake. (2) What did someone almost do that the protocol stopped? (3) What is the calmest thing you have ever had to say in an urgent custody moment?
 - **Story:** 2026 estate-press coverage keeps repeating one scene: a family finds a hardware device and a word list after a death and improvises. *(cryptoslate.com "inheritance time bomb"; hackardlaw.com crypto estate-dispute chapter.)*
 - **Hidden connection:** the most expensive Bitcoin mistakes often happen in the week after death, made by well-meaning people with partial knowledge.
 - **Lesson:** escalation.
@@ -142,21 +144,21 @@ Entry 0 leads. The "found device" post (4.1) follows second, after Dalia supplie
 - **Asset:** Client Script Builder.
 - **Draft direction:** Hook: "Attackers breached a robo-advisor and did not steal funds. They sent clients a crypto offer instead." Personal angle: teaching clients to forward, not click. Key point: "call me before you act" is a service. Soft CTA: the script for that conversation. Target: script builder. **Category: awareness.**
 
-**4.3 · 2026 as the year the inheritance gap shows up in court**
-- **Story:** CryptoSlate's argument that Bitcoin's self-custody culture built an inheritance time bomb and 2026 is when it starts detonating; estate-law firms publishing crypto-dispute guides in parallel. *(cryptoslate.com; trustcounsel.com.)*
-- **Hidden connection:** the gap between legal authority and practical access is where estates stall and families fracture. Building the recovery process while the client is healthy is the escalation that prevents the courtroom.
-- **Lesson:** escalation.
-- **Asset:** Advisor Toolkit / Continuity Packet ($499).
-- **Draft direction:** Hook: "A will names the heir. It does not move the Bitcoin." Personal angle: the cheapest moment to fix this is always now. Key point: authority and access are built separately, on purpose. Soft CTA: the continuity packet's scorecard. Target: /products/advisor-bitcoin-client-kit/. **Category: conversion.**
+**4.3 · REWRITTEN (Entry 0 pattern) · The feeling of being finished**
+- **Opening (human-first):** people leave the estate attorney's office feeling finished. Papers signed, binder labeled, heirs named. It is one of the few moments adults get to feel ahead of their own mortality. PERSONAL MOMENT NEEDED FROM DALIA (probate-adjacent experience qualifies; no client identifiers; composite only with explicit approval and labeling). Prompts: (1) Without identifying anyone: what surprised you most the first time you watched a Bitcoin estate settle correctly? (2) What is the one document a family wished had existed earlier? (3) In your experience, what does "we are done" wrongly feel like to a family after signing day?
+- **Story (verifiable, second):** estate-law firms are publishing crypto-dispute guidance, and industry coverage argues the self-custody inheritance gap starts surfacing in earnest in 2026. *(trustcounsel.com; cryptoslate.com; attribute the "2026 detonation" framing as that outlet's claim, not as fact.)*
+- **Hidden connection:** for Bitcoin, the signed will is the beginning, not the end. A will names the heir. It does not move the Bitcoin. Authority and access are built separately, on purpose.
+- **Lesson:** escalation when inheritance enters the room.
+- **Asset:** Advisor Toolkit / Continuity Packet (recovery-readiness scorecard).
+- **Draft direction:** key point: the cheapest moment to close the gap is while the client is healthy. Soft CTA: the scorecard, first comment. **Category: conversion, written as trust.**
 
-## Theme 5 — Advisors guide and document; specialists implement
-
-**5.1 · FINRA is mapping firms' "nexus to crypto"**
-- **Story:** FINRA's 2026 Annual Regulatory Oversight Report includes a chapter on member firms' crypto nexus. *(finra.org 2026 report.)*
-- **Hidden connection:** the regulator's question ("what exactly is your involvement?") is the same one every advisor should answer in writing before a client asks.
+**5.1 · REWRITTEN (Entry 0 pattern) · A careful word**
+- **Opening (human-first):** regulators have a talent for questions that sound simple. The new FINRA report asks member firms about their "nexus" to crypto. Nexus is a careful word. It means: what exactly is your involvement, and could you state it in writing?
+- **Story (verifiable, second):** FINRA's 2026 Annual Regulatory Oversight Report includes a chapter on member firms' crypto nexus. *(finra.org 2026 report; read the chapter in full before drafting.)*
+- **Hidden connection:** most advisors have an involvement and no sentence. They have answered client questions, sat through a custody anecdote, maybe watched a transfer happen. None of it documented, all of it nexus.
 - **Lesson:** advisors guide and document; specialists implement.
-- **Asset:** Advisor Toolkit / Continuity Packet (engagement-letter language).
-- **Draft direction:** Hook: "FINRA's 2026 report asks firms to define their nexus to crypto. Can your file answer in one sentence?" Personal angle: the boundary sentence I recommend memorizing. Key point: documented role boundaries protect everyone. Soft CTA: sample boundary language. Target: kit / $499 packet. **Category: conversion.**
+- **Asset:** Advisor Toolkit / Continuity Packet (boundary language).
+- **Draft direction:** key point: the boundary sentence is cheap to write today and expensive to reconstruct later. Soft CTA, only if natural: sample boundary language exists, first comment. No "can your file answer" cadence. **Category: trust-building, with conversion in the comment.**
 
 **5.2 · Terms of service beat the will**
 - **Story:** Cybernews reporting: platforms' terms of service, not estate documents, decide what families can access after death. *(cybernews.com.)*
@@ -197,12 +199,7 @@ Entry 0 leads. The "found device" post (4.1) follows second, after Dalia supplie
 
 ## Theme 7 — Client questions are already arriving
 
-**7.1 · Red weeks generate phone calls**
-- **Story:** The May-June 2026 outflow streak and price pressure produced a wave of "should I sell / should I buy more" coverage. *(hedgeco.net; bydfi.com.)*
-- **Hidden connection:** clients call their advisor during red weeks whether or not the advisor wanted a Bitcoin practice. The question arrives before the readiness does.
-- **Lesson:** client questions are already arriving.
-- **Asset:** Client Script Builder.
-- **Draft direction:** Hook: "Nobody schedules the Bitcoin question. It calls on a Tuesday during a drawdown." Personal angle: the difference preparation made in one call. Key point: calm scripts beat improvisation. Soft CTA: six questions, six scripts. Target: script builder. **Category: trust-building.**
+**7.1 · RETIRED (2026-06-12): merged into rewritten 2.1.** The red-week client call is 2.1's opening; keeping both would have produced two versions of one idea.
 
 **7.2 · The quantum question is coming for your inbox**
 - **Story:** Fortune's quantum-freeze debate (April 2026) and the 2030 timeline remarks from quantum-industry CEOs keep resurfacing in mainstream feeds. *(fortune.com.)*
