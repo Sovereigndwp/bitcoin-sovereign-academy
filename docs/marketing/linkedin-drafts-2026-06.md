@@ -50,7 +50,7 @@ What happens if my family knows I own it but cannot access it?
 
 A client does not need their advisor to become a custody engineer. They need a process.
 
-That process should know the difference between exposure and control. An ETF, an exchange account, a single hardware wallet, and a collaborative custody setup may all give someone "Bitcoin exposure." They do not give the same rights, risks, or responsibilities.
+That process should know the difference between exposure and control. An ETF, an exchange account, a single hardware wallet, and a collaborative security setup where the client remains in self custody may all give someone "Bitcoin exposure." They do not give the same rights, risks, or responsibilities.
 
 Because the shortcut always has a cost. Sometimes it is obvious. A fee. A spread. Other times it is quieter. More data shared. More dependence on one institution. More systems that work beautifully until the day they do not.
 
@@ -69,6 +69,7 @@ I keep a working list of ten questions advisors can ask before any of this gets 
 The EU Entry/Exit System became fully operational April 10, 2026. May and June 2026 coverage documents queues up to three hours (Lisbon the most cited), missed connections, and Dover temporarily suspending extra EES checks on May 23, 2026. Sources: travelpirates.com (EES biometric border delays, summer 2026), travelandtourworld.com (EES queue coverage), etias.com (rollout glitches), ec.europa.eu (official EES page). The post's claims stay within these verified facts.
 
 ### Changed sentences log (complete)
+0. (added 2026-06-12, Dalia's instruction) "a collaborative custody setup" → "a collaborative security setup where the client remains in self custody" — TBA terminology rule; applies to BOTH the LinkedIn cut and the Substack version.
 1. "That memory came back to me this week while reading about the problems around Europe's new biometric border system. Long lines. Confusion." → "...this week, reading about Europe's new biometric border system. Three-hour lines in Lisbon. Dover pausing extra checks." Why: concrete, verifiable details age into credibility; vague ones age into filler.
 2. "A digital wallet that works everywhere." → "A payment wallet that works everywhere." Why: removes the chance a reader hears "crypto wallet" in a list about everyday convenience trades.
 3. LinkedIn version only: cuts for the 3,000-character limit (the stablecoin/tokenization paragraph, two client-question list items, the "advisors need a clearer map" passage, "showing your boarding pass," "as the financial system becomes more digital" bridge). All cut whole; no sentences rewritten. The Substack version keeps everything.
