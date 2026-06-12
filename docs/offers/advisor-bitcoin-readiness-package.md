@@ -3,6 +3,8 @@
 **Status: APPROVED v3 (Dalia, 2026-06-11). All decisions locked. This is the offer brief of record; D2 CTA work plans against it.**
 *Category: **Advisor/Educator Training** (allowed BSA monetization). Source of truth for the boundary: the 2026-06-10/11 conflict-of-interest ruleset.*
 
+> **2026-06-12:** an alternative ladder ($499 kit / $750 private session / $2,500 firm workshop / application-only custom) was evaluated during the advisor-program build-out and **rejected by Dalia — v3 architecture stands.** The free "Readiness Check" tier is now realized as the lead magnet at `/guides/advisor-10-questions/`.
+
 ## 1. The problem this offer solves
 
 Clients are already asking wealth advisors, tax advisors, and lawyers about Bitcoin. Most professionals face a bad choice: bluff (and risk bad advice), dismiss (and lose the client's trust), or dodge (and look out of date). None of them needs to become a custody expert — they need to know what to ask, what to flag, what not to advise on, and where real implementation work goes.
