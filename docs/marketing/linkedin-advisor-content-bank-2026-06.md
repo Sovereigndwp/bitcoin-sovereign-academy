@@ -1,10 +1,47 @@
 # LinkedIn Advisor Content Bank — June 2026
 
-**Status: planning cards, not final posts.** Story-driven idea bank for the Advisor Bitcoin Readiness track. Each card: a recent verifiable story, the hidden connection to advisor work, the theme, the BSA asset, and a draft direction. Final drafts are written separately, never auto-published.
+**Status: planning cards, not final posts. Measured against the Entry 0 Standard below; 16 of 21 cards do not yet meet it (audit of 2026-06-12).** Story-driven idea bank for the Advisor Bitcoin Readiness track. Each card: a recent verifiable story, the hidden connection to advisor work, the theme, the BSA asset, and a draft direction. Final drafts are written separately, never auto-published.
 
 **Writing constraints (locked):** no em dashes; vary sentence structures; no AI-pattern phrases ("Here is the thing", "The real question is", "Now more than ever", "Let that sink in", "It is not X. It is Y."); no hype, no fear-mongering, no "crypto expert" framing; no legal/tax/investment/custody/compliance/security advice; no invented statistics. The "96% of advisors get client crypto questions" claim is NOT used anywhere in this bank; if it ever is, it must be sourced first.
 
 **Sourcing flags:** aggregator-reported figures (ETF flow totals, 13F cohort numbers, breach counts) must be verified against primary sources (Farside/SoSoValue, SEC filings, company disclosures) before any post quoting them is published. Cards note this.
+
+---
+
+## The Entry 0 Standard (added 2026-06-12 — every card is measured against this)
+
+Entry 0 is not just the first post. It is the voice and structure model. A card meets the standard when:
+
+1. It starts with a human, relatable moment or recent story that does not obviously begin as a Bitcoin or advisor post.
+2. The connection to Bitcoin, custody, inheritance, privacy, client readiness, or advisor responsibility is intelligent and earned, not announced.
+3. It does not sound like generic thought leadership.
+4. It does not sound like a Bitcoin sales pitch.
+5. The advisor relevance is practical and specific.
+6. The story is recent and verifiable.
+7. Nothing is invented, including the personal moment. **AI cannot supply Dalia's memories: any card whose draft needs a lived anecdote is marked PERSONAL MOMENT: NEEDED FROM DALIA, and the post is not drafted until she provides one (or approves running without one).**
+8. No em dashes.
+9. No repeated AI-style structures across posts.
+10. Soft CTA only where natural; first-comment links preferred.
+
+### Audit of the 21 cards against the standard (2026-06-12)
+
+**Meets or nearly meets the standard (5):** 4.1 (found device; needs Dalia's lived moment before drafting), 4.2 (Betterment fake offer), 1.2 (families locked out), 5.2 (terms of service beat the will), 7.3 (morning-show homework).
+
+**Needs reframing — story is right, entry point is industry-first (8):** 2.1 (open with the client's red-week call, not the flow data), 1.3 (open with the breach letter on a kitchen table), 3.1 (open with the shipping label, not the vendor name), 3.2 (open with the client's five-word answer vs the regulator's months), 3.3 (needs Dalia's real client-question moment), 6.1 (open with how one headline word flattens three businesses), 6.2 (open with a concrete mislabeled headline), 7.1 (overlaps 2.1 — merge or differentiate before drafting).
+
+**Too generic, too salesy, or advisor-marketing-shaped (8):** 1.1 (data-first thought leadership; "what surprised me in the data" is the generic pattern), 2.2 (industry chart talk), 2.3 (compliance-adjacent fear + training CTA), 4.3 (crypto-press claim as the entry; keep the "will names the heir" line, replace the entry), 5.1 ("can your file answer in one sentence" is marketing cadence), 5.3 (training pitch), 6.3 ("like an anthropologist" is cute but generic), 7.2 (listicle-shaped).
+
+### Rewrite queue (Entry 0 treatment, in order)
+
+1. **2.1** record outflow streak (timeliest; new entry: the phone call, not the chart)
+2. **1.1** RIA cohort data (most important fact in the bank, worst entry point)
+3. **5.1** FINRA nexus (best conversion story, most marketing-shaped)
+4. **4.3** inheritance gap (best single line, wrong entry)
+5. **2.3** SEC suitability (urgency without fear requires the most care)
+
+### Publish order (revised 2026-06-12)
+
+Entry 0 leads. The "found device" post (4.1) follows second, after Dalia supplies a real personal moment (her probate-adjacent experience qualifies, with confidentiality care). Then 4.2, 1.2, and rewritten 2.1. No card is drafted before it meets the standard.
 
 ---
 
