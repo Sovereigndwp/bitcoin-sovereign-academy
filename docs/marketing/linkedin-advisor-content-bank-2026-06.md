@@ -8,6 +8,18 @@
 
 ---
 
+## Entry 0 — FLAGSHIP (publish first): "The Shortcut Always Has a Cost"
+
+**Author: Dalia (original essay, 2026-06-12). Status: approved direction; full essay -> Substack; deletion-only trimmed cut (~2,600 chars) -> LinkedIn post; 10 Questions link in first comment, not in the post.**
+
+- **Story:** the EU Entry/Exit System went fully operational April 10, 2026; May-June coverage documents three-hour queues (Lisbon), missed connections, and Dover pausing extra checks May 23. *(travelpirates.com EES delays summer 2026; travelandtourworld.com EES queues; etias.com rollout glitches.)* Personal frame: the author's own biometric-line decision at Colombian immigration.
+- **Hidden connection:** privacy is lost through small, individually defensible convenience trades. The same pattern governs how clients drift into custody arrangements they never examined.
+- **Lesson:** spans themes 3 and 7 (custody before implementation; client questions are already arriving). Core line: "A client does not need their advisor to become a custody engineer. They need a process."
+- **Asset:** 10 Questions lead magnet (first-comment link).
+- **Category: trust-building flagship.**
+
+---
+
 ## Theme 1 — Discovery before allocation
 
 **1.1 · The quiet majority of Bitcoin ETF holders are advisors' clients**
