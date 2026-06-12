@@ -2477,14 +2477,14 @@ window.GLOSSARY_TERMS = [
     "next": ""
   },
   {
-    "term": "Collaborative custody",
+    "term": "Collaborative security",
     "category": "Bitcoin custody",
     "categorySlug": "bitcoin-custody",
     "level": "Intermediate",
     "tags": [
       "custody"
     ],
-    "simple": "A custody setup where the owner keeps control while a service helps with backup, recovery, or coordination.",
+    "simple": "A shared-signing setup, often marketed as collaborative custody: the owner stays the owner and must initiate any movement, while signing is distributed so no single party can move funds alone.",
     "advanced": "",
     "engine": false,
     "misconception": "",
