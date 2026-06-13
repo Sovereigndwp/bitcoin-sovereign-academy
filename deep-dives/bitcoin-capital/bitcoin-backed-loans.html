@@ -445,7 +445,7 @@
     <ol>
       <li><strong>The loan denominator.</strong> What is the borrower's obligation denominated in? If it's USD, the borrower owes a fixed dollar amount and the collateral's USD value is the variable that creates margin-call dynamics. If it's BTC, the obligation is in BTC and price-based liquidation is mathematically impossible.</li>
       <li><strong>The custody model.</strong> Who holds the keys to the pledged Bitcoin during the loan term? This single choice determines whether the borrower is a creditor with claims (pooled lender custody) or a co-owner with cryptographic veto power (multisig with borrower-held key). 2022 made the cost of getting this wrong unambiguous.</li>
-      <li><strong>The rehypothecation policy.</strong> Can the lender lend out the pledged collateral while the loan is outstanding? This is the structural feature that took down Celsius, BlockFi, Voyager, and Genesis in 2022 — collateral that was supposed to back loans got vaporized in counterparty cascades.</li>
+      <li><strong>The rehypothecation policy.</strong> Can the lender lend out the pledged collateral while the loan is outstanding? This is one of the structural features that figured prominently in the 2022 failures of Celsius, BlockFi, Voyager, and Genesis — collateral that was supposed to back loans got pulled into counterparty cascades. (Each of those failures had its own specific triggers — 3AC exposure, FTX/Alameda contagion, deposit-run dynamics — so the structural pattern is more usefully read as a recurring set of vulnerabilities than a single tidy diagnosis.)</li>
     </ol>
     <p>Most public coverage focuses on rates and LTV. Those matter, but they're downstream of the three structural choices. A 9% loan from a rehypothecating lender holding your BTC in a pooled wallet is a fundamentally different product from a 14% loan with no rehypothecation and 2-of-3 multisig custody. <strong>Comparing them on rate alone is the kind of mistake the 2022 cohort's customers made.</strong></p>
     <p>The remainder of this deep dive treats these three axes as primary and rates/LTV as secondary.</p>
@@ -847,7 +847,7 @@
   <div class="container-narrow">
     <div class="part-label">Part VI</div>
     <h2>Custody architectures, decoded</h2>
-    <p>The 2022 BTC lender failures weren't credit failures on the BTC-backed loan books — those were over-collateralized. What killed Celsius, BlockFi, Voyager, and Genesis was the <strong>funding side</strong>: pooled customer deposits, rehypothecation cascades, and counterparty concentration with players like 3AC and FTX. Customers became unsecured creditors in bankruptcy proceedings that are still unwinding four years later. <strong>Custody architecture is what protected (or failed to protect) the borrower's collateral from getting pulled into those cascades.</strong></p>
+    <p>The 2022 BTC lender failures weren't credit failures on the BTC-backed loan books — those were over-collateralized. The common pattern across Celsius, BlockFi, Voyager, and Genesis was a <strong>funding-side</strong> set of vulnerabilities: pooled customer deposits, rehypothecation cascades, and counterparty concentration with players like 3AC and FTX. Each failure also had its own specific precipitating events (Three Arrows Capital exposure, FTX/Alameda contagion, depositor-run dynamics, regulatory pressure), so reducing 2022 to a single tidy diagnosis would overstate the analysis. <strong>What the pattern says, more usefully: custody architecture is what protected (or failed to protect) the borrower's collateral from getting pulled into those cascades.</strong> Customers became unsecured creditors in bankruptcy proceedings that are still unwinding four years later.</p>
     <p>Every Tier 1 provider in this deep dive has moved past that model. But the <em>direction</em> they moved matters for sovereignty-aware borrowers.</p>
 
     <h3>The five custody models, ranked</h3>
@@ -944,7 +944,7 @@
       </tbody>
     </table>
     <p><strong>The hedge works in the drop scenario.</strong> The cash buffer can be deployed at the dip — buying more BTC at $35K than the same dollars would have bought at $100K. Combined with the LMC collateral returning at term end, the borrower ends up with <strong>4.52 more BTC</strong> than the no-hedge counterfactual.</p>
-    <p><strong>But the moon scenario is catastrophic.</strong> If BTC rises to $200K, the borrower owes 5 BTC = $1M to LMC at term end. The cash buffer is $485K. <strong>Shortfall: $515K.</strong> Either forfeit the pledged collateral (5 BTC, now worth $1M) or source $515K externally. Forfeiture also triggers an LTCG event at FMV.</p>
+    <p><strong>But the moon scenario is catastrophic.</strong> If BTC rises to $200K, the borrower owes 5 BTC = $1M to LMC at term end. The cash buffer is $485K. <strong>Shortfall: $515K.</strong> Either forfeit the pledged collateral (5 BTC, now worth $1M) or source $515K externally. Forfeiture is also a taxable disposition at FMV — the realized result (gain or loss) depends on the pledged BTC's basis and holding period; in a moon scenario it is typically a large realized gain.</p>
     <p>The structure is <strong>a directional bet on BTC volatility, not a hedge.</strong> A real hedge has defined max loss and asymmetric payoff. This has unlimited downside in the rally case.</p>
 
     <h3>Structure 3 — LMC replaces the mortgage entirely</h3>
@@ -1006,7 +1006,7 @@
     <p>Three things every BTC-backed-loan borrower should understand about US tax treatment.</p>
     <ol>
       <li><strong>Pledging crypto as collateral is generally not a taxable event.</strong> IRS guidance treats it similarly to pledging stock for a loan. You retain beneficial ownership; no realized gain.</li>
-      <li><strong>Forfeiture is a taxable event.</strong> If you fail to repay a BTC-backed loan and the lender liquidates your pledged BTC, that's treated as a disposition at FMV at the moment of forfeiture. You owe LTCG on the gain — at a time when your BTC has likely dropped. <strong>The tax bill arrives in a year of impaired liquidity.</strong> Plan for this.</li>
+      <li><strong>Forfeiture is a taxable event.</strong> If you fail to repay a BTC-backed loan and the lender liquidates your pledged BTC, that's treated as a disposition at FMV at the moment of forfeiture. The realized result — long-term capital gain, short-term gain, or even a loss — depends on your basis and holding period in the specific BTC that was liquidated. <strong>If it is a realized gain, the tax bill arrives in a year that may also have impaired liquidity.</strong> Plan for this.</li>
       <li><strong>Buying BTC to repay an LMC loan does not trigger gains.</strong> If you used LMC's BTC disbursement for cash purposes and need to buy back BTC at term end, the new BTC has its new cost basis. Acquiring and immediately transferring to LMC doesn't constitute a disposition on your side.</li>
     </ol>
     <p><strong>State variations matter.</strong> Florida, Texas, Wyoming, Tennessee — no state LTCG. California adds ~13%. New York is similarly hostile.</p>
@@ -1038,7 +1038,7 @@
 │   └── <span class="leaf">Jurisdictional seizure</span>
 │
 ├── <span class="branch">Tax cliff risk</span>
-│   ├── <span class="leaf">Forced liquidation triggers LTCG at FMV</span>
+│   ├── <span class="leaf">Forced liquidation may trigger a taxable disposition (gain or loss depending on basis and holding period)</span>
 │   ├── <span class="leaf">At inopportune time (BTC at low)</span>
 │   └── <span class="leaf">In a year of impaired liquidity</span>
 │
