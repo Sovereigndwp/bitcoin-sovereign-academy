@@ -19,17 +19,11 @@ Discipline rules in force: Entry 0 leads; only one follow-up drafted (4.2, sourc
 ### Substack version
 
 Convenience Was the Bait. Control Was the Catch.
-*I used to think a little socialism made me a better person. A line at an airport, a switched-off AI, and a data leak taught me what I was really handing over.*
+*I used to think a little socialism made me a better person. A switched-off AI and a data leak taught me what I was really handing over.*
 
-Every time I fly back to Colombia, the same scene plays out at immigration. Tourists in a line that can run four or five hours. Colombians in another, long and tired. And then a third line, short and effortless. The biometric line.
+I once traded my iris for thirty seconds at an airport in Colombia, and I have written about the regret that followed ([The Day I Traded My Iris for 30 Seconds](/blog/the-day-i-traded-my-iris-for-30-seconds.html)). The short version: I sold my privacy for speed and fed the very system I claimed to mistrust. Convenience was the bait. Control was the catch.
 
-For years I refused it. It never felt voluntary. An official would wave us over. "Colombianos, this way." No explanation. No consent form. Just the quiet assumption that I would hand over my iris, my identity, in exchange for efficiency.
-
-I held out. Until one day, after too many long trips, I did not. Thirty seconds later I was through. Thirty seconds later I regretted it. (I wrote about that day here: [link to "The Day I Traded My Iris for 30 Seconds"].)
-
-Because I knew exactly what I had done. I sold my privacy for speed and told myself it was harmless. Just a line at an airport. But I had fed the very system I claimed to mistrust. Convenience was the bait. Control was the catch.
-
-I think about that moment more now, because the pattern is everywhere, and most of us walk into it the way I did. Someone says you have to enroll, so you enroll. Someone offers you something for free, so you open your arms. You skip the only two questions that matter. What is the catch. What am I trading for this.
+I keep coming back to that trade, because the pattern is everywhere, and most of us walk into it the way I did. Someone says you must enroll, so you enroll. Someone offers something free, so you open your arms. We skip the only two questions that matter. What is the catch. What am I trading for this.
 
 I used to be very good at not asking.
 
@@ -57,25 +51,17 @@ But I am not going to pretend it is a magic exit, because France is partly a Bit
 
 So the lesson is older and simpler than any slogan. Before you hand something over, ask whether you can take it back. A password I can change. A key I can rotate. My iris, I cannot. A record of what I own, once it is loose in the world, I cannot un-leak. The trades worth fearing are the ones with no undo.
 
-I cannot take back my iris. That door is closed. But I can stop assuming the shortest line is the one I want to be standing in.
-
 Question. Verify. Do not trust by default. Do not swallow anything whole, least of all when it is handed to you for free, and least of all when it is handed to you for your own good.
 
-Privacy is not optional. It is survival.
+I still believe what I wrote after that airport line. Privacy is not optional. It is survival. What I understand now is the harder half: how much of it we give away without noticing, and how little we can ever take back.
 
-### LinkedIn version (2978 characters, under the 3,000 limit)
+### LinkedIn version (2775 characters, under the 3,000 limit)
 
 Convenience Was the Bait. Control Was the Catch.
 
-Every time I fly back to Colombia, the same scene at immigration. Tourists in a line that runs hours. Colombians in another. And a third line, short and effortless. The biometric line.
+I once traded my iris for thirty seconds at an airport in Colombia, and I have written about the regret that followed. The short version: I sold my privacy for speed and fed the very system I claimed to mistrust.
 
-For years I refused it. It never felt voluntary. "Colombianos, this way." No explanation. No consent form. Just the assumption that I would hand over my iris for efficiency.
-
-I held out. Until one day, after too many trips, I did not. Thirty seconds later I was through. Thirty seconds later I regretted it.
-
-I knew exactly what I had done. I sold my privacy for speed and told myself it was harmless. Just a line at an airport. But I had fed the very system I claimed to mistrust. Convenience was the bait. Control was the catch.
-
-The pattern is everywhere, and most of us walk into it the way I did. We skip the only two questions that matter. What is the catch. What am I trading for this.
+I keep coming back to that trade, because the pattern is everywhere, and most of us walk into it the way I did. Someone says you must enroll, so you enroll. Someone offers something free, so you open your arms. We skip the only two questions that matter. What is the catch. What am I trading for this.
 
 I used to be very good at not asking. I grew up watching a currency lose its meaning and a state fail the people it promised to protect, and my answer was still to trust it more and feel virtuous about it. I had confused trust with goodness.
 
@@ -97,7 +83,7 @@ So the lesson is older than any slogan. Before you hand something over, ask whet
 
 Question. Verify. Do not swallow anything whole, least of all when it is free, and least of all when it is for your own good.
 
-Privacy is not optional. It is survival.
+I still believe what I wrote after that airport line. Privacy is not optional. It is survival. I just understand now how much of it we give away without noticing, and how little we can ever take back.
 
 ### First comment (options)
 1. Personal (recommended): "I write about where convenience quietly turns into dependency, usually from my own mistakes. More at [Substack]."
@@ -105,7 +91,7 @@ Privacy is not optional. It is survival.
 3. None.
 
 ### TODO before publishing
-- Drop the real URL into the iris-article placeholder in the Substack version (and/or first comment).
+- The iris story now LINKS to /blog/the-day-i-traded-my-iris-for-30-seconds.html (no longer retold in full — dedup vs the published article).
 - Pick title + first-comment option.
 
 ### Source notes (verify; both confirmed 2026-06-13)
