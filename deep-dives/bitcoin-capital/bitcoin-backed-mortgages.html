@@ -692,10 +692,12 @@
         <tr><td>Secured by real estate</td><td class="pill-yes">Yes</td><td class="pill-no">No</td><td class="pill-yes">Yes</td></tr>
         <tr><td>Secured by BTC</td><td class="pill-no">No</td><td class="pill-yes">Yes</td><td class="pill-yes">Yes (both)</td></tr>
         <tr><td>Typical term</td><td>15–30 yr</td><td>1–3 yr</td><td>30 yr</td></tr>
-        <tr><td>Typical LTV vs. collateral</td><td>80–95%</td><td>30–50%</td><td>up to 100% vs. BTC</td></tr>
-        <tr><td>Margin call risk</td><td class="pill-no">No</td><td class="pill-yes">Yes</td><td class="pill-yes">Yes</td></tr>
+        <tr><td>Home value financed (LTV on the home)</td><td>80–95% (conforming)</td><td>n/a (loan unrelated to home purchase)</td><td>Varies by product: up to 100% of purchase (Milo); conforming + crypto-backed second loan (Better+Coinbase); rate-tier-based (Peoples Reserve)</td></tr>
+        <tr><td>BTC pledge required (collateral against the loan)</td><td>n/a (no BTC pledge)</td><td>Roughly 2-3x BTC vs. loan principal (30–50% LTV on BTC)</td><td>Product-specific: $1 BTC per $1 of mortgage (Milo, ~100% LTV on BTC); $2.50 BTC per $1 of down-payment loan (Better+Coinbase, ~40% LTV on BTC); rate-tier-dependent (Peoples Reserve)</td></tr>
+        <tr><td>Price-based margin call risk</td><td class="pill-no">No</td><td class="pill-yes">Yes</td><td>Product-specific: Yes (Milo); No (Better+Coinbase, Peoples Reserve)</td></tr>
       </tbody>
     </table>
+    <p style="font-size:0.88rem;color:var(--muted);"><em>Note:</em> the BTC-backed mortgage row collapses three distinct concepts that the deep dive disentangles in the structural-models section below: (1) the percentage of the home's value financed, (2) the ratio of BTC pledged vs. the loan principal, and (3) the per-dollar BTC collateral requirement on a down-payment loan. Different lenders use different combinations of these — always compare specific product disclosures, not just "LTV."</p>
 
     <p>Only the third column — <strong>Bitcoin-Backed Mortgage</strong> — is the subject of this deep dive. The other two are useful reference points for the trade-offs.</p>
   </div>
@@ -1023,7 +1025,7 @@
     <p>The risks are correlated. A BTC drawdown that triggers a margin call typically arrives in the same macro environment as job-loss risk and lender-stress risk. Diversifying across them is harder than it sounds.</p>
 
     <h3>Counterparty risk is the deepest cut</h3>
-    <p>Market risk is publicly observable. You can model it, hedge it, watch it. Counterparty risk hides until it ruptures, and then ruptures fully. The 2022 cohort (Celsius, Voyager, BlockFi, Genesis) proved this — all failed for the same four structural reasons: maturity mismatch, rehypothecation, counterparty concentration, and pooled non-segregated custody. Ledn and Milo survived because they had term-matched books, no or limited rehypothecation, counterparty diversification, and bankruptcy-remote custody.</p>
+    <p>Market risk is publicly observable. You can model it, hedge it, watch it. Counterparty risk hides until it ruptures, and then ruptures fully. The 2022 cohort failures (Celsius, Voyager, BlockFi, Genesis) shared a common pattern across multiple distinct precipitating events: <strong>maturity mismatch, rehypothecation, counterparty concentration, and pooled non-segregated custody</strong>. Each failure also had its own specific triggers — 3AC exposure, FTX/Alameda contagion, run dynamics on yield deposits, regulatory pressure — so reducing 2022 to a single tidy diagnosis would overstate the analysis. The structural pattern across them is more usefully read as a <em>recurring set of vulnerabilities</em> than as a single cause. Ledn and Milo, by contrast, ran with term-matched books, no or limited rehypothecation, counterparty diversification, and bankruptcy-remote custody — and survived the same macro environment.</p>
 
     <p>The lesson for lender evaluation today: <strong>structural questions, not promotional claims</strong>. Marketing about "safety" is noise. What matters is the legal structure of custody, the disclosure of rehypothecation, and the published bankruptcy-remoteness arrangements.</p>
   </div>
@@ -1508,10 +1510,10 @@ function update() {
   let txt = `<strong>Pledging beats selling by ${fmt$(Math.abs(delta))}</strong> at year ${state.term} under the ${sel.label} scenario `;
   txt += delta >= 0 ? '— a clear win for pledging. ' : '— but selling is better here. ';
 
-  txt += `Selling now would trigger <strong>${fmt$(taxOwed)}</strong> in immediate LTCG tax, locking in that cost. Pledging avoids it but pays <strong>${fmt$(cumInt30)}</strong> in cumulative mortgage interest over the full ${state.term}-year term.`;
+  txt += `Selling now would create a <strong>${fmt$(taxOwed)}</strong> taxable disposition at the assumed LTCG rate, locking in that tax cost (your actual liability depends on basis, holding period, and applicable rate). Pledging avoids the sale but pays <strong>${fmt$(cumInt30)}</strong> in cumulative mortgage interest over the full ${state.term}-year term.`;
 
   if (mcLines.length > 0) {
-    txt += `<br><br><strong style="color:var(--red);">Margin call risk in scenarios:</strong> ${mcLines.join('; ')}. In a real margin call, the lender liquidates pledged BTC at the worst price — and you owe LTCG on that forced sale.`;
+    txt += `<br><br><strong style="color:var(--red);">Margin call risk in scenarios:</strong> ${mcLines.join('; ')}. In a real margin call (Model A only), the lender liquidates pledged BTC at the worst price — and the forced sale is a taxable disposition, which may realize gains or losses depending on your basis and holding period.`;
   } else {
     txt += `<br><br><strong style="color:var(--green);">No margin call</strong> is triggered in any of the four scenarios at the current ${state.margin}% drop threshold. Your collateral has structural buffer.`;
   }
