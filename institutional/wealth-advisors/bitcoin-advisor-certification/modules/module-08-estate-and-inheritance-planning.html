@@ -86,7 +86,7 @@
             <p style="text-align:center;margin-bottom:1.5rem;">Use this to identify where the estate plan is conceptually ready and where implementation risk still exists.</p>
             <div class="tool-grid">
                 <div>
-                    <div class="form-group"><label for="toolA">Current custody model</label><select id="toolA"><option value="">Select custody model</option><option value="etf">ETF / custodial product</option><option value="exchange">Exchange-held bitcoin</option><option value="direct">Direct or collaborative security</option></select></div>
+                    <div class="form-group"><label for="toolA">Current custody model</label><select id="toolA"><option value="">Select custody model</option><option value="etf">ETF / custodial product</option><option value="exchange">Exchange-held bitcoin</option><option value="selfmanaged">Direct / self-managed (client controls the keys)</option><option value="collab">Collaborative security (independent keyholders)</option></select></div>
                     <div class="form-group"><label for="toolB">Beneficiary awareness</label><select id="toolB"><option value="">Select awareness level</option><option value="none">Beneficiaries are unaware</option><option value="basic">Basic awareness only</option><option value="prepared">Beneficiaries are prepared</option></select></div>
                     <div class="form-group"><label for="toolC">Document quality</label><select id="toolC"><option value="">Select document quality</option><option value="minimal">Minimal</option><option value="partial">Partial</option><option value="complete">Complete and reviewed</option></select></div>
                     <button type="button" class="tool-btn" onclick="runTool()">Generate Guidance</button>
@@ -156,7 +156,19 @@
                 document.getElementById('toolResult').innerHTML = '<p style="color:#f44336;">Please complete all three inputs to generate guidance.</p>';
                 return false;
             }
-            var guidance=''; if (a==='etf' && c==='complete') { guidance='<p><strong>Readiness:</strong> relatively straightforward.</p><p><strong>Advisor move:</strong> confirm account titling, beneficiary designations, and estate coordination.</p>'; } else if (a==='direct' || b!=='prepared' || c!=='complete') { guidance='<p><strong>Readiness:</strong> incomplete.</p><p><strong>Advisor move:</strong> coordinate immediately with estate counsel and a Bitcoin specialist to close the access gap.</p>'; } else { guidance='<p><strong>Readiness:</strong> moderate.</p><p><strong>Advisor move:</strong> strengthen the instruction set and make sure access assumptions are actually testable.</p>'; } document.getElementById('toolResult').innerHTML = guidance;
+            var guidance='';
+            if ((a==='etf' || a==='exchange') && b==='prepared' && c==='complete') {
+                guidance='<p><strong>Readiness:</strong> relatively straightforward.</p><p><strong>Advisor move:</strong> confirm account titling, beneficiary designations, and estate coordination.</p>';
+            } else if (a==='selfmanaged') {
+                guidance='<p><strong>Readiness:</strong> depends entirely on whether anyone but the client can act. Self-managed custody often leaves one person holding all keys, locations, and recovery knowledge, so a will alone does not move the bitcoin.</p><p><strong>Advisor move:</strong> confirm a written, tested recovery process exists that an heir or fiduciary could actually follow. If it does not, that is the gap. Coordinate with estate counsel and a Bitcoin specialist; do not handle key material.</p>';
+            } else if (a==='collab') {
+                guidance='<p><strong>Readiness:</strong> the model is built for continuity, but it is only as good as its documentation and keyholder independence.</p><p><strong>Advisor move:</strong> confirm the recovery process is documented and tested, that beneficiaries know who to contact, and that the keyholders are independent and reachable. Collaborative security reduces single-person failure; it does not remove the need for a clear estate plan.</p>';
+            } else if (b!=='prepared' || c!=='complete') {
+                guidance='<p><strong>Readiness:</strong> incomplete.</p><p><strong>Advisor move:</strong> coordinate with estate counsel and a Bitcoin specialist to close the access gap before anything else.</p>';
+            } else {
+                guidance='<p><strong>Readiness:</strong> moderate.</p><p><strong>Advisor move:</strong> strengthen the instruction set and make sure access assumptions are actually testable.</p>';
+            }
+            document.getElementById('toolResult').innerHTML = guidance;
             return true;
         }
 
