@@ -47,7 +47,7 @@ Summary: none = 18 · soft = 6 · direct = 4.
 | `sovereign-tools/index.html` | Tools hub | Find a tool | soft | Starter Kit $49 | — | no | calm footer: printable version is in the kits |
 | `sovereign-tools/privacy-best-practices.html` | Privacy how-to | Apply privacy | soft | — | Free privacy/red-flag checklist | no | "Get the free privacy checklist to apply this." |
 | `sovereign-tools/running-a-node.html` | Run a node | Set up a node | soft | Starter Kit $49 (tangential) | Free node-setup checklist | no | "Follow the free node-setup checklist." |
-| `sovereign-tools/multisig-guide.html` | Multisig security | Set up custody | direct | Family Recovery Kit $149; custody consult | Custody decision worksheet | **required now (missing)** | "Applying this for your family? The Family Bitcoin Recovery Kit ($149) walks the setup step by step." |
+| `sovereign-tools/multisig-guide.html` | Multisig security | Set up custody | direct | Family Recovery Kit $149; custody consult | Custody decision worksheet | **required now (satisfied)** | "Applying this for your family? The Family Bitcoin Recovery Kit ($149) walks the setup step by step." |
 | `bitcoin-capital/index.html` | Capital series hub | Evaluate borrowing | direct | Consult (TBA / Loan My Coins) | Loan/mortgage readiness worksheet | **required now (satisfied)** | "Run your numbers with the worksheet, or book a readiness call." |
 | `bitcoin-capital/bitcoin-backed-loans.html` | BTC-backed loans | Decide on a loan | direct | Consult (TBA / Loan My Coins) | Loan-terms comparison worksheet | **required now (satisfied)** | "Compare real offers with the loan worksheet before you pledge." |
 | `bitcoin-capital/bitcoin-backed-mortgages.html` | BTC-backed mortgages | Decide on a mortgage | direct | — | Mortgage/collateral readiness worksheet | **required later** | "Model your deal with the mortgage readiness worksheet." |
@@ -57,7 +57,7 @@ Summary: none = 18 · soft = 6 · direct = 4.
 - **Required now (page already names TBA / Loan My Coins or routes to a consult):**
   - `bitcoin-capital/bitcoin-backed-loans.html` — satisfied (disclosure present).
   - `bitcoin-capital/index.html` — satisfied (disclosure present).
-  - `sovereign-tools/multisig-guide.html` — **MISSING**: routes to a custody consult/advisor; needs the approved disclosure line. (Fold into the Model A / disclosure branch.)
+  - `sovereign-tools/multisig-guide.html` — **satisfied** (2026-06-13): does not name TBA, but routes to a consult ("book a call with Dalia" → HubSpot). Per the disclosure policy, routing to a consult/advisory requires disclosure; the approved line was added to the existing education-only boundary-note. Note: this is a SOFT-gate condition (routes-to-consult), not a HARD one (HARD fires only when a page *names* TBA) — which is why the script correctly showed 0 HARD while the map flagged it.
 - **Required later (a future CTA will route to TBA / Loan My Coins / guided advisory support):**
   - `bitcoin-capital/bitcoin-backed-mortgages.html` — add disclosure when a mortgage worksheet/consult CTA is wired to LMC/TBA.
   - Any `soft`/`direct` page above if its eventual CTA points to guided advisory support.
