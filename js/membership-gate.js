@@ -41,6 +41,11 @@
         // Path module-1 pages are always free
         freeModulePattern: /\/paths\/[^/]+\/stage-1\/module-1\.html$/,
 
+        // Fully-free paths (open map, no stage gating) — Skeptic = top-of-funnel.
+        freePaths: [
+            '/paths/skeptic/'
+        ],
+
         // Premium content patterns (everything else in paths/ and most demos)
         premiumPatterns: [
             /\/paths\/[^/]+\/stage-[2-9]\//,
@@ -292,6 +297,11 @@
 
             // Free module pattern (module-1 of stage-1)
             if (CONFIG.freeModulePattern.test(path)) {
+                return false;
+            }
+
+            // Fully-free paths (open map, no stage gating)
+            if (CONFIG.freePaths && CONFIG.freePaths.some(p => path.startsWith(p))) {
                 return false;
             }
 
