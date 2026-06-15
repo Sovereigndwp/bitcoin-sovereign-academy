@@ -148,6 +148,28 @@ export const FILE_ALLOWLIST = [
   'reports/demo-audit-economics.md',
   'reports/demo-audit-protocol.md',
   'reports/tutor-evals-2026-04-24.md',
+  'reports/tutor-evals-2026-04-26.md',
+  'reports/content-audit-premium-2026-06-06.md',
+  // Audit/spec working docs — flag and discuss retired services by design.
+  'audit-2026-04/findings.md',
+  'audit-2026-04/spec-coinjoin-simulator.md',
+  'audit-2026-04/spec-kyc-best-practices.md',
+  // Bitcoin-backed lending deep dives — cite Celsius/Voyager/BlockFi/FTX as
+  // cautionary historical examples of rehypothecation & counterparty failure
+  // (the whole point of the lesson). Not recommendations.
+  'deep-dives/bitcoin-capital/bitcoin-backed-loans-deep-dive.md',
+  'deep-dives/bitcoin-capital/bitcoin-backed-loans.html',
+  'deep-dives/bitcoin-capital/bitcoin-backed-mortgages.html',
+  // Foundational-layer thesis essays — discuss privacy protocols (Whirlpool) and
+  // "post-FTX" market context as part of the argument; historical/analytical.
+  'deep-dives/foundational-layer-thesis/competing-theses.md',
+  'deep-dives/foundational-layer-thesis/counter-map.md',
+  // DCA time machine — lists "FTX, Mt. Gox style events" as historical exchange-
+  // failure examples motivating self-custody.
+  'interactive-demos/bitcoin-dca-time-machine/index.html',
+  // CoinJoin simulator — references Whirlpool to state Sparrow no longer bundles it
+  // (accurate post-removal fact) and as historical CoinJoin context.
+  'interactive-demos/coinjoin-simulator/index.html',
   // Roadmap files where the names appear as task labels
   'TASKS.md',
   // Canonical CoinJoin history module — references Samourai/Whirlpool throughout
