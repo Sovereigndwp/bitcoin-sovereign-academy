@@ -106,7 +106,17 @@ Options (Dalia's): The Skeptic's Discovery Path · Question Money First · The M
 
 Parallelizable as a workflow — one agent per stage (5 stages are independent once the spec + shared scaffolding/voice are fixed), plus an index rewrite + a consistency pass. Runs as its own track without blocking the audit (touches only `paths/skeptic/*`). Sequence: lock shared scaffolding (nav, theme, reflect-widget wiring) → fan out per-stage builds → index rewrite → cross-stage voice/consistency + in-browser verification → single PR (or stage-grouped PRs).
 
-## 11. Open questions for sign-off
+## 11b. Decisions (LOCKED 2026-06-15 by Dalia)
+
+1. **Title: "Question Money First."**
+2. **Build all 5 stages** now, including Stage 5 "You Decide."
+3. **Rebuild Stage 4 fresh** (Compare the Tradeoffs) — retire the old "Bitcoin's MVP" content rather than reframe-absorb it.
+4. **Custom calculators in v1** — build the promise/inflation/purchasing-power calculators + custody-tradeoff cards into the stages now (not deferred).
+5. **EN only for v1** (consistent with the scoped bilingual claim).
+
+Build approach: **reference-first** — build Stage 1 + the index as the voice/structure/theme reference, verify + Dalia review, then fan out Stages 2–5 + calculators via a per-stage workflow. (Mirrors the successful PR #110 pilot pattern; de-risks voice on a flagship asset.)
+
+## 11a. Open questions (resolved — see 11b)
 
 1. **Title** — go with "Question Money First", or pick another from §8?
 2. **Stage count** — build all 5 (incl. Stage 5 "You Decide"), or 4 now + Stage 5 as a fast follow?
