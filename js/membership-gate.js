@@ -41,15 +41,10 @@
         // Path module-1 pages are always free
         freeModulePattern: /\/paths\/[^/]+\/stage-1\/module-1\.html$/,
 
-        // Fully-free paths (open map, no stage gating) — Skeptic = top-of-funnel.
-        freePaths: [
-            '/paths/skeptic/'
-        ],
-
         // Premium content patterns (everything else in paths/ and most demos)
+        // Learning paths are free (education-first model, decided 2026-06-15).
+        // Only the standalone deep-dives section remains premium.
         premiumPatterns: [
-            /\/paths\/[^/]+\/stage-[2-9]\//,
-            /\/paths\/[^/]+\/stage-1\/module-[2-9]\./,
             /\/deep-dives\//
         ]
     };
@@ -297,11 +292,6 @@
 
             // Free module pattern (module-1 of stage-1)
             if (CONFIG.freeModulePattern.test(path)) {
-                return false;
-            }
-
-            // Fully-free paths (open map, no stage gating)
-            if (CONFIG.freePaths && CONFIG.freePaths.some(p => path.startsWith(p))) {
                 return false;
             }
 
