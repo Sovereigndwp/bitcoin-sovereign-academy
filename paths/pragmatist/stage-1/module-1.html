@@ -349,42 +349,6 @@
             box-shadow: 0 5px 20px rgba(255, 122, 0, 0.25);
         }
 
-        /* Achievement Notification */
-        .achievement-notification {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: linear-gradient(135deg, var(--pragmatist-teal), var(--pragmatist-cyan));
-            padding: 2rem;
-            border-radius: 1rem;
-            text-align: center;
-            z-index: 1000;
-            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-
-        .achievement-notification.show {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-
-        .achievement-notification .icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        .achievement-notification h3 {
-            color: #fff;
-            margin-bottom: 0.5rem;
-        }
-
-        .achievement-notification p {
-            color: #fff;
-            opacity: 0.9;
-        }
-
         /* Live Ticker */
         .live-ticker-container {
             background: linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
@@ -517,13 +481,6 @@
 </head>
 <body class="bsa-skin">
     <a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;color:#fff;background:#FF7A00;padding:.35rem .75rem;border-radius:0 0 4px 0;text-decoration:none;font-weight:600;z-index:9999;" onfocus="this.style.left='0';this.style.top='0';this.style.width='auto';this.style.height='auto';" onblur="this.style.left='-9999px';this.style.width='1px';this.style.height='1px';">Skip to main content</a>
-    <!-- Achievement Notification -->
-    <div class="achievement-notification" id="achievement-notification">
-        <div class="icon"><span data-icon="trophy"></span> </div>
-        <h3 id="achievement-title"></h3>
-        <p id="achievement-description"></p>
-    </div>
-
     <!-- Module Header -->
     <header class="module-header">
         <div class="container">
@@ -538,8 +495,6 @@
             </div>
             <div class="module-meta">
                 <span><span data-icon="timer"></span> 20 minutes</span>
-                <span><span data-icon="target"></span> 15 knowledge points</span>
-                <span><span data-icon="chart"></span> 3 quiz questions</span>
             </div>
         </div>
     </header>
@@ -960,11 +915,11 @@
             </p>
         </section>
 
-        <!-- Complete Module -->
+        <!-- Continue -->
         <section class="complete-section">
-            <button class="complete-btn" id="complete-btn" onclick="completeModule()" disabled="">
-                ✅ Complete Module &amp; Continue →
-            </button>
+            <a class="complete-btn" href="/paths/pragmatist/stage-1/module-2.html">
+                Continue to Module 2 →
+            </a>
         </section>
     
 <!-- Lab Cards — Try It Now -->
@@ -1151,68 +1106,9 @@
             setInterval(updateTicker, 60000);
         };
 
-        // Complete module
-        function completeModule() {
-            // Save completion to localStorage (legacy)
-            localStorage.setItem('pragmatist-m1-complete', 'true');
-            localStorage.setItem('pragmatist-m1-completed-at', new Date().toISOString());
-
-            // Also update global Pragmatist path progress
-            const storageKey = 'pragmatist-progress';
-            let data;
-            try {
-                data = JSON.parse(localStorage.getItem(storageKey));
-            } catch (e) {
-                data = null;
-            }
-
-            if (!data || typeof data !== 'object') {
-                data = {
-                    completedModules: [],
-                    knowledgeScore: 0,
-                    achievements: [],
-                    startTime: Date.now()
-                };
-            }
-
-            if (!Array.isArray(data.completedModules)) data.completedModules = [];
-            if (!Array.isArray(data.achievements)) data.achievements = [];
-            if (typeof data.knowledgeScore !== 'number' || !Number.isFinite(data.knowledgeScore)) data.knowledgeScore = 0;
-            if (typeof data.startTime !== 'number' || !Number.isFinite(data.startTime)) data.startTime = Date.now();
-
-            if (!data.completedModules.includes('1-1')) {
-                data.completedModules.push('1-1');
-                data.knowledgeScore += 15;
-            }
-
-            try {
-                localStorage.setItem(storageKey, JSON.stringify(data));
-            } catch (e) {
-                // Ignore write errors (private mode / quota)
-            }
-
-            // Show achievement
-            showAchievement('Module 1 Complete', 'You understand Bitcoin as infrastructure!', '✅');
-
-            // Redirect to next module
-            setTimeout(() => {
-                window.location.href = '/paths/pragmatist/stage-1/module-2.html';
-            }, 2000);
-        }
-
-        // Show achievement notification
-        function showAchievement(title, description, icon) {
-            const notification = document.getElementById('achievement-notification');
-            document.getElementById('achievement-title').textContent = title;
-            document.getElementById('achievement-description').textContent = description;
-            notification.querySelector('.icon').textContent = icon;
-
-            notification.classList.add('show');
-
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 2500);
-        }
+        // Gamification removed (unbounded mode): module completion is now a plain
+        // navigation link — no scoring, knowledge points, achievement popups, or
+        // step-gating. Reflection answers still persist via saveResponse/loadResponses.
     </script>
 
     <!-- Interactive Reflection JavaScript -->
@@ -1245,14 +1141,14 @@
             }
 
             if (choice === 'neutral') {
-                feedbackDiv.innerHTML = `<h5>✓ Exactly Right!</h5><p>Just like electricity is <strong>neutral infrastructure</strong> that powers devices, Bitcoin is neutral infrastructure that moves value.<br><br>Both are accessible networks that operate <strong>24/7 without requiring permission</strong>. Electricity doesn't care who you are—it just works. Bitcoin is the same.</p>`;
+                feedbackDiv.innerHTML = `<h5>How to think about it</h5><p>Just like electricity is <strong>neutral infrastructure</strong> that powers devices, Bitcoin is neutral infrastructure that moves value.<br><br>Both are accessible networks that operate <strong>24/7 without requiring permission</strong>. Electricity doesn't care who you are—it just works. Bitcoin is the same.</p>`;
                 feedbackDiv.className = 'feedback-box positive';
                 updateProgress('q1');
             } else if (choice === 'energy') {
-                feedbackDiv.innerHTML = `<h5><span data-icon="lightbulb"></span> Partial Understanding</h5><p>Bitcoin does use energy for mining, but that's not why it's compared to electricity. The comparison is about <strong>neutral, accessible infrastructure</strong> that anyone can plug into—not the energy consumption itself.</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Bitcoin does use energy for mining, but that's not why it's compared to electricity. The comparison is about <strong>neutral, accessible infrastructure</strong> that anyone can plug into—not the energy consumption itself.</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             } else {
-                feedbackDiv.innerHTML = `<h5>⚠️ Not Quite</h5><p>Think bigger. The electricity analogy is about Bitcoin being <strong>neutral infrastructure</strong> that transmits value globally, continuously, and without discrimination—just like electricity powers devices 24/7 for anyone.</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Think bigger. The electricity analogy is about Bitcoin being <strong>neutral infrastructure</strong> that transmits value globally, continuously, and without discrimination—just like electricity powers devices 24/7 for anyone.</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             }
             feedbackDiv.style.display = 'block';
@@ -1281,14 +1177,14 @@
             }
 
             if (score >= 3) {
-                feedbackDiv.innerHTML = `<h5>✓ Comprehensive Understanding!</h5><p>You identified ${score} key concepts:<br><br><strong>Neutral infrastructure</strong> that's <strong>accessible to anyone</strong>, operates <strong>24/7</strong>, and requires no permission. This is exactly why Bitcoin is compared to electricity—both democratize access to essential services.</p>`;
+                feedbackDiv.innerHTML = `<h5>How to think about it</h5><p>You identified ${score} key concepts:<br><br><strong>Neutral infrastructure</strong> that's <strong>accessible to anyone</strong>, operates <strong>24/7</strong>, and requires no permission. This is exactly why Bitcoin is compared to electricity—both democratize access to essential services.</p>`;
                 feedbackDiv.className = 'feedback-box positive';
                 updateProgress('q1');
             } else if (score >= 2) {
-                feedbackDiv.innerHTML = `<h5><span data-icon="lightbulb"></span> Good Start (${score}/4 concepts)</h5><p>Consider adding: neutral access, 24/7 operation, infrastructure model. The analogy emphasizes Bitcoin as <strong>reliable, always-on infrastructure</strong> anyone can use—like plugging into an electrical socket.</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Consider adding: neutral access, 24/7 operation, infrastructure model. The analogy emphasizes Bitcoin as <strong>reliable, always-on infrastructure</strong> anyone can use—like plugging into an electrical socket.</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             } else {
-                feedbackDiv.innerHTML = `<h5><span data-icon="lightbulb"></span> Keep Developing</h5><p>The electricity analogy highlights: <strong>neutral infrastructure</strong> + <strong>universal access</strong> + <strong>24/7 availability</strong> + <strong>no permissions required</strong>. Try incorporating these themes!</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>The electricity analogy highlights: <strong>neutral infrastructure</strong> + <strong>universal access</strong> + <strong>24/7 availability</strong> + <strong>no permissions required</strong>. Try incorporating these themes!</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             }
             feedbackDiv.style.display = 'block';
@@ -1306,14 +1202,14 @@
             }
 
             if (choice === '21million') {
-                feedbackDiv.innerHTML = `<h5>✓ Perfect!</h5><p>Bitcoin has a hard cap of <strong>21 million coins</strong>, programmed into the protocol. This predictable supply is <strong>algorithmic, not political</strong>—no one can change it.<br><br>This fixed scarcity is fundamental to Bitcoin's value proposition.</p>`;
+                feedbackDiv.innerHTML = `<h5>How to think about it</h5><p>Bitcoin has a hard cap of <strong>21 million coins</strong>, programmed into the protocol. This predictable supply is <strong>algorithmic, not political</strong>—no one can change it.<br><br>This fixed scarcity is fundamental to Bitcoin's value proposition.</p>`;
                 feedbackDiv.className = 'feedback-box positive';
                 updateProgress('q2');
             } else if (choice === 'unlimited') {
-                feedbackDiv.innerHTML = `<h5>⚠️ Opposite of Bitcoin's Design</h5><p>Unlike fiat currencies that can be printed endlessly, Bitcoin has a <strong>fixed cap of 21 million coins</strong>. No one—not miners, not developers, not governments—can create more.</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Unlike fiat currencies that can be printed endlessly, Bitcoin has a <strong>fixed cap of 21 million coins</strong>. No one—not miners, not developers, not governments—can create more.</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             } else {
-                feedbackDiv.innerHTML = `<h5>⚠️ Fixed, Not Flexible</h5><p>Bitcoin's supply is <strong>21 million forever</strong>—it's coded into the protocol and cannot be changed by miners, developers, or governments. This predictability is a key feature.</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Bitcoin's supply is <strong>21 million forever</strong>—it's coded into the protocol and cannot be changed by miners, developers, or governments. This predictability is a key feature.</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             }
             feedbackDiv.style.display = 'block';
@@ -1342,14 +1238,14 @@
             }
 
             if (score >= 3) {
-                feedbackDiv.innerHTML = `<h5>✓ Excellent Analysis! (${score}/4 concepts)</h5><p>You grasped the core implications:<br><br>Fixed supply means <strong>no inflation</strong>, <strong>predictable scarcity</strong>, and <strong>zero political discretion</strong>. If Bitcoin's supply could change, it would lose its value proposition as <strong>hard, sound money</strong>.</p>`;
+                feedbackDiv.innerHTML = `<h5>How to think about it</h5><p>You grasped the core implications:<br><br>Fixed supply means <strong>no inflation</strong>, <strong>predictable scarcity</strong>, and <strong>zero political discretion</strong>. If Bitcoin's supply could change, it would lose its value proposition as <strong>hard, sound money</strong>.</p>`;
                 feedbackDiv.className = 'feedback-box positive';
                 updateProgress('q2');
             } else if (score >= 2) {
-                feedbackDiv.innerHTML = `<h5><span data-icon="lightbulb"></span> Good Points (${score}/4 concepts)</h5><p>Also consider: no inflation, predictability, removal of political discretion. A flexible supply would make Bitcoin just another fiat currency—subject to devaluation and manipulation.</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Also consider: no inflation, predictability, removal of political discretion. A flexible supply would make Bitcoin just another fiat currency—subject to devaluation and manipulation.</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             } else {
-                feedbackDiv.innerHTML = `<h5><span data-icon="lightbulb"></span> Think Deeper</h5><p>Key themes: <strong>prevents inflation</strong>, <strong>predictable scarcity</strong>, <strong>removes political control</strong>, <strong>preserves value</strong>. A changeable supply would destroy Bitcoin's core advantage over fiat money.</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Key themes: <strong>prevents inflation</strong>, <strong>predictable scarcity</strong>, <strong>removes political control</strong>, <strong>preserves value</strong>. A changeable supply would destroy Bitcoin's core advantage over fiat money.</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             }
             feedbackDiv.style.display = 'block';
@@ -1367,11 +1263,11 @@
             }
 
             if (choice === 'false') {
-                feedbackDiv.innerHTML = `<h5>✓ Correct!</h5><p>No one can shut down Bitcoin. It's <strong>decentralized across thousands of nodes globally</strong>, like the internet itself.<br><br>There's no central switch or server to turn off. This is why censorship resistance is one of Bitcoin's core properties.</p>`;
+                feedbackDiv.innerHTML = `<h5>How to think about it</h5><p>No one can shut down Bitcoin. It's <strong>decentralized across thousands of nodes globally</strong>, like the internet itself.<br><br>There's no central switch or server to turn off. This is why censorship resistance is one of Bitcoin's core properties.</p>`;
                 feedbackDiv.className = 'feedback-box positive';
                 updateProgress('q3');
             } else {
-                feedbackDiv.innerHTML = `<h5>⚠️ False</h5><p>Bitcoin <strong>cannot be shut down</strong>. It runs on thousands of independent nodes in 100+ countries. There's no CEO, no central server, no single point of failure. As long as one node exists, the network persists.</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Bitcoin <strong>cannot be shut down</strong>. It runs on thousands of independent nodes in 100+ countries. There's no CEO, no central server, no single point of failure. As long as one node exists, the network persists.</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             }
             feedbackDiv.style.display = 'block';
@@ -1400,14 +1296,14 @@
             }
 
             if (score >= 3) {
-                feedbackDiv.innerHTML = `<h5>✓ Perfect Explanation! (${score}/4 concepts)</h5><p>You identified the core resilience factors:<br><br><strong>Thousands of nodes</strong> distributed <strong>globally</strong> with <strong>no central server</strong> or company. Bitcoin is <strong>peer-to-peer infrastructure</strong>—as resilient as the internet itself.</p>`;
+                feedbackDiv.innerHTML = `<h5>How to think about it</h5><p>You identified the core resilience factors:<br><br><strong>Thousands of nodes</strong> distributed <strong>globally</strong> with <strong>no central server</strong> or company. Bitcoin is <strong>peer-to-peer infrastructure</strong>—as resilient as the internet itself.</p>`;
                 feedbackDiv.className = 'feedback-box positive';
                 updateProgress('q3');
             } else if (score >= 2) {
-                feedbackDiv.innerHTML = `<h5><span data-icon="lightbulb"></span> Good Understanding (${score}/4 concepts)</h5><p>Strengthen your explanation by emphasizing: <strong>thousands of independent nodes</strong>, <strong>global distribution</strong>, <strong>no central point of control</strong>. This makes Bitcoin unstoppable.</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Strengthen your explanation by emphasizing: <strong>thousands of independent nodes</strong>, <strong>global distribution</strong>, <strong>no central point of control</strong>. This makes Bitcoin unstoppable.</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             } else {
-                feedbackDiv.innerHTML = `<h5><span data-icon="lightbulb"></span> Expand Your Answer</h5><p>Key points: <strong>15,000+ nodes worldwide</strong>, <strong>fully decentralized</strong>, <strong>no CEO/company/server</strong>, <strong>peer-to-peer network</strong>. As long as one node exists, Bitcoin survives.</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Key points: <strong>15,000+ nodes worldwide</strong>, <strong>fully decentralized</strong>, <strong>no CEO/company/server</strong>, <strong>peer-to-peer network</strong>. As long as one node exists, Bitcoin survives.</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             }
             feedbackDiv.style.display = 'block';
@@ -1425,17 +1321,17 @@
             }
 
             if (choice === '247') {
-                feedbackDiv.innerHTML = `<h5>✓ Exactly Right!</h5><p>Bitcoin operates <strong>continuously without business hours, weekends, or holidays</strong>.<br><br>Traditional banks have operating hours and settlement delays (3-5 business days), while Bitcoin settles in <strong>10-60 minutes, anytime</strong>. This is infrastructure, not a service with office hours.</p>`;
+                feedbackDiv.innerHTML = `<h5>How to think about it</h5><p>Bitcoin operates <strong>continuously without business hours, weekends, or holidays</strong>.<br><br>Traditional banks have operating hours and settlement delays (3-5 business days), while Bitcoin settles in <strong>10-60 minutes, anytime</strong>. This is infrastructure, not a service with office hours.</p>`;
                 feedbackDiv.className = 'feedback-box positive';
                 updateProgress('q4');
             } else if (choice === 'profit') {
-                feedbackDiv.innerHTML = `<h5>⚠️ No Guarantees</h5><p>Bitcoin doesn't guarantee profit—price is volatile. The actual advantage is <strong>24/7/365 operation</strong> with no business hours or settlement delays. It's infrastructure, not an investment product.</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Bitcoin doesn't guarantee profit—price is volatile. The actual advantage is <strong>24/7/365 operation</strong> with no business hours or settlement delays. It's infrastructure, not an investment product.</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             } else if (choice === 'free') {
-                feedbackDiv.innerHTML = `<h5>⚠️ Not Free</h5><p>Bitcoin transactions have fees (paid to miners). The real advantage is <strong>24/7 availability</strong>—no business hours, weekends, or settlement delays like banks have.</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Bitcoin transactions have fees (paid to miners). The real advantage is <strong>24/7 availability</strong>—no business hours, weekends, or settlement delays like banks have.</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             } else {
-                feedbackDiv.innerHTML = `<h5>⚠️ Opposite Approach</h5><p>Bitcoin has <strong>no government insurance</strong>—you're responsible for your own security. The advantage is <strong>24/7/365 operation</strong> with instant global access and no business hours.</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Bitcoin has <strong>no government insurance</strong>—you're responsible for your own security. The advantage is <strong>24/7/365 operation</strong> with instant global access and no business hours.</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             }
             feedbackDiv.style.display = 'block';
@@ -1465,14 +1361,14 @@
             }
 
             if (score >= 4) {
-                feedbackDiv.innerHTML = `<h5>✓ Comprehensive List! (${score}/5 advantages)</h5><p>You identified multiple key advantages:<br><br><strong>24/7 operation</strong>, <strong>open access</strong>, <strong>fast settlement</strong>, <strong>censorship resistance</strong>, and <strong>borderless</strong> design. Bitcoin is infrastructure built for a global, always-on world.</p>`;
+                feedbackDiv.innerHTML = `<h5>How to think about it</h5><p>You identified multiple key advantages:<br><br><strong>24/7 operation</strong>, <strong>open access</strong>, <strong>fast settlement</strong>, <strong>censorship resistance</strong>, and <strong>borderless</strong> design. Bitcoin is infrastructure built for a global, always-on world.</p>`;
                 feedbackDiv.className = 'feedback-box positive';
                 updateProgress('q4');
             } else if (score >= 3) {
-                feedbackDiv.innerHTML = `<h5><span data-icon="lightbulb"></span> Good Start (${score}/5 advantages)</h5><p>Also consider: 24/7 operation, open access, fast settlement (10-60 min vs 3-5 days), censorship resistance, borderless design. Each eliminates a friction point of traditional banking.</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Also consider: 24/7 operation, open access, fast settlement (10-60 min vs 3-5 days), censorship resistance, borderless design. Each eliminates a friction point of traditional banking.</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             } else {
-                feedbackDiv.innerHTML = `<h5><span data-icon="lightbulb"></span> Expand Your List</h5><p>Key advantages: <strong>24/7 availability</strong> (no business hours), <strong>open access</strong> (no applications), <strong>fast settlement</strong> (~10 min), <strong>censorship-resistant</strong> (can't be frozen), <strong>borderless</strong> (global by default). Try listing 3+ with explanations!</p>`;
+                feedbackDiv.innerHTML = `<h5>Worth reconsidering</h5><p>Key advantages: <strong>24/7 availability</strong> (no business hours), <strong>open access</strong> (no applications), <strong>fast settlement</strong> (~10 min), <strong>censorship-resistant</strong> (can't be frozen), <strong>borderless</strong> (global by default). Try listing 3+ with explanations!</p>`;
                 feedbackDiv.className = 'feedback-box hint';
             }
             feedbackDiv.style.display = 'block';
@@ -1483,28 +1379,10 @@
         const completedQuestions = new Set();
 
         function updateProgress(questionId) {
+            // Track answered reflections for the learner's own benefit (resume).
+            // No step-gating: the Continue link is always available.
             completedQuestions.add(questionId);
-            console.log(`Question ${questionId} completed. Total: ${completedQuestions.size}/4`);
-
-            // Enable button after answering at least 2 questions (Pragmatist-friendly)
-            if (completedQuestions.size >= 2) {
-                document.getElementById('complete-btn').disabled = false;
-                document.getElementById('complete-btn').textContent = '✅ Complete Module & Continue →';
-                console.log('Complete button enabled!');
-            }
         }
-
-        // Enable button on page load (allow learners to skip quiz if revisiting)
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(() => {
-                const hasVisited = localStorage.getItem('pragmatist-m1-visited');
-                if (hasVisited) {
-                    document.getElementById('complete-btn').disabled = false;
-                    console.log('Returning visitor - button auto-enabled');
-                }
-                localStorage.setItem('pragmatist-m1-visited', 'true');
-            }, 1000);
-        });
 
         // Save/load functions
         function saveResponse(key, value) {
@@ -1543,8 +1421,8 @@
         .reflection-panel.active { display: block; }
         .choice-select { width: 100%; padding: 1rem; background: rgba(0, 0, 0, 0.3); border: 2px solid var(--border-color); border-radius: 0.5rem; color: var(--text-light); font-size: 1rem; cursor: pointer; }
         .feedback-box { margin-top: 1.5rem; padding: 1.5rem; border-radius: 0.5rem; border: 2px solid; display: none; }
-        .feedback-box.positive { background: rgba(40, 167, 69, 0.08); border-color: #4caf50; color: var(--text-light); }
-        .feedback-box.hint { background: rgba(255, 152, 0, 0.1); border-color: #ff9800; color: var(--text-light); }
+        .feedback-box.positive { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.18); color: var(--text-light); }
+        .feedback-box.hint { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.18); color: var(--text-light); }
         @media (max-width: 768px) {
             .reflection-tabs { flex-direction: column; }
             .reflection-tab { border-radius: 0.5rem; }
