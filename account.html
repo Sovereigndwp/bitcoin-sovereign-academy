@@ -377,24 +377,12 @@
         </div>
 
         <div class="tabs">
-            <button class="tab active" data-tab="subscriptions">Subscriptions</button>
-            <button class="tab" data-tab="purchases">Purchases</button>
+            <button class="tab active" data-tab="purchases">Purchases</button>
             <button class="tab" data-tab="entitlements">Content Access</button>
         </div>
 
-        <!-- Subscriptions Tab -->
-        <div id="subscriptions-tab" class="tab-content active">
-            <div class="card">
-                <h2>Active Subscriptions</h2>
-                <div id="subscriptions-list" class="loading">
-                    <div class="loading-spinner"></div>
-                    <p>Loading subscriptions...</p>
-                </div>
-            </div>
-        </div>
-
         <!-- Purchases Tab -->
-        <div id="purchases-tab" class="tab-content">
+        <div id="purchases-tab" class="tab-content active">
             <div class="card">
                 <h2>Purchase History</h2>
                 <div id="purchases-list" class="loading">
@@ -416,27 +404,8 @@
         </div>
     </div>
 
-    <!-- Cancel Subscription Modal -->
-    <div id="cancelModal" class="modal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeCancelModal()">×</button>
-            <h2>Cancel Subscription</h2>
-            <p id="cancelMessage">Are you sure you want to cancel this subscription?</p>
-            <p style="color: var(--text-dim); font-size: 0.9rem;">Your access will continue until the end of the current billing period.</p>
-            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                <button class="btn btn-danger" onclick="confirmCancel()" style="flex: 1;">
-                    Cancel Subscription
-                </button>
-                <button class="btn btn-secondary" onclick="closeCancelModal()" style="flex: 1;">
-                    Keep Subscription
-                </button>
-            </div>
-        </div>
-    </div>
-
     <script>
         let authToken = null;
-        let selectedSubscriptionId = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -462,7 +431,6 @@
             }
 
             // Load data
-            loadSubscriptions();
             loadPurchases();
             loadEntitlements();
         }
@@ -494,84 +462,6 @@
                     document.getElementById(`${tabName}-tab`).classList.add('active');
                 });
             });
-        }
-
-        // Load subscriptions
-        async function loadSubscriptions() {
-            const container = document.getElementById('subscriptions-list');
-            
-            try {
-                const response = await fetch('/api/subscriptions/manage', {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to load subscriptions');
-                }
-
-                if (data.subscriptions.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <div class="icon">📋</div>
-                            <p>No active subscriptions</p>
-                            <a href="/membership.html" class="btn btn-primary" style="display: inline-block; margin-top: 1rem;">Browse Plans</a>
-                        </div>
-                    `;
-                    return;
-                }
-
-                container.innerHTML = `
-                    <ul class="item-list">
-                        ${data.subscriptions.map(sub => renderSubscription(sub)).join('')}
-                    </ul>
-                `;
-            } catch (error) {
-                console.error('Failed to load subscriptions:', error);
-                container.innerHTML = `
-                    <div class="error">${error.message}</div>
-                `;
-            }
-        }
-
-        // Render subscription
-        function renderSubscription(sub) {
-            const statusClass = sub.status === 'active' ? 'status-active' : 
-                               sub.status === 'past_due' ? 'status-past-due' : 
-                               'status-canceled';
-            
-            const renewDate = new Date(sub.currentPeriodEnd).toLocaleDateString();
-            const showReactivate = sub.cancelAtPeriodEnd && sub.status === 'active';
-            
-            return `
-                <li class="item">
-                    <div class="item-header">
-                        <div>
-                            <div class="item-title">${sub.productName}</div>
-                            <div class="item-subtitle">$${sub.price}/${sub.interval}</div>
-                        </div>
-                        <span class="status-badge ${statusClass}">${sub.status}</span>
-                    </div>
-                    <div class="item-meta">
-                        <span>📅 ${sub.cancelAtPeriodEnd ? 'Expires' : 'Renews'}: ${renewDate}</span>
-                    </div>
-                    ${sub.cancelAtPeriodEnd ? 
-                        `<div style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--yellow); border-radius: 8px; padding: 1rem; margin-top: 1rem; color: var(--yellow);">
-                            ⚠️ This subscription will be canceled at the end of the billing period
-                        </div>` : ''}
-                    <div class="item-actions">
-                        ${showReactivate ? 
-                            `<button class="btn btn-primary" onclick="reactivateSubscription('${sub.id}')">Reactivate</button>` :
-                            sub.status === 'active' ?
-                                `<button class="btn btn-danger" onclick="openCancelModal('${sub.id}', '${sub.productName}')">Cancel Subscription</button>` :
-                                ''
-                        }
-                    </div>
-                </li>
-            `;
         }
 
         // Load purchases
@@ -750,84 +640,6 @@
                     ` : ''}
                 </li>
             `;
-        }
-
-        // Open cancel modal
-        function openCancelModal(subscriptionId, productName) {
-            selectedSubscriptionId = subscriptionId;
-            document.getElementById('cancelMessage').textContent = 
-                `Are you sure you want to cancel ${productName}?`;
-            document.getElementById('cancelModal').classList.add('show');
-        }
-
-        // Close cancel modal
-        function closeCancelModal() {
-            document.getElementById('cancelModal').classList.remove('show');
-            selectedSubscriptionId = null;
-        }
-
-        // Confirm cancel
-        async function confirmCancel() {
-            if (!selectedSubscriptionId) return;
-
-            try {
-                const response = await fetch('/api/subscriptions/manage', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
-                    body: JSON.stringify({
-                        action: 'cancel',
-                        subscriptionId: selectedSubscriptionId,
-                        reason: 'User requested cancellation'
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to cancel subscription');
-                }
-
-                closeCancelModal();
-                alert('Subscription canceled successfully. Your access will continue until the end of the billing period.');
-                loadSubscriptions();
-            } catch (error) {
-                console.error('Cancel error:', error);
-                alert('Failed to cancel subscription: ' + error.message);
-            }
-        }
-
-        // Reactivate subscription
-        async function reactivateSubscription(subscriptionId) {
-            if (!confirm('Reactivate this subscription?')) return;
-
-            try {
-                const response = await fetch('/api/subscriptions/manage', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
-                    body: JSON.stringify({
-                        action: 'reactivate',
-                        subscriptionId
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to reactivate subscription');
-                }
-
-                alert('Subscription reactivated successfully!');
-                loadSubscriptions();
-            } catch (error) {
-                console.error('Reactivate error:', error);
-                alert('Failed to reactivate subscription: ' + error.message);
-            }
         }
     </script>
 
