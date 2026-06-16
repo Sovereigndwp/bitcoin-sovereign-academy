@@ -36,11 +36,11 @@ Territorial system; foreign-source income generally not taxed for residents (exa
 
 ## 4. Reporting and surveillance exposure
 
-El Salvador is **not committed to the OECD CARF** and CRS participation is weak/absent — a present-state transparency outlier with low automatic cross-border crypto reporting today. IMF governance conditionality and global CARF momentum point toward future tightening. `Reporting: Medium` [src-pa-oecd-carf]
+El Salvador was reported among non-committed CARF "jurisdictions of relevance" with weak/absent CRS participation — a present-state transparency outlier with low automatic cross-border crypto reporting today. **Caveat (verification pass):** the CARF committed list has grown (60+ jurisdictions), so re-confirm El Salvador's current status against the live OECD CARF commitments list before relying on "not committed." IMF governance conditionality and global CARF momentum point toward future tightening. `Reporting: Low — re-verify` [src-pa-oecd-carf]
 
 ## 5. Estate and succession
 
-Civil-law **forced heirship (legítima)** reserves a portion for forced heirs (children, spouse, sometimes parents); testamentary freedom is constrained. Notarial/registry succession. Precise reserved fractions, foreign-will mechanics, and the default marital-property regime were not pinned to a Tier-1 source this pass. `Estate: Medium` [src-sv-iba-estate]
+Bello-derived Civil Code. **Intestate** succession calls children, parents, and spouse by order, dividing equally within each order (confirmed against the Código Civil; the spouse loses the intestate share on unjustified abandonment). Whether a **testate forced-heirship reserve (legítima) applies, and its fraction, was not confirmed** against the current Code this pass and should be treated as an open question. Notarial/registry succession; foreign-will mechanics and default marital-property regime also unconfirmed. `Estate: Low/Medium — testate reserve unconfirmed` [src-sv-codigo-civil, src-sv-iba-estate]
 
 ## 6. Banking reality
 

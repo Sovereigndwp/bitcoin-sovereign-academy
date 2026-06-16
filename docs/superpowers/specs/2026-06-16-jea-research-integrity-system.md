@@ -123,6 +123,20 @@ If a legal, tax, estate, regulatory, or reporting claim cannot be verified, do n
 - "This may vary by facts, residency, entity type, or transaction history."
 - "This should not be used as legal or tax advice."
 
+## 9b. Source Verification Rule (mandatory — added 2026-06-16)
+
+**Standing rule: all information in the product must be verifiable and true.** A claim is not "verified" because a research pass or an agent reported a source. It is verified only when a reviewer has actually opened a resolvable source that *directly supports the claim text*, at the tier the claim's confidence implies.
+
+Operationally:
+
+- A claim may be `status: verified`, `confidence: high`, and `public_safe: true` **only** if a reviewer opened a primary (Tier 1) or strong corroborated secondary (Tier 2) source confirming it. Record the verification date.
+- A claim sourced only from an unopened URL, an agent summary, or a single Tier‑3 source is **`needs-review` at most**, and public-facing wording must be cautious.
+- When sources **conflict** (e.g. the Colombia wealth-tax threshold), the claim is downgraded to `low`/`needs-review`, the conflict is stated in the claim text, and no single figure is asserted.
+- Verification is **re-run on the review cadence** (a source that resolved last quarter may have moved or changed).
+- Every verification pass is logged in `deep-dives/jurisdictional-exposure-audit/data/VERIFICATION-LOG.md` with the date, the claims checked, the query/source, and the outcome (confirmed / downgraded / corrected).
+
+This rule applies to every profile, the deep dive, the audit result narratives, and the paid reports. "A cautious conclusion is better than a false one" is not aspirational here; it is the gate.
+
 ## 10. Self-correction workflow
 
 When the audit finds an unsupported, contradicted, stale, or overconfident claim, do exactly one of: (A) correct it if reliable sources support a correction; (B) downgrade it if evidence is weak; (C) rewrite it as an open question; (D) remove it from public content; (E) add a research task for specialist review. Record the correction in this format:
@@ -143,7 +157,7 @@ Research task: [what still needs to be checked]
 
 ## 12. Automated / semi-automated test suite
 
-A validator script (`scripts/jea-integrity-check.mjs`, to be built) runs these tests against the ledgers, profiles, deep dive, and questionnaire. Each maps to a pass/fail.
+A validator script (`scripts/jea-integrity-check.mjs`, **built**; run `npm run jea:check` — 19 tests, all passing as of 2026-06-16) runs these tests against the ledgers, profiles, deep dive, and questionnaire. Each maps to a pass/fail.
 
 - **Test 1.** Every profile has at least one source per major section, or marks that section unknown.
 - **Test 2.** Every public-facing claim maps to a claim ID.
@@ -157,6 +171,17 @@ A validator script (`scripts/jea-integrity-check.mjs`, to be built) runs these t
 - **Test 10.** No Bitcoin claim is generalized from broader crypto rules unless the source does so and the limitation is stated.
 - **Test 11.** All "requires local counsel" flags appear in user-facing language where appropriate.
 - **Test 12.** Every result page includes plain-English "not legal, tax, investment, or financial advice" language.
+
+### Cohort-wide cross-checks (added 2026-06-16, automated)
+These were previously run by hand during the country-research pass and are now part of the suite:
+
+- **CC1.** Every `source_id` referenced by any profile resolves in the source ledger.
+- **CC2.** Every `source_id` referenced by any ledger claim resolves in the source ledger.
+- **CC3.** No duplicate `claim_id` in the ledger.
+- **CC4.** Profile and ledger agree on `public_safe` for any shared `claim_id` (the cross-artifact contradiction guard).
+- **CC5.** Every profile has `last_reviewed`, `next_review`, and a `confidence_summary`; every present section has a confidence entry.
+- **CC6.** No profile field with `confidence: unknown` or `claim_type: F-unknown-unresolved` is `public_safe` (unresolved claims render as open questions, never as statements). *This caught the Panama CARF conflict and moved it to open questions.*
+- **CC7.** No `public_safe` ledger claim is supported solely by Tier-4 sources.
 
 ## 13. Worked examples
 
@@ -203,3 +228,35 @@ Action: lowered both to Low; replaced public summary with "self-custody legality
 ## 14. Research Integrity Check (required before any final output)
 
 Before presenting any architecture, profile, public draft, data model, or implementation plan, produce a short "Research Integrity Check" section listing: what was verified, what remains uncertain, what was downgraded, what needs human review, what sources are missing, and what should not yet be published as a confident claim. The check for this foundation pack is in `2026-06-16-jea-implementation-plan.md` §MVP and was also delivered in the session summary.
+
+## 15. The verification rule (STANDING RULE — verifiable-or-it-doesn't-ship)
+
+> Added 2026-06-16 at the owner's instruction. This rule is binding on every profile, page, and report, now and in future updates.
+
+**All information must be verifiable and true.** Nothing ships as a confident, public-facing claim unless a reviewer has personally opened a reliable source that directly supports it. "A research agent reported it," "it's widely known," or "a secondary source says so" is **not** verification.
+
+### 15.1 The bar for each confidence level
+- **High / `verified` + `public_safe: true`** — requires that a **Tier-1 primary source has been opened and personally confirmed** to support the exact claim, OR that two independent Tier-2 sources agree AND the claim is not a human-review topic (§8). Record the verification in the claim's `last_verified` date and a reviewer note.
+- **Medium** — reliable sources exist and were read, but rest on Tier-2/3 or require interpretation, or a single source not yet cross-checked. Permitted in public content with cautious wording.
+- **Low / Unknown** — indirect, conflicting, outdated, or agent-reported-but-unconfirmed. **Not** `public_safe` unless framed as an open question.
+
+### 15.2 Provenance must be honest
+A claim sourced from an automated research pass but not yet personally confirmed against its primary source is **"agent-sourced, unconfirmed"** and is capped at **Medium / `needs-review`** until a reviewer opens the source. It may never be presented as High/verified on agent output alone. Use the reviewer note field to state which sources were actually opened.
+
+### 15.3 The verification pass (run on every profile before "published", and on any claim upgraded to High)
+1. Open each cited source URL and confirm it resolves and says what the claim says.
+2. Confirm the claim is not stronger than the source allows (§4).
+3. Confirm the source tier matches the confidence (Tier-4 can never support a legal/tax conclusion).
+4. If the source can't be opened or doesn't support the claim: downgrade to Medium/Low/Unknown, set `needs-review`, and add a research task. Never leave it High.
+5. Record the date and what was confirmed.
+
+### 15.4 Conflicts beat confidence
+If two reliable sources give different figures (e.g. a tax threshold), the claim is **Low** with a note naming the conflict — never split the difference, never pick the convenient number. (Worked example: Colombia's wealth-tax threshold, 72,000 UVT vs a reported ~40,000 UVT — recorded Low with a conflict note rather than asserting either.)
+
+### 15.5 Verification log (2026-06-16 pass)
+- **Primary-confirmed this pass:** USA (IRS property treatment, 1099-DA/Notice 2025-33, FBAR-crypto status, §877A, estate figures via Rev. Proc. 2025-32, FinCEN FIN-2019-G001, SEC spot-ETP, OECD CRS non-participation); Australia (ATO CGT/discount/personal-use, SMSF rules, AUSTRAC, Digital Assets Framework, CARF/CRS, CFR debanking, **CGT event I1 departure deemed-disposal**); El Salvador (legal-tender repeal 30 Jan 2025); Panama (crypto law unconstitutional July 2023; no inheritance/estate/gift tax since 2002); Switzerland (private-investor CGT exemption + professional-trader criteria; 2023 reserved-portion reform 3/4→1/2).
+- **Also primary-confirmed in the second batch:** Colombia (DIAN Oficio 30470/2019 intangible-asset classification; Form 160 foreign-asset threshold 2,000 UVT); Panama (FATF grey-list removal 27 Oct 2023); Switzerland (DLT Act in force 1 Aug 2021, ledger-based securities, FINMA first DLT trading facility).
+- **Corrected by this rule:** Colombia wealth-tax threshold High→Low (source conflict); **Panama CARF status High→Low** (one source says not committed, a 2025 source lists Panama as committed for 2027/2028/2029 — conflict, not resolved); Switzerland CARF date High→Medium (Tier-2 only, global dates in flux); El Salvador CARF status Medium→Low (committed list is moving; re-verify).
+- **Cleared in the third batch:** Panama (territorial-tax foreign-source-income exemption corroborated; Qualified Investor Visa threshold US$300k until 15 Oct 2026 then US$500k — pa-mob-001 upgraded Low->Medium); Switzerland (CRS first exchange autumn 2018; lump-sum abolished in ZH/SH/AR/BL/BS; Circular 36 five safe-harbour criteria confirmed).
+- **Cleared in the fourth (estate/statute) batch:** Colombia forced heirship **corrected** to the post-Ley 1934/2018 regime (legítima half + freely-disposable half; old 50/25/25 was pre-2018) and verified; Panama testamentary freedom vs intestate equal-share reconciled and verified; Switzerland descendant-taxing cantons (AI/NE/VD) and thresholds verified; Australia family-provision verified (NSW Succession Act 2006 s57/s60 + per-state Acts). Added pa-est-001 and au-est-001 to the ledger.
+- **Still open / capped (need the actual local statute or are unresolved):** El Salvador testate forced-heirship reserve (legítima) fraction — intestate equal-share confirmed, the testate reserve is NOT (kept Low/needs-review); marital-property regimes across the cohort; Panama foreign-will recognition mechanics; Colombia foreign-trust recognition; per-canton Swiss wealth-tax rates; the Panama CARF conflict (open question). Professional-judgment items (Swiss professional-trader reclassification, Panama territorial-source edge cases) stay Medium by nature even with the rule text confirmed.
