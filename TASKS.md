@@ -3,7 +3,7 @@
 > Shared roadmap + task list. Check this file at the start of every session.
 > See `CLAUDE.md` for values and voice. See `weekly/index.html` for shipped-changelog.
 
-Last updated: 2026-05-03 (visual-system cascade thread added as B6; component library + IA audit specs landed in `43dc0d6f`)
+Last updated: 2026-06-11 (sync pass: C1 T1–T4 shipped, C2 groups 2–3 shipped, TBA boundary/CTA workstream added as C3, youth validation gate split out as C4)
 
 ---
 
@@ -13,8 +13,10 @@ _Pull next work from C1 below, then "Next high-leverage bets"._
 
 | ID | Task | Owner | Status | Notes |
 |---|---|---|---|---|
-| C1 | **Youth content upgrade — Predict→Verify→Keep→Share** | — | **▶ next session** | Engine built & verified (`js/youth-engine.js`, commit `5c8d43cb`); direction signed off. Ordered tasks T1–T6 in [`docs/NEXT-SESSION.md`](docs/NEXT-SESSION.md) → "Biggest next move". **T1 = build Week 3 flagship, stop for sign-off before replicating.** Spec: `docs/superpowers/specs/2026-06-08-youth-pedagogy-differentiation-spec.md`. |
-| C2 | **Brand rollout groups 2–5** | — | **⏸ paused** | Group 1 (youth, 12 pages) LIVE 2026-06-08. Next: paths → deep-dives → demos → standalone, same `bsa-skin` standard (heading-flatten fix hardened). Resume after youth content (C1). |
+| C1 | **Youth content upgrade — Predict→Verify→Keep→Share** | — | **▶ T5–T6 remaining** | **T1–T4 shipped 2026-06-08:** T1 Week 3 flagship + sensory elevation (`a294ff27`, `3c3ac237`), T2 Week 10 plan dashboard (`ebcc82f3`), T3 Week 6 wishlist persistence + predict (`9cb33ffb`), T4 Week 5 paycheck predict + artifact (`88150d21`). Remaining: **T5** (weeks 1/2/4/7/8/9 wrap + demo embeds), **T6** (12–14 accessibility pass), decide fate of uncommitted `_engine-playground.html`. Real-user validation split out as **C4**. Spec: `docs/superpowers/specs/2026-06-08-youth-pedagogy-differentiation-spec.md`. |
+| C2 | **Brand rollout groups 2–5** | — | **▶ groups 4–5 remaining** | Group 1 (youth, 12 pages) LIVE 2026-06-08. **Group 2 (110 path pages) shipped 2026-06-10 (`6c55c2e5` + QA `ad9631ef`). Group 3 (deep-dives) shipped 2026-06-09 (`c792eb29`, `180e48bc`, QA `dd939c55`).** Remaining: demos → standalone, same `bsa-skin` standard. Overlaps/largely supersedes B6.2; reconcile B6 when picking this up. |
+| C3 | **TBA boundary + safe-CTA pilots** | — | **▶ active** | Education-not-advice boundary notes + calendar-first wording + CTA pilots, PRs #67–74 (2026-06-10 → 06-11): batches B/B2 (custody CTA wording), C (10 boundary notes), D1 (glossary/emergency-kit/multisig CTAs), D3 (Spanish/Colombia, 3 pages). Family-custody email-capture segments retired (`38b576b5`). Next: remaining D batches (D2?), measure pilot CTAs via `/api/track`. **Source of truth for what to promote/cut:** `reports/BSA-Content-Inventory-2026-06-09-REAUDIT.xlsx` (314 items; supersedes the 06-08 inventory) + dashboards `reports/bsa-transformation-dashboard-2026-06-updated.html`, `reports/content-inventory-dashboard.html`. P0 promotions there (sovereign-vault lead magnet, 3 product kits, KYC + multisig lead magnets) overlap this workstream. |
+| C4 | **Validate youth loop with a real teen/educator** | Dalia | **🔲 open** | Process gate from the differentiation spec (§5 pushback) — put the Week 3 flagship in front of one real teen/educator. T2–T4 proceeded past the gate; this no longer blocks T5 but should happen before the youth track is promoted/marketed. |
 | A1 | Run first tutor eval baseline | — | **✅ done** | Baseline shipped 2026-04-24 ([`reports/tutor-evals-2026-04-24.md`](reports/tutor-evals-2026-04-24.md): 10 pass / 1 marginal / 1 fail). Follow-up after MECHANISM-EXPLANATION rule shipped 2026-04-26 ([`reports/tutor-evals-2026-04-26.md`](reports/tutor-evals-2026-04-26.md): **12/12 pass**, dimension averages all ≥8.58). `.env.local` auto-load committed in `5e6a6db5`. M1 (run on every SYSTEM_PROMPT change) now active. |
 | A2 | Consolidate demo-truthfulness audit | — | **✅ done** | See [`reports/demo-audit-2026-04-24.md`](reports/demo-audit-2026-04-24.md). 135 findings across 52 demos (41 🔴 / 59 🟡 / 35 🟢). Top-10 action list inside. |
 | A3 | Tutor live in production? | — | **✅ done** | Smoke-tested 2026-04-27 from `https://bitcoinsovereign.academy` origin. HTTP 200, `text/event-stream`, CORS allow-list working, response is Socratic ("What brings you here today…"), stream terminates with `done`. All security headers present. M4 (monthly API-quota check) is the recurring guardrail. |
@@ -85,7 +87,7 @@ Ranked by leverage × feasibility. Pull from the top.
 
 ### B6. Visual-system cascade — sovereign-editorial across the site 🎨
 
-**Status:** specs landed (`43dc0d6f`); execution starts next session.
+**Status:** specs landed (`43dc0d6f`). **Partially superseded by C2 brand rollout** — deep-dives + all 110 path pages now carry `bsa-skin` (2026-06-09/10), which covers much of B6.2/B6.4 territory via a different mechanism (skin stylesheet, not component extraction). B6.1 (component extraction into `brand.css`) has NOT happened. Reconcile scope before resuming.
 
 **What:** the homepage cream-paper conversion (`021dc680`) realized the new visual system in one place. Every other strategic page (about, dalia, start, weekly, institutional landings, paths/* indexes, ~10 pages in P1) needs the same treatment. Done page-by-page without a shared component vocabulary it produces token drift + reinvented patterns + an unmaintainable system.
 
@@ -132,19 +134,20 @@ All 7 shared-component audits closed out. Together with the earlier homepage / r
 
 ---
 
-## 📦 Shipped this session (2026-04-23 → 04-24)
+## 📦 Recently shipped (2026-06-08 → 06-11)
 
-Chronological. See `git log main --oneline` for full list.
+Highlights only. See `git log main --oneline` + `weekly/index.html` for full list. (Older April session log preserved in git history of this file.)
 
-| Commit | Summary |
+| Commit / PR | Summary |
 |---|---|
-| `b59a8274` | WCAG 2.1 AA accessibility fixes on homepage (22 fixes) |
-| `05d16e05` | SOURCES.md — verifiable references for content claims |
-| `cb322bb7` | Reflect-widget accessibility (15 fixes, 171 pages) |
-| `1d7952c4` | Lab-guide modal + cards accessibility (17 fixes, 70+ pages) |
-| `7d37cdb7` | Tutor SYSTEM_PROMPT rewrite — 7 paths, stuck-learner escalation, depth calibration, language matching, module objectives, citations |
-| `ec01fa8c` | Tutor hardening — allow-listed CORS, 20 req/min rate limit, input size caps, persona whitelist |
-| (pending) | Tutor eval harness (`scripts/tutor-evals.mjs`, `npm run tutor:evals`) |
+| `a294ff27`→`3c3ac237` | C1 T1 — Week 3 youth flagship (Predict→Verify→Keep→Share) + sensory elevation |
+| `ebcc82f3`, `9cb33ffb`, `88150d21` | C1 T2–T4 — Week 10 plan dashboard, Week 6 wishlist persistence, Week 5 paycheck artifact |
+| `c792eb29`, `6c55c2e5` | C2 groups 2–3 — bsa-skin on deep-dives + all 110 path pages (with design-QA passes) |
+| PRs #67–74 | C3 — TBA boundary notes, calendar-first wording, CTA pilot batches B/B2/C/D1/D3 |
+| `d0098a30` | Sovereignty glossary + misunderstanding engine |
+| `ec38b18c` | Live-data binders batch 4 — displayed network facts bound to live sources |
+| `38b576b5` | Family-custody email-capture segments retired |
+| `reports/repo-audit-2026-06-08.md` | Repo audit (untracked, decide whether to commit) |
 
 ---
 

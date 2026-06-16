@@ -55,6 +55,26 @@ Homepage "Find Your Path" widget routes among them.
 - **Funnel context:** `reports/funnel-diagnosis-2026-04-27.md` — ~190 sessions/month; traffic is the upstream bottleneck.
 - **Foundational-layer thesis:** v4 canonical (May 2026). See `memory/projects/foundational-layer-thesis.md`.
 
+## TBA boundary + safe-CTA workstream (C3, June 2026)
+
+Active as of 2026-06-11 (PRs #67–74). Purpose: keep BSA cleanly on the education side of the line vs. The Bitcoin Adviser's commercial custody service (conflict-of-interest hygiene), while piloting safe conversion CTAs.
+
+- **Boundary notes:** "education, not advice" disclaimers on 10+ custody-adjacent pages (Batch C `bc6f20f9`), wording corrections on TBA mentions (Batches B `fcc3708c` / B2 `6639a702`), softened to **calendar-first** phrasing (`1b446df8`, nostr line `3f992f15`).
+- **Calendar-first:** the CTA standard — route readers to a qualification calendar booking, never direct referral/sign-up language.
+- **CTA pilots:** D1 glossary/emergency-kit/multisig-demo (`71ed2528`), D3 Spanish/Colombia education 3 pages (`8f5cbf87`). Measure via first-party `/api/track`.
+- **Retired:** family-custody email-capture segments (`38b576b5`).
+- **Content-inventory re-audit (2026-06-09):** `reports/BSA-Content-Inventory-2026-06-09-REAUDIT.xlsx` — 314 items × 17 columns, supersedes `bsa-content-inventory-2026-06-08.xlsx`. Companion dashboards: `reports/bsa-transformation-dashboard-2026-06-updated.html` (monetization boundaries + priority map) and `reports/content-inventory-dashboard.html` (Phase 2 operating dashboard). P0 promotions: sovereign-vault → lead magnet, emergency-doc + 3 product kits → paid, KYC best-practices + multisig demo → lead magnets. Top cuts: internal/demo pages need noindex; key-generator backups deletable. Files are in the repo but **uncommitted** — review before `git add` per untracked-items policy.
+
+## Youth track (C1, June 2026)
+
+- **Engine:** `js/youth-engine.js` + `css/youth-engine.css` — Predict→Verify→Keep→Share loop, bilingual en/es, first-party `yf_*` analytics, artifacts in localStorage (`yf-w<N>-<slug>`) with cross-device backup-code export. No streaks/badges (unbounded mode).
+- **T1–T4 shipped 2026-06-08:** Week-3 flagship (sensory version — reveal-gap + Race→Melt, iframe approach abandoned due to CSP/XFO), Week-10 plan dashboard, Week-6 wishlist persistence, Week-5 paycheck artifact.
+- **Open:** T5 (remaining weeks), T6 (ages-12–14 pass), real-teen/educator validation (C4), playground commit decision.
+
+## Brand rollout (C2, June 2026)
+
+`bsa-skin` (`css/brand-consistency.css` + `<body class="bsa-skin">`): group 1 youth ✅ 06-08, group 2 paths (110 pages) ✅ 06-10, group 3 deep-dives ✅ 06-09. Remaining: 4 demos, 5 standalone. Heading-flatten bug fixed (containers-only). Largely supersedes B6.2 — reconcile B6 scope before resuming.
+
 ## Next high-leverage bets (B1–B6 from TASKS.md)
 
 1. **B1 Tier 2/3** — act on remaining demo-truthfulness findings. Tier 1 done.

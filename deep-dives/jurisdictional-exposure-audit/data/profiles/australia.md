@@ -55,7 +55,7 @@ Not separately sourced this pass. `Low — orientation only; requires local coun
 
 ## 8. Residency, citizenship, and mobility
 
-The **183-day** and **domicile** tests can create residency by presence or keep an Australian-domiciled person resident while abroad; becoming a resident triggers worldwide CGT on Bitcoin. Ceasing residency can trigger deemed-disposal CGT events (exact mechanics not verified against ATO primary text this pass). `Mobility: High` [src-au-ato-residency]
+The **183-day** and **domicile** tests can create residency by presence or keep an Australian-domiciled person resident while abroad; becoming a resident triggers worldwide CGT on Bitcoin. **Leaving Australia is itself a tax event:** ceasing tax residency triggers **CGT event I1** (s104-160 ITAA 1997) — a deemed disposal of non-taxable-Australian-property assets, including cryptocurrency, at market value, taxed at marginal rates (up to ~47% incl. Medicare levy) with the 50% discount if eligible, unless the holder elects to keep the assets in the Australian CGT net. `Mobility: High` [src-au-ato-residency, src-au-ato-changing-residency]
 
 ## 9. Bitcoin holder implications
 
@@ -70,7 +70,11 @@ The **183-day** and **domicile** tests can create residency by presence or keep 
 
 ## 11. Open questions
 
-Foreign-will recognition per state (and the UNIDROIT international-wills regime); CGT on ceasing/commencing residency for Bitcoin (events I1/I2 + deferral); family-provision and probate rules per state (only NSW reviewed; WA treats super differently); SMSF Bitcoin in-specie/valuation/custody evidentiary standards.
+Foreign-will recognition per state (and the UNIDROIT international-wills regime); CGT event I2 on *commencing* residency and the precise I1 election mechanics/timing; family-provision and probate rules per state (only NSW reviewed; WA treats super differently); SMSF Bitcoin in-specie/valuation/custody evidentiary standards.
+
+## Note on confidence vs favorability
+
+The "High" confidence labels on this profile measure how well-sourced it is (strong Tier-1 ATO/AUSTRAC/Parliament guidance), **not** how favorable Australia is for a Bitcoin holder. On the substance, Australia pairs a comparatively high-friction environment — top marginal CGT near 47%, a deemed-disposal departure tax on leaving (CGT event I1), persistent crypto-business de-banking, and a fast-tightening reporting regime — with the fact that self-custody itself remains lawful. Fit depends on the holder's facts; this profile does not rank Australia against any other jurisdiction.
 
 ## Sources
 See `../jurisdiction-source-ledger.json`: src-au-ato-cgt-crypto, src-au-ato-residency, src-au-ato-personaluse, src-au-ato-smsf, src-au-austrac-dce, src-au-aph-dap, src-au-ato-carf, src-au-cfr-debanking.
