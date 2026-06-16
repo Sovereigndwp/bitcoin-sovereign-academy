@@ -41,12 +41,12 @@
         // Path module-1 pages are always free
         freeModulePattern: /\/paths\/[^/]+\/stage-1\/module-1\.html$/,
 
-        // Premium content patterns (everything else in paths/ and most demos)
-        // Learning paths are free (education-first model, decided 2026-06-15).
-        // Only the standalone deep-dives section remains premium.
-        premiumPatterns: [
-            /\/deep-dives\//
-        ]
+        // Premium content patterns.
+        // Education is free. Learning paths freed 2026-06-15; deep-dives freed
+        // 2026-06-16 to match MONETIZATION_MAP.md (core education is free; the
+        // paid layer is the kit/consult product pages, not gated content).
+        // No content section is gated here.
+        premiumPatterns: []
     };
 
     class MembershipGate {
@@ -116,9 +116,7 @@
         isServerProtectedRoute() {
             const path = window.location.pathname.replace(/\/+$/, '') || '/';
 
-            if (path === '/deep-dives' || path === '/deep-dives/index.html' || path.startsWith('/deep-dives/')) {
-                return true;
-            }
+            // deep-dives freed 2026-06-16 (education is free) — no longer server-protected.
 
             if (!path.startsWith('/paths/')) {
                 return false;
