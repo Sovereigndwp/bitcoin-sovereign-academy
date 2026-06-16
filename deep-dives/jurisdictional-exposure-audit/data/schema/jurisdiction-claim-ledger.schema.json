@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bitcoinsovereign.academy/schema/jurisdiction-claim-ledger.schema.json",
+  "title": "Jurisdiction Claim Ledger",
+  "description": "Central ledger of every non-obvious legal, tax, estate, regulatory, reporting, or direction-of-travel claim used anywhere in the product. Public-facing content may only use claims with status 'verified' or 'needs-review' (the latter only with cautious wording).",
+  "type": "object",
+  "required": ["claims"],
+  "additionalProperties": false,
+  "properties": {
+    "ledger_version": { "type": "string", "default": "1.0" },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim_id", "country_id", "topic", "claim_text", "claim_type", "confidence", "status", "public_safe"],
+        "additionalProperties": false,
+        "properties": {
+          "claim_id": { "type": "string", "description": "e.g. 'us-tax-001'." },
+          "country_id": { "type": "string" },
+          "topic": { "type": "string", "enum": ["basic", "tax", "bitcoin_regulation", "reporting", "estate", "banking", "asset_protection", "mobility", "holder_implication", "direction_of_travel"] },
+          "claim_text": { "type": "string" },
+          "claim_type": { "type": "string", "enum": ["A-directly-sourced", "B-interpreted", "C-comparative", "D-direction-of-travel", "E-practical-implication", "F-unknown-unresolved"] },
+          "source_ids": { "type": "array", "items": { "type": "string" } },
+          "source_tier": { "type": "integer", "minimum": 1, "maximum": 4, "description": "Tier of the strongest supporting source." },
+          "confidence": { "type": "string", "enum": ["high", "medium", "low", "unknown"] },
+          "last_verified": { "type": "string", "format": "date" },
+          "next_review": { "type": "string", "format": "date" },
+          "status": { "type": "string", "enum": ["verified", "needs-review", "contradicted", "stale", "unsupported", "replaced", "removed"] },
+          "reviewer_notes": { "type": "string" },
+          "requires_local_counsel": { "type": "boolean", "default": false },
+          "human_review_required": { "type": "boolean", "default": false, "description": "True for tax rates, taxable events, inheritance/forced heirship, trusts, exit tax, reporting obligations, penalties, freezing/seizure, self-custody legality, advisor permissions, rankings, 'best jurisdiction' conclusions." },
+          "public_safe": { "type": "boolean", "description": "Whether this claim may appear in public-facing content. Must be false unless status is verified or needs-review." },
+          "related_outputs": { "type": "array", "items": { "type": "string" }, "description": "Profile fields, deep-dive modules, or routing rules that depend on this claim." },
+          "supersedes": { "type": "string", "description": "claim_id this replaces, if status is 'replaced'." }
+        }
+      }
+    }
+  }
+}

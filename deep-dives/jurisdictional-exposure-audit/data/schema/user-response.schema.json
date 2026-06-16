@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bitcoinsovereign.academy/schema/user-response.schema.json",
+  "title": "User Audit Response",
+  "description": "A user's answers. Held client-side in the MVP; not persisted server-side. By construction this object can never contain secrets, exact balances, or government identifiers.",
+  "type": "object",
+  "required": ["user_type"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "string", "default": "1.0" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "user_type": { "type": "array", "items": { "type": "string", "enum": ["individual_holder", "advisor", "cross_border_family", "business_family_office", "considering_relocation", "unsure"] } },
+    "countries_connected": {
+      "type": "array",
+      "description": "One entry per country the user touches, with the roles that country plays.",
+      "items": {
+        "type": "object",
+        "required": ["country_id", "roles"],
+        "properties": {
+          "country_id": { "type": "string" },
+          "roles": { "type": "array", "items": { "type": "string", "enum": ["residence", "citizenship", "tax_residence", "domicile", "employment", "business", "real_estate", "bank_account", "brokerage", "retirement", "insurance", "heirs", "spouse", "legal_documents", "attorney", "tax_advisor", "exchange", "custody_provider", "hardware_wallet_location", "backup_location", "trusted_helper"] } }
+        }
+      }
+    },
+    "bitcoin_exposure_types": { "type": "array", "items": { "type": "string", "enum": ["exchange", "etf", "custodian", "single_sig_hardware", "mobile_wallet", "lightning_wallet", "diy_multisig", "collaborative_custody", "business_treasury", "ira_retirement", "btc_loan_collateral", "unknown_mixed"] } },
+    "custody_model": {
+      "type": "object",
+      "description": "Per exposure type, the control answers. Names are never collected; only role presence and yes/no/unknown.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "who_can_move": { "type": "string", "enum": ["only_me", "me_and_one_other", "multiple", "a_provider", "unknown"] },
+          "who_knows_it_exists": { "type": "string", "enum": ["only_me", "spouse", "family", "advisor", "no_one", "unknown"] },
+          "who_has_legal_authority": { "type": "string", "enum": ["me", "spouse", "executor", "entity", "unclear", "unknown"] },
+          "who_has_technical_skill": { "type": "string", "enum": ["me_only", "me_and_one", "multiple", "no_one_else", "unknown"] },
+          "if_primary_unavailable": { "type": "string", "enum": ["others_can_recover", "others_would_struggle", "no_one_could", "unknown"] },
+          "documented": { "type": "string", "enum": ["yes", "partially", "no", "unknown"] },
+          "documentation_safe": { "type": "string", "enum": ["yes", "unsure", "no", "n_a", "unknown"] }
+        }
+      }
+    },
+    "amount_band": { "type": "string", "enum": ["less_than_life_changing", "meaningful_savings", "life_changing", "business_treasury", "family_wealth", "prefer_not_to_say"], "description": "Category only. Exact amounts are never collected." },
+    "tax_visibility_flags": { "type": "array", "items": { "type": "string" } },
+    "estate_flags": { "type": "array", "items": { "type": "string" } },
+    "banking_flags": { "type": "array", "items": { "type": "string" } },
+    "documentation_flags": { "type": "array", "items": { "type": "string" } },
+    "device_identity_flags": { "type": "array", "items": { "type": "string" } },
+    "business_flags": { "type": "array", "items": { "type": "string" } },
+    "advisor_flags": { "type": "array", "items": { "type": "string" } },
+    "scenario_responses": { "type": "object", "additionalProperties": { "type": "string" } },
+    "documentation_classification": {
+      "type": "object",
+      "description": "Per sensitive item, the user's current handling, used to compute the recommended handling class.",
+      "additionalProperties": { "type": "string", "enum": ["written_in_one_place", "split", "in_password_manager", "in_cloud", "only_in_my_head", "with_a_person", "with_attorney", "not_handled", "unknown"] }
+    }
+  }
+}

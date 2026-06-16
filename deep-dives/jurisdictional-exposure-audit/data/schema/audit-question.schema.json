@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bitcoinsovereign.academy/schema/audit-question.schema.json",
+  "title": "Audit Question",
+  "description": "One question in the interactive audit. Questions are non-sensitive by construction: no field may request seeds, keys, addresses, exact balances, passwords, PINs, or government ID numbers.",
+  "type": "object",
+  "required": ["id", "section", "prompt", "type"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "description": "Stable ID, e.g. 'cust.who_can_move'." },
+    "section": { "type": "string", "enum": ["entry", "user_type", "jurisdiction_map", "custody_map", "tax_visibility", "estate_family", "banking_liquidity", "device_identity", "documentation_paradox", "business", "scenario_stress_test"] },
+    "prompt": { "type": "string" },
+    "help_text": { "type": "string", "description": "Plain-language clarification shown under the prompt." },
+    "type": { "type": "string", "enum": ["single_select", "multi_select", "country_multi_select", "per_country_roles", "per_item_class", "boolean", "scale", "short_text_optional"] },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["value", "label"],
+        "properties": {
+          "value": { "type": "string" },
+          "label": { "type": "string" },
+          "flags": { "type": "array", "items": { "type": "string" }, "description": "Classification flags this option contributes, e.g. 'custody.concentration', 'estate.authority_access_mismatch'." }
+        }
+      }
+    },
+    "applies_when": {
+      "type": "object",
+      "description": "Conditional display. Question shown only if the referenced earlier answers match.",
+      "additionalProperties": false,
+      "properties": {
+        "user_type_any": { "type": "array", "items": { "type": "string" } },
+        "answer_equals": { "type": "object", "additionalProperties": { "type": ["string", "boolean", "array"] } }
+      }
+    },
+    "privacy_note": { "type": "string", "description": "If present, reminds the user not to enter sensitive data here." },
+    "maps_to_flags": { "type": "array", "items": { "type": "string" }, "description": "Flags this question can set regardless of option (e.g. completion markers)." },
+    "required": { "type": "boolean", "default": false }
+  }
+}

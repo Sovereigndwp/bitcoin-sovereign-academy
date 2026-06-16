@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bitcoinsovereign.academy/schema/jurisdiction-profile.schema.json",
+  "title": "Jurisdiction Profile",
+  "description": "Structured country profile for the Jurisdictional Exposure Audit. Every non-obvious claim references claim IDs in the claim ledger. Confidence is recorded per section, never as a single overall score.",
+  "type": "object",
+  "required": ["country_id", "country_name", "last_reviewed", "next_review", "confidence_summary", "sources", "open_questions"],
+  "additionalProperties": false,
+  "properties": {
+    "country_id": { "type": "string", "description": "ISO 3166-1 alpha-2 lowercase, e.g. 'us', 'co', 'pa', 'sv', 'au', 'ch'." },
+    "country_name": { "type": "string" },
+    "region": { "type": "string" },
+    "schema_version": { "type": "string", "default": "1.0" },
+    "status": { "type": "string", "enum": ["research-in-progress", "draft", "human-review-pending", "published"], "description": "Only 'published' profiles render verified claims publicly." },
+    "last_reviewed": { "type": "string", "format": "date" },
+    "next_review": { "type": "string", "format": "date" },
+    "review_cadence": { "type": "string", "enum": ["monthly", "quarterly", "semiannual", "annual"] },
+    "confidence_summary": {
+      "type": "object",
+      "description": "Per-section confidence. Mirrors the section keys below.",
+      "additionalProperties": false,
+      "properties": {
+        "basic_profile": { "$ref": "#/$defs/confidence" },
+        "tax_overview": { "$ref": "#/$defs/confidence" },
+        "bitcoin_regulation": { "$ref": "#/$defs/confidence" },
+        "reporting_profile": { "$ref": "#/$defs/confidence" },
+        "estate_profile": { "$ref": "#/$defs/confidence" },
+        "banking_profile": { "$ref": "#/$defs/confidence" },
+        "asset_protection_profile": { "$ref": "#/$defs/confidence" },
+        "mobility_profile": { "$ref": "#/$defs/confidence" },
+        "bitcoin_holder_implications": { "$ref": "#/$defs/confidence" },
+        "direction_of_travel": { "$ref": "#/$defs/confidence" }
+      }
+    },
+    "basic_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "legal_system": { "type": "string", "description": "e.g. common law, civil law, mixed." },
+        "currency": { "type": "string" },
+        "capital_controls": { "$ref": "#/$defs/claimField" },
+        "political_risk_category": { "type": "string", "enum": ["low", "moderate", "elevated", "high", "unknown"] },
+        "banking_reliability_category": { "type": "string", "enum": ["strong", "adequate", "fragile", "unknown"] },
+        "rule_of_law_notes": { "$ref": "#/$defs/claimField" },
+        "general_attitude_bitcoin": { "$ref": "#/$defs/claimField" },
+        "most_important_recent_changes": { "type": "array", "items": { "$ref": "#/$defs/claimField" } }
+      }
+    },
+    "tax_overview": { "type": "object", "description": "Each property is a claimField. Keys: tax_residence_basis, worldwide_vs_territorial, citizenship_based_taxation, capital_gains_treatment, short_vs_long_term, wealth_tax, inheritance_tax, estate_tax, gift_tax, exit_tax, foreign_asset_reporting, crypto_specific_guidance, bitcoin_classification, treatment_btc_sales, treatment_btc_to_btc, treatment_btc_to_stablecoin, treatment_btc_payments, treatment_lightning, treatment_donations_gifts, treatment_btc_loans, treatment_etf_vs_self_custody, open_questions.", "additionalProperties": { "$ref": "#/$defs/claimField" } },
+    "bitcoin_regulation": { "type": "object", "description": "claimFields. Keys: legal_to_own, self_custody_allowed, hardware_wallets_restricted, exchanges_licensed, foreign_exchanges_accessible, custodians_regulated, stablecoins_regulated, mining_regulated, payments_allowed, businesses_may_hold, advisors_may_recommend, funds_etfs_allowed, btc_vs_broader_crypto, privacy_tools_restricted, advertising_consumer_rules, direction.", "additionalProperties": { "$ref": "#/$defs/claimField" } },
+    "reporting_profile": { "type": "object", "description": "claimFields. Keys: crs_participation, carf_status, fatf_travel_rule, beneficial_ownership_registry, exchange_reporting, broker_reporting, bank_reporting, foreign_account_reporting, foreign_asset_reporting, crypto_declaration, source_of_funds_expectations, aml_kyc_burden, data_sharing_agreements, direction_of_travel.", "additionalProperties": { "$ref": "#/$defs/claimField" } },
+    "estate_profile": { "type": "object", "description": "claimFields. Keys: forced_heirship, testamentary_freedom, trust_recognition, foundation_recognition, foreign_will_recognition, probate_process, probate_privacy, digital_asset_guidance, executor_powers, cross_border_enforcement, marital_property_regime, divorce_implications, beneficiary_designation, heirs_abroad, btc_under_estate_rules, authority_vs_access, open_questions.", "additionalProperties": { "$ref": "#/$defs/claimField" } },
+    "banking_profile": { "type": "object", "description": "claimFields. Keys: account_opening_ease, dollar_access, intl_transfer_friction, crypto_banking_friction, onramp_offramp_access, wire_delays_restrictions, source_of_funds_burden, derisking_patterns, business_banking_difficulty, capital_controls, stablecoin_usage, legal_vs_bankable.", "additionalProperties": { "$ref": "#/$defs/claimField" } },
+    "asset_protection_profile": { "type": "object", "description": "claimFields. Keys: account_freezing_powers, tax_liens, civil_forfeiture, emergency_decree_history, political_risk_to_assets, sanctions_exposure, court_compelled_disclosure, device_search_risk, exchange_record_access, practical_vs_theoretical, requires_counsel.", "additionalProperties": { "$ref": "#/$defs/claimField" } },
+    "mobility_profile": { "type": "object", "description": "claimFields. Keys: tax_residence_triggers, day_count_rules, domicile_rules, citizenship_obligations, exit_tax, investor_residency_programs, territorial_regimes, permanent_residency_requirements, citizenship_path, family_eligibility, bank_account_access, property_ownership, right_to_work, accidental_tax_residence_risk, passport_vs_residence_vs_tax_vs_domicile.", "additionalProperties": { "$ref": "#/$defs/claimField" } },
+    "bitcoin_holder_implications": {
+      "type": "object",
+      "description": "Practical, non-advisory implications per holding form.",
+      "additionalProperties": false,
+      "properties": {
+        "exchange_custody": { "$ref": "#/$defs/claimField" },
+        "etf_exposure": { "$ref": "#/$defs/claimField" },
+        "single_sig_self_custody": { "$ref": "#/$defs/claimField" },
+        "diy_multisig_single_holder": { "$ref": "#/$defs/claimField" },
+        "collaborative_custody": { "$ref": "#/$defs/claimField" },
+        "business_treasury": { "$ref": "#/$defs/claimField" },
+        "retirement_structure": { "$ref": "#/$defs/claimField" },
+        "inheritance": { "$ref": "#/$defs/claimField" },
+        "gifting": { "$ref": "#/$defs/claimField" },
+        "moving_residence": { "$ref": "#/$defs/claimField" },
+        "borrowing_against_btc": { "$ref": "#/$defs/claimField" },
+        "btc_payments": { "$ref": "#/$defs/claimField" },
+        "family_continuity": { "$ref": "#/$defs/claimField" },
+        "advisor_documentation": { "$ref": "#/$defs/claimField" }
+      }
+    },
+    "direction_of_travel": {
+      "type": "array",
+      "description": "Each label must carry evidence, source, rationale, confidence, counterevidence, and last_reviewed. Labels must specify 'friendly for whom' where the label is a friendliness claim.",
+      "items": {
+        "type": "object",
+        "required": ["label", "rationale", "confidence", "last_reviewed"],
+        "additionalProperties": false,
+        "properties": {
+          "label": { "type": "string", "enum": ["open-but-regulated", "tax-focused", "aml-focused", "bank-integrated", "exchange-controlled", "institution-friendly", "self-custody-friendly", "self-custody-ambiguous", "privacy-hostile", "mining-friendly", "capital-control-driven", "revenue-driven", "innovation-driven", "political-risk-driven", "reporting-heavy", "estate-planning-complex", "cross-border-friendly", "cross-border-fragile", "unclear-or-changing"] },
+          "friendly_for_whom": { "type": "array", "items": { "type": "string", "enum": ["individuals", "businesses", "miners", "exchanges", "banks", "etfs", "self-custody-users", "foreign-residents", "family-offices", "estate-planning"] } },
+          "rationale": { "type": "string" },
+          "evidence_claim_ids": { "type": "array", "items": { "type": "string" } },
+          "counterevidence": { "type": "string" },
+          "confidence": { "$ref": "#/$defs/confidence" },
+          "last_reviewed": { "type": "string", "format": "date" }
+        }
+      }
+    },
+    "sources": { "type": "array", "items": { "type": "string" }, "description": "source_id references into the source ledger." },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question", "who_should_answer"],
+        "additionalProperties": false,
+        "properties": {
+          "question": { "type": "string" },
+          "topic": { "type": "string" },
+          "who_should_answer": { "type": "array", "items": { "type": "string", "enum": ["tax-counsel", "estate-attorney", "immigration-attorney", "corporate-counsel", "bitcoin-custody-specialist", "accountant", "family-office-advisor", "banking-specialist"] } }
+        }
+      }
+    },
+    "watchlist": { "type": "array", "items": { "type": "object", "properties": { "item": { "type": "string" }, "status": { "type": "string", "enum": ["pending-legislation", "recent-change", "monitoring"] }, "last_reviewed": { "type": "string", "format": "date" } } } },
+    "product_routing_notes": { "type": "string", "description": "Non-advisory notes on which audit outputs this jurisdiction tends to surface." },
+    "change_log": { "type": "array", "items": { "type": "object", "required": ["date", "change"], "properties": { "date": { "type": "string", "format": "date" }, "change": { "type": "string" }, "reviewer": { "type": "string" } } } }
+  },
+  "$defs": {
+    "confidence": { "type": "string", "enum": ["high", "medium", "low", "unknown"] },
+    "claimField": {
+      "type": "object",
+      "description": "A single jurisdictional claim. value carries the plain-language statement; claim_id links to the ledger; never publish without a source unless confidence is 'unknown' and the text is framed as an open question.",
+      "required": ["value", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "value": { "type": "string" },
+        "claim_id": { "type": "string" },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "claim_type": { "type": "string", "enum": ["A-directly-sourced", "B-interpreted", "C-comparative", "D-direction-of-travel", "E-practical-implication", "F-unknown-unresolved"] },
+        "requires_local_counsel": { "type": "boolean", "default": false },
+        "public_safe": { "type": "boolean", "default": false },
+        "source_ids": { "type": "array", "items": { "type": "string" } },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}
