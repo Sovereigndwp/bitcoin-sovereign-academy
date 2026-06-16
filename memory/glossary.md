@@ -17,11 +17,27 @@
 |------|---------|
 | **A1–A3** | Active / in-progress task IDs (all currently ✅ done as of 2026-04-27). |
 | **B1–B6** | "Next high-leverage bets" — ranked by leverage × feasibility. Pull from the top. |
-| **C1–C5** | Accessibility Phase 1 audit IDs (all ✅ done in `621bf2f2`). |
+| **C1–C4 (Active table, current)** | ⚠️ ID re-use. As of 2026-06: C1 = youth content upgrade, C2 = brand rollout groups 2–5, C3 = TBA boundary + safe-CTA pilots, C4 = real-teen/educator validation of the youth loop. |
+| **C1–C5 (accessibility, archived)** | The ORIGINAL C-series: Accessibility Phase 1 audit IDs (all ✅ done in `621bf2f2`). Now lives in the "📋 Accessibility" section of TASKS.md only. |
 | **M1–M4** | Recurring / maintenance tasks. |
 | **B1 Tier 1/2/3** | 🔴 factual errors / 🟡 architectural / 🟢 sharpening, from `reports/demo-audit-2026-04-24.md`. |
 | **B6.1–B6.4** | Visual-system cascade sub-steps: component extraction → P1 strategic pages → P2 prerequisites → P2 cascade. |
 | **Phase 1+2 / Phase 3+4** | (B5 context) CORS + rate-limit hardening rollout; Phases 3+4 deliberately won't ship. |
+
+## Youth track + brand rollout (June 2026)
+
+| Term | Meaning |
+|------|---------|
+| **Predict→Verify→Keep→Share** | The signature youth pedagogy loop. Engine: `js/youth-engine.js` + `css/youth-engine.css`, dependency-free, auto-init via data-attributes. |
+| **yf-w<N>-<slug>** | localStorage key convention for youth artifacts (e.g. `yf-w5-paycheck`). Week-10 `.yf-plan` dashboard aggregates them. Cross-device via backup-code export/import. |
+| **yf_* events** | First-party analytics for the youth loop: `yf_predict_locked/revealed`, `yf_verified`, `yf_artifact_saved`, `yf_shared`, `yf_plan_export`. |
+| **T1–T6** | Youth content upgrade tasks (C1). T1 Week-3 flagship, T2 Week-10 plan, T3 Week-6 wishlist, T4 Week-5 paycheck — all ✅ 2026-06-08. T5 remaining weeks, T6 ages-12–14 accessibility. |
+| **bsa-skin** | Brand-consistency mechanism: `<body class="bsa-skin">` + `css/brand-consistency.css` applies the homepage design system to a page. Rollout groups: 1 youth ✅, 2 paths ✅, 3 deep-dives ✅, 4 demos, 5 standalone. |
+| **Heading-flatten fix** | bsa-skin bug fix — the "flatten section backgrounds" rule was matching `.section-title` headings → invisible gradient text. Now containers-only. |
+| **Boundary notes** | "Education, not advice" disclaimers on custody-adjacent pages, distinguishing BSA education from The Bitcoin Adviser's commercial service (conflict-of-interest hygiene). |
+| **Calendar-first** | CTA wording standard: route interested readers to a qualification calendar booking rather than direct referral/sign-up language. |
+| **CTA pilot batches (B/B2/C/D1/D3)** | C3 workstream batches, PRs #67–74: B/B2 custody-CTA wording, C boundary notes ×10, D1 safe CTAs (glossary/emergency-kit/multisig demo), D3 Spanish/Colombia education pilot. |
+| **Sovereignty glossary / misunderstanding engine** | `glossary.html` expansion (`d0098a30`) — glossary doubles as a misconception-correction engine. |
 
 ## Audience + path system
 
