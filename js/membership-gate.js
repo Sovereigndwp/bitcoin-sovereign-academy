@@ -42,9 +42,9 @@
         freeModulePattern: /\/paths\/[^/]+\/stage-1\/module-1\.html$/,
 
         // Premium content patterns (everything else in paths/ and most demos)
+        // Learning paths are free (education-first model, decided 2026-06-15).
+        // Only the standalone deep-dives section remains premium.
         premiumPatterns: [
-            /\/paths\/[^/]+\/stage-[2-9]\//,
-            /\/paths\/[^/]+\/stage-1\/module-[2-9]\./,
             /\/deep-dives\//
         ]
     };

@@ -7,30 +7,27 @@ test('normalizes clean URLs and removes trailing slashes', () => {
   assert.equal(normalizePathname('deep-dives/'), '/deep-dives');
 });
 
-test('treats stage-1 module-1 as free preview content', () => {
-  const details = getProtectedRouteDetails('/paths/curious/stage-1/module-1');
-  assert.equal(details.protected, false);
-  assert.equal(details.reason, 'stage-1-preview');
+// Learning paths are free (education-first model, decided 2026-06-15) — revenue
+// comes from kits + advisory, not from gating lessons. Every /paths/* route is open.
+test('treats all learning-path content as free', () => {
+  const free = [
+    '/paths/curious/stage-1/module-1',
+    '/paths/curious/stage-1/module-2',
+    '/paths/curious/stage-1/module-2-5.html',
+    '/paths/builder/stage-3',
+    '/paths/principled/capstone/index.html',
+    '/paths/curious/stage-1/deep-dives/fractional-reserve.html',
+    '/paths/skeptic/stage-5/'
+  ];
+  for (const route of free) {
+    const details = getProtectedRouteDetails(route);
+    assert.equal(details.protected, false, `${route} should be free`);
+    assert.equal(details.reason, 'paths-free', `${route} reason`);
+  }
 });
 
-test('protects stage-1 follow-up modules including special module names', () => {
-  assert.equal(isProtectedPremiumRoute('/paths/curious/stage-1/module-2'), true);
-  assert.equal(isProtectedPremiumRoute('/paths/curious/stage-1/module-2-5.html'), true);
-});
-
-test('protects stage-2 and later path routes', () => {
-  const details = getProtectedRouteDetails('/paths/builder/stage-3');
-  assert.equal(details.protected, true);
-  assert.equal(details.pathId, 'builder');
-  assert.equal(details.reason, 'stage-2-plus');
-});
-
-test('protects explicit path outliers included in phase 1', () => {
-  assert.equal(isProtectedPremiumRoute('/paths/curious/stage-1/deep-dives/fractional-reserve.html'), true);
-  assert.equal(isProtectedPremiumRoute('/paths/principled/capstone/index.html'), true);
-});
-
-test('protects the deep-dives area', () => {
+// The standalone deep-dives section remains the one premium content tier.
+test('keeps the standalone deep-dives area premium', () => {
   assert.equal(isProtectedPremiumRoute('/deep-dives'), true);
   assert.equal(isProtectedPremiumRoute('/deep-dives/sovereign-tools/running-a-node.html'), true);
 });

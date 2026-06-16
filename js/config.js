@@ -27,7 +27,7 @@
     // Default configuration (PRODUCTION mode)
     const defaultConfig = {
         // Core feature flags
-        ENABLE_MODULE_GATING: true,      // Lock modules behind paywall
+        ENABLE_MODULE_GATING: false,     // Learning paths are free (education-first; revenue = kits + advisory, decided 2026-06-15). Was true.
         ENABLE_DEMO_LOCKS: true,         // Lock interactive demos
         ENABLE_PREVIEW_MODE: false,      // Allow limited preview access
         FULL_ACCESS: false,              // Bypass client-side locks (dev/testing)
@@ -44,7 +44,7 @@
     // Mode presets
     const modePresets = {
         production: {
-            ENABLE_MODULE_GATING: true,
+            ENABLE_MODULE_GATING: false,  // Learning paths free (education-first; revenue = kits + advisory, 2026-06-15)
             ENABLE_DEMO_LOCKS: true,
             ENABLE_PREVIEW_MODE: false,
             FULL_ACCESS: false,
