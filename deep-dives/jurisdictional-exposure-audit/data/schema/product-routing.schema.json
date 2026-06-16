@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bitcoinsovereign.academy/schema/product-routing.schema.json",
+  "title": "Product Routing + Resource Recommendation",
+  "description": "Maps exposure types to BSA/TSA resources and at most one paid pathway. Prices appear only when MONETIZATION_MAP.md records an established price; otherwise the CTA is non-numeric.",
+  "type": "object",
+  "required": ["rules"],
+  "additionalProperties": false,
+  "properties": {
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["when_primary_exposure", "pathway"],
+        "properties": {
+          "when_primary_exposure": { "type": "string" },
+          "when_user_type_any": { "type": "array", "items": { "type": "string" } },
+          "when_amount_band_any": { "type": "array", "items": { "type": "string" } },
+          "guard": { "type": "string", "description": "A precondition that must hold or the rule is skipped, e.g. 'family_complexity_indicated'. Prevents routing to a family kit when no family complexity was reported." },
+          "free_resources": { "type": "array", "items": { "$ref": "#/$defs/resourceRef" } },
+          "pathway": { "$ref": "#/$defs/pathwayRef" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "resourceRef": {
+      "type": "object",
+      "required": ["title", "url"],
+      "properties": {
+        "title": { "type": "string" },
+        "url": { "type": "string" },
+        "kind": { "type": "string", "enum": ["deep-dive-module", "library-country", "demo", "lesson", "checklist", "external"] }
+      }
+    },
+    "pathwayRef": {
+      "type": "object",
+      "required": ["product_id", "label", "cta_style"],
+      "properties": {
+        "product_id": { "type": "string", "enum": ["self_custody_starter_kit", "family_bitcoin_recovery_kit", "bitcoin_continuity_operational_package", "advisor_bitcoin_client_kit", "advisor_readiness_training", "business_treasury_review", "tsa_sovereignty_planning", "none"] },
+        "label": { "type": "string" },
+        "url": { "type": "string" },
+        "price_usd": { "type": ["integer", "null"], "description": "Only set when MONETIZATION_MAP.md records an established price. Null means show a non-numeric CTA." },
+        "price_source": { "type": "string", "description": "Repo path + line proving the price, per MONETIZATION_MAP.md rules." },
+        "cta_style": { "type": "string", "enum": ["priced", "learn_more", "contact"], "description": "'priced' only when price_usd is set and proven." },
+        "rationale": { "type": "string", "description": "Why this pathway fits, in non-salesy language framed as 'this may help if…'." }
+      }
+    }
+  }
+}
