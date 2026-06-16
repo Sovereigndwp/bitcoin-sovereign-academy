@@ -42,7 +42,7 @@ Participates in CRS/AEOI (transparency rating upgraded; reports of "limited tran
 
 ## 5. Estate and succession
 
-With a valid will, Panama allows **freedom of testation** — no reserved portion / no traditional forced heirship. Dying **intestate**, however, distributes the estate in **equal shares to children/descendants (per stirpes)**, then ascendants, with the spouse — so the absence of a reserve only helps if a will is in place (confirmed across IBA + Lexology + Pardini). **Private-interest foundations (Law 25 of 1995)** hold assets outside succession claims and are the canonical Panamanian succession vehicle. Foreign-will recognition mechanics and the marital-property regime were not confirmed this pass. `Estate: Medium` [src-pa-iba-estate, src-pa-lexology-succession]
+With a valid will, Panama allows **freedom of testation** — no reserved portion / no traditional forced heirship. Dying **intestate**, however, distributes the estate in **equal shares to children/descendants (per stirpes)**, then ascendants, with the spouse — so the absence of a reserve only helps if a will is in place (confirmed across IBA + Lexology + Pardini). **Private-interest foundations (Law 25 of 1995)** are commonly used in Panamanian succession planning, but whether they place assets outside forced-heirship claims depends on the settlor's/heirs' domicile, situs, marital property, fraudulent-transfer and conflict-of-laws rules, and must be confirmed by counsel. Foreign-will recognition mechanics and the marital-property regime were not confirmed this pass. `Estate: Medium` [src-pa-iba-estate, src-pa-lexology-succession]
 
 ## 6. Banking reality
 
