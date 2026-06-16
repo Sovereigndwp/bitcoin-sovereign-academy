@@ -1,0 +1,19 @@
+#!/bin/sh
+# JEA integrity gate.
+# Blocks a commit that would break the Jurisdictional Exposure Audit data/logic.
+# Enable once per clone:   git config core.hooksPath .githooks
+# Runs only when JEA files are staged, so it doesn't slow unrelated commits.
+
+if git diff --cached --name-only | grep -qE '^deep-dives/jurisdictional-exposure-audit/|^scripts/jea-integrity-check\.mjs'; then
+  echo "JEA files staged — running integrity suite (npm run jea:check)…"
+  if ! npm run --silent jea:check >/tmp/jea-check.log 2>&1; then
+    echo "✗ JEA integrity suite FAILED — commit blocked."
+    echo "----------------------------------------------------------------"
+    cat /tmp/jea-check.log
+    echo "----------------------------------------------------------------"
+    echo "Fix the failures (or unstage the JEA files) and commit again."
+    exit 1
+  fi
+  echo "✓ JEA integrity suite passed."
+fi
+exit 0

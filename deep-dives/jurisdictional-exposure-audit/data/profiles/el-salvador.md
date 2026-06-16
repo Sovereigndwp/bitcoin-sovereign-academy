@@ -40,7 +40,7 @@ El Salvador was reported among non-committed CARF "jurisdictions of relevance" w
 
 ## 5. Estate and succession
 
-Bello-derived Civil Code. **Intestate** succession calls children, parents, and spouse by order, dividing equally within each order (confirmed against the Código Civil; the spouse loses the intestate share on unjustified abandonment). Whether a **testate forced-heirship reserve (legítima) applies, and its fraction, was not confirmed** against the current Code this pass and should be treated as an open question. Notarial/registry succession; foreign-will mechanics and default marital-property regime also unconfirmed. `Estate: Low/Medium — testate reserve unconfirmed` [src-sv-codigo-civil, src-sv-iba-estate]
+Bello-derived Civil Code. **Intestate** succession calls children, parents, and spouse by order, dividing equally within each order (confirmed against the Código Civil; the spouse loses the intestate share on unjustified abandonment). For **testate** succession, sources **conflict**: several secondary analyses say El Salvador follows *absolute testamentary freedom* (no forced-heirship reserve), while others reference forced heirs — this is **unresolved** and treated as an open question pending the current Code text. The Family Code offers selectable marital-property regimes; the default was not confirmed. `Estate: Low — testate reserve unresolved` [src-sv-codigo-civil, src-sv-iba-estate, src-sv-testamentary-freedom]
 
 ## 6. Banking reality
 
