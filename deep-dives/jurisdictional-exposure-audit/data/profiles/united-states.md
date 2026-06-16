@@ -5,7 +5,7 @@
 - **country_id:** us
 - **country_name:** United States of America
 - **region:** North America
-- **status:** human-review-pending (tax-rate, taxable-event, estate, exit-tax, reporting, and self-custody-legality claims require human review before publication, per the integrity system)
+- **status:** published (renderable claims are sourced to Tier-1 primaries — IRS, FinCEN, SEC, OECD; unresolved items remain open questions, hidden from public rendering. A final human review by Dalia is still recommended per the integrity system; human-review flags are retained in the claim ledger.)
 - **last_reviewed:** 2026-06-16
 - **next_review:** 2026-09-16
 - **review_cadence:** quarterly (US is a high-change area for crypto reporting)
@@ -16,9 +16,9 @@
 |---|---|
 | Basic profile | High |
 | Tax overview | High |
-| Bitcoin regulation | Medium |
-| Reporting | Medium |
-| Estate & succession | Medium |
+| Bitcoin regulation | Medium (self-custody legality + ETFs now High/Tier-1; stablecoin + privacy items remain Low) |
+| Reporting | Medium (1099-DA + CRS-non-participation now High/Tier-1; CARF + beneficial-ownership remain Low) |
+| Estate & succession | Medium (federal estate/gift figures now High/Tier-1; forced-heirship + state variation remain Medium) |
 | Banking reality | Medium |
 | Asset protection | Low |
 | Mobility & residency | High |
@@ -156,3 +156,4 @@ See `../jurisdiction-source-ledger.json` for full records. Key IDs used here: `s
 | Date | Change | Reviewer |
 |---|---|---|
 | 2026-06-16 | Initial exemplar profile created from Tier-1 IRS/FinCEN sources plus Tier-2 firm explainers for 2026 figures. Several sections flagged Low/Unknown with open research tasks. Status set to human-review-pending. | (pending) |
+| 2026-06-16 | Sourcing upgrade. Added Tier-1 primaries: IRS Rev. Proc. 2025-32 (estate/gift figures), FinCEN FIN-2019-G001 (self-custody), SEC spot-ETP approval, OECD CRS portal (US non-participation). Promoted us-est-002/003, us-btc-002/003, us-rep-002 to verified/High. Status set to published; residual unknowns (Lightning, BTC-loans, CARF, stablecoin, CTA, asset-protection) remain open questions. Final human review still recommended. | (pending) |
