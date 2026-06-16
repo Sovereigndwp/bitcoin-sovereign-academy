@@ -85,6 +85,24 @@
       ],
     },
 
+    'jurisdiction': {
+      surface: [
+        'In plain English, what does "jurisdiction" mean for where your money and records sit?',
+        'Which country\'s rules apply to your bank account — and which apply to your Bitcoin?',
+        'Name one record about you (tax, property, ID) and which authority actually holds it.',
+      ],
+      conceptual: [
+        'How is the jurisdiction of your Bitcoin different from the jurisdiction of your bank?',
+        'If you moved countries tomorrow, which of your assets would change jurisdiction — and which wouldn\'t?',
+        'What\'s the difference between where you live, where you\'re taxed, and where your assets are held?',
+      ],
+      philosophical: [
+        'If your rights depend on which government you\'re under, in what sense are they yours?',
+        'Bitcoin\'s rules are the same in every country. What does that change about jurisdiction?',
+        'Is reducing your exposure to any single jurisdiction real freedom, or just a different kind of risk?',
+      ],
+    },
+
     'money': {
       surface: [
         'Name three things that have been used as money in the last 5,000 years.',
