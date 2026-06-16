@@ -24,7 +24,7 @@
 
 ## 1. Basic jurisdiction profile
 
-Civil-law jurisdiction (Código Civil; tax law in the Estatuto Tributario). Currency: Colombian peso (COP). Colombia runs an **exchange-control regime** (régimen cambiario): crypto is not foreign currency and **cannot be channeled through the FX market**, so crypto-funded inflows are not registrable, which is a real friction point. Political risk: moderate. Banking reliability: adequate. Bitcoin is legal to own and trade, is not legal tender, and a comprehensive digital-assets law remains stalled in Congress. `Basic: High` [src-co-banrep-fx, src-co-sfc-crypto]
+Civil-law jurisdiction (Código Civil; tax law in the Estatuto Tributario). Currency: Colombian peso (COP). Colombia runs an **exchange-control regime** (régimen cambiario): per Banco de la República, crypto is not a *divisa* (foreign currency) and **cannot be channeled through the FX market**, so crypto-funded inflows are not registrable, which is a real friction point. Political risk: moderate. Banking reliability: adequate. Bitcoin is legal to own and trade, is not legal tender, and a comprehensive digital-assets law remains stalled in Congress. `Basic: High` [src-co-banrep-divisa, src-co-banrep-fx]
 
 ## 2. Tax overview
 
@@ -36,7 +36,7 @@ Civil-law jurisdiction (Código Civil; tax law in the Estatuto Tributario). Curr
 
 ## 3. Bitcoin and crypto regulation
 
-Legal to own/trade (not legal tender, not a regulated financial product). The **SFC does not regulate, supervise, or endorse crypto**; there is **no exchange licensing regime**, and supervised banks are not authorized to intermediate crypto. Individual self-custody is not prohibited, but no affirmative primary statement was located (treated as Low, withheld from public rendering pending counsel). `Bitcoin regulation: High` [src-co-sfc-crypto]
+Legal to own/trade (not legal tender, not a regulated financial product). Per **SFC Circular Externa 029/2014**, virtual currencies are not regulated or supervised by the SFC; there is **no exchange licensing regime**, and supervised entities are not authorized to custody, invest in, or intermediate them. Individual self-custody is not prohibited, but no affirmative primary statement was located (treated as Low, withheld from public rendering pending counsel). `Bitcoin regulation: High` [src-co-sfc-circ029, src-co-sfc-crypto]
 
 ## 4. Reporting and surveillance exposure
 
