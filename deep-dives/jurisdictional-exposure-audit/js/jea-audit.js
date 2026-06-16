@@ -129,7 +129,7 @@
       ];
       qq.options.forEach(function (o) {
         var cur = state.docs[o.value] || '';
-        h += '<div class="jea-opt" style="justify-content:space-between;align-items:center;"><span style="font-size:13px;">' + esc(o.label) + '</span><select data-item="' + o.value + '" style="background:var(--jea-surface-2);color:var(--jea-text);border:1px solid var(--jea-border);border-radius:7px;padding:6px;">';
+        h += '<div class="jea-opt" style="justify-content:space-between;align-items:center;"><span id="lbl-' + esc(o.value) + '" style="font-size:13px;">' + esc(o.label) + '</span><select data-item="' + esc(o.value) + '" aria-label="How do you currently handle: ' + esc(o.label) + '" aria-labelledby="lbl-' + esc(o.value) + '" style="background:var(--jea-surface-2);color:var(--jea-text);border:1px solid var(--jea-border);border-radius:7px;padding:6px;">';
         h += '<option value="">choose…</option>';
         classes.forEach(function (cc) { h += '<option value="' + cc[0] + '"' + (cur === cc[0] ? ' selected' : '') + '>' + esc(cc[1]) + '</option>'; });
         h += '</select></div>';
