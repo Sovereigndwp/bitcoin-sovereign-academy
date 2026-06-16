@@ -43,7 +43,7 @@ CRS participant since 2015; committed to the **OECD CARF** with first crypto dat
 
 ## 5. Estate and succession
 
-Testamentary freedom exists but is qualified by **family-provision legislation** in each state/territory (an eligible person may apply to the Supreme Court for provision). **Superannuation does not automatically form part of the estate**: a valid Binding Death Benefit Nomination directs the trustee — paid to a dependant it can bypass the estate; routed to the legal personal representative it enters the estate and can face family-provision claims. State variation exists (e.g. WA). `Estate: Medium` [src-au-ato-smsf]
+Testamentary freedom exists but is qualified by **family-provision legislation** in each state/territory: an eligible person (spouse, former spouse, de facto partner, child, dependent grandchild/household member, or someone in a close personal relationship) may apply to the Supreme Court for provision. NSW: **Succession Act 2006** (s57 eligibility, s60 sixteen factors); other states have their own Acts (Succession Act 1981 QLD, Administration and Probate Act 1958 VIC, Inheritance (Family Provision) Act 1972 SA). **Superannuation does not automatically form part of the estate**: a valid Binding Death Benefit Nomination directs the trustee — paid to a dependant it can bypass the estate; routed to the legal personal representative it enters the estate and can face family-provision claims. State variation exists (e.g. WA). `Estate: Medium` [src-au-ato-smsf]
 
 ## 6. Banking reality
 

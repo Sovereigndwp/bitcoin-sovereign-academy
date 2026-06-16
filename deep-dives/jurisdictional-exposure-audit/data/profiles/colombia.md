@@ -44,7 +44,7 @@ CRS participant (first exchanges ~2017). Tax residents with foreign assets **> 2
 
 ## 5. Estate and succession
 
-Forced heirship applies: **legítima rigurosa (50%)** reserved for forced heirs, **cuarta de mejoras (25%)**, **cuarta de libre disposición (25%)**. No separate estate tax; inheritances, legacies, and donations taxed as ganancia ocasional at 15% with UVT-based exemptions. Foreign common-law trust recognition for estate planning is not confirmed (Colombia uses the domestic fiducia mercantil). `Estate: Medium` [src-co-notaria-legitima, src-co-ley2277]
+Forced heirship applies. **Since Ley 1934 of 2018** the estate splits in two: the **legítima rigurosa (half)** is reserved for forced heirs, and the **other half is freely disposable** (the former cuarta de mejoras and cuarta de libre disposición were merged into one freely-disposable quarter-mass). Older 50/25/25 descriptions are pre-2018. No separate estate tax; inheritances, legacies, and donations taxed as ganancia ocasional at 15% with UVT-based exemptions. Foreign common-law trust recognition for estate planning is not confirmed (Colombia uses the domestic fiducia mercantil). `Estate: Medium (forced-heirship structure: High, verified)` [src-co-ley1934, src-co-cc-asignaciones, src-co-ley2277]
 
 ## 6. Banking reality
 

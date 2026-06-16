@@ -38,11 +38,11 @@ Legal to own and transact, but **unregulated** (a legal gray area with no dedica
 
 ## 4. Reporting and surveillance exposure
 
-Participates in CRS/AEOI (transparency rating upgraded; reports of "limited transmission"). **Not committed to CARF** by 2027. Private (non-public) beneficial-owner register under **Law 129 of 2020**, via resident agents. `Reporting: Medium` [src-pa-oecd-carf, src-pa-fabrega-ubo]
+Participates in CRS/AEOI (transparency rating upgraded; reports of "limited transmission"). **CARF status is unresolved across sources** — one OECD-derived reading lists Panama as not committed, while a 2025 source lists Panama among jurisdictions committed to begin exchanges in 2027/2028/2029; confirm against the current OECD CARF commitments list (Low/open question). Private (non-public) beneficial-owner register under **Law 129 of 2020**, via resident agents. `Reporting: Medium (CARF item: Low)` [src-pa-oecd-carf, src-pa-fabrega-ubo]
 
 ## 5. Estate and succession
 
-Tier-2 sources state Panama has **no forced-heirship legislation** and does not recognize foreign forced-heirship rulings, **but intestate succession mandates equal shares to descendants** — so the "no forced heirship" framing should be confirmed with counsel. **Private-interest foundations (Law 25 of 1995)** hold assets outside succession claims and are the canonical Panamanian succession-planning vehicle. Foreign-will recognition mechanics and the marital-property regime were not confirmed this pass. `Estate: Medium` [src-pa-iba-estate, src-pa-pwc-othertaxes]
+With a valid will, Panama allows **freedom of testation** — no reserved portion / no traditional forced heirship. Dying **intestate**, however, distributes the estate in **equal shares to children/descendants (per stirpes)**, then ascendants, with the spouse — so the absence of a reserve only helps if a will is in place (confirmed across IBA + Lexology + Pardini). **Private-interest foundations (Law 25 of 1995)** hold assets outside succession claims and are the canonical Panamanian succession vehicle. Foreign-will recognition mechanics and the marital-property regime were not confirmed this pass. `Estate: Medium` [src-pa-iba-estate, src-pa-lexology-succession]
 
 ## 6. Banking reality
 
@@ -54,7 +54,7 @@ Not separately sourced this pass. `Low — orientation only; requires local coun
 
 ## 8. Residency, citizenship, and mobility
 
-Residency-by-investment routes exist (e.g. Qualified Investor and Friendly Nations visas); thresholds shift over time and must be confirmed against the live immigration decree at application date. `Mobility: Medium / thresholds Low` [src-pa-pwc-residence]
+The **Qualified Investor Visa** grants permanent residency via real estate at **US$300,000 until 15 Oct 2026** (reverting to US$500,000 after), or US$500,000 in securities, or a US$750,000 fixed deposit; the **Friendly Nations Visa** is a separate route for designated nationalities. Thresholds shift; confirm against the live immigration decree at application date. `Mobility: Medium` [src-pa-qiv]
 
 ## 9. Bitcoin holder implications
 
