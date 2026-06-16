@@ -45,3 +45,23 @@ Provenance record for the Source Verification Rule (see `docs/superpowers/specs/
 - Colombia: current-year wealth-tax threshold; exit tax existence; self-custody registration; foreign-trust recognition.
 - Switzerland: exact FTA Circular 36 criteria; per-canton inheritance/wealth rates; 2026 AML/UBO register scope.
 - All: asset-protection/seizure sections (Low everywhere; not yet sourced).
+
+## 2026-06-16 — human-review reclassification pass (owner two-pass review)
+
+Owner reviewed the 23-item needs-review queue. Dispositions applied to the ledger + profiles verbatim:
+
+**Cleared to verified (4):**
+- `us-tax-005` — Bitcoin↔stablecoin = exchange/disposition of digital-asset property, may create gain/loss (cautious wording) [src-irs-vc-faq].
+- `us-btc-004` — **corrected** "advanced" → GENIUS Act enacted 18 Jul 2025 (PL 119-27), federal payment-stablecoin framework [src-us-genius-act].
+- `co-tax-004` — Colombia permanent wealth tax exists; use 72,000 UVT; **40,000 UVT figure dropped** absent a primary source [src-co-ley2277].
+- `ch-tax-003` — Bitcoin subject to cantonal/communal net-wealth tax (no federal); FTA year-end valuation rate split out to new `ch-tax-005` (needs-review) [src-ch-estv-crypto].
+
+**Reworded to avoid overstatement, kept needs-review:** `us-basic-001` (no Colombia-style exchange controls, but sanctions/AML/BSA/tax apply); `us-rep-003` (1099-DA implemented; CARF status to confirm — not "instead of CARF"); `us-est-001`; `co-tax-003`; `co-est-002`; `pa-est-002` (foundation forced-heirship protection is a counsel conclusion); `ch-rep-002` (CARF date kept fluid); `ch-est-003` (Hague-trust override softened).
+
+**Split:** `sv-est-001` → intestate order (needs-review, public-safe) + new `sv-est-002` testate forced-heirship reserve (conflicted, public_safe false).
+
+**Kept unsupported / not published:** `us-tax-007` (Lightning), `co-tax-005` (exit tax), `pa-tax-002` (crypto territoriality), `sv-tax-002` (BTC CGT exemption persistence), plus `pa-rep-002` and `sv-rep-001` CARF status (needs-review, not scored).
+
+**Likely-clear once primary attached (still needs-review):** `co-basic-001` (Banco de la República), `co-btc-002` (SFC Circular 29/2014), `sv-btc-001` (LEAD/CNAD law text).
+
+Result: queue reduced to 4 cleared this pass + the rest held open/counsel-only. Suite green (19/19).

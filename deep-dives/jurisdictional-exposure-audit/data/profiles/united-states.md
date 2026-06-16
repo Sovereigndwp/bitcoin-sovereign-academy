@@ -29,7 +29,7 @@
 
 ## 1. Basic jurisdiction profile
 
-Federal republic, **common-law** system with significant state-by-state variation in estate, property, and marital law. Currency: **US dollar**, the world's primary reserve currency. **No general capital controls** on moving money in or out. Political risk: low. Banking reliability: strong. Rule of law: strong, with independent courts and well-developed property rights.
+Federal republic, **common-law** system with significant state-by-state variation in estate, property, and marital law. Currency: **US dollar**, the world's primary reserve currency. The US does **not** generally operate a Colombia-style exchange-control regime, but transfers remain subject to sanctions, AML/BSA, tax, and reporting rules. Political risk: low. Banking reliability: strong. Rule of law: strong, with independent courts and well-developed property rights.
 
 General attitude toward Bitcoin: Bitcoin is legal to own and hold. Federal policy in 2025 shifted toward clearer institutional integration (spot Bitcoin ETFs trade on national exchanges; banking regulators clarified that banks may custody crypto without prior supervisory approval). The defining federal tension for holders is **reporting and information-collection**, not legality.
 
@@ -43,7 +43,7 @@ Most important recent changes: phased introduction of **Form 1099-DA** broker re
 - **Capital gains:** Digital assets, including Bitcoin, are **treated as property** for federal tax purposes (IRS Notice 2014-21). Selling, exchanging, or otherwise disposing of Bitcoin is a taxable event; gain or loss is reported on **Form 8949** and **Schedule D**. Holding period determines short-term vs long-term treatment. `High` [src-irs-vc-faq], [src-irs-8949].
 - **Bitcoin classification:** Property (not currency) for income-tax purposes. `High`.
 - **BTC-to-BTC and BTC-to-other-asset trades:** A disposition of property and therefore generally a taxable event. `High` [src-irs-vc-faq].
-- **BTC-to-stablecoin trades:** Treated as a disposition of property; taxable event. `Medium` (follows from property treatment; no Bitcoin-specific carve-out found).
+- **BTC-to-stablecoin trades:** Generally treated as an exchange/disposition of digital-asset property and may create gain or loss. `High` [src-irs-vc-faq].
 - **BTC payments:** Using Bitcoin to pay for goods or services is a disposition of property and a taxable event on any gain. `High` [src-irs-vc-faq].
 - **Lightning payments:** No Bitcoin-Lightning-specific IRS guidance found in this research pass. Treat as property disposition by default. `Unknown — open question for tax counsel`.
 - **Donations and gifts:** Gifts of property may implicate the gift-tax regime above the annual exclusion (**$19,000 per recipient for 2026**); charitable donations of appreciated property have their own rules. `Medium` [src-natlawreview-estate-2026].
@@ -62,7 +62,7 @@ Most important recent changes: phased introduction of **Form 1099-DA** broker re
 - **Exchanges licensed:** Centralized exchanges register with FinCEN as MSBs and hold state money-transmitter licenses; securities/commodities overlay applies depending on the asset and activity. `Medium`.
 - **Foreign exchanges accessible:** Many restrict or limit US users for regulatory reasons; access is uneven. `Medium`.
 - **Custodians regulated:** Yes, through a mix of state trust charters, federal banking guidance (2025 clarified banks may custody crypto), and money-transmission rules. `Medium`.
-- **Stablecoins regulated:** A federal stablecoin framework advanced in 2025; details and scope require a dedicated source check. `Low — open question`.
+- **Stablecoins regulated:** The **GENIUS Act**, enacted 18 July 2025 (Public Law 119-27), created a federal US payment-stablecoin framework; implementation details depend on rulemaking and effective-date provisions. `High` [src-us-genius-act].
 - **Mining regulated:** No general federal prohibition; energy and local rules vary by state. `Low`.
 - **Businesses may hold Bitcoin:** Yes; accounting treatment evolved with FASB fair-value rules. `Medium`.
 - **Advisors may recommend:** Investment advisers operate under fiduciary and suitability rules; spot Bitcoin ETFs gave advisers a regulated wrapper. Specific recommendation permissions depend on the adviser's registration and the product. `Medium — open question for the advisor segment`.
@@ -76,7 +76,7 @@ Most important recent changes: phased introduction of **Form 1099-DA** broker re
 
 - **Form 1099-DA broker reporting:** Final regulations require brokers to report **gross proceeds** of digital-asset sales for transactions on or after **Jan 1, 2025**, and **adjusted basis** for certain covered transactions on or after **Jan 1, 2026**. Backup-withholding relief was extended to **Jan 1, 2027** (Notice 2025-33). `High` [src-irs-da-final], [src-irs-broker-relief], [src-rsm-2025-33]. *Human review required.*
 - **CRS participation:** The United States is **not a participating jurisdiction in the OECD Common Reporting Standard**; it operates its own information-exchange regime under **FATCA**. `Medium — source pending; structural fact, verify against the OECD CRS participant list at next review`.
-- **CARF status:** The US has pursued domestic broker reporting (1099-DA) rather than adopting the OECD Crypto-Asset Reporting Framework on the same timeline as CARF-committed jurisdictions. Exact commitment status needs a dedicated source. `Low — open question`.
+- **CARF status:** The US has implemented domestic digital-asset broker reporting through Form 1099-DA; its CARF participation/coordination status should be separately confirmed (do not state the US chose 1099-DA "instead of" CARF without a Treasury/OECD source). `Medium — needs-review`.
 - **FATF Travel Rule:** Implemented through FinCEN's funds-transfer/"travel" rule, applying recordkeeping and transmittal obligations to MSBs/VASPs (commonly cited $3,000 threshold). `Medium` [src-notabene-us-travelrule].
 - **Beneficial ownership registry:** The Corporate Transparency Act created a beneficial-ownership reporting regime to FinCEN; its scope and applicability to domestic vs foreign entities shifted during 2024–2025 and needs a current source. `Low — open question`.
 - **Foreign account/asset reporting:** FBAR (FinCEN Form 114) applies to foreign financial accounts above $10,000 aggregate; Form 8938 (FATCA) applies to specified foreign financial assets. A foreign account holding **only** virtual currency is **currently not** an FBAR-reportable account, but FinCEN issued a notice of intent to amend the rules to include virtual currency; **as of this review the amendment is not finalized**. `Medium` [src-fincen-fbar-vc], [src-pkfod-fbar-fatca].
