@@ -4,7 +4,7 @@
    (or: node scripts/jea-integrity-check.mjs for a plain pass/fail summary). */
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import vm from 'node:vm';
@@ -19,6 +19,19 @@ const sourceLedger = readJson('data/jurisdiction-source-ledger.json');
 const usProfile = readJson('data/profiles/united-states.json');
 const questionnaire = readJson('data/questionnaire.json');
 const deepDive = readText('deep-dive.md');
+
+// Load every country profile JSON (the whole cohort), keyed by filename.
+const profileFiles = readdirSync(join(DD, 'data/profiles')).filter((f) => f.endsWith('.json'));
+const profiles = profileFiles.map((f) => ({ file: f, data: readJson('data/profiles/' + f) }));
+// Recursively collect every {claim_id, public_safe, source_ids} object inside a profile.
+function collectClaimFields(obj, out) {
+  if (Array.isArray(obj)) { obj.forEach((v) => collectClaimFields(v, out)); return out; }
+  if (obj && typeof obj === 'object') {
+    if (Object.prototype.hasOwnProperty.call(obj, 'claim_id')) out.push(obj);
+    Object.values(obj).forEach((v) => collectClaimFields(v, out));
+  }
+  return out;
+}
 
 // The classifier/router are plain browser scripts that self-attach to globalThis.
 // Run them in this context (no `window`), then read the globals — this also verifies
@@ -164,5 +177,86 @@ test('routing family guard', () => {
   if (out.recommended_pathway.product_id === 'family_bitcoin_recovery_kit') {
     const hasFamily = (out._flags || []).some((f) => f.startsWith('family.') || f.startsWith('estate.'));
     assert.ok(hasFamily, 'family kit routed without family/estate evidence');
+  }
+});
+
+/* ---- Cohort-wide cross-checks (added 2026-06-16, formerly run by hand) ---- */
+
+// CC1: every source_id referenced by any profile exists in the source ledger.
+test('CC1: profile source references resolve', () => {
+  for (const { file, data } of profiles) {
+    for (const cf of collectClaimFields(data, [])) {
+      for (const sid of (cf.source_ids || [])) {
+        assert.ok(sourceIds.has(sid), `${file}: claim ${cf.claim_id} references missing source ${sid}`);
+      }
+    }
+  }
+});
+
+// CC2: every source_id referenced by any ledger claim exists in the source ledger.
+test('CC2: ledger source references resolve', () => {
+  for (const c of claimLedger.claims) {
+    for (const sid of (c.source_ids || [])) {
+      assert.ok(sourceIds.has(sid), `ledger claim ${c.claim_id} references missing source ${sid}`);
+    }
+  }
+});
+
+// CC3: no duplicate claim_ids in the ledger.
+test('CC3: no duplicate claim_ids in ledger', () => {
+  const seen = new Set();
+  for (const c of claimLedger.claims) {
+    assert.ok(!seen.has(c.claim_id), `duplicate claim_id in ledger: ${c.claim_id}`);
+    seen.add(c.claim_id);
+  }
+});
+
+// CC4: profile and ledger agree on public_safe for any shared claim_id (contradiction guard).
+test('CC4: profile/ledger public_safe agree for shared claims', () => {
+  const ledgerById = Object.fromEntries(claimLedger.claims.map((c) => [c.claim_id, c]));
+  for (const { file, data } of profiles) {
+    for (const cf of collectClaimFields(data, [])) {
+      const l = ledgerById[cf.claim_id];
+      if (l && Object.prototype.hasOwnProperty.call(cf, 'public_safe')) {
+        assert.equal(cf.public_safe, l.public_safe, `${file}: public_safe mismatch for ${cf.claim_id} (profile ${cf.public_safe} vs ledger ${l.public_safe})`);
+      }
+    }
+  }
+});
+
+// CC5: every profile has last_reviewed, next_review, and a confidence_summary; present sections have a confidence entry.
+test('CC5: every profile has review dates + per-section confidence', () => {
+  const SECTIONS = ['basic_profile', 'tax_overview', 'bitcoin_regulation', 'reporting_profile', 'estate_profile', 'banking_profile', 'asset_protection_profile', 'mobility_profile', 'bitcoin_holder_implications'];
+  for (const { file, data } of profiles) {
+    assert.ok(data.last_reviewed, `${file}: missing last_reviewed`);
+    assert.ok(data.next_review, `${file}: missing next_review`);
+    assert.ok(data.confidence_summary && typeof data.confidence_summary === 'object', `${file}: missing confidence_summary`);
+    for (const s of SECTIONS) {
+      if (data[s]) assert.ok(data.confidence_summary[s], `${file}: section ${s} present but no confidence_summary entry`);
+    }
+  }
+});
+
+// CC6: no profile claim field is public_safe with confidence 'unknown' or claim_type F (unresolved must not be public).
+test('CC6: unresolved profile fields are never public_safe', () => {
+  for (const { file, data } of profiles) {
+    for (const cf of collectClaimFields(data, [])) {
+      const unresolved = cf.confidence === 'unknown' || cf.claim_type === 'F-unknown-unresolved';
+      if (unresolved && cf.public_safe === true) {
+        assert.fail(`${file}: unresolved field ${cf.claim_id} is public_safe`);
+      }
+    }
+  }
+});
+
+// CC7: every cited source has a tier 1-4, and Tier-4 sources are not the sole support of any verified/public claim.
+test('CC7: Tier-4 sources never solely support a public claim', () => {
+  const tierById = Object.fromEntries(sourceLedger.sources.map((s) => [s.source_id, s.tier]));
+  for (const c of claimLedger.claims) {
+    if (!c.public_safe || !(c.source_ids || []).length) continue;
+    const tiers = c.source_ids.map((s) => tierById[s]).filter((t) => t != null);
+    if (tiers.length && tiers.every((t) => t === 4)) {
+      assert.fail(`ledger claim ${c.claim_id} is public but supported only by Tier-4 source(s)`);
+    }
   }
 });
