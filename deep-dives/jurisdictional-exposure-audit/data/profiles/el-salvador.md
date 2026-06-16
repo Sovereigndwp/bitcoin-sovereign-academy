@@ -32,7 +32,7 @@ Territorial system; foreign-source income generally not taxed for residents (exa
 
 ## 3. Bitcoin and crypto regulation
 
-**LEAD** (Digital Assets Issuance Law, 2023) regulates issuers/providers; the **CNAD** (Comisión Nacional de Activos Digitales) licenses and supervises. Individual holding/self-custody and P2P use remain legal post-2025 (the amendment removed mandatory acceptance, not the right to hold). Under the IMF program, public-sector Bitcoin activity is limited and the state Chivo wallet is being divested; private LEAD incentives were not reported repealed. `Bitcoin regulation: Medium` [src-sv-trade-lead, src-sv-imf-pr]
+**LEAD** (Ley de Emisión de Activos Digitales, DL 643, 2023) regulates digital-asset issuance and service providers (PSAD); the **CNAD** (Comisión Nacional de Activos Digitales) applies the regulation and maintains a public PSAD registry. Individual holding/self-custody and P2P use remain legal post-2025 (the amendment removed mandatory acceptance, not the right to hold). Under the IMF program, public-sector Bitcoin activity is limited and the state Chivo wallet is being divested; private LEAD incentives were not reported repealed. `Bitcoin regulation: Medium (LEAD/CNAD framework: High, verified)` [src-sv-lead-cnad, src-sv-trade-lead, src-sv-imf-pr]
 
 ## 4. Reporting and surveillance exposure
 

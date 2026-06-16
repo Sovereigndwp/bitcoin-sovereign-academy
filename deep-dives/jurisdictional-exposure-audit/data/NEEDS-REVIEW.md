@@ -1,9 +1,9 @@
 # JEA — Needs-Review Queue (reviewer action list)
 
-> Auto-generated from `jurisdiction-claim-ledger.json` on 2026-06-16 (post human-review pass). Regenerate after each verification pass.
+> Auto-generated from `jurisdiction-claim-ledger.json` on 2026-06-16 (post quick-win-primary pass). Regenerate after each verification pass.
 > Punch-list of claims NOT yet primary-confirmed. Companion to `VERIFICATION-LOG.md` (what *was* confirmed).
 
-**Ledger totals:** 69 claims — verified 48 · needs-review 17 · unsupported 4 · open here 21.
+**Ledger totals:** 69 claims — verified 51 · needs-review 14 · unsupported 4 · open here 18.
 
 ## United States
 
@@ -18,10 +18,8 @@
 
 | Claim | Status / conf | What it says | To clear it | Source to open |
 |---|---|---|---|---|
-| `co-basic-001` | needs-review/high | Colombia runs an exchange-control regime; crypto is not foreign currency and cannot be channeled through the FX mar… | Agent-sourced from Banco de la República; reviewer to re-open the primary. | Banco de la República |
 | `co-tax-003` | needs-review/low _(counsel)_ | Crypto gains may be treated differently depending on holding period, taxpayer profile, and whether the activity is … | Human-reviewed 2026-06-16: no primary DIAN source for the exact >2yr/15% vs ordinary formulation for Bitcoin; softened. | DIAN |
 | `co-tax-005` | unsupported/unknown _(counsel)_ | No deemed-disposal exit tax confirmed; not affirmatively verified. | Open the primary source and confirm/correct. | find a primary source |
-| `co-btc-002` | needs-review/high | SFC does not regulate/supervise/endorse crypto; no exchange licensing regime; supervised banks not authorized to in… | Agent-sourced from SFC; reviewer to re-open. | Superintendencia Financiera de Colombia |
 | `co-rep-003` | needs-review/medium | DIAN Resolución 000240/2025 requires crypto-asset service providers to report user/transaction data from TY2026 (CA… | Corroborated by Holland & Knight; confirm the DIAN resolution text. | KPMG |
 | `co-est-002` | needs-review/low _(counsel)_ | Inheritance/donation tax treatment (commonly described as ganancia ocasional) should be confirmed against DIAN/Cong… | Human-reviewed 2026-06-16: primary DIAN/Congress source not retrieved; do not publish as confirmed. | DIAN / Congreso de Colombia |
 
@@ -38,7 +36,6 @@
 | Claim | Status / conf | What it says | To clear it | Source to open |
 |---|---|---|---|---|
 | `sv-tax-002` | unsupported/low _(counsel)_ | Reported Bitcoin capital-gains exemption survived the Jan 2025 amendments, but not confirmed against a Tier-1 Hacie… | Open the primary source and confirm/correct. | find a primary source |
-| `sv-btc-001` | needs-review/medium | LEAD (Digital Assets Issuance Law, 2023) regulates issuers/providers; CNAD licenses and supervises. | Open the primary source and confirm/correct. | U.S. International Trade Administration |
 | `sv-rep-001` | needs-review/low | Reported among non-committed CARF jurisdictions with weak/absent CRS; but the CARF committed list is growing — re-v… | Downgraded Medium->Low 2026-06-16; re-confirm against live OECD CARF list. | OECD |
 | `sv-est-001` | needs-review/medium _(counsel)_ | Intestate succession (Código Civil) calls children, parents, and spouse by order, dividing equally within each orde… | Human-reviewed 2026-06-16: split per reviewer. Intestate order is confirmable against the Código Civil (attach exact article to verify). Testate reser… | Organization of American States (hosting the El Salvador Civil Code) |
 | `sv-est-002` | needs-review/low _(counsel)_ | Whether El Salvador retains a testate forced-heirship reserve (legítima) is CONFLICTED across sources (some say abs… | Human-reviewed 2026-06-16: split from sv-est-001; testate reserve unresolved, kept off public rendering. | International Bar Association |

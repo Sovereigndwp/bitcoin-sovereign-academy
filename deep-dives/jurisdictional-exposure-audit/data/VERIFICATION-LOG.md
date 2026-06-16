@@ -65,3 +65,12 @@ Owner reviewed the 23-item needs-review queue. Dispositions applied to the ledge
 **Likely-clear once primary attached (still needs-review):** `co-basic-001` (Banco de la República), `co-btc-002` (SFC Circular 29/2014), `sv-btc-001` (LEAD/CNAD law text).
 
 Result: queue reduced to 4 cleared this pass + the rest held open/counsel-only. Suite green (19/19).
+
+## 2026-06-16 — quick-win primary attachments (3 cleared)
+
+The three "likely-clear once primary attached" items were confirmed against the named regulators' own materials and moved needs-review → verified:
+- `co-basic-001` — Banco de la República concepto: crypto is not a *divisa*, not legal tender, cannot be channeled through the FX market; FX-market intermediaries cannot transact in it [src-co-banrep-divisa].
+- `co-btc-002` — SFC **Circular Externa 029/2014**: virtual currencies not regulated/supervised by the SFC; supervised entities not authorized to custody/invest/intermediate [src-co-sfc-circ029].
+- `sv-btc-001` — El Salvador **LEAD (DL 643)** hosted by the regulator + the CNAD public PSAD registry [src-sv-lead-cnad].
+
+Ledger after this pass: 69 claims — verified 51 · needs-review 14 · unsupported 4. Open queue 18.
