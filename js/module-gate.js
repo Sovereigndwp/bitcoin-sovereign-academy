@@ -207,9 +207,7 @@
     function isServerProtectedRoute() {
         const path = pathName.replace(/\/+$/, '') || '/';
 
-        if (path === '/deep-dives' || path === '/deep-dives/index.html' || path.startsWith('/deep-dives/')) {
-            return true;
-        }
+        // deep-dives freed 2026-06-16 (education is free) — kept consistent with membership-gate.js.
 
         if (!path.startsWith('/paths/')) {
             return false;
