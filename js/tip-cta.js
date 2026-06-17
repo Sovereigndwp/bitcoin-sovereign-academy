@@ -39,9 +39,9 @@
             styles.id = 'tip-cta-styles';
             styles.textContent = `
                 .tip-cta {
-                    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
-                    border: 2px solid rgba(76, 175, 80, 0.25);
-                    border-radius: 16px;
+                    background: #16181c;
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 2px;
                     padding: 1.5rem 2rem;
                     margin: 2rem 0;
                     display: flex;
@@ -61,7 +61,7 @@
                 }
 
                 .tip-cta-content h4 {
-                    color: #4CAF50;
+                    color: #FF7A00;
                     font-size: 1.1rem;
                     margin-bottom: 0.25rem;
                 }
@@ -80,7 +80,7 @@
 
                 .tip-cta-btn {
                     padding: 0.6rem 1.25rem;
-                    border-radius: 10px;
+                    border-radius: 2px;
                     font-weight: 600;
                     font-size: 0.9rem;
                     cursor: pointer;
