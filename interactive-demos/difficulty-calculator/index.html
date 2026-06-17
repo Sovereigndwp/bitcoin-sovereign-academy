@@ -381,7 +381,7 @@
 
         <!-- Difficulty Chart -->
         <div class="calculator-card">
-            <h2 class="card-title"><span data-icon="trending-up"></span> Difficulty Trend (Last 30 Adjustments)</h2>
+            <h2 class="card-title"><span data-icon="trending-up"></span> Difficulty Trend (illustrative pattern)</h2>
             <div id="difficultyChart"></div>
         </div>
 
@@ -444,7 +444,8 @@
             blockHeight: 880000,
             networkHashrate: 1050000000000000000000, // ~1.05 ZH/s (1,050 EH/s)
             blockReward: 3.125, // Post-2024 halving
-            blocksUntilAdjustment: 1250
+            blocksUntilAdjustment: 1250,
+            expectedAdjustment: null
         };
 
         // Calculate network stats
@@ -453,16 +454,20 @@
             document.getElementById('networkHashrate').textContent = formatHashrate(networkData.networkHashrate);
 
             const adjustmentPercent = calculateExpectedAdjustment();
-            const sign = adjustmentPercent >= 0 ? '+' : '';
-            document.getElementById('nextAdjustment').textContent = `${sign}${adjustmentPercent.toFixed(2)}%`;
+            if (adjustmentPercent == null || isNaN(adjustmentPercent)) {
+                document.getElementById('nextAdjustment').textContent = 'live data…';
+            } else {
+                const sign = adjustmentPercent >= 0 ? '+' : '';
+                document.getElementById('nextAdjustment').textContent = `${sign}${adjustmentPercent.toFixed(2)}%`;
+            }
 
             document.getElementById('blocksUntil').textContent = networkData.blocksUntilAdjustment.toLocaleString();
         }
 
-        // Calculate expected difficulty adjustment
+        // Expected difficulty adjustment: real value from mempool.space live data,
+        // or null until it loads (display shows "live data…", never a fabricated number).
         function calculateExpectedAdjustment() {
-            // Simulated - in production would calculate from actual block times
-            return (Math.random() * 10 - 2); // Random between -2% and +8%
+            return (networkData.expectedAdjustment != null) ? networkData.expectedAdjustment : null;
         }
 
         // Format difficulty
@@ -627,6 +632,11 @@
                 if (diff && diff.remainingBlocks != null) networkData.blocksUntilAdjustment = diff.remainingBlocks;
                 if (hash && hash.raw) networkData.networkHashrate = hash.raw;
                 if (height) networkData.blockHeight = height;
+                if (diff && typeof diff.difficultyChange === 'number') networkData.expectedAdjustment = diff.difficultyChange;
+                try {
+                    const da = await fetch('https://mempool.space/api/v1/difficulty-adjustment').then(r => r.json());
+                    if (da && typeof da.difficultyChange === 'number') networkData.expectedAdjustment = da.difficultyChange;
+                } catch (e) { /* keep null; display stays "live data…" */ }
                 updateNetworkStats();
                 calculateMiningResults();
                 renderDifficultyChart();
