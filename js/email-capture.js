@@ -58,9 +58,9 @@ substackUrl: '',
             styles.id = 'email-capture-styles';
             styles.textContent = `
                 .email-capture-inline {
-                    background: linear-gradient(135deg, rgba(255, 122, 0, 0.1) 0%, rgba(255, 122, 0, 0.05) 100%);
-                    border: 2px solid rgba(255, 122, 0, 0.25);
-                    border-radius: 16px;
+                    background: #16181c;
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 2px;
                     padding: 1.5rem 2rem;
                     margin: 2rem 0;
                     text-align: center;
@@ -92,7 +92,7 @@ substackUrl: '',
                     min-width: 200px;
                     padding: 0.75rem 1rem;
                     border: 2px solid #2d2d2d;
-                    border-radius: 10px;
+                    border-radius: 2px;
                     background: #1a1a1a;
                     color: #e0e0e0;
                     font-size: 1rem;
@@ -108,7 +108,7 @@ substackUrl: '',
                     background: linear-gradient(135deg, #FF7A00 0%, #FFD400 100%);
                     color: #000;
                     border: none;
-                    border-radius: 10px;
+                    border-radius: 2px;
                     font-weight: 700;
                     font-size: 1rem;
                     cursor: pointer;
