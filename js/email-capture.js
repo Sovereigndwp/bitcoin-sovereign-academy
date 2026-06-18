@@ -105,19 +105,21 @@ substackUrl: '',
 
                 .email-capture-form button {
                     padding: 0.75rem 1.5rem;
-                    background: linear-gradient(135deg, #FF7A00 0%, #FFD400 100%);
-                    color: #000;
-                    border: none;
-                    border-radius: 2px;
+                    background: transparent;
+                    color: #FF7A00;
+                    border: 2px solid transparent;
+                    border-image: linear-gradient(135deg, #FF7A00, #FFD400) 1;
+                    font-family: 'JetBrains Mono', ui-monospace, monospace;
                     font-weight: 700;
-                    font-size: 1rem;
+                    font-size: 0.8rem;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
                     cursor: pointer;
-                    transition: all 0.3s ease;
+                    transition: background 0.2s ease;
                 }
 
                 .email-capture-form button:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 15px rgba(255, 122, 0, 0.4);
+                    background: rgba(255, 122, 0, 0.12);
                 }
 
                 .email-capture-privacy {

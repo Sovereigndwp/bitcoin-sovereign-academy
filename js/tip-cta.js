@@ -92,14 +92,17 @@
                 }
 
                 .tip-cta-btn.primary {
-                    background: linear-gradient(135deg, #FF7A00 0%, #FFD400 100%);
-                    color: #000;
-                    border: none;
+                    background: transparent;
+                    color: #FF7A00;
+                    border: 2px solid transparent;
+                    border-image: linear-gradient(135deg, #FF7A00, #FFD400) 1;
+                    font-family: 'JetBrains Mono', ui-monospace, monospace;
+                    text-transform: uppercase;
+                    letter-spacing: 0.08em;
                 }
 
                 .tip-cta-btn.primary:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 15px rgba(255, 122, 0, 0.4);
+                    background: rgba(255, 122, 0, 0.12);
                 }
 
                 .tip-cta-btn.secondary {
