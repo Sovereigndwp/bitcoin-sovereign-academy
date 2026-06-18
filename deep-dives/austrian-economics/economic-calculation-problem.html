@@ -234,6 +234,24 @@ blocked_by_boundary: [no_direct_tba_funnel]
         </section>
 
         <section class="content-section">
+            <h2>Try it: set one interest rate for everyone</h2>
+            <p>
+                A central bank is a smaller version of the same problem. It sets one interest rate, the price of borrowing, for a whole country made of very different regions and sectors. Below, four parts of an economy each have a rate that would suit their local conditions, which you cannot see. Pick a single rate for all of them and see how well one number fits.
+            </p>
+            <div class="interactive" id="rate-tool">
+                <h4>Set the national interest rate</h4>
+                <p class="hint">One rate, four very different local economies. Set it, then reveal what each part actually needed. The wider the spread, the worse any single number does.</p>
+                <label for="rate-range">Your rate: <span class="readout" id="rate-v">4.0</span>%</label>
+                <input type="range" id="rate-range" min="0" max="10" value="4" step="0.5">
+                <button id="rate-reveal" type="button">Reveal local conditions</button>
+                <div class="reveal" id="rate-result" hidden></div>
+            </div>
+            <p>
+                There is no rate that fits all four at once. Too low, and the overheating regions get cheap credit that fuels bubbles and malinvestment. Too high, and the struggling regions are starved of the borrowing they need. This is the calculation problem in miniature: one price, set centrally, cannot carry the dispersed and conflicting information that a thousand local prices would.
+            </p>
+        </section>
+
+        <section class="content-section">
             <h2>The strongest objection: can computers plan now?</h2>
             <p>
                 The most serious challenge to Mises and Hayek is not that they were wrong in 1920, but that technology has changed since. This deserves its full strength.
@@ -256,6 +274,25 @@ blocked_by_boundary: [no_direct_tba_funnel]
             </p>
             <p>
                 Bitcoin is a smaller example of the same shape: coordination without a coordinator. Miners, node operators, wallet developers, exchanges, and self-custodians each act on local information and incentives, and the network holds together with no one in charge. Notice this is a claim about <strong>coordination design</strong>, not a claim that Bitcoin runs an economy. It coordinates one thing, the issuance and settlement of a money, by rule.
+            </p>
+        </section>
+
+        <section class="content-section">
+            <h2>Try it: the fee market as a price signal</h2>
+            <p>
+                Here is a price signal working inside Bitcoin, with no planner setting it. Each block holds only so much space, so when more transactions are waiting than will fit, users bid fees for priority. The fee is a price for block space, and it rises and falls with demand exactly as Hayek would expect, coordinating who gets in next without anyone in charge.
+            </p>
+            <div class="interactive" id="fee-tool">
+                <h4>Bid for block space</h4>
+                <p class="hint">Set how much demand is waiting (in multiples of one block of space), then set your fee bid. The market clears at whatever fee fills the next block from the highest bidders. See whether you get in.</p>
+                <label for="fee-demand">Pending demand: <span class="readout" id="fee-demand-v">3.0</span>x one block</label>
+                <input type="range" id="fee-demand" min="0.2" max="8" value="3" step="0.1">
+                <label for="fee-bid">Your fee bid: <span class="readout" id="fee-bid-v">20</span> sat/vB</label>
+                <input type="range" id="fee-bid" min="1" max="250" value="20" step="1">
+                <div class="reveal" id="fee-result" aria-live="polite" style="border-top:1px solid rgba(255,255,255,0.12);"></div>
+            </div>
+            <p>
+                Notice no one decided the clearing fee. It emerged from everyone's bids against a fixed supply of space, and it told you, in one number, how urgently to bid or whether to wait. That is a market price doing exactly the job Mises and Hayek described, inside a system with no central authority to set it.
             </p>
         </section>
 
@@ -411,6 +448,72 @@ blocked_by_boundary: [no_direct_tba_funnel]
                 signalResult.appendChild(p);
             });
         });
+    })();
+    </script>
+
+    <!-- Deep-dive interactives, part 2 -->
+    <script>
+    (function () {
+        // Central-bank rate-setting game
+        var SECTORS = [
+            { name: 'Overheating tech hub', ideal: 8.0 },
+            { name: 'Housing-bubble coast', ideal: 6.5 },
+            { name: 'Steady services region', ideal: 4.5 },
+            { name: 'Struggling manufacturing town', ideal: 1.5 }
+        ];
+        var rRange = document.getElementById('rate-range');
+        var rV = document.getElementById('rate-v');
+        var rResult = document.getElementById('rate-result');
+        rRange.addEventListener('input', function(){ rV.textContent = parseFloat(rRange.value).toFixed(1); });
+        document.getElementById('rate-reveal').addEventListener('click', function(){
+            var rate = parseFloat(rRange.value);
+            rResult.hidden = false; rResult.textContent = '';
+            var totalMiss = 0;
+            SECTORS.forEach(function(s){ totalMiss += Math.abs(rate - s.ideal); });
+            var p = document.createElement('p');
+            p.innerHTML = 'Total mismatch: <span class="readout">' + totalMiss.toFixed(1) + ' points</span> across four regions. No single rate gets this to zero.';
+            rResult.appendChild(p);
+            SECTORS.forEach(function(s){
+                var gap = rate - s.ideal;
+                var verdict = Math.abs(gap) < 0.75 ? 'about right' : (gap > 0 ? 'too tight (credit too dear for them)' : 'too loose (cheap credit fuels malinvestment)');
+                var line = document.createElement('p');
+                line.style.margin = '0.4rem 0 0.1rem'; line.style.fontSize = '0.92rem';
+                line.innerHTML = '<strong>' + s.name + '</strong> needed about ' + s.ideal.toFixed(1) + '%. Your ' + rate.toFixed(1) + '% is ' + verdict + '.';
+                rResult.appendChild(line);
+            });
+        });
+
+        // Fee-market simulator
+        var fDemand = document.getElementById('fee-demand');
+        var fBid = document.getElementById('fee-bid');
+        var fDV = document.getElementById('fee-demand-v');
+        var fBV = document.getElementById('fee-bid-v');
+        var fResult = document.getElementById('fee-result');
+        function clearingFee(demand){
+            if (demand <= 1) return 1;
+            return Math.max(1, Math.round(2 * Math.pow(demand, 2)));
+        }
+        function renderFee(){
+            var demand = parseFloat(fDemand.value);
+            var bid = parseInt(fBid.value, 10);
+            fDV.textContent = demand.toFixed(1);
+            fBV.textContent = bid;
+            var clear = clearingFee(demand);
+            fResult.textContent = '';
+            var p1 = document.createElement('p');
+            p1.innerHTML = 'Market clearing fee right now: <span class="readout">' + clear + ' sat/vB</span>, set by everyone’s bids against a fixed block, not by you.';
+            var p2 = document.createElement('p');
+            if (bid >= clear) p2.textContent = 'Your bid clears. You confirm in the next block, about ten minutes.';
+            else if (bid >= clear * 0.6) p2.textContent = 'Your bid is below clearing. You wait several blocks, until demand eases or you raise it.';
+            else p2.textContent = 'Your bid is far below clearing. You could wait hours, or sit unconfirmed until the backlog clears.';
+            var p3 = document.createElement('p');
+            p3.style.color = '#b3b3b3'; p3.style.fontSize = '0.9rem'; p3.style.marginBottom = '0';
+            p3.textContent = 'Raise demand and the clearing fee climbs; lower it and space is nearly free. The price is doing the rationing.';
+            fResult.appendChild(p1); fResult.appendChild(p2); fResult.appendChild(p3);
+        }
+        fDemand.addEventListener('input', renderFee);
+        fBid.addEventListener('input', renderFee);
+        renderFee();
     })();
     </script>
 

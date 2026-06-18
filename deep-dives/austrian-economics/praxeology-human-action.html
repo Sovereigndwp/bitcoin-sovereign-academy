@@ -190,6 +190,24 @@ blocked_by_boundary: [no_direct_tba_funnel]
         </section>
 
         <section class="content-section">
+            <h2>The anatomy of an action</h2>
+            <p>
+                Praxeology says every action has the same skeleton: a person uses <em>means</em> to pursue an <em>end</em>, accepting a <em>tradeoff</em>, under <em>uncertainty</em>, and then lives with the <em>consequence</em> and revises. Pick a real choice and walk it through the structure.
+            </p>
+            <div class="interactive" id="tree-tool">
+                <h4>Walk a choice through the structure</h4>
+                <p class="hint">Choose a decision, then step through its anatomy. The labels are the praxeological categories; the lines are how they apply to your choice.</p>
+                <div id="tree-choices">
+                    <button class="choice-btn" data-key="save" type="button">Save this month's surplus</button>
+                    <button class="choice-btn" data-key="spend" type="button">Spend it on a trip now</button>
+                    <button class="choice-btn" data-key="learn" type="button">Spend weekends learning a skill</button>
+                </div>
+                <div class="reveal" id="tree-result" hidden></div>
+                <button id="tree-next" type="button" hidden>Next step</button>
+            </div>
+        </section>
+
+        <section class="content-section">
             <h2>Subjective value: the same thing, different worth</h2>
             <p>
                 A second praxeological idea: value is not a property baked into objects, it is assigned by acting people at the margin. The classic puzzle is the diamond-water paradox: water is essential yet cheap, diamonds are useless yet dear, because what we value is the <em>next</em> unit in our actual situation, not the thing in the abstract. Pick a situation and see.
@@ -203,6 +221,24 @@ blocked_by_boundary: [no_direct_tba_funnel]
                     <button class="choice-btn" data-key="btc-skeptic" type="button">Bitcoin, to a skeptic with a stable currency</button>
                 </div>
                 <div class="reveal" id="value-result" hidden></div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2>Make the tradeoff visible: opportunity cost</h2>
+            <p>
+                Because means are scarce, every choice forecloses others. The real cost of anything is not its price tag but the next best thing you give up to get it. This tool only makes that visible; it gives no advice about what you should choose.
+            </p>
+            <div class="interactive" id="oc-tool">
+                <h4>What does this choice really cost?</h4>
+                <p class="hint">Enter what you are about to spend and roughly what an hour of your work is worth, then name the single best thing you would otherwise do with it. The point is clarity, not a verdict.</p>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;">
+                    <div><label for="oc-amount">Amount ($)</label><input type="number" id="oc-amount" value="500" min="0" step="10"></div>
+                    <div><label for="oc-wage">Your take-home wage ($/hr)</label><input type="number" id="oc-wage" value="25" min="0" step="1"></div>
+                </div>
+                <label for="oc-alt">The best thing you would otherwise do with it</label>
+                <input type="text" id="oc-alt" maxlength="120" placeholder="e.g. three months of saving, a course, a weekend away" style="background:var(--secondary-dark);color:var(--text-light);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:0.5rem 0.65rem;font-size:1rem;width:100%;">
+                <div class="reveal" id="oc-result" aria-live="polite" style="border-top:1px solid rgba(255,255,255,0.12);"></div>
             </div>
         </section>
 
@@ -408,6 +444,110 @@ blocked_by_boundary: [no_direct_tba_funnel]
                 valueResult.appendChild(note);
             });
         });
+    })();
+    </script>
+
+    <!-- Deep-dive interactives, part 2 -->
+    <script>
+    (function () {
+        // Action decision-tree
+        var TREE = {
+            save: [
+                { label: 'End (the valued goal)', text: 'A more secure future you value, right now, more than the things this money could buy today.' },
+                { label: 'Means', text: 'Setting this month’s surplus aside instead of spending it.' },
+                { label: 'Tradeoff (opportunity cost)', text: 'The trip, gadget, or nights out you forgo by not spending it now.' },
+                { label: 'Uncertainty', text: 'Future returns, inflation, and your own later needs are unknown.' },
+                { label: 'Action', text: 'You move the money to savings. That act, chosen toward an end, is the praxeology.' },
+                { label: 'Consequence and revision', text: 'It may reward you or disappoint you. Either way you learn and adjust next month.' }
+            ],
+            spend: [
+                { label: 'End (the valued goal)', text: 'An experience and rest you value now, more than a larger balance later.' },
+                { label: 'Means', text: 'Spending this month’s surplus on the trip.' },
+                { label: 'Tradeoff (opportunity cost)', text: 'The future security or compounding growth you give up.' },
+                { label: 'Uncertainty', text: 'Whether the trip is worth it, and what you will later wish you had done.' },
+                { label: 'Action', text: 'You book it and pay. That is the action.' },
+                { label: 'Consequence and revision', text: 'Memories or regret; either way you revise what you value next time.' }
+            ],
+            learn: [
+                { label: 'End (the valued goal)', text: 'A skill you expect to value more than the leisure it costs you.' },
+                { label: 'Means', text: 'Spending weekends studying instead of resting.' },
+                { label: 'Tradeoff (opportunity cost)', text: 'The rest and social time you forgo.' },
+                { label: 'Uncertainty', text: 'Whether the skill pays off, and whether you will stick with it.' },
+                { label: 'Action', text: 'You sit down and practice. The action itself.' },
+                { label: 'Consequence and revision', text: 'Progress or burnout; you adjust the plan as you go.' }
+            ]
+        };
+        var treeResult = document.getElementById('tree-result');
+        var treeNext = document.getElementById('tree-next');
+        var treeSteps = null, treeIdx = 0;
+        function renderTreeStep(){
+            treeResult.hidden = false;
+            treeResult.textContent = '';
+            for (var i = 0; i <= treeIdx && i < treeSteps.length; i++){
+                var card = document.createElement('div');
+                card.style.padding = '0.6rem 0'; card.style.borderBottom = '1px solid rgba(255,255,255,0.08)';
+                var lab = document.createElement('div');
+                lab.style.color = 'var(--accent-bronze)'; lab.style.fontWeight = '700'; lab.style.fontSize = '0.85rem';
+                lab.textContent = (i + 1) + '. ' + treeSteps[i].label;
+                var txt = document.createElement('div'); txt.style.color = 'var(--text-light)'; txt.textContent = treeSteps[i].text;
+                card.appendChild(lab); card.appendChild(txt); treeResult.appendChild(card);
+            }
+            if (treeIdx >= treeSteps.length - 1){
+                treeNext.hidden = true;
+                var done = document.createElement('p');
+                done.style.marginTop = '0.75rem'; done.style.color = '#b3b3b3'; done.style.fontSize = '0.9rem'; done.style.marginBottom = '0';
+                done.textContent = 'Every choice you make has this same skeleton. That sameness is what the action axiom points at.';
+                treeResult.appendChild(done);
+            } else {
+                treeNext.hidden = false;
+            }
+        }
+        document.querySelectorAll('#tree-choices .choice-btn').forEach(function(btn){
+            btn.addEventListener('click', function(){
+                treeSteps = TREE[btn.getAttribute('data-key')];
+                treeIdx = 0; renderTreeStep();
+            });
+        });
+        treeNext.addEventListener('click', function(){
+            if (treeSteps && treeIdx < treeSteps.length - 1){ treeIdx++; renderTreeStep(); }
+        });
+
+        // Opportunity-cost calculator
+        var ocAmount = document.getElementById('oc-amount');
+        var ocWage = document.getElementById('oc-wage');
+        var ocAlt = document.getElementById('oc-alt');
+        var ocResult = document.getElementById('oc-result');
+        function renderOC(){
+            var amt = parseFloat(ocAmount.value);
+            var wage = parseFloat(ocWage.value);
+            ocResult.textContent = '';
+            if (!isFinite(amt) || amt < 0){ ocResult.textContent = 'Enter an amount to see the tradeoff.'; return; }
+            var p1 = document.createElement('p');
+            if (isFinite(wage) && wage > 0){
+                var hours = amt / wage;
+                var hrTxt = hours >= 1 ? hours.toFixed(1) + ' hours' : Math.round(hours * 60) + ' minutes';
+                p1.innerHTML = '$' + amt.toLocaleString('en-US') + ' is about <span class="readout">' + hrTxt + '</span> of your working life.';
+            } else {
+                p1.innerHTML = '$' + amt.toLocaleString('en-US') + '.';
+            }
+            ocResult.appendChild(p1);
+            var alt = (ocAlt.value || '').trim();
+            var p2 = document.createElement('p'); p2.style.marginBottom = '0';
+            if (alt){
+                p2.appendChild(document.createTextNode('Its real cost is not the number. It is what you give up: '));
+                var strong = document.createElement('strong'); strong.style.color = 'var(--accent-gold)'; strong.textContent = alt;
+                p2.appendChild(strong);
+                p2.appendChild(document.createTextNode('. That forgone option is the opportunity cost.'));
+            } else {
+                p2.style.color = '#b3b3b3'; p2.style.fontSize = '0.9rem';
+                p2.textContent = 'Now name the single best thing you would otherwise do with it. That, not the dollar figure, is the true cost.';
+            }
+            ocResult.appendChild(p2);
+        }
+        ocAmount.addEventListener('input', renderOC);
+        ocWage.addEventListener('input', renderOC);
+        ocAlt.addEventListener('input', renderOC);
+        renderOC();
     })();
     </script>
 
