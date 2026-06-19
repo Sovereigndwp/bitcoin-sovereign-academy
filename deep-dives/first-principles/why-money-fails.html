@@ -1,474 +1,468 @@
-<!DOCTYPE html><html lang="en"><head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Why Money Fails - Historical Lessons for Bitcoin | First Principles Deep Dive</title>
-    <meta name="description" content="Interactive exploration of how money has failed throughout history — hyperinflation, debasement, confiscation — and what Bitcoin learns from each failure.">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #101010 0%, #2d2d2d 50%, #101010 100%);
-            min-height: 100vh; color: #ffffff; line-height: 1.6;
-        }
-        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
-        .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: #FF7A00; text-decoration: none; margin-bottom: 2rem; font-weight: 600; }
-        .back-link:hover { color: #FF7A00; }
-        .header { text-align: center; padding: 40px 20px; margin-bottom: 40px; }
-        .header h1 {
-            font-size: 2.5rem; margin-bottom: 15px;
-            background: linear-gradient(45deg, #FF7A00, #FFD400);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-        }
-        .header p { font-size: 1.1rem; opacity: 0.9; max-width: 700px; margin: 0 auto; }
-        .failure-section {
-            background: linear-gradient(135deg, #2d2d2d 0%, #101010 100%);
-            border-radius: 15px; margin-bottom: 25px; overflow: hidden; border: 1px solid #FF7A00;
-        }
-        .failure-header {
-            background: linear-gradient(45deg, #FF7A00, #FFD400); color: black;
-            padding: 20px 30px; cursor: pointer; display: flex; justify-content: space-between;
-            align-items: center; font-size: 1.2rem; font-weight: bold; transition: all 0.3s;
-        }
-        .failure-header:hover { background: linear-gradient(45deg, #FF7A00, #FFD400); }
-        .failure-icon { font-size: 1.5rem; transition: transform 0.3s; }
-        .failure-content { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; background: #2d2d2d; }
-        .failure-content.active { max-height: 8000px; }
-        .failure-inner { padding: 30px; }
-        .problem-box { background: rgba(220, 53, 69, 0.1); border: 2px solid #dc3545; border-radius: 10px; padding: 20px; margin: 20px 0; }
-        .solution-box { background: rgba(255, 122, 0, 0.1); border: 2px solid #FF7A00; border-radius: 10px; padding: 20px; margin: 20px 0; }
-        .insight-box { background: rgba(255, 140, 0, 0.1); border: 2px solid #FF7A00; border-radius: 10px; padding: 20px; margin: 20px 0; }
-        .demo-container { background: #2D2D2D; border-radius: 10px; padding: 25px; margin: 20px 0; border: 2px solid #FF7A00; }
-        .timeline-events { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin: 20px 0; }
-        .event-card {
-            background: rgba(255,255,255,0.05); border: 2px solid #666; border-radius: 10px;
-            padding: 15px; cursor: pointer; transition: all 0.3s; text-align: center;
-        }
-        .event-card:hover { border-color: #FF7A00; transform: translateY(-3px); }
-        .event-card.active { border-color: #FF7A00; box-shadow: 0 5px 20px rgba(255, 140, 0, 0.3); }
-        .event-year { font-size: 0.85rem; color: #FF7A00; font-weight: 700; }
-        .event-name { font-weight: 700; margin: 0.5rem 0; }
-        .event-impact { font-size: 0.85rem; color: #F7F7F2; }
-        .inflation-meter { background: #333; border-radius: 10px; height: 40px; overflow: hidden; margin: 15px 0; position: relative; }
-        .inflation-fill { height: 100%; border-radius: 10px; transition: width 1s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 15px; font-weight: 700; font-size: 0.9rem; }
-        .inflation-fill.mild { background: linear-gradient(90deg, #FF7A00, #f59e0b); }
-        .inflation-fill.high { background: linear-gradient(90deg, #f59e0b, #dc3545); }
-        .inflation-fill.hyper { background: linear-gradient(90deg, #dc3545, #dc3545); }
-        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
-        .stat-card { background: #333; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #FF7A00; }
-        .stat-value { font-size: 1.8rem; font-weight: 800; color: #FF7A00; margin-bottom: 5px; }
-        .stat-label { color: #F7F7F2; font-size: 0.9rem; }
-        .btn {
-            background: linear-gradient(45deg, #FF7A00, #FFD400); color: black; border: none;
-            padding: 12px 24px; border-radius: 25px; cursor: pointer; font-size: 1rem;
-            font-weight: 700; transition: all 0.3s; margin: 5px;
-        }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 140, 0, 0.4); }
-        .comparison-table { width: 100%; margin: 20px 0; }
-        .comparison-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; margin-bottom: 1px; }
-        .comparison-cell { background: rgba(255,255,255,0.05); padding: 12px 15px; font-size: 0.9rem; }
-        .comparison-cell.header { background: rgba(255, 140, 0, 0.2); font-weight: 700; color: #FF7A00; }
-        .comparison-cell.good { color: #FF7A00; }
-        .comparison-cell.bad { color: var(--accent-red-text, #dc3545); }
-        @media (max-width: 768px) {
-            .header h1 { font-size: 1.8rem; }
-            .timeline-events { grid-template-columns: 1fr; }
-            .stat-grid { grid-template-columns: 1fr 1fr; }
-            .comparison-row { grid-template-columns: 1fr; }
-        }
-    </style>
-    <link rel="stylesheet" href="/css/brand-consistency.css">
-    <link rel="stylesheet" href="/css/deep-dive-brand.css">
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why Money Fails | First Principles Deep Dive</title>
+<meta name="description" content="Research lab on monetary failure patterns, historical evidence, and Bitcoin&#x27;s design response.">
+<meta name="robots" content="noindex">
+<style>
+
+:root {
+  --bsa-orange: #FF7A00;
+  --bsa-yellow: #FFD400;
+  --bsa-bright-orange: #ff8a00;
+  --bsa-fade: linear-gradient(90deg, #FF7A00 0%, #ff9a1f 42%, #FFD400 100%);
+  --bsa-bg: #0b0e14;
+  --bsa-surface: #16181C;
+  --bsa-raised: #1F2024;
+  --bsa-deep: #101012;
+  --bsa-text: #e8e8e8;
+  --bsa-muted: #9aa0aa;
+  --bsa-dim: #7e848e;
+  --bsa-border: rgba(255,255,255,.08);
+  --bsa-border-strong: rgba(255,255,255,.15);
+  --bsa-good: #2FBF71;
+  --bsa-mixed: #E8B23A;
+  --bsa-bad: #E5564B;
+  --radius: 2px;
+  --font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html { background: var(--bsa-bg); }
+body {
+  margin: 0;
+  background: var(--bsa-bg);
+  color: var(--bsa-text);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+}
+a { color: var(--bsa-orange); }
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  color: var(--bsa-bg);
+  background: var(--bsa-orange);
+  padding: .35rem .75rem;
+  border-radius: 0 0 var(--radius) 0;
+  text-decoration: none;
+  font-weight: 700;
+  z-index: 9999;
+}
+.skip-link:focus { left: 0; top: 0; width: auto; height: auto; }
+.shell {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 64px;
+}
+.back-link {
+  display: inline-flex;
+  color: var(--bsa-muted);
+  font-family: var(--font-mono);
+  font-size: .76rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  margin-bottom: 28px;
+}
+.back-link:hover { color: var(--bsa-orange); }
+.hero {
+  border: 1px solid var(--bsa-border);
+  background: var(--bsa-surface);
+  border-radius: var(--radius);
+  padding: clamp(24px, 5vw, 48px);
+  margin-bottom: 22px;
+}
+.kicker, .eyebrow {
+  color: var(--bsa-orange);
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  margin: 0 0 10px;
+  font-weight: 700;
+}
+h1, h2, h3, h4 { line-height: 1.18; color: var(--bsa-text); }
+h1 {
+  margin: 0 0 14px;
+  font-size: clamp(2rem, 6vw, 4.3rem);
+  letter-spacing: -0.05em;
+}
+h2 {
+  font-size: clamp(1.35rem, 3vw, 2.2rem);
+  margin: 0 0 12px;
+}
+h3 { font-size: 1.05rem; margin: 0 0 8px; }
+h4 { font-size: .95rem; margin: 0 0 8px; }
+.lede {
+  max-width: 760px;
+  color: var(--bsa-muted);
+  font-size: clamp(1rem, 2vw, 1.18rem);
+  margin: 0;
+}
+.panel {
+  border: 1px solid var(--bsa-border);
+  background: var(--bsa-surface);
+  border-radius: var(--radius);
+  padding: clamp(18px, 3vw, 28px);
+  margin: 18px 0;
+}
+.card {
+  border: 1px solid var(--bsa-border);
+  background: var(--bsa-raised);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.deep-card {
+  border: 1px solid var(--bsa-border);
+  background: var(--bsa-deep);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.two-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+@media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } }
+.muted { color: var(--bsa-muted); }
+.dim { color: var(--bsa-dim); }
+.mono {
+  font-family: var(--font-mono);
+  font-size: .76rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.brand-fade,
+.num-fade,
+.accent-fade,
+.hero h1,
+a:not(.skip-link):not(.back-link),
+.kicker,
+.eyebrow,
+.back-link:hover,
+button[aria-pressed="true"],
+button.is-active,
+.chip.accent {
+  color: var(--bsa-orange);
+  background-image: var(--bsa-fade);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero h1 {
+  color: var(--bsa-orange);
+  text-wrap: balance;
+}
+.num-fade {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button, .btn {
+  appearance: none;
+  border-radius: var(--radius);
+  border: 1px solid var(--bsa-border-strong);
+  background: transparent;
+  color: var(--bsa-text);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: .76rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  transition: border-color .15s, background .15s, color .15s;
+}
+button:hover, .btn:hover { border-color: var(--bsa-orange); background: rgba(255,122,0,.06); }
+button[aria-pressed="true"], button.is-active {
+  border-color: rgba(255,122,0,.55);
+  background: rgba(255,122,0,.08);
+}
+.btn.primary {
+  border-color: rgba(255,122,0,.55);
+}
+.btn.primary {
+  color: var(--bsa-orange);
+  background:
+    var(--bsa-fade) text,
+    linear-gradient(var(--bsa-bg), var(--bsa-bg)) padding-box,
+    var(--bsa-fade) border-box;
+  -webkit-background-clip: text, padding-box, border-box;
+  background-clip: text, padding-box, border-box;
+  -webkit-text-fill-color: transparent;
+  border: 1px solid transparent;
+}
+input[type="range"] { width: 100%; accent-color: var(--bsa-orange); }
+input[type="number"] {
+  width: 100%;
+  color: var(--bsa-text);
+  background: var(--bsa-deep);
+  border: 1px solid var(--bsa-border-strong);
+  border-radius: var(--radius);
+  padding: 9px 10px;
+}
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+th, td { padding: 10px 12px; border-bottom: 1px solid var(--bsa-border); text-align: left; vertical-align: top; }
+th { color: var(--bsa-muted); font-family: var(--font-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+.good { color: var(--bsa-good); }
+.mixed { color: var(--bsa-mixed); }
+.bad { color: var(--bsa-bad); }
+.callout {
+  border-left: 3px solid var(--bsa-orange);
+  background: rgba(255,122,0,.06);
+  padding: 14px 16px;
+  margin: 14px 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.warning { border-left-color: var(--bsa-bad); background: rgba(229,86,75,.07); }
+.note { border-left-color: var(--bsa-mixed); background: rgba(232,178,58,.07); }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--radius);
+  border: 1px solid var(--bsa-border-strong);
+  background: rgba(255,255,255,.04);
+  padding: 4px 8px;
+  color: var(--bsa-muted);
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.chip.accent { background-color: rgba(255,122,0,.08); border-color: rgba(255,122,0,.4); }
+.lab {
+  border: 1px solid var(--bsa-border);
+  background: var(--bsa-surface);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin: 18px 0;
+}
+.lab-output {
+  min-height: 58px;
+  border: 1px solid var(--bsa-border);
+  background: var(--bsa-deep);
+  border-radius: var(--radius);
+  padding: 14px;
+  color: var(--bsa-muted);
+  margin-top: 12px;
+}
+.source-list, .reflection-list { margin: 12px 0 0 20px; color: var(--bsa-muted); }
+.source-list li, .reflection-list li { margin: 6px 0; }
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--bsa-border);
+}
+.progress { height: 8px; background: var(--bsa-deep); border: 1px solid var(--bsa-border); border-radius: var(--radius); overflow: hidden; }
+.progress > span { display: block; height: 100%; background: var(--bsa-fade); width: var(--pct, 0%); }
+details {
+  border: 1px solid var(--bsa-border);
+  background: var(--bsa-raised);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin: 10px 0;
+}
+summary {
+  cursor: pointer;
+  color: var(--bsa-text);
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+
+</style>
 </head>
-<body class="bsa-skin bsa-deepdive">
-    <div class="container">
-        <a href="./" class="back-link">← Back to First Principles</a>
-        <div class="header">
-            <h1>Why Money Fails</h1>
-            <p>Every monetary failure in history teaches us something about what good money requires. Bitcoin is built on these lessons.</p>
-        </div>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<main id="main-content" class="shell">
 
-        <!-- Failure 1: Debasement -->
-        <div class="failure-section">
-            <div class="failure-header" onclick="toggleSection(0)">
-                <span>🪙 Failure #1: Debasement — When Rulers Cheat the Money</span>
-                <span class="failure-icon" id="icon-0">▼</span>
-            </div>
-            <div class="failure-content" id="content-0">
-                <div class="failure-inner">
-                    <div class="problem-box">
-                        <h4 style="color: var(--accent-red-text, #dc3545); margin-bottom: 10px;">The Pattern</h4>
-                        <p>Rulers mix cheaper metals into coins or reduce their size, keeping the face value the same.
-                        The Roman denarius went from 95% silver to less than 5% over 200 years. Citizens didn't notice at first, 
-                        but eventually prices skyrocketed as merchants realized the coins were worth less.</p>
-                    </div>
+<a class="back-link" href="./">Back to First Principles</a>
+<section class="hero">
+  <p class="kicker">First Principles Deep Dive</p>
+  <h1>Why Money Fails</h1>
+  <p class="lede">Every money system makes promises about scarcity, redemption, access, and trust. This lab studies how those promises break, and what Bitcoin changes.</p>
+</section>
 
-                    <div class="demo-container">
-                        <h4 style="color: #FF7A00; margin-bottom: 15px;">Interactive: Roman Coin Debasement</h4>
-                        <p style="margin-bottom: 15px;">Watch the silver content of the Roman denarius decline over time:</p>
-                        
-                        <div id="debasement-demo">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <span>Silver Content</span>
-                                <span id="silver-pct">95%</span>
-                            </div>
-                            <div class="inflation-meter">
-                                <div class="inflation-fill mild" id="silver-bar" style="width: 95%;">95% Silver</div>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; color: #999; font-size: 0.85rem;">
-                                <span id="debase-year">27 BCE</span>
-                                <span id="debase-emperor">Augustus</span>
-                            </div>
-                        </div>
-                        <button class="btn" onclick="animateDebasement()">Watch 300 Years of Debasement</button>
-                    </div>
+<section class="panel">
+  <p class="eyebrow">Research question</p>
+  <h2>What patterns repeat when money fails, and which of those patterns does Bitcoin actually address?</h2>
+  <p class="muted">The goal is not to pretend every historical failure has one cause. The goal is to compare mechanisms: debasement, inflation, seizure, banking fragility, and political control.</p>
+</section>
 
-                    <div class="insight-box">
-                        <h4 style="color: #FF7A00; margin-bottom: 10px;">Bitcoin's Answer</h4>
-                        <p><strong>Fixed supply of 21 million.</strong> No ruler, government, or developer can create more Bitcoin. 
-                        The supply schedule is enforced by code and verified by every node on the network. Debasement is mathematically impossible.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<section class="panel">
+  <p class="eyebrow">Why this matters</p>
+  <div class="grid">
+    <div class="card"><h3>Savers carry hidden risk</h3><p class="muted">A balance can look stable while purchasing power, access rights, or redemption promises weaken.</p></div>
+    <div class="card"><h3>Institutions can fail</h3><p class="muted">Banks, currencies, and governments are human systems with incentives and constraints.</p></div>
+    <div class="card"><h3>Bitcoin is a design response</h3><p class="muted">Bitcoin does not solve every money problem. It targets specific failure modes: discretionary issuance, seizure through custodians, and unverifiable ledgers.</p></div>
+  </div>
+</section>
 
-        <!-- Failure 2: Hyperinflation -->
-        <div class="failure-section">
-            <div class="failure-header" onclick="toggleSection(1)">
-                <span>💸 Failure #2: Hyperinflation — When Money Becomes Worthless</span>
-                <span class="failure-icon" id="icon-1">▼</span>
-            </div>
-            <div class="failure-content" id="content-1">
-                <div class="failure-inner">
-                    <div class="problem-box">
-                        <h4 style="color: var(--accent-red-text, #dc3545); margin-bottom: 10px;">The Pattern</h4>
-                        <p>Governments print money to pay debts they can't afford. Prices double every few days or hours. 
-                        Savings are destroyed. People rush to spend money the instant they receive it because it loses value by the hour.</p>
-                    </div>
+<section class="panel">
+  <p class="eyebrow">Current-system comparison</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Failure pattern</th><th>How it happens</th><th>Bitcoin's relevant mechanism</th><th>What Bitcoin does not solve</th></tr></thead>
+      <tbody>
+        <tr><td>Debasement</td><td>Issuer changes money quality or quantity.</td><td>Fixed issuance rules verified by nodes.</td><td>Market price can still fall.</td></tr>
+        <tr><td>Hyperinflation</td><td>Money supply expands faster than trust and output.</td><td>No emergency issuance lever.</td><td>Users still need income, liquidity, and safety.</td></tr>
+        <tr><td>Confiscation</td><td>Assets are seized through custodians or physical force.</td><td>Self-custody can reduce custodian seizure risk.</td><td>Physical coercion, law, and user mistakes remain.</td></tr>
+        <tr><td>Banking fragility</td><td>Claims exceed liquid reserves or trust breaks.</td><td>Bearer asset can be held outside banks.</td><td>Custodied bitcoin can recreate counterparty risk.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 
-                    <div class="demo-container">
-                        <h4 style="color: #FF7A00; margin-bottom: 15px;">The Worst Hyperinflations in History</h4>
-                        <p style="margin-bottom: 15px;">Click each event to see the details:</p>
+<section class="lab">
+  <p class="eyebrow">Calculator</p>
+  <h2>Purchasing-power stress test</h2>
+  <p class="muted">This is not a prediction. It helps learners feel the difference between nominal balance and real value.</p>
+  <div class="grid">
+    <label class="deep-card"><span class="mono">Starting amount</span><input id="calc-amount" type="number" value="10000" oninput="inflationCalc()"></label>
+    <label class="deep-card"><span class="mono">Annual inflation %</span><input id="calc-rate" type="number" value="7" oninput="inflationCalc()"></label>
+    <label class="deep-card"><span class="mono">Years</span><input id="calc-years" type="number" value="10" oninput="inflationCalc()"></label>
+  </div>
+  <div id="calc-output" class="lab-output"></div>
+</section>
 
-                        <div class="timeline-events">
-                            <div class="event-card" onclick="showHyper('weimar')">
-                                <div class="event-year">1923</div>
-                                <div class="event-name">Weimar Germany</div>
-                                <div class="event-impact">Prices doubled every 3.7 days</div>
-                            </div>
-                            <div class="event-card" onclick="showHyper('zimbabwe')">
-                                <div class="event-year">2008</div>
-                                <div class="event-name">Zimbabwe</div>
-                                <div class="event-impact">79.6 billion % monthly inflation</div>
-                            </div>
-                            <div class="event-card" onclick="showHyper('venezuela')">
-                                <div class="event-year">2018</div>
-                                <div class="event-name">Venezuela</div>
-                                <div class="event-impact">1,000,000%+ annual inflation</div>
-                            </div>
-                            <div class="event-card" onclick="showHyper('hungary')">
-                                <div class="event-year">1946</div>
-                                <div class="event-name">Hungary</div>
-                                <div class="event-impact">Prices doubled every 15 hours</div>
-                            </div>
-                        </div>
+<section class="panel">
+  <p class="eyebrow">Historical patterns</p>
+  <div class="grid">
+    <div class="card"><div class="mono">Debasement</div><h3>Roman denarius</h3><p class="muted">A coin can keep its name while the metal content and trust behind it change. Use as pattern, not as a one-cause explanation of Rome.</p></div>
+    <div class="card"><div class="mono">Hyperinflation</div><h3>Weimar, Hungary, Zimbabwe, Venezuela</h3><p class="muted">Different causes, same felt result: money loses usefulness as a store of value and unit of account.</p></div>
+    <div class="card"><div class="mono">Confiscation</div><h3>Gold orders, bail-ins, frozen accounts</h3><p class="muted">Custody and jurisdiction matter. The person with the asset claim may not control access in a crisis.</p></div>
+    <div class="card"><div class="mono">Capital controls</div><h3>Bordered money</h3><p class="muted">Some systems limit where value can move, how fast, and under whose approval.</p></div>
+  </div>
+</section>
 
-                        <div id="hyper-detail" style="display: none; margin-top: 20px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
-                            <h4 id="hyper-title" style="color: #FF7A00; margin-bottom: 10px;"></h4>
-                            <p id="hyper-desc" style="margin-bottom: 15px;"></p>
-                            <div class="stat-grid" id="hyper-stats"></div>
-                        </div>
-                    </div>
+<section class="panel">
+  <p class="eyebrow">Bitcoin mechanism</p>
+  <div class="callout">
+    <h3>Bitcoin targets the issuer problem and the ledger problem.</h3>
+    <p>Nodes verify the supply schedule and reject invalid transactions. Keys prove spending authority. Proof of work orders history. None of this makes users rich, safe from every law, or free from all operational mistakes. It changes who can verify the rules.</p>
+  </div>
+</section>
 
-                    <div class="insight-box">
-                        <h4 style="color: #FF7A00; margin-bottom: 10px;">Bitcoin's Answer</h4>
-                        <p><strong>Predictable, declining issuance.</strong> Bitcoin's supply schedule halves every 4 years (the "halving"). 
-                        No emergency printing. No political pressure can change it. By 2140, all 21 million Bitcoin will be mined. 
-                        This is the opposite of fiat — instead of infinite supply, supply asymptotically approaches a fixed cap.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<section class="panel">
+  <p class="eyebrow">Tradeoffs</p>
+  <div class="grid">
+    <div class="card"><h3>What improves</h3><p class="muted">Independent verification, predictable issuance, and the option to hold outside a bank.</p></div>
+    <div class="card"><h3>What gets harder</h3><p class="muted">No central reversal desk. Mistakes, scams, inheritance, and loss events require serious planning.</p></div>
+    <div class="card"><h3>What remains outside the protocol</h3><p class="muted">Political risk, tax treatment, exchange access, social adoption, and personal security.</p></div>
+  </div>
+</section>
 
-        <!-- Failure 3: Confiscation -->
-        <div class="failure-section">
-            <div class="failure-header" onclick="toggleSection(2)">
-                <span>🔒 Failure #3: Confiscation — When Governments Seize Your Money</span>
-                <span class="failure-icon" id="icon-2">▼</span>
-            </div>
-            <div class="failure-content" id="content-2">
-                <div class="failure-inner">
-                    <div class="problem-box">
-                        <h4 style="color: var(--accent-red-text, #dc3545); margin-bottom: 10px;">The Pattern</h4>
-                        <p>Governments seize private assets during crises. Gold was confiscated in the US in 1933. 
-                        Bank accounts are frozen during political disputes. Capital controls prevent citizens from moving their own money across borders.</p>
-                    </div>
+<section class="panel">
+  <p class="eyebrow">Claim ledger</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Claim</th><th>Status</th><th>Caveat</th><th>Source trail</th></tr></thead>
+      <tbody>
+        <tr><td>Bitcoin has a fixed terminal supply schedule.</td><td class="good">High confidence</td><td>Lost keys affect circulating supply, not the cap.</td><td>Bitcoin Core consensus rules, Bitcoin white paper context</td></tr>
+        <tr><td>Historical monies have failed through debasement or inflation.</td><td class="mixed">Context dependent</td><td>Each case has multiple causes. Do not reduce history to one mechanism.</td><td>Primary historical and monetary history sources needed per case</td></tr>
+        <tr><td>Self-custody prevents all confiscation.</td><td class="bad">False</td><td>It can reduce custodian seizure risk, not physical coercion, legal risk, or user error.</td><td>Custody education boundary</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 
-                    <div class="demo-container">
-                        <h4 style="color: #FF7A00; margin-bottom: 15px;">Historical Confiscation Events</h4>
-                        <div class="timeline-events">
-                            <div class="event-card" onclick="showConfiscation('gold1933')">
-                                <div class="event-year">1933</div>
-                                <div class="event-name">US Gold Confiscation</div>
-                                <div class="event-impact">Executive Order 6102</div>
-                            </div>
-                            <div class="event-card" onclick="showConfiscation('cyprus2013')">
-                                <div class="event-year">2013</div>
-                                <div class="event-name">Cyprus Bank Bail-In</div>
-                                <div class="event-impact">Up to 47.5% of deposits seized</div>
-                            </div>
-                            <div class="event-card" onclick="showConfiscation('india2016')">
-                                <div class="event-year">2016</div>
-                                <div class="event-name">India Demonetization</div>
-                                <div class="event-impact">86% of cash made illegal overnight</div>
-                            </div>
-                            <div class="event-card" onclick="showConfiscation('canada2022')">
-                                <div class="event-year">2022</div>
-                                <div class="event-name">Canada Emergencies Act</div>
-                                <div class="event-impact">Protesters' bank accounts frozen</div>
-                            </div>
-                        </div>
-                        <div id="confiscation-detail" style="display: none; margin-top: 20px; padding: 20px; background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 10px;">
-                            <p id="confiscation-desc"></p>
-                        </div>
-                    </div>
+<section class="panel">
+  <p class="eyebrow">Steelman objections</p>
+  <details open><summary>Central banks exist for reasons, not only control.</summary><p class="muted">A fair version says monetary flexibility can respond to crises, liquidity shocks, and unemployment. Bitcoin removes that lever by design. Learners should see both sides.</p></details>
+  <details><summary>Bitcoin can recreate trust through custodians.</summary><p class="muted">Correct. If users hold only exchange balances, many original banking risks return under a Bitcoin label.</p></details>
+  <details><summary>Historical analogies can be abused.</summary><p class="muted">Correct. Rome, Weimar, Zimbabwe, and Venezuela are not the same case. The page should teach patterns without pretending all failures are identical.</p></details>
+</section>
 
-                    <div class="insight-box">
-                        <h4 style="color: #FF7A00; margin-bottom: 10px;">Bitcoin's Answer</h4>
-                        <p><strong>Self-custody with cryptographic keys.</strong> If you hold your own Bitcoin keys, no government can seize your funds without your cooperation. 
-                        You can memorize a 12-word seed phrase and carry millions across any border in your head. 
-                        No executive order, bank policy, or emergency act can freeze a properly self-custodied Bitcoin wallet.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<section class="panel">
+  <p class="eyebrow">Misconception repair</p>
+  <div class="callout note"><strong>Misconception:</strong> "Fiat always fails tomorrow."<br><span class="muted">Repair: monetary systems can survive for long periods and still transfer risk slowly. The serious question is who controls issuance and who bears the cost when rules change.</span></div>
+</section>
 
-        <!-- Failure 4: Censorship -->
-        <div class="failure-section">
-            <div class="failure-header" onclick="toggleSection(3)">
-                <span>🚫 Failure #4: Financial Censorship — When You Can't Use Your Own Money</span>
-                <span class="failure-icon" id="icon-3">▼</span>
-            </div>
-            <div class="failure-content" id="content-3">
-                <div class="failure-inner">
-                    <div class="problem-box">
-                        <h4 style="color: var(--accent-red-text, #dc3545); margin-bottom: 10px;">The Pattern</h4>
-                        <p>Governments and corporations can block transactions, close accounts, and cut people off from the financial system.
-                        This power is often used against dissidents, journalists, and political opponents — but it can happen to anyone.</p>
-                    </div>
+<section class="panel">
+  <p class="eyebrow">Source trail</p>
+  <ul class="source-list">
+    <li>BLS and FRED for purchasing-power or inflation claims.</li>
+    <li>Federal Reserve and Treasury sources for monetary policy and banking structure.</li>
+    <li>Primary historical sources for specific confiscation, debasement, and hyperinflation cases.</li>
+    <li>Bitcoin white paper and Bitcoin Core documentation for Bitcoin mechanism claims.</li>
+  </ul>
+</section>
 
-                    <div class="demo-container">
-                        <h4 style="color: #FF7A00; margin-bottom: 15px;">How Many Intermediaries Control Your Money?</h4>
-                        <p style="margin-bottom: 15px;">When you pay someone with traditional money, every step involves a gatekeeper who can say "no":</p>
-                        
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 20px 0;">
-                            <div style="background: rgba(220, 53, 69, 0.2); border: 2px solid #dc3545; border-radius: 10px; padding: 15px; text-align: center; min-width: 120px;">
-                                <div style="font-size: 1.5rem;">🏦</div>
-                                <div style="font-weight: 700; font-size: 0.9rem;">Your Bank</div>
-                                <div style="font-size: 0.8rem; color: var(--accent-red-text, #dc3545);">Can freeze</div>
-                            </div>
-                            <div style="font-size: 2rem; display: flex; align-items: center; color: #666;">→</div>
-                            <div style="background: rgba(220, 53, 69, 0.2); border: 2px solid #dc3545; border-radius: 10px; padding: 15px; text-align: center; min-width: 120px;">
-                                <div style="font-size: 1.5rem;">💳</div>
-                                <div style="font-weight: 700; font-size: 0.9rem;">Visa/MC</div>
-                                <div style="font-size: 0.8rem; color: var(--accent-red-text, #dc3545);">Can block</div>
-                            </div>
-                            <div style="font-size: 2rem; display: flex; align-items: center; color: #666;">→</div>
-                            <div style="background: rgba(220, 53, 69, 0.2); border: 2px solid #dc3545; border-radius: 10px; padding: 15px; text-align: center; min-width: 120px;">
-                                <div style="font-size: 1.5rem;">🏛️</div>
-                                <div style="font-weight: 700; font-size: 0.9rem;">Government</div>
-                                <div style="font-size: 0.8rem; color: var(--accent-red-text, #dc3545);">Can order</div>
-                            </div>
-                            <div style="font-size: 2rem; display: flex; align-items: center; color: #666;">→</div>
-                            <div style="background: rgba(220, 53, 69, 0.2); border: 2px solid #dc3545; border-radius: 10px; padding: 15px; text-align: center; min-width: 120px;">
-                                <div style="font-size: 1.5rem;">🏦</div>
-                                <div style="font-weight: 700; font-size: 0.9rem;">Their Bank</div>
-                                <div style="font-size: 0.8rem; color: var(--accent-red-text, #dc3545);">Can refuse</div>
-                            </div>
-                        </div>
+<section class="panel">
+  <p class="eyebrow">Reflection</p>
+  <ul class="reflection-list">
+    <li>Which is more dangerous to you: losing purchasing power slowly or losing access suddenly?</li>
+    <li>When is a trusted intermediary helpful, and when does it become a weakness?</li>
+    <li>Which Bitcoin tradeoff would you need to learn before holding your own keys?</li>
+  </ul>
+</section>
 
-                        <div style="text-align: center; margin: 20px 0; padding: 15px; background: rgba(255, 122, 0, 0.1); border: 2px solid #FF7A00; border-radius: 10px;">
-                            <p style="font-size: 1.1rem; font-weight: 700; color: #FF7A00; margin-bottom: 5px;">Bitcoin: Peer-to-Peer</p>
-                            <div style="display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap;">
-                                <div style="background: rgba(255, 122, 0, 0.2); border: 2px solid #FF7A00; border-radius: 10px; padding: 15px; text-align: center; min-width: 120px;">
-                                    <div style="font-size: 1.5rem;">👤</div>
-                                    <div style="font-weight: 700; font-size: 0.9rem;">You</div>
-                                </div>
-                                <div style="font-size: 2rem; color: #FF7A00;">→</div>
-                                <div style="background: rgba(255, 122, 0, 0.2); border: 2px solid #FF7A00; border-radius: 10px; padding: 15px; text-align: center; min-width: 120px;">
-                                    <div style="font-size: 1.5rem;">👤</div>
-                                    <div style="font-weight: 700; font-size: 0.9rem;">Them</div>
-                                </div>
-                            </div>
-                            <p style="color: #FF7A00; font-size: 0.9rem; margin-top: 10px;">No intermediaries. No permission needed.</p>
-                        </div>
-                    </div>
+</main>
+<script>
 
-                    <div class="insight-box">
-                        <h4 style="color: #FF7A00; margin-bottom: 10px;">Bitcoin's Answer</h4>
-                        <p><strong>Censorship-resistant transactions.</strong> Bitcoin transactions are broadcast to a global network of thousands of independent nodes. 
-                        No single entity can block a valid transaction. As long as you can reach one honest node anywhere on Earth, your transaction will be processed.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+function setPressed(buttons, active) {
+  buttons.forEach(btn => btn.setAttribute('aria-pressed', String(btn === active)));
+}
+function write(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+function moneyStress(system) {
+  const data = {
+    bank: ['Bank account', 'Easy payments and dispute support.', 'Weak point: access depends on the institution, jurisdiction, and operating hours. A freeze or bank failure can interrupt use.'],
+    cash: ['Physical cash', 'Works without an app, password, or bank login.', 'Weak point: hard to send far, easy to seize physically, and still issued by a central authority.'],
+    gold: ['Gold', 'Scarce, durable, and historically trusted.', 'Weak point: hard to verify, divide, and move without custodians.'],
+    stablecoin: ['Stablecoin', 'Fast digital settlement with familiar unit of account.', 'Weak point: usually depends on issuers, reserves, banking partners, smart contracts, and sanctions controls.'],
+    bitcoin: ['Bitcoin', 'Digital bearer asset with a fixed issuance schedule and user verification.', 'Weak point: self-custody raises responsibility. Lost keys are not a customer-service problem.']
+  };
+  const [title, better, harder] = data[system];
+  write('stress-output', `<strong>${title}</strong><br>${better}<br><span class="muted">${harder}</span>`);
+}
+function inflationCalc() {
+  const amt = Number(document.getElementById('calc-amount')?.value || 10000);
+  const rate = Number(document.getElementById('calc-rate')?.value || 7);
+  const years = Number(document.getElementById('calc-years')?.value || 10);
+  const real = amt / Math.pow(1 + rate/100, years);
+  const lost = amt - real;
+  write('calc-output', `<div class="grid"><div><div class="mono">Real value</div><div class="num-fade">$${real.toLocaleString(undefined,{maximumFractionDigits:0})}</div></div><div><div class="mono">Purchasing power lost</div><div class="num-fade">$${lost.toLocaleString(undefined,{maximumFractionDigits:0})}</div></div><div><div class="mono">Preserved</div><div class="num-fade">${(real/amt*100).toFixed(1)}%</div></div></div>`);
+}
+function difficultyDemo(mult) {
+  const oldMinutes = 10;
+  const before = oldMinutes / mult;
+  write('difficulty-output', `<strong>Hashrate changed by ${mult}x.</strong><br>Before adjustment, expected block time moves toward <span class="num-fade">${before.toFixed(1)} minutes</span>.<br><span class="muted">After the retarget, difficulty adjusts so the network moves back toward 10-minute blocks. The tradeoff is responsiveness versus stability.</span>`);
+}
+function copyTest(count) {
+  write('copy-output', `<strong>${count} copies created.</strong><br><span class="muted">The file became easier to share, but less useful as bearer money. Digital cash needs a public way to reject duplicate spends.</span>`);
+}
+function scarcitySlider() {
+  const growth = Number(document.getElementById('supply-growth')?.value || 0);
+  const years = Number(document.getElementById('supply-years')?.value || 20);
+  const factor = Math.pow(1 + growth/100, years);
+  write('supply-output', `<div class="grid"><div><div class="mono">Supply multiple</div><div class="num-fade">${factor.toFixed(2)}x</div></div><div><div class="mono">Interpretation</div><p class="muted">At ${growth}% annual growth for ${years} years, each unit competes with ${factor.toFixed(2)} times as many units. Fixed supply removes that variable, but not demand volatility.</p></div></div>`);
+}
+function selectClaim(id) {
+  const claims = {
+    supply: ['Claim', 'Bitcoin has a fixed terminal cap of 21 million bitcoin.', 'Source trail: Bitcoin Core consensus rules and Bitcoin Wiki controlled supply references. Caveat: individual wallets can still lose keys, reducing spendable supply but not changing the cap.'],
+    energy: ['Objection', 'Proof of work consumes energy.', 'Steelman: the cost is real and critics are right to ask what society receives for it. The design claim is that energy cost makes history expensive to rewrite. That is a tradeoff, not a free lunch.'],
+    volatility: ['Objection', 'Fixed supply does not create stable purchasing power.', 'Correct. A fixed issuance schedule removes discretionary supply expansion. It does not remove changing demand, leverage, regulation, liquidity, or human emotion.'],
+    custody: ['Boundary', 'Self-custody shifts risk to the holder.', 'Correct. Bitcoin reduces some custodian risks but adds key-management risk. Education should bridge to custody lessons without becoming implementation advice here.']
+  };
+  const c = claims[id];
+  write('claim-output', `<div class="mono">${c[0]}</div><strong>${id}</strong><p>${c[1]}</p><p class="muted">${c[2]}</p>`);
+}
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('calc-output')) inflationCalc();
+  if (document.getElementById('supply-output')) scarcitySlider();
+});
 
-        <!-- Failure 5: Single Point of Failure -->
-        <div class="failure-section">
-            <div class="failure-header" onclick="toggleSection(4)">
-                <span>💥 Failure #5: Single Points of Failure — When the System Breaks</span>
-                <span class="failure-icon" id="icon-4">▼</span>
-            </div>
-            <div class="failure-content" id="content-4">
-                <div class="failure-inner">
-                    <div class="problem-box">
-                        <h4 style="color: var(--accent-red-text, #dc3545); margin-bottom: 10px;">The Pattern</h4>
-                        <p>Centralized systems have single points of failure. When Lehman Brothers collapsed in 2008, it nearly took the entire global financial system with it. 
-                        When payment processors go down, millions of transactions halt. When a central bank makes a policy error, entire economies suffer.</p>
-                    </div>
 
-                    <div class="stat-grid">
-                        <div class="stat-card">
-                            <div class="stat-value">~99.98%</div>
-                            <div class="stat-label">Bitcoin network uptime since 2009 (two brief early outages)</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value">~19,000</div>
-                            <div class="stat-label">Reachable full nodes worldwide (varies)</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value">0</div>
-                            <div class="stat-label">Successful attacks on Bitcoin's base protocol to date</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value">$1T+</div>
-                            <div class="stat-label">Market value secured by the network (varies with price)</div>
-                        </div>
-                    </div>
-
-                    <div class="insight-box">
-                        <h4 style="color: #FF7A00; margin-bottom: 10px;">Bitcoin's Answer</h4>
-                        <p><strong>Radical decentralization.</strong> Bitcoin has no CEO, no headquarters, no single server. 
-                        It runs on thousands of independent computers across every continent. To destroy Bitcoin, you'd need to shut down every node simultaneously — 
-                        a task roughly equivalent to shutting down the internet itself. This is not a bug; it's the core design principle.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Summary -->
-        <div class="insight-box" style="margin-top: 30px;">
-            <h3 style="color: #FF7A00; margin-bottom: 15px;">The Common Thread</h3>
-            <p style="font-size: 1.1rem; margin-bottom: 15px;">
-                Every monetary failure shares a root cause: <strong>trusted third parties are security holes.</strong>
-            </p>
-            <p>When you trust a government not to print too much money, you get hyperinflation. 
-            When you trust a bank to hold your savings, you get bail-ins. 
-            When you trust a payment processor, you get censorship. 
-            Bitcoin's radical insight is to remove the need for trust entirely and replace it with mathematics, 
-            cryptography, and economic incentives.</p>
-        </div>
-    </div>
-
-    <script>
-        function toggleSection(idx) {
-            const content = document.getElementById('content-' + idx);
-            const icon = document.getElementById('icon-' + idx);
-            content.classList.toggle('active');
-            icon.textContent = content.classList.contains('active') ? '▲' : '▼';
-        }
-
-        const debasementData = [
-            { year: '27 BCE', emperor: 'Augustus', silver: 95 },
-            { year: '54 CE', emperor: 'Nero', silver: 80 },
-            { year: '96 CE', emperor: 'Domitian', silver: 72 },
-            { year: '138 CE', emperor: 'Antoninus Pius', silver: 65 },
-            { year: '193 CE', emperor: 'Septimius Severus', silver: 50 },
-            { year: '218 CE', emperor: 'Elagabalus', silver: 35 },
-            { year: '253 CE', emperor: 'Gallienus', silver: 15 },
-            { year: '268 CE', emperor: 'Claudius II', silver: 5 },
-            { year: '274 CE', emperor: 'Aurelian', silver: 2 }
-        ];
-
-        let debaseIdx = 0;
-        function animateDebasement() {
-            debaseIdx = 0;
-            const interval = setInterval(() => {
-                if (debaseIdx >= debasementData.length) { clearInterval(interval); return; }
-                const d = debasementData[debaseIdx];
-                document.getElementById('silver-pct').textContent = d.silver + '%';
-                document.getElementById('silver-bar').style.width = d.silver + '%';
-                document.getElementById('silver-bar').textContent = d.silver + '% Silver';
-                document.getElementById('silver-bar').className = 'inflation-fill ' + (d.silver > 50 ? 'mild' : d.silver > 20 ? 'high' : 'hyper');
-                document.getElementById('debase-year').textContent = d.year;
-                document.getElementById('debase-emperor').textContent = d.emperor;
-                debaseIdx++;
-            }, 800);
-        }
-
-        const hyperData = {
-            weimar: {
-                title: 'Weimar Germany (1923)',
-                desc: 'After WWI, Germany printed money to pay war reparations. A loaf of bread cost 200 billion marks. Workers were paid twice daily and rushed to spend before prices rose again. People burned banknotes for heat because they were worth less than firewood.',
-                stats: [
-                    { value: '29,500%', label: 'Monthly inflation rate' },
-                    { value: '3.7 days', label: 'Prices doubled every' },
-                    { value: '4.2T marks', label: 'Price of 1 USD' }
-                ]
-            },
-            zimbabwe: {
-                title: 'Zimbabwe (2008)',
-                desc: 'Land reform policies and money printing destroyed the Zimbabwe dollar. The government printed 100 trillion dollar notes. Prices doubled every 24 hours at the peak. The currency was eventually abandoned entirely.',
-                stats: [
-                    { value: '79.6B%', label: 'Monthly inflation rate' },
-                    { value: '24.7 hours', label: 'Prices doubled every' },
-                    { value: '100T', label: 'Largest banknote (ZWD)' }
-                ]
-            },
-            venezuela: {
-                title: 'Venezuela (2016-present)',
-                desc: 'Oil price collapse + socialist mismanagement + money printing. Millions fled the country. People weighed cash instead of counting it. The bolivar lost 99.99% of its value. Many Venezuelans turned to Bitcoin as a lifeline.',
-                stats: [
-                    { value: '1,000,000%+', label: 'Annual inflation' },
-                    { value: '7.5M', label: 'Refugees who fled' },
-                    { value: '$1 = 457K Bs', label: 'Exchange rate collapse' }
-                ]
-            },
-            hungary: {
-                title: 'Hungary (1946)',
-                desc: 'The worst hyperinflation in recorded history. After WWII, Hungary printed the 100 quintillion pengő note — the highest denomination banknote ever. Prices doubled every 15 hours. The currency was completely replaced.',
-                stats: [
-                    { value: '4.19×10¹⁶%', label: 'Monthly inflation rate' },
-                    { value: '15 hours', label: 'Prices doubled every' },
-                    { value: '10²⁰ pengő', label: 'Largest banknote' }
-                ]
-            }
-        };
-
-        function showHyper(key) {
-            const data = hyperData[key];
-            document.getElementById('hyper-title').textContent = data.title;
-            document.getElementById('hyper-desc').textContent = data.desc;
-            document.getElementById('hyper-stats').innerHTML = data.stats.map(s =>
-                `<div class="stat-card"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`
-            ).join('');
-            document.getElementById('hyper-detail').style.display = 'block';
-            document.querySelectorAll('.event-card').forEach(c => c.classList.remove('active'));
-            event.target.closest('.event-card').classList.add('active');
-        }
-
-        const confiscationData = {
-            gold1933: 'In 1933, President Roosevelt issued Executive Order 6102, making it illegal for Americans to own gold. Citizens were required to sell their gold to the Federal Reserve at $20.67/oz. The government then revalued gold to $35/oz — effectively stealing 40% of the value from citizens who complied.',
-            cyprus2013: 'During the 2013 banking crisis, the Cypriot government seized up to 47.5% of all bank deposits over €100,000. People woke up to find nearly half their savings gone. ATMs were shut down. There was no vote, no warning — just a government decision that your money was now theirs.',
-            india2016: 'In November 2016, India's PM declared that 86% of all currency in circulation was no longer legal tender — effective immediately. 500 and 1000 rupee notes became worthless. People stood in lines for days to exchange old notes. An estimated 100+ deaths occurred in the chaos.',
-            canada2022: 'During the 2022 trucker protests, the Canadian government invoked the Emergencies Act to freeze bank accounts of protesters and their donors — without court orders. Some accounts were frozen for simply donating $50 to the protest. Banks complied immediately.'
-        };
-
-        function showConfiscation(key) {
-            document.getElementById('confiscation-desc').textContent = confiscationData[key];
-            document.getElementById('confiscation-detail').style.display = 'block';
-        }
-    </script>
-    <footer style="text-align:center;padding:2rem 1rem;margin-top:1rem;border-top:1px solid #2A2A2A;color:#B3B3B3;font-size:0.85rem;">Created by Dalia · <a href="https://bitcoinsovereign.academy" style="color:#FF7A00;text-decoration:none;">bitcoinsovereign.academy</a></footer>
-    <script src="/js/demo-nav.js"></script>
+</script>
 </body>
 </html>
