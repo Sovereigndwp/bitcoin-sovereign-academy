@@ -563,7 +563,7 @@
                 font-size: 0.95rem;
             }
             .module-lock-cta {
-                background: linear-gradient(135deg, #FF7A00, #FFD400);
+                background: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%);
                 color: #121212;
                 font-weight: 700;
                 border: none;

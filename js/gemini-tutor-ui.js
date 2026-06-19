@@ -207,7 +207,7 @@ class GeminiTutorUI {
                     />
                     <button type="button" id="send-btn" aria-label="Send message" style="
                         padding: 12px 20px;
-                        background: linear-gradient(135deg, #FF7A00 0%, #FFD400 100%);
+                        background: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%);
                         border: none;
                         border-radius: 12px;
                         color: white;

@@ -108,7 +108,7 @@ substackUrl: '',
                     background: transparent;
                     color: #FF7A00;
                     border: 2px solid transparent;
-                    border-image: linear-gradient(135deg, #FF7A00, #FFD400) 1;
+                    border-image: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%) 1;
                     font-family: 'JetBrains Mono', ui-monospace, monospace;
                     font-weight: 700;
                     font-size: 0.8rem;

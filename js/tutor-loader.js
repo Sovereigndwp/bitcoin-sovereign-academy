@@ -99,7 +99,7 @@
                 top: 10px;
                 right: 10px;
                 padding: 8px 16px;
-                background: linear-gradient(135deg, #FF7A00 0%, #FFD400 100%);
+                background: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%);
                 color: white;
                 border: none;
                 border-radius: 20px;

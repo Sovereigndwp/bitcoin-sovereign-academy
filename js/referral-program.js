@@ -106,7 +106,7 @@
                 font-size: 0.85rem;
             }
             .referral-link-box button {
-                background: linear-gradient(135deg, #FF7A00 0%, #FFD400 100%);
+                background: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%);
                 color: #000;
                 border: none;
                 padding: 0.75rem 1.25rem;

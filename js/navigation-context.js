@@ -332,7 +332,7 @@ class NavigationContextManager {
             }
             
             .bsa-return-nav--floating .bsa-return-nav__link:hover {
-                background: linear-gradient(135deg, #FF7A00 0%, #ff8c00 100%);
+                background: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%);
                 color: white;
                 transform: translateY(-2px);
                 box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 122, 0, 0.4);
@@ -344,7 +344,7 @@ class NavigationContextManager {
                 justify-content: center;
                 gap: 0.75rem;
                 padding: 0.75rem 2rem;
-                background: linear-gradient(135deg, #FF7A00 0%, #ff8c00 100%);
+                background: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%);
                 color: white;
                 text-decoration: none;
                 font-weight: 600;
@@ -353,7 +353,7 @@ class NavigationContextManager {
             }
             
             .bsa-return-nav--top .bsa-return-nav__link:hover {
-                background: linear-gradient(135deg, #ff8c00 0%, #FF7A00 100%);
+                background: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%);
             }
             
             .bsa-return-nav__icon {
@@ -491,7 +491,7 @@ class NavigationContextManager {
             
             .bsa-completion-prompt__btn {
                 padding: 0.875rem 2rem;
-                background: linear-gradient(135deg, #FF7A00 0%, #ff8c00 100%);
+                background: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%);
                 color: white;
                 text-decoration: none;
                 border-radius: 50px;

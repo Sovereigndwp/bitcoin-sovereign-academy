@@ -45,7 +45,7 @@
     }
     .bsa-nav__links a:hover, .bsa-nav__links a.active { color: #FF7A00; }
     .bsa-nav__cta {
-        background: linear-gradient(135deg, #FF7A00, #FFD400);
+        background: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%);
         color: #000 !important; font-weight: 700 !important;
         padding: 0.35rem 1rem; border-radius: 999px;
         font-size: 0.85rem; white-space: nowrap;
@@ -59,7 +59,7 @@
         width: 60px; height: 6px; background: #202938; border-radius: 3px; overflow: hidden;
     }
     .bsa-nav__progress-fill {
-        height: 100%; background: linear-gradient(90deg, #FF7A00, #FFD400); border-radius: 3px;
+        height: 100%; background: linear-gradient(90deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%); border-radius: 3px;
         transition: width 0.3s;
     }
     .bsa-nav__hamburger {

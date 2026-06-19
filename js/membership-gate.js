@@ -529,7 +529,7 @@
                 }
 
                 .gate-btn.primary {
-                    background: linear-gradient(135deg, #FF7A00 0%, #FFD400 100%);
+                    background: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%);
                     color: #000;
                 }
 

@@ -440,7 +440,7 @@
                 flex-wrap: wrap;
             }
             .btn-primary-small {
-                background: linear-gradient(135deg, #FF7A00, #FFD400);
+                background: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%);
                 color: #121212;
                 font-weight: 600;
                 padding: 0.6rem 1.25rem;
@@ -627,7 +627,7 @@
                 font-size: 0.9rem;
             }
             .module-lock-cta {
-                background: linear-gradient(135deg, #FF7A00, #FFD400);
+                background: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%);
                 color: #121212;
                 font-weight: 700;
                 font-size: 1.1rem;
