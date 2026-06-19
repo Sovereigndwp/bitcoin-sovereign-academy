@@ -1,5 +1,5 @@
 /**
- * Reflect Widget — Bitcoin Sovereign Academy
+ * Reflect Widget: Bitcoin Sovereign Academy
  *
  * Self-contained embeddable Socratic reflection widget.
  * Drop into any module or demo page with a single element:
@@ -11,9 +11,9 @@
  *   </div>
  *
  * Attributes:
- *   data-topic   — topic key for seeded questions (see SEED_QUESTIONS map)
- *   data-path    — learner path context (curious | builder | sovereign | principled)
- *   data-title   — optional heading override
+ *   data-topic   : topic key for seeded questions (see SEED_QUESTIONS map)
+ *   data-path    : learner path context (curious | builder | sovereign | principled)
+ *   data-title   : optional heading override
  *
  * The widget uses /api/tutor for all AI responses. It prefers window.claudeTutor
  * if available, else calls the API directly.
@@ -23,19 +23,19 @@
   'use strict';
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Seed questions per topic — tiered ladder
+  // Seed questions per topic: tiered ladder
   //
   // Each topic supports up to three depth tiers:
-  //   surface       — what & how (concrete, factual, recognition)
-  //   conceptual    — why & trade-offs (mental models, second-order)
-  //   philosophical — what it means for sovereignty / society / values
+  //   surface       : what & how (concrete, factual, recognition)
+  //   conceptual    : why & trade-offs (mental models, second-order)
+  //   philosophical : what it means for sovereignty / society / values
   //
   // A topic may provide any subset of tiers. A flat array (legacy form) is
   // treated as { conceptual: [...] }. Tiers with no questions hide their tab.
   //
   // All 15 topics now ship with full 3-tier coverage. Surface questions
   // are concrete and factual (good entry points). Philosophical questions
-  // pull on the user's "risks people don't see" frame — sovereignty,
+  // pull on the user's "risks people don't see" frame: sovereignty,
   // inheritance, governance, the ethics of immutability and privacy.
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -52,7 +52,7 @@
     'private-key': {
       surface: [
         'In one sentence, what is a private key?',
-        'What does a private key look like — a word, a number, a file?',
+        'What does a private key look like: a word, a number, a file?',
         'Where does your wallet actually store your private key?',
       ],
       conceptual: [
@@ -81,19 +81,19 @@
       philosophical: [
         'If self-custody requires constant vigilance, who is sovereignty actually for?',
         'What does inheritance look like when "the password is the asset"?',
-        'Is convenience the price of trusting a custodian — or is it the trap?',
+        'Is convenience the price of trusting a custodian, or is it the trap?',
       ],
     },
 
     'jurisdiction': {
       surface: [
         'In plain English, what does "jurisdiction" mean for where your money and records sit?',
-        'Which country\'s rules apply to your bank account — and which apply to your Bitcoin?',
+        'Which country\'s rules apply to your bank account, and which apply to your Bitcoin?',
         'Name one record about you (tax, property, ID) and which authority actually holds it.',
       ],
       conceptual: [
         'How is the jurisdiction of your Bitcoin different from the jurisdiction of your bank?',
-        'If you moved countries tomorrow, which of your assets would change jurisdiction — and which wouldn\'t?',
+        'If you moved countries tomorrow, which of your assets would change jurisdiction, and which wouldn\'t?',
         'What\'s the difference between where you live, where you\'re taxed, and where your assets are held?',
       ],
       philosophical: [
@@ -117,7 +117,7 @@
       philosophical: [
         'If money is information about who is owed what, who should control that information?',
         'What does it say about a society when its money loses 50% of its value in 20 years?',
-        'Is "neutral money" possible — and would humans want it if it were?',
+        'Is "neutral money" possible, and would humans want it if it were?',
       ],
     },
 
@@ -141,7 +141,7 @@
 
     'mining': {
       surface: [
-        'What is a Bitcoin miner — a person, a machine, or both?',
+        'What is a Bitcoin miner: a person, a machine, or both?',
         'Roughly how often does a new Bitcoin block get added?',
         'Where does the energy that miners use come from?',
       ],
@@ -153,7 +153,7 @@
       philosophical: [
         'Bitcoin mining converts energy into security. Should energy ever be "wasted" on this?',
         'If mining migrates to where energy is cheapest, what does that imply about energy markets?',
-        'Is proof-of-work a defense of human time itself — or just a clever lock?',
+        'Is proof-of-work a defense of human time itself, or just a clever lock?',
       ],
     },
 
@@ -162,11 +162,11 @@
     'public-key': {
       surface: [
         'In one sentence, what is a public key?',
-        'What\'s the relationship between a public key and a Bitcoin address — are they the same?',
+        'What\'s the relationship between a public key and a Bitcoin address: are they the same?',
         'Where would you actually use or share a public key?',
       ],
       conceptual: [
-        'Why do you think Bitcoin uses two keys — public and private?',
+        'Why do you think Bitcoin uses two keys: public and private?',
         'Is it safe to share your public key with anyone? Why or why not?',
         'How can someone verify you own Bitcoin without you revealing your private key?',
       ],
@@ -179,7 +179,7 @@
 
     'bitcoin-address': {
       surface: [
-        'How does a Bitcoin address typically look — letters, numbers, both?',
+        'How does a Bitcoin address typically look: letters, numbers, both?',
         'Where can you find your address: in your wallet app, on the blockchain, both?',
         'What\'s the safest way to share an address with someone paying you?',
       ],
@@ -190,7 +190,7 @@
       ],
       philosophical: [
         'An address is a one-way invitation to receive value. Why does that asymmetry matter?',
-        'If addresses are public, can you really hide wealth — or only delay being seen?',
+        'If addresses are public, can you really hide wealth, or only delay being seen?',
         'Should addresses be human-readable like usernames, or is the friction the point?',
       ],
     },
@@ -203,20 +203,20 @@
       ],
       conceptual: [
         'What do you think happens to a transaction before it gets confirmed?',
-        'Why do you think Bitcoin requires fees — what problem do they solve?',
+        'Why do you think Bitcoin requires fees: what problem do they solve?',
         'If transactions are public, how can users maintain any financial privacy?',
       ],
       philosophical: [
         'Transactions are public forever. Is permanent visibility a feature or a curse?',
-        'A Bitcoin payment can\'t be reversed — even by mistake. Is that maturity or cruelty?',
-        'Who actually wins when a payment can\'t be undone — the sender, the receiver, or society?',
+        'A Bitcoin payment can\'t be reversed, even by mistake. Is that maturity or cruelty?',
+        'Who actually wins when a payment can\'t be undone: the sender, the receiver, or society?',
       ],
     },
 
     'blockchain': {
       surface: [
         'Roughly how often does a new block get added to Bitcoin\'s chain?',
-        'What gets stored in a block — transactions, balances, both?',
+        'What gets stored in a block: transactions, balances, both?',
         'About how many copies of the Bitcoin blockchain exist worldwide?',
       ],
       conceptual: [
@@ -226,7 +226,7 @@
       ],
       philosophical: [
         'A blockchain replaces a single source of truth with thousands. Is that more honest, or just harder to corrupt?',
-        'If history can\'t be rewritten, what does that change about how we record other things — contracts, votes, identity?',
+        'If history can\'t be rewritten, what does that change about how we record other things: contracts, votes, identity?',
         'Does an immutable ledger serve memory, or punish change?',
       ],
     },
@@ -261,7 +261,7 @@
         'Why might one seed phrase be able to generate thousands of different addresses?',
       ],
       philosophical: [
-        'A wallet is just a key — everything else is an interface. Why do most apps obscure that?',
+        'A wallet is just a key. Everything else is an interface. Why do most apps obscure that?',
         'If your wallet UI is helpful enough, do you ever really learn Bitcoin?',
         'Should "easy" wallets exist when convenience hides what\'s actually at stake?',
       ],
@@ -299,7 +299,7 @@
       philosophical: [
         'If financial privacy must be earned and maintained, who actually gets to have it?',
         'A surveillance-capable Bitcoin and a privacy-respecting Bitcoin are the same code. What does that say about technology and intent?',
-        'Should the right to transact privately exist for everyone — or only those who can afford the tools?',
+        'Should the right to transact privately exist for everyone, or only those who can afford the tools?',
       ],
     },
 
@@ -315,7 +315,7 @@
         'If markets price in known information (like a halving schedule), what\'s left for the halving event itself to do to price?',
       ],
       philosophical: [
-        'When a model you wanted to believe stops working, what changes — your beliefs, or your interpretation of the data?',
+        'When a model you wanted to believe stops working, what changes: your beliefs, or your interpretation of the data?',
         'Is a broken model still useful as a way to think? When?',
         'If someone shows you a chart of in-sample fit, what\'s the question you should ask before being convinced?',
       ],
@@ -333,7 +333,7 @@
         'If lump-summing at the start beat DCA in your scenario, what does that tell you about DCA\'s actual job?',
       ],
       philosophical: [
-        'Looking at the worst drawdown in your simulation: be honest — would you have kept buying through it, or stopped?',
+        'Looking at the worst drawdown in your simulation: be honest, would you have kept buying through it, or stopped?',
         'A backtest tells you what would have happened. Why is that different from what will happen?',
         'If "time in the market beats timing the market" is true, why does it feel so hard to act on?',
       ],
@@ -346,12 +346,12 @@
         'Does the same seed always generate the same key?',
       ],
       conceptual: [
-        'How many possible private keys exist — and what does that number actually mean?',
+        'How many possible private keys exist, and what does that number actually mean?',
         'Why is entropy (randomness) so critical in the first step of key generation?',
-        'Changing one bit in your entropy changed all downstream values — what does that tell you?',
+        'Changing one bit in your entropy changed all downstream values: what does that tell you?',
       ],
       philosophical: [
-        'A private key is just a really big number. Why does that feel disturbing — or freeing?',
+        'A private key is just a really big number. Why does that feel disturbing, or freeing?',
         'If anyone could theoretically guess your key, why does the universe-sized search space make Bitcoin safe?',
         'Does math-based security feel different from rule-based security? Should it?',
       ],
@@ -375,7 +375,7 @@
       ],
       philosophical: [
         'If buying one thing always means NOT buying something else, how should that change how you shop?',
-        'Who really decides what counts as a "need" in your life — you, your family, or advertising?',
+        'Who really decides what counts as a "need" in your life: you, your family, or advertising?',
         'What would change about your spending if you had to explain every purchase out loud?',
       ],
     },
@@ -388,7 +388,7 @@
       ],
       conceptual: [
         'If more money goes out than comes in, what has to happen eventually?',
-        'When money is tight, which is easier to change — your income or your expenses? Why?',
+        'When money is tight, which is easier to change: your income or your expenses? Why?',
         'Why do you think tracking where money goes is harder than it sounds?',
       ],
       philosophical: [
@@ -402,7 +402,7 @@
       surface: [
         'What\'s one thing you\'re saving up for right now?',
         'If you save $10 a week, how many weeks until you have $120?',
-        'Where do you keep money you\'re saving — and is it earning anything?',
+        'Where do you keep money you\'re saving, and is it earning anything?',
       ],
       conceptual: [
         'Why is it so hard to wait for something you could buy today?',
@@ -412,7 +412,7 @@
       philosophical: [
         'The hardest part of saving is the wait. What does being able to wait say about you?',
         'If money loses value sitting still, is "just saving" actually enough?',
-        'What did someone in your family wait and save for — and was it worth it?',
+        'What did someone in your family wait and save for, and was it worth it?',
       ],
     },
 
@@ -424,11 +424,11 @@
       ],
       conceptual: [
         'Why keep emergency money separate from your spending money?',
-        'How big should an emergency fund be — and how would you decide?',
+        'How big should an emergency fund be, and how would you decide?',
         'What\'s the difference between a real emergency and just wanting something badly?',
       ],
       philosophical: [
-        'An emergency fund buys something invisible — calm. Is that worth more than what the money could buy?',
+        'An emergency fund buys something invisible: calm. Is that worth more than what the money could buy?',
         'If you never have an emergency, was saving for one a waste?',
         'How does having a safety net change the choices you\'re willing to make?',
       ],
@@ -465,7 +465,7 @@
       ],
       philosophical: [
         'Companies spend billions to make you spend. What does it take to spend on YOUR terms instead?',
-        'If you earned more, would you spend more — and who decides that, you or the habit?',
+        'If you earned more, would you spend more, and who decides that, you or the habit?',
         'What would you do with the money you\'d save by skipping things you don\'t really want?',
       ],
     },
@@ -477,7 +477,7 @@
         'How can you tell if a payment app or website is the real one?',
       ],
       conceptual: [
-        'When your money is in a bank, who actually holds it — and what are you trusting them to do?',
+        'When your money is in a bank, who actually holds it, and what are you trusting them to do?',
         'Why would a scammer pretend to be your bank, and how would you check before acting?',
         'What\'s the risk of letting an app store your card number and password?',
       ],
@@ -500,7 +500,7 @@
         'How would you decide whether a particular college is "worth it"?',
       ],
       philosophical: [
-        'Is borrowing for college an investment, a gamble, or both — and how would you tell?',
+        'Is borrowing for college an investment, a gamble, or both, and how would you tell?',
         'If a cheaper path led to the same goal, what would make the expensive one still worth it?',
         'Whose money and whose future are really on the line in a college decision?',
       ],
@@ -519,7 +519,7 @@
       ],
       philosophical: [
         'Independence costs money. Which freedoms are worth paying for, and which aren\'t?',
-        'Is paying for insurance — money for something that might never happen — wise or wasteful?',
+        'Is paying for insurance (money for something that might never happen) wise or wasteful?',
         'What does "being able to support yourself" really mean to you?',
       ],
     },
@@ -528,7 +528,7 @@
       surface: [
         'What\'s one money goal your whole family shares?',
         'Does your family have a plan if a big surprise cost hits? What is it?',
-        'Name something valuable — money, a skill, or a habit — that\'s been passed down in your family.',
+        'Name something valuable (money, a skill, or a habit) that\'s been passed down in your family.',
       ],
       conceptual: [
         'Why might a family plan money together instead of everyone managing their own?',
@@ -536,9 +536,9 @@
         'How could a plan you make today still matter to your family in 20 years?',
       ],
       philosophical: [
-        'What do you want to pass on to the people you love — and is it only money?',
+        'What do you want to pass on to the people you love, and is it only money?',
         'If wealth is what\'s left after you\'re gone, what\'s worth building that lasts longer than you?',
-        'Which money lesson from your family do you want to keep — and which do you want to change?',
+        'Which money lesson from your family do you want to keep, and which do you want to change?',
       ],
     },
 
@@ -567,10 +567,10 @@
 
   const CSS = `
 .reflect-widget-inner {
-  background: #16181c;                         /* homepage surface — was #1e1e2e (off-brand purple) */
+  background: #16181c;                         /* homepage surface, was #1e1e2e (off-brand purple) */
   border: 1px solid #2a2a2a;
   border-left: 3px solid #FF7A00;             /* brand accent edge (matches youth-engine cards) */
-  border-radius: 2px;                          /* rectangular — homepage standard */
+  border-radius: 2px;                          /* rectangular, homepage standard */
   padding: 1.75rem 2rem;
   margin: 2rem 0;
   font-family: inherit;
@@ -631,7 +631,7 @@
   margin-left: 0.15rem;
 }
 .reflect-widget-tier-btn[aria-pressed="true"] .rw-tier-hint {
-  color: #FFD400;                              /* brand yellow — was #d4a060 (off-brand brown) */
+  color: #FFD400;                              /* brand yellow, was #d4a060 (off-brand brown) */
 }
 .reflect-widget-seeds {
   display: flex;
@@ -736,7 +736,7 @@
   display: block;
 }
 .reflect-widget-response .rw-answer { color: #e0e0e0; }
-/* Streaming cursor — non-text so SR ignores it (was content: '▌' which SR reads) */
+/* Streaming cursor: non-text so SR ignores it (was content: '▌' which SR reads) */
 .reflect-widget-response.rw-streaming .rw-answer::after {
   content: '';
   display: inline-block;
@@ -878,14 +878,14 @@
                              aria-pressed="${t === currentTier ? 'true' : 'false'}"
                              title="${escapeHtml(meta.hint)}">
                        <span aria-hidden="true">${meta.emoji}</span>${escapeHtml(meta.label)}
-                       <span class="rw-tier-hint">— ${escapeHtml(meta.hint)}</span>
+                       <span class="rw-tier-hint">· ${escapeHtml(meta.hint)}</span>
                      </button>`;
            }).join('')}
          </div>`
       : '';
     inner.innerHTML = `
       <h3 id="${titleId}">${escapeHtml(title)}</h3>
-      <p class="rw-subtitle">Choose a question to explore — or ask your own.</p>
+      <p class="rw-subtitle">Choose a question to explore, or ask your own.</p>
       ${tierTabsHtml}
       <ul class="reflect-widget-seeds" aria-label="Suggested reflection questions"></ul>
       <div class="reflect-widget-input-row">
@@ -932,7 +932,7 @@
           b.setAttribute('aria-pressed', b === tabBtn ? 'true' : 'false');
         });
         renderSeeds();
-        // Optional analytics — no-op if bsaAnalytics isn't loaded
+        // Optional analytics: no-op if bsaAnalytics isn't loaded
         if (window.bsaAnalytics && typeof window.bsaAnalytics.track === 'function') {
           window.bsaAnalytics.track('reflect_tier_selected', { topic, tier: currentTier, learnerPath });
         }
@@ -985,7 +985,7 @@
       setLoading(true);
       announce('Tutor is thinking…');
 
-      // Track which tier the learner is actually engaging at — feeds B4 metrics.
+      // Track which tier the learner is actually engaging at: feeds B4 metrics.
       if (window.bsaAnalytics && typeof window.bsaAnalytics.track === 'function') {
         window.bsaAnalytics.track('reflect_question_asked', {
           topic, tier: currentTier, learnerPath,
@@ -1082,7 +1082,7 @@
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Direct API call (used by widget — keeps widget history isolated)
+  // Direct API call (used by widget, keeps widget history isolated)
   // ─────────────────────────────────────────────────────────────────────────
 
   async function streamFromAPI(message, context, history, onChunk) {
