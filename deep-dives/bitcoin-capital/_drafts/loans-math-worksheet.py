@@ -13,6 +13,7 @@ Outputs: loans-math-output.json (consumed by the deep dive's HTML calculator)
 
 import json
 import math
+import os
 from dataclasses import dataclass, asdict
 from typing import Optional
 
@@ -74,13 +75,14 @@ PROVIDERS = {
         "name": "Unchained Capital",
         "denominator": "USD",
         "ltv": 0.50,
-        "apr_tiers": [
-            (250_000, 0.1149),
-            (1_000_000, 0.1099),
-            (2_000_000, 0.1049),
-            (float("inf"), 0.0999),
-        ],
-        "term_months_base": 12,          # term loan, renewable
+        # Commercial (B2B) product, late-2025/2026. The earlier personal tiered
+        # product (9.99-11.49%) was discontinued. Current: 14% interest rate +
+        # origination => 16.21% APR on a 12-month term; renewable, with the
+        # origination fee charged again on each renewal.
+        "interest_rate": 0.14,
+        "origination_fee_per_term": 0.0221,   # 14% + 2.21% ~= 16.21% APR over a 12-mo term
+        "apr_commercial": 0.1621,
+        "term_months_base": 12,                # 12-month term, renewable
         "minimum_usd_equiv": 150_000,
         "margin_calls": True,
         "rehypothecation": False,
@@ -270,19 +272,26 @@ def comparative_costs(loan_usd: float, months: int, btc_price: float) -> dict:
         "rehypothecation_risk": True,
     }
 
-    # Unchained
+    # Unchained — commercial (B2B): 14% interest + origination per 12-mo term (~16.21% APR)
     if loan_usd < PROVIDERS["unchained"]["minimum_usd_equiv"]:
         results["unchained"] = {"applicable": False, "reason": "Loan below $150K minimum"}
     else:
-        u_apr = get_unchained_apr(loan_usd)
-        u = cost_simple_interest(loan_usd, u_apr, months)
+        u = PROVIDERS["unchained"]
+        u_terms = math.ceil(months / 12)
+        u_interest = loan_usd * u["interest_rate"] * (months / 12)
+        u_origination = loan_usd * u["origination_fee_per_term"] * u_terms
+        u_total = u_interest + u_origination
         results["unchained"] = {
             "btc_pledged": loan_usd / 0.50 / btc_price,
-            "apr_tier": u_apr,
-            **u,
+            "apr_tier": u_total / loan_usd * (12 / months),
+            "origination_fee_usd": u_origination,
+            "interest_usd": u_interest,
+            "total_cost_usd": u_total,
+            "effective_apr": u_total / loan_usd * (12 / months),
             "margin_call_threshold_drop": margin_threshold_drop(0.50, 0.70),
             "margin_call_risk": True,
-            "monthly_interest_only_payment": loan_usd * u_apr / 12,
+            "renewals": u_terms,
+            "monthly_interest_only_payment": loan_usd * u["interest_rate"] / 12,
         }
 
     # Lava
@@ -799,8 +808,10 @@ def main():
         print(f"  {name}: {data.get('interpretation', '')}")
     output["breakevens"] = breakevens
 
-    # Save to JSON
-    output_path = "/sessions/elegant-bold-clarke/mnt/bitcoin-sovereign-academy/deep-dives/bitcoin-capital/data/loans-math-output.json"
+    # Save to JSON (path relative to this script: ../data/loans-math-output.json)
+    output_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "data", "loans-math-output.json"
+    )
     with open(output_path, "w") as f:
         json.dump(output, f, indent=2, default=str)
 

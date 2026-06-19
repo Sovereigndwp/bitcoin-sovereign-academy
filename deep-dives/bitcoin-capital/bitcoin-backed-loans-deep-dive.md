@@ -118,14 +118,14 @@ Every other BTC-backed lender is a variant of one of these. We present them in o
 
 **Structurally:** the sovereignty-leaning alternative to Ledn. Same fiat disbursement, same fiat-denominated margin-call dynamics, but custody is 2-of-3 multisig with the borrower holding 1 key.
 
-**Terms (verified May 2026):**
-- ~50% LTV (fiat-denominated)
-- Tiered APR: **11.49% under $250K, 10.99% $250K–$1M, 10.49% $1M–$2M, 9.99% above $2M**
+**Terms (verified May 2026 — commercial/B2B product):**
+- ~50% LTV (fiat-denominated; 200% Collateral-to-Principal)
+- **14% interest rate, 16.21% APR** (origination included). The earlier tiered personal product (9.99%–11.49%) was discontinued in favor of this commercial positioning.
 - $150,000 USD minimum (the highest entry threshold in the Tier 1 set)
-- Interest-only monthly payments
+- 12-month term, renewable (origination charged again on each renewal); interest-only monthly payments
 - US-only jurisdiction
 - No credit checks, no prepayment penalties
-- Cost at $250K / 24 months: **$54,950** at 11.49% APR (monthly interest-only)
+- Cost at $250K / 12 months: **~$40,500** (interest + origination). At 24 months (renewal): **~$81,050**
 
 **Best fit when:**
 - Need USD with sovereignty-leaning custody
@@ -337,11 +337,11 @@ A lender's solvency is your risk surface, not just the price of Bitcoin. The cus
 | **Coinbase / Morpho** | 3.33 BTC | ~$40,000 (variable) | Yes (86% LTV) | Wrapped + smart contract |
 | **Lava** | 4.17 BTC | ~$49,375 (step-up) | Yes (80% LTV) | Self-custody DLC |
 | **Bitfinex** | 2.78 BTC | ~$50,000 (10% mid) | Yes (95%) | Exchange |
-| **Unchained** | 5.00 BTC | $54,950 (11.49%) | Yes (70% LTV) | 2-of-3 multisig |
 | **SALT** | 5.00 BTC | $59,750 (mid-tier) | Yes | Qualified custodian + rehypo |
 | **Ledn Standard** | 5.00 BTC | $62,000 (12.4%) | Yes | Qualified custodian + rehypo |
 | **Arch** | 4.17 BTC | $66,250 (12.5% + origination) | Yes (80% LTV) | Anchorage (no rehypo) |
 | **Ledn Custodied** | 5.00 BTC | $69,500 (13.9%) | Yes | Qualified custodian (no rehypo) |
+| **Unchained (Commercial)** | 5.00 BTC | ~$81,050 (16.21% APR; renewal fee at 24mo) | Yes (70% LTV) | 2-of-3 multisig |
 | **Debifi** | N/A | N/A | — | 3-of-4 multisig (institutional only) |
 
 LMC has the lowest direct cost. But direct cost alone is the wrong frame. The decision involves cost, margin-call risk, custody quality, term structure, and what you're using the funds for. The calculator handles all of these dimensions.
