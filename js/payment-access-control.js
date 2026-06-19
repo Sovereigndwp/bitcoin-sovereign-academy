@@ -345,7 +345,7 @@ const AccessControl = (function() {
       position: absolute;
       top: 10px;
       right: 10px;
-      background: linear-gradient(135deg, #FF7A00, #ff8c00);
+      background: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%);
       color: white;
       padding: 6px 12px;
       border-radius: 20px;
@@ -524,7 +524,7 @@ style.textContent = `
   }
 
   .btn-unlock-premium {
-    background: linear-gradient(135deg, #FF7A00, #ff8c00);
+    background: linear-gradient(135deg, #FF7A00 0%, #FF9A00 45%, #FFD400 100%);
     color: white;
     border: none;
     padding: 1rem 2rem;
