@@ -1,474 +1,265 @@
-<!DOCTYPE html><html lang="en"><head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Why Money Fails - Historical Lessons for Bitcoin | First Principles Deep Dive</title>
-    <meta name="description" content="Interactive exploration of how money has failed throughout history — hyperinflation, debasement, confiscation — and what Bitcoin learns from each failure.">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #101010 0%, #2d2d2d 50%, #101010 100%);
-            min-height: 100vh; color: #ffffff; line-height: 1.6;
-        }
-        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
-        .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: #FF7A00; text-decoration: none; margin-bottom: 2rem; font-weight: 600; }
-        .back-link:hover { color: #FF7A00; }
-        .header { text-align: center; padding: 40px 20px; margin-bottom: 40px; }
-        .header h1 {
-            font-size: 2.5rem; margin-bottom: 15px;
-            background: var(--brand-gradient);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-        }
-        .header p { font-size: 1.1rem; opacity: 0.9; max-width: 700px; margin: 0 auto; }
-        .failure-section {
-            background: linear-gradient(135deg, #2d2d2d 0%, #101010 100%);
-            border-radius: 15px; margin-bottom: 25px; overflow: hidden; border: 1px solid #FF7A00;
-        }
-        .failure-header {
-            background: var(--brand-gradient); color: black;
-            padding: 20px 30px; cursor: pointer; display: flex; justify-content: space-between;
-            align-items: center; font-size: 1.2rem; font-weight: bold; transition: all 0.3s;
-        }
-        .failure-header:hover { background: var(--brand-gradient); }
-        .failure-icon { font-size: 1.5rem; transition: transform 0.3s; }
-        .failure-content { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; background: #2d2d2d; }
-        .failure-content.active { max-height: 8000px; }
-        .failure-inner { padding: 30px; }
-        .problem-box { background: rgba(220, 53, 69, 0.1); border: 2px solid #dc3545; border-radius: 10px; padding: 20px; margin: 20px 0; }
-        .solution-box { background: rgba(255, 122, 0, 0.1); border: 2px solid #FF7A00; border-radius: 10px; padding: 20px; margin: 20px 0; }
-        .insight-box { background: rgba(255, 140, 0, 0.1); border: 2px solid #FF7A00; border-radius: 10px; padding: 20px; margin: 20px 0; }
-        .demo-container { background: #2D2D2D; border-radius: 10px; padding: 25px; margin: 20px 0; border: 2px solid #FF7A00; }
-        .timeline-events { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin: 20px 0; }
-        .event-card {
-            background: rgba(255,255,255,0.05); border: 2px solid #666; border-radius: 10px;
-            padding: 15px; cursor: pointer; transition: all 0.3s; text-align: center;
-        }
-        .event-card:hover { border-color: #FF7A00; transform: translateY(-3px); }
-        .event-card.active { border-color: #FF7A00; box-shadow: 0 5px 20px rgba(255, 140, 0, 0.3); }
-        .event-year { font-size: 0.85rem; color: #FF7A00; font-weight: 700; }
-        .event-name { font-weight: 700; margin: 0.5rem 0; }
-        .event-impact { font-size: 0.85rem; color: #F7F7F2; }
-        .inflation-meter { background: #333; border-radius: 10px; height: 40px; overflow: hidden; margin: 15px 0; position: relative; }
-        .inflation-fill { height: 100%; border-radius: 10px; transition: width 1s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 15px; font-weight: 700; font-size: 0.9rem; }
-        .inflation-fill.mild { background: var(--brand-gradient-h); }
-        .inflation-fill.high { background: linear-gradient(90deg, #f59e0b, #dc3545); }
-        .inflation-fill.hyper { background: linear-gradient(90deg, #dc3545, #dc3545); }
-        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
-        .stat-card { background: #333; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #FF7A00; }
-        .stat-value { font-size: 1.8rem; font-weight: 800; color: #FF7A00; margin-bottom: 5px; }
-        .stat-label { color: #F7F7F2; font-size: 0.9rem; }
-        .btn {
-            background: var(--brand-gradient); color: black; border: none;
-            padding: 12px 24px; border-radius: 25px; cursor: pointer; font-size: 1rem;
-            font-weight: 700; transition: all 0.3s; margin: 5px;
-        }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 140, 0, 0.4); }
-        .comparison-table { width: 100%; margin: 20px 0; }
-        .comparison-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; margin-bottom: 1px; }
-        .comparison-cell { background: rgba(255,255,255,0.05); padding: 12px 15px; font-size: 0.9rem; }
-        .comparison-cell.header { background: rgba(255, 140, 0, 0.2); font-weight: 700; color: #FF7A00; }
-        .comparison-cell.good { color: #FF7A00; }
-        .comparison-cell.bad { color: var(--accent-red-text, #dc3545); }
-        @media (max-width: 768px) {
-            .header h1 { font-size: 1.8rem; }
-            .timeline-events { grid-template-columns: 1fr; }
-            .stat-grid { grid-template-columns: 1fr 1fr; }
-            .comparison-row { grid-template-columns: 1fr; }
-        }
-    </style>
-    <link rel="stylesheet" href="/css/brand-consistency.css">
-    <link rel="stylesheet" href="/css/deep-dive-brand.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Why Money Fails, And Whether Bitcoin Actually Escapes It | First Principles Deep Dive</title>
+<meta name="description" content="A first-principles investigation of how money fails, debasement, hyperinflation, confiscation, censorship, the one mechanism underneath all of them, and an honest test of whether Bitcoin escapes each failure or relocates the risk.">
+<link rel="canonical" href="https://bitcoinsovereign.academy/deep-dives/first-principles/why-money-fails.html">
+<meta property="og:title" content="Why Money Fails, And Whether Bitcoin Actually Escapes It">
+<meta property="og:description" content="The shared mechanism behind every monetary collapse, and an honest test of where Bitcoin escapes the failure, and where it just moves the risk somewhere else.">
+<meta property="og:url" content="https://bitcoinsovereign.academy/deep-dives/first-principles/why-money-fails.html">
+<meta property="og:image" content="https://bitcoinsovereign.academy/assets/og-image.jpg">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Why Money Fails, And Whether Bitcoin Actually Escapes It",
+  "description": "First-principles investigation of monetary failure modes (debasement, hyperinflation, confiscation, censorship), their shared root cause, and an honest assessment of Bitcoin's tradeoffs.",
+  "author": { "@type": "Organization", "name": "Bitcoin Sovereign Academy" },
+  "publisher": { "@type": "Organization", "name": "Bitcoin Sovereign Academy" },
+  "datePublished": "2026-06-19",
+  "mainEntityOfPage": "https://bitcoinsovereign.academy/deep-dives/first-principles/why-money-fails.html"
+}</script>
+<script type="application/ld+json">{
+  "@context": { "@vocab": "https://schema.org/", "bsa": "https://bitcoinsovereign.academy/vocab/" },
+  "@type": "Article",
+  "bsa:page_id": "deep_dive_why_money_fails",
+  "bsa:content_type": "deep_dive",
+  "bsa:strategic_role": "first_principles_foundation",
+  "bsa:audience_tier": "curious_to_intermediate",
+  "bsa:reading_time_minutes": 18,
+  "bsa:teaches": [
+    "monetary_failure_modes_debasement_inflation_confiscation_censorship",
+    "discretionary_control_as_shared_root_cause",
+    "purchasing_power_erosion_math",
+    "sound_money_properties_as_failure_resistance",
+    "self_custody_tradeoff_no_recourse"
+  ],
+  "bsa:repairs": [
+    "Bitcoin fixes every monetary failure with no tradeoff",
+    "Self-custody removes all risk rather than relocating it",
+    "Only hyperinflation counts as monetary failure (slow 2% erosion is harmless)",
+    "Censorship-resistance has no downside"
+  ],
+  "bsa:supports_decision": "understand_whether_sound_money_properties_matter_to_me",
+  "bsa:bridges_to": [
+    { "ref": "digital_scarcity_deep_dive", "url": "/deep-dives/first-principles/digital-scarcity.html", "relationship": "sibling_in_series" },
+    { "ref": "bitcoin_from_first_principles", "url": "/deep-dives/first-principles/original-question-everything.html", "relationship": "parent_journey" },
+    { "ref": "foundational_layer_thesis", "url": "/deep-dives/foundational-layer-thesis/index.html", "relationship": "deeper_on_bitcoins_role_now", "note": "This page is HISTORICAL failure modes; the thesis covers Bitcoin's present-day role in the layered money/payments stack. No overlap." }
+  ],
+  "bsa:blocked_by_boundary": [
+    { "route": "custody_implementation", "reason": "This is conceptual/historical. Self-custody setup, inheritance, and vault design are high-intent topics handled elsewhere; do not funnel from here." }
+  ],
+  "bsa:learning_arc": {
+    "research_question": "present", "why_this_matters": "present", "current_system_comparison": "present",
+    "failure_mode": "present", "design_pressure": "present", "bitcoin_mechanism": "present", "tradeoffs": "present",
+    "interactive_test": "present", "evidence": "present", "objections": "present", "misconception_repair": "present", "socratic_reflection": "present"
+  },
+  "bsa:upgrade_status": "strong_as_is",
+  "bsa:last_audit_date": "2026-06-19"
+}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/deep-dive-page.css">
+<link rel="stylesheet" href="/css/deep-dive-lab.css">
 </head>
-<body class="bsa-skin bsa-deepdive">
-    <div class="container">
-        <a href="./" class="back-link">← Back to First Principles</a>
-        <div class="header">
-            <h1>Why Money Fails</h1>
-            <p>Every monetary failure in history teaches us something about what good money requires. Bitcoin is built on these lessons.</p>
-        </div>
+<body class="dd">
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="container">
+  <a href="./" class="back-link">← Back to First Principles</a>
+  <main id="main">
+  <div class="eyebrow">First Principles · Deep Dive</div>
+  <h1>Why Money Fails</h1>
+  <p class="lede">Money has failed thousands of times, by debasement, hyperinflation, confiscation, and censorship. This page asks a harder question than "what went wrong": <strong>is there one mechanism underneath all of them, and does Bitcoin actually escape it, or just move the risk somewhere else?</strong></p>
 
-        <!-- Failure 1: Debasement -->
-        <div class="failure-section">
-            <div class="failure-header" onclick="toggleSection(0)">
-                <span>🪙 Failure #1: Debasement — When Rulers Cheat the Money</span>
-                <span class="failure-icon" id="icon-0">▼</span>
-            </div>
-            <div class="failure-content" id="content-0">
-                <div class="failure-inner">
-                    <div class="problem-box">
-                        <h4 style="color: var(--accent-red-text, #dc3545); margin-bottom: 10px;">The Pattern</h4>
-                        <p>Rulers mix cheaper metals into coins or reduce their size, keeping the face value the same.
-                        The Roman denarius went from 95% silver to less than 5% over 200 years. Citizens didn't notice at first, 
-                        but eventually prices skyrocketed as merchants realized the coins were worth less.</p>
-                    </div>
+  <div class="rq">
+    <div class="label">Research question</div>
+    <p class="q">If every monetary failure shares a single root cause, the right fix isn't "better rulers", it's removing the lever rulers pull. So: what is the shared mechanism, and where does Bitcoin's design genuinely break it versus simply relocate the risk to you?</p>
+  </div>
 
-                    <div class="demo-container">
-                        <h4 style="color: #FF7A00; margin-bottom: 15px;">Interactive: Roman Coin Debasement</h4>
-                        <p style="margin-bottom: 15px;">Watch the silver content of the Roman denarius decline over time:</p>
-                        
-                        <div id="debasement-demo">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <span>Silver Content</span>
-                                <span id="silver-pct">95%</span>
-                            </div>
-                            <div class="inflation-meter">
-                                <div class="inflation-fill mild" id="silver-bar" style="width: 95%;">95% Silver</div>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; color: #999; font-size: 0.85rem;">
-                                <span id="debase-year">27 BCE</span>
-                                <span id="debase-emperor">Augustus</span>
-                            </div>
-                        </div>
-                        <button class="btn" onclick="animateDebasement()">Watch 300 Years of Debasement</button>
-                    </div>
+  <h2>Why this matters</h2>
+  <p>If monetary failure were random, you couldn't prepare for it. But it isn't. The same lever, <strong>discretionary control over the supply or the ledger</strong>, appears in every case below. It matters because the most common failure isn't the dramatic one. Hyperinflation makes headlines; a steady 2-4%/year erosion quietly halves the value of a lifetime's savings without anyone declaring an emergency. The calculator below lets you feel that difference yourself.</p>
+  <div class="card tradeoff"><span class="label">Scope</span>This page is about the <strong>historical failure modes of money</strong> and the properties that resist them. It is <em>not</em> about Bitcoin's role in today's layered payment system, settlement vs. activity, Lightning, stablecoins, treasury strategy. For that, read the <a href="/deep-dives/foundational-layer-thesis/index.html">Foundational-Layer Thesis</a>.</div>
 
-                    <div class="insight-box">
-                        <h4 style="color: #FF7A00; margin-bottom: 10px;">Bitcoin's Answer</h4>
-                        <p><strong>Fixed supply of 21 million.</strong> No ruler, government, or developer can create more Bitcoin. 
-                        The supply schedule is enforced by code and verified by every node on the network. Debasement is mathematically impossible.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <h2>The shared mechanism</h2>
+  <p>Strip away the specifics and every failure below reduces to the same thing: <strong>someone had discretion you couldn't override.</strong> Discretion over how much money exists (debasement, hyperinflation), or discretion over whether you may keep and move it (confiscation, censorship). Sound-money properties are simply attempts to take that discretion away. The matrix further down scores how well each property holds, including where it fails.</p>
 
-        <!-- Failure 2: Hyperinflation -->
-        <div class="failure-section">
-            <div class="failure-header" onclick="toggleSection(1)">
-                <span>💸 Failure #2: Hyperinflation — When Money Becomes Worthless</span>
-                <span class="failure-icon" id="icon-1">▼</span>
-            </div>
-            <div class="failure-content" id="content-1">
-                <div class="failure-inner">
-                    <div class="problem-box">
-                        <h4 style="color: var(--accent-red-text, #dc3545); margin-bottom: 10px;">The Pattern</h4>
-                        <p>Governments print money to pay debts they can't afford. Prices double every few days or hours. 
-                        Savings are destroyed. People rush to spend money the instant they receive it because it loses value by the hour.</p>
-                    </div>
+  <h2>Failure 1, Debasement: cheating the money slowly</h2>
+  <div class="card failure"><span class="label">The pattern</span>Reduce the precious-metal content of coins while keeping the face value. The Roman <em>denarius</em> fell from roughly <strong>95% silver under Augustus</strong> to about <strong>2% by Aurelian's era</strong>, a compounding decline of about <strong>1.3%/year over three centuries</strong>. Slow enough that no single generation revolted; fast enough to hollow out the currency entirely.</div>
+  <div class="card answer"><span class="label">Bitcoin's mechanism</span>There is no metal to dilute and no mint to instruct. The issuance schedule is fixed in consensus rules and checked by every node. A coin can't be quietly made "less Bitcoin."</div>
+  <div class="card tradeoff"><span class="label">Honest tradeoff</span>Debasement is the failure Bitcoin most cleanly prevents. The residual risk isn't dilution; it's that the rules are only as good as the network's willingness to keep enforcing them, a governance property, tested in the <a href="digital-scarcity.html">Digital Scarcity</a> dive.</div>
 
-                    <div class="demo-container">
-                        <h4 style="color: #FF7A00; margin-bottom: 15px;">The Worst Hyperinflations in History</h4>
-                        <p style="margin-bottom: 15px;">Click each event to see the details:</p>
+  <div class="ddlab" data-ddlab="calculator" data-config="wmf-denarius"></div>
+  <script type="application/json" data-ddlab-config="wmf-denarius">
+  {
+    "kicker": "Interactive, debasement lab",
+    "title": "Watch a coin get hollowed out",
+    "intro": "Step through three centuries of the Roman denarius. Silver content per emperor is a historical estimate (sourced). 'Coins to match Augustus' shows how many late coins you would need to hold the same silver as one original denarius.",
+    "formula": "denarius",
+    "inputs": [
+      {"id":"era","label":"Era (0 = Augustus 27 BCE ... 7 = Aurelian 274 CE)","type":"range","min":0,"max":7,"step":1,"default":0}
+    ],
+    "takeaway": "Debasement is slow and compounding, about 1.3% of silver lost per year. No single generation revolted, yet by Aurelian a denarius held roughly 2% silver, so it took about 48 of them to match one Augustan coin.",
+    "note": "Per-emperor figures are numismatic estimates (see data/first-principles-facts.json, debasement_rome). Reconciles with data/first-principles-math.json roman_denarius."
+  }
+  </script>
 
-                        <div class="timeline-events">
-                            <div class="event-card" onclick="showHyper('weimar')">
-                                <div class="event-year">1923</div>
-                                <div class="event-name">Weimar Germany</div>
-                                <div class="event-impact">Prices doubled every 3.7 days</div>
-                            </div>
-                            <div class="event-card" onclick="showHyper('zimbabwe')">
-                                <div class="event-year">2008</div>
-                                <div class="event-name">Zimbabwe</div>
-                                <div class="event-impact">79.6 billion % monthly inflation</div>
-                            </div>
-                            <div class="event-card" onclick="showHyper('venezuela')">
-                                <div class="event-year">2018</div>
-                                <div class="event-name">Venezuela</div>
-                                <div class="event-impact">1,000,000%+ annual inflation</div>
-                            </div>
-                            <div class="event-card" onclick="showHyper('hungary')">
-                                <div class="event-year">1946</div>
-                                <div class="event-name">Hungary</div>
-                                <div class="event-impact">Prices doubled every 15 hours</div>
-                            </div>
-                        </div>
+  <h2>Failure 2, Inflation: the lever at full tilt</h2>
+  <p>When a government can finance spending by creating money, the temptation compounds. At the extreme you get hyperinflation; the everyday version is quieter. Move the rate and horizon below, even a "healthy" 2% target is a permanent, designed tax on savings.</p>
 
-                        <div id="hyper-detail" style="display: none; margin-top: 20px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
-                            <h4 id="hyper-title" style="color: #FF7A00; margin-bottom: 10px;"></h4>
-                            <p id="hyper-desc" style="margin-bottom: 15px;"></p>
-                            <div class="stat-grid" id="hyper-stats"></div>
-                        </div>
-                    </div>
+  <div class="ddlab" data-ddlab="calculator" data-config="wmf-pp"></div>
+  <script type="application/json" data-ddlab-config="wmf-pp">
+  {
+    "kicker": "Interactive, purchasing power",
+    "title": "How fast does inflation erode savings?",
+    "intro": "Set an annual inflation rate and a horizon. Real value = (1 / (1 + rate))^years, the clean compounding floor, not a forecast. Even 'low' rates compound.",
+    "formula": "pp_real",
+    "inputs": [
+      {"id":"amount","label":"Starting savings (today's $)","type":"number","min":1000,"max":1000000,"step":1000,"default":100000,"prefix":"$"},
+      {"id":"rate","label":"Annual inflation rate","type":"range","min":0,"max":50,"step":0.5,"default":4,"suffix":"%"},
+      {"id":"years","label":"Horizon","type":"range","min":1,"max":40,"step":1,"default":30,"suffix":" yr"}
+    ],
+    "takeaway": "At 2%/yr, real value halves in ~35 years; at 4%, ~18; at 10%, under 8. Bitcoin removes the issuer who sets this rate, but pays for it with price volatility, not stability.",
+    "note": "Illustrative arithmetic, not advice. Bitcoin is NOT a stable store of value over short horizons; it is far more volatile than fiat. The narrow point: fiat's erosion is designed and one-directional; Bitcoin has no issuer who can dial it. Reconciles with data/first-principles-math.json."
+  }
+  </script>
 
-                    <div class="insight-box">
-                        <h4 style="color: #FF7A00; margin-bottom: 10px;">Bitcoin's Answer</h4>
-                        <p><strong>Predictable, declining issuance.</strong> Bitcoin's supply schedule halves every 4 years (the "halving"). 
-                        No emergency printing. No political pressure can change it. By 2140, all 21 million Bitcoin will be mined. 
-                        This is the opposite of fiat — instead of infinite supply, supply asymptotically approaches a fixed cap.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <h3>The records, for scale</h3>
+  <div class="ddlab" data-ddlab="timeline-explorer" data-config="wmf-hyper"></div>
+  <script type="application/json" data-ddlab-config="wmf-hyper">
+  {
+    "kicker": "Hyperinflation",
+    "title": "When the lever goes to the floor",
+    "events": [
+      {"date":"1923","label":"Weimar Germany","tag":"~3.7 days to double","detail":"Peak monthly inflation ~29,500%. Money-financed deficits and reparations. Ended with the Rentenmark.","source":"https://www.cato.org/research/world-hyperinflations"},
+      {"date":"1946","label":"Hungary","tag":"~15 hours to double","detail":"The highest monthly inflation ever recorded: 4.19 x 10^16 %. Highest denomination: 100 quintillion pengo. Replaced by the forint.","source":"https://www.cato.org/research/world-hyperinflations"},
+      {"date":"2008","label":"Zimbabwe","tag":"~24.7 hours to double","detail":"Peak monthly inflation 7.96 x 10^10 % (79.6 billion %). 100-trillion-dollar note issued; currency abandoned in 2009.","source":"https://www.cato.org/research/world-hyperinflations"},
+      {"date":"2018","label":"Venezuela","tag":"IMF projected ~1,000,000%/yr","detail":"Cumulative collapse of the bolivar; ~7.7M people had emigrated by the mid-2020s (R4V/UNHCR).","source":"https://www.imf.org/en/Blogs/Articles/2018/07/23/blog-outlook-for-the-americas"}
+    ],
+    "note": "Figures from Hanke & Krus, 'World Hyperinflations' (Cato, 2013), the canonical academic table."
+  }
+  </script>
 
-        <!-- Failure 3: Confiscation -->
-        <div class="failure-section">
-            <div class="failure-header" onclick="toggleSection(2)">
-                <span>🔒 Failure #3: Confiscation — When Governments Seize Your Money</span>
-                <span class="failure-icon" id="icon-2">▼</span>
-            </div>
-            <div class="failure-content" id="content-2">
-                <div class="failure-inner">
-                    <div class="problem-box">
-                        <h4 style="color: var(--accent-red-text, #dc3545); margin-bottom: 10px;">The Pattern</h4>
-                        <p>Governments seize private assets during crises. Gold was confiscated in the US in 1933. 
-                        Bank accounts are frozen during political disputes. Capital controls prevent citizens from moving their own money across borders.</p>
-                    </div>
+  <div class="card answer"><span class="label">Bitcoin's mechanism</span>New supply is disinflationary by schedule, issuance halves every 210,000 blocks and trends to zero. No issuer can "print to cover a deficit." Annual new supply is already under 1% and falling.</div>
+  <div class="card tradeoff"><span class="label">Honest tradeoff</span>Bitcoin removes <em>debasement</em> risk but not <em>price risk</em>. Its market price swings violently year to year. You are trading "guaranteed slow erosion you can't avoid" for "no debasement, but volatility you must withstand." Which is worse depends entirely on your time horizon.</div>
 
-                    <div class="demo-container">
-                        <h4 style="color: #FF7A00; margin-bottom: 15px;">Historical Confiscation Events</h4>
-                        <div class="timeline-events">
-                            <div class="event-card" onclick="showConfiscation('gold1933')">
-                                <div class="event-year">1933</div>
-                                <div class="event-name">US Gold Confiscation</div>
-                                <div class="event-impact">Executive Order 6102</div>
-                            </div>
-                            <div class="event-card" onclick="showConfiscation('cyprus2013')">
-                                <div class="event-year">2013</div>
-                                <div class="event-name">Cyprus Bank Bail-In</div>
-                                <div class="event-impact">Up to 47.5% of deposits seized</div>
-                            </div>
-                            <div class="event-card" onclick="showConfiscation('india2016')">
-                                <div class="event-year">2016</div>
-                                <div class="event-name">India Demonetization</div>
-                                <div class="event-impact">86% of cash made illegal overnight</div>
-                            </div>
-                            <div class="event-card" onclick="showConfiscation('canada2022')">
-                                <div class="event-year">2022</div>
-                                <div class="event-name">Canada Emergencies Act</div>
-                                <div class="event-impact">Protesters' bank accounts frozen</div>
-                            </div>
-                        </div>
-                        <div id="confiscation-detail" style="display: none; margin-top: 20px; padding: 20px; background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 10px;">
-                            <p id="confiscation-desc"></p>
-                        </div>
-                    </div>
+  <h2>Failure 3, Confiscation: taking what's held</h2>
+  <div class="card failure"><span class="label">The pattern</span>When money lives in someone else's custody, it can be revalued, frozen, or seized. The US required citizens to hand in gold under <strong>Executive Order 6102 (1933)</strong>, then revalued gold $20.67 to $35/oz. Cyprus (2013) converted <strong>up to ~47.5% of uninsured deposits</strong> to equity in its bank rescue.</div>
+  <div class="card answer"><span class="label">Bitcoin's mechanism</span>Self-custodied Bitcoin has no custodian to serve an order on. Keys you alone control can't be administratively seized; a seed phrase can cross a border in your memory.</div>
+  <div class="card tradeoff"><span class="label">Honest tradeoff, this is where the risk relocates</span>"No custodian to seize it" also means <strong>no custodian to recover it.</strong> Lose the keys, get phished, or face a coerced "$5-wrench" handover and there is no fraud department, no chargeback. Self-custody doesn't delete confiscation risk, it converts <em>institutional</em> risk into <em>personal operational</em> risk. For most that's a better trade, but it is a trade.</div>
 
-                    <div class="insight-box">
-                        <h4 style="color: #FF7A00; margin-bottom: 10px;">Bitcoin's Answer</h4>
-                        <p><strong>Self-custody with cryptographic keys.</strong> If you hold your own Bitcoin keys, no government can seize your funds without your cooperation. 
-                        You can memorize a 12-word seed phrase and carry millions across any border in your head. 
-                        No executive order, bank policy, or emergency act can freeze a properly self-custodied Bitcoin wallet.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <h2>Failure 4, Censorship: blocking the payment</h2>
+  <div class="card failure"><span class="label">The pattern</span>Every traditional payment passes through gatekeepers, your bank, the card network, the recipient's bank. India's 2016 demonetisation voided ~86% of cash <em>by value</em> overnight; Canada (2022) froze accounts tied to protests under the Emergencies Act (~280 accounts, per the Public Order Emergency Commission).</div>
+  <div class="card answer"><span class="label">Bitcoin's mechanism</span>A valid transaction is broadcast to thousands of independent nodes worldwide. No single gatekeeper can block it; reach one honest node and it propagates.</div>
+  <div class="card tradeoff"><span class="label">Honest tradeoff</span>Censorship-resistance is content-neutral by design, it protects the dissident and the criminal alike, which is why governments resist it and why exchanges remain regulated chokepoints. The base layer resists censorship; the fiat edges do not.</div>
 
-        <!-- Failure 4: Censorship -->
-        <div class="failure-section">
-            <div class="failure-header" onclick="toggleSection(3)">
-                <span>🚫 Failure #4: Financial Censorship — When You Can't Use Your Own Money</span>
-                <span class="failure-icon" id="icon-3">▼</span>
-            </div>
-            <div class="failure-content" id="content-3">
-                <div class="failure-inner">
-                    <div class="problem-box">
-                        <h4 style="color: var(--accent-red-text, #dc3545); margin-bottom: 10px;">The Pattern</h4>
-                        <p>Governments and corporations can block transactions, close accounts, and cut people off from the financial system.
-                        This power is often used against dissidents, journalists, and political opponents — but it can happen to anyone.</p>
-                    </div>
+  <h2>Does sound money actually escape each failure?</h2>
+  <p>Scoring honestly, green = the failure is structurally removed; amber = the risk is <em>relocated</em>, not removed; red = no protection.</p>
+  <div class="ddlab" data-ddlab="comparison-matrix" data-config="wmf-matrix"></div>
+  <script type="application/json" data-ddlab-config="wmf-matrix">
+  {
+    "kicker": "Comparison",
+    "title": "Escape, relocate, or neither?",
+    "dimensions": ["Debasement", "Inflation", "Confiscation", "Censorship"],
+    "systems": [
+      {"name":"Gold","values":[{"text":"Mixed, alloying/mining","rate":"mixed"},{"text":"Mixed","rate":"mixed"},{"text":"No, seized 1933","rate":"bad"},{"text":"n/a","rate":"mixed"}]},
+      {"name":"Fiat","values":[{"text":"No","rate":"bad"},{"text":"No","rate":"bad"},{"text":"No","rate":"bad"},{"text":"No","rate":"bad"}]},
+      {"name":"Bitcoin (self-custody)","values":[{"text":"Removed, no issuer","rate":"good"},{"text":"Removed, no issuer","rate":"good"},{"text":"Relocated, key-loss/coercion, no recourse","rate":"mixed"},{"text":"Relocated, on/off-ramp chokepoints","rate":"mixed"}]}
+    ],
+    "takeaway": "Bitcoin cleanly defeats the SUPPLY-side failures (no issuer to abuse) and only PARTIALLY defeats the CONTROL-side failures, it transfers that risk to you and to the fiat edges. That is the honest answer to the research question."
+  }
+  </script>
 
-                    <div class="demo-container">
-                        <h4 style="color: #FF7A00; margin-bottom: 15px;">How Many Intermediaries Control Your Money?</h4>
-                        <p style="margin-bottom: 15px;">When you pay someone with traditional money, every step involves a gatekeeper who can say "no":</p>
-                        
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 20px 0;">
-                            <div style="background: rgba(220, 53, 69, 0.2); border: 2px solid #dc3545; border-radius: 10px; padding: 15px; text-align: center; min-width: 120px;">
-                                <div style="font-size: 1.5rem;">🏦</div>
-                                <div style="font-weight: 700; font-size: 0.9rem;">Your Bank</div>
-                                <div style="font-size: 0.8rem; color: var(--accent-red-text, #dc3545);">Can freeze</div>
-                            </div>
-                            <div style="font-size: 2rem; display: flex; align-items: center; color: #666;">→</div>
-                            <div style="background: rgba(220, 53, 69, 0.2); border: 2px solid #dc3545; border-radius: 10px; padding: 15px; text-align: center; min-width: 120px;">
-                                <div style="font-size: 1.5rem;">💳</div>
-                                <div style="font-weight: 700; font-size: 0.9rem;">Visa/MC</div>
-                                <div style="font-size: 0.8rem; color: var(--accent-red-text, #dc3545);">Can block</div>
-                            </div>
-                            <div style="font-size: 2rem; display: flex; align-items: center; color: #666;">→</div>
-                            <div style="background: rgba(220, 53, 69, 0.2); border: 2px solid #dc3545; border-radius: 10px; padding: 15px; text-align: center; min-width: 120px;">
-                                <div style="font-size: 1.5rem;">🏛️</div>
-                                <div style="font-weight: 700; font-size: 0.9rem;">Government</div>
-                                <div style="font-size: 0.8rem; color: var(--accent-red-text, #dc3545);">Can order</div>
-                            </div>
-                            <div style="font-size: 2rem; display: flex; align-items: center; color: #666;">→</div>
-                            <div style="background: rgba(220, 53, 69, 0.2); border: 2px solid #dc3545; border-radius: 10px; padding: 15px; text-align: center; min-width: 120px;">
-                                <div style="font-size: 1.5rem;">🏦</div>
-                                <div style="font-weight: 700; font-size: 0.9rem;">Their Bank</div>
-                                <div style="font-size: 0.8rem; color: var(--accent-red-text, #dc3545);">Can refuse</div>
-                            </div>
-                        </div>
+  <h2>Steelman: the strongest case against this framing</h2>
+  <div class="ddlab" data-ddlab="tradeoff-card" data-config="wmf-steel"></div>
+  <script type="application/json" data-ddlab-config="wmf-steel">
+  {
+    "kicker": "Steelman",
+    "title": "Is Bitcoin actually any safer?",
+    "claim": "Most people who lose money to 'monetary failure' lose it to volatility and their own mistakes, not debasement, and self-custody adds new ways to lose everything.",
+    "improves": "Removes the issuer's discretion to inflate or debase; lets a holder exit a failing-currency regime without permission.",
+    "harder": "Adds irreversible personal-custody risk and severe short-horizon price volatility; on/off-ramps remain regulated chokepoints.",
+    "benefits": "People in unstable jurisdictions, long-horizon savers, and anyone needing censorship-resistant exit.",
+    "risk_bearer": "The individual holder, who now carries operational, security, and volatility risk with no recourse.",
+    "key_assumption": "That your time horizon is long enough for 'no debasement' to outweigh volatility, and that you can self-custody safely. In a stable jurisdiction with deposit insurance over a short horizon, the case is weak.",
+    "note": "This page argues sound-money PROPERTIES matter, not that Bitcoin is risk-free. It plainly isn't."
+  }
+  </script>
 
-                        <div style="text-align: center; margin: 20px 0; padding: 15px; background: rgba(255, 122, 0, 0.1); border: 2px solid #FF7A00; border-radius: 10px;">
-                            <p style="font-size: 1.1rem; font-weight: 700; color: #FF7A00; margin-bottom: 5px;">Bitcoin: Peer-to-Peer</p>
-                            <div style="display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap;">
-                                <div style="background: rgba(255, 122, 0, 0.2); border: 2px solid #FF7A00; border-radius: 10px; padding: 15px; text-align: center; min-width: 120px;">
-                                    <div style="font-size: 1.5rem;">👤</div>
-                                    <div style="font-weight: 700; font-size: 0.9rem;">You</div>
-                                </div>
-                                <div style="font-size: 2rem; color: #FF7A00;">→</div>
-                                <div style="background: rgba(255, 122, 0, 0.2); border: 2px solid #FF7A00; border-radius: 10px; padding: 15px; text-align: center; min-width: 120px;">
-                                    <div style="font-size: 1.5rem;">👤</div>
-                                    <div style="font-weight: 700; font-size: 0.9rem;">Them</div>
-                                </div>
-                            </div>
-                            <p style="color: #FF7A00; font-size: 0.9rem; margin-top: 10px;">No intermediaries. No permission needed.</p>
-                        </div>
-                    </div>
+  <h2>Common misconceptions, checked</h2>
+  <div class="ddlab" data-ddlab="claim-checker" data-config="wmf-claims"></div>
+  <script type="application/json" data-ddlab-config="wmf-claims">
+  {
+    "kicker": "Claim check",
+    "title": "What's actually true",
+    "claims": [
+      {"claim":"Bitcoin fixes every monetary failure.","confidence":"low","evidence":"It structurally removes supply-side failures (debasement, inflation) but relocates control-side failures (confiscation, censorship) onto the holder and the fiat edges.","source":{"label":"This page's comparison matrix"},"caveat":"Removal is not relocation.","falsifier":"A demonstrated way for self-custodied funds to be administratively seized at scale would change it."},
+      {"claim":"Self-custody means no one can ever take your money.","confidence":"medium","evidence":"No custodian can, but neither can anyone recover it. Key loss, phishing and coercion are real and irreversible.","source":{"label":"Confiscation tradeoff card above"},"caveat":"Institutional risk becomes personal risk.","falsifier":"Reliable, trustless recovery without a third party would weaken the caveat."},
+      {"claim":"Only hyperinflation is a real failure; 2% is fine.","confidence":"high","evidence":"A constant 2%/yr halves real value in ~35 years; 4% in ~18. Run the calculator.","source":{"label":"data/first-principles-math.json (purchasing power)","url":"data/first-principles-math.json"},"caveat":"Slow erosion is a designed transfer, just undramatic.","falsifier":"Sustained zero-inflation fiat regimes over multiple decades."},
+      {"claim":"Censorship-resistance has no downside.","confidence":"medium","evidence":"It is content-neutral by design, which is exactly why it's politically contested and why exchanges remain regulated chokepoints.","source":{"label":"Censorship tradeoff card above"},"caveat":"Protects all users equally, lawful or not.","falsifier":"n/a"}
+    ],
+    "note": "Full machine-readable ledger: data/first-principles-facts.json"
+  }
+  </script>
 
-                    <div class="insight-box">
-                        <h4 style="color: #FF7A00; margin-bottom: 10px;">Bitcoin's Answer</h4>
-                        <p><strong>Censorship-resistant transactions.</strong> Bitcoin transactions are broadcast to a global network of thousands of independent nodes. 
-                        No single entity can block a valid transaction. As long as you can reach one honest node anywhere on Earth, your transaction will be processed.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <h2>Source trail</h2>
+  <ul class="sources">
+    <li>Hanke &amp; Krus, <em>World Hyperinflations</em> (Cato, 2013), the canonical hyperinflation table. <span class="tier">T2</span></li>
+    <li>Executive Order 6102 (US National Archives); Gold Reserve Act 1934 (Federal Reserve History). <span class="tier">T1</span></li>
+    <li>Reserve Bank of India Annual Report 2016-17; Public Order Emergency Commission (Canada). <span class="tier">T1</span></li>
+    <li>Kenneth W. Harl, <em>Coinage in the Roman Economy</em> (Johns Hopkins UP, 1996), denarius debasement. <span class="tier">T2</span></li>
+    <li>Derived math + claim ledger: <a href="data/first-principles-math.json"><code>data/first-principles-math.json</code></a>, <a href="data/first-principles-facts.json"><code>data/first-principles-facts.json</code></a>.</li>
+  </ul>
 
-        <!-- Failure 5: Single Point of Failure -->
-        <div class="failure-section">
-            <div class="failure-header" onclick="toggleSection(4)">
-                <span>💥 Failure #5: Single Points of Failure — When the System Breaks</span>
-                <span class="failure-icon" id="icon-4">▼</span>
-            </div>
-            <div class="failure-content" id="content-4">
-                <div class="failure-inner">
-                    <div class="problem-box">
-                        <h4 style="color: var(--accent-red-text, #dc3545); margin-bottom: 10px;">The Pattern</h4>
-                        <p>Centralized systems have single points of failure. When Lehman Brothers collapsed in 2008, it nearly took the entire global financial system with it. 
-                        When payment processors go down, millions of transactions halt. When a central bank makes a policy error, entire economies suffer.</p>
-                    </div>
+  <h2>Reflect</h2>
+  <div class="reflect-widget" data-topic="why-money-fails" data-path="principled" data-title="Reflect: does sound money matter to your situation?"></div>
+  <p style="margin-top:1.4rem">Next: see whether the supply side really holds up, <a href="digital-scarcity.html">Digital Scarcity →</a></p>
+  </main>
+</div>
 
-                    <div class="stat-grid">
-                        <div class="stat-card">
-                            <div class="stat-value">~99.98%</div>
-                            <div class="stat-label">Bitcoin network uptime since 2009 (two brief early outages)</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value">~19,000</div>
-                            <div class="stat-label">Reachable full nodes worldwide (varies)</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value">0</div>
-                            <div class="stat-label">Successful attacks on Bitcoin's base protocol to date</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value">$1T+</div>
-                            <div class="stat-label">Market value secured by the network (varies with price)</div>
-                        </div>
-                    </div>
+<footer>Created by Dalia · <a href="https://bitcoinsovereign.academy">bitcoinsovereign.academy</a></footer>
 
-                    <div class="insight-box">
-                        <h4 style="color: #FF7A00; margin-bottom: 10px;">Bitcoin's Answer</h4>
-                        <p><strong>Radical decentralization.</strong> Bitcoin has no CEO, no headquarters, no single server. 
-                        It runs on thousands of independent computers across every continent. To destroy Bitcoin, you'd need to shut down every node simultaneously — 
-                        a task roughly equivalent to shutting down the internet itself. This is not a bug; it's the core design principle.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Summary -->
-        <div class="insight-box" style="margin-top: 30px;">
-            <h3 style="color: #FF7A00; margin-bottom: 15px;">The Common Thread</h3>
-            <p style="font-size: 1.1rem; margin-bottom: 15px;">
-                Every monetary failure shares a root cause: <strong>trusted third parties are security holes.</strong>
-            </p>
-            <p>When you trust a government not to print too much money, you get hyperinflation. 
-            When you trust a bank to hold your savings, you get bail-ins. 
-            When you trust a payment processor, you get censorship. 
-            Bitcoin's radical insight is to remove the need for trust entirely and replace it with mathematics, 
-            cryptography, and economic incentives.</p>
-        </div>
-    </div>
-
-    <script>
-        function toggleSection(idx) {
-            const content = document.getElementById('content-' + idx);
-            const icon = document.getElementById('icon-' + idx);
-            content.classList.toggle('active');
-            icon.textContent = content.classList.contains('active') ? '▲' : '▼';
-        }
-
-        const debasementData = [
-            { year: '27 BCE', emperor: 'Augustus', silver: 95 },
-            { year: '54 CE', emperor: 'Nero', silver: 80 },
-            { year: '96 CE', emperor: 'Domitian', silver: 72 },
-            { year: '138 CE', emperor: 'Antoninus Pius', silver: 65 },
-            { year: '193 CE', emperor: 'Septimius Severus', silver: 50 },
-            { year: '218 CE', emperor: 'Elagabalus', silver: 35 },
-            { year: '253 CE', emperor: 'Gallienus', silver: 15 },
-            { year: '268 CE', emperor: 'Claudius II', silver: 5 },
-            { year: '274 CE', emperor: 'Aurelian', silver: 2 }
-        ];
-
-        let debaseIdx = 0;
-        function animateDebasement() {
-            debaseIdx = 0;
-            const interval = setInterval(() => {
-                if (debaseIdx >= debasementData.length) { clearInterval(interval); return; }
-                const d = debasementData[debaseIdx];
-                document.getElementById('silver-pct').textContent = d.silver + '%';
-                document.getElementById('silver-bar').style.width = d.silver + '%';
-                document.getElementById('silver-bar').textContent = d.silver + '% Silver';
-                document.getElementById('silver-bar').className = 'inflation-fill ' + (d.silver > 50 ? 'mild' : d.silver > 20 ? 'high' : 'hyper');
-                document.getElementById('debase-year').textContent = d.year;
-                document.getElementById('debase-emperor').textContent = d.emperor;
-                debaseIdx++;
-            }, 800);
-        }
-
-        const hyperData = {
-            weimar: {
-                title: 'Weimar Germany (1923)',
-                desc: 'After WWI, Germany printed money to pay war reparations. A loaf of bread cost 200 billion marks. Workers were paid twice daily and rushed to spend before prices rose again. People burned banknotes for heat because they were worth less than firewood.',
-                stats: [
-                    { value: '29,500%', label: 'Monthly inflation rate' },
-                    { value: '3.7 days', label: 'Prices doubled every' },
-                    { value: '4.2T marks', label: 'Price of 1 USD' }
-                ]
-            },
-            zimbabwe: {
-                title: 'Zimbabwe (2008)',
-                desc: 'Land reform policies and money printing destroyed the Zimbabwe dollar. The government printed 100 trillion dollar notes. Prices doubled every 24 hours at the peak. The currency was eventually abandoned entirely.',
-                stats: [
-                    { value: '79.6B%', label: 'Monthly inflation rate' },
-                    { value: '24.7 hours', label: 'Prices doubled every' },
-                    { value: '100T', label: 'Largest banknote (ZWD)' }
-                ]
-            },
-            venezuela: {
-                title: 'Venezuela (2016-present)',
-                desc: 'Oil price collapse + socialist mismanagement + money printing. Millions fled the country. People weighed cash instead of counting it. The bolivar lost 99.99% of its value. Many Venezuelans turned to Bitcoin as a lifeline.',
-                stats: [
-                    { value: '1,000,000%+', label: 'Annual inflation' },
-                    { value: '7.5M', label: 'Refugees who fled' },
-                    { value: '$1 = 457K Bs', label: 'Exchange rate collapse' }
-                ]
-            },
-            hungary: {
-                title: 'Hungary (1946)',
-                desc: 'The worst hyperinflation in recorded history. After WWII, Hungary printed the 100 quintillion pengő note — the highest denomination banknote ever. Prices doubled every 15 hours. The currency was completely replaced.',
-                stats: [
-                    { value: '4.19×10¹⁶%', label: 'Monthly inflation rate' },
-                    { value: '15 hours', label: 'Prices doubled every' },
-                    { value: '10²⁰ pengő', label: 'Largest banknote' }
-                ]
-            }
-        };
-
-        function showHyper(key) {
-            const data = hyperData[key];
-            document.getElementById('hyper-title').textContent = data.title;
-            document.getElementById('hyper-desc').textContent = data.desc;
-            document.getElementById('hyper-stats').innerHTML = data.stats.map(s =>
-                `<div class="stat-card"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`
-            ).join('');
-            document.getElementById('hyper-detail').style.display = 'block';
-            document.querySelectorAll('.event-card').forEach(c => c.classList.remove('active'));
-            event.target.closest('.event-card').classList.add('active');
-        }
-
-        const confiscationData = {
-            gold1933: 'In 1933, President Roosevelt issued Executive Order 6102, making it illegal for Americans to own gold. Citizens were required to sell their gold to the Federal Reserve at $20.67/oz. The government then revalued gold to $35/oz — effectively stealing 40% of the value from citizens who complied.',
-            cyprus2013: 'During the 2013 banking crisis, the Cypriot government seized up to 47.5% of all bank deposits over €100,000. People woke up to find nearly half their savings gone. ATMs were shut down. There was no vote, no warning — just a government decision that your money was now theirs.',
-            india2016: 'In November 2016, India's PM declared that 86% of all currency in circulation was no longer legal tender — effective immediately. 500 and 1000 rupee notes became worthless. People stood in lines for days to exchange old notes. An estimated 100+ deaths occurred in the chaos.',
-            canada2022: 'During the 2022 trucker protests, the Canadian government invoked the Emergencies Act to freeze bank accounts of protesters and their donors — without court orders. Some accounts were frozen for simply donating $50 to the protest. Banks complied immediately.'
-        };
-
-        function showConfiscation(key) {
-            document.getElementById('confiscation-desc').textContent = confiscationData[key];
-            document.getElementById('confiscation-detail').style.display = 'block';
-        }
-    </script>
-    <footer style="text-align:center;padding:2rem 1rem;margin-top:1rem;border-top:1px solid #2A2A2A;color:#B3B3B3;font-size:0.85rem;">Created by Dalia · <a href="https://bitcoinsovereign.academy" style="color:#FF7A00;text-decoration:none;">bitcoinsovereign.academy</a></footer>
-    <script src="/js/demo-nav.js"></script>
+<script>
+/* Register exact purchasing-power + denarius formulas (reconcile with first-principles-math.json), then mount. */
+(function(){
+  function reg(){
+    if(!window.DeepDiveLab || !window.DeepDiveLab.formulas){ return setTimeout(reg, 40); }
+    var money = function(n){ return "$" + Math.round(n).toLocaleString("en-US"); };
+    // pp_real = exact real value (1/(1+r))^n. Distinct from the ddlab engine's built-in
+    // `purchasing_power` = (1-r/100)^n (simple decay), which diverges at higher rates. We use pp_real
+    // here so the page reconciles with first-principles-math.json (e.g. 4%/30y = 30.8%, not 29.4%).
+    window.DeepDiveLab.formulas.pp_real = function(i){
+      var pp = Math.pow(1/(1 + i.rate/100), i.years);
+      return [
+        { label: "Real value after "+i.years+" yr", value: money(i.amount*pp), rate: pp>0.7?"good":pp>0.4?"mixed":"bad" },
+        { label: "Lost to inflation", value: money(i.amount*(1-pp)) },
+        { label: "% of value preserved", value: (Math.round(pp*1000)/10)+"%" }
+      ];
+    };
+    window.DeepDiveLab.formulas.denarius = function(i){
+      var S=[{y:"27 BCE",e:"Augustus",s:95},{y:"64 CE",e:"Nero",s:80},{y:"96 CE",e:"Domitian",s:72},{y:"150 CE",e:"Antoninus Pius",s:65},{y:"200 CE",e:"Septimius Severus",s:50},{y:"220 CE",e:"Elagabalus",s:35},{y:"260 CE",e:"Gallienus",s:15},{y:"274 CE",e:"Aurelian",s:2}];
+      var r=S[Math.max(0,Math.min(7,Math.round(i.era)))];
+      var retained=r.s/95*100, coins=95/r.s;
+      return [
+        { label:"Year, ruler", value: r.y+", "+r.e },
+        { label:"Silver content", value: r.s+"%", rate: r.s>60?"good":r.s>25?"mixed":"bad" },
+        { label:"Metal value vs Augustus", value: Math.round(retained)+"%" },
+        { label:"Coins to match 1 Augustan denarius", value: (coins<1.05?"1":(coins<10?"~"+coins.toFixed(1):"~"+Math.round(coins))) }
+      ];
+    };
+    document.querySelectorAll('.ddlab[data-ddlab]').forEach(function(e){ e.removeAttribute('data-ddlab-ready'); });
+    window.DeepDiveLab.scan();
+  }
+  reg();
+})();
+</script>
+<script src="/js/deep-dive-lab.js" defer></script>
+<script src="/js/reflect-widget.js"></script>
+<script src="/js/demo-nav.js"></script>
+<script src="/js/bitcoin-data-reliable.js"></script>
 </body>
 </html>
