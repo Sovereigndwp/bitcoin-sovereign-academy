@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run the Fed — The Trilemma Challenge | Money &amp; Banking Deep Dive</title>
+    <meta name="description" content="Interactive challenge: take the Fed's controls and try to hit stable prices, full employment, and a stable currency at once. A transparent model of why every monetary choice trades one goal against another.">
+    <link rel="stylesheet" href="/css/brand.css">
+    <link rel="stylesheet" href="/css/brand-consistency.css">
+    <link rel="stylesheet" href="/css/deep-dive-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--color-bg, #16181C); color: var(--color-text, #F7F7F2); line-height: 1.6; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--color-brand, #FF7A00); text-decoration: none; margin-bottom: 1.5rem; font-weight: 600;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .back-link:hover { text-decoration: underline; }
+        .header { text-align: center; padding: 32px 20px 8px; }
+        .header h1 { font-size: 2.3rem; margin-bottom: 12px; color: var(--color-brand, #FF7A00);background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .header p { font-size: 1.05rem; color: var(--color-muted, #B8B8B0); max-width: 720px; margin: 0 auto; }
+        .question-bar { background: var(--color-surface, #1F2024); border-left: 4px solid var(--color-brand, #FF7A00); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 24px 0; }
+        .question-bar p { margin: 0; font-style: italic; }
+        .sim { background: var(--color-surface, #1F2024); border: 1px solid var(--color-border, #2D2F35); border-radius: 14px; padding: 24px; margin: 20px 0; }
+        .sim h2 { font-size: 1.25rem; color: var(--color-brand, #FF7A00); margin-bottom: 6px;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .sim .lede { color: var(--color-muted, #B8B8B0); font-size: 0.95rem; margin-bottom: 20px; }
+        .control { margin: 20px 0; }
+        .control-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font-weight: 600; gap: 12px; }
+        .control-label .val { color: var(--color-brand, #FF7A00); font-variant-numeric: tabular-nums; font-size: 1.05rem;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        input[type="range"] { width: 100%; accent-color: var(--color-brand, #FF7A00); height: 8px; }
+        .range-ends { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--color-muted, #B8B8B0); margin-top: 4px; }
+        .goals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 22px 0 8px; }
+        .goal { background: var(--color-bg, #16181C); border: 2px solid var(--color-border, #2D2F35); border-radius: 12px; padding: 16px; text-align: center; transition: border-color .3s; }
+        .goal.ok { border-color: var(--color-success, #8CC63F); }
+        .goal.fail { border-color: var(--color-danger, #FF2B2B); }
+        .goal .g-icon { font-size: 1.4rem; }
+        .goal .g-name { font-weight: 700; font-size: 0.9rem; margin: 4px 0; }
+        .goal .g-metric { font-variant-numeric: tabular-nums; font-size: 1.3rem; font-weight: 800; }
+        .goal.ok .g-metric { color: var(--color-success, #8CC63F); }
+        .goal.fail .g-metric { color: var(--color-danger, #FF2B2B); }
+        .goal .g-target { font-size: 0.74rem; color: var(--color-muted, #B8B8B0); margin-top: 4px; }
+        .score { text-align: center; font-size: 1.15rem; font-weight: 700; margin: 16px 0 8px; }
+        .verdict { font-size: 1.02rem; border-top: 1px solid var(--color-border, #2D2F35); padding-top: 16px; margin-top: 12px; }
+        .note-box { border-left: 3px solid var(--color-brand, #FF7A00); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 18px 0; background: var(--color-surface, #1F2024); }
+        .note-box h4 { color: var(--color-brand, #FF7A00); margin-bottom: 6px; font-size: 0.95rem;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .note-box p, .methodology { font-size: 0.88rem; }
+        .methodology { color: var(--color-muted, #B8B8B0); }
+        .methodology summary { cursor: pointer; color: var(--color-brand, #FF7A00); font-weight: 600;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .methodology a { color: var(--color-brand, #FF7A00);background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .methodology code { font-family: 'JetBrains Mono', monospace; color: var(--color-text, #F7F7F2); font-size: 0.82rem; }
+        input[type="range"]:focus-visible { outline: 3px solid var(--color-brand, #FF7A00); outline-offset: 2px; }
+        @media (max-width: 640px){ .header h1{font-size:1.7rem;} .goals{grid-template-columns:1fr;} }
+        @media (prefers-reduced-motion: reduce){ .goal { transition: none; } }
+    </style>
+</head>
+<body class="bsa-skin bsa-deepdive">
+    <div class="container">
+        <a href="./central-banking-explained.html" class="back-link">← Back to Central Banking</a>
+        <div class="header">
+            <h1>Run the Fed</h1>
+            <p>You hold the two main controls. Your job: stable prices, full employment, and a stable currency — all at once. See how far you get.</p>
+        </div>
+
+        <div class="question-bar">
+            <p>"If you were in charge of the money, could you actually keep everyone happy — or does every choice cost something?"</p>
+        </div>
+
+        <div class="sim">
+            <h2>The control room</h2>
+            <p class="lede">Move the levers and watch all three goals respond at the same time. Try to light up all three green.</p>
+
+            <div class="control">
+                <div class="control-label"><label for="rate">Interest rate (federal funds rate)</label><span class="val" id="rate-val">3.00%</span></div>
+                <input type="range" id="rate" min="0" max="20" step="0.25" value="3" aria-valuetext="3 percent">
+                <div class="range-ends"><span>0% (cheap money)</span><span>20% (Volcker-era)</span></div>
+            </div>
+
+            <div class="control">
+                <div class="control-label"><label for="qe">Money supply (QT ↔ QE)</label><span class="val" id="qe-val">Neutral</span></div>
+                <input type="range" id="qe" min="-3" max="3" step="1" value="0" aria-valuetext="neutral">
+                <div class="range-ends"><span>Tightening (QT)</span><span>Easing (QE)</span></div>
+            </div>
+
+            <div class="goals" id="goals" aria-live="polite">
+                <div class="goal" id="goal-price">
+                    <div class="g-icon" aria-hidden="true">🎯</div>
+                    <div class="g-name">Stable prices</div>
+                    <div class="g-metric" id="m-price">—</div>
+                    <div class="g-target">target: 1–3% inflation</div>
+                </div>
+                <div class="goal" id="goal-emp">
+                    <div class="g-icon" aria-hidden="true">👷</div>
+                    <div class="g-name">Full employment</div>
+                    <div class="g-metric" id="m-emp">—</div>
+                    <div class="g-target">target: strong jobs</div>
+                </div>
+                <div class="goal" id="goal-stab">
+                    <div class="g-icon" aria-hidden="true">💵</div>
+                    <div class="g-name">Currency stability</div>
+                    <div class="g-metric" id="m-stab">—</div>
+                    <div class="g-target">target: steady, no blow-up</div>
+                </div>
+            </div>
+
+            <div class="score" id="score"></div>
+            <div class="verdict" id="verdict"></div>
+        </div>
+
+        <div class="note-box">
+            <h4>Why you keep landing on two out of three</h4>
+            <p>Loose policy (low rates, easing) creates jobs and lifts asset prices — but pushes inflation up and the currency down. Tight policy does the reverse, and pushed far enough it strains the financial system. The classic inflation-versus-unemployment tension is real (and itself breaks down in stagflation, when both rise together). This model can't reach all three goals at once — which is the point. Real central bankers face the same bind with far more variables, lags, and uncertainty, plus shocks that move the targets after they've chosen. There is no neutral setting: every choice helps some people and costs others.</p>
+        </div>
+
+        <div class="note-box">
+            <h4>How the model works (and what's real)</h4>
+            <p class="methodology">This is a <strong>transparent stylized model</strong>, not a forecast. The directions are grounded — easing raises inflation and employment and weakens the dollar; tightening reverses it — but the exact coefficients are illustrative, chosen so the tradeoff is visible, not precise predictions.</p>
+            <details class="methodology">
+                <summary>Show the formulas and the real-world anchors</summary>
+                <p style="margin-top:8px;">For interest rate <code>r</code> and easing level <code>q</code> (−3…+3):
+                <code>inflation = 2 + 1.6q − 0.30r</code>; <code>jobs = (6.5 − r) + 1.6q</code>; <code>currency = r − 2q</code>; <code>stress = 0.6r</code> (plus a jump under heavy tightening). Goals: prices 1–3%, jobs strong, currency steady with stress contained.</p>
+                <p>The Fed's legal "dual mandate" is maximum employment and stable prices (Federal Reserve Act). Real anchors: the Volcker disinflation pushed rates to ~20% in 1980–82 and caused a deep recession; 2020–2022 easing coincided with the fastest M2 growth on record and an inflation surge (FRED, BLS). Verify current figures before relying on them. Education, not financial advice.</p>
+                <p><a href="https://www.federalreserve.gov/aboutthefed.htm" target="_blank" rel="noopener">Federal Reserve — mandate</a> ·
+                   <a href="https://fred.stlouisfed.org/series/FEDFUNDS" target="_blank" rel="noopener">FRED federal funds rate</a> ·
+                   <a href="https://www.bls.gov/cpi/" target="_blank" rel="noopener">BLS CPI</a></p>
+            </details>
+        </div>
+
+        <div class="reflect-widget"
+             data-topic="central-banking"
+             data-path="principled"
+             data-title="Reflect: if no setting satisfies everyone, who decides whose goal loses?">
+        </div>
+    </div>
+
+    <footer style="text-align:center;padding:2rem 1rem;margin-top:2rem;border-top:1px solid var(--color-border,#2D2F35);color:var(--color-muted,#B8B8B0);font-size:0.85rem;">Created by Dalia · <a href="https://bitcoinsovereign.academy" style="color:var(--color-brand,#FF7A00);text-decoration:none;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">bitcoinsovereign.academy</a></footer>
+
+    <script src="/js/reflect-widget.js"></script>
+    <script src="/js/demo-nav.js"></script>
+    <script>
+    (function () {
+        var rate = document.getElementById('rate');
+        var qe = document.getElementById('qe');
+        var rateVal = document.getElementById('rate-val');
+        var qeVal = document.getElementById('qe-val');
+        var QE_LABELS = ['Heavy QT', 'Moderate QT', 'Mild QT', 'Neutral', 'Mild QE', 'Moderate QE', 'Heavy QE'];
+
+        function num(v){ var n=Number(v); return isFinite(n)?n:0; }
+
+        function model(r, q) {
+            var inflation = 2 + 1.6 * q - 0.30 * r;
+            var jobs = (6.5 - r) + 1.6 * q;
+            var currency = r - 2 * q;
+            var stress = 0.6 * r + (q <= -2 ? 2.0 : 0);
+            return {
+                inflation: inflation,
+                jobs: jobs,
+                currency: currency,
+                stress: stress,
+                priceOk: inflation >= 1 && inflation <= 3,
+                empOk: jobs >= 5,
+                stabOk: (currency >= 2 && currency <= 9) && stress < 5
+            };
+        }
+        function jobsLabel(j){ return j >= 7 ? 'Strong' : j >= 5 ? 'Solid' : j >= 2 ? 'Soft' : 'Recession'; }
+        function currLabel(m){ if (m.stress >= 5) return 'Strained'; return m.currency > 9 ? 'Crushing' : m.currency >= 2 ? 'Steady' : m.currency >= -2 ? 'Weak' : 'Sliding'; }
+
+        function setGoal(id, ok, metricId, text) {
+            var el = document.getElementById(id);
+            el.className = 'goal ' + (ok ? 'ok' : 'fail');
+            document.getElementById(metricId).textContent = text;
+        }
+
+        function update() {
+            var r = num(rate.value), q = num(qe.value);
+            rateVal.textContent = r.toFixed(2) + '%';
+            rate.setAttribute('aria-valuetext', r.toFixed(2) + ' percent');
+            qeVal.textContent = QE_LABELS[q + 3];
+            qe.setAttribute('aria-valuetext', QE_LABELS[q + 3]);
+
+            var m = model(r, q);
+            setGoal('goal-price', m.priceOk, 'm-price', m.inflation.toFixed(1) + '%');
+            setGoal('goal-emp', m.empOk, 'm-emp', jobsLabel(m.jobs));
+            setGoal('goal-stab', m.stabOk, 'm-stab', currLabel(m));
+
+            var count = (m.priceOk ? 1 : 0) + (m.empOk ? 1 : 0) + (m.stabOk ? 1 : 0);
+            document.getElementById('score').textContent = 'Goals met: ' + count + ' of 3';
+
+            var v;
+            if (count === 3) {
+                v = 'All three at once? Re-check the targets — in this model that shouldn\'t happen, which is rather the point.';
+            } else if (count === 2) {
+                var missing = !m.priceOk ? 'price stability' : !m.empOk ? 'full employment' : 'currency stability';
+                v = 'Two of three — the best anyone gets here. To rescue ' + missing + ', you\'d have to give up one of the two you just won. That\'s the trade you can\'t escape.';
+            } else if (count === 1) {
+                v = 'Pushing hard on one lever wins one goal and breaks the others. Try easing off toward the middle.';
+            } else {
+                v = 'This setting misses on every front — too extreme in one direction. Every choice still picks winners and losers, even a bad one.';
+            }
+            document.getElementById('verdict').textContent = v;
+        }
+
+        rate.addEventListener('input', update);
+        qe.addEventListener('input', update);
+        update();
+    })();
+    </script>
+<script>(function(){function post(){try{parent.postMessage({mbFrame:1,h:document.documentElement.scrollHeight},"*");}catch(e){}}window.addEventListener("load",post);if(window.ResizeObserver){try{new ResizeObserver(post).observe(document.documentElement);}catch(e){}}setInterval(post,1500);})();</script>
+</body>
+</html>
