@@ -37,6 +37,8 @@
     return l;
   }
   function uid(prefix) { return prefix + "-" + Math.random().toString(36).slice(2, 8); }
+  function safeNum(v, fallback) { var n = Number(v); return isFinite(n) ? n : (fallback || 0); }
+  function safeInt(v, fallback) { var n = parseInt(v, 10); return isFinite(n) ? n : (fallback || 0); }
 
   /* ---------- Tool 1: Friday Night Simulator ----------
      spec: { activities: [...], consequences: [...], base: {money,time,battery} } */
@@ -259,44 +261,181 @@
     }
   }
 
-  /* ---------- Tool 4: Broken Scoreboard ----------
-     spec: { scenarios: [{id,label,reported_signal,true_signal,behavior,real_outcome}] } */
+  /* ---------- Tool 4: Measure-Drift Simulator (tool key "broken-scoreboard") ----------
+     The learner pumps up the scoreboard with two sliders and watches the reported
+     number drift away from what is actually there. Illustrative model only.
+     spec: { scenarios: [{id,label,reported_signal,true_signal,...}],
+             base?: number (default 100),
+             bands?: [{maxPct, key}]  // key selects T.band1..band4; default below } */
   function brokenScoreboard(root, spec, ctx) {
     var T = ctx.t, done = ctx.onComplete;
     var scen = spec.scenarios || [];
+    var BASE = (typeof spec.base === "number" && spec.base > 0) ? spec.base : 100;
+    var D_DEFAULT = 7, N_DEFAULT = 10, D_MAX = 15, N_MAX = 25;
+    // Scenarios where a fixed amount buying less is the point (purchasing-power mirror).
+    var BUYS = { prices: 1, savings: 1, printing: 1 };
+    // Period unit per scenario id (no data change needed; falls back to years).
+    function unitFor(id) {
+      if (id === "referee") return T.unitInnings;
+      if (id === "grades") return T.unitRounds;
+      return T.unitYears;
+    }
+    var bands = spec.bands || [
+      { maxPct: 5,   key: "band1" },
+      { maxPct: 30,  key: "band2" },
+      { maxPct: 150, key: "band3" },
+      { maxPct: Infinity, key: "band4" }
+    ];
+
+    var d = D_DEFAULT, n = N_DEFAULT, moved = false, fired = false;
+
+    // ---- controls ----
     var selId = uid("bs-scn");
-    var field = el("div", "field");
-    field.appendChild(labeled(selId, T.pickScenario));
+    var scnField = el("div", "field");
+    scnField.appendChild(labeled(selId, T.pickScenario));
     var sel = el("select"); sel.id = selId;
     scen.forEach(function (s) { var op = el("option"); op.value = s.id; op.textContent = s.label; sel.appendChild(op); });
-    field.appendChild(sel); root.appendChild(field);
-    var row = el("div", "btnrow");
-    var btn = el("button", "btn", esc(T.adjust)); btn.type = "button";
-    row.appendChild(btn); root.appendChild(row);
-    var out = el("div", "output"); out.setAttribute("aria-live", "polite"); root.appendChild(out);
+    scnField.appendChild(sel); root.appendChild(scnField);
 
-    btn.addEventListener("click", function () {
-      var s = null; scen.forEach(function (x) { if (x.id === sel.value) s = x; });
-      out.innerHTML = "";
-      var cmp = el("div", "compare2");
-      var a = el("div", "col a");
-      a.appendChild(el("h4", null, esc(T.scoreboardSays)));
-      a.appendChild(el("p", null, esc(s.reported_signal)));
-      var b = el("div", "col b");
-      b.appendChild(el("h4", null, esc(T.actuallyHappening)));
-      b.appendChild(el("p", null, esc(s.true_signal)));
-      cmp.appendChild(a); cmp.appendChild(b); out.appendChild(cmp);
-      var beh = el("div", "out-block gaveup");
-      beh.appendChild(el("h4", null, esc(T.howRespond)));
-      beh.appendChild(el("p", null, esc(s.behavior)));
-      out.appendChild(beh);
-      var real = el("div", "out-block later");
-      real.appendChild(el("h4", null, esc(T.leadsTo)));
-      real.appendChild(el("p", null, esc(s.real_outcome)));
-      out.appendChild(real);
-      out.appendChild(el("p", "hint", esc(T.scoreboardHint)));
-      done();
-    });
+    var controls = el("div", "sim-controls");
+    var dId = uid("bs-d"), nId = uid("bs-n");
+    var dField = el("div", "field sim-slider");
+    dField.appendChild(labeled(dId, T.pumpRate));
+    var dRange = document.createElement("input");
+    dRange.type = "range"; dRange.id = dId; dRange.min = "0"; dRange.max = String(D_MAX); dRange.step = "1"; dRange.value = String(d);
+    var dOut = el("output", "sim-sliderval"); dOut.setAttribute("for", dId);
+    dField.appendChild(dRange); dField.appendChild(dOut);
+
+    var nField = el("div", "field sim-slider");
+    var nLabel = labeled(nId, T.periodsLabel); nField.appendChild(nLabel);
+    var nRange = document.createElement("input");
+    nRange.type = "range"; nRange.id = nId; nRange.min = "0"; nRange.max = String(N_MAX); nRange.step = "1"; nRange.value = String(n);
+    var nOut = el("output", "sim-sliderval"); nOut.setAttribute("for", nId);
+    nField.appendChild(nRange); nField.appendChild(nOut);
+    controls.appendChild(dField); controls.appendChild(nField);
+    root.appendChild(controls);
+
+    // ---- live output scaffold ----
+    var out = el("div", "output sim-out"); root.appendChild(out);
+    var captions = el("div", "compare2 sim-captions"); out.appendChild(captions);
+    var capA = el("div", "col a"); capA.appendChild(el("h4", null, esc(T.scoreboardSays)));
+    var capAp = el("p", null, ""); capA.appendChild(capAp);
+    var capB = el("div", "col b"); capB.appendChild(el("h4", null, esc(T.actuallyHappening)));
+    var capBp = el("p", null, ""); capB.appendChild(capBp);
+    captions.appendChild(capA); captions.appendChild(capB);
+
+    var bars = el("div", "sim-bars");
+    function barRow(cls, labelText) {
+      var rowEl = el("div", "sim-bar-row " + cls);
+      var lab = el("div", "sim-bar-label", esc(labelText));
+      var track = el("div", "sim-bar-track");
+      var fillEl = el("span", "sim-bar-fill");
+      track.appendChild(fillEl);
+      var val = el("div", "sim-bar-val", "");
+      rowEl.appendChild(lab); rowEl.appendChild(track); rowEl.appendChild(val);
+      return { row: rowEl, fill: fillEl, val: val };
+    }
+    var reportedBar = barRow("reported", T.scoreboardNum);
+    var trueBar = barRow("truth", T.actuallyThere);
+    bars.appendChild(reportedBar.row); bars.appendChild(trueBar.row);
+    out.appendChild(bars);
+
+    var gapLine = el("div", "sim-gap", ""); out.appendChild(gapLine);
+    var buysLine = el("div", "sim-buys", ""); out.appendChild(buysLine);
+
+    var band = el("div", "out-block later sim-band");
+    band.setAttribute("aria-live", "polite");
+    band.appendChild(el("h4", null, esc(T.howRespond)));
+    var bandP = el("p", null, ""); band.appendChild(bandP);
+    out.appendChild(band);
+
+    var note = el("p", "hint sim-note", esc(T.illustrativeNote)); out.appendChild(note);
+
+    var details = document.createElement("details"); details.className = "sim-howto";
+    var summary = document.createElement("summary"); summary.textContent = T.howComputed;
+    details.appendChild(summary);
+    details.appendChild(el("p", null, esc(T.howComputedBody)));
+    out.appendChild(details);
+
+    // ---- model ----
+    function reportedFor(dd, nn) { return BASE * Math.pow(1 + dd / 100, nn); }
+    function fmt(x) {
+      var r = Math.round(safeNum(x, 0));
+      return String(r).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    function bandSentence(gapPct) {
+      for (var i = 0; i < bands.length; i++) { if (gapPct <= bands[i].maxPct) return T[bands[i].key] || ""; }
+      return T[bands[bands.length - 1].key] || "";
+    }
+
+    // throttle the aria-live band update so dragging does not spam screen readers
+    var bandTimer = null, lastBandText = "";
+    function announceBand(text) {
+      bandP.textContent = text; // visible update is immediate
+      if (text === lastBandText) return;
+      if (bandTimer) clearTimeout(bandTimer);
+      bandTimer = setTimeout(function () {
+        band.setAttribute("aria-live", "polite");
+        lastBandText = text;
+      }, 350);
+    }
+
+    function currentScenario() { var s = scen[0] || {}; scen.forEach(function (x) { if (x.id === sel.value) s = x; }); return s; }
+
+    function render() {
+      var s = currentScenario();
+      var unit = unitFor(s.id);
+      var reported = reportedFor(d, n);
+      var gap = reported - BASE;
+      var gapPct = BASE > 0 ? (reported / BASE - 1) * 100 : 0;
+
+      // slider readouts + accessible value text
+      dOut.textContent = d + "%";
+      dRange.setAttribute("aria-valuetext", d + " " + T.pctPerPeriod);
+      nOut.textContent = n + " " + unit;
+      nRange.setAttribute("aria-valuetext", n + " " + unit);
+
+      // captions from the scenario (qualitative framing only)
+      capAp.textContent = s.reported_signal || "";
+      capBp.textContent = s.true_signal || "";
+
+      // bars (reported scaled against itself so the true bar shrinks visibly as drift grows)
+      var maxv = Math.max(reported, BASE) || 1;
+      reportedBar.fill.style.width = Math.max(2, (reported / maxv) * 100) + "%";
+      trueBar.fill.style.width = Math.max(2, (BASE / maxv) * 100) + "%";
+      reportedBar.val.textContent = fmt(reported);
+      trueBar.val.textContent = fmt(BASE);
+
+      gapLine.innerHTML = "";
+      var gl = el("span", "sim-gap-num", esc(T.gapLabel) + ": " + esc(fmt(gap)) + " (+" + esc(fmt(gapPct)) + "%)");
+      gapLine.appendChild(gl);
+
+      // purchasing-power mirror only where a fixed amount buying less is the point
+      if (BUYS[s.id]) {
+        var buys = BASE / Math.pow(1 + d / 100, n);
+        buysLine.style.display = "";
+        buysLine.textContent = T.buysLabel + ": " + fmt(buys);
+      } else {
+        buysLine.style.display = "none";
+        buysLine.textContent = "";
+      }
+
+      announceBand(bandSentence(gapPct));
+    }
+
+    function onMove() {
+      d = safeInt(dRange.value, D_DEFAULT);
+      n = safeInt(nRange.value, N_DEFAULT);
+      render();
+      if (!moved && (d !== D_DEFAULT || n !== N_DEFAULT)) {
+        moved = true;
+        if (!fired) { fired = true; done(); }
+      }
+    }
+    dRange.addEventListener("input", onMove);
+    nRange.addEventListener("input", onMove);
+    sel.addEventListener("change", render);
+    render(); // initial paint at defaults (no onComplete yet)
   }
 
   /* ---------- Tool 5: Trust Map ----------
