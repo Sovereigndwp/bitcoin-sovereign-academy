@@ -1,6 +1,6 @@
 /**
- * Sovereign Vault - Zero-Knowledge Encryption Module
- * 
+ * Sovereign Vault - Client-Side Encryption Module
+ *
  * All data is encrypted client-side using Web Crypto API.
  * The server (localStorage in this demo) only stores encrypted blobs.
  * Keys are derived from user's password using PBKDF2.
