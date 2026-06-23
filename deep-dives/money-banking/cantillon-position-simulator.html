@@ -1,0 +1,305 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Where Are You in Line? — The Cantillon Position Simulator | Money &amp; Banking Deep Dive</title>
+    <meta name="description" content="Interactive simulator: pick how much new money is created and where you stand in the economy, then watch your real purchasing power change. A transparent, source-anchored model of the Cantillon Effect.">
+    <link rel="stylesheet" href="/css/brand.css">
+    <link rel="stylesheet" href="/css/brand-consistency.css">
+    <link rel="stylesheet" href="/css/deep-dive-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--color-bg, #16181C); color: var(--color-text, #F7F7F2); line-height: 1.6; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--color-brand, #FF7A00); text-decoration: none; margin-bottom: 1.5rem; font-weight: 600;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .back-link:hover { text-decoration: underline; }
+        .header { text-align: center; padding: 32px 20px 8px; }
+        .header h1 { font-size: 2.3rem; margin-bottom: 12px; color: var(--color-brand, #FF7A00);background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .header p { font-size: 1.05rem; color: var(--color-muted, #B8B8B0); max-width: 720px; margin: 0 auto; }
+
+        .question-bar { background: var(--color-surface, #1F2024); border-left: 4px solid var(--color-brand, #FF7A00); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 24px 0; }
+        .question-bar p { margin: 0; font-style: italic; }
+
+        .sim { background: var(--color-surface, #1F2024); border: 1px solid var(--color-border, #2D2F35); border-radius: 14px; padding: 24px; margin: 20px 0; }
+        .sim h2 { font-size: 1.25rem; color: var(--color-brand, #FF7A00); margin-bottom: 6px;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .sim .lede { color: var(--color-muted, #B8B8B0); font-size: 0.95rem; margin-bottom: 20px; }
+
+        .control { margin: 22px 0; }
+        .control-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font-weight: 600; gap: 12px; }
+        .control-label .val { color: var(--color-brand, #FF7A00); font-variant-numeric: tabular-nums; font-size: 1.1rem;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        input[type="range"] { width: 100%; accent-color: var(--color-brand, #FF7A00); height: 8px; }
+        .range-ends { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--color-muted, #B8B8B0); margin-top: 4px; }
+        .range-hint { font-size: 0.82rem; color: var(--color-muted, #B8B8B0); margin-top: 6px; }
+
+        .positions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
+        .pos-btn { background: var(--color-bg, #16181C); border: 2px solid var(--color-border, #2D2F35); border-radius: 10px; padding: 14px 12px; cursor: pointer; text-align: left; color: inherit; font: inherit; transition: border-color .2s, background .2s; }
+        .pos-btn:hover { border-color: var(--color-brand, #FF7A00); }
+        .pos-btn[aria-pressed="true"] { border-color: var(--color-brand, #FF7A00); background: rgba(255,122,0,0.12); }
+        .pos-btn .pos-emoji { font-size: 1.5rem; }
+        .pos-btn .pos-name { font-weight: 700; display: block; margin-top: 4px; }
+        .pos-btn .pos-sub { font-size: 0.78rem; color: var(--color-muted, #B8B8B0); }
+        .pos-btn:focus-visible { outline: 3px solid var(--color-brand, #FF7A00); outline-offset: 2px; }
+
+        .result { margin-top: 24px; border-top: 1px solid var(--color-border, #2D2F35); padding-top: 20px; }
+        .verdict { font-size: 1.15rem; font-weight: 600; margin-bottom: 16px; }
+        .verdict strong { font-size: 1.3rem; }
+        .gain { color: var(--color-success, #8CC63F); }
+        .loss { color: var(--color-danger, #FF2B2B); }
+        .flat { color: var(--color-muted, #B8B8B0); }
+
+        .rows { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }
+        .row { display: grid; grid-template-columns: 160px 1fr 84px; align-items: center; gap: 12px; padding: 10px 12px; background: var(--color-bg, #16181C); border: 1px solid var(--color-border, #2D2F35); border-radius: 10px; transition: border-color .2s; }
+        .row.you { border-color: var(--color-brand, #FF7A00); box-shadow: 0 0 0 1px rgba(255,122,0,0.3) inset; }
+        .row-name { font-weight: 600; font-size: 0.92rem; }
+        .row-name .tag { display: inline-block; font-size: 0.66rem; background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%); color: #1a1a1a; padding: 1px 6px; border-radius: 6px; margin-left: 6px; vertical-align: middle; font-weight: 700; }
+        .bar-track { position: relative; height: 22px; background: rgba(255,255,255,0.05); border-radius: 6px; }
+        .bar-zero { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--color-muted, #B8B8B0); opacity: 0.5; }
+        .bar-fill { position: absolute; top: 0; bottom: 0; border-radius: 4px; transition: width .5s ease, left .5s ease; }
+        .row-val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 0.95rem; }
+
+        .math { background: var(--color-bg, #16181C); border: 1px dashed var(--color-border, #2D2F35); border-radius: 10px; padding: 14px 16px; margin-top: 16px; font-size: 0.86rem; color: var(--color-muted, #B8B8B0); }
+        .math code { color: var(--color-text, #F7F7F2); font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
+
+        .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+        .btn { background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%); color: #1a1a1a; border: none; padding: 10px 18px; border-radius: 10px; cursor: pointer; font-size: 0.95rem; font-weight: 700; }
+        .btn.ghost { background: transparent; color: var(--color-text, #F7F7F2); border: 2px solid var(--color-border, #2D2F35); }
+        .btn.ghost[aria-pressed="true"] { border-color: var(--color-brand, #FF7A00); color: var(--color-brand, #FF7A00);background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .btn:focus-visible { outline: 3px solid var(--color-brand, #FF7A00); outline-offset: 2px; }
+
+        .note-box { border-left: 3px solid var(--color-brand, #FF7A00); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 18px 0; background: var(--color-surface, #1F2024); }
+        .note-box h4 { color: var(--color-brand, #FF7A00); margin-bottom: 6px; font-size: 0.95rem;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .note-box p { font-size: 0.9rem; }
+        .methodology { font-size: 0.82rem; color: var(--color-muted, #B8B8B0); }
+        .methodology summary { cursor: pointer; color: var(--color-brand, #FF7A00); font-weight: 600;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .methodology a { color: var(--color-brand, #FF7A00);background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .methodology ul { margin: 8px 0 8px 18px; }
+
+        @media (max-width: 640px) {
+            .header h1 { font-size: 1.7rem; }
+            .row { grid-template-columns: 110px 1fr 64px; gap: 8px; }
+            .row-name { font-size: 0.8rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .bar-fill, .row { transition: none; }
+        }
+    </style>
+</head>
+<body class="bsa-skin bsa-deepdive">
+    <div class="container">
+        <a href="./cantillon-effect.html" class="back-link">← Back to The Cantillon Effect</a>
+        <div class="header">
+            <h1>Where Are You in Line?</h1>
+            <p>New money doesn't reach everyone at once. Choose how much is created and where you stand — then watch what happens to what your money can actually buy.</p>
+        </div>
+
+        <div class="question-bar">
+            <p>"When new money is created, who comes out ahead in real terms — and who quietly pays for it?"</p>
+        </div>
+
+        <div class="sim">
+            <h2>The simulator</h2>
+            <p class="lede">Two choices. One consequence: your <em>real</em> purchasing power — what your money buys after prices adjust.</p>
+
+            <div class="control">
+                <div class="control-label">
+                    <label for="money-slider">How much new money is created (as a share of the existing money supply)</label>
+                    <span class="val" id="money-val">10%</span>
+                </div>
+                <input type="range" id="money-slider" min="0" max="40" step="1" value="10"
+                       aria-describedby="money-hint" aria-valuetext="10 percent">
+                <div class="range-ends"><span>0% (no new money)</span><span>40% (COVID-scale)</span></div>
+                <div class="range-hint" id="money-hint">For reference, U.S. M2 grew roughly 40% between Feb 2020 and early 2022 (FRED, M2SL).</div>
+            </div>
+
+            <div class="control">
+                <div class="control-label"><span>Where do you stand in the economy?</span></div>
+                <div class="positions" id="positions" role="group" aria-label="Choose your position in the economy">
+                    <button class="pos-btn" type="button" data-pos="asset" aria-pressed="false">
+                        <span class="pos-emoji" aria-hidden="true">📈</span>
+                        <span class="pos-name">Asset owner</span>
+                        <span class="pos-sub">Stocks &amp; real estate</span>
+                    </button>
+                    <button class="pos-btn" type="button" data-pos="home" aria-pressed="false">
+                        <span class="pos-emoji" aria-hidden="true">🏠</span>
+                        <span class="pos-name">Mortgaged homeowner</span>
+                        <span class="pos-sub">One home, fixed-rate debt</span>
+                    </button>
+                    <button class="pos-btn" type="button" data-pos="wage" aria-pressed="true">
+                        <span class="pos-emoji" aria-hidden="true">👷</span>
+                        <span class="pos-name">Wage earner</span>
+                        <span class="pos-sub">Income from work</span>
+                    </button>
+                    <button class="pos-btn" type="button" data-pos="saver" aria-pressed="false">
+                        <span class="pos-emoji" aria-hidden="true">🏦</span>
+                        <span class="pos-name">Cash saver</span>
+                        <span class="pos-sub">Savings in the bank</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="result" id="result" aria-live="polite">
+                <div class="verdict" id="verdict"></div>
+                <div class="rows" id="rows"></div>
+                <div class="math" id="math"></div>
+            </div>
+
+            <div class="toggle-row">
+                <button class="btn ghost" type="button" id="fixed-toggle" aria-pressed="false">
+                    Compare: a fixed-supply money (Bitcoin-style)
+                </button>
+            </div>
+        </div>
+
+        <div class="note-box" id="fixed-note" hidden>
+            <h4>What changes under a fixed issuance schedule</h4>
+            <p>If new supply follows a fixed, published schedule that no one can expand on demand, there is no discretionary "print" event to redistribute — so this particular gap between positions doesn't open up from money creation. That removes one lever. It does <strong>not</strong> remove every tradeoff: a money that can't expand in a crisis has no lender-of-last-resort to cushion a shock, its price can swing sharply, and holders bear that volatility instead. The honest comparison is lever-for-lever, not "one is simply better."</p>
+        </div>
+
+        <div class="note-box">
+            <h4>Read this before you trust the numbers</h4>
+            <p class="methodology">This is a <strong>transparent stylized model</strong>, not a forecast. It isolates one mechanism — uneven, timing-based pass-through of new money — and holds everything else constant. Real economies also move with productivity, demand, policy, and global forces. The multipliers below set the <em>direction and rough magnitude</em> the historical record supports; they are not precise predictions for any specific year.</p>
+            <details class="methodology">
+                <summary>Show the math and the multipliers</summary>
+                <p style="margin-top:10px;">For money growth <code>m</code>, the general price level rises by <code>P = m × 0.5</code> (broad prices have historically risen less than one-for-one with M2, because output grows and money velocity falls). Each position's nominal resources change by <code>m × β</code>, then real change is <code>(1 + m·β) / (1 + P) − 1</code>.</p>
+                <ul>
+                    <li><code>β = 1.8</code> — <strong>Asset owner.</strong> Asset prices have risen faster than both wages and CPI across the QE era (S&amp;P 500 and median home prices vs. CPI, 2008–2024; FRED / BLS).</li>
+                    <li><code>β = 1.0</code> — <strong>Mortgaged homeowner.</strong> Home value tracks roughly with money growth, and fixed-rate debt is repaid in cheaper dollars (a second, separate benefit not shown in the bar).</li>
+                    <li><code>β = 0.4</code> — <strong>Wage earner.</strong> Real median wages have been roughly flat for decades while asset prices climbed (BLS / St. Louis Fed).</li>
+                    <li><code>β = 0.0</code> — <strong>Cash saver.</strong> Cash earns little or nothing in nominal terms, so prices rising erode it directly.</li>
+                </ul>
+                <p>Sources, dated, verify before relying on them:
+                    <a href="https://fred.stlouisfed.org/series/M2SL" target="_blank" rel="noopener">FRED M2 Money Stock</a> ·
+                    <a href="https://www.bls.gov/cpi/" target="_blank" rel="noopener">BLS Consumer Price Index</a> ·
+                    <a href="https://www.minneapolisfed.org/about-us/monetary-policy/inflation-calculator" target="_blank" rel="noopener">Minneapolis Fed purchasing-power calculator</a>.
+                    This is education, not financial advice.</p>
+            </details>
+        </div>
+
+        <!-- Reflect: Socratic questions after activity -->
+        <div class="reflect-widget"
+             data-topic="cantillon-effect"
+             data-path="principled"
+             data-title="Reflect: who pays for new money, and how would you check it?">
+        </div>
+    </div>
+
+    <footer style="text-align:center;padding:2rem 1rem;margin-top:2rem;border-top:1px solid var(--color-border,#2D2F35);color:var(--color-muted,#B8B8B0);font-size:0.85rem;">Created by Dalia · <a href="https://bitcoinsovereign.academy" style="color:var(--color-brand,#FF7A00);text-decoration:none;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">bitcoinsovereign.academy</a></footer>
+
+    <script src="/js/reflect-widget.js"></script>
+    <script src="/js/demo-nav.js"></script>
+    <script>
+    (function () {
+        // ---- Reusable config: drop-in parameters so this can be reused in other lessons ----
+        var CONFIG = {
+            cpiPassthrough: 0.5,   // share of money growth that flows into the general price level
+            positions: {
+                asset: { name: 'Asset owner',          beta: 1.8 },
+                home:  { name: 'Mortgaged homeowner',  beta: 1.0 },
+                wage:  { name: 'Wage earner',           beta: 0.4 },
+                saver: { name: 'Cash saver',            beta: 0.0 }
+            },
+            order: ['asset', 'home', 'wage', 'saver']
+        };
+
+        var moneySlider = document.getElementById('money-slider');
+        var moneyVal    = document.getElementById('money-val');
+        var moneyHint   = document.getElementById('money-hint');
+        var verdictEl   = document.getElementById('verdict');
+        var rowsEl      = document.getElementById('rows');
+        var mathEl      = document.getElementById('math');
+        var posButtons  = Array.prototype.slice.call(document.querySelectorAll('.pos-btn'));
+        var fixedToggle = document.getElementById('fixed-toggle');
+        var fixedNote   = document.getElementById('fixed-note');
+
+        var selected = 'wage';
+        var fixedMode = false;
+
+        function num(v) { var n = Number(v); return isFinite(n) ? n : 0; }
+        function pct(x) { return (x >= 0 ? '+' : '') + (x * 100).toFixed(1) + '%'; }
+        function cls(x) { return x > 0.0005 ? 'gain' : (x < -0.0005 ? 'loss' : 'flat'); }
+
+        function realChange(beta, m, P) { return (1 + m * beta) / (1 + P) - 1; }
+
+        function compute() {
+            var mPct = num(moneySlider.value);
+            var m = fixedMode ? 0 : mPct / 100;
+            var P = m * CONFIG.cpiPassthrough;
+
+            moneyVal.textContent = mPct + '%';
+            moneySlider.setAttribute('aria-valuetext', mPct + ' percent');
+            moneySlider_describe(mPct);
+
+            // compute everyone, find range for bar scaling
+            var results = CONFIG.order.map(function (key) {
+                var p = CONFIG.positions[key];
+                return { key: key, name: p.name, real: realChange(p.beta, m, P) };
+            });
+            var maxAbs = results.reduce(function (a, r) { return Math.max(a, Math.abs(r.real)); }, 0.0001);
+
+            // rows
+            rowsEl.innerHTML = '';
+            results.forEach(function (r) {
+                var row = document.createElement('div');
+                row.className = 'row' + (r.key === selected ? ' you' : '');
+                var w = Math.min(50, (Math.abs(r.real) / maxAbs) * 50); // half-track max
+                var fill = r.real >= 0
+                    ? '<span class="bar-fill" style="left:50%;width:' + w + '%;background:var(--color-success,#8CC63F)"></span>'
+                    : '<span class="bar-fill" style="left:' + (50 - w) + '%;width:' + w + '%;background:var(--color-danger,#FF2B2B)"></span>';
+                row.innerHTML =
+                    '<div class="row-name">' + r.name + (r.key === selected ? '<span class="tag">YOU</span>' : '') + '</div>' +
+                    '<div class="bar-track"><span class="bar-zero"></span>' + fill + '</div>' +
+                    '<div class="row-val ' + cls(r.real) + '">' + pct(r.real) + '</div>';
+                rowsEl.appendChild(row);
+            });
+
+            // verdict for the selected position
+            var you = results.filter(function (r) { return r.key === selected; })[0];
+            if (m === 0) {
+                verdictEl.innerHTML = 'No new money is created, so prices and incomes don\'t move from this lever. Everyone\'s real purchasing power stays <strong class="flat">flat</strong> — there is no hidden transfer to share out.';
+            } else {
+                var word = you.real > 0.0005 ? 'gain' : (you.real < -0.0005 ? 'lose' : 'break even on');
+                var sorted = results.slice().sort(function (a, b) { return b.real - a.real; });
+                var rank = sorted.findIndex(function (r) { return r.key === selected; }) + 1;
+                verdictEl.innerHTML = 'As a <strong>' + you.name.toLowerCase() + '</strong>, you ' + word +
+                    ' <strong class="' + cls(you.real) + '">' + pct(you.real) + '</strong> in real purchasing power — ' +
+                    'ranked ' + rank + ' of 4. Same money-printing event, opposite outcomes depending only on where you stood.';
+            }
+
+            // honest math line
+            mathEl.innerHTML = 'Prices rise about <code>' + (P * 100).toFixed(1) + '%</code> (= ' + mPct +
+                '% × 0.5). Your nominal resources change <code>' + pct(num(CONFIG.positions[selected].beta) * m) +
+                '</code>, so real = (1 + nominal) ÷ (1 + price rise) − 1 = <code>' + pct(you.real) + '</code>.' +
+                (fixedMode ? ' <em>Fixed-supply mode: no new issuance, so m = 0.</em>' : '');
+        }
+
+        function moneySlider_describe(mPct) {
+            if (fixedMode) { moneyHint.textContent = 'Fixed-supply comparison on: no discretionary new money, so the slider is held at 0 for this lever.'; return; }
+            if (mPct === 0) { moneyHint.textContent = 'No new money created — the baseline. Nothing to redistribute.'; }
+            else if (mPct >= 38) { moneyHint.textContent = 'Roughly the scale of U.S. M2 growth between Feb 2020 and early 2022 (FRED, M2SL).'; }
+            else { moneyHint.textContent = 'For reference, U.S. M2 grew roughly 40% between Feb 2020 and early 2022 (FRED, M2SL).'; }
+        }
+
+        function selectPos(key) {
+            selected = key;
+            posButtons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-pos') === key)); });
+            compute();
+        }
+
+        posButtons.forEach(function (b) {
+            b.addEventListener('click', function () { selectPos(b.getAttribute('data-pos')); });
+        });
+        moneySlider.addEventListener('input', compute);
+        fixedToggle.addEventListener('click', function () {
+            fixedMode = !fixedMode;
+            fixedToggle.setAttribute('aria-pressed', String(fixedMode));
+            fixedToggle.textContent = fixedMode ? 'Back to discretionary money creation' : 'Compare: a fixed-supply money (Bitcoin-style)';
+            fixedNote.hidden = !fixedMode;
+            moneySlider.disabled = fixedMode;
+            compute();
+        });
+
+        compute();
+    })();
+    </script>
+<script>(function(){function post(){try{parent.postMessage({mbFrame:1,h:document.documentElement.scrollHeight},"*");}catch(e){}}window.addEventListener("load",post);if(window.ResizeObserver){try{new ResizeObserver(post).observe(document.documentElement);}catch(e){}}setInterval(post,1500);})();</script>
+</body>
+</html>

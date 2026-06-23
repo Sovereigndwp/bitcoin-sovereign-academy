@@ -102,13 +102,13 @@ Módulo 3, Las reglas invisibles mueven a la gente (incentivos). Pídeles nombra
 
 Módulo 4, Cuando el marcador miente (dinero como medida). Esto es inflación enseñada sin empezar por la palabra. Pregunta: si un número de ahorro sube pero compra menos cada año, ¿el ahorrador es más rico? ¿Cómo lo sabrían?
 
-Módulo 5, Confía, verifica o te engañan (confianza y custodia). Es el primer módulo donde aparece Bitcoin. Mantén la honestidad: guardar algo tú mismo quita al guardián y te entrega toda la responsabilidad, incluida la posibilidad de pérdida permanente. El multifirma colaborativo se presenta solo como concepto, donde ninguna persona sola puede actuar.
+Módulo 5, Confía, pero mira qué puedes verificar (confianza y custodia). Es el primer módulo donde aparece Bitcoin. Mantén la honestidad: guardar algo tú mismo quita al guardián y te entrega toda la responsabilidad, incluida la posibilidad de pérdida permanente. El multifirma colaborativo se presenta solo como concepto, donde ninguna persona sola puede actuar.
 
 Módulo 6, Bitcoin cambia una regla (oferta fija). El cierre. Asegura que ambas columnas reciban un trato justo. Una regla fija hace más fácil ahorrar y planear y más difícil rescatar en silencio, y quita una palanca de crisis y entrega más responsabilidad al que guarda. Termina con la frase con la que termina el material: Bitcoin no quita la escasez, hace que la escasez sea más difícil de esconder, y devuelve más responsabilidad al que guarda.
 
 ## Notas de seguridad
 
-El material nunca pide una frase semilla, llave privada, contraseña, saldo, nombre completo ni dato personal, y nunca debe hacerlo. El Módulo 2 usa una frase semilla solo como ejemplo para enseñar por qué nunca escribes una real en ningún lado. Si un estudiante pregunta cómo comprar o guardar Bitcoin de verdad, trata eso como una decisión aparte y real para una familia, no como parte de esta lección. Este deep dive es educación, no consejo.
+El material nunca pide una frase semilla, llave privada, contraseña, saldo, nombre completo ni dato personal, y nunca debe hacerlo. El Módulo 5 usa una frase semilla solo como ejemplo de seguridad, para enseñar por qué nunca escribes una real en ningún lado. Si un estudiante pregunta cómo comprar o guardar Bitcoin de verdad, trata eso como una decisión aparte y real para una familia, no como parte de esta lección. Este deep dive es educación, no consejo.
 
 ## La regla principal para adultos
 

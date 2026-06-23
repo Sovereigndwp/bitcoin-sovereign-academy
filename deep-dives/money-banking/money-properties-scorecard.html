@@ -1,0 +1,192 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Score the Money — The Properties Scorecard | Money &amp; Banking Deep Dive</title>
+    <meta name="description" content="Interactive scorecard: judge four forms of money against the six properties of sound money, then compare your verdict to the assessment. Learn the framework by using it.">
+    <link rel="stylesheet" href="/css/brand.css">
+    <link rel="stylesheet" href="/css/brand-consistency.css">
+    <link rel="stylesheet" href="/css/deep-dive-brand.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--color-bg, #16181C); color: var(--color-text, #F7F7F2); line-height: 1.6; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--color-brand, #FF7A00); text-decoration: none; margin-bottom: 1.5rem; font-weight: 600;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .back-link:hover { text-decoration: underline; }
+        .header { text-align: center; padding: 32px 20px 8px; }
+        .header h1 { font-size: 2.3rem; margin-bottom: 12px; color: var(--color-brand, #FF7A00);background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .header p { font-size: 1.05rem; color: var(--color-muted, #B8B8B0); max-width: 720px; margin: 0 auto; }
+        .question-bar { background: var(--color-surface, #1F2024); border-left: 4px solid var(--color-brand, #FF7A00); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 24px 0; }
+        .question-bar p { margin: 0; font-style: italic; }
+        .card { background: var(--color-surface, #1F2024); border: 1px solid var(--color-border, #2D2F35); border-radius: 14px; padding: 22px; margin: 18px 0; }
+        .card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+        .card-emoji { font-size: 2rem; }
+        .card-title { font-size: 1.2rem; font-weight: 700; color: var(--color-brand, #FF7A00);background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .card-era { font-size: 0.8rem; color: var(--color-muted, #B8B8B0); }
+        .prop { margin: 14px 0; }
+        .prop-name { font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; }
+        .prop-name .hint { font-weight: 400; color: var(--color-muted, #B8B8B0); font-size: 0.8rem; }
+        .seg { display: inline-flex; border: 1px solid var(--color-border, #2D2F35); border-radius: 8px; overflow: hidden; }
+        .seg button { background: var(--color-bg, #16181C); color: var(--color-text, #F7F7F2); border: none; padding: 7px 16px; cursor: pointer; font: inherit; font-size: 0.85rem; border-right: 1px solid var(--color-border, #2D2F35); }
+        .seg button:last-child { border-right: none; }
+        .seg button[aria-pressed="true"] { background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%); color: #1a1a1a; font-weight: 700; }
+        .seg button:focus-visible { outline: 3px solid var(--color-brand, #FF7A00); outline-offset: -3px; }
+        .reveal-btn { background: transparent; color: var(--color-text, #F7F7F2); border: 2px solid var(--color-border, #2D2F35); padding: 9px 18px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 700; margin-top: 12px; }
+        .reveal-btn:hover { border-color: var(--color-brand, #FF7A00); }
+        .reveal-btn:focus-visible { outline: 3px solid var(--color-brand, #FF7A00); outline-offset: 2px; }
+        .assessment { margin-top: 14px; border-top: 1px solid var(--color-border, #2D2F35); padding-top: 14px; font-size: 0.9rem; }
+        .assessment[hidden] { display: none; }
+        .a-line { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.06); }
+        .a-prop { color: var(--color-muted, #B8B8B0); }
+        .a-verdict { font-weight: 700; }
+        .v-high { color: var(--color-success, #8CC63F); }
+        .v-med { color: var(--color-warning, #FFD400); }
+        .v-low { color: var(--color-danger, #FF2B2B); }
+        .match { font-size: 0.78rem; margin-left: 8px; }
+        .match-y { color: var(--color-success, #8CC63F); }
+        .match-n { color: var(--color-muted, #B8B8B0); }
+        .a-why { margin-top: 10px; color: var(--color-muted, #B8B8B0); }
+        .a-score { margin-top: 8px; font-weight: 700; color: var(--color-brand, #FF7A00);background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .note-box { border-left: 3px solid var(--color-brand, #FF7A00); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 18px 0; background: var(--color-surface, #1F2024); }
+        .note-box h4 { color: var(--color-brand, #FF7A00); margin-bottom: 6px; font-size: 0.95rem;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .note-box p { font-size: 0.88rem; }
+        .methodology { font-size: 0.84rem; color: var(--color-muted, #B8B8B0); }
+        .methodology summary { cursor: pointer; color: var(--color-brand, #FF7A00); font-weight: 600;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        @media (max-width: 640px){ .header h1{font-size:1.7rem;} .seg button{padding:7px 12px;} }
+    </style>
+</head>
+<body class="bsa-skin bsa-deepdive">
+    <div class="container">
+        <a href="./history-of-money.html" class="back-link">← Back to The History of Money</a>
+        <div class="header">
+            <h1>Score the Money</h1>
+            <p>"Sound money" isn't one thing — it's a set of properties. Judge each form of money yourself, then see how your verdict compares. You'll learn the framework by using it.</p>
+        </div>
+
+        <div class="question-bar">
+            <p>"What does money actually need to do its job — and which of these forms does it best?"</p>
+        </div>
+
+        <div id="cards"></div>
+
+        <div class="note-box">
+            <h4>There are no trick answers here</h4>
+            <p>The assessments below reflect a widely-taught framework, but reasonable people weigh these properties differently — that's the point of judging for yourself. Notice that no historical form scores "high" on everything, and that even strong forms carry real weaknesses. Bitcoin is rated honestly: high on scarcity and divisibility, but only medium on fungibility (its ledger is public, so coins can be traced) and on acceptability (still far from universal). A property checklist is a useful lens, not the whole story.</p>
+        </div>
+
+        <div class="note-box">
+            <h4>The framework &amp; sources</h4>
+            <details class="methodology">
+                <summary>Where this comes from</summary>
+                <p style="margin-top:8px;">The six properties (scarcity, durability, portability, divisibility, fungibility, acceptability) are the standard characteristics-of-money framework taught in economics and used in BSA's Curious Path, Module 1. Historical facts referenced (first standardized coins in Lydia ~600 BCE; the cowrie-shell trade; the end of dollar–gold convertibility in 1971) are covered with sources on the companion <a href="./history-of-money.html" style="color:var(--color-brand,#FF7A00);background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">History of Money</a> page. Bitcoin's 21-million supply cap and 1e-8 divisibility ("satoshis") are protocol facts (Bitcoin developer docs). Education, not financial advice.</p>
+            </details>
+        </div>
+
+        <div class="reflect-widget"
+             data-topic="money"
+             data-path="curious"
+             data-title="Reflect: which property matters most to you, and why?">
+        </div>
+    </div>
+
+    <footer style="text-align:center;padding:2rem 1rem;margin-top:2rem;border-top:1px solid var(--color-border,#2D2F35);color:var(--color-muted,#B8B8B0);font-size:0.85rem;">Created by Dalia · <a href="https://bitcoinsovereign.academy" style="color:var(--color-brand,#FF7A00);text-decoration:none;background:linear-gradient(90deg, #FF7A00 0%, #FFD400 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">bitcoinsovereign.academy</a></footer>
+
+    <script src="/js/reflect-widget.js"></script>
+    <script src="/js/demo-nav.js"></script>
+    <script>
+    (function () {
+        var PROPS = [
+            { key: 'scarce', name: 'Scarcity', hint: 'hard to produce more' },
+            { key: 'durable', name: 'Durability', hint: 'survives over time' },
+            { key: 'portable', name: 'Portability', hint: 'easy to move' },
+            { key: 'divisible', name: 'Divisibility', hint: 'splits into small units' },
+            { key: 'fungible', name: 'Fungibility', hint: 'each unit interchangeable' },
+            { key: 'accepted', name: 'Acceptability', hint: 'others will take it' }
+        ];
+        var FORMS = [
+            { id: 'shells', emoji: '🐚', title: 'Cowrie shells', era: 'Commodity money · ~3000 BCE',
+              a: { scarce:'low', durable:'med', portable:'high', divisible:'low', fungible:'med', accepted:'med' },
+              why: 'Portable and widely recognized in their day, but not truly scarce — once outsiders shipped in shells by the boatload, the supply could be expanded and the value fell. You can\'t make change with a single shell, so divisibility is poor.' },
+            { id: 'gold', emoji: '🪙', title: 'Gold coins', era: 'Hard money · ~600 BCE onward',
+              a: { scarce:'high', durable:'high', portable:'low', divisible:'med', fungible:'high', accepted:'high' },
+              why: 'The historical benchmark: genuinely scarce, nearly indestructible, interchangeable, and accepted across civilizations for millennia. Its weakness is physical — heavy to move and store, and rulers could debase coins by mixing in base metals.' },
+            { id: 'fiat', emoji: '💵', title: 'Government fiat cash', era: 'Pure fiat · 1971–present',
+              a: { scarce:'low', durable:'high', portable:'high', divisible:'high', fungible:'high', accepted:'high' },
+              why: 'Excellent at the practical properties — portable, divisible, universally accepted, durable in digital form. Its defining weakness is scarcity: supply can be expanded by decree, which is why purchasing power has fallen steadily under fiat (BLS CPI).' },
+            { id: 'bitcoin', emoji: '₿', title: 'Bitcoin', era: 'Rules-based money · 2009–present',
+              a: { scarce:'high', durable:'high', portable:'high', divisible:'high', fungible:'med', accepted:'med' },
+              why: 'Strong on scarcity (a fixed 21M cap) and divisibility (down to 1/100,000,000). But it is rated medium, not high, on two: fungibility, because the public ledger lets coins be traced and potentially treated differently; and acceptability, because adoption is real but still far from universal. An honest scorecard shows the gaps, not just the strengths.' }
+        ];
+        var ORDER = ['low', 'med', 'high'];
+        var LABEL = { low: 'Low', med: 'Medium', high: 'High' };
+        var VCLASS = { low: 'v-low', med: 'v-med', high: 'v-high' };
+
+        var picks = {};
+        var container = document.getElementById('cards');
+
+        FORMS.forEach(function (form) {
+            picks[form.id] = {};
+            var card = document.createElement('div');
+            card.className = 'card';
+
+            var html = '<div class="card-head"><span class="card-emoji" aria-hidden="true">' + form.emoji + '</span>' +
+                       '<div><div class="card-title">' + form.title + '</div><div class="card-era">' + form.era + '</div></div></div>' +
+                       '<p style="color:var(--color-muted,#B8B8B0);font-size:0.88rem;margin-bottom:6px;">Rate it on each property, then reveal the assessment.</p>';
+
+            PROPS.forEach(function (p) {
+                html += '<div class="prop"><div class="prop-name">' + p.name + ' <span class="hint">— ' + p.hint + '</span></div>' +
+                        '<div class="seg" role="group" aria-label="' + form.title + ' — ' + p.name + '">';
+                ORDER.forEach(function (lvl) {
+                    html += '<button type="button" data-form="' + form.id + '" data-prop="' + p.key + '" data-lvl="' + lvl + '" aria-pressed="false">' + LABEL[lvl] + '</button>';
+                });
+                html += '</div></div>';
+            });
+
+            html += '<button type="button" class="reveal-btn" data-reveal="' + form.id + '">Reveal assessment</button>' +
+                    '<div class="assessment" id="assess-' + form.id + '" hidden></div>';
+            card.innerHTML = html;
+            container.appendChild(card);
+        });
+
+        container.addEventListener('click', function (e) {
+            var btn = e.target.closest('button');
+            if (!btn) return;
+
+            if (btn.hasAttribute('data-lvl')) {
+                var f = btn.getAttribute('data-form'), pr = btn.getAttribute('data-prop'), lvl = btn.getAttribute('data-lvl');
+                picks[f][pr] = lvl;
+                var sibs = btn.parentElement.querySelectorAll('button');
+                Array.prototype.forEach.call(sibs, function (s) { s.setAttribute('aria-pressed', String(s === btn)); });
+            }
+
+            if (btn.hasAttribute('data-reveal')) {
+                renderAssessment(btn.getAttribute('data-reveal'));
+            }
+        });
+
+        function renderAssessment(id) {
+            var form = FORMS.filter(function (f) { return f.id === id; })[0];
+            var box = document.getElementById('assess-' + id);
+            var rated = 0, matched = 0;
+            var lines = PROPS.map(function (p) {
+                var correct = form.a[p.key];
+                var yours = picks[id][p.key];
+                var did = !!yours;
+                if (did) { rated++; if (yours === correct) matched++; }
+                var matchTxt = !did ? '<span class="match match-n">(not rated)</span>' :
+                    (yours === correct ? '<span class="match match-y">✓ matched</span>' :
+                     '<span class="match match-n">you said ' + LABEL[yours] + '</span>');
+                return '<div class="a-line"><span class="a-prop">' + p.name + '</span>' +
+                       '<span><span class="a-verdict ' + VCLASS[correct] + '">' + LABEL[correct] + '</span>' + matchTxt + '</span></div>';
+            }).join('');
+
+            var scoreLine = rated === 0 ? 'Rate the properties above, then reveal to compare.' :
+                'You matched ' + matched + ' of ' + rated + ' rated properties.';
+
+            box.innerHTML = lines + '<div class="a-why">' + form.why + '</div><div class="a-score">' + scoreLine + '</div>';
+            box.hidden = false;
+        }
+    })();
+    </script>
+<script>(function(){function post(){try{parent.postMessage({mbFrame:1,h:document.documentElement.scrollHeight},"*");}catch(e){}}window.addEventListener("load",post);if(window.ResizeObserver){try{new ResizeObserver(post).observe(document.documentElement);}catch(e){}}setInterval(post,1500);})();</script>
+</body>
+</html>
