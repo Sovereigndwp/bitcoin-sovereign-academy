@@ -89,6 +89,21 @@
             font-weight: 600;
         }
 
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 122, 0, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #FF7A00;
+            transition: width 0.3s ease;
+        }
+
         /* Main Content */
         .main-content {
             padding: 3rem 0;
@@ -330,6 +345,9 @@
                 <h1>🌱 Stage 1: Understanding Money</h1>
                 <span class="stage-badge">Stage 1 of 4</span>
             </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%" id="stage-progress"></div>
+            </div>
         </div>
     </header>
 
@@ -369,7 +387,7 @@
                 </div>
 
                 <!-- Module 2 -->
-                <div class="module-card" id="module-2">
+                <div class="module-card locked" id="module-2">
                     <div class="module-number">2</div>
                     <div class="module-info">
                         <h3>Problems with Traditional Money</h3>
@@ -384,12 +402,13 @@
                         </p>
                     </div>
                     <div class="module-action">
-                        <a href="module-2.html" class="btn">Start Module →</a>
+                        <span class="status-badge locked"><span data-icon="lock"></span> Complete Module 1 first
+                        </span>
                     </div>
                 </div>
 
                 <!-- Module 2.5 -->
-                <div class="module-card" id="module-2-5">
+                <div class="module-card locked" id="module-2-5">
                     <div class="module-number">2.5</div>
                     <div class="module-info">
                         <h3>From Patches to Principles</h3>
@@ -404,12 +423,13 @@
                         </p>
                     </div>
                     <div class="module-action">
-                        <a href="module-2-5.html" class="btn">Start Module →</a>
+                        <span class="status-badge locked"><span data-icon="lock"></span> Complete Module 2 first
+                        </span>
                     </div>
                 </div>
 
                 <!-- Module 3 -->
-                <div class="module-card" id="module-3">
+                <div class="module-card locked" id="module-3">
                     <div class="module-number">3</div>
                     <div class="module-info">
                         <h3>Enter Bitcoin</h3>
@@ -424,7 +444,8 @@
                         </p>
                     </div>
                     <div class="module-action">
-                        <a href="module-3.html" class="btn">Start Module →</a>
+                        <span class="status-badge locked"><span data-icon="lock"></span> Complete Module 2.5 first
+                        </span>
                     </div>
                 </div>
 
@@ -460,11 +481,11 @@
             <div class="stage-navigation">
                 <h3>After Completing This Stage</h3>
                 <p>
-                    Next up: <strong>Stage 2: Bitcoin Fundamentals</strong>. Keep going at your own pace.
+                    You'll earn the <strong>"Understanding Money"</strong> badge and unlock Stage 2: Bitcoin Fundamentals
                 </p>
                 <div class="stage-nav-buttons">
                     <a href="../" class="btn-secondary">← Back to Path Overview</a>
-                    <a href="../stage-2/" class="btn-secondary">
+                    <a href="../stage-2/" class="btn-secondary" style="opacity: 0.5; pointer-events: none;">
                         Stage 2: Bitcoin Fundamentals →
                     </a>
                 </div>
@@ -472,6 +493,83 @@
         </div>
     </main>
 
+    <script>
+        // Initialize ProgressManager
+        const progressManager = new ProgressManager();
+        progressManager.init();
+
+        // Progress tracking
+        function updateProgress() {
+            // Check which modules are completed using ProgressManager
+            const module1Complete = progressManager.isModuleComplete('curious', 1, 1);
+            const module2Complete = progressManager.isModuleComplete('curious', 1, 2);
+            const module25Complete = progressManager.isModuleComplete('curious', 1, 2.5);
+            const module3Complete = progressManager.isModuleComplete('curious', 1, 3);
+
+            // Update module states
+            if (module1Complete) {
+                document.getElementById('module-1').classList.remove('current');
+                document.getElementById('module-1').classList.add('completed');
+                document.querySelector('#module-1 .btn').textContent = '✓ Review Module';
+
+                // Unlock module 2
+                document.getElementById('module-2').classList.remove('locked');
+                document.getElementById('module-2').classList.add('current');
+                document.querySelector('#module-2 .module-action').innerHTML =
+                    '<a href="module-2.html" class="btn">Continue →</a>';
+            }
+
+            if (module2Complete) {
+                document.getElementById('module-2').classList.remove('current');
+                document.getElementById('module-2').classList.add('completed');
+                document.querySelector('#module-2 .btn').textContent = '✓ Review Module';
+
+                // Unlock module 2.5
+                document.getElementById('module-2-5').classList.remove('locked');
+                document.getElementById('module-2-5').classList.add('current');
+                document.querySelector('#module-2-5 .module-action').innerHTML =
+                    '<a href="module-2-5.html" class="btn">Continue →</a>';
+            }
+
+            if (module25Complete) {
+                document.getElementById('module-2-5').classList.remove('current');
+                document.getElementById('module-2-5').classList.add('completed');
+                document.querySelector('#module-2-5 .btn').textContent = '✓ Review Module';
+
+                // Unlock module 3
+                document.getElementById('module-3').classList.remove('locked');
+                document.getElementById('module-3').classList.add('current');
+                document.querySelector('#module-3 .module-action').innerHTML =
+                    '<a href="module-3.html" class="btn">Continue →</a>';
+            }
+
+            if (module3Complete) {
+                document.getElementById('module-3').classList.remove('current');
+                document.getElementById('module-3').classList.add('completed');
+                document.querySelector('#module-3 .btn').textContent = '✓ Review Module';
+
+                // Enable stage 2 (Module 3 is now final module of Stage 1)
+                const stage2Link = document.querySelector('[href="../stage-2/"]');
+                if (stage2Link) {
+                    stage2Link.style.opacity = '1';
+                    stage2Link.style.pointerEvents = 'auto';
+                }
+            }
+
+            // Update progress bar
+            let completedCount = 0;
+            if (module1Complete) completedCount++;
+            if (module2Complete) completedCount++;
+            if (module25Complete) completedCount++;
+            if (module3Complete) completedCount++;
+
+            const progressPercent = (completedCount / 4) * 100;
+            document.getElementById('stage-progress').style.width = progressPercent + '%';
+        }
+
+        // Run on page load
+        updateProgress();
+    </script>
 
     <!-- Animated Icon Library -->
     <script src="/js/icon-library.js"></script>
