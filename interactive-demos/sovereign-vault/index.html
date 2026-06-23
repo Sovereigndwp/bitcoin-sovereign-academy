@@ -90,6 +90,7 @@
                             </svg>
                         </button>
                     </div>
+                    <span class="help-text">Create a new password just for this planning tool. Do not use a wallet seed phrase, private key, or wallet passphrase.</span>
                 </div>
 
                 <div class="form-group new-vault-only" style="display: none;">
@@ -114,6 +115,7 @@
             <div class="security-notice">
                 <h4>🔐 Client-Side Encryption</h4>
                 <p>Your data is encrypted locally before storage. We never see your password or your custody information.</p>
+                <p class="security-warning"><strong>This is a planning and documentation tool, not a wallet.</strong> Never enter a real seed phrase, private key, or wallet passphrase anywhere in it. Use aliases and notes, never real secrets.</p>
             </div>
 
             <div class="what-is-notice">
@@ -985,6 +987,98 @@
     <script src="js/export.js"></script>
     <script src="js/inheritance.js"></script>
     <script src="js/app.js"></script>
+
+    <!-- Safety guard: detect and clear seed/key-like input. Fully client-side, no network. -->
+    <script id="sv-safety-guard">
+    (function () {
+        'use strict';
+
+        // Pure detector. Returns true if the value looks like a real Bitcoin
+        // secret (BIP39 mnemonic, raw private key, WIF, or extended private key).
+        function looksLikeSecret(value) {
+            if (typeof value !== 'string') return false;
+            var v = value.trim().replace(/\s+/g, ' ');
+            if (!v) return false;
+            // BIP39 mnemonic: 12/15/18/21/24 lowercase alphabetic words (3-8 chars).
+            var tokens = v.split(' ');
+            if ([12, 15, 18, 21, 24].indexOf(tokens.length) !== -1) {
+                var allWords = tokens.every(function (t) { return /^[a-z]{3,8}$/.test(t); });
+                if (allWords) return true;
+            }
+            var single = v.replace(/\s+/g, '');
+            // Raw 32-byte private key in hex.
+            if (/^[0-9a-fA-F]{64}$/.test(single)) return true;
+            // WIF private key.
+            if (/^[5KL][1-9A-HJ-NP-Za-km-z]{50,51}$/.test(single)) return true;
+            // Extended private key (xprv / yprv / zprv).
+            if (/^(xprv|yprv|zprv)[1-9A-HJ-NP-Za-km-z]{100,115}$/.test(single)) return true;
+            return false;
+        }
+
+        // Expose the pure detector for tests. No side effects.
+        window.__svSafety = { looksLikeSecret: looksLikeSecret };
+
+        // Free-text fields where a learner might paste a real secret.
+        var GUARDED_IDS = [
+            'recovery-hint', 'wallet-name', 'wallet-purpose', 'wallet-notes',
+            'backup-alias', 'backup-notes', 'heir-instructions', 'heir-notes', 'heir-name'
+        ];
+
+        var WARNING_TEXT = 'This looks like a real seed phrase or private key. Never enter real secrets here. For your safety this field was cleared. Use an alias or a short note instead.';
+
+        function warningFor(field) {
+            var id = field.id + '-secret-warning';
+            var el = document.getElementById(id);
+            if (!el) {
+                el = document.createElement('p');
+                el.id = id;
+                el.setAttribute('role', 'alert');
+                el.setAttribute('aria-live', 'assertive');
+                el.style.cssText = 'margin:.4rem 0 0;padding:.5rem .65rem;border:1px solid #b3261e;border-radius:6px;background:rgba(179,38,30,0.08);color:#b3261e;font-size:.85rem;line-height:1.35;';
+                el.hidden = true;
+                if (field.parentNode) field.parentNode.insertBefore(el, field.nextSibling);
+            }
+            return el;
+        }
+
+        function showWarning(field) {
+            var w = warningFor(field);
+            w.textContent = WARNING_TEXT;
+            w.hidden = false;
+        }
+
+        function hideWarning(field) {
+            var w = document.getElementById(field.id + '-secret-warning');
+            if (w) w.hidden = true;
+        }
+
+        function attach(field) {
+            if (!field) return;
+            field.addEventListener('input', function () {
+                if (looksLikeSecret(field.value)) { showWarning(field); }
+                else { hideWarning(field); }
+            });
+            field.addEventListener('blur', function () {
+                if (looksLikeSecret(field.value)) {
+                    field.value = '';
+                    field.dispatchEvent(new Event('change', { bubbles: true }));
+                    showWarning(field);
+                }
+            });
+        }
+
+        function init() {
+            GUARDED_IDS.forEach(function (id) { attach(document.getElementById(id)); });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+    </script>
+
     <script src="/js/navigation-context.js"></script>
 
     <!-- Reflect: Socratic questions after sovereign vault activity -->
