@@ -2,7 +2,7 @@
 
 _Automated where deterministic. Gated where judgment, rendered UI, shared CSS, or irreversible repo changes are involved._
 
-Generated 2026-06-25 18:08 UTC. Proposal-only: no source files modified.
+Generated 2026-06-25 18:17 UTC. Proposal-only: no source files modified.
 
 ## Classification
 - HTML files in zone: 54
