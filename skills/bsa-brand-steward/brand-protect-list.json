@@ -1,0 +1,144 @@
+{
+  "$schema_note": "Source of truth for the Brand Steward workflow. Read-only data. Edits here change what the workflow is allowed to detect/propose/protect. Confirm hex values against scripts/audit-bsa-brand.sh output before relying on them.",
+  "version": "1.1.0",
+  "property": "BSA",
+  "autonomy": "gated-automation",
+  "principle": "Automated where deterministic. Gated where judgment, rendered UI, shared CSS, or irreversible repo changes are involved.",
+
+  "automated_stages": [
+    "1. run the audit (read-only)",
+    "2. classify files by risk",
+    "3. group candidates by zone",
+    "4. detect missing canonical token sources",
+    "5. detect hardcoded orange/gold drift",
+    "6. detect semantic color risk",
+    "7. detect data-* injected pages",
+    "8. produce a Scoper report",
+    "9. produce a proposed unified diff (written to reports/, source untouched)",
+    "10. run diff-integrity checks",
+    "11. run screenshot QA where data-* pages are in scope",
+    "12. produce a final Verifier report"
+  ],
+
+  "human_gates": [
+    "1. before applying a proposed diff to source files",
+    "2. before touching shared CSS",
+    "3. before touching high-risk zones or any data-* injected page",
+    "4. before commit or merge"
+  ],
+
+  "last_grounded": "2026-06-25 (from reports/bsa-brand-consistency-audit.md)",
+
+  "canonical": {
+    "brand_orange": "#FF7A00",
+    "brand_token": "--color-brand",
+    "brand_gradient_tokens": ["--brand-gradient", "--brand-gradient-h", "--gradient-brand"],
+    "token_sources": ["css/brand.css", "css/tokens.css", "css/design-tokens.css"],
+    "active_overlay": "css/brand-consistency.css",
+    "new_pages_should_link": "css/brand.css"
+  },
+
+  "drift_values_to_canonicalize": {
+    "comment": "Same INTENT (brand orange/gold) but non-canonical hex. Propose -> var(--color-brand). Always human-reviewed; some may be intentional in a specific context.",
+    "values": ["#f7931a", "#F7931A", "#F2A900", "#f2a900", "#FFD400", "#ffd400", "#FFB800", "#ffb800"],
+    "map_to": "var(--color-brand)"
+  },
+
+  "keep_as_brand_accent": {
+    "comment": "BSA's child-brand color IS orange/yellow. Never neutralize it. Only canonicalize the hex; keep the orange.",
+    "values": ["#FF7A00", "#ff7a00"],
+    "gradients": ["--brand-gradient", "--brand-gradient-h", "--gradient-brand"]
+  },
+
+  "semantic_state_colors_protect": {
+    "comment": "These encode MEANING, not brand. Never touch. Confirm exact hexes per repo via the detector's semantic section.",
+    "defined_in": ["css/quiz.css", "css/status-indicators.css", "css/safety-assessment.css"],
+    "class_signals": [
+      "correct", "incorrect", "right", "wrong",
+      "success", "warning", "error", "danger",
+      "valid", "invalid", "complete", "completed", "active", "passed", "failed",
+      "risk-low", "risk-medium", "risk-high"
+    ],
+    "color_families": {
+      "success_green": ["#10b981", "#22c55e", "#16a34a", "#4caf50"],
+      "error_red": ["#ef4444", "#f87171", "#dc2626", "#e53e3e"],
+      "warning_amber": ["#f59e0b", "#fbbf24"]
+    },
+    "html_signals": ["data-correct", "data-answer"]
+  },
+
+  "auto_injection_signals": {
+    "comment": "Pages rendering UI from data-* require SCREENSHOT QA before any edit; grep undercounts their UI.",
+    "attributes": [
+      "data-answer", "data-correct", "data-topic", "data-path", "data-lab",
+      "data-demo-id", "data-btc-live", "data-email-capture", "data-question",
+      "data-module", "data-tip-cta", "data-icon"
+    ],
+    "screenshot_qa_required": true
+  },
+
+  "high_risk_dirs": [
+    "paths", "deep-dives", "interactive-demos", "quizzes",
+    "ai-tutors", "ai-agents", "certificates"
+  ],
+
+  "never_touch": {
+    "comment": "No script/agent edits without a dedicated, approved scoped report.",
+    "dirs_until_scoped": [
+      "paths", "deep-dives", "interactive-demos", "quizzes",
+      "ai-tutors", "ai-agents", "certificates"
+    ],
+    "shared_css_until_scoped": [
+      "css/brand.css", "css/tokens.css", "css/design-tokens.css",
+      "css/brand-consistency.css", "css/quiz.css",
+      "css/status-indicators.css", "css/safety-assessment.css"
+    ],
+    "any_data_injected_page": true,
+    "non_html": ["*.pdf", "*.docx", "print/*"],
+    "never_changes": ["content", "copy", "routes", "JSON-LD", "scripts", "localStorage keys", "quiz logic"]
+  },
+
+  "scan_exclusions": [
+    ".git", ".worktrees", ".superpowers", "node_modules", "archive",
+    "audit-2026-04", "frontend", "drafts", "*_files",
+    "dist", "build", ".cache", "vendor", "coverage"
+  ],
+
+  "transforms": {
+    "comment": "Detection, scoping, patch-generation, and verification run automatically. APPLYING a patch is gated. Pipeline auto-refuses to apply on shared CSS, high-risk zones, or data-* pages regardless of flags.",
+    "add_canonical_link": {
+      "intent": "Add <link rel=stylesheet href=/css/brand.css> (absolute path) before </head> on pages missing a canonical token source.",
+      "eligible": "static pages not in high_risk_dirs and not data-injected",
+      "auto": "audit, classify, propose patch, verify",
+      "gated": "apply, commit"
+    },
+    "canonicalize_orange": {
+      "intent": "Replace drift hex with var(--color-brand). Keep orange; never neutralize.",
+      "eligible": "vetted pages, per-line review in the Scoper report",
+      "auto": "detect, propose patch, verify",
+      "gated": "apply, commit"
+    }
+  },
+
+  "gates": {
+    "auto_apply_allowed_for": "none — apply is always gated",
+    "human_approval_before_apply": true,
+    "human_approval_before_touching_shared_css": true,
+    "human_approval_before_touching_high_risk_or_data_pages": true,
+    "human_approval_before_commit_or_merge": true,
+    "screenshot_qa_required_for_data_pages": true,
+    "one_zone_per_pr": true,
+    "no_mass_rewrite": true,
+    "diff_integrity_check_required": true
+  },
+
+  "portability": {
+    "comment": "Reuse for FSA by swapping the color ruleset.",
+    "FSA": {
+      "brand_token": "--color-brand (emerald #10B981), --color-mint #6EE7B7",
+      "issue": "broad dark-green surfaces -> neutral tokens via :root bridge (NOT canonicalize)",
+      "keep_as_brand_accent": ["#10b981", "#34d399", "#6ee7b7"],
+      "neutralize_surfaces": ["#0a1f1a", "#0f2922", "#1a3a2e", "#234a3c"]
+    }
+  }
+}
