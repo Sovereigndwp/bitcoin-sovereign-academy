@@ -3,7 +3,8 @@
 _Automated where deterministic. Gated where judgment, rendered UI, shared CSS, or irreversible repo changes are involved._
 
 - Proposed patch: `reports/zones/answers/proposed.patch`
-- Files in patch: 14
+- Files in patch: 0
+- Human-frozen pages excluded (no action): 0
 - Diff-integrity: **PASS** (only added line allowed: the canonical link; no removed lines)
 - Screenshot QA: NOT REQUIRED (no data-* pages in scope; static link-only change)
 - Apply gate: **OPEN — eligible for gated apply after human approval**

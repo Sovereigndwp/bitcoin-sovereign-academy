@@ -4,6 +4,7 @@ _Automated where deterministic. Gated where judgment, rendered UI, shared CSS, o
 
 - Proposed patch: `reports/zones/deep-dives/proposed.patch`
 - Files in patch: 11
+- Human-frozen pages excluded (no action): 5
 - Diff-integrity: **PASS** (only added line allowed: the canonical link; no removed lines)
 - Screenshot QA: REQUIRED (zone has data-* or is high-risk) — run before any apply
 - Apply gate: **BLOCKED — high-risk zone; contains data-* pages**

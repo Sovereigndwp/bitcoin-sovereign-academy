@@ -49,9 +49,20 @@ CANON_RE='brand\.css|tokens\.css|design-tokens\.css'
 DRIFT_RE="$(jqr '.drift_values_to_canonicalize.values | map(ltrimstr("#")) | join("|")')"; DRIFT_RE="#(${DRIFT_RE})"
 DATA_RE="$(jqr '.auto_injection_signals.attributes | join("=|")')="
 mapfile -t HIRISK < <(jqr '.high_risk_dirs[]')
+mapfile -t FROZEN_PATHS < <(jqr '.human_frozen_pages[].path')
 ADD_LINK='<link rel="stylesheet" href="/css/brand.css">'   # absolute path per BSA rule
 
 is_hirisk() { local d; for d in "${HIRISK[@]}"; do [ "$ZONE" = "$d" ] && return 0; done; return 1; }
+# Human freeze: a file is frozen if its repo-relative path is inside any frozen path.
+is_frozen() {
+  local rel="$1" p
+  for p in "${FROZEN_PATHS[@]}"; do
+    [ -n "$p" ] || continue
+    p="${p%/}/"                       # normalize to dir-prefix with trailing slash
+    case "$rel/" in "$p"*) return 0;; esac
+  done
+  return 1
+}
 
 # --- Stage 1: audit (read-only) ----------------------------------------------
 echo "[1/12] audit"; [ -x "$AUDIT" ] && "$AUDIT" >/dev/null 2>&1 || true
@@ -59,9 +70,10 @@ echo "[1/12] audit"; [ -x "$AUDIT" ] && "$AUDIT" >/dev/null 2>&1 || true
 # --- Stages 2-7: classify the zone -------------------------------------------
 echo "[2-7/12] classify zone: $ZONE"
 mapfile -t FILES < <(find "$ZONE_DIR" -type f -name '*.html' | sort)
-ELIGIBLE=(); SKIP_DATA=(); SKIP_HASCANON=(); DRIFT_PAGES=(); SEMANTIC_PAGES=()
+ELIGIBLE=(); SKIP_DATA=(); SKIP_HASCANON=(); DRIFT_PAGES=(); SEMANTIC_PAGES=(); FROZEN=()
 for f in "${FILES[@]}"; do
   rel="${f#$ROOT/}"
+  if is_frozen "$rel"; then FROZEN+=("$rel"); continue; fi   # human freeze: excluded, no action
   has_canon=$(g -lE "$CANON_RE" "$f"); is_data=$(g -lE "$DATA_RE" "$f")
   [ -n "$(g -liE "$DRIFT_RE" "$f")" ] && DRIFT_PAGES+=("$rel")
   [ -n "$(g -liE 'class="[^"]*(correct|incorrect|success|warning|error|danger|risk-)' "$f")" ] && SEMANTIC_PAGES+=("$rel")
@@ -137,6 +149,7 @@ echo "- Skipped — already on canonical CSS: ${#SKIP_HASCANON[@]}"
 echo "- Skipped — data-* injected (gated, needs screenshot QA): ${#SKIP_DATA[@]}"
 echo "- Pages with drift orange (future canonicalize PR): ${#DRIFT_PAGES[@]}"
 echo "- Pages with semantic state classes (protect): ${#SEMANTIC_PAGES[@]}"
+echo "- Human-frozen pages excluded: ${#FROZEN[@]}"
 echo "- Zone is high-risk: $ZONE_HIRISK"
 echo
 echo "## Proposed change"
@@ -151,6 +164,7 @@ echo "## Eligible files"
 printf '%s\n' "${ELIGIBLE[@]}" | sed 's/^/- /'
 [ "${#SKIP_DATA[@]}" -gt 0 ] && { echo; echo "## Deferred (data-* — separate gated pass)"; printf '%s\n' "${SKIP_DATA[@]}" | sed 's/^/- /'; }
 [ "${#DRIFT_PAGES[@]}" -gt 0 ] && { echo; echo "## Drift-orange pages (future canonicalize PR, not this one)"; printf '%s\n' "${DRIFT_PAGES[@]}" | sed 's/^/- /'; }
+[ "${#FROZEN[@]}" -gt 0 ] && { echo; echo "## Human-frozen (excluded by human freeze; requires dedicated approval; no action)"; printf '%s\n' "${FROZEN[@]}" | sed 's/^/- /'; }
 echo
 echo "## What stays untouched"
 echo "Content, copy, routes, JSON-LD, scripts, localStorage keys, semantic state colors, and brand orange itself."
@@ -171,6 +185,7 @@ echo "_${TAGLINE}_"
 echo
 echo "- Proposed patch: \`reports/zones/$ZONE/proposed.patch\`"
 echo "- Files in patch: $PATCH_FILES"
+echo "- Human-frozen pages excluded (no action): ${#FROZEN[@]}"
 echo "- Diff-integrity: **$INTEGRITY** (only added line allowed: the canonical link; no removed lines)"
 echo "- Screenshot QA: $SCREENSHOT"
 echo "- Apply gate: **$([ "$GATE_APPLY_ALLOWED" = yes ] && echo 'OPEN — eligible for gated apply after human approval' || echo "BLOCKED — $GATE_REASON")**"
@@ -207,7 +222,7 @@ fi
 
 # --- Summary -----------------------------------------------------------------
 echo
-echo "Zone: $ZONE | eligible: ${#ELIGIBLE[@]} | patch files: $PATCH_FILES | integrity: $INTEGRITY | apply-gate: $GATE_APPLY_ALLOWED | applied: $APPLIED"
+echo "Zone: $ZONE | eligible: ${#ELIGIBLE[@]} | frozen-excluded: ${#FROZEN[@]} | patch files: $PATCH_FILES | integrity: $INTEGRITY | apply-gate: $GATE_APPLY_ALLOWED | applied: $APPLIED"
 echo "Reports: $SCOPED ; $PATCH ; $VERIFY"
 echo "$TAGLINE"
 echo "Proposal-only by default. No source files were modified unless --apply passed the gate."
