@@ -53,13 +53,15 @@ mapfile -t FROZEN_PATHS < <(jqr '.human_frozen_pages[].path')
 ADD_LINK='<link rel="stylesheet" href="/css/brand.css">'   # absolute path per BSA rule
 
 is_hirisk() { local d; for d in "${HIRISK[@]}"; do [ "$ZONE" = "$d" ] && return 0; done; return 1; }
-# Human freeze: a file is frozen if its repo-relative path is inside any frozen path.
+# Human freeze: a file is frozen if its repo-relative path is an exact frozen
+# file OR lives under a frozen directory subtree.
 is_frozen() {
-  local rel="$1" p
+  local rel="$1" p q
   for p in "${FROZEN_PATHS[@]}"; do
     [ -n "$p" ] || continue
-    p="${p%/}/"                       # normalize to dir-prefix with trailing slash
-    case "$rel/" in "$p"*) return 0;; esac
+    q="${p%/}"                        # strip any trailing slash
+    [ "$rel" = "$q" ] && return 0     # exact file match
+    case "$rel/" in "$q/"*) return 0;; esac   # inside directory q
   done
   return 1
 }
