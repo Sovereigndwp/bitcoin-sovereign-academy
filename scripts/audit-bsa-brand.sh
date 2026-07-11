@@ -18,6 +18,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPORT_DIR="$ROOT/reports"
 REPORT="$REPORT_DIR/bsa-brand-consistency-audit.md"
+PROTECT_LIST="$ROOT/skills/bsa-brand-steward/brand-protect-list.json"
 mkdir -p "$REPORT_DIR"
 
 # --- Canonical definitions ---------------------------------------------------
@@ -92,6 +93,33 @@ echo "- Pages with inline orange/gold styles: **$INLINE_COUNT**"
 echo "- Pages using \`data-*\` auto-injection (screenshot-QA required before edits): **$DATA_COUNT**"
 echo
 echo "Detection-only map. No BSA orange is neutralized; nothing is edited. Treat orange/gold drift as a canonicalization opportunity, not a removal."
+echo
+
+echo "## Human-frozen pages"
+echo
+echo "Protected by human freeze. Excluded from ALL brand batches and from the zone pipeline unless a dedicated scoped report is separately approved. The entire directory subtree is excluded, not just the HTML files counted here."
+echo
+if [ -f "$PROTECT_LIST" ] && command -v jq >/dev/null 2>&1; then
+  FN=$(jq '.human_frozen_pages | length // 0' "$PROTECT_LIST" 2>/dev/null || echo 0)
+  if [ "${FN:-0}" -gt 0 ]; then
+    echo "| Frozen path | Exists | Matched HTML files | Status | Reason |"
+    echo "|---|---|---|---|---|"
+    i=0
+    while [ "$i" -lt "$FN" ]; do
+      fp=$(jq -r ".human_frozen_pages[$i].path" "$PROTECT_LIST")
+      fr=$(jq -r ".human_frozen_pages[$i].reason" "$PROTECT_LIST")
+      fs=$(jq -r ".human_frozen_pages[$i].status" "$PROTECT_LIST")
+      ex="no"; [ -e "$ROOT/${fp%/}" ] && ex="yes"
+      hc=$(find "$ROOT/${fp%/}" -type f -name '*.html' 2>/dev/null | wc -l | tr -d ' ')
+      echo "| \`$fp\` | $ex | $hc | $fs | $fr |"
+      i=$((i+1))
+    done
+  else
+    echo "_None defined._"
+  fi
+else
+  echo "_Protect-list (\`skills/bsa-brand-steward/brand-protect-list.json\`) or jq unavailable; cannot enumerate frozen pages._"
+fi
 echo
 
 echo "## Counts by directory"

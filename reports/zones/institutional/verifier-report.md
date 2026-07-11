@@ -1,13 +1,13 @@
-# Verifier report — zone: `deep-dives/`
+# Verifier report — zone: `institutional/`
 
 _Automated where deterministic. Gated where judgment, rendered UI, shared CSS, or irreversible repo changes are involved._
 
-- Proposed patch: `reports/zones/deep-dives/proposed.patch`
-- Files in patch: 10
-- Human-frozen pages excluded (no action): 6
+- Proposed patch: `reports/zones/institutional/proposed.patch`
+- Files in patch: 26
+- Human-frozen pages excluded (no action): 2
 - Diff-integrity: **PASS** (only added line allowed: the canonical link; no removed lines)
 - Screenshot QA: REQUIRED (zone has data-* or is high-risk) — run before any apply
-- Apply gate: **BLOCKED — high-risk zone; contains data-* pages**
+- Apply gate: **BLOCKED — contains data-* pages**
 
 ## Gates (human checkpoints)
 1. Approve this patch before it is applied.
@@ -16,4 +16,4 @@ _Automated where deterministic. Gated where judgment, rendered UI, shared CSS, o
 4. Approval required before commit/merge.
 
 ## Next step
-Apply is blocked (high-risk zone; contains data-* pages). Produce a dedicated scoped report for the gated items first.
+Apply is blocked (contains data-* pages). Produce a dedicated scoped report for the gated items first.

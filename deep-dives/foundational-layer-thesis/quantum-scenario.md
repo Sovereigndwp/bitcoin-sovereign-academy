@@ -10,7 +10,7 @@
 
 The original v1 and v2 of this deep dive treated quantum computing as a footnote. That was an analytical mistake. Quantum is the only existential cryptographic risk Bitcoin faces, and the 2026 evidence is that the threat window has shortened materially. v3 elevated quantum to its own scenario analysis with explicit probability bands, response timeline, and a new falsifier (F17) in the framework. v4 reconciles the BIP-360 and BIP-361 framing across the framework (F17), this document, and the dashboard.
 
-The honest framing: **quantum is the lowest-probability, highest-impact scenario on Bitcoin's risk map.** Probabilities are wide and contested; the consequences if it materializes are categorical. The right response is to track the threat seriously, support BIP-360 P2MR development (the quantum-resistant address type — required for any meaningful migration), evaluate BIP-361 (the contested freeze proposal — not required for F17 to stay INTACT) on its own merits separately, and avoid both complacency and panic.
+The honest framing: **quantum is the lowest-probability, highest-impact scenario on Bitcoin's risk map.** Probabilities are wide and contested; the consequences if it materializes are categorical. The right response is to track the threat seriously, support BIP-360 P2MR development (the quantum-resistant address type — required for any meaningful migration), evaluate BIP-361 (the contested migration / legacy-signature-sunset proposal — not required for F17 to stay INTACT) on its own merits separately, and avoid both complacency and panic.
 
 ---
 
@@ -22,31 +22,31 @@ Bitcoin signatures use elliptic curve cryptography (ECDSA for legacy addresses, 
 
 | Address type | Vulnerable when? | Approx % of supply |
 |---|---|---|
-| **P2PK (Pay-to-Public-Key)** — early Satoshi-era | Always — public key exposed at creation | ~5% (~1M BTC, mostly dormant) |
+| **P2PK (Pay-to-Public-Key)** — early Satoshi-era | Always — public key exposed at creation | ~1.7–2M BTC (Coinbase / Deloitte), mostly dormant |
 | **P2PKH with reuse** | Once any spend exposes the public key | ~20% (estimates vary) |
 | **P2PKH, never spent** | Only at spend time | ~30% |
 | **P2SH and P2WPKH/P2WSH** | Similar — public key revealed on spend | ~25% |
 | **P2TR (Taproot)** | Public key visible on-chain; Schnorr same quantum exposure as ECDSA | ~5% (growing) |
 | **P2MR (BIP-360, new)** | Post-quantum signatures — resistant by design | 0% (not yet activated) |
 
-The single most-cited concern is the **~1 million BTC believed to be in early Satoshi-era P2PK addresses.** These public keys are visible on-chain today, meaning a quantum computer powerful enough to break ECDSA could begin attacking them immediately. **BIP-361** (a separate proposal from BIP-360 — see below) addresses this specific subset by proposing a mechanism to *freeze* quantum-vulnerable coins via a deadline-based commitment so they cannot be stolen post-quantum-break — at the cost of permanently locking up ~5% of Bitcoin supply, including Satoshi's coins. This is one of the most contested proposals in Bitcoin's history; reasonable people across the community disagree on whether freezing is the right response or whether voluntary migration is sufficient. `[DEV]`
+The single most-cited concern is the P2PK population — Deloitte's ~2020 scan puts total legacy P2PK near **~2M BTC** (practically constant since 2009, assumed mined and never moved); the 2026 Coinbase advisory board estimates **~1.7M**; the ~1.1M "Patoshi" figure is a narrower estimate of Satoshi's own mined subset. These public keys are visible on-chain today, so a quantum computer powerful enough to break ECDSA could attack them immediately. **BIP-361** (a separate proposal from BIP-360 — see below) targets this exposed legacy set via its Phase-B legacy-signature sunset: after a deadline, legacy spends must satisfy a quantum-safe rescue protocol, whose practical effect is that **unsupported outputs — notably P2PK — may become effectively unspendable** (the draft acknowledges some outputs may have no known rescue protocol). The amount affected is contested and depends on rescue coverage. This is one of the most contested proposals in Bitcoin's history; reasonable people disagree on whether a sunset is the right response or whether voluntary migration is sufficient. `[DEV]`
 
-## Bitcoin's response: BIP-360 (the activation that matters for F17) and BIP-361 (contested freeze proposal)
+## Bitcoin's response: BIP-360 (the activation that matters for F17) and BIP-361 (contested migration / legacy-signature sunset)
 
 **These are separate proposals with separate roles.** v3 of this document framed them together in a way that made F17 harder to evaluate. v4 reconciliation:
 
 **BIP-360 — quantum-resistant address type. The activation that matters for F17(a).**
 
 - Entered the Bitcoin BIPs repository **February 10, 2026**.
-- Introduces **Pay-to-Merkle-Root (P2MR)**, a new Bitcoin output type that preserves Taproot-style script trees while removing the quantum-vulnerable key-path spend. P2MR uses post-quantum signatures (likely Dilithium / ML-DSA, NIST-standardized as part of the post-quantum cryptography standardization process).
+- Introduces **Pay-to-Merkle-Root (P2MR)**, a new Bitcoin output type that preserves Taproot-style script trees while removing the quantum-vulnerable key-path spend. P2MR uses post-quantum signatures (likely Dilithium / ML-DSA, NIST-standardized). **It is a conservative defense against *long-exposure* attacks specifically** — coins whose public key would otherwise sit revealed at rest. **Complete *short-exposure* protection (the ~10-minute spend-reveal window) may require post-quantum *signature* schemes**; P2MR reduces at-rest exposure but is not, on its own, a total quantum fix.
 - Source: [github.com/bitcoin/bips — BIP-0360](https://github.com/bitcoin/bips/blob/master/bip-0360.mediawiki) `[DEV]`.
 - **F17(a) tracks BIP-360 activation specifically.** A demonstrated CRQC before end of 2032, combined with BIP-360 *not* having activated on mainnet, fires F17(a).
 
-**BIP-361 — freeze quantum-vulnerable coins. Contested. Not part of the F17 threshold.**
+**BIP-361 — Post Quantum Migration and Legacy Signature Sunset. Contested. Not part of the F17 threshold.**
 
-- A separately-numbered proposal for a soft-fork mechanism to *freeze* coins at quantum-vulnerable addresses (notably the early P2PK addresses) on a deadline, forcing migration to BIP-360-style addresses before the quantum threat materializes.
-- Highly contested. Permanently locking up ~5% of Bitcoin supply — including Satoshi's coins — has strong technical-and-philosophical proponents and equally strong opponents.
-- **BIP-361 is *not* required for F17 to stay INTACT.** A reasonable migration path without BIP-361 is voluntary user-driven migration from quantum-vulnerable to BIP-360 addresses; coins that don't move would remain exposed but the supply-impact is bounded. `[DEV]` `[PRESS]`
+- A separately-numbered proposal (Draft/Informational; Lopp et al.; assigned Feb 11, 2026), delivered as soft forks. **Two phases:** **Phase A** restricts new sends to quantum-vulnerable address types; **Phase B** tightens legacy ECDSA/Schnorr spending to require a **quantum-safe rescue protocol** after an announced deadline. The rescue mechanism is part of Phase B — the draft discusses hardened BIP-32 derivation, ZK-STARKs, and commit-reveal proofs, and acknowledges that some outputs, **notably P2PK, may have no known rescue protocol.** It is not a bare "freeze," and BIP assignment ≠ consensus, activation, or likely adoption.
+- **Practical effect is graded, not a blanket lock:** ordinary vulnerable signatures may cease to be sufficient after the deadline; authentic holders covered by a rescue protocol may remain able to spend; unsupported outputs (notably P2PK) may become effectively unspendable; the exact rescue coverage is **unresolved**. The amount affected depends on that coverage and on which exposure estimate you use (Deloitte >4M / Coinbase ~7M).
+- **BIP-361 is *not* required for F17(a) to stay INTACT** — BIP-360 activation is the sole protocol threshold. But a migration / legacy-sunset mechanism is **not** irrelevant to the final risk: voluntary migration only protects coins with a live, capable owner. It cannot reach **structurally unmovable** exposed-key coins (lost keys, deceased/inactive owners), which Deloitte flags directly ("these coins cannot be transferred"). The residual exposed supply is therefore **not reliably bounded**, and its size is **unmeasured**: Deloitte's ~2020 scan observed declining reuse, while the 2026 Coinbase advisory board estimates a larger reuse population it argues is likely active (a conclusion Coinbase itself calls partly conjectural) — neither directly measures the movable-vs-unmovable split. Whether a legacy-signature sunset should close the residual is a live governance dispute; see F17(b). `[DEV]` `[PRESS]`
 
 **BTQ Technologies** released **Bitcoin Quantum testnet v0.3.0 in March 2026** with a full working implementation of BIP-360 (P2MR). P2MR transactions are being created and spent on the live test network. `[PROJ]`
 
@@ -73,7 +73,7 @@ These bands are deliberately wide because the underlying physics, engineering, a
 
 ### The race condition
 
-The critical question is the relative position of two curves: **quantum hardware capability** and **Bitcoin's quantum-resistance activation + migration**. If hardware moves faster than expected, or if Bitcoin's soft-fork timeline slips, there is a window where ~25% of BTC supply (vulnerable P2PK + reused-P2PKH) could be at risk before migration completes.
+The critical question is the relative position of two curves: **quantum hardware capability** and **Bitcoin's quantum-resistance activation + migration**. If hardware moves faster than expected, or Bitcoin's soft-fork timeline slips, a large exposed-key population is at risk, and estimates diverge: Deloitte's ~2020 scan found **>4M BTC (~25%)** (~2M P2PK + ~2.5M reuse); the Coinbase advisory board (2026) estimates **~7M** (~1.7M P2PK + ~5M reuse); Chaincode Labs gives **4–10M**. Treat "~25%" as one dated point in a wide range. The population is **not uniform**: for movable coins the exposure window is temporary (migrate at/before spend); for structurally unmovable exposed-key coins migration **never completes** and exposure is **permanent** absent a sunset. Distinguish the **long-exposure** attack (already-revealed keys) from the **short-exposure** attack (the ~10-minute spend-reveal race), which are defended differently.
 
 **This is the only existential cryptographic risk in the entire deep dive that could invalidate Bitcoin's SoV claim independently of any other variable.** Every other risk (regulation, security budget, competition) erodes Bitcoin's position; a successful quantum attack could in principle destroy it.
 
@@ -83,11 +83,11 @@ The critical question is the relative position of two curves: **quantum hardware
 
 2. **Avoid address reuse.** Once a public key is revealed on a P2PKH spend, that address becomes quantum-vulnerable. Generate a fresh address per receive. (Standard practice for privacy reasons too.)
 
-3. **Plan for migration.** When P2MR (BIP-360) activates, move BTC to quantum-resistant addresses. Cost will be a single on-chain transaction per UTXO.
+3. **Plan for migration.** When P2MR (BIP-360) activates, move BTC to quantum-resistant addresses. Cost will be a single on-chain transaction per UTXO. **This protects only coins you can move, and only against the long-exposure attack.** It does nothing for the structurally unmovable exposed-key set (lost/dormant coins). The Coinbase board also finds some large exposed reused balances belong to known exchanges or show recent activity — so a meaningful share of exposed supply is movable but institutionally held (an organizational migration responsibility), though exact active ownership cannot be measured. A residual **short-exposure** risk remains at the moment of any spend.
 
 4. **Do not panic-sell on quantum news.** Probability bands above show even the 2030 scenario is 5–15% likely. Quantum hardware progress is publicly tracked; the community will have warning before an active threat.
 
-5. **Track BIP-360 progress as the activation that matters.** BIP-361 is a separate, contested freeze proposal — track it on its own merits, but a Bitcoin migration path is viable without BIP-361. The covenant debate's CTV timeline (start March 30, 2026; minimum activation height May 2027) is a reference point. Quantum proposals are roughly 12–24 months behind covenants in maturity.
+5. **Track BIP-360 progress as the activation that matters.** BIP-361 is a separate, contested migration / legacy-signature-sunset proposal — track it on its own merits, but a Bitcoin migration path is viable without BIP-361. The covenant debate's CTV timeline (start March 30, 2026; minimum activation height May 2027) is a reference point. Quantum proposals are roughly 12–24 months behind covenants in maturity.
 
 ## F17 — the quantum falsifier in the framework (v4 reconciliation)
 
@@ -96,12 +96,12 @@ The critical question is the relative position of two curves: **quantum hardware
 **Falsification threshold.** Either:
 
 - **(a)** A cryptographically relevant quantum computer capable of breaking ECDSA in production is publicly demonstrated before end of 2032 **AND BIP-360 (P2MR) quantum-resistant addresses have not yet activated on Bitcoin mainnet**. BIP-361 status is *not* part of this threshold.
-- **(b)** Any successful quantum-attack-based theft of BTC from a previously-secure address occurs, at any scale, before end of 2032.
+- **(b)** Any successful quantum-attack-based theft of BTC from a previously-secure address before end of 2032 — **evaluated by branch**: **B1** (structurally unmovable exposed-key coins, e.g. Satoshi-era P2PK) triggers a mandatory **claim-by-claim review** (monetary-cap/float — the 21M cap and ledger history stay intact, effective float may rise → supply/price shock; ownership-assurance/authorization — control no longer exclusive to the recognized owner, *not* an immutability failure; governance neutrality; market confidence), not automatic unilateral invalidation; **B2a** (holder used the best available protection for the attack class and was still robbed) fires the core-SoV falsifier **only if** attributable to a break of the replacement cryptography itself, with attribution naming what broke; **B2b** (movable holder who stayed vulnerable despite a migration path) is **user non-migration**, not a cryptography failure.
 
 **Measurement source.** IBM / Google / academic quantum hardware roadmaps. Bitcoin BIPs repository and Bitcoin Core release notes for BIP-360 activation tracking. NIST post-quantum cryptography standardization announcements. On-chain forensics of any theft event. `[DEV]` `[INST]`
 
 - Primary BIP-360 reference: [github.com/bitcoin/bips — BIP-0360](https://github.com/bitcoin/bips/blob/master/bip-0360.mediawiki)
-- BIP-361 status tracked separately (contested freeze proposal — not a F17 input)
+- BIP-361 status tracked separately (contested migration / legacy-signature-sunset proposal — not a F17 input)
 
 **Why it matters.** This is the only single-event falsifier that could *unilaterally* invalidate Bitcoin's SoV claim. Most other falsifiers (Tron displacement, L2 scale, regulatory) erode position; quantum could destroy it.
 
@@ -129,7 +129,7 @@ The right response is not to remove these long-horizon claims; it is to mark the
 - [Datawallet: BIP-360 Explained](https://www.datawallet.com/crypto/bip-360-explained) `[PRESS]`
 - [Phemex: BIP-360 P2MR address type](https://phemex.com/blogs/bitcoin-quantum-resistant-address-bip-360) `[PRESS]`
 - [Crypto.news: Is Bitcoin quantum-safe 2026](https://crypto.news/is-bitcoin-quantum-safe/) `[PRESS]`
-- [KuCoin: BIP-361 freezing quantum-vulnerable coins (contested freeze proposal — separate from BIP-360)](https://www.kucoin.com/blog/bip-361-explained-bitcoin-new-plan-to-survive-quantum-computing) `[PRESS]`
+- [KuCoin: BIP-361 explainer (contested migration / legacy-signature-sunset proposal — separate from BIP-360)](https://www.kucoin.com/blog/bip-361-explained-bitcoin-new-plan-to-survive-quantum-computing) `[PRESS]` — secondary; see BIP-361 mediawiki for the primary
 - [The Quantum Space: Bitcoin's first quantum step](https://thequantumspace.org/2026/02/24/bitcoins-first-quantum-step/) `[ANEC]`
 
 *Companion to v4 of "Bitcoin Is No Longer Just the Foundational Layer." Probability bands will be revised quarterly as quantum hardware progress and BIP-360 status evolve. The methodology-immutability rule applies: probability bands can be tightened (narrower error), never widened to save the thesis. v4 update: BIP-360 and BIP-361 reconciled as separate proposals — F17(a) tracks BIP-360 only; BIP-361 status reported for context but is not a falsifier input.*

@@ -1,10 +1,10 @@
-# Verifier report — zone: `answers/`
+# Verifier report — zone: `programa-colombia/`
 
 _Automated where deterministic. Gated where judgment, rendered UI, shared CSS, or irreversible repo changes are involved._
 
-- Proposed patch: `reports/zones/answers/proposed.patch`
+- Proposed patch: `reports/zones/programa-colombia/proposed.patch`
 - Files in patch: 0
-- Human-frozen pages excluded (no action): 0
+- Human-frozen pages excluded (no action): 13
 - Diff-integrity: **PASS** (only added line allowed: the canonical link; no removed lines)
 - Screenshot QA: NOT REQUIRED (no data-* pages in scope; static link-only change)
 - Apply gate: **OPEN — eligible for gated apply after human approval**
@@ -18,6 +18,6 @@ _Automated where deterministic. Gated where judgment, rendered UI, shared CSS, o
 ## Next step
 Review the patch, then apply (gated):
 ```
-git apply reports/zones/answers/proposed.patch   # run after approval, in your terminal
-# or: scripts/brand-pipeline.sh answers --apply
+git apply reports/zones/programa-colombia/proposed.patch   # run after approval, in your terminal
+# or: scripts/brand-pipeline.sh programa-colombia --apply
 ```

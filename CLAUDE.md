@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+> **Canonical context — read first.** The brain of The Sovereign Academy lives in the **TSA** repo (`~/Documents/Claude/Projects/TSA`). Before working here, read `TSA/MEMORY.md` (canonical facts, incl. resolved conflicts) and `TSA/standards/content-operating-system.md` (operating rules), and follow that standard. This repo inherits from TSA; it does not redefine it. **Design:** BSA has not migrated to the canonical TSA design style — do not blend styles.
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project
