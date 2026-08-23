@@ -178,7 +178,7 @@ Goal: integrated into the resource.
 1. Add cross-links from mortgage deep dive (taxonomy + Open Questions)
 2. Update category index — promote loans deep dive alongside mortgages
 3. Update BSA navigation if applicable
-4. Update memory: `memory/context/bitcoin-adviser.md` to note LMC has its own home
+4. Update memory: `TSA/memory/context/bitcoin-adviser.md` to note LMC has its own home
 5. Update glossary with any new vocabulary
 
 **Deliverable:** Cross-linking verified, both deep dives stand alone but feed each other.
