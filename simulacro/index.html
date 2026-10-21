@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="es" data-platform="bsa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulacro de herencia — BSA</title>
+<meta name="description" content="Un simulacro de dos minutos: qué pasaría con su bitcoin si fallece, queda incapacitado o pierde un respaldo. Sin claves ni montos. En español e inglés.">
+<link rel="canonical" href="https://bitcoinsovereign.academy/simulacro">
+<meta name="theme-color" content="#121316">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Bitcoin Sovereign Academy">
+<meta property="og:title" content="Si mañana usted no pudiera firmar, ¿quién movería su bitcoin?">
+<meta property="og:description" content="Un simulacro de dos minutos: qué pasaría con su bitcoin si fallece, queda incapacitado o pierde un respaldo. Sin claves ni montos. En español e inglés.">
+<meta property="og:url" content="https://bitcoinsovereign.academy/simulacro">
+<meta property="og:image" content="https://bitcoinsovereign.academy/simulacro/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Simulacro de herencia / Inheritance fire drill · Bitcoin Sovereign Academy">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Si mañana usted no pudiera firmar, ¿quién movería su bitcoin?">
+<meta name="twitter:description" content="Un simulacro de dos minutos: qué pasaría con su bitcoin si fallece, queda incapacitado o pierde un respaldo. Sin claves ni montos. En español e inglés.">
+<meta name="twitter:image" content="https://bitcoinsovereign.academy/simulacro/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+/* Tokens from the TSA master design system: sovereign-academy-hub/css/tsa-design-tokens.css
+   (graphite neutral base, shared type and radii) with the BSA platform accent swap
+   from tsa-platform-variants.css [data-platform="bsa"]. Raw values copied, names kept. */
+:root{
+  --n-bg:#121316; --n-surface:#191B1F; --n-elevated:#212429; --n-deepest:#0C0D0F;
+  --n-border:#2C2F36; --n-border-strong:#3C4047; --n-ink:#ECECE6; --n-ink-strong:#FBFBF7; --n-muted:#A7ABB3; --n-faint:#6E727A;
+  --bsa-orange:#FF7A00; --bsa-orange-hot:#FF9A00; --bsa-yellow:#FFD400; --bsa-deep:#E85F00; --bsa-solid:#FF9A00;
+  --bsa-fade:linear-gradient(135deg,#FF7A00 0%,#FF9A00 45%,#FFD400 100%);
+  --bsa-fade-h:linear-gradient(90deg,#FF7A00 0%,#FF9A00 45%,#FFD400 100%);
+  --brand:var(--bsa-orange); --accent:var(--bsa-orange-hot); --brand-fade:var(--bsa-fade); --brand-fade-h:var(--bsa-fade-h); --brand-solid:var(--bsa-solid);
+  --bg:var(--n-bg); --surface:var(--n-surface); --elevated:var(--n-elevated); --deepest:var(--n-deepest);
+  --border:var(--n-border); --border-strong:var(--n-border-strong); --ink:var(--n-ink); --ink-strong:var(--n-ink-strong); --muted:var(--n-muted); --faint:var(--n-faint);
+  --success:#34D399; --warning:#F4B740; --error:#F87171;
+  --success-soft:rgba(52,211,153,.12); --warning-soft:rgba(244,183,64,.13); --error-soft:rgba(248,113,113,.13); --brand-soft:rgba(255,122,0,.12);
+  --font-serif:'Playfair Display', Georgia, serif;
+  --font-sans:'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+  --radius-sm:2px; --radius-md:4px; --radius-pill:999px;
+  --transition-base:200ms cubic-bezier(0.4,0,0.2,1);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-size:16px;line-height:1.6;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+a{color:var(--accent);text-underline-offset:3px}
+.bsa-bar{max-width:1100px;margin:0 auto;padding-block:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.bsa-bar a.home{font-family:var(--font-mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);text-decoration:none;display:flex;align-items:center;gap:10px}
+.bsa-bar a.home .mark{width:26px;height:26px;border-radius:50%;background:var(--brand-fade);display:grid;place-items:center;font-family:var(--font-serif);font-weight:700;color:var(--n-deepest);letter-spacing:0;font-size:15px}
+.wrap{max-width:1100px;margin:0 auto;padding-block:26px 40px;display:grid;gap:26px}
+.label{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+h1,h2{font-family:var(--font-serif);font-weight:700;text-wrap:balance;margin:0;color:var(--ink-strong)}
+h3{font-family:var(--font-sans);font-weight:600;margin:0;color:var(--ink-strong)}
+h1{font-size:clamp(2.1rem,5.2vw,3.6rem);line-height:1.08;letter-spacing:-.015em}
+h1 em,.fade{font-style:italic;background:var(--brand-fade);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--accent)}
+h2{font-size:clamp(1.5rem,3vw,2rem);line-height:1.15}
+h3{font-size:1.1rem}
+p{margin:0}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.lang{display:flex;border:1px solid var(--border-strong);border-radius:var(--radius-pill);overflow:hidden}
+.lang button{font:inherit;font-family:var(--font-mono);font-size:12px;font-weight:500;border:0;background:transparent;color:var(--muted);padding:6px 12px;cursor:pointer;letter-spacing:.08em}
+.lang button[aria-pressed="true"]{background:var(--brand-solid);color:var(--n-deepest)}
+.lang button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.lede{font-size:1.15rem;color:var(--muted);max-width:62ch}
+.layers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);position:relative;overflow:hidden}
+.layers::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--brand-fade-h)}
+.layers div{padding:16px 16px 14px;display:grid;gap:4px;min-width:0}
+.layers div+div{border-left:1px solid var(--border)}
+.layers b{font-family:var(--font-serif);font-size:1.15rem;font-weight:700;line-height:1.25;color:var(--ink-strong)}
+.privacy{display:flex;gap:10px;align-items:flex-start;font-size:.92rem;color:var(--muted)}
+.privacy .dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--success);margin-top:8px}
+.pro{background:var(--deepest);border:1px solid var(--border);border-radius:var(--radius-md);padding:22px;display:grid;gap:10px;position:relative;overflow:hidden}
+.pro::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--brand-fade-h)}
+.pro .label{color:var(--accent)}
+.pro h2{font-size:clamp(1.4rem,2.6vw,1.8rem)}
+.pro p{max-width:74ch;color:var(--ink)}
+.banner{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--brand);border-radius:var(--radius-md);padding:16px 18px;display:grid;gap:8px}
+.banner.alertline{border-left-color:var(--error)}
+.banner .case{font-family:var(--font-serif);font-size:1.15rem;line-height:1.4;color:var(--ink-strong)}
+.main{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:22px;align-items:start}
+.sheet{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;display:grid;gap:22px}
+fieldset{border:0;margin:0;padding:0;display:grid;gap:8px;min-width:0}
+fieldset[hidden]{display:none}
+legend{font-weight:600;margin-bottom:8px;padding:0;font-size:.98rem;color:var(--ink-strong)}
+legend .label{display:block;margin-bottom:3px;color:var(--accent)}
+.opts{display:grid;gap:6px}
+.opts.chips{display:flex;flex-wrap:wrap;gap:6px}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt label{display:block;cursor:pointer;border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 11px;font-size:.92rem;line-height:1.35;background:var(--elevated);color:var(--ink);transition:border-color var(--transition-base),background var(--transition-base)}
+.opts.chips .opt label{border-radius:var(--radius-pill);padding:6px 12px}
+.opt label:hover{border-color:var(--accent)}
+.opt input:checked + label{background:var(--brand-solid);border-color:var(--brand-solid);color:var(--n-deepest);font-weight:600}
+.opt input:focus-visible + label{outline:2px solid var(--bsa-yellow);outline-offset:2px}
+.example{font-size:.85rem;color:var(--faint)}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.presets button{font:inherit;font-size:.85rem;border:1px dashed var(--accent);background:transparent;color:var(--accent);border-radius:var(--radius-pill);padding:5px 11px;cursor:pointer}
+.presets button:hover{background:var(--brand-soft)}
+.presets button:focus-visible{outline:2px solid var(--bsa-yellow);outline-offset:2px}
+.acta{display:grid;gap:16px;min-width:0}
+.verdict{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+.verdict .head{padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;border-bottom:1px solid var(--border)}
+.pill{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:var(--radius-pill);font-weight:500}
+.pill.alto{background:var(--error-soft);color:var(--error)}
+.pill.medio{background:var(--warning-soft);color:var(--warning)}
+.pill.bajo{background:var(--success-soft);color:var(--success)}
+#gapText{color:var(--ink-strong)}
+.verdict .cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.verdict .cols div{padding:14px 16px;display:grid;gap:5px;align-content:start;min-width:0}
+.verdict .cols div+div{border-left:1px solid var(--border)}
+.verdict .cols p{font-family:var(--font-serif);font-size:1.02rem;line-height:1.4;color:var(--ink-strong)}
+.steps{list-style:none;margin:0;padding:0;display:grid;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md)}
+.steps li{display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;padding:14px 16px}
+.steps li+li{border-top:1px dashed var(--border)}
+.steps .n{font-family:var(--font-serif);font-size:1.5rem;font-weight:700;line-height:1.05;background:var(--brand-fade);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--accent)}
+.steps h3{font-size:1rem;margin-bottom:3px}
+.steps p{font-size:.95rem;color:var(--ink)}
+.flagtag{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--error);background:var(--error-soft);padding:2px 7px;border-radius:var(--radius-pill);margin-left:8px;vertical-align:2px;font-weight:500}
+.law{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;display:grid;gap:10px}
+.share{display:grid;gap:6px}
+.track{height:12px;border-radius:var(--radius-sm);background:var(--elevated);border:1px solid var(--border);overflow:hidden}
+.fill{height:100%;background:var(--brand-fade-h)}
+.ticks{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--faint)}
+.law .src{font-size:.82rem;color:var(--faint)}
+.status{font-size:.9rem;color:var(--muted)}
+.memo{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;display:grid;gap:10px}
+.memo pre{white-space:pre-wrap;font-family:var(--font-sans);font-size:.9rem;background:var(--elevated);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin:0;overflow:auto;color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button.copy{font:inherit;font-weight:600;border:0;background:var(--brand-fade-h);color:var(--n-deepest);border-radius:var(--radius-sm);padding:10px 16px;cursor:pointer}
+button.copy:focus-visible{outline:2px solid var(--bsa-yellow);outline-offset:2px}
+.next{border-top:1px solid var(--border);padding-top:14px;display:grid;gap:6px;font-size:.95rem}
+.next p{max-width:62ch;color:var(--muted)}
+.next .who{font-size:.8rem;color:var(--faint)}
+.foot{font-size:.82rem;color:var(--faint);display:grid;gap:8px;max-width:80ch}
+.foot ul{margin:0;padding-left:18px}
+@media (max-width:780px){
+  .main{grid-template-columns:minmax(0,1fr)}
+  .layers,.verdict .cols{grid-template-columns:minmax(0,1fr)}
+  .layers div+div,.verdict .cols div+div{border-left:0;border-top:1px solid var(--border)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link" style="position:absolute;left:-9999px">Skip to main content</a>
+<nav class="bsa-bar" aria-label="Bitcoin Sovereign Academy"><a class="home" href="/"><span class="mark" aria-hidden="true">B</span>Bitcoin Sovereign Academy</a></nav>
+<main class="wrap" id="main-content">
+  <div class="topbar">
+    <span class="label" id="eyebrow"></span>
+    <div class="lang" role="group" aria-label="Idioma / Language">
+      <button type="button" id="btn-es" aria-pressed="true">ES</button>
+      <button type="button" id="btn-en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+
+  <section class="pro" id="pro" hidden>
+    <span class="label" id="proLabel"></span>
+    <h2 id="proTitle"></h2>
+    <p id="proP1"></p>
+    <p id="proP2"></p>
+  </section>
+
+  <section class="banner alertline" id="reveal" hidden aria-live="polite"></section>
+  <section class="banner" id="presetBanner" hidden aria-live="polite"></section>
+
+  <header style="display:grid;gap:14px">
+    <h1 id="h1"><span id="h1a">Si mañana usted no pudiera firmar,</span> <em id="h1b">¿quién movería su bitcoin?</em></h1>
+    <p class="lede" id="lede">Elija cómo tiene hoy su bitcoin y qué quiere simular. Verá qué ocurriría, en orden, en tres capas: el derecho, la titularidad y la firma. Al final, una hoja para llevar a su abogado.</p>
+    <div class="layers" aria-label="Three layers">
+      <div><span class="label" id="l1k"></span><b id="l1v"></b></div>
+      <div><span class="label" id="l2k"></span><b id="l2v"></b></div>
+      <div><span class="label" id="l3k"></span><b id="l3v"></b></div>
+    </div>
+    <p class="privacy"><span class="dot" aria-hidden="true"></span><span id="privacy"></span></p>
+  </header>
+
+  <div class="main">
+    <form class="sheet" id="form">
+      <div style="display:grid;gap:8px">
+        <span class="label" id="presetsLabel"></span>
+        <div class="presets" id="presets"></div>
+        <p class="example" id="exampleNote"></p>
+      </div>
+      <fieldset id="f-x"><legend><span class="label" data-t="qxl"></span><span data-t="qx"></span></legend><div class="opts" data-name="x"></div></fieldset>
+      <fieldset id="f-c"><legend><span class="label" data-t="qcl"></span><span data-t="qc"></span></legend><div class="opts" data-name="c"></div></fieldset>
+      <fieldset id="f-s"><legend><span class="label" data-t="qsl"></span><span data-t="qs"></span></legend><div class="opts" data-name="s"></div></fieldset>
+      <fieldset id="f-k"><legend><span class="label" data-t="qkl"></span><span data-t="qk"></span></legend><div class="opts" data-name="k"></div></fieldset>
+      <fieldset id="f-e"><legend><span class="label" data-t="qel"></span><span data-t="qe"></span></legend><div class="opts chips" data-name="e"></div></fieldset>
+      <fieldset id="f-h"><legend><span class="label" data-t="qhl"></span><span data-t="qh"></span></legend><div class="opts chips" data-name="h"></div></fieldset>
+      <fieldset id="f-j"><legend><span class="label" data-t="qjl"></span><span data-t="qj"></span></legend><div class="opts chips" data-name="j"></div></fieldset>
+    </form>
+
+    <section class="acta" aria-live="polite">
+      <div class="verdict">
+        <div class="head"><span class="label" data-t="result"></span><span class="pill" id="gapPill"></span><span id="gapText" style="font-weight:600"></span></div>
+        <div class="cols">
+          <div><span class="label" data-t="c1"></span><p id="v1"></p></div>
+          <div><span class="label" data-t="c2"></span><p id="v2"></p></div>
+          <div><span class="label" data-t="c3"></span><p id="v3"></p></div>
+        </div>
+      </div>
+      <ol class="steps" id="steps"></ol>
+      <div class="law" id="lawCard">
+        <span class="label" data-t="lawLabel"></span>
+        <h3 id="lawTitle"></h3>
+        <div class="share" id="shareBox">
+          <div class="track"><div class="fill" id="shareFill"></div></div>
+          <div class="ticks"><span>0</span><span>¼</span><span>½</span><span>¾</span></div>
+          <span class="status" id="shareCaption"></span>
+        </div>
+        <p id="lawBody"></p>
+        <p class="src" id="lawSrc"></p>
+      </div>
+      <div class="memo">
+        <span class="label" data-t="memoLabel"></span>
+        <h3 data-t="memoTitle"></h3>
+        <pre id="memo"></pre>
+        <div class="row"><button type="button" class="copy" id="copyBtn" data-t="copy"></button><span class="status" id="copyStatus" role="status"></span></div>
+        <div class="next">
+          <p id="nextP"></p>
+          <p class="row"><a id="nextBook" target="_blank" rel="noopener"></a><span aria-hidden="true">·</span><a id="nextPage" target="_blank" rel="noopener"></a></p>
+          <p class="who">Dalia Platt · The Bitcoin Adviser</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="foot">
+    <p id="f1"></p>
+    <p id="f2"></p>
+    <p id="f3"></p>
+    <ul id="fsrc"></ul>
+  </div>
+</main>
+<!-- BSA-AFFILIATION-DISCLOSURE v1 — owner ruling D3, 2026-10-12: one disclosure, at the bottom of every page that names TBA or LMC. Keep the first two sentences identical across pages. -->
+<aside class="bsa-affiliation-disclosure" role="note" aria-label="Disclosure" style="max-width:1100px;margin:2.5rem auto 1.5rem;padding:1rem 1.25rem;border-top:1px solid rgba(255,122,0,0.35);font-size:0.9rem;line-height:1.6;color:#cbd2da;">
+  <strong style="color:#FF9A00;">Disclosure:</strong> I advise at The Bitcoin Adviser (TBA). Loan My Coins (LMC) is part of TBA&rsquo;s family of services. I mention TBA here because it is one example of a collaborative security model, but it is not the only qualified option.
+  <span id="discES" lang="es" style="display:block;margin-top:.4rem;color:#A7ABB3;">Asesoro en The Bitcoin Adviser (TBA). Loan My Coins (LMC) forma parte de la familia de servicios de TBA. Menciono a TBA porque es un ejemplo de un modelo de seguridad colaborativa, pero no es la única opción calificada.</span>
+</aside>
+<footer style="max-width:72rem;margin:2rem auto 0;padding:1.2rem 1rem;border-top:1px solid rgba(128,128,128,.35);font-size:.8rem;opacity:.85;text-align:center;">© 2026 The Sovereign Academy LLC · Educational content only · Not individualized financial, investment, legal, or tax advice · <a href="https://thesovereign.academy/legal/disclaimer/" style="color:inherit">Disclaimer &amp; Limitations</a></footer>
+
+<script>
+(function(){
+let lang='es';
+const t=(es,en)=>lang==='en'?en:es;
+
+const Q={
+  x:[['directo',()=>t('Bitcoin a mi nombre (en una plataforma o en mi propia billetera)','Bitcoin I own directly (on a platform or in my own wallet)')],
+     ['entidad',()=>t('Bitcoin dentro de una sociedad o una fundación','Bitcoin held by a company or a foundation')],
+     ['etf',()=>t('Un ETF o fondo de bitcoin, en una corredora','A bitcoin ETF or fund, at a brokerage')],
+     ['tesorera',()=>t('Acciones de una empresa que acumula bitcoin','Shares of a company that holds bitcoin on its balance sheet')]],
+  c:[['plataforma',()=>t('En una plataforma o exchange','On a platform or exchange')],
+     ['una_llave',()=>t('En una billetera de una sola llave (por ejemplo, un dispositivo físico)','In a single-key wallet (for example, a hardware device)')],
+     ['multi_propia',()=>t('Billetera de varias llaves, y todas las tengo yo','Multi-key wallet, and I hold all the keys')],
+     ['multi_herederos',()=>t('Billetera de varias llaves, repartidas entre mis herederos o familiares','Multi-key wallet, with keys split among my heirs or family')],
+     ['multi_terceros',()=>t('Billetera de varias llaves, con llaves en manos de profesionales o instituciones','Multi-key wallet, with keys held by professionals or institutions')],
+     ['no_se',()=>t('No estoy seguro','Not sure')]],
+  s:[['solo_yo',()=>t('Solo yo sé dónde está','Only I know where it is')],
+     ['familia',()=>t('Alguien de mi familia sabe dónde está o tiene una copia','Someone in my family knows where it is or has a copy')],
+     ['sobre',()=>t('En un sobre o una caja de seguridad (casa, banco, notaría o despacho)','In an envelope or safe (home, bank, notary or law office)')],
+     ['repartido',()=>t('Repartido en partes o en lugares distintos','Split into parts or kept in different places')],
+     ['no_se',()=>t('No estoy seguro','Not sure')]],
+  k:[['nadie',()=>t('Nadie más','No one else')],
+     ['familia',()=>t('Mi familia, de palabra','My family, informally')],
+     ['abogado',()=>t('Mi abogado o notario','My lawyer or notary')],
+     ['testamento',()=>t('Figura en mi testamento o en mis documentos de planificación','It is in my will or planning documents')]],
+  e:[['fallecimiento',()=>t('Fallezco','I die')],['incapacidad',()=>t('Quedo incapacitado','I become incapacitated')],['perdida',()=>t('Pierdo un dispositivo o un respaldo','I lose a device or a backup')]],
+  h:[['uno',()=>t('Uno','One')],['varios',()=>t('Varios','Several')]],
+  j:[['ar',()=>'Argentina'],['cl',()=>'Chile'],['co',()=>'Colombia'],['mx',()=>t('México','Mexico')],['pa',()=>t('Panamá','Panama')],['cr',()=>'Costa Rica'],
+     ['fl',()=>t('EE. UU. (Florida)','US (Florida)')],['esp',()=>t('España','Spain')],['cat',()=>t('Cataluña','Catalonia')],['gal',()=>t('Galicia','Galicia')],['ara',()=>t('Aragón','Aragon')],['pv',()=>t('País Vasco','Basque Country')],['nav',()=>'Navarra'],['otro',()=>t('Otro país','Other country')]]
+};
+const NOSHARE_ES='Sin una porción protegida que reclamar, el riesgo está en otra parte: que el bitcoin no llegue a quien usted eligió.';
+const NOSHARE_EN='With no protected share to claim, the risk is elsewhere: that the bitcoin does not reach the person you chose.';
+const LAW={
+  ar:{n:()=>'Argentina',share:2/3,cap:()=>t('Con hijos, dos tercios del patrimonio quedan reservados a ellos.','With children, two thirds of the estate is reserved for them.'),
+      b:()=>t('Desde la Ley 27.587 (2020), lo donado en exceso a un descendiente o al cónyuge se compensa en dinero (art. 2386). Los demás herederos tienen un crédito contra quien recibió de más. Si lo que recibió es bitcoin que solo él puede firmar, cobrar ese crédito depende de que tenga otros bienes alcanzables o de que coopere.','Since Ley 27.587 (2020), an excess gift to a descendant or spouse is settled in money (art. 2386). The other heirs hold a claim against whoever received too much. If what that person received is bitcoin only they can sign for, collecting depends on their other reachable assets or on their cooperation.'),
+      s:'CCyC arts. 2386, 2445, 2454.'},
+  cl:{n:()=>'Chile',share:3/4,cap:()=>t('Con hijos, la mitad es legítima y otra cuarta parte (cuarta de mejoras) debe quedar dentro de la familia. El testador dispone libremente de un cuarto.','With children, half is the legítima and another quarter (cuarta de mejoras) must stay within the family. The testator freely disposes of one quarter.'),
+      b:()=>t('Si se donó en exceso, procede la restitución contra los donatarios. El Código no dice si eso alcanza el bien mismo o solo su valor, y la doctrina chilena está dividida.','If too much was given away, restitution runs against the donees. The Code does not say whether that reaches the asset itself or only its value, and Chilean scholarship is divided.'),
+      s:'Código Civil arts. 1184, 1187.'},
+  co:{n:()=>'Colombia',share:1/2,cap:()=>t('La mitad del patrimonio es legítima.','Half of the estate is the legítima.'),
+      b:()=>t('La Ley 1934 de 2018 suprimió la cuarta de mejoras para los testamentos depositados desde el 1 de enero de 2019; los anteriores conservan la división antigua. No se encontró autoridad sobre si la restitución alcanza el bien o su valor.','Ley 1934 of 2018 abolished the cuarta de mejoras for wills deposited from 1 January 2019; earlier wills keep the old division. No authority was found on whether restitution reaches the asset or its value.'),
+      s:'Código Civil art. 1242 (Ley 1934 de 2018).'},
+  esp:{n:()=>t('España (derecho común)','Spain (common civil law)'),share:2/3,cap:()=>t('Con hijos, dos tercios (legítima estricta y tercio de mejora) deben quedar en la familia.','With children, two thirds (strict legítima and the tercio de mejora) must stay in the family.'),
+      b:()=>t('El heredero que a sabiendas omite bienes del inventario pierde el beneficio de inventario y responde con su propio patrimonio. Es una sanción fuerte contra una persona. No produce la firma que mueve el bitcoin.','An heir who knowingly leaves assets out of the inventory loses the benefit of inventory and becomes liable with their own assets. That is strong pressure on a person. It does not produce the signature that moves the bitcoin.'),
+      s:'Código Civil arts. 808, 823, 1002, 1024.1.'},
+  cat:{n:()=>t('Cataluña','Catalonia'),share:1/4,cap:()=>t('La legítima es una cuarta parte.','The legítima is one quarter.'),b:()=>t('El reclamo del legitimario es un crédito en dinero, no un derecho sobre bienes concretos.','The protected heir holds a money claim, not a right to specific assets.'),s:'CCCat art. 451-5.'},
+  gal:{n:()=>'Galicia',share:1/4,cap:()=>t('La legítima es una cuarta parte.','The legítima is one quarter.'),b:()=>t('El reclamo se dirige al valor, no a bienes concretos.','The claim runs against value, not specific assets.'),s:'Ley 2/2006, art. 243.'},
+  ara:{n:()=>t('Aragón','Aragon'),share:1/2,cap:()=>t('La mitad del caudal es legítima colectiva de los descendientes.','Half of the estate is a collective legítima for the descendants.'),b:()=>t('El testador reparte esa mitad entre los descendientes como quiera, pero no puede sacarla de ellos.','The testator may divide that half among descendants as they wish, but cannot give it outside them.'),s:'CDFA art. 486.'},
+  pv:{n:()=>t('País Vasco','Basque Country'),share:1/3,cap:()=>t('Un tercio es legítima colectiva de los descendientes.','One third is a collective legítima for the descendants.'),b:()=>t('El testador elige entre los descendientes a quién atribuirla; el reclamo se dirige al valor.','The testator chooses which descendants receive it; the claim runs against value.'),s:'Ley 5/2015, arts. 48-49.'},
+  nav:{n:()=>'Navarra',share:0,cap:()=>t('Legítima formal, sin contenido patrimonial.','A formal legítima with no economic content.'),b:()=>t('El testador dispone libremente. ','The testator disposes freely. ')+t(NOSHARE_ES,NOSHARE_EN),s:'Fuero Nuevo, ley 267.'},
+  mx:{n:()=>t('México','Mexico'),share:0,cap:()=>t('No hay porción reservada: rige la libertad de testar.','No reserved share: freedom of testation.'),b:()=>t('El testador debe dejar alimentos a ciertos familiares; si no lo hace, el testamento subsiste y el omitido solo tiene derecho a la pensión. Cada estado tiene su propio código civil. ','The testator must provide maintenance to certain relatives; if not, the will stands and the person left out is owed only the pension. Each state has its own civil code. ')+t(NOSHARE_ES,NOSHARE_EN),s:'Código Civil Federal arts. 1283, 1368, 1374, 1375.'},
+  pa:{n:()=>t('Panamá','Panama'),share:0,cap:()=>t('No hay porción reservada: libertad de testar, con obligación de alimentos.','No reserved share: freedom of testation, with a maintenance duty.'),b:()=>t(NOSHARE_ES,NOSHARE_EN),s:t('Código Civil art. 778 (fuente secundaria).','Código Civil art. 778 (secondary source).')},
+  cr:{n:()=>'Costa Rica',share:0,cap:()=>t('No hay porción reservada: libertad de testar, con obligación de alimentos.','No reserved share: freedom of testation, with a maintenance duty.'),b:()=>t(NOSHARE_ES,NOSHARE_EN),s:'Código Civil art. 595.'},
+  fl:{n:()=>t('EE. UU. (Florida)','US (Florida)'),share:null,cap:()=>t('No hay porción reservada para los hijos. El cónyuge sobreviviente puede reclamar una porción electiva del 30 % del patrimonio computable.','No share is reserved for children. A surviving spouse may claim an elective share of 30% of the elective estate.'),
+      b:()=>t('La vivienda (homestead) tiene reglas propias. La ley de Florida sobre acceso de fiduciarios a activos digitales regula qué deben revelar los custodios, como una plataforma, o a qué deben dar acceso; no ayuda si nadie tiene la llave de una billetera propia.','The homestead has its own rules. Florida’s law on fiduciary access to digital assets governs what custodians such as a platform must disclose; it does not help if nobody holds the key to a self-custodied wallet.'),
+      s:'Fla. Stat. 732.201, 732.2065; ch. 740.'},
+  otro:{n:()=>t('Otro país','Other country'),share:null,cap:()=>'',b:()=>t('Esta versión cubre siete países de Latinoamérica, Florida, España y cinco regímenes forales españoles. La mecánica de la billetera es la misma en cualquier país; la ley que decide quién hereda, no.','This version covers seven Latin American countries, Florida, Spain and five Spanish regional regimes. Wallet mechanics are the same everywhere; the law that decides who inherits is not.'),s:''}
+};
+
+const PRESETS={
+  sobre:{a:{x:'directo',c:'una_llave',s:'sobre',k:'familia',e:'fallecimiento',h:'varios'},n:()=>t('El sobre en el estudio','The envelope in the study'),
+    d:()=>t('Una sola llave y la semilla en un sobre cerrado. El testamento nombra a tres hijos por partes iguales.','One key, and the seed in a sealed envelope. The will names three children in equal shares.')},
+  hermanos:{a:{x:'directo',c:'multi_herederos',s:'repartido',k:'familia',e:'fallecimiento',h:'varios'},n:()=>t('Tres hermanos, tres llaves','Three siblings, three keys'),
+    d:()=>t('Una billetera 2 de 3 y una llave para cada hijo. Parece el plan perfecto: nadie puede actuar solo.','A 2-of-3 wallet and one key for each child. It looks like the perfect plan: nobody can act alone.')},
+  sociedad:{a:{x:'entidad',c:'una_llave',s:'solo_yo',k:'abogado',e:'fallecimiento',h:'varios',j:'pa'},n:()=>t('Una sociedad que tiene bitcoin','A company that holds bitcoin'),
+    d:()=>t('El bitcoin está en una sociedad anónima. El fundador era director y el único que firmaba. Sus hijos heredan las acciones.','The bitcoin sits in a corporation. The founder was a director and the only signer. The children inherit the shares.')},
+  etf:{a:{x:'etf',k:'familia',e:'fallecimiento',h:'varios'},n:()=>t('Un ETF de bitcoin','A bitcoin ETF'),
+    d:()=>t('Sin llaves que perder. ¿Qué cambia, entonces?','No keys to lose. So what changes?')},
+  tesorera:{a:{x:'tesorera',k:'familia',e:'fallecimiento',h:'varios'},n:()=>t('Una empresa tesorera de bitcoin','A bitcoin treasury company'),
+    d:()=>t('Exposición a bitcoin a través de acciones. ¿Quién decide qué pasa con ese bitcoin?','Bitcoin exposure through shares. Who decides what happens to that bitcoin?')}
+};
+
+const DEFAULT={x:'directo',c:'una_llave',s:'sobre',k:'familia',e:'fallecimiento',h:'varios',j:'ar'};
+let A=Object.assign({},DEFAULT), touched=false, src='', presetKey='', revealKey='';
+
+const S_TXT={
+  eyebrow:()=>t('Simulacro · 2 minutos · sin claves ni montos','Fire drill · 2 minutes · no keys, no amounts'),
+  h1a:()=>t('Si mañana usted no pudiera firmar,','If you could not sign tomorrow,'),h1b:()=>t('¿quién movería su bitcoin?','who would move your bitcoin?'),
+  lede:()=>t('Elija cómo tiene hoy su bitcoin y qué quiere simular. A la derecha verá qué ocurriría, en orden, en tres capas: el derecho, la titularidad y la firma. Al final, una hoja para llevar a su abogado.','Choose how you hold your bitcoin today and what to simulate. On the right you will see what would happen, in order, on three layers: the entitlement, the title and the signature. At the end, a sheet to take to your lawyer.'),
+  l1k:()=>t('El derecho','The entitlement'),l1v:()=>t('dice quién debe recibir.','says who should receive it.'),
+  l2k:()=>t('La titularidad','The title'),l2v:()=>t('dice a nombre de quién figura.','says whose name it is in.'),
+  l3k:()=>t('La firma','The signature'),l3v:()=>t('decide qué se mueve.','decides what moves.'),
+  privacy:()=>t('Nada de lo que marque sale de este navegador. No escriba aquí palabras semilla, claves ni contraseñas: esta herramienta nunca las pide.','Nothing you select leaves this browser. Never type seed words, keys or passwords here: this tool never asks for them.'),
+  presetsLabel:()=>t('Casos para probar','Cases to try'),
+  example:()=>t('Ejemplo cargado: cambie cualquier respuesta y el resultado se actualiza.','Example loaded: change any answer and the result updates.'),
+  qxl:()=>t('1 · Exposición','1 · Exposure'),qx:()=>t('¿Cómo tiene su bitcoin?','How do you hold your bitcoin?'),
+  qcl:()=>t('2 · Custodia','2 · Custody'),qc:()=>t('¿Dónde están las llaves?','Where are the keys?'),
+  qsl:()=>t('3 · Respaldo','3 · Backup'),qs:()=>t('¿Dónde está el respaldo (las palabras semilla)?','Where is the backup (the seed words)?'),
+  qkl:()=>t('4 · Quién sabe','4 · Who knows'),qk:()=>t('¿Quién sabe que existe?','Who knows it exists?'),
+  qel:()=>t('5 · Qué simular','5 · What to simulate'),qe:()=>t('¿Qué ocurre?','What happens?'),
+  qhl:()=>t('Familia','Family'),qh:()=>t('¿Cuántos herederos tendría?','How many heirs would you have?'),
+  qjl:()=>t('País','Country'),qj:()=>t('¿Qué ley regiría su sucesión?','Which law would govern your estate?'),
+  result:()=>t('Resultado','Result'),c1:()=>t('El derecho: quién debe recibir','The entitlement: who should receive'),c2:()=>t('La titularidad: a nombre de quién','The title: whose name'),c3:()=>t('La firma: quién puede moverlo','The signature: who can move it'),
+  lawLabel:()=>t('La ley de su país','Your country’s law'),memoLabel:()=>t('Hoja para su abogado','Sheet for your lawyer'),memoTitle:()=>t('Lleve esto a su próxima reunión','Take this to your next meeting'),copy:()=>t('Copiar la hoja','Copy the sheet'),
+  nextP:()=>t('¿Y el plan técnico? Si quiere que su plan técnico y operativo vaya a la par del legal, con gusto conversamos opciones e ideas, y le comparto otros recursos.','And the technical plan? If you want your technical and operational plan to run in parallel with the legal one, I am happy to talk through options and ideas, and share more resources.'),
+  nextBook:()=>t('Conversar','Talk it through'),nextPage:()=>t('Quién soy','About me'),
+  proLabel:()=>t('Vista para profesionales','For professionals'),
+  proTitle:()=>t('Un simulacro para compartir con sus clientes que tienen bitcoin','A fire drill to share with your clients who hold bitcoin'),
+  proP1:()=>t('Sus clientes responden unas pocas preguntas y ven, paso a paso, qué pasaría con su bitcoin si fallecen, quedan incapacitados o pierden un respaldo, incluso si lo tienen en una sociedad, una fundación, un ETF o acciones de una empresa tesorera. No pide claves, montos ni datos personales, y nada sale del navegador. Termina con una hoja de preguntas para su abogado.','Your clients answer a few questions and see, step by step, what would happen to their bitcoin if they die, become incapacitated or lose a backup, including when it sits in a company, a foundation, an ETF or treasury-company shares. It asks for no keys, amounts or personal data, and nothing leaves the browser. It ends with a sheet of questions for their lawyer.'),
+  proP2:()=>t('Si le sirve, puedo preparar una versión con el nombre de su despacho y con la parte de su jurisdicción revisada por usted. Si algo de lo que dice sobre su país está mal, prefiero saberlo por usted.','If useful, I can prepare a version with your firm’s name and with your jurisdiction reviewed by you. If anything it says about your country is wrong, I would rather hear it from you.'),
+  f1:()=>t('Esto es educación, no asesoramiento legal, fiscal ni de inversión. Describe la mecánica general de la custodia de bitcoin y de la sucesión. Cada caso depende de documentos, hechos y leyes que solo su abogado puede evaluar.','This is education, not legal, tax or investment advice. It describes the general mechanics of bitcoin custody and succession. Every case depends on documents, facts and laws only your lawyer can assess.'),
+  f2:()=>t('Preparado por Dalia Platt, que asesora a familias sobre la custodia de su bitcoin, incluidas estructuras de varias llaves. Tiene, por eso, un interés comercial en las billeteras de varias llaves con un profesional como cofirmante.','Prepared by Dalia Platt, who advises families on the custody of their bitcoin, including multi-key arrangements. She therefore has a commercial interest in multi-key wallets with a professional co-signer.'),
+  f3:()=>t('Fuentes de los regímenes sucesorios (compiladas en septiembre y octubre de 2026):','Sources for the succession regimes (compiled September and October 2026):')
+};
+const FSRC=[
+  'Argentina: CCyC arts. 2386 (Ley 27.587), 2445, 2454.',
+  'Chile: Código Civil arts. 1184, 1187. Colombia: Código Civil art. 1242 (Ley 1934 de 2018).',
+  'España: Código Civil arts. 808, 823, 1002, 1024.1; CCCat 451-5; Ley 2/2006 (Galicia) art. 243; CDFA (Aragón) art. 486; Ley 5/2015 (País Vasco) arts. 48-49; Fuero Nuevo (Navarra) ley 267.',
+  'México: Código Civil Federal arts. 1283, 1368, 1374, 1375. Panamá: Código Civil art. 778. Costa Rica: Código Civil art. 595.',
+  'Florida: Fla. Stat. 732.201, 732.2065 (elective share 30%); ch. 740 (fiduciary access to digital assets).',
+  'US estate tax for nonresidents: US$60,000 threshold on US-situs assets; stock of US corporations is US-situs.'
+];
+
+const label=(n,v)=>{const o=Q[n].find(q=>q[0]===v);return o?o[1]():''};
+const selfKey=c=>c==='una_llave'||c==='multi_propia';
+const PP=()=>t('Si la semilla no tiene una frase de contraseña adicional que solo usted conoce, ','Unless the seed has an extra passphrase only you know, ');
+
+function vis(a){ // which questions apply
+  const keys = a.x==='directo'||a.x==='entidad';
+  return {c:keys, s:keys&&selfKey(a.c), h:a.e==='fallecimiento'};
+}
+
+/* ---------- three layers ---------- */
+function layerRight(a){
+  if(a.e==='perdida') return t('Usted, que sigue siendo el titular.','You: you are still the owner.');
+  if(a.e==='incapacidad'&&a.x==='entidad') return t('Usted sigue siendo accionista o fundador; la titular es la entidad. Quien la represente en su lugar necesita autoridad según los estatutos o reglamentos.','You remain a shareholder or founder; the entity is the owner. Whoever represents it in your place needs authority under its bylaws or rules.');
+  if(a.e==='incapacidad') return t('Usted sigue siendo el titular. Quien actúe por usted necesita autoridad legal: un poder que siga vigente durante la incapacidad (no todos los países lo permiten), un apoyo o una curatela.','You are still the owner. Whoever acts for you needs legal authority: a power of attorney that survives incapacity (not every country allows one), a support arrangement or a guardianship.');
+  if(a.x==='entidad') return t('Sus herederos reciben las acciones de la sociedad, no el bitcoin. Una fundación de interés privado no se hereda: sigue sus propios reglamentos.','Your heirs receive the company’s shares, not the bitcoin. A private-interest foundation is not inherited: it follows its own rules.');
+  if(a.x==='etf'||a.x==='tesorera') return t('Sus herederos, o el beneficiario que haya designado en la corredora, si la corredora lo permite y sujeto a las reglas sucesorias de su país.','Your heirs, or the beneficiary you named at the brokerage, if the brokerage offers that and subject to your country’s succession rules.');
+  return a.h==='uno'?t('Su heredero, según el testamento o la ley.','Your heir, under your will or the law.'):t('Sus herederos, en las partes que fijen el testamento y la ley.','Your heirs, in the shares set by your will and the law.');
+}
+function layerTitle(a){
+  if(a.x==='entidad') return t('La sociedad o la fundación. En una sociedad, tras la sucesión hay que actualizar sus registros: accionistas, directores, quién la representa. En una fundación, su consejo cambia según sus propios reglamentos.','The company or foundation. For a company, after the estate is settled its records must be updated: shareholders, directors, who represents it. For a foundation, its council changes under its own rules.');
+  if(a.x==='etf') return t('Participaciones del fondo, a su nombre en una corredora. El bitcoin está a nombre del fondo.','Fund shares, in your name at a brokerage. The bitcoin is in the fund’s name.');
+  if(a.x==='tesorera') return t('Acciones de la empresa, a su nombre en una corredora. El bitcoin es de la empresa.','Company shares, in your name at a brokerage. The bitcoin belongs to the company.');
+  if(a.c==='plataforma') return t('Una cuenta a su nombre en la plataforma.','An account in your name at the platform.');
+  if(a.c==='no_se') return t('No se sabe.','Unknown.');
+  return t('Ningún registro. En la cadena no figura ningún nombre: lo que cuenta es quién puede firmar.','No register at all. No name appears on the blockchain: what counts is who can sign.');
+}
+function custodySign(a){
+  if(a.c==='no_se') return t('No se sabe. Y su familia tampoco lo sabría.','Unknown. And your family would not know either.');
+  if(a.c==='plataforma'){
+    if(a.e==='fallecimiento') return t('La plataforma, cuando acepte los documentos de sus herederos.','The platform, once it accepts your heirs’ documents.');
+    if(a.e==='incapacidad') return t('La plataforma, cuando acepte a su representante.','The platform, once it accepts your representative.');
+    return t('Usted, cuando la plataforma verifique su identidad.','You, once the platform verifies your identity.');
+  }
+  if(a.c==='multi_terceros'){
+    if(a.e==='perdida') return t('Las otras llaves, juntas, según el procedimiento acordado.','The other keys, together, under the agreed procedure.');
+    return t('Nadie por sí solo. Los firmantes que exige la billetera, juntos, según lo que usted dejó definido.','No one alone. The signers the wallet requires, together, under what you set out in advance.');
+  }
+  if(a.c==='multi_herederos'){
+    if(a.e==='perdida') return t('Dos de las otras llaves juntas (con un umbral 2 de 3). Y pueden hacerlo hoy, aunque usted no haya perdido nada.','Two of the other keys together (with a 2-of-3 threshold). And they can do it today, even if you have lost nothing.');
+    return t('Dos de quienes tienen llaves, juntos, sin nadie más (con un umbral 2 de 3).','Any two of the key holders together, with no one else (with a 2-of-3 threshold).');
+  }
+  if(a.c==='multi_propia'){
+    if(a.e==='perdida') return t('Usted, si conserva las llaves suficientes y la configuración de la billetera.','You, if you keep enough keys and the wallet configuration.');
+    return ({solo_yo:t('Nadie.','No one.'),
+      familia:t('Quien en su familia reúna las llaves suficientes y la configuración, sin necesitar a nadie más.','Whoever in your family gathers enough keys and the configuration, with no one else needed.'),
+      sobre:t('Quien encuentre en el sobre o la caja las llaves suficientes y la configuración.','Whoever finds enough keys and the configuration in the envelope or safe.'),
+      repartido:t('Quien reúna las llaves suficientes y la configuración.','Whoever gathers enough keys and the configuration.'),
+      no_se:t('No se sabe.','Unknown.')})[a.s];
+  }
+  if(a.e==='perdida') return t('Usted, si conserva la semilla. Y cualquiera que la encuentre.','You, if you still have the seed. And anyone who finds it.');
+  return ({solo_yo:t('Nadie.','No one.'),
+    familia:t('Quien en su familia tenga el respaldo, sin necesitar a nadie más.','Whoever in your family has the backup, with no one else needed.'),
+    sobre:t('Quien abra el sobre o la caja, sin necesitar a nadie más.','Whoever opens the envelope or safe, with no one else needed.'),
+    repartido:t('Quien reúna las partes necesarias.','Whoever gathers the necessary parts.'),
+    no_se:t('No se sabe.','Unknown.')})[a.s];
+}
+function layerSign(a){
+  if(a.x==='etf') return t('Nadie de su familia: el bitcoin lo guarda el custodio del fondo. Sus herederos tratan con la corredora.','No one in your family: the fund’s custodian holds the bitcoin. Your heirs deal with the brokerage.');
+  if(a.x==='tesorera') return t('La empresa. Su directorio decide qué hacer con el bitcoin de la empresa.','The company. Its board decides what to do with the company’s bitcoin.');
+  if(a.x==='entidad'&&a.c==='plataforma') return a.e==='perdida'?t('Los representantes de la entidad, cuando la plataforma verifique su identidad.','The entity’s representatives, once the platform verifies their identity.'):t('La plataforma, cuando acepte a los nuevos representantes de la entidad.','The platform, once it accepts the entity’s new representatives.');
+  if(a.x==='entidad') return t('Quien tenga las llaves de la entidad. ','Whoever holds the entity’s keys. ')+custodySign(a);
+  return custodySign(a);
+}
+function custodyGap(a){
+  if(a.c==='no_se') return ['alto',t('No sabe cómo está guardado','You do not know how it is held')];
+  if(a.c==='plataforma') return ['medio',t('Depende de un tercero','It depends on a third party')];
+  if(a.c==='multi_herederos') return a.e==='perdida'?['medio',t('Otros dos pueden actuar sin usted','Two others can act without you')]:['alto',t('La firma no sigue a la sucesión','The signature does not follow the estate')];
+  if(a.c==='multi_terceros') return a.k==='nadie'?['medio',t('Nadie sabe que existe','No one knows it exists')]:['bajo',t('La firma puede seguir a la ley','The signature can follow the law')];
+  if(a.e==='perdida') return a.c==='multi_propia'?['medio',t('Hay que reemplazar la llave','The key must be replaced')]:['medio',t('Hay que actuar rápido','You need to act fast')];
+  if(a.s==='solo_yo') return ['alto',t('Nadie podrá firmar','No one will be able to sign')];
+  if(a.s==='repartido') return ['medio',t('Depende del reparto','It depends on the split')];
+  if(a.s==='no_se') return ['alto',t('No sabe dónde está el respaldo','You do not know where the backup is')];
+  return ['alto',t('Una persona puede actuar sola','One person can act alone')];
+}
+function gap(a){
+  if((a.x==='etf'||a.x==='tesorera')&&a.k==='nadie') return ['medio',t('Nadie sabe que existe: la cuenta puede quedar sin reclamar','No one knows it exists: the account may go unclaimed')];
+  if(a.x==='etf') return ['bajo',t('Sencillo de heredar','Simple to inherit')];
+  if(a.x==='tesorera') return ['bajo',t('Riesgo de inversión, no de herencia','Investment risk, not inheritance risk')];
+  const g=custodyGap(a);
+  if(a.x==='entidad'&&a.e==='fallecimiento') return [g[0]==='alto'?'alto':'medio',t('Tres pasos; el último es técnico, no jurídico','Three steps; the last one is technical, not legal')];
+  return g;
+}
+
+/* ---------- steps ---------- */
+function knowsText(a){
+  return ({
+    nadie:t('Nadie sabe que existe, así que nadie lo busca. No figura en ningún inventario.','No one knows it exists, so no one looks for it. It is in no inventory.'),
+    familia:t('Su familia sabe que existe, pero saberlo no da acceso. Necesitan saber dónde está y cómo se firma.','Your family knows it exists, but knowing gives no access. They need to know where it is and how signing works.'),
+    abogado:t('Su abogado o notario sabe que existe. Puede incluirlo en la sucesión; no puede firmar por usted.','Your lawyer or notary knows it exists. They can include it in the estate; they cannot sign for you.'),
+    testamento:t('Figura en su testamento, y eso permite incluirlo en la sucesión. Si el testamento contiene la semilla o una clave, cualquiera que lo lea puede mover el bitcoin: un testamento lo leen varias personas.','It is in your will, which lets it be included in the estate. If the will contains the seed or a key, anyone who reads it can move the bitcoin, and several people read a will.')
+  })[a.k];
+}
+function custodySteps(a){
+  const S=[]; const add=(ti,b,f)=>S.push({t:ti,b,f:!!f});
+  const flagKnow=a.k==='nadie'||a.k==='testamento';
+  if(a.c==='no_se'){
+    add(t('La primera pregunta','The first question'),t('Si usted no sabe con certeza cómo está guardado su bitcoin, su familia lo sabrá menos. Antes que cualquier documento, ese es el dato que falta.','If you are not sure how your bitcoin is held, your family will know even less. Before any document, that is the missing fact.'),true);
+    add(t('Qué averiguar','What to find out'),t('En una plataforma, la familia dependerá de la plataforma. En una billetera propia, de quién tenga el respaldo. Con varias llaves, de quién tiene cada una y de la configuración de la billetera.','On a platform, your family depends on the platform. In your own wallet, on who has the backup. With several keys, on who holds each one and on the wallet configuration.'));
+    return S;
+  }
+  if(a.e==='fallecimiento'){
+    if(a.c==='plataforma'){
+      add(t('La primera mañana','The first morning'),t('El saldo sigue en la plataforma, a su nombre. Si nadie lo reclama, queda inmóvil. Si alguien conoce su contraseña y su segundo factor podría intentar entrar, y la plataforma puede bloquear la cuenta.','The balance stays on the platform in your name. If no one claims it, it sits there. Someone who knows your password and second factor might try to log in, and the platform may lock the account.'));
+      add(t('Cuando la familia busca','When the family looks'),knowsText(a),flagKnow);
+      add(t('Cuando hay documentos','Once there are documents'),t('Sus herederos siguen el procedimiento sucesorio de la plataforma: certificado de defunción, el título que acredite quiénes heredan y la verificación de identidad de cada uno. Cada plataforma fija sus requisitos, y puede estar en otro país.','Your heirs follow the platform’s estate procedure: death certificate, proof of who inherits, and identity checks for each heir. Each platform sets its own requirements, and it may be in another country.'));
+      add(t('El costo de este camino','The cost of this path'),t('Aquí hay un intermediario al que un juez competente puede dar órdenes, y eso facilita la sucesión. A cambio, en vida su bitcoin depende de que la plataforma siga operando y no congele la cuenta.','There is an intermediary a competent court can give orders to, which makes the estate easier. In exchange, during your life your bitcoin depends on the platform staying in business and not freezing the account.'));
+    } else if(a.c==='multi_herederos'){
+      add(t('Mientras usted vive','While you are alive'),t('Si dos de las llaves están en manos de sus herederos, esos dos pueden mover su bitcoin hoy, sin usted.','If two of the keys are with your heirs, those two can move your bitcoin today, without you.'),true);
+      add(t('La primera mañana','The first morning'),t('Con un umbral 2 de 3 y una llave por heredero, dos de ellos pueden mover todo sin el tercero, sin esperar la sucesión. Además necesitan la configuración de la billetera.','With a 2-of-3 threshold and one key per heir, any two can move everything without the third, without waiting for the estate. They also need the wallet configuration.'),true);
+      add(t('Cuando hay documentos','Once there are documents'),t('La sentencia o el testamento pueden fijar partes iguales. La billetera no las conoce: obedece a dos firmas, sean cuales sean.','The court or the will may set equal shares. The wallet does not know them: it obeys any two signatures.'));
+      add(t('Si no se ponen de acuerdo','If they disagree'),t('Si dos no quieren firmar juntos, nada se mueve, diga lo que diga la sentencia.','If no two of them will sign together, nothing moves, whatever the court says.'),true);
+      add(t('Con los años','Over the years'),t('Si uno de ellos pierde su llave o fallece, los otros dos tienen que estar de acuerdo siempre, y una pérdida más bloquea todo.','If one of them loses a key or dies, the other two must always agree, and one more loss locks everything.'));
+    } else if(a.c==='multi_terceros'){
+      add(t('La primera mañana','The first morning'),t('Nadie puede mover el bitcoin por sí solo. Las personas o instituciones que tienen las otras llaves siguen ahí y se puede saber quiénes son.','No one can move the bitcoin alone. The people or institutions holding the other keys are still there and can be identified.'));
+      add(t('Cuando la familia busca','When the family looks'),knowsText(a),a.k==='nadie');
+      add(t('Cuando hay documentos','Once there are documents'),t('Lo que pase ahora depende de lo que usted dejó definido: quién puede pedir la firma, con qué documentos y quién lo verifica. Si estaba definido, la autoridad legal se convierte en firmas por un camino conocido. Si no, los cofirmantes tienen que decidir sin instrucciones.','What happens now depends on what you set out in advance: who may request a signature, with which documents, and who verifies it. If it was defined, legal authority becomes signatures along a known path. If not, the co-signers must decide without instructions.'));
+      add(t('El costo de este camino','The cost of this path'),t('Depende de que los cofirmantes sigan operando y respondan cuando se les necesita, tiene costos, y pide verificaciones de identidad.','It depends on the co-signers staying in business and responding when needed, it has fees, and it involves identity checks.'));
+      add(t('Lo que conviene revisar','What to check'),t('Que ninguna persona ni ningún par de herederos reúna por sí solo las firmas necesarias, y que el procedimiento esté escrito y se actualice junto con su testamento.','That no single person or pair of heirs holds enough signatures on their own, and that the procedure is written down and updated together with your will.'));
+    } else {
+      const one={
+        solo_yo:[t('Nadie puede firmar. Si el respaldo no aparece, el bitcoin queda inmóvil para siempre, y ninguna sentencia lo recupera.','No one can sign. If the backup is not found, the bitcoin is frozen forever, and no judgment recovers it.'),true],
+        familia:[PP()+t('quien tenga el respaldo puede mover todo hoy mismo, sin necesitar a nadie más y antes de que exista cualquier documento sucesorio. El testamento no cambia eso.','whoever has the backup can move everything today, with no one else, before any estate document exists. The will does not change that.'),true],
+        sobre:[PP()+t('quien abra el sobre o la caja puede mover todo, sin necesitar a nadie más. Eso también era cierto mientras usted vivía.','whoever opens the envelope or safe can move everything, with no one else. That was also true while you were alive.'),true],
+        repartido:[t('Depende de cómo esté repartido. Si cada parte basta por sí sola, cualquiera que tenga una puede mover todo. Si hacen falta todas, una parte perdida bloquea el resto.','It depends on the split. If each part works on its own, anyone holding one can move everything. If all are needed, one lost part blocks the rest.'),false],
+        no_se:[t('Si usted no sabe dónde está el respaldo, su familia tampoco lo sabrá. Sin él, nadie puede firmar.','If you do not know where the backup is, neither will your family. Without it, no one can sign.'),true]};
+      const mp={
+        solo_yo:[t('Nadie puede firmar. Si las llaves y la configuración no aparecen, el bitcoin queda inmóvil para siempre.','No one can sign. If the keys and configuration are not found, the bitcoin is frozen forever.'),true],
+        familia:[t('Si alguien de su familia reúne las llaves suficientes y la configuración, puede mover todo sin nadie más. Si le falta una de las dos cosas, nadie puede.','If someone in your family gathers enough keys and the configuration, they can move everything alone. If either is missing, no one can.'),true],
+        sobre:[t('Si en el sobre o la caja están las llaves suficientes y la configuración, quien lo abra puede mover todo. Si no están todas, nadie puede.','If the envelope or safe holds enough keys and the configuration, whoever opens it can move everything. If not, no one can.'),true],
+        repartido:[t('Alguien tiene que reunir las llaves suficientes y la configuración. Una pieza perdida puede bloquear el resto.','Someone has to gather enough keys and the configuration. One lost piece can block the rest.'),false],
+        no_se:[t('Si usted no sabe dónde están las llaves y la configuración, su familia tampoco lo sabrá.','If you do not know where the keys and configuration are, neither will your family.'),true]};
+      const f1=(a.c==='multi_propia'?mp:one)[a.s];
+      add(t('La primera mañana','The first morning'),f1[0],f1[1]);
+      if(a.c==='multi_propia') add(t('Lo que además necesitan','What they also need'),t('En una billetera de varias llaves, sus herederos necesitan la configuración (el archivo o descriptor con las llaves públicas de todos los firmantes). Sin ella, tener las semillas puede no bastar.','In a multi-key wallet, your heirs need the configuration (the file or descriptor listing every signer’s public key). Without it, having the seeds may not be enough.'),true);
+      add(t('Cuando la familia busca','When the family looks'),knowsText(a),flagKnow);
+      add(t('Cuando hay documentos','Once there are documents'),t('Una autoridad (juez, notario o registro, según el país) puede declarar quiénes heredan y en qué partes. Esa resolución no produce una firma: el bitcoin se mueve cuando firman las llaves que exige la billetera.','An authority (court, notary or registry, depending on the country) can declare who inherits and in what shares. That decision does not produce a signature: the bitcoin moves when the keys the wallet requires sign.'));
+      if(a.h==='varios'&&(a.s==='familia'||a.s==='sobre'||a.s==='repartido'))
+        add(t('Si un heredero no coopera','If one heir will not cooperate'),t('Si uno de sus herederos mueve el bitcoin, los demás pueden reclamar. Una sentencia puede reconocerles su parte, pero no produce la firma que mueve el bitcoin.','If one heir moves the bitcoin, the others can sue. A judgment can recognize their share, but it does not produce the signature that moves the bitcoin.'),true);
+    }
+  }
+  if(a.e==='incapacidad'){
+    if(a.c==='plataforma'){
+      add(t('El primer día','Day one'),t('El saldo sigue en la plataforma. Usted no puede operarlo, y nadie más puede hacerlo legítimamente sin autoridad.','The balance stays on the platform. You cannot operate it, and no one else may without authority.'));
+      add(t('Cuando alguien quiere actuar por usted','When someone needs to act for you'),t('La plataforma exigirá un representante con facultades suficientes. Cada plataforma decide qué documentos acepta.','The platform will require a representative with sufficient authority. Each platform decides which documents it accepts.'),true);
+    } else if(a.c==='multi_herederos'){
+      add(t('El primer día','Day one'),t('Dos de sus herederos pueden firmar sin usted. Puede ser justo lo que necesita, o un movimiento sin su consentimiento: la billetera no distingue.','Two of your heirs can sign without you. That may be exactly what you need, or a transfer without your consent: the wallet cannot tell the difference.'),true);
+      add(t('Lo que conviene revisar','What to check'),t('Quién tiene autoridad legal para actuar por usted, y si coincide con quién puede firmar.','Who has legal authority to act for you, and whether that matches who can sign.'));
+    } else if(a.c==='multi_terceros'){
+      add(t('El primer día','Day one'),t('Nadie puede mover el bitcoin por sí solo. Usted sigue siendo el titular.','No one can move the bitcoin alone. You are still the owner.'));
+      add(t('Cuando alguien quiere actuar por usted','When someone needs to act for you'),t('Si usted dejó definido quién puede pedir firmas en su nombre y cómo se verifica su autoridad, el plan funciona sin usted. Si no, los cofirmantes no saben a quién obedecer.','If you set out who may request signatures on your behalf and how their authority is checked, the plan works without you. If not, the co-signers do not know whom to follow.'));
+    } else {
+      const inc={
+        solo_yo:[t('Nadie puede firmar mientras usted no pueda. Un poder notarial no reemplaza la semilla: la billetera no lee documentos.','No one can sign while you cannot. A power of attorney does not replace the seed: the wallet does not read documents.'),true],
+        familia:[PP()+t('quien tenga el respaldo puede mover todo mientras usted vive, sin control de nadie. La billetera no distingue a su representante de cualquier otra persona con la semilla.','whoever has the backup can move everything while you are alive, unchecked. The wallet cannot tell your representative from anyone else with the seed.'),true],
+        sobre:[PP()+t('quien abra el sobre o la caja puede mover todo mientras usted vive, sin control de nadie.','whoever opens the envelope or safe can move everything while you are alive, unchecked.'),true],
+        repartido:[t('Puede que nadie reúna las partes, o que alguien las reúna sin control.','Either no one gathers the parts, or someone does, unchecked.'),true],
+        no_se:[t('Si nadie sabe dónde está el respaldo, nadie puede firmar.','If no one knows where the backup is, no one can sign.'),true]}[a.s];
+      add(t('El primer día','Day one'),inc[0],inc[1]);
+      add(t('Cuando alguien quiere actuar por usted','When someone needs to act for you'),t('Una autoridad puede darle a alguien facultades para administrar sus bienes. Esas facultades no se convierten en firma por sí solas.','An authority can give someone power to manage your assets. That power does not turn into a signature by itself.'));
+    }
+  }
+  if(a.e==='perdida'){
+    if(a.c==='plataforma'){
+      add(t('Al notar la pérdida','When you notice the loss'),t('Si perdió el teléfono o el segundo factor, la plataforma puede restablecer su acceso tras verificar su identidad.','If you lost your phone or second factor, the platform can restore access after verifying your identity.'));
+      add(t('Lo que conviene revisar','What to check'),t('Su acceso depende de su correo, su teléfono y la plataforma. Quien tome su correo y su teléfono puede intentar entrar en su nombre.','Your access depends on your email, your phone and the platform. Someone who takes over your email and phone can try to log in as you.'));
+    } else if(a.c==='una_llave'){
+      add(t('Al notar la pérdida','When you notice the loss'),t('Si perdió el dispositivo pero conserva la semilla, puede restaurar la billetera en otro. Si perdió la semilla y aún tiene el dispositivo, conviene mover los fondos a una billetera nueva cuanto antes. Si perdió ambos, el bitcoin se pierde.','If you lost the device but have the seed, you can restore the wallet on another. If you lost the seed but still have the device, move the funds to a new wallet soon. If you lost both, the bitcoin is gone.'),true);
+      add(t('Si alguien encontró lo perdido','If someone found it'),PP()+t('quien encuentre la semilla puede mover todo, y usted no podrá impedirlo. Un dispositivo perdido, en cambio, suele estar protegido por su PIN.','whoever finds the seed can move everything, and you cannot stop it. A lost device, by contrast, is usually protected by its PIN.'),true);
+    } else if(a.c==='multi_propia'){
+      add(t('Al notar la pérdida','When you notice the loss'),t('Perder una llave no pierde el bitcoin si conserva las suficientes para el umbral y la configuración. Conviene reemplazar la llave perdida.','Losing one key does not lose the bitcoin if you keep enough for the threshold and the configuration. Replace the lost key.'));
+      add(t('Si alguien encontró lo perdido','If someone found it'),t('Una sola llave de varias no basta para mover nada. Si guardaba más de una en el mismo lugar, revise qué quedó expuesto.','One key out of several is not enough to move anything. If you kept more than one in the same place, check what was exposed.'),a.s==='sobre'||a.s==='familia');
+    } else if(a.c==='multi_herederos'){
+      add(t('Al notar la pérdida','When you notice the loss'),t('Perder su llave no pierde el bitcoin: dos de las otras pueden trasladarlo a una configuración nueva. Y pueden hacerlo hoy, aunque usted no haya perdido nada.','Losing your key does not lose the bitcoin: two of the others can move it to a new configuration. And they can do it today, even if you have lost nothing.'),true);
+    } else {
+      add(t('Al notar la pérdida','When you notice the loss'),t('Perder su llave no pierde el bitcoin: las otras llaves, juntas, pueden trasladarlo a una configuración nueva según el procedimiento acordado.','Losing your key does not lose the bitcoin: the other keys, together, can move it to a new configuration under the agreed procedure.'));
+      add(t('Lo que conviene revisar','What to check'),t('Que el procedimiento de recuperación esté escrito y que usted lo haya practicado antes de necesitarlo.','That the recovery procedure is written down and that you have practiced it before you need it.'));
+    }
+  }
+  return S;
+}
+function nonUS(a){ return a.j!=='fl'; }
+function steps(a){
+  const S=[]; const add=(ti,b,f)=>S.push({t:ti,b,f:!!f});
+  if(a.x==='etf'){
+    if(a.e==='fallecimiento'){
+      add(t('La primera mañana','The first morning'),t('No hay llaves que buscar ni semillas que proteger. Es el camino de herencia más sencillo de este simulacro, y para muchas familias es una buena razón para elegirlo.','There are no keys to find and no seeds to protect. It is the simplest inheritance path in this fire drill, and for many families that is a good reason to choose it.'));
+      add(t('Cuando hay documentos','Once there are documents'),t('Sus herederos presentan los documentos sucesorios a la corredora, o el beneficiario designado reclama la cuenta, si la corredora ofrece esa designación.','Your heirs present the estate documents to the brokerage, or the named beneficiary claims the account, if the brokerage offers that.'));
+    } else if(a.e==='incapacidad'){
+      add(t('El primer día','Day one'),t('La corredora exigirá un representante con facultades suficientes para operar la cuenta.','The brokerage will require a representative with sufficient authority to operate the account.'));
+    } else {
+      add(t('Al notar la pérdida','When you notice the loss'),t('No hay llaves que perder. Si pierde el acceso a la corredora, lo recupera verificando su identidad.','There are no keys to lose. If you lose access to the brokerage, you recover it by verifying your identity.'));
+    }
+    add(t('Lo que usted tiene en realidad','What you actually own'),t('Participaciones de un fondo que tiene bitcoin, no bitcoin. Usted no puede retirarlo a su propia billetera, y lo guarda un custodio que eligió el fondo, no usted. Si algo falla en esa cadena (custodio, fondo o corredora), usted no tiene una llave propia con la que actuar.','Shares of a fund that holds bitcoin, not bitcoin. You cannot withdraw it to your own wallet, and it is held by a custodian the fund chose, not you. If something fails along that chain (custodian, fund or brokerage), you have no key of your own to act with.'));
+    if(nonUS(a)&&a.e==='fallecimiento') add(t('Una pregunta para su abogado','A question for your lawyer'),t('Si usted no es ciudadano estadounidense ni está domiciliado en EE. UU.: los activos situados en EE. UU. por encima de US$60.000 pueden pagar impuesto sucesorio estadounidense, y las corredoras de EE. UU. suelen retener la cuenta hasta que el IRS emite un certificado de transferencia. Muchos ETF de bitcoin de EE. UU. son fideicomisos (trusts), y cómo se tratan no es obvio.','If you are neither a US citizen nor domiciled in the US: US-situs assets above US$60,000 can be subject to US estate tax, and US brokerages usually hold the account until the IRS issues a transfer certificate. Many US bitcoin ETFs are trusts, and how they are treated is not obvious.'));
+    return S;
+  }
+  if(a.x==='tesorera'){
+    if(a.e==='fallecimiento') add(t('La primera mañana','The first morning'),t('Como con cualquier acción: no hay llaves que buscar. Sus herederos heredan acciones a través de la corredora.','As with any stock: there are no keys to find. Your heirs inherit shares through the brokerage.'));
+    else if(a.e==='incapacidad') add(t('El primer día','Day one'),t('La corredora exigirá un representante con facultades suficientes para operar la cuenta.','The brokerage will require a representative with sufficient authority to operate the account.'));
+    else add(t('Al notar la pérdida','When you notice the loss'),t('No hay llaves que perder. Si pierde el acceso a la corredora, lo recupera verificando su identidad.','There are no keys to lose. If you lose access to the brokerage, you recover it by verifying your identity.'));
+    add(t('Lo que usted tiene en realidad','What you actually own'),t('Acciones de una empresa que compra bitcoin, no bitcoin. El precio de la acción puede alejarse del valor del bitcoin que hay detrás de cada acción, hacia arriba o hacia abajo.','Shares of a company that buys bitcoin, not bitcoin. The share price can drift away from the value of the bitcoin behind each share, up or down.'));
+    add(t('Quién decide','Who decides'),t('La empresa puede endeudarse, emitir acciones nuevas o vender el bitcoin que tiene. Esas decisiones las toma su directorio, no usted ni sus herederos.','The company can borrow, issue new shares or sell its bitcoin. Its board makes those decisions, not you or your heirs.'));
+    if(nonUS(a)&&a.e==='fallecimiento') add(t('Una pregunta para su abogado','A question for your lawyer'),t('Si usted no es ciudadano estadounidense ni está domiciliado en EE. UU. y la empresa es estadounidense, sus acciones son activos situados en EE. UU.: el impuesto sucesorio estadounidense puede aplicarse por encima de US$60.000, y las corredoras suelen retener la cuenta hasta que el IRS emite un certificado de transferencia.','If you are neither a US citizen nor domiciled in the US and the company is American, its shares are US-situs assets: US estate tax can apply above US$60,000, and brokerages usually hold the account until the IRS issues a transfer certificate.'));
+    return S;
+  }
+  if(a.x==='entidad'){
+    if(a.e==='fallecimiento'){
+      add(t('La adjudicación','Settling the estate'),t('Primero, la sucesión adjudica a sus herederos las acciones de la sociedad. Si el bitcoin está en una fundación de interés privado, no se hereda: pasa según los reglamentos de la fundación (en países con legítima, los herederos pueden impugnar lo aportado como donación).','First, the estate allocates the company’s shares to your heirs. If the bitcoin is in a private-interest foundation, it is not inherited: it follows the foundation’s rules (in forced-heirship countries, heirs may challenge what was contributed as a gift).'));
+      add(t('La actualización de la titularidad','Updating the title'),t('En una sociedad, después hay que actualizar sus propios registros: accionistas, directores, quién la representa. Pueden aparecer certificados antiguos o documentos que no coinciden. En una fundación, el consejo cambia según sus reglamentos.','For a company, its own records must then be updated: shareholders, directors, who represents it. Old certificates or mismatched documents may turn up. For a foundation, the council changes under its rules.'));
+      add(t('La firma','The signature'),t('Aunque los dos pasos anteriores estén completos, el bitcoin de la entidad se mueve solo con sus llaves. Los nuevos directores tienen autoridad, no llaves.','Even with both steps done, the entity’s bitcoin moves only with its keys. New directors have authority, not keys.'),true);
+      const cs=a.c==='plataforma'?[{b:t('El saldo sigue en la plataforma, en una cuenta a nombre de la entidad. La plataforma tratará con sus nuevos representantes cuando estén acreditados.','The balance stays on the platform, in an account in the entity’s name. The platform will deal with its new representatives once they are established.'),f:false}]:custodySteps(a).filter(s=>s.t===t('La primera mañana','The first morning'));
+      if(cs[0]) add(t('Dónde están las llaves de la entidad','Where the entity’s keys are'),cs[0].b,cs[0].f);
+      add(t('Si hay más de un país','If more than one country is involved'),t('Si la sucesión se tramita en un país y la entidad está en otro, cada paso sigue su propia ley y sus propios plazos.','If the estate is handled in one country and the entity is in another, each step follows its own law and timetable.'));
+      return S;
+    }
+    if(a.e==='incapacidad') add(t('La entidad sigue existiendo','The entity carries on'),t('Si usted era quien firmaba por la entidad, nadie puede mover el bitcoin de la entidad hasta que otra persona tenga autoridad y, además, las llaves.','If you were the one signing for the entity, no one can move its bitcoin until someone else has authority and, separately, the keys.'),true);
+    return S.concat(custodySteps(a));
+  }
+  return custodySteps(a);
+}
+
+/* ---------- memo ---------- */
+function memo(a,S){
+  const v=vis(a), L=LAW[a.j];
+  const lines=[t('SIMULACRO DE HERENCIA: resumen para mi abogado','INHERITANCE FIRE DRILL: summary for my lawyer'),t('(sin claves, sin montos, sin datos personales)','(no keys, no amounts, no personal data)'),'',
+    t('Mi situación','My situation'),
+    '· '+t('Exposición','Exposure')+': '+label('x',a.x),
+    v.c?'· '+t('Custodia','Custody')+': '+label('c',a.c):null,
+    v.s?'· '+t('Respaldo','Backup')+': '+label('s',a.s):null,
+    '· '+t('Quién sabe que existe','Who knows it exists')+': '+label('k',a.k),
+    v.h?'· '+t('Herederos','Heirs')+': '+label('h',a.h):null,
+    '· '+t('Ley aplicable (mi suposición)','Governing law (my assumption)')+': '+L.n(),
+    '',t('Lo que mostró el simulacro','What the fire drill showed')+' ('+label('e',a.e).toLowerCase()+')',
+    '· '+t('El derecho','The entitlement')+': '+layerRight(a),
+    '· '+t('La titularidad','The title')+': '+layerTitle(a),
+    '· '+t('La firma','The signature')+': '+layerSign(a)].filter(x=>x!==null);
+  const fl=S.filter(s=>s.f); if(fl.length) lines.push('· '+t('Puntos de falla','Points of failure')+': '+fl.map(f=>f.t.toLowerCase()).join('; '));
+  const keysPath=!(a.x==='etf'||a.x==='tesorera');
+  const q=[t('¿Mis documentos mencionan este activo sin revelar cómo acceder a él?','Do my documents mention this asset without revealing how to access it?')];
+  if(keysPath) q.push(t('Si fallezco o quedo incapacitado, ¿quién tendría autoridad legal para actuar, y cómo se convierte esa autoridad en una firma?','If I die or become incapacitated, who would have legal authority to act, and how does that authority become a signature?'));
+  if(a.x==='entidad') q.push(t('¿Qué pasos siguen a la adjudicación para que los nuevos responsables de la entidad puedan, además, firmar?','After the estate allocation, what steps let the entity’s new officers actually sign?'));
+  if(a.x==='etf'||a.x==='tesorera') q.push(t('¿Me conviene designar un beneficiario en la corredora, y qué impuestos podría pagar mi sucesión según dónde está el activo?','Should I name a beneficiary at the brokerage, and what estate taxes could apply depending on where the asset is located?'));
+  if(a.c==='multi_herederos'&&v.c) q.push(t('¿Cómo evito que dos herederos puedan mover todo sin el tercero, o que dos, sin acuerdo, bloqueen al tercero?','How do I prevent two heirs from moving everything without the third, or two who disagree from blocking the third?'));
+  if(keysPath&&v.h&&a.h==='varios') q.push(t('Con la ley que me aplica, ¿qué pasa si uno de mis herederos puede mover el bitcoin antes que los demás?','Under the law that applies to me, what happens if one heir can move the bitcoin before the others?'));
+  q.push(t('¿Quién más debería participar en este plan: mi contador, un custodio, un cofirmante?','Who else should be part of this plan: my accountant, a custodian, a co-signer?'));
+  lines.push('',t('Preguntas para usted','Questions for you'));
+  q.forEach((x,i)=>lines.push((i+1)+'. '+x));
+  return lines.join('\n');
+}
+
+/* ---------- render ---------- */
+function setT(){
+  document.documentElement.lang=lang;
+  document.title=t('Simulacro de herencia','Inheritance fire drill');
+  for(const id of ['eyebrow','h1a','h1b','lede','l1k','l1v','l2k','l2v','l3k','l3v','privacy','presetsLabel','proLabel','proTitle','proP1','proP2','f1','f2','f3','nextP','nextBook','nextPage']){
+    const el=document.getElementById(id); if(el) el.textContent=S_TXT[id]();
+  }
+  document.getElementById('exampleNote').textContent=S_TXT.example();
+  document.querySelectorAll('[data-t]').forEach(el=>{el.textContent=S_TXT[el.dataset.t]()});
+  document.getElementById('btn-es').setAttribute('aria-pressed',lang==='es');
+  document.getElementById('discES').hidden=(lang!=='es');
+  document.getElementById('btn-en').setAttribute('aria-pressed',lang==='en');
+  const fs=document.getElementById('fsrc'); fs.innerHTML=''; FSRC.forEach(s=>{const li=document.createElement('li');li.textContent=s;fs.appendChild(li)});
+  // options
+  document.querySelectorAll('.opts').forEach(box=>{
+    const n=box.dataset.name; box.innerHTML='';
+    Q[n].forEach(([v,fn])=>{
+      const id=`o-${n}-${v}`; const d=document.createElement('div'); d.className='opt';
+      d.innerHTML=`<input type="radio" name="${n}" id="${id}" value="${v}"><label for="${id}"></label>`;
+      d.querySelector('label').textContent=fn(); box.appendChild(d);
+    });
+  });
+  const pr=document.getElementById('presets'); pr.innerHTML='';
+  Object.entries(PRESETS).forEach(([k,p])=>{const b=document.createElement('button');b.type='button';b.textContent=p.n();b.addEventListener('click',()=>applyPreset(k,true));pr.appendChild(b)});
+  const utm=`utm_source=${encodeURIComponent(src||'directo')}&utm_medium=simulacro&utm_campaign=simulacro`;
+  const nb=document.getElementById('nextBook'); nb.href='https://meetings.hubspot.com/dalia-platt?'+utm;
+  const np=document.getElementById('nextPage'); np.href='https://bitcoinsovereign.academy/dalia/?'+utm;
+}
+function applyPreset(k,user){
+  presetKey=k; revealKey='';
+  A=Object.assign({},DEFAULT,{j:A.j},PRESETS[k].a);
+  touched=!!user; render();
+  if(user) document.getElementById('presetBanner').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function render(){
+  const v=vis(A);
+  Object.keys(A).forEach(n=>{const el=document.getElementById(`o-${n}-${A[n]}`); if(el) el.checked=true;});
+  document.getElementById('f-c').hidden=!v.c;
+  document.getElementById('f-s').hidden=!v.s;
+  document.getElementById('f-h').hidden=!v.h;
+  document.getElementById('exampleNote').hidden=touched||!!presetKey||!!revealKey;
+  const [g,gt]=gap(A); const pill=document.getElementById('gapPill');
+  pill.className='pill '+g; pill.textContent=({alto:t('Riesgo alto','High risk'),medio:t('Riesgo medio','Medium risk'),bajo:t('Riesgo bajo','Low risk')})[g];
+  document.getElementById('gapText').textContent=gt;
+  document.getElementById('v1').textContent=layerRight(A);
+  document.getElementById('v2').textContent=layerTitle(A);
+  document.getElementById('v3').textContent=layerSign(A);
+  const S=steps(A); const ol=document.getElementById('steps'); ol.innerHTML='';
+  S.forEach((s,i)=>{const li=document.createElement('li'); if(s.f) li.className='flag';
+    li.innerHTML=`<span class="n">${i+1}</span><div><h3></h3><p></p></div>`;
+    li.querySelector('h3').textContent=s.t;
+    if(s.f){const tg=document.createElement('span');tg.className='flagtag';tg.textContent=t('Punto de falla','Point of failure');li.querySelector('h3').appendChild(tg);}
+    li.querySelector('p').textContent=s.b; ol.appendChild(li);});
+  const L=LAW[A.j];
+  document.getElementById('lawCard').hidden=(A.e!=='fallecimiento');
+  document.getElementById('lawTitle').textContent=L.n();
+  const box=document.getElementById('shareBox');
+  const cap=L.cap(); box.hidden=(L.share===null&&!cap);
+  box.querySelector('.track').hidden=box.querySelector('.ticks').hidden=(L.share===null);
+  if(L.share!==null) document.getElementById('shareFill').style.width=(L.share/0.75*100)+'%';
+  document.getElementById('shareCaption').textContent=cap;
+  document.getElementById('lawBody').textContent=L.b();
+  document.getElementById('lawSrc').textContent=L.s?t('Fuente: ','Source: ')+L.s:'';
+  document.getElementById('memo').textContent=memo(A,S);
+  // preset banner
+  const pb=document.getElementById('presetBanner');
+  if(presetKey){pb.hidden=false;pb.innerHTML=`<span class="label"></span><p class="case"></p>`;pb.querySelector('.label').textContent=t('Caso cargado','Case loaded')+': '+PRESETS[presetKey].n();pb.querySelector('.case').textContent=PRESETS[presetKey].d();}
+  else pb.hidden=true;
+  // reveal
+  const rv=document.getElementById('reveal');
+  if(revealKey){
+    const ANS={r1:t('Sus tres hijos, juntos','The three children, together'),r2:t('El albacea o el heredero que designe el juez','The executor, or the heir the court appoints'),r3:t('Cualquiera que abra el sobre, sin necesitar a nadie más','Anyone who opens the envelope, with no one else needed'),r4:t('Nadie, hasta que haya sentencia','No one, until there is a court decision')};
+    rv.hidden=false;
+    rv.innerHTML=`<span class="label"></span><p class="case"></p><p><b></b> <span class="ch"></span></p><p class="ans"><b></b> <span></span></p><p class="tail"></p>`;
+    rv.querySelector('.label').textContent=t('La pregunta del correo','The question from the email');
+    rv.querySelector('.case').textContent=t('Un cliente falleció anoche. Su bitcoin estaba en una billetera de una sola llave y la semilla, en un sobre cerrado en su estudio. Tiene tres hijos y un testamento que los nombra por partes iguales. ¿Quién podría, de hecho, mover ese bitcoin esta mañana?','A client died last night. His bitcoin was in a single-key wallet and the seed in a sealed envelope in his study. He has three children and a will naming them in equal shares. Who could, in fact, move that bitcoin this morning?');
+    rv.querySelector('p:nth-of-type(2) b').textContent=t('Usted eligió:','You chose:');
+    rv.querySelector('.ch').textContent=ANS[revealKey];
+    rv.querySelector('.ans b').textContent=t('Lo que pasa en la práctica:','What happens in practice:');
+    rv.querySelector('.ans span').textContent=t('cualquiera que abra el sobre puede moverlo, sin necesitar a nadie más (salvo que la semilla tenga una frase de contraseña adicional). El testamento, el albacea y la futura sentencia dicen quién tiene derecho a recibirlo. Ninguno de ellos firma. Y quien tuviera acceso al sobre podía hacerlo también antes del fallecimiento.','anyone who opens the envelope can move it, with no one else needed (unless the seed has an extra passphrase). The will, the executor and the eventual court decision say who is entitled to it. None of them signs. And whoever had access to the envelope could have done the same before the death.');
+    rv.querySelector('.tail').textContent=t('Abajo está el mismo caso, ya cargado. Pruebe también los otros casos.','The same case is loaded below. Try the other cases too.');
+  } else rv.hidden=true;
+}
+
+document.getElementById('form').addEventListener('change',e=>{if(e.target.name){A[e.target.name]=e.target.value;touched=true;presetKey='';revealKey='';render();}});
+document.getElementById('form').addEventListener('submit',e=>e.preventDefault());
+document.getElementById('btn-es').addEventListener('click',()=>{lang='es';setT();render();});
+document.getElementById('btn-en').addEventListener('click',()=>{lang='en';setT();render();});
+document.getElementById('copyBtn').addEventListener('click',()=>{
+  const txt=document.getElementById('memo').textContent, st=document.getElementById('copyStatus');
+  const sel=()=>{const r=document.createRange();r.selectNodeContents(document.getElementById('memo'));const s=window.getSelection();s.removeAllRanges();s.addRange(r);st.textContent=t('Seleccionada: cópiela con Ctrl+C o Cmd+C.','Selected: copy it with Ctrl+C or Cmd+C.');};
+  try{navigator.clipboard.writeText(txt).then(()=>{st.textContent=t('Copiada. Péguela en un correo a su abogado.','Copied. Paste it into an email to your lawyer.')}).catch(sel);}catch(e){sel();}
+});
+
+/* Hash tokens, joined by dots: es|en, pro, a country code, r1..r4 (email answer), a case (sobre, hermanos, sociedad, etf, tesorera), src-<source>. Example: #en.pro.fl.src-ftl */
+function readHash(){
+  const toks=(location.hash||'').replace(/^#/,'').toLowerCase().split('.').filter(Boolean);
+  if(toks.includes('en')) lang='en'; else if(toks.includes('es')) lang='es';
+  const s=toks.find(x=>x.startsWith('src-')); src=s?s.slice(4).replace(/[^a-z0-9_-]/g,''):src;
+  document.getElementById('pro').hidden=!toks.includes('pro');
+  const j=toks.find(x=>LAW[x]); if(j) A.j=j;
+  setT();
+  const r=toks.find(x=>/^r[1-4]$/.test(x));
+  const p=toks.find(x=>PRESETS[x]);
+  if(r){ presetKey=''; revealKey=r; A=Object.assign({},DEFAULT,{j:A.j},PRESETS.sobre.a); render(); return; }
+  if(p){ applyPreset(p,false); return; }
+  render();
+}
+window.addEventListener('hashchange',readHash);
+readHash();
+})();
+</script>
+</body>
+</html>
